@@ -127,6 +127,8 @@ def test_fmpz_mat():
     assert a.table() == [[1,2,3],[4,5,6]]
     assert (a + b).entries() == [5,7,9,11,13,15]
     assert raises(a.det, ValueError)
+    assert +a == a
+    assert -a == M(2,3,[-1,-2,-3,-4,-5,-6])
     c = M(2,2,[1,2,3,4])
     assert c.det() == -2
     assert raises(lambda: a + c, ValueError)
@@ -251,6 +253,8 @@ def test_fmpq_mat():
     assert Q(2,3,[1,2,3,4,5,6]) * Q(3,2,[4,5,6,7,8,9]) == Q(2,2,[40,46,94,109])
     assert Q(2,3,[1,2,3,4,5,6]) * Z(3,2,[4,5,6,7,8,9]) == Q(2,2,[40,46,94,109])
     assert Z(2,3,[1,2,3,4,5,6]) * Q(3,2,[4,5,6,7,8,9]) == Q(2,2,[40,46,94,109])
+    assert -Q(2,1,[2,5]) == Q(2,1,[-2,-5])
+    assert +Q(1,1,[3]) == Z(1,1,[3])
     assert Q(1,2,[3,4]) * 2 == Q(1,2,[6,8])
     assert Q(1,2,[3,4]) * flint.fmpq(1,3) == Q(1,2,[1,flint.fmpq(4,3)])
     assert Q(1,2,[3,4]) * flint.fmpq(5,3) == Q(1,2,[5,flint.fmpq(20,3)])
@@ -329,6 +333,48 @@ def test_nmod_poly():
     assert P([1,2,3,4,5],17) % P([2,3,4],17) == P([12,12],17)
     assert P([1,2,3,4,5],17) // P([2,3,4],17) == P([3,16,14],17)
     assert P([1,2,3,4,5],17) ** 2 == P([1,2,3,4,5],17) * P([1,2,3,4,5],17)
+    assert P([1,2,3],17) * flint.nmod(3,17) == P([3,6,9],17)
+
+def test_nmod_mat():
+    M = flint.nmod_mat
+    G = flint.nmod
+    Z = flint.fmpz_mat
+    a = M(2,3,[1,2,3,4,5,6],17)
+    b = M(2,3,[4,5,6,7,8,9],17)
+    assert a == a
+    assert a == M(a)
+    assert a != b
+    assert a.nrows() == 2
+    assert a.ncols() == 3
+    assert a.entries() == [G(x,17) for x in [1,2,3,4,5,6]]
+    assert a.table() == [[G(x,17) for x in [1,2,3]], [G(x,17) for x in [4,5,6]]]
+    assert (a + b).entries() == [G(x,17) for x in [5,7,9,11,13,15]]
+    assert raises(a.det, ValueError)
+    assert +a == a
+    assert -a == M(2,3,[-1,-2,-3,-4,-5,-6],17)
+    c = M(2,2,[1,2,3,4],17)
+    assert c.det() == G(-2,17)
+    assert raises(lambda: a + c, ValueError)
+    assert (a * 3).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
+    assert (3 * a).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
+    assert (a * 3L).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
+    assert (3L * a).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
+    assert (a * flint.fmpz(3)).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
+    assert (flint.fmpz(3) * a).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
+    assert M(2,2,[1,1,2,2],17).rank() == 1
+    A = M(5,3,Z.randbits(5,3,5).entries(),17)
+    B = M(3,7,Z.randtest(3,7,5).entries(),17)
+    C = M(7,2,Z.randtest(7,2,5).entries(),17)
+    assert A*(B*C) == (A*B)*C
+    assert bool(M(2,2,[0,0,0,0],17)) == False
+    assert bool(M(2,2,[0,0,0,1],17)) == True
+    assert repr(M(2,2,[1,2,3,4],17)) == 'nmod_mat(2, 2, [1L, 2L, 3L, 4L], 17)'
+    assert str(M(2,2,[1,2,3,4],17)) == '[1, 2]\n[3, 4]'
+    assert M(1,2,[3,4],17) / 3 == M(1,2,[3,4],17) * (~G(3,17))
+    assert (~M(2,2,[1,2,3,4], 17)).det() == ~(M(2,2,[1,2,3,4], 17).det())
+    assert ~~M(2,2,[1,2,3,4], 17) == M(2,2,[1,2,3,4], 17)
+    assert M(2,2,[0,1,2,3],17) * M(2, 2, [2,3,4,5], 17) == M(2,2,[4,5,16,4],17)
+
 
 if __name__ == "__main__":
     sys.stdout.write("test_fmpz..."); test_fmpz(); print("OK")
@@ -339,4 +385,5 @@ if __name__ == "__main__":
     sys.stdout.write("test_fmpq_mat..."); test_fmpq_mat(); print("OK")
     sys.stdout.write("test_nmod..."); test_nmod(); print("OK")
     sys.stdout.write("test_nmod_poly..."); test_nmod_poly(); print("OK")
+    sys.stdout.write("test_nmod_mat..."); test_nmod_mat(); print("OK")
 

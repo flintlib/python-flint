@@ -224,8 +224,14 @@ cdef int any_as_nmod(mp_limb_t * val, obj, nmod_t mod) except -1:
 
 cdef any_as_nmod_poly(obj, nmod_t mod):
     cdef nmod_poly r
+    cdef mp_limb_t v
     if typecheck(obj, nmod_poly):
         return obj
+    if any_as_nmod(&v, obj, mod):
+        r = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init(r.val, mod.n)
+        nmod_poly_set_coeff_ui(r.val, 0, v)
+        return r
     x = any_as_fmpz_poly(obj)
     if x is not NotImplemented:
         r = nmod_poly.__new__(nmod_poly)
@@ -248,6 +254,19 @@ cdef nmod_poly_set_list(nmod_poly_t poly, list val):
         else:
             raise TypeError("unsupported coefficient in list")
 
+cdef any_as_nmod_mat(obj, nmod_t mod):
+    cdef nmod_mat r
+    cdef mp_limb_t v
+    if typecheck(obj, nmod_mat):
+        return obj
+    x = any_as_fmpz_mat(obj)
+    if x is not NotImplemented:
+        r = nmod_mat.__new__(nmod_mat)
+        nmod_mat_init(r.val, fmpz_mat_nrows((<fmpz_mat>x).val),
+                             fmpz_mat_ncols((<fmpz_mat>x).val), mod.n)
+        fmpz_mat_get_nmod_mat(r.val, (<fmpz_mat>x).val)
+        return r
+    return NotImplemented
 
 #----------------------------------------------------------------------------#
 #                                                                            #
@@ -762,6 +781,14 @@ cdef class fmpz_mat:
         d = fmpz.__new__(fmpz)
         fmpz_mat_det(d.val, self.val)
         return d
+
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        cdef fmpz_mat t = fmpz_mat(self)
+        fmpz_mat_neg(t.val, t.val)   # XXX
+        return t
 
     def __add__(s, t):
         cdef fmpz_mat u
@@ -1389,6 +1416,14 @@ cdef class fmpq_mat:
         fmpq_mat_det(d.val, self.val)
         return d
 
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        cdef fmpq_mat t = fmpq_mat(self)
+        fmpq_mat_neg(t.val, t.val)     # XXX
+        return t
+
     def __add__(s, t):
         cdef fmpq_mat u
         cdef fmpq_mat_struct *sval, *tval
@@ -1642,6 +1677,8 @@ cdef class nmod:
         r.val = x
         return r
 
+    def __invert__(self):
+        return (1 / self)   # XXX: speed up
 
 
 #----------------------------------------------------------------------------#
@@ -1813,7 +1850,7 @@ cdef class nmod_poly:
             if s is NotImplemented:
                 return s
         if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
-            raise ValueError("cannot multiply nmod_polys with different moduli")
+            raise ValueError("cannot divide nmod_polys with different moduli")
         if nmod_poly_is_zero((<nmod_poly>t).val):
             raise ZeroDivisionError("polynomial division by zero")
         r = nmod_poly.__new__(nmod_poly)
@@ -1832,7 +1869,7 @@ cdef class nmod_poly:
             if s is NotImplemented:
                 return s
         if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
-            raise ValueError("cannot multiply nmod_polys with different moduli")
+            raise ValueError("cannot divide nmod_polys with different moduli")
         if nmod_poly_is_zero((<nmod_poly>t).val):
             raise ZeroDivisionError("polynomial division by zero")
         P = nmod_poly.__new__(nmod_poly)
@@ -1853,3 +1890,249 @@ cdef class nmod_poly:
         nmod_poly_init_preinv(res.val, (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
         nmod_poly_pow(res.val, self.val, exp)
         return res
+
+
+#----------------------------------------------------------------------------#
+#                                                                            #
+#                               nmod_mat                                     #
+#                                                                            #
+#----------------------------------------------------------------------------#
+
+cdef class nmod_mat:
+
+    cdef nmod_mat_t val
+
+    def __dealloc__(self):
+        nmod_mat_clear(self.val)
+
+    def __init__(self, *args):
+        cdef long m, n, i, j
+        cdef mp_limb_t mod
+        if len(args) == 1:
+            val = args[0]
+            if typecheck(val, nmod_mat):
+                nmod_mat_init_set(self.val, (<nmod_mat>val).val)
+                return
+        mod = args[-1]
+        args = args[:-1]
+        if mod == 0:
+            raise ValueError("modulus must be nonzero")
+        if len(args) == 1:
+            val = args[0]
+            if typecheck(val, fmpz_mat):
+                nmod_mat_init(self.val, fmpz_mat_nrows((<fmpz_mat>val).val),
+                    fmpz_mat_ncols((<fmpz_mat>val).val), mod)
+                fmpz_mat_get_nmod_mat(self.val, (<fmpz_mat>val).val)
+            else:
+                raise TypeError("cannot create nmod_mat from input of type %s" % type(val))
+        elif len(args) == 2:
+            m, n = args
+            nmod_mat_init(self.val, m, n, mod)
+        elif len(args) == 3:
+            m, n, entries = args
+            nmod_mat_init(self.val, m, n, mod)
+            entries = list(entries)
+            if len(entries) != m*n:
+                raise ValueError("list of entries has the wrong length")
+            for i from 0 <= i < m:
+                for j from 0 <= j < n:
+                    x = nmod(entries[i*n + j], mod)         # XXX: slow
+                    self.val.rows[i][j] = (<nmod>x).val
+        else:
+            raise ValueError("nmod_mat: expected 1-3 arguments plus modulus")
+
+    def __nonzero__(self):
+        return not nmod_mat_is_zero(self.val)
+
+    def __richcmp__(s, t, int op):
+        cdef mp_limb_t v
+        cdef bint res
+        if op != 2 and op != 3:
+            raise TypeError("matrices cannot be ordered")
+        if typecheck(s, nmod_mat) and typecheck(t, nmod_mat):
+            if (<nmod_mat>s).val.mod.n != (<nmod_mat>t).val.mod.n:
+                res = False
+            else:
+                res = nmod_mat_equal((<nmod_mat>s).val, (<nmod_mat>t).val)
+            if op == 2:
+                return res
+            if op == 3:
+                return not res
+        return NotImplemented
+
+    cpdef long nrows(self):
+        return nmod_mat_nrows(self.val)
+
+    cpdef long ncols(self):
+        return nmod_mat_ncols(self.val)
+
+    cpdef mp_limb_t modulus(self):
+        return self.val.mod.n
+
+    def __repr__(self):
+        return "nmod_mat(%i, %i, %s, %i)" % (self.nrows(), self.ncols(),
+            map(int, self.entries()), self.modulus())
+
+    def __str__(self):
+        return matrix_to_str(self.table())
+
+    def entries(self):
+        cdef long i, j, m, n
+        cdef nmod t
+        m = self.nrows()
+        n = self.ncols()
+        L = [None] * (m * n)
+        for i from 0 <= i < m:
+            for j from 0 <= j < n:
+                # XXX
+                t = nmod(nmod_mat_entry(self.val, i, j), self.val.mod.n)
+                L[i*n + j] = t
+        return L
+
+    def table(self):
+        cdef long i, m, n
+        m = self.nrows()
+        n = self.ncols()
+        L = self.entries()
+        return [L[i*n:(i+1)*n] for i in range(m)]
+
+    def __getitem__(self, index):
+        cdef long i, j
+        cdef nmod x
+        i, j = index
+        if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
+            raise ValueError("index %i,%i exceeds matrix dimensions" % (i, j))
+        x = nmod(nmod_mat_entry(self.val, i, j), self.modulus()) # XXX: slow
+        return x
+
+    def __setitem__(self, index, value):
+        cdef long i, j
+        cdef mp_limb_t v
+        i, j = index
+        if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
+            raise ValueError("index %i,%i exceeds matrix dimensions" % (i, j))
+        if any_as_nmod(&v, value, self.val.mod):
+            self.val.rows[i][j] = v
+        else:
+            raise ValueError("cannot set item of type %s" % type(value))
+
+    def det(self):
+        if not nmod_mat_is_square(self.val):
+            raise ValueError("matrix must be square")
+        return nmod(nmod_mat_det(self.val), self.modulus())
+
+    def rank(self):
+        return nmod_mat_rank(self.val)
+
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        cdef nmod_mat r = nmod_mat(self)   # XXX
+        nmod_mat_neg(r.val, r.val)
+        return r
+
+    def __add__(s, t):
+        cdef nmod_mat r
+        cdef nmod_mat_struct *sv, *tv
+        if typecheck(s, nmod_mat):
+            sv = (<nmod_mat>s).val
+            t = any_as_nmod_mat(t, sv.mod)
+            if t is NotImplemented:
+                return t
+            tv = (<nmod_mat>t).val
+        else:
+            tv = (<nmod_mat>t).val
+            s = any_as_nmod_mat(s, tv.mod)
+            if s is NotImplemented:
+                return s
+            sv = (<nmod_mat>s).val
+        if sv.mod.n != tv.mod.n:
+            raise ValueError("cannot add nmod_mats with different moduli")
+        if sv.r != tv.r or sv.c != tv.c:
+            raise ValueError("incompatible shapes for matrix addition")
+        r = nmod_mat.__new__(nmod_mat)
+        nmod_mat_init(r.val, sv.r, sv.c, sv.mod.n)
+        nmod_mat_add(r.val, sv, tv)
+        return r
+
+    def __sub__(s, t):
+        cdef nmod_mat r
+        cdef nmod_mat_struct *sv, *tv
+        if typecheck(s, nmod_mat):
+            sv = (<nmod_mat>s).val
+            t = any_as_nmod_mat(t, sv.mod)
+            if t is NotImplemented:
+                return t
+            tv = (<nmod_mat>t).val
+        else:
+            tv = (<nmod_mat>t).val
+            s = any_as_nmod_mat(s, tv.mod)
+            if s is NotImplemented:
+                return s
+            sv = (<nmod_mat>s).val
+        if sv.mod.n != tv.mod.n:
+            raise ValueError("cannot subtract nmod_mats with different moduli")
+        if sv.r != tv.r or sv.c != tv.c:
+            raise ValueError("incompatible shapes for matrix subtraction")
+        r = nmod_mat.__new__(nmod_mat)
+        nmod_mat_init(r.val, sv.r, sv.c, sv.mod.n)
+        nmod_mat_sub(r.val, sv, tv)
+        return r
+
+    cdef __mul_nmod(self, mp_limb_t c):
+        cdef nmod_mat r = nmod_mat.__new__(nmod_mat)
+        nmod_mat_init(r.val, self.val.r, self.val.c, self.val.mod.n)
+        nmod_mat_scalar_mul(r.val, self.val, c)
+        return r
+
+    def __mul__(s, t):
+        cdef nmod_mat r
+        cdef nmod_mat_struct *sv, *tv
+        cdef mp_limb_t c
+        if typecheck(s, nmod_mat):
+            sv = (<nmod_mat>s).val
+            u = any_as_nmod_mat(t, sv.mod)
+            if u is NotImplemented:
+                if any_as_nmod(&c, t, sv.mod):
+                    return (<nmod_mat>s).__mul_nmod(c)
+                return NotImplemented
+            tv = (<nmod_mat>u).val
+        else:
+            tv = (<nmod_mat>t).val
+            u = any_as_nmod_mat(s, tv.mod)
+            if u is NotImplemented:
+                if any_as_nmod(&c, s, tv.mod):
+                    return (<nmod_mat>t).__mul_nmod(c)
+                return NotImplemented
+            sv = (<nmod_mat>u).val
+        if sv.mod.n != tv.mod.n:
+            raise ValueError("cannot multiply nmod_mats with different moduli")
+        if sv.c != tv.r:
+            raise ValueError("incompatible shapes for matrix multiplication")
+        r = nmod_mat.__new__(nmod_mat)
+        nmod_mat_init(r.val, sv.r, tv.c, sv.mod.n)
+        nmod_mat_mul(r.val, sv, tv)
+        return r
+
+    def __div__(nmod_mat s, t):
+        cdef mp_limb_t v
+        if not any_as_nmod(&v, t, s.val.mod):
+            return NotImplemented
+        t = nmod(v, s.val.mod.n)
+        return s * (~t)
+
+    # __truediv__ = __div__ doesn't seem to work?
+    def __truediv__(nmod_mat s, t):
+        return nmod_mat.__div__(s, t)
+
+    def __invert__(self):
+        cdef nmod_mat u
+        if not nmod_mat_is_square(self.val):
+            raise ValueError("matrix must be square")
+        u = nmod_mat.__new__(nmod_mat)
+        nmod_mat_init(u.val, nmod_mat_nrows(self.val),
+            nmod_mat_ncols(self.val), self.val.mod.n)
+        if not nmod_mat_inv(u.val, self.val):
+            raise ZeroDivisionError("matrix is singular")
+        return u

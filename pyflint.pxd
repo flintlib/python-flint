@@ -24,3 +24,6 @@ cdef class nmod:
 
 cdef class nmod_poly:
     cdef nmod_poly_t val
+
+cdef class nmod_mat:
+    cdef nmod_mat_t val
