@@ -1,6 +1,9 @@
 Python wrapper for FLINT - Fast Library for Number Theory
 http://www.flintlib.org/
 
+For documentation, see:
+http://fredrik-johansson.github.com/python-flint/
+
 License: modified BSD
 
 Repository: https://github.com/fredrik-johansson/python-flint/
