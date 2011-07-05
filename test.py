@@ -1,5 +1,6 @@
 import sys
 import flint
+import operator
 
 def raises(f, exception):
     try:
@@ -50,6 +51,8 @@ def test_fmpz():
     assert isinstance(long(flint.fmpz(2)), long)
     assert repr(flint.fmpz(0)) == "fmpz(0)"
     assert repr(flint.fmpz(-27)) == "fmpz(-27)"
+    assert bool(flint.fmpz(0)) == False
+    assert bool(flint.fmpz(1)) == True
 
 def test_fmpz_poly():
     Z = flint.fmpz_poly
@@ -105,6 +108,11 @@ def test_fmpz_poly():
     assert p.degree() == 1
     assert p.coeffs() == [3,2]
     assert Z([]).coeffs() == []
+    assert bool(Z([])) == False
+    assert bool(Z([1])) == True
+    assert repr(Z([1,2])) == "fmpz_poly([1, 2])"
+    assert str(Z([1,2])) == "2*x+1"
+
 
 def test_fmpz_mat():
     M = flint.fmpz_mat
@@ -133,9 +141,139 @@ def test_fmpz_mat():
     B = M.randtest(3,7,3)
     C = M.randtest(7,2,4)
     assert A*(B*C) == (A*B)*C
+    assert bool(M(2,2,[0,0,0,0])) == False
+    assert bool(M(2,2,[0,0,0,1])) == True
+    assert repr(M(2,2,[1,2,3,4])) == 'fmpz_mat(2, 2, [1, 2, 3, 4])'
+    assert str(M(2,2,[1,2,3,4])) == '[1, 2]\n[3, 4]'
+    assert M(1,2,[3,4]) * flint.fmpq(1,3) == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
+    assert flint.fmpq(1,3) * M(1,2,[3,4]) == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
+    assert M(1,2,[3,4]) / 3 == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
+    assert (~M(2,2,[1,2,3,4])).det() == flint.fmpq(1) / M(2,2,[1,2,3,4]).det()
+    assert ~~M(2,2,[1,2,3,4]) == M(2,2,[1,2,3,4])
+
+def test_fmpq():
+    Q = flint.fmpq
+    assert Q() == Q(0)
+    assert Q(0) != Q(1)
+    assert Q(0) == 0
+    assert 0 == Q(0)
+    assert Q(2) != 1
+    assert 1 != Q(2)
+    assert Q(1,2) != 1
+    assert Q(2,3) == Q(flint.fmpz(2),3L)
+    assert Q(-2,-4) == Q(1,2)
+    assert bool(Q(0)) == False
+    assert bool(Q(1)) == True
+    assert Q(1,3) + Q(2,3) == 1
+    assert Q(1,3) - Q(2,3) == Q(-1,3)
+    assert Q(1,3) * Q(2,3) == Q(2,9)
+    assert Q(1,3) + 2 == Q(7,3)
+    assert 2 + Q(1,3) == Q(7,3)
+    assert Q(1,3) - 2 == Q(-5,3)
+    assert 2 - Q(1,3) == Q(5,3)
+    assert Q(1,3) * 2 == Q(2,3)
+    assert 2 * Q(1,3) == Q(2,3)
+    assert Q(2,3) / Q(4,5) == Q(5,6)
+    assert Q(2,3) / 5 == Q(2,15)
+    assert Q(2,3) / flint.fmpz(5) == Q(2,15)
+    assert 5 / Q(2,3) == Q(15,2)
+    assert flint.fmpz(5) / Q(2,3) == Q(15,2)
+    assert operator.truediv(Q(2,3), 5) == Q(2,15)
+    assert repr(Q(-2,3)) == "fmpq(-2,3)"
+    assert str(Q(-2,3)) == "-2/3"
+    assert Q(2,3).p == Q(2,3).numer() == 2
+    assert Q(2,3).q == Q(2,3).denom() == 3
+    assert +Q(5,7) == Q(5,7)
+    assert -Q(5,7) == Q(-5,7)
+    assert -Q(-5,7) == Q(5,7)
+    assert abs(Q(5,7)) == Q(5,7)
+    assert abs(-Q(5,7)) == Q(5,7)
+    assert raises(lambda: Q(1,0), ZeroDivisionError)
+    assert raises(lambda: Q(1,2) / Q(0), ZeroDivisionError)
+    assert raises(lambda: Q(1,2) / 0, ZeroDivisionError)
+
+def test_fmpq_poly():
+    Q = flint.fmpq_poly
+    Z = flint.fmpz_poly
+    assert Q() == Q([]) == Q([0]) == Q([0,0])
+    assert Q() != Q([1])
+    assert Q([1]) == Q([1])
+    assert bool(Q()) == False
+    assert bool(Q([1])) == True
+    assert Q(Q([1,2])) == Q([1,2])
+    assert Q(Z([1,2])) == Q([1,2])
+    assert Q([1,2]) + 3 == Q([4,2])
+    assert 3 + Q([1,2]) == Q([4,2])
+    assert Q([1,2]) - 3 == Q([-2,2])
+    assert 3 - Q([1,2]) == Q([2,-2])
+    assert -Q([1,2]) == Q([-1,-2])
+    assert Q([flint.fmpq(1,2),1]) * 2 == Q([1,2])
+    assert Q([1,2]) == Z([1,2])
+    assert Z([1,2]) == Q([1,2])
+    assert Q([1,2]) != Z([3,2])
+    assert Z([1,2]) != Q([3,2])
+    assert Q([1,2,3])*Q([1,2]) == Q([1,4,7,6])
+    assert Q([1,2,3])*Z([1,2]) == Q([1,4,7,6])
+    assert Q([1,2,3]) * 3 == Q([3,6,9])
+    assert 3 * Q([1,2,3]) == Q([3,6,9])
+    assert Q([1,2,3]) * flint.fmpq(2,3) == (Q([1,2,3]) * 2) / 3
+    assert flint.fmpq(2,3) * Q([1,2,3]) == (Q([1,2,3]) * 2) / 3
+    assert raises(lambda: Q([1,2]) / Q([1,2]), TypeError)
+    assert Q([1,2,3]) / flint.fmpq(2,3) == Q([1,2,3]) * flint.fmpq(3,2)
+    assert Q([1,2,3]) ** 2 == Q([1,2,3]) * Q([1,2,3])
+    assert Q([1,2,flint.fmpq(1,2)]).coeffs() == [1,2,flint.fmpq(1,2)]
+    assert Q().coeffs() == []
+    assert Q().degree() == -1
+    assert Q([1]).degree() == 0
+    assert Q([1,2]).degree() == 1
+    assert Q().length() == 0
+    assert Q([1]).length() == 1
+    assert Q([1,2]).length() == 2
+    assert (Q([1,2,3]) / 5).numer() == (Q([1,2,3]) / 5).p == Z([1,2,3])
+    assert (Q([1,2,3]) / 5).denom() == (Q([1,2,3]) / 5).q == 5
+    assert repr(Q([15,20,10]) / 25) == "fmpq_poly([3, 4, 2], 5)"
+    assert str(Q([3,4,2],5)) == "2/5*x^2 + 4/5*x + 3/5"
+    a = Q([2,2,3],4)
+    assert a[2] == flint.fmpq(3,4)
+    a[2] = 4
+    assert a == Q([1,1,8],2)
+
+def test_fmpq_mat():
+    Q = flint.fmpq_mat
+    Z = flint.fmpz_mat
+    assert Q(1,2,[3,4]) == Z(1,2,[3,4])
+    assert Q(1,2,[3,4]) != Z(1,2,[5,4])
+    assert Q(1,2,[3,4]) != Q(1,2,[5,4])
+    assert Q(Q(1,2,[3,4])) == Q(1,2,[3,4])
+    assert Q(Z(1,2,[3,4])) == Q(1,2,[3,4])
+    assert Q(2,3,[1,2,3,4,5,6]) + Q(2,3,[4,5,6,7,8,9]) == Q(2,3,[5,7,9,11,13,15])
+    assert Q(2,3,[1,2,3,4,5,6]) - Q(2,3,[4,5,6,7,8,9]) == Q(2,3,[-3,-3,-3,-3,-3,-3])
+    assert Q(2,3,[1,2,3,4,5,6]) * Q(3,2,[4,5,6,7,8,9]) == Q(2,2,[40,46,94,109])
+    assert Q(2,3,[1,2,3,4,5,6]) * Z(3,2,[4,5,6,7,8,9]) == Q(2,2,[40,46,94,109])
+    assert Z(2,3,[1,2,3,4,5,6]) * Q(3,2,[4,5,6,7,8,9]) == Q(2,2,[40,46,94,109])
+    assert Q(1,2,[3,4]) * 2 == Q(1,2,[6,8])
+    assert Q(1,2,[3,4]) * flint.fmpq(1,3) == Q(1,2,[1,flint.fmpq(4,3)])
+    assert Q(1,2,[3,4]) * flint.fmpq(5,3) == Q(1,2,[5,flint.fmpq(20,3)])
+    assert 2 * Q(1,2,[3,4]) == Q(1,2,[6,8])
+    assert flint.fmpq(1,3) * Q(1,2,[3,4]) == Q(1,2,[1,flint.fmpq(4,3)])
+    assert Q(1,2,[3,4]) / 2 == Q(1,2,[flint.fmpq(3,2),2])
+    assert Q(1,2,[3,4]) / flint.fmpq(2,3) == Q(1,2,[flint.fmpq(9,2),6])
+    assert Q(3,2,range(6)).table() == Z(3,2,range(6)).table()
+    assert Q(3,2,range(6)).entries() == Z(3,2,range(6)).entries()
+    assert Q(3,2,range(6)).nrows() == 3
+    assert Q(3,2,range(6)).ncols() == 2
+    assert Q(2,2,[3,7,4,5]).det() == -13
+    assert (Q(2,2,[3,7,4,5]) / 5).det() == flint.fmpq(-13,25)
+    assert raises(lambda: Q(1,2,[1,2]).det(), ValueError)
+    assert ~~Q(2,2,[1,2,3,4]) == Q(2,2,[1,2,3,4])
+    assert raises(lambda: ~Q(2,2,[1,1,1,1]), ZeroDivisionError)
+    assert raises(lambda: ~Q(2,1,[1,1]), ValueError)
 
 if __name__ == "__main__":
     sys.stdout.write("test_fmpz..."); test_fmpz(); print("OK")
     sys.stdout.write("test_fmpz_poly..."); test_fmpz_poly(); print("OK")
     sys.stdout.write("test_fmpz_mat..."); test_fmpz_mat(); print("OK")
+    sys.stdout.write("test_fmpq..."); test_fmpq(); print("OK")
+    sys.stdout.write("test_fmpq_poly..."); test_fmpq_poly(); print("OK")
+    sys.stdout.write("test_fmpq_mat..."); test_fmpq_mat(); print("OK")
 
