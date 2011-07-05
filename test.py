@@ -334,6 +334,7 @@ def test_nmod_poly():
     assert P([1,2,3,4,5],17) // P([2,3,4],17) == P([3,16,14],17)
     assert P([1,2,3,4,5],17) ** 2 == P([1,2,3,4,5],17) * P([1,2,3,4,5],17)
     assert P([1,2,3],17) * flint.nmod(3,17) == P([3,6,9],17)
+    assert str(P([1,2,3],17)) == "3*x^2+2*x+1"
 
 def test_nmod_mat():
     M = flint.nmod_mat

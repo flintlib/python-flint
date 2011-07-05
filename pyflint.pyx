@@ -1755,8 +1755,7 @@ cdef class nmod_poly:
         return "nmod_poly(%s, %s)" % (map(int, self.coeffs()), self.modulus())
 
     def __str__(self):
-        # XXX
-        return str(fmpz_poly(self.coeffs()))
+        return str(fmpz_poly(map(int, self.coeffs())))
 
     def __getitem__(self, long i):
         cdef nmod x
