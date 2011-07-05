@@ -269,6 +269,67 @@ def test_fmpq_mat():
     assert raises(lambda: ~Q(2,2,[1,1,1,1]), ZeroDivisionError)
     assert raises(lambda: ~Q(2,1,[1,1]), ValueError)
 
+def test_nmod():
+    G = flint.nmod
+    assert G(0,2) == G(2,2) == G(-2,2)
+    assert G(1,2) != G(0,2)
+    assert G(0,2) != G(0,3)
+    assert G(3,5) == G(8,5)
+    #assert G(3,5) == 8        # do we want this?
+    #assert 8 == G(3,5)
+    assert G(3,5) != 7
+    assert 7 != G(3,5)
+    assert G(-3,5) == -G(3,5) == G(2,5)
+    assert G(2,5) + G(1,5) == G(3,5)
+    assert G(2,5) + 1 == G(3,5)
+    assert 1 + G(2,5) == G(3,5)
+    assert G(2,5) - G(3,5) == G(4,5)
+    assert G(2,5) - 3 == G(4,5)
+    assert 3 - G(2,5) == G(1,5)
+    assert G(2,5) * G(3,5) == G(1,5)
+    assert G(2,5) * 3 == G(1,5)
+    assert 3 * G(2,5) == G(1,5)
+    assert G(3,17) / G(2,17) == G(10,17)
+    assert G(3,17) / 2 == G(10,17)
+    assert 3 / G(2,17) == G(10,17)
+    assert G(3,17) * flint.fmpq(11,5) == G(10,17)
+    assert G(3,17) / flint.fmpq(11,5) == G(6,17)
+    assert raises(lambda: G(2,5) / G(0,5), ZeroDivisionError)
+    assert raises(lambda: G(2,5) / 0, ZeroDivisionError)
+    assert raises(lambda: G(2,5) + G(2,7), ValueError)
+    assert raises(lambda: G(2,5) - G(2,7), ValueError)
+    assert raises(lambda: G(2,5) * G(2,7), ValueError)
+    assert raises(lambda: G(2,5) / G(2,7), ValueError)
+    assert G(3,17).modulus() == 17
+
+def test_nmod_poly():
+    P = flint.nmod_poly
+    Z = flint.fmpz_poly
+    assert P([],17) == P([0],17)
+    assert P([1,2,3],17) == P([1,2,3],17)
+    assert P([1,2,3],17) != P([1,2,3],15)
+    assert P([1,2,3],17) != P([1,2,4],15)
+    assert P(Z([1,2,3]),17) == P([1,2,3],17)
+    assert P([1,2,flint.nmod(3,17)],17) == P([1,2,3],17)
+    assert raises(lambda: P([1,2,flint.nmod(3,15)],17), ValueError)
+    assert P([1,2,3],17).degree() == 2
+    assert P([1,2,3],17).length() == 3
+    assert P([1,2,3],17) + 2 == P([3,2,3],17)
+    assert 2 + P([1,2,3],17) == P([3,2,3],17)
+    assert P([1,2,3],17) + P([3,4,5],17) == P([4,6,8],17)
+    assert P([1,2,3],17) + P([3,4,5],17) == P([4,6,8],17)
+    assert P([1,2,3],17) - 2 == P([16,2,3],17)
+    assert 2 - P([1,2,3],17) == -P([16,2,3],17)
+    assert P([1,2,3],17) - P([3,4,6],17) == P([15,15,14],17)
+    assert P([1,2,3],17) * 2 == P([2,4,6],17)
+    assert 2 * P([1,2,3],17) == P([2,4,6],17)
+    assert P([1,2,3],17) * P([1,2,3],17) == P([1,4,10,12,9], 17)
+    assert P([1,2,3],17) * Z([1,2,3]) == P([1,4,10,12,9], 17)
+    assert Z([1,2,3]) * P([1,2,3],17) == P([1,4,10,12,9], 17)
+    assert P([1,2,3,4,5],17) % P([2,3,4],17) == P([12,12],17)
+    assert P([1,2,3,4,5],17) // P([2,3,4],17) == P([3,16,14],17)
+    assert P([1,2,3,4,5],17) ** 2 == P([1,2,3,4,5],17) * P([1,2,3,4,5],17)
+
 if __name__ == "__main__":
     sys.stdout.write("test_fmpz..."); test_fmpz(); print("OK")
     sys.stdout.write("test_fmpz_poly..."); test_fmpz_poly(); print("OK")
@@ -276,4 +337,6 @@ if __name__ == "__main__":
     sys.stdout.write("test_fmpq..."); test_fmpq(); print("OK")
     sys.stdout.write("test_fmpq_poly..."); test_fmpq_poly(); print("OK")
     sys.stdout.write("test_fmpq_mat..."); test_fmpq_mat(); print("OK")
+    sys.stdout.write("test_nmod..."); test_nmod(); print("OK")
+    sys.stdout.write("test_nmod_poly..."); test_nmod_poly(); print("OK")
 

@@ -133,7 +133,7 @@ cdef fmpz_poly_set_list(fmpz_poly_t poly, list val):
         elif fmpz_set_python(x, val[i]):
             fmpz_poly_set_coeff_fmpz(poly, i, x)
         else:
-            raise ValueError("unsupported coefficient in list")
+            raise TypeError("unsupported coefficient in list")
     fmpz_clear(x)
 
 cdef inline any_as_fmpz_mat(obj):
@@ -188,7 +188,7 @@ cdef fmpq_poly_set_list(fmpq_poly_t poly, list val):
         if x is not NotImplemented:
             fmpq_poly_set_coeff_fmpq(poly, i, (<fmpq>x).val)
             continue
-        raise ValueError("unsupported coefficient in list")
+        raise TypeError("unsupported coefficient in list")
 
 cdef inline any_as_fmpq_mat(obj):
     if typecheck(obj, fmpq_mat):
@@ -196,6 +196,58 @@ cdef inline any_as_fmpq_mat(obj):
     if typecheck(obj, fmpz_mat):
         return fmpq_mat(obj)
     return NotImplemented
+
+cdef int any_as_nmod(mp_limb_t * val, obj, nmod_t mod) except -1:
+    cdef int success
+    cdef fmpz_t t
+    if typecheck(obj, nmod):
+        if (<nmod>obj).mod.n != mod.n:
+            raise ValueError("cannot coerce integers mod n with different n")
+        val[0] = (<nmod>obj).val
+        return 1
+    z = any_as_fmpz(obj)
+    if z is not NotImplemented:
+        val[0] = fmpz_fdiv_ui((<fmpz>z).val, mod.n)
+        return 1
+    q = any_as_fmpq(obj)
+    if q is not NotImplemented:
+        # XXX: write an fmpq_mod_ui or fmpq_get_nmod in flint
+        fmpz_init(t)
+        fmpz_set_ui(t, mod.n)
+        success = fmpq_mod_fmpz(t, (<fmpq>q).val, t)
+        val[0] = fmpz_get_ui(t)
+        fmpz_clear(t)
+        if not success:
+            raise ZeroDivisionError("%s does not exist mod %i!" % (q, mod.n))
+        return 1
+    return 0
+
+cdef any_as_nmod_poly(obj, nmod_t mod):
+    cdef nmod_poly r
+    if typecheck(obj, nmod_poly):
+        return obj
+    x = any_as_fmpz_poly(obj)
+    if x is not NotImplemented:
+        r = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init(r.val, mod.n)   # XXX: create flint _nmod_poly_set_modulus for this?
+        fmpz_poly_get_nmod_poly(r.val, (<fmpz_poly>x).val)
+        return r
+    return NotImplemented
+
+cdef nmod_poly_set_list(nmod_poly_t poly, list val):
+    cdef long i, n
+    cdef nmod_t mod
+    cdef mp_limb_t v
+    nmod_init(&mod, nmod_poly_modulus(poly)) # XXX
+    n = PyList_GET_SIZE(<PyObject*>val)
+    nmod_poly_fit_length(poly, n)
+    for i from 0 <= i < n:
+        c = val[i]
+        if any_as_nmod(&v, val[i], mod):
+            nmod_poly_set_coeff_ui(poly, i, v)
+        else:
+            raise TypeError("unsupported coefficient in list")
+
 
 #----------------------------------------------------------------------------#
 #                                                                            #
@@ -462,6 +514,7 @@ cdef class fmpz_poly:
 
     def coeffs(self):
         cdef long i, n
+        cdef list L
         n = self.length()
         L = [fmpz() for i in range(n)]
         for i from 0 <= i < n:
@@ -973,7 +1026,18 @@ cdef class fmpq:
 
     # __truediv__ = __div__ doesn't seem to work?
     def __truediv__(s, t):
-        return fmpq.__div__(s, t)
+        cdef fmpq r
+        s = any_as_fmpq(s)
+        if s is NotImplemented:
+            return s
+        t = any_as_fmpq(t)
+        if t is NotImplemented:
+            return t
+        if fmpq_is_zero((<fmpq>t).val):
+            raise ZeroDivisionError("fmpq division by zero")
+        r = fmpq.__new__(fmpq)
+        fmpq_div(r.val, (<fmpq>s).val, (<fmpq>t).val)
+        return r
 
 
 #----------------------------------------------------------------------------#
@@ -1047,6 +1111,7 @@ cdef class fmpq_poly:
 
     def coeffs(self):
         cdef long i, n
+        cdef list L
         n = self.length()
         L = [fmpq() for i in range(n)]
         for i from 0 <= i < n:
@@ -1451,3 +1516,340 @@ cdef class fmpq_mat:
         if not fmpq_mat_inv(u.val, self.val):
             raise ZeroDivisionError("matrix is singular")
         return u
+
+
+#----------------------------------------------------------------------------#
+#                                                                            #
+#                               nmod                                         #
+#                                                                            #
+#----------------------------------------------------------------------------#
+
+cdef class nmod:
+    cdef mp_limb_t val
+    cdef nmod_t mod
+
+    def __init__(self, val, mod):
+        cdef mp_limb_t m
+        m = mod
+        nmod_init(&self.mod, m)
+        if not any_as_nmod(&self.val, val, self.mod):
+            raise TypeError("cannot create nmod from object of type %s" % type(val))
+
+    def __repr__(self):
+        return "nmod(%s, %s)" % (self.val, self.mod.n)
+
+    def __str__(self):
+        return str(self.val)
+
+    def __int__(self):
+        return self.val
+
+    def __long__(self):
+        return self.val
+
+    def modulus(self):
+        return self.mod.n
+
+    def __richcmp__(s, t, int op):
+        cdef mp_limb_t v
+        cdef bint res
+        if op != 2 and op != 3:
+            raise TypeError("nmods cannot be ordered")
+        if typecheck(s, nmod) and typecheck(t, nmod):
+            res = ((<nmod>s).val == (<nmod>t).val) and \
+                  ((<nmod>s).mod.n == (<nmod>t).mod.n)
+            if op == 2:
+                return res
+            else:
+                return not res
+        return NotImplemented
+
+    def __nonzero__(self):
+        return self.val != 0
+
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        cdef nmod r = nmod.__new__(nmod)
+        r.mod = self.mod
+        r.val = nmod_neg(self.val, self.mod)
+        return r
+
+    def __add__(s, t):
+        cdef nmod r
+        cdef mp_limb_t val
+        if not typecheck(s, nmod):
+            s, t = t, s
+        if any_as_nmod(&val, t, (<nmod>s).mod):
+            r = nmod.__new__(nmod)
+            r.mod = (<nmod>s).mod
+            r.val = nmod_add(val, (<nmod>s).val, r.mod)
+            return r
+        return NotImplemented
+
+    def __sub__(s, t):
+        cdef nmod r
+        cdef mp_limb_t val
+        if typecheck(s, nmod):
+            if any_as_nmod(&val, t, (<nmod>s).mod):
+                r = nmod.__new__(nmod)
+                r.mod = (<nmod>s).mod
+                r.val = nmod_sub((<nmod>s).val, val, r.mod)
+                return r
+        else:
+            if any_as_nmod(&val, s, (<nmod>t).mod):
+                r = nmod.__new__(nmod)
+                r.mod = (<nmod>t).mod
+                r.val = nmod_sub(val, (<nmod>t).val, r.mod)
+                return r
+        return NotImplemented
+
+    def __mul__(s, t):
+        cdef nmod r
+        cdef mp_limb_t val
+        if not typecheck(s, nmod):
+            s, t = t, s
+        if any_as_nmod(&val, t, (<nmod>s).mod):
+            r = nmod.__new__(nmod)
+            r.mod = (<nmod>s).mod
+            r.val = nmod_mul(val, (<nmod>s).val, r.mod)
+            return r
+        return NotImplemented
+
+    def __div__(s, t):
+        cdef nmod r
+        cdef mp_limb_t sval, tval, x
+        cdef nmod_t mod
+        if typecheck(s, nmod):
+            mod = (<nmod>s).mod
+            sval = (<nmod>s).val
+            if not any_as_nmod(&tval, t, mod):
+                return NotImplemented
+        else:
+            mod = (<nmod>t).mod
+            tval = (<nmod>t).val
+            if not any_as_nmod(&sval, s, mod):
+                return NotImplemented
+        if tval == 0:
+            raise ZeroDivisionError("%s is not invertible mod %s" % (tval, mod.n))
+        # XXX: check invertibility?
+        x = nmod_div(sval, tval, mod)
+        if x == 0:
+            raise ZeroDivisionError("%s is not invertible mod %s" % (tval, mod.n))
+        r = nmod.__new__(nmod)
+        r.mod = mod
+        r.val = x
+        return r
+
+
+
+#----------------------------------------------------------------------------#
+#                                                                            #
+#                               nmod_poly                                    #
+#                                                                            #
+#----------------------------------------------------------------------------#
+
+cdef class nmod_poly:
+
+    cdef nmod_poly_t val
+
+    #def __cinit__(self):
+
+    def __dealloc__(self):
+        nmod_poly_clear(self.val)
+
+    def __init__(self, val=None, ulong mod=0):
+        cdef ulong m2
+        if typecheck(val, nmod_poly):
+            m2 = nmod_poly_modulus((<nmod_poly>val).val)
+            if m2 != mod:
+                raise ValueError("different moduli!")
+            nmod_poly_init(self.val, m2)
+            nmod_poly_set(self.val, (<nmod_poly>val).val)
+        else:
+            if mod == 0:
+                raise ValueError("a nonzero modulus is required")
+            nmod_poly_init(self.val, mod)
+            if typecheck(val, fmpz_poly):
+                fmpz_poly_get_nmod_poly(self.val, (<fmpz_poly>val).val)
+            elif typecheck(val, list):
+                nmod_poly_set_list(self.val, val)
+            else:
+                raise TypeError("cannot create nmod_poly from input of type %s", type(val))
+
+    cpdef long length(self):
+        return nmod_poly_length(self.val)
+
+    cpdef long degree(self):
+        return nmod_poly_degree(self.val)
+
+    cpdef mp_limb_t modulus(self):
+        return nmod_poly_modulus(self.val)
+
+    def __richcmp__(s, t, int op):
+        cdef mp_limb_t v
+        cdef bint res
+        if op != 2 and op != 3:
+            raise TypeError("nmod_polyss cannot be ordered")
+        if typecheck(s, nmod_poly) and typecheck(t, nmod_poly):
+            if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
+                res = False
+            else:
+                res = nmod_poly_equal((<nmod_poly>s).val, (<nmod_poly>t).val)
+            if op == 2:
+                return res
+            if op == 3:
+                return not res
+        return NotImplemented
+
+    def coeffs(self):
+        cdef long i, n
+        cdef list L
+        cdef mp_limb_t m
+        n = self.length()
+        m = self.modulus()
+        L = [nmod(0,m) for i in range(n)]
+        for i from 0 <= i < n:
+            (<nmod>(L[i])).val = nmod_poly_get_coeff_ui(self.val, i)
+        return L
+
+    def __repr__(self):
+        return "nmod_poly(%s, %s)" % (map(int, self.coeffs()), self.modulus())
+
+    def __str__(self):
+        # XXX
+        return str(fmpz_poly(self.coeffs()))
+
+    def __getitem__(self, long i):
+        cdef nmod x
+        x = nmod(0, self.modulus())
+        if i < 0:
+            return x
+        return nmod_poly_get_coeff_ui(self.val, i)
+
+    def __setitem__(self, long i, x):
+        cdef mp_limb_t v
+        if i < 0:
+            raise ValueError("cannot assign to index < 0 of polynomial")
+        if any_as_nmod(&v, x, self.val.mod):
+            nmod_poly_set_coeff_ui(self.val, i, v)
+        else:
+            raise TypeError("cannot set element of type %s" % type(x))
+
+    def __nonzero__(self):
+        return not nmod_poly_is_zero(self.val)
+
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        cdef nmod_poly r = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(r.val, self.val.mod.n, self.val.mod.ninv)
+        nmod_poly_neg(r.val, self.val)
+        return r
+
+    def __add__(s, t):
+        cdef nmod_poly r
+        if typecheck(s, nmod_poly):
+            t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+            if t is NotImplemented:
+                return t
+        else:
+            s = any_as_nmod_poly(s, (<nmod_poly>t).val.mod)
+            if s is NotImplemented:
+                return s
+        if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
+            raise ValueError("cannot add nmod_polys with different moduli")
+        r = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(r.val, (<nmod_poly>t).val.mod.n, (<nmod_poly>t).val.mod.ninv)
+        nmod_poly_add(r.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
+        return r
+
+    def __sub__(s, t):
+        cdef nmod_poly r
+        if typecheck(s, nmod_poly):
+            t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+            if t is NotImplemented:
+                return t
+        else:
+            s = any_as_nmod_poly(s, (<nmod_poly>t).val.mod)
+            if s is NotImplemented:
+                return s
+        if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
+            raise ValueError("cannot subtract nmod_polys with different moduli")
+        r = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(r.val, (<nmod_poly>t).val.mod.n, (<nmod_poly>t).val.mod.ninv)
+        nmod_poly_sub(r.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
+        return r
+
+    def __mul__(s, t):
+        cdef nmod_poly r
+        if typecheck(s, nmod_poly):
+            t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+            if t is NotImplemented:
+                return t
+        else:
+            s = any_as_nmod_poly(s, (<nmod_poly>t).val.mod)
+            if s is NotImplemented:
+                return s
+        if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
+            raise ValueError("cannot multiply nmod_polys with different moduli")
+        r = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(r.val, (<nmod_poly>t).val.mod.n, (<nmod_poly>t).val.mod.ninv)
+        nmod_poly_mul(r.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
+        return r
+
+    # TODO: __div__, __truediv__
+
+    def __floordiv__(s, t):
+        cdef nmod_poly r
+        if typecheck(s, nmod_poly):
+            t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+            if t is NotImplemented:
+                return t
+        else:
+            s = any_as_nmod_poly(s, (<nmod_poly>t).val.mod)
+            if s is NotImplemented:
+                return s
+        if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
+            raise ValueError("cannot multiply nmod_polys with different moduli")
+        if nmod_poly_is_zero((<nmod_poly>t).val):
+            raise ZeroDivisionError("polynomial division by zero")
+        r = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(r.val, (<nmod_poly>t).val.mod.n, (<nmod_poly>t).val.mod.ninv)
+        nmod_poly_div(r.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
+        return r
+
+    def __divmod__(s, t):
+        cdef nmod_poly P, Q
+        if typecheck(s, nmod_poly):
+            t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+            if t is NotImplemented:
+                return t
+        else:
+            s = any_as_nmod_poly(s, (<nmod_poly>t).val.mod)
+            if s is NotImplemented:
+                return s
+        if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
+            raise ValueError("cannot multiply nmod_polys with different moduli")
+        if nmod_poly_is_zero((<nmod_poly>t).val):
+            raise ZeroDivisionError("polynomial division by zero")
+        P = nmod_poly.__new__(nmod_poly)
+        Q = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(P.val, (<nmod_poly>t).val.mod.n, (<nmod_poly>t).val.mod.ninv)
+        nmod_poly_init_preinv(Q.val, (<nmod_poly>t).val.mod.n, (<nmod_poly>t).val.mod.ninv)
+        nmod_poly_divrem(P.val, Q.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
+        return P, Q
+
+    def __mod__(s, t):
+        return divmod(s, t)[1]      # XXX
+
+    def __pow__(nmod_poly self, ulong exp, mod):
+        cdef nmod_poly res
+        if mod is not None:
+            raise NotImplementedError("nmod_poly modular exponentiation")
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
+        nmod_poly_pow(res.val, self.val, exp)
+        return res
