@@ -1125,7 +1125,7 @@ cdef class fmpq_poly:
     def numer(self):
         cdef fmpz_poly x = fmpz_poly.__new__(fmpz_poly)
         # XXX: relies on type punning
-        fmpz_poly_set(x.val, <fmpz_poly_t>(self.val))
+        fmpz_poly_set(x.val, <fmpz_poly_struct *>(self.val))
         return x
 
     def denom(self):
