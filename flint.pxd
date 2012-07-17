@@ -33,7 +33,7 @@ cdef extern from "nmod_poly.h":
         long alloc
         long length
         nmod_t mod
-    ctypedef nmod_poly_struct * nmod_poly_t
+    ctypedef nmod_poly_struct nmod_poly_t[1]
     void nmod_poly_init(nmod_poly_t poly, mp_limb_t n)
     void nmod_poly_init_preinv(nmod_poly_t poly, mp_limb_t n, mp_limb_t ninv)
     void nmod_poly_init2(nmod_poly_t poly, mp_limb_t n, long alloc)
@@ -67,19 +67,15 @@ cdef extern from "nmod_poly.h":
     void nmod_poly_make_monic(nmod_poly_t output, nmod_poly_t input)
     void nmod_poly_mul(nmod_poly_t res, nmod_poly_t poly1, nmod_poly_t poly2)
     void nmod_poly_mullow(nmod_poly_t res, nmod_poly_t poly1, nmod_poly_t poly2, long trunc)
-    void nmod_poly_mulhigh(nmod_poly_t res, nmod_poly_t poly1, nmod_poly_t poly2, long n)
     void nmod_poly_pow(nmod_poly_t res, nmod_poly_t poly, ulong e)
     void nmod_poly_pow_trunc(nmod_poly_t res, nmod_poly_t poly, ulong e, long trunc)
     void nmod_poly_divrem(nmod_poly_t Q, nmod_poly_t R, nmod_poly_t A, nmod_poly_t B)
     void nmod_poly_div(nmod_poly_t Q, nmod_poly_t A, nmod_poly_t B)
     void nmod_poly_inv_series(nmod_poly_t Qinv, nmod_poly_t Q, long n)
     void nmod_poly_div_series(nmod_poly_t Q, nmod_poly_t A, nmod_poly_t B, long n)
-    mp_limb_t nmod_poly_div_root(nmod_poly_t Q,  nmod_poly_t A, mp_limb_t c)
     void nmod_poly_derivative(nmod_poly_t x_prime, nmod_poly_t x)
     void nmod_poly_integral(nmod_poly_t x_int, nmod_poly_t x)
     mp_limb_t nmod_poly_evaluate_nmod(nmod_poly_t poly, mp_limb_t c)
-    void nmod_poly_evaluate_nmod_vec(mp_ptr ys, nmod_poly_t poly, mp_srcptr xs, long n)
-    void nmod_poly_interpolate_nmod_vec(nmod_poly_t poly, mp_srcptr xs, mp_srcptr ys, long n)
     void nmod_poly_compose(nmod_poly_t res, nmod_poly_t poly1, nmod_poly_t poly2)
     void nmod_poly_gcd(nmod_poly_t G, nmod_poly_t A, nmod_poly_t B)
     void nmod_poly_xgcd(nmod_poly_t G, nmod_poly_t S, nmod_poly_t T, nmod_poly_t A, nmod_poly_t B)
@@ -95,11 +91,8 @@ cdef extern from "nmod_poly.h":
     void nmod_poly_sinh_series(nmod_poly_t g, nmod_poly_t h, long n)
     void nmod_poly_cosh_series(nmod_poly_t g, nmod_poly_t h, long n)
     void nmod_poly_tanh_series(nmod_poly_t g, nmod_poly_t h, long n)
-    void nmod_poly_log_series_monomial_ui(nmod_poly_t res, mp_limb_t coeff, ulong power, long n)
     void nmod_poly_log_series(nmod_poly_t res, nmod_poly_t f, long n)
-    void nmod_poly_exp_series_monomial_ui(nmod_poly_t res, mp_limb_t coeff, ulong power, long n)
     void nmod_poly_exp_series(nmod_poly_t f, nmod_poly_t h, long n)
-    void nmod_poly_product_roots_nmod_vec(nmod_poly_t poly, mp_srcptr xs, long n)
 
 cdef extern from "nmod_mat.h":
     ctypedef struct nmod_mat_struct:
@@ -108,7 +101,7 @@ cdef extern from "nmod_mat.h":
         long c
         mp_limb_t ** rows
         nmod_t mod
-    ctypedef nmod_mat_struct * nmod_mat_t
+    ctypedef nmod_mat_struct nmod_mat_t[1]
     mp_limb_t nmod_mat_entry(nmod_mat_t mat, long i, long j)
     long nmod_mat_nrows(nmod_mat_t mat)
     long nmod_mat_ncols(nmod_mat_t mat)
@@ -151,7 +144,7 @@ cdef extern from "nmod_mat.h":
     long nmod_mat_nullspace(nmod_mat_t X, nmod_mat_t A)
 
 cdef extern from "fmpz.h":
-    ctypedef fmpz_struct* fmpz_t
+    ctypedef fmpz_struct fmpz_t[1]
     int COEFF_IS_MPZ(fmpz_struct v)
     void fmpz_init(fmpz_t op)
     void fmpz_clear(fmpz_t op)
@@ -235,8 +228,11 @@ cdef extern from "fmpz.h":
     void fmpz_set_ui_mod(fmpz_t f, mp_limb_t x, mp_limb_t m)
 
 cdef extern from "fmpz_poly.h":
-    ctypedef struct fmpz_poly_struct
-    ctypedef fmpz_poly_struct* fmpz_poly_t
+    ctypedef struct fmpz_poly_struct:
+        fmpz_struct * coeffs
+        long alloc
+        long length
+    ctypedef fmpz_poly_struct fmpz_poly_t[1]
     void fmpz_poly_init(fmpz_poly_t poly)
     void fmpz_poly_init2(fmpz_poly_t poly, long alloc)
     void fmpz_poly_realloc(fmpz_poly_t poly, long alloc)
@@ -325,8 +321,12 @@ cdef extern from "fmpz_poly.h":
     void fmpz_poly_set_nmod_poly_unsigned(fmpz_poly_t res, nmod_poly_t poly)
 
 cdef extern from "fmpz_mat.h":
-    ctypedef struct fmpz_mat_struct
-    ctypedef fmpz_mat_struct * fmpz_mat_t
+    ctypedef struct fmpz_mat_struct:
+        fmpz_struct * entries
+        long r
+        long c
+        fmpz_struct ** rows
+    ctypedef fmpz_mat_struct fmpz_mat_t[1]
     fmpz_struct * fmpz_mat_entry(fmpz_mat_t mat, long i, long j)
     long fmpz_mat_nrows(fmpz_mat_t mat)
     long fmpz_mat_ncols(fmpz_mat_t mat)
@@ -361,8 +361,10 @@ cdef extern from "fmpz_mat.h":
 
 
 cdef extern from "fmpq.h":
-    ctypedef struct fmpq_struct
-    ctypedef fmpq_struct * fmpq_t
+    ctypedef struct fmpq_struct:
+        fmpz_struct num
+        fmpz_struct den
+    ctypedef fmpq_struct fmpq_t[1]
     fmpz_struct * fmpq_numref(fmpq_t x)
     fmpz_struct * fmpq_denref(fmpq_t x)
     void fmpq_init(fmpq_t x)
@@ -403,8 +405,12 @@ cdef extern from "fmpq.h":
     void fmpq_next_signed_minimal(fmpq_t res, fmpq_t x)
 
 cdef extern from "fmpq_poly.h":
-    ctypedef struct fmpq_poly_struct
-    ctypedef fmpq_poly_struct * fmpq_poly_t
+    ctypedef struct fmpq_poly_struct:
+        fmpz_struct * coeffs
+        fmpz_t den
+        long alloc
+        long length
+    ctypedef fmpq_poly_struct fmpq_poly_t[1]
     void fmpq_poly_init(fmpq_poly_t poly)
     void fmpq_poly_init2(fmpq_poly_t poly, long alloc)
     void fmpq_poly_realloc(fmpq_poly_t poly, long alloc)
@@ -507,8 +513,12 @@ cdef extern from "fmpq_poly.h":
     int fmpq_poly_read(fmpq_poly_t poly)
 
 cdef extern from "fmpq_mat.h":
-    ctypedef struct fmpq_mat_struct
-    ctypedef fmpq_mat_struct * fmpq_mat_t
+    ctypedef struct fmpq_mat_struct:
+        fmpq_struct * entries
+        long r
+        long c
+        fmpq_struct ** rows
+    ctypedef fmpq_mat_struct fmpq_mat_t[1]
     fmpq_struct * fmpq_mat_entry(fmpq_mat_t mat, long i, long j)
     fmpz_struct * fmpq_mat_entry_num(fmpq_mat_t mat, long i, long j)
     fmpz_struct * fmpq_mat_entry_den(fmpq_mat_t mat, long i, long j)

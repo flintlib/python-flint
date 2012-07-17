@@ -4,7 +4,7 @@ http://www.flintlib.org/
 """
 
 cimport flint
-cimport stdlib
+cimport libc.stdlib
 
 cdef flint_rand_t global_random_state
 flint_randinit(global_random_state)
@@ -61,7 +61,7 @@ cdef fmpz_get_intlong(fmpz_t x):
     if COEFF_IS_MPZ(x[0]):
         s = fmpz_get_str(NULL, 16, x)   # XXX: slow
         v = int(s, 16)
-        stdlib.free(s)
+        libc.stdlib.free(s)
         return v
     else:
         return <long>x[0]
@@ -291,7 +291,8 @@ cdef class fmpz:
             if typecheck(val, fmpz):
                 fmpz_set(self.val, (<fmpz>val).val)
             else:
-                fmpz_set_any_ref(self.val, val)   # XXX
+                if fmpz_set_any_ref(self.val, val) == FMPZ_UNKNOWN: # XXX
+                    raise TypeError("cannot create fmpz from type", type(val))
 
     # XXX: improve!
     def __int__(self):
@@ -335,9 +336,9 @@ cdef class fmpz:
     def __str__(self):
         cdef char * s = fmpz_get_str(NULL, 10, self.val)
         try:
-            res = s
+            res = str(s)
         finally:
-            stdlib.free(s)
+            libc.stdlib.free(s)
         return res
 
     def __repr__(self):
@@ -557,9 +558,9 @@ cdef class fmpz_poly:
     def __str__(self):
         cdef char * s = fmpz_poly_get_str_pretty(self.val, "x")
         try:
-            res = s
+            res = str(s)
         finally:
-            stdlib.free(s)
+            libc.stdlib.free(s)
         return res
 
     def __repr__(self):
@@ -1171,9 +1172,9 @@ cdef class fmpq_poly:
     def __str__(self):
         cdef char * s = fmpq_poly_get_str_pretty(self.val, "x")
         try:
-            res = s
+            res = str(s)
         finally:
-            stdlib.free(s)
+            libc.stdlib.free(s)
         return res
 
     def __nonzero__(self):
@@ -1237,7 +1238,7 @@ cdef class fmpq_poly:
         fmpq_poly_div(r.val, (<fmpq_poly>s).val, (<fmpq_poly>t).val)
         return r
 
-    def __mod__(self, other):
+    def __mod__(s, t):
         cdef fmpq_poly r
         s = any_as_fmpq_poly(s)
         if s is NotImplemented:
