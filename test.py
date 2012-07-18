@@ -113,7 +113,11 @@ def test_fmpz_poly():
     assert bool(Z([1])) == True
     assert repr(Z([1,2])) == "fmpz_poly([1, 2])"
     assert str(Z([1,2])) == "2*x+1"
-
+    p = Z([3,4,5])
+    assert p(2) == 31
+    assert p(flint.fmpq(2,3)) == flint.fmpq(71,9)
+    assert p(Z([1,-1])) == Z([12,-14,5])
+    assert p(flint.fmpq_poly([2,3],5)) == flint.fmpq_poly([27,24,9],5)
 
 def test_fmpz_mat():
     M = flint.fmpz_mat
@@ -242,6 +246,11 @@ def test_fmpq_poly():
     assert a[2] == flint.fmpq(3,4)
     a[2] = 4
     assert a == Q([1,1,8],2)
+    p = Q([3,4,5],7)
+    assert p(2) == flint.fmpq(31,7)
+    assert p(flint.fmpq(2,3)) == flint.fmpq(71,63)
+    assert p(Z([1,-1])) == Q([12,-14,5],7)
+    assert p(flint.fmpq_poly([2,3],5)) == flint.fmpq_poly([27,24,9],7*5)
 
 def test_fmpq_mat():
     Q = flint.fmpq_mat
@@ -338,6 +347,9 @@ def test_nmod_poly():
     assert P([1,2,3,4,5],17) ** 2 == P([1,2,3,4,5],17) * P([1,2,3,4,5],17)
     assert P([1,2,3],17) * flint.nmod(3,17) == P([3,6,9],17)
     assert str(P([1,2,3],17)) == "3*x^2+2*x+1"
+    p = P([3,4,5],17)
+    assert p(14) == flint.nmod(2,17)
+    assert p(P([1,2,3],17)) == P([12,11,11,9,11],17)
 
 def test_nmod_mat():
     M = flint.nmod_mat

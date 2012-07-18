@@ -593,6 +593,25 @@ cdef class fmpz_poly:
     def __nonzero__(self):
         return not fmpz_poly_is_zero(self.val)
 
+    def __call__(self, other):
+        t = any_as_fmpz(other)
+        if t is not NotImplemented:
+            v = fmpz.__new__(fmpz)
+            fmpz_poly_evaluate_fmpz((<fmpz>v).val, self.val, (<fmpz>t).val)
+            return v
+        t = any_as_fmpz_poly(other)
+        if t is not NotImplemented:
+            v = fmpz_poly.__new__(fmpz_poly)
+            fmpz_poly_compose((<fmpz_poly>v).val, self.val, (<fmpz_poly>t).val)
+            return v
+        t = any_as_fmpq(other)
+        if t is not NotImplemented:
+            return fmpq_poly(self)(t)
+        t = any_as_fmpq_poly(other)
+        if t is not NotImplemented:
+            return fmpq_poly(self)(t)
+        raise TypeError("cannot call fmpz_poly with input of type %s", type(other))
+
     def __pos__(self):
         return self
 
@@ -1361,6 +1380,24 @@ cdef class fmpq_poly:
     def __nonzero__(self):
         return not fmpq_poly_is_zero(self.val)
 
+    def __call__(self, other):
+        t = any_as_fmpz(other)
+        if t is not NotImplemented:
+            v = fmpq.__new__(fmpq)
+            fmpq_poly_evaluate_fmpz((<fmpq>v).val, self.val, (<fmpz>t).val)
+            return v
+        t = any_as_fmpq(other)
+        if t is not NotImplemented:
+            v = fmpq.__new__(fmpq)
+            fmpq_poly_evaluate_fmpq((<fmpq>v).val, self.val, (<fmpq>t).val)
+            return v
+        t = any_as_fmpq_poly(other)
+        if t is not NotImplemented:
+            v = fmpq_poly.__new__(fmpq_poly)
+            fmpq_poly_compose((<fmpq_poly>v).val, self.val, (<fmpq_poly>t).val)
+            return v
+        raise TypeError("cannot call fmpq_poly with input of type %s", type(other))
+
     def __pos__(self):
         return self
 
@@ -2014,6 +2051,20 @@ cdef class nmod_poly:
 
     def __nonzero__(self):
         return not nmod_poly_is_zero(self.val)
+
+    def __call__(self, other):
+        cdef mp_limb_t c
+        if any_as_nmod(&c, other, self.val.mod):
+            v = nmod(0, self.modulus())
+            (<nmod>v).val = nmod_poly_evaluate_nmod(self.val, c)
+            return v
+        t = any_as_nmod_poly(other, self.val.mod)
+        if t is not NotImplemented:
+            r = nmod_poly.__new__(nmod_poly)
+            nmod_poly_init_preinv((<nmod_poly>r).val, self.val.mod.n, self.val.mod.ninv)
+            nmod_poly_compose((<nmod_poly>r).val, self.val, (<nmod_poly>t).val)
+            return r
+        raise TypeError("cannot call nmod_poly with input of type %s", type(other))
 
     def __pos__(self):
         return self
