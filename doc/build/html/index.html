@@ -1,0 +1,667 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Python bindings for FLINT &mdash; python-flint 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="python-flint 0.1 documentation" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="#">python-flint 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="python-bindings-for-flint">
+<h1>Python bindings for FLINT<a class="headerlink" href="#python-bindings-for-flint" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The python-flint Python extension module provides
+bindings to FLINT (<a class="reference external" href="http://flintlib.org/">http://flintlib.org/</a>).
+FLINT (Fast Library for Number Theory) is a C library that implements
+highly optimised exact scalar, polynomial and matrix arithmetic as
+well as many number-theoretic special functions.</p>
+<p>As of the current version, only a subset of the FLINT types
+are wrapped, and only a very limited selection of methods are provided.
+There are known and unknown bugs, and the interface is subject to
+change drastically in the future. Any feedback is welcome
+and can be sent to <a class="reference external" href="mailto:fredrik&#46;johansson&#37;&#52;&#48;gmail&#46;com">fredrik<span>&#46;</span>johansson<span>&#64;</span>gmail<span>&#46;</span>com</a> or <a class="reference external" href="mailto:flint-devel&#37;&#52;&#48;googlegroups&#46;com">flint-devel<span>&#64;</span>googlegroups<span>&#46;</span>com</a>.
+Of particular note:</p>
+<ul class="simple">
+<li>Most functionality in FLINT is not yet wrapped!</li>
+<li>Coercions are not supported in all directions.</li>
+<li>Conversion between Python longs and fmpzs is not done efficiently.</li>
+<li>Types don&#8217;t yet provide hash methods.</li>
+<li>Interaction with gmpy (<a class="reference external" href="http://gmpy.org/">http://gmpy.org/</a>) types (and types from many other libraries) is not supported.</li>
+</ul>
+</div>
+<div class="section" id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
+<p>To build this module, you first need to install the latest
+version of FLINT (follow the instructions in the FLINT documentation). You
+also need to install Cython (<a class="reference external" href="http://cython.org/">http://cython.org/</a>).</p>
+<p>Next, extract the python-flint archive and run:</p>
+<div class="highlight-python"><pre>python ./setup.py build_ext
+sudo python ./setup.py install
+python ./test.py</pre>
+</div>
+<p>Note: if FLINT is not installed globally, you can do something like the following (the second
+line is required for loading FLINT from Python):</p>
+<div class="highlight-python"><pre>python ./setup.py build_ext --include-dirs=/home/fredrik/src/flint2 --library-dirs=/home/fredrik/src/flint2
+export LD_LIBRARY_PATH=/home/fredrik/src/flint2/:$LD_LIBRARY_PATH</pre>
+</div>
+<p>If everything worked, you will be able to import the <tt class="docutils literal"><span class="pre">flint</span></tt> module
+in Python:</p>
+<div class="highlight-python"><pre>Python 2.7.3 (default, Apr 20 2012, 22:39:59)
+[GCC 4.6.3] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+&gt;&gt;&gt; import flint
+&gt;&gt;&gt; flint.fmpz(33) ** 33
+fmpz(129110040087761027839616029934664535539337183380513)</pre>
+</div>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="scalar-types">
+<h3>Scalar types<a class="headerlink" href="#scalar-types" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="fmpz">
+<h4>fmpz<a class="headerlink" href="#fmpz" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="flint.fmpz">
+<em class="property">class </em><tt class="descclassname">flint.</tt><tt class="descname">fmpz</tt><a class="headerlink" href="#flint.fmpz" title="Permalink to this definition">¶</a></dt>
+<dd><p>fmpz(val=None)</p>
+<p>The fmpz type represents multiprecision integers.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fmpz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">**</span> <span class="mi">25</span>
+<span class="go">fmpz(847288609443)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="fmpq">
+<h4>fmpq<a class="headerlink" href="#fmpq" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="flint.fmpq">
+<em class="property">class </em><tt class="descclassname">flint.</tt><tt class="descname">fmpq</tt><a class="headerlink" href="#flint.fmpq" title="Permalink to this definition">¶</a></dt>
+<dd><p>fmpq(p=None, q=None)</p>
+<p>The fmpq type represents multiprecision rational numbers.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fmpq</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">7</span><span class="p">)</span> <span class="o">+</span> <span class="n">fmpq</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">51</span><span class="p">)</span>
+<span class="go">fmpq(401,357)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="flint.fmpq.denom">
+<tt class="descname">denom</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.fmpq.denom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpq.numer">
+<tt class="descname">numer</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.fmpq.numer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="flint.fmpq.p">
+<tt class="descname">p</tt><a class="headerlink" href="#flint.fmpq.p" title="Permalink to this definition">¶</a></dt>
+<dd><p>fmpq.numer(self)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flint.fmpq.q">
+<tt class="descname">q</tt><a class="headerlink" href="#flint.fmpq.q" title="Permalink to this definition">¶</a></dt>
+<dd><p>fmpq.denom(self)</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="nmod">
+<h4>nmod<a class="headerlink" href="#nmod" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="flint.nmod">
+<em class="property">class </em><tt class="descclassname">flint.</tt><tt class="descname">nmod</tt><a class="headerlink" href="#flint.nmod" title="Permalink to this definition">¶</a></dt>
+<dd><p>nmod(val, mod)</p>
+<p>The nmod type represents elements of Z/nZ for word-size n.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">nmod</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">17</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="go">nmod(3, 17)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="flint.nmod.modulus">
+<tt class="descname">modulus</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.nmod.modulus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="polynomial-types">
+<h3>Polynomial types<a class="headerlink" href="#polynomial-types" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="fmpz-poly">
+<h4>fmpz_poly<a class="headerlink" href="#fmpz-poly" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="flint.fmpz_poly">
+<em class="property">class </em><tt class="descclassname">flint.</tt><tt class="descname">fmpz_poly</tt><a class="headerlink" href="#flint.fmpz_poly" title="Permalink to this definition">¶</a></dt>
+<dd><p>fmpz_poly(val=None)</p>
+<p>The fmpz_poly type represents dense univariate polynomials over
+the integers.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fmpz_poly</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span> <span class="o">**</span> <span class="mi">3</span>
+<span class="go">fmpz_poly([1, 6, 21, 44, 63, 54, 27])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">divmod</span><span class="p">(</span><span class="n">fmpz_poly</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">]),</span> <span class="n">fmpz_poly</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">]))</span>
+<span class="go">(fmpz_poly([]), fmpz_poly([2, 0, 1, 1, 6]))</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="flint.fmpz_poly.coeffs">
+<tt class="descname">coeffs</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.fmpz_poly.coeffs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpz_poly.degree">
+<tt class="descname">degree</tt><big>(</big><em>self</em><big>)</big> &rarr; long<a class="headerlink" href="#flint.fmpz_poly.degree" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpz_poly.length">
+<tt class="descname">length</tt><big>(</big><em>self</em><big>)</big> &rarr; long<a class="headerlink" href="#flint.fmpz_poly.length" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="fmpq-poly">
+<h4>fmpq_poly<a class="headerlink" href="#fmpq-poly" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="flint.fmpq_poly">
+<em class="property">class </em><tt class="descclassname">flint.</tt><tt class="descname">fmpq_poly</tt><a class="headerlink" href="#flint.fmpq_poly" title="Permalink to this definition">¶</a></dt>
+<dd><p>fmpq_poly(p=None, q=None)</p>
+<p>The fmpq_poly type represents dense univariate polynomials
+over the rational numbers. For efficiency reasons, an fmpq_poly is
+structurally an integer polynomial with a single common denominator.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fmpq_poly</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span><span class="mi">5</span><span class="p">)</span> <span class="o">**</span> <span class="mi">3</span>
+<span class="go">fmpq_poly([1, 6, 21, 44, 63, 54, 27], 125)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">_</span>
+<span class="go">27/125*x^6 + 54/125*x^5 + 63/125*x^4 + 44/125*x^3 + 21/125*x^2 + 6/125*x + 1/125</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">divmod</span><span class="p">(</span><span class="n">fmpq_poly</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">]),</span> <span class="n">fmpq_poly</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">]))</span>
+<span class="go">(fmpq_poly([38, -161, 294], 343), fmpq_poly([572, 293, 0, 0, 0], 343))</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="flint.fmpq_poly.coeffs">
+<tt class="descname">coeffs</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.fmpq_poly.coeffs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpq_poly.degree">
+<tt class="descname">degree</tt><big>(</big><em>self</em><big>)</big> &rarr; long<a class="headerlink" href="#flint.fmpq_poly.degree" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpq_poly.denom">
+<tt class="descname">denom</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.fmpq_poly.denom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpq_poly.length">
+<tt class="descname">length</tt><big>(</big><em>self</em><big>)</big> &rarr; long<a class="headerlink" href="#flint.fmpq_poly.length" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpq_poly.numer">
+<tt class="descname">numer</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.fmpq_poly.numer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="flint.fmpq_poly.p">
+<tt class="descname">p</tt><a class="headerlink" href="#flint.fmpq_poly.p" title="Permalink to this definition">¶</a></dt>
+<dd><p>fmpq_poly.numer(self)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flint.fmpq_poly.q">
+<tt class="descname">q</tt><a class="headerlink" href="#flint.fmpq_poly.q" title="Permalink to this definition">¶</a></dt>
+<dd><p>fmpq_poly.denom(self)</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="nmod-poly">
+<h4>nmod_poly<a class="headerlink" href="#nmod-poly" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="flint.nmod_poly">
+<em class="property">class </em><tt class="descclassname">flint.</tt><tt class="descname">nmod_poly</tt><a class="headerlink" href="#flint.nmod_poly" title="Permalink to this definition">¶</a></dt>
+<dd><p>nmod_poly(val=None, ulong mod=0)</p>
+<p>The nmod_poly type represents dense univariate polynomials
+over Z/nZ for word-size n.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">nmod_poly</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">14</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="mi">7</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span>
+<span class="go">x^4+3*x^2+x+5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="o">-</span><span class="n">a</span>
+<span class="go">6*x^4+4*x^2+6*x+2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">nmod_poly</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
+<span class="go">[nmod(0, 2), nmod(1, 2)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nmod_poly</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="mi">23</span><span class="p">)</span> <span class="o">**</span> <span class="mi">3</span>
+<span class="go">nmod_poly([1L, 6L, 21L, 21L, 17L, 8L, 4L], 23)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">divmod</span><span class="p">(</span><span class="n">nmod_poly</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span><span class="mi">23</span><span class="p">),</span> <span class="n">nmod_poly</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">],</span><span class="mi">23</span><span class="p">))</span>
+<span class="go">(nmod_poly([4L, 0L, 14L], 23), nmod_poly([13L, 3L], 23))</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="flint.nmod_poly.coeffs">
+<tt class="descname">coeffs</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.nmod_poly.coeffs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.nmod_poly.degree">
+<tt class="descname">degree</tt><big>(</big><em>self</em><big>)</big> &rarr; long<a class="headerlink" href="#flint.nmod_poly.degree" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.nmod_poly.length">
+<tt class="descname">length</tt><big>(</big><em>self</em><big>)</big> &rarr; long<a class="headerlink" href="#flint.nmod_poly.length" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.nmod_poly.modulus">
+<tt class="descname">modulus</tt><big>(</big><em>self</em><big>)</big> &rarr; mp_limb_t<a class="headerlink" href="#flint.nmod_poly.modulus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="matrix-types">
+<h3>Matrix types<a class="headerlink" href="#matrix-types" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="fmpz-mat">
+<h4>fmpz_mat<a class="headerlink" href="#fmpz-mat" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="flint.fmpz_mat">
+<em class="property">class </em><tt class="descclassname">flint.</tt><tt class="descname">fmpz_mat</tt><a class="headerlink" href="#flint.fmpz_mat" title="Permalink to this definition">¶</a></dt>
+<dd><p>The fmpz_mat type represents dense matrices over the integers.</p>
+<p>An fmpz_mat can be constructed empty, from a list of entries
+in row-major order, or from an existing matrix:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fmpz_mat</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="go">fmpz_mat(2, 4, [0, 0, 0, 0, 0, 0, 0, 0])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">fmpz_mat</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+<span class="go">[0, 1, 2, 3]</span>
+<span class="go">[4, 5, 6, 7]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fmpz_mat</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">==</span> <span class="n">A</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Entries can be accessed and set:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">fmpz(1)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span>
+<span class="go">fmpz_mat(2, 4, [0, 1, 2, 3, 4, 5, 6, 8])</span>
+</pre></div>
+</div>
+<p>Arithmetic operations are supported:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">*</span> <span class="mi">3</span>
+<span class="go">fmpz_mat(2, 4, [0, 3, 6, 9, 12, 15, 18, 24])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">+</span> <span class="p">(</span><span class="o">-</span><span class="n">A</span><span class="p">)</span>
+<span class="go">fmpz_mat(2, 4, [0, 0, 0, 0, 0, 0, 0, 0])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">*</span> <span class="n">fmpz_mat</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">))</span>
+<span class="go">fmpz_mat(2, 3, [42, 48, 54, 123, 146, 169])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">*</span> <span class="n">fmpz_mat</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">))</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">incompatible shapes for matrix multiplication</span>
+</pre></div>
+</div>
+<p>The ~ operator returns the inverse of the matrix, which will
+be of type fmpq_mat:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="o">~</span><span class="n">fmpz_mat</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]))</span>
+<span class="go">[-1/3,  4/3,  2/3]</span>
+<span class="go">[-2/3,  8/3,  1/3]</span>
+<span class="go">[ 2/3, -5/3, -1/3]</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="flint.fmpz_mat.det">
+<tt class="descname">det</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.fmpz_mat.det" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the determinant of self as an fmpz.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">fmpz_mat</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="o">.</span><span class="n">det</span><span class="p">()</span>
+<span class="go">fmpz(0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="o">.</span><span class="n">det</span><span class="p">()</span>
+<span class="go">fmpz(-6)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">A</span> <span class="o">*</span> <span class="n">A</span><span class="p">)</span><span class="o">.</span><span class="n">det</span><span class="p">()</span>
+<span class="go">fmpz(36)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fmpz_mat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">det</span><span class="p">()</span>
+<span class="go">fmpz(1)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpz_mat.entries">
+<tt class="descname">entries</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.fmpz_mat.entries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns self as a flat list of fmpz entries,
+output in row-major order.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">fmpz_mat</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="o">.</span><span class="n">entries</span><span class="p">()</span>
+<span class="go">[fmpz(0), fmpz(1), fmpz(2), fmpz(3), fmpz(4), fmpz(5), fmpz(6), fmpz(7)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpz_mat.ncols">
+<tt class="descname">ncols</tt><big>(</big><em>self</em><big>)</big> &rarr; long<a class="headerlink" href="#flint.fmpz_mat.ncols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of columns of self.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpz_mat.nrows">
+<tt class="descname">nrows</tt><big>(</big><em>self</em><big>)</big> &rarr; long<a class="headerlink" href="#flint.fmpz_mat.nrows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of rows of self.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="flint.fmpz_mat.randbits">
+<em class="property">static </em><tt class="descname">randbits</tt><big>(</big><em>type cls</em>, <em>ulong m</em>, <em>ulong n</em>, <em>ulong bits</em><big>)</big><a class="headerlink" href="#flint.fmpz_mat.randbits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a random (m, n) matrix with uniformly chosen entries up
+to the specified number of bits in size.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">fmpz_mat</span><span class="o">.</span><span class="n">randbits</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>   
+<span class="go">[  502804798116524380422349115480, -93136769489619409388141424916]</span>
+<span class="go">[-1201505897735399116254292047234, 145439343004100224514654363320]</span>
+<span class="go">[ 1183889243483733739229662952032, 632771515833349927306121868518]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="flint.fmpz_mat.randrank">
+<em class="property">static </em><tt class="descname">randrank</tt><big>(</big><em>type cls</em>, <em>ulong m</em>, <em>ulong n</em>, <em>ulong rank</em>, <em>ulong bits</em><big>)</big><a class="headerlink" href="#flint.fmpz_mat.randrank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a random sparse (m, n) matrix of the specified rank
+with entries up to the specified number of bits in size.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">flint</span><span class="o">.</span><span class="n">fmpz_mat</span><span class="o">.</span><span class="n">randrank</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">20</span><span class="p">))</span>   
+<span class="go">[0, 484749, 0, 0, 0,     0]</span>
+<span class="go">[0,      0, 0, 0, 0,     0]</span>
+<span class="go">[0,      0, 0, 0, 0, -2048]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="flint.fmpz_mat.randtest">
+<em class="property">static </em><tt class="descname">randtest</tt><big>(</big><em>type cls</em>, <em>ulong m</em>, <em>ulong n</em>, <em>ulong bits</em><big>)</big><a class="headerlink" href="#flint.fmpz_mat.randtest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a random (m, n) matrix with non-uniformly chosen
+entries up to the specified number of bits in size. Small and
+zero entries are generated with increased probability.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">fmpz_mat</span><span class="o">.</span><span class="n">randtest</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>   
+<span class="go">[        5442103460568216, 1906839377153448]</span>
+<span class="go">[-37778931862922801979391,                0]</span>
+<span class="go">[                       0,                1]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpz_mat.rank">
+<tt class="descname">rank</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.fmpz_mat.rank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the rank of self.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">fmpz_mat</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span>
+<span class="go">3</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpz_mat.table">
+<tt class="descname">table</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.fmpz_mat.table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns self as a nested list of fmpz entries,
+output in row-major order.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">fmpz_mat</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">A</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+<span class="go">[[fmpz(0), fmpz(1), fmpz(2), fmpz(3)], [fmpz(4), fmpz(5), fmpz(6), fmpz(7)]]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="fmpq-mat">
+<h4>fmpq_mat<a class="headerlink" href="#fmpq-mat" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="flint.fmpq_mat">
+<em class="property">class </em><tt class="descclassname">flint.</tt><tt class="descname">fmpq_mat</tt><a class="headerlink" href="#flint.fmpq_mat" title="Permalink to this definition">¶</a></dt>
+<dd><p>The fmpq_mat type represents dense matrices over the rational
+numbers.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">A</span> <span class="o">=</span> <span class="n">fmpq_mat</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="n">fmpq</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="o">~</span><span class="n">A</span><span class="p">)</span>
+<span class="go">[-3/1,  3/2,  3/2]</span>
+<span class="go">[ 3/1, -1/2, -3/1]</span>
+<span class="go">[-1/1,  0/1,  3/2]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="o">~</span><span class="n">A</span><span class="p">)</span> <span class="o">*</span> <span class="n">A</span>
+<span class="go">[1/1, 0/1, 0/1]</span>
+<span class="go">[0/1, 1/1, 0/1]</span>
+<span class="go">[0/1, 0/1, 1/1]</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="flint.fmpq_mat.det">
+<tt class="descname">det</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.fmpq_mat.det" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the determinant of self as an fmpq.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">fmpq_mat</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">])</span> <span class="o">/</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">det</span><span class="p">()</span>
+<span class="go">fmpq(-2,25)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpq_mat.entries">
+<tt class="descname">entries</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.fmpq_mat.entries" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpq_mat.ncols">
+<tt class="descname">ncols</tt><big>(</big><em>self</em><big>)</big> &rarr; long<a class="headerlink" href="#flint.fmpq_mat.ncols" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpq_mat.nrows">
+<tt class="descname">nrows</tt><big>(</big><em>self</em><big>)</big> &rarr; long<a class="headerlink" href="#flint.fmpq_mat.nrows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.fmpq_mat.table">
+<tt class="descname">table</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.fmpq_mat.table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="nmod-mat">
+<h4>nmod_mat<a class="headerlink" href="#nmod-mat" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="flint.nmod_mat">
+<em class="property">class </em><tt class="descclassname">flint.</tt><tt class="descname">nmod_mat</tt><a class="headerlink" href="#flint.nmod_mat" title="Permalink to this definition">¶</a></dt>
+<dd><p>The nmod_poly type represents dense matrices over Z/nZ for
+word-size n. Some operations may assume that n is a prime.</p>
+<dl class="method">
+<dt id="flint.nmod_mat.det">
+<tt class="descname">det</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.nmod_mat.det" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the determinant of self as an nmod.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">nmod_mat</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span><span class="mi">17</span><span class="p">)</span><span class="o">.</span><span class="n">det</span><span class="p">()</span>
+<span class="go">nmod(15, 17)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="flint.nmod_mat.entries">
+<tt class="descname">entries</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.nmod_mat.entries" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.nmod_mat.modulus">
+<tt class="descname">modulus</tt><big>(</big><em>self</em><big>)</big> &rarr; mp_limb_t<a class="headerlink" href="#flint.nmod_mat.modulus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.nmod_mat.ncols">
+<tt class="descname">ncols</tt><big>(</big><em>self</em><big>)</big> &rarr; long<a class="headerlink" href="#flint.nmod_mat.ncols" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.nmod_mat.nrows">
+<tt class="descname">nrows</tt><big>(</big><em>self</em><big>)</big> &rarr; long<a class="headerlink" href="#flint.nmod_mat.nrows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="flint.nmod_mat.randtest">
+<em class="property">static </em><tt class="descname">randtest</tt><big>(</big><em>type cls</em>, <em>ulong m</em>, <em>ulong n</em>, <em>ulong mod</em><big>)</big><a class="headerlink" href="#flint.nmod_mat.randtest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a random (m, n) matrix with non-uniformly chosen
+entries. Zero entries are generated with increased probability.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flint.nmod_mat.rank">
+<tt class="descname">rank</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.nmod_mat.rank" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="flint.nmod_mat.table">
+<tt class="descname">table</tt><big>(</big><em>self</em><big>)</big><a class="headerlink" href="#flint.nmod_mat.table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="special-functions">
+<h3>Special functions<a class="headerlink" href="#special-functions" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="flint.number_of_partitions">
+<tt class="descclassname">flint.</tt><tt class="descname">number_of_partitions</tt><big>(</big><em>ulong n</em><big>)</big><a class="headerlink" href="#flint.number_of_partitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns p(n), the number of partitions of the integer n, as an fmpz.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">number_of_partitions</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">)]</span>
+<span class="go">[fmpz(1), fmpz(1), fmpz(2), fmpz(3), fmpz(5), fmpz(7), fmpz(11), fmpz(15)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">number_of_partitions</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="go">fmpz(190569292)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">number_of_partitions</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="mi">9</span><span class="p">)))</span>
+<span class="go">35219</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Python bindings for FLINT</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#setup">Setup</a></li>
+<li><a class="reference internal" href="#reference">Reference</a><ul>
+<li><a class="reference internal" href="#scalar-types">Scalar types</a><ul>
+<li><a class="reference internal" href="#fmpz">fmpz</a></li>
+<li><a class="reference internal" href="#fmpq">fmpq</a></li>
+<li><a class="reference internal" href="#nmod">nmod</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#polynomial-types">Polynomial types</a><ul>
+<li><a class="reference internal" href="#fmpz-poly">fmpz_poly</a></li>
+<li><a class="reference internal" href="#fmpq-poly">fmpq_poly</a></li>
+<li><a class="reference internal" href="#nmod-poly">nmod_poly</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#matrix-types">Matrix types</a><ul>
+<li><a class="reference internal" href="#fmpz-mat">fmpz_mat</a></li>
+<li><a class="reference internal" href="#fmpq-mat">fmpq_mat</a></li>
+<li><a class="reference internal" href="#nmod-mat">nmod_mat</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#special-functions">Special functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="#">python-flint 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Fredrik Johansson.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
