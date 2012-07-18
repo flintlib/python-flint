@@ -1,0 +1,9 @@
+include LICENSE
+include CHANGES
+include README
+include *.pxd
+include *.pyx
+include *.py
+include doc/source/*.py
+include doc/source/*.rst
+include doc/Makefile
