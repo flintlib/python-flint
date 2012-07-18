@@ -9,7 +9,7 @@ Python bindings for FLINT
 Introduction
 ::::::::::::
 
-The python-flintPython extension module provides
+The python-flint Python extension module provides
 bindings to FLINT (http://flintlib.org/).
 FLINT (Fast Library for Number Theory) is a C library that implements
 highly optimised exact scalar, polynomial and matrix arithmetic as
@@ -31,14 +31,21 @@ Of particular note:
 Setup
 ::::::::::::
 
-To build this module, you first need to install FLINT 2.3
-(follow the instructions in the FLINT documentation). You
+To build this module, you first need to install the latest
+version of FLINT (follow the instructions in the FLINT documentation). You
 also need to install Cython (http://cython.org/).
 
 Next, extract the python-flint archive and run::
 
+    python ./setup.py build_ext
     sudo python ./setup.py install
     python ./test.py
+
+Note: if FLINT is not installed globally, you can do something like the following (the second
+line is required for loading FLINT from Python)::
+
+    python ./setup.py build_ext --include-dirs=/home/fredrik/src/flint2 --library-dirs=/home/fredrik/src/flint2
+    export LD_LIBRARY_PATH=/home/fredrik/src/flint2/:$LD_LIBRARY_PATH
 
 If everything worked, you will be able to import the ``flint`` module
 in Python::
