@@ -167,10 +167,8 @@ cdef inline any_as_fmpq_poly(obj):
         return r
     x = any_as_fmpq(obj)
     if x is not NotImplemented:
-        # XXX: provide flint function for this
         r = fmpq_poly.__new__(fmpq_poly)
-        fmpq_poly_set_fmpz((<fmpq_poly>r).val, fmpq_numref((<fmpq>x).val))
-        fmpq_poly_scalar_div_fmpz((<fmpq_poly>r).val, (<fmpq_poly>r).val, fmpq_denref((<fmpq>x).val))
+        fmpq_poly_set_fmpq((<fmpq_poly>r).val, (<fmpq>x).val)
         return r
     return NotImplemented
 
