@@ -563,3 +563,6 @@ cdef extern from "fmpq_mat.h":
     int fmpq_mat_inv(fmpq_mat_t B, fmpq_mat_t A)
     long fmpq_mat_rref(long * perm, fmpq_mat_t B, fmpq_mat_t A)
 
+
+cdef extern from "arith.h":
+    void arith_number_of_partitions(fmpz_t res, ulong n)

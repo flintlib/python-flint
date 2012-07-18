@@ -5,6 +5,7 @@ http://www.flintlib.org/
 
 cimport flint
 cimport libc.stdlib
+cimport cython
 
 cdef flint_rand_t global_random_state
 flint_randinit(global_random_state)
@@ -274,6 +275,13 @@ cdef any_as_nmod_mat(obj, nmod_t mod):
 
 
 cdef class fmpz:
+    """
+    The fmpz type represents multiprecision integers.
+
+        >>> fmpz(3) ** 25
+        fmpz(847288609443)
+
+    """
 
     cdef fmpz_t val
 
@@ -491,6 +499,15 @@ cdef class fmpz:
 #----------------------------------------------------------------------------#
 
 cdef class fmpz_poly:
+    """
+    The fmpz_poly type represents dense univariate polynomials over
+    the integers.
+
+        >>> fmpz_poly([1,2,3]) ** 3
+        fmpz_poly([1, 6, 21, 44, 63, 54, 27])
+        >>> divmod(fmpz_poly([2,0,1,1,6]), fmpz_poly([3,5,7]))
+        (fmpz_poly([]), fmpz_poly([2, 0, 1, 1, 6]))
+    """
 
     cdef fmpz_poly_t val
 
@@ -508,6 +525,9 @@ cdef class fmpz_poly:
                 fmpz_poly_set_list(self.val, val)
             else:
                 raise TypeError("cannot create fmpz_poly from input of type %s", type(val))
+
+    def __len__(self):
+        return fmpz_poly_length(self.val)
 
     cpdef long length(self):
         return fmpz_poly_length(self.val)
@@ -529,6 +549,12 @@ cdef class fmpz_poly:
         if op == 3:
             r = not r
         return r
+
+    def __iter__(self):
+        cdef long i, n
+        n = self.length()
+        for i from 0 <= i < n:
+            yield self[i]
 
     def coeffs(self):
         cdef long i, n
@@ -670,6 +696,51 @@ cdef class fmpz_poly:
 #----------------------------------------------------------------------------#
 
 cdef class fmpz_mat:
+    """
+    The fmpz_mat type represents dense matrices over the integers.
+
+    An fmpz_mat can be constructed empty, from a list of entries
+    in row-major order, or from an existing matrix::
+
+        >>> fmpz_mat(2, 4)
+        fmpz_mat(2, 4, [0, 0, 0, 0, 0, 0, 0, 0])
+        >>> A = fmpz_mat(2, 4, range(8))
+        >>> print(A)
+        [0, 1, 2, 3]
+        [4, 5, 6, 7]
+        >>> fmpz_mat(A) == A
+        True
+
+    Entries can be accessed and set::
+
+        >>> A[0,1]
+        fmpz(1)
+        >>> A[1,3] = 8
+        >>> A
+        fmpz_mat(2, 4, [0, 1, 2, 3, 4, 5, 6, 8])
+
+    Arithmetic operations are supported::
+
+        >>> A * 3
+        fmpz_mat(2, 4, [0, 3, 6, 9, 12, 15, 18, 24])
+        >>> A + (-A)
+        fmpz_mat(2, 4, [0, 0, 0, 0, 0, 0, 0, 0])
+        >>> A * fmpz_mat(4, 3, range(12))
+        fmpz_mat(2, 3, [42, 48, 54, 123, 146, 169])
+        >>> A * fmpz_mat(3, 3, range(9))
+        Traceback (most recent call last):
+          ...
+        ValueError: incompatible shapes for matrix multiplication
+
+    The ~ operator returns the inverse of the matrix, which will
+    be of type fmpq_mat::
+
+        >>> print(~fmpz_mat(3,3,[1,2,4,0,1,1,2,-1,0]))
+        [-1/3,  4/3,  2/3]
+        [-2/3,  8/3,  1/3]
+        [ 2/3, -5/3, -1/3]
+
+    """
 
     cdef fmpz_mat_t val
 
@@ -679,6 +750,7 @@ cdef class fmpz_mat:
     def __dealloc__(self):
         fmpz_mat_clear(self.val)
 
+    @cython.embedsignature(False)
     def __init__(self, *args):
         cdef long m, n, i, j
         if len(args) == 1:
@@ -723,9 +795,15 @@ cdef class fmpz_mat:
         return r
 
     cpdef long nrows(self):
+        """
+        Returns the number of rows of self.
+        """
         return fmpz_mat_nrows(self.val)
 
     cpdef long ncols(self):
+        """
+        Returns the number of columns of self.
+        """
         return fmpz_mat_ncols(self.val)
 
     def __repr__(self):
@@ -754,6 +832,15 @@ cdef class fmpz_mat:
         fmpz_set(fmpz_mat_entry(self.val, i, j), (<fmpz>c).val)
 
     def entries(self):
+        """
+        Returns self as a flat list of fmpz entries,
+        output in row-major order.
+
+            >>> A = fmpz_mat(2, 4, range(8))
+            >>> A.entries()
+            [fmpz(0), fmpz(1), fmpz(2), fmpz(3), fmpz(4), fmpz(5), fmpz(6), fmpz(7)]
+
+        """
         cdef long i, j, m, n
         cdef fmpz t
         m = self.nrows()
@@ -767,6 +854,14 @@ cdef class fmpz_mat:
         return L
 
     def table(self):
+        """
+        Returns self as a nested list of fmpz entries,
+        output in row-major order.
+
+            >>> A = fmpz_mat(2, 4, range(8))
+            >>> A.table()
+            [[fmpz(0), fmpz(1), fmpz(2), fmpz(3)], [fmpz(4), fmpz(5), fmpz(6), fmpz(7)]]
+        """
         cdef long i, m, n
         m = self.nrows()
         n = self.ncols()
@@ -774,6 +869,21 @@ cdef class fmpz_mat:
         return [L[i*n:(i+1)*n] for i in range(m)]
 
     def det(self):
+        """
+        Returns the determinant of self as an fmpz.
+
+            >>> A = fmpz_mat(3, 3, range(9))
+            >>> A.det()
+            fmpz(0)
+            >>> A[2,2] = 10
+            >>> A.det()
+            fmpz(-6)
+            >>> (A * A).det()
+            fmpz(36)
+            >>> fmpz_mat(0, 0).det()
+            fmpz(1)
+
+        """
         cdef fmpz d
         if not fmpz_mat_is_square(self.val):
             raise ValueError("matrix must be square")
@@ -866,24 +976,68 @@ cdef class fmpz_mat:
         return s.__div__(t)
 
     @classmethod
-    def randtest(cls, m, n, bits):
+    def randtest(cls, ulong m, ulong n, ulong bits):
+        """
+        Returns a random (m, n) matrix with non-uniformly chosen
+        entries up to the specified number of bits in size. Small and
+        zero entries are generated with increased probability.
+
+            >>> print(fmpz_mat.randtest(3, 2, 100))   # doctest: +SKIP
+            [        5442103460568216, 1906839377153448]
+            [-37778931862922801979391,                0]
+            [                       0,                1]
+
+        """
         cdef fmpz_mat mat = fmpz_mat(m, n)
         fmpz_mat_randtest(mat.val, global_random_state, bits)
         return mat
 
     @classmethod
-    def randbits(cls, m, n, bits):
+    def randbits(cls, ulong m, ulong n, ulong bits):
+        """
+        Returns a random (m, n) matrix with uniformly chosen entries up
+        to the specified number of bits in size.
+
+            >>> print(fmpz_mat.randbits(3, 2, 100))   # doctest: +SKIP
+            [  502804798116524380422349115480, -93136769489619409388141424916]
+            [-1201505897735399116254292047234, 145439343004100224514654363320]
+            [ 1183889243483733739229662952032, 632771515833349927306121868518]
+
+        """
         cdef fmpz_mat mat = fmpz_mat(m, n)
         fmpz_mat_randbits(mat.val, global_random_state, bits)
         return mat
 
     @classmethod
-    def randrank(cls, m, n, rank, bits):
-        cdef fmpz_mat mat = fmpz_mat(m, n)
+    def randrank(cls, ulong m, ulong n, ulong rank, ulong bits):
+        """
+        Returns a random sparse (m, n) matrix of the specified rank
+        with entries up to the specified number of bits in size.
+
+            >>> print(flint.fmpz_mat.randrank(3,6,2,20))   # doctest: +SKIP
+            [0, 484749, 0, 0, 0,     0]
+            [0,      0, 0, 0, 0,     0]
+            [0,      0, 0, 0, 0, -2048]
+
+        """
+        cdef fmpz_mat mat
+        if rank > m or rank > n:
+            raise ValueError("impossible rank")
+        mat = fmpz_mat(m, n)
         fmpz_mat_randrank(mat.val, global_random_state, rank, bits)
         return mat
 
     def rank(self):
+        """
+        Returns the rank of self.
+
+            >>> A = fmpz_mat(3, 3, range(9))
+            >>> A.rank()
+            2
+            >>> A[2,2] = 10
+            >>> A.rank()
+            3
+        """
         return fmpz_mat_rank(self.val)
 
     def __invert__(self):
@@ -914,6 +1068,13 @@ cdef class fmpz_mat:
 #----------------------------------------------------------------------------#
 
 cdef class fmpq:
+    """
+    The fmpq type represents multiprecision rational numbers.
+
+        >>> fmpq(1,7) + fmpq(50,51)
+        fmpq(401,357)
+
+    """
 
     cdef fmpq_t val
 
@@ -1073,6 +1234,19 @@ cdef class fmpq:
 #----------------------------------------------------------------------------#
 
 cdef class fmpq_poly:
+    """
+    The fmpq_poly type represents dense univariate polynomials
+    over the rational numbers. For efficiency reasons, an fmpq_poly is
+    structurally an integer polynomial with a single common denominator.
+
+        >>> fmpq_poly([1,2,3],5) ** 3
+        fmpq_poly([1, 6, 21, 44, 63, 54, 27], 125)
+        >>> print _
+        27/125*x^6 + 54/125*x^5 + 63/125*x^4 + 44/125*x^3 + 21/125*x^2 + 6/125*x + 1/125
+        >>> divmod(fmpq_poly([2,0,1,1,6]), fmpq_poly([3,5,7]))
+        (fmpq_poly([38, -161, 294], 343), fmpq_poly([572, 293, 0, 0, 0], 343))
+
+    """
 
     cdef fmpq_poly_t val
 
@@ -1099,6 +1273,9 @@ cdef class fmpq_poly:
             if fmpz_is_zero((<fmpz>q).val):
                 raise ZeroDivisionError("cannot create fmpq_poly with zero denominator")
             fmpq_poly_scalar_div_fmpz(self.val, self.val, (<fmpz>q).val)
+
+    def __len__(self):
+        return fmpq_poly_length(self.val)
 
     cpdef long length(self):
         return fmpq_poly_length(self.val)
@@ -1134,6 +1311,12 @@ cdef class fmpq_poly:
 
     p = property(numer)
     q = property(denom)
+
+    def __iter__(self):
+        cdef long i, n
+        n = self.length()
+        for i from 0 <= i < n:
+            yield self[i]
 
     def coeffs(self):
         cdef long i, n
@@ -1298,6 +1481,21 @@ cdef class fmpq_poly:
 #----------------------------------------------------------------------------#
 
 cdef class fmpq_mat:
+    """
+    The fmpq_mat type represents dense matrices over the rational
+    numbers.
+
+        >>> A = fmpq_mat(3,3,[1,3,5,2,4,6,fmpq(2,3),2,4])
+        >>> print (~A)
+        [-3/1,  3/2,  3/2]
+        [ 3/1, -1/2, -3/1]
+        [-1/1,  0/1,  3/2]
+        >>> print (~A) * A
+        [1/1, 0/1, 0/1]
+        [0/1, 1/1, 0/1]
+        [0/1, 0/1, 1/1]
+
+    """
 
     cdef fmpq_mat_t val
 
@@ -1307,6 +1505,7 @@ cdef class fmpq_mat:
     def __dealloc__(self):
         fmpq_mat_clear(self.val)
 
+    @cython.embedsignature(False)
     def __init__(self, *args):
         cdef long m, n, i, j
         if len(args) == 1:
@@ -1408,6 +1607,12 @@ cdef class fmpq_mat:
         return [L[i*n:(i+1)*n] for i in range(m)]
 
     def det(self):
+        """
+        Returns the determinant of self as an fmpq.
+
+            >>> (fmpq_mat(2,2,[1,2,3,4]) / 5).det()
+            fmpq(-2,25)
+        """
         cdef fmpq d
         if not fmpq_mat_is_square(self.val):
             raise ValueError("matrix must be square")
@@ -1559,6 +1764,14 @@ cdef class fmpq_mat:
 #----------------------------------------------------------------------------#
 
 cdef class nmod:
+    """
+    The nmod type represents elements of Z/nZ for word-size n.
+
+        >>> nmod(10,17) * 2
+        nmod(3, 17)
+
+    """
+
     cdef mp_limb_t val
     cdef nmod_t mod
 
@@ -1687,6 +1900,23 @@ cdef class nmod:
 #----------------------------------------------------------------------------#
 
 cdef class nmod_poly:
+    """
+    The nmod_poly type represents dense univariate polynomials
+    over Z/nZ for word-size n.
+
+        >>> a = nmod_poly([5,1,10,14,8], 7)
+        >>> print a
+        x^4+3*x^2+x+5
+        >>> print -a
+        6*x^4+4*x^2+6*x+2
+        >>> list(nmod_poly(range(3), 2))
+        [nmod(0, 2), nmod(1, 2)]
+        >>> nmod_poly([1, 2, 3], 23) ** 3
+        nmod_poly([1L, 6L, 21L, 21L, 17L, 8L, 4L], 23)
+        >>> divmod(nmod_poly([2,0,1,1,6],23), nmod_poly([3,5,7],23))
+        (nmod_poly([4L, 0L, 14L], 23), nmod_poly([13L, 3L], 23))
+
+    """
 
     cdef nmod_poly_t val
 
@@ -1714,6 +1944,9 @@ cdef class nmod_poly:
             else:
                 raise TypeError("cannot create nmod_poly from input of type %s", type(val))
 
+    def __len__(self):
+        return nmod_poly_length(self.val)
+
     cpdef long length(self):
         return nmod_poly_length(self.val)
 
@@ -1739,13 +1972,19 @@ cdef class nmod_poly:
                 return not res
         return NotImplemented
 
+    def __iter__(self):
+        cdef long i, n
+        n = self.length()
+        for i from 0 <= i < n:
+            yield self[i]
+
     def coeffs(self):
         cdef long i, n
         cdef list L
         cdef mp_limb_t m
         n = self.length()
         m = self.modulus()
-        L = [nmod(0,m) for i in range(n)]
+        L = [nmod(0,m) for i in range(n)]   # XXX: speed up
         for i from 0 <= i < n:
             (<nmod>(L[i])).val = nmod_poly_get_coeff_ui(self.val, i)
         return L
@@ -1761,7 +2000,8 @@ cdef class nmod_poly:
         x = nmod(0, self.modulus())
         if i < 0:
             return x
-        return nmod_poly_get_coeff_ui(self.val, i)
+        x.val = nmod_poly_get_coeff_ui(self.val, i)
+        return x
 
     def __setitem__(self, long i, x):
         cdef mp_limb_t v
@@ -1897,12 +2137,17 @@ cdef class nmod_poly:
 #----------------------------------------------------------------------------#
 
 cdef class nmod_mat:
+    """
+    The nmod_poly type represents dense matrices over Z/nZ for
+    word-size n. Some operations may assume that n is a prime.
+    """
 
     cdef nmod_mat_t val
 
     def __dealloc__(self):
         nmod_mat_clear(self.val)
 
+    @cython.embedsignature(False)
     def __init__(self, *args):
         cdef long m, n, i, j
         cdef mp_limb_t mod
@@ -1967,6 +2212,16 @@ cdef class nmod_mat:
     cpdef mp_limb_t modulus(self):
         return self.val.mod.n
 
+    @classmethod
+    def randtest(cls, ulong m, ulong n, ulong mod):
+        """
+        Returns a random (m, n) matrix with non-uniformly chosen
+        entries. Zero entries are generated with increased probability.
+        """
+        cdef nmod_mat mat = nmod_mat(m, n, mod)
+        nmod_mat_randtest(mat.val, global_random_state)
+        return mat
+
     def __repr__(self):
         return "nmod_mat(%i, %i, %s, %i)" % (self.nrows(), self.ncols(),
             map(int, self.entries()), self.modulus())
@@ -2015,6 +2270,13 @@ cdef class nmod_mat:
             raise ValueError("cannot set item of type %s" % type(value))
 
     def det(self):
+        """
+        Returns the determinant of self as an nmod.
+
+            >>> nmod_mat(2,2,[1,2,3,4],17).det()
+            nmod(15, 17)
+
+        """
         if not nmod_mat_is_square(self.val):
             raise ValueError("matrix must be square")
         return nmod(nmod_mat_det(self.val), self.modulus())
@@ -2134,3 +2396,24 @@ cdef class nmod_mat:
         if not nmod_mat_inv(u.val, self.val):
             raise ZeroDivisionError("matrix is singular")
         return u
+
+#----------------------------------------------------------------------------#
+#                                                                            #
+#                           Special functions                                #
+#                                                                            #
+#----------------------------------------------------------------------------#
+
+def number_of_partitions(ulong n):
+    """
+    Returns p(n), the number of partitions of the integer n, as an fmpz.
+
+        >>> [number_of_partitions(n) for n in range(8)]
+        [fmpz(1), fmpz(1), fmpz(2), fmpz(3), fmpz(5), fmpz(7), fmpz(11), fmpz(15)]
+        >>> number_of_partitions(100)
+        fmpz(190569292)
+        >>> len(str(number_of_partitions(10**9)))
+        35219
+    """
+    cdef fmpz v = fmpz()
+    arith_number_of_partitions(v.val, n)
+    return v

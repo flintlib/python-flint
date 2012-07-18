@@ -1,6 +1,7 @@
 import sys
 import flint
 import operator
+import doctest
 
 def raises(f, exception):
     try:
@@ -152,6 +153,8 @@ def test_fmpz_mat():
     assert M(1,2,[3,4]) / 3 == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
     assert (~M(2,2,[1,2,3,4])).det() == flint.fmpq(1) / M(2,2,[1,2,3,4]).det()
     assert ~~M(2,2,[1,2,3,4]) == M(2,2,[1,2,3,4])
+    assert raises(lambda: M.randrank(4,3,4,1), ValueError)
+    assert raises(lambda: M.randrank(3,4,4,1), ValueError)
 
 def test_fmpq():
     Q = flint.fmpq
@@ -387,4 +390,4 @@ if __name__ == "__main__":
     sys.stdout.write("test_nmod..."); test_nmod(); print("OK")
     sys.stdout.write("test_nmod_poly..."); test_nmod_poly(); print("OK")
     sys.stdout.write("test_nmod_mat..."); test_nmod_mat(); print("OK")
-
+    sys.stdout.write("doctests..."); doctest.testmod(flint); print("OK")
