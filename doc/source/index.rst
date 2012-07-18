@@ -136,3 +136,18 @@ Special functions
 .................
 
 .. autofunction :: flint.number_of_partitions
+.. autofunction :: flint.moebius_mu
+.. autofunction :: flint.divisor_sigma
+.. autofunction :: flint.euler_phi
+.. autofunction :: flint.bell_number
+.. autofunction :: flint.bernoulli_number
+.. autofunction :: flint.euler_number
+.. autofunction :: flint.stirling_number_1
+.. autofunction :: flint.stirling_number_2
+.. autofunction :: flint.harmonic_number
+.. autofunction :: flint.bernoulli_polynomial
+.. autofunction :: flint.euler_polynomial
+.. autofunction :: flint.legendre_polynomial
+.. autofunction :: flint.chebyshev_t_polynomial
+.. autofunction :: flint.chebyshev_u_polynomial
+.. autofunction :: flint.cyclotomic_polynomial
