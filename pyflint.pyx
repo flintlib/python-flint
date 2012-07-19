@@ -1186,6 +1186,47 @@ cdef class fmpz_mat:
         fmpz_mat_transpose(u.val, self.val)
         return u
 
+    def solve(self, other):
+        """
+        Given self = A and other = B, returns a matrix X and
+        denominator den such that A*(X/den) = B, assuming that
+        self is square and invertible.
+
+        TODO: support Dixon solver
+
+            >>> A = fmpz_mat(2, 2, [1,4,8,3])
+            >>> B = fmpz_mat(2, 3, range(6))
+            >>> X, d = A.solve(B)
+            >>> A*X == B*d
+            True
+            >>> fmpz_mat(2, 2, [1,0,2,0]).solve(B)
+            Traceback (most recent call last):
+              ...
+            ZeroDivisionError: singular matrix in solve()
+            >>> A.solve(fmpz_mat(1, 2, [2,3]))
+            Traceback (most recent call last):
+              ...
+            ValueError: need a square system and compatible right hand side
+
+        """
+        cdef fmpz_mat u
+        cdef fmpz d
+        cdef int result
+        t = any_as_fmpz_mat(other)
+        if t is NotImplemented:
+            raise TypeError("cannot convert input to fmpz_mat")
+        if (fmpz_mat_nrows(self.val) != fmpz_mat_ncols(self.val) or
+            fmpz_mat_nrows(self.val) != fmpz_mat_nrows((<fmpz_mat>t).val)):
+            raise ValueError("need a square system and compatible right hand side")
+        u = fmpz_mat.__new__(fmpz_mat)
+        fmpz_mat_init(u.val, fmpz_mat_nrows((<fmpz_mat>t).val),
+            fmpz_mat_ncols((<fmpz_mat>t).val))
+        d = fmpz.__new__(fmpz)
+        result = fmpz_mat_solve(u.val, d.val, self.val, (<fmpz_mat>t).val)
+        if not result:
+            raise ZeroDivisionError("singular matrix in solve()")
+        return u, d
+
 #----------------------------------------------------------------------------#
 #                                                                            #
 #                                  fmpq                                      #
@@ -1949,6 +1990,53 @@ cdef class fmpq_mat:
         fmpq_mat_transpose(u.val, self.val)
         return u
 
+    def solve(self, other, algorithm="fraction-free"):
+        """
+        Given self = A and other = B, returns a matrix X such
+        that A*X = B, assuming that self is square and invertible.
+
+        Algorithm can be "fraction-free" or "dixon"
+        (faster for large matrices).
+
+            >>> A = fmpq_mat(2, 2, [1,4,8,3])
+            >>> B = fmpq_mat(2, 3, range(6))
+            >>> X = A.solve(B)
+            >>> print X
+            [12/29, 13/29, 14/29]
+            [-3/29,  4/29, 11/29]
+            >>> A*X == B
+            True
+            >>> A.solve(B, algorithm='dixon') == X
+            True
+            >>> fmpq_mat(2, 2, [1,0,2,0]).solve(B)
+            Traceback (most recent call last):
+              ...
+            ZeroDivisionError: singular matrix in solve()
+            >>> A.solve(fmpq_mat(1, 2, [2,3]))
+            Traceback (most recent call last):
+              ...
+            ValueError: need a square system and compatible right hand side
+
+        """
+        cdef fmpq_mat u
+        cdef int result
+        t = any_as_fmpq_mat(other)
+        if t is NotImplemented:
+            raise TypeError("cannot convert input to fmpq_mat")
+        if (fmpq_mat_nrows(self.val) != fmpq_mat_ncols(self.val) or
+            fmpq_mat_nrows(self.val) != fmpq_mat_nrows((<fmpq_mat>t).val)):
+            raise ValueError("need a square system and compatible right hand side")
+        u = fmpq_mat.__new__(fmpq_mat)
+        fmpq_mat_init(u.val, fmpq_mat_nrows((<fmpq_mat>t).val),
+            fmpq_mat_ncols((<fmpq_mat>t).val))
+        if algorithm == "fraction-free":
+            result = fmpq_mat_solve_fraction_free(u.val, self.val, (<fmpq_mat>t).val)
+        else:
+            result = fmpq_mat_solve_dixon(u.val, self.val, (<fmpq_mat>t).val)
+        if not result:
+            raise ZeroDivisionError("singular matrix in solve()")
+        return u
+
 #----------------------------------------------------------------------------#
 #                                                                            #
 #                               nmod                                         #
@@ -2683,6 +2771,46 @@ cdef class nmod_mat:
             nmod_mat_nrows(self.val), self.val.mod.n)
         nmod_mat_transpose(u.val, self.val)
         return u
+
+    def solve(self, other):
+        """
+        Given self = A and other = B, returns a matrix X such
+        that A*X = B, assuming that self is square and invertible.
+
+            >>> A = nmod_mat(2, 2, [1,4,8,3], 11)
+            >>> B = nmod_mat(2, 3, range(6), 11)
+            >>> X = A.solve(B)
+            >>> print X
+            [8,  5, 2]
+            [9, 10, 0]
+            >>> A*X == B
+            True
+            >>> nmod_mat(2, 2, [1,0,2,0], 11).solve(B)
+            Traceback (most recent call last):
+              ...
+            ZeroDivisionError: singular matrix in solve()
+            >>> A.solve(nmod_mat(1, 2, [2,3], 11))
+            Traceback (most recent call last):
+              ...
+            ValueError: need a square system and compatible right hand side
+
+        """
+        cdef nmod_mat u
+        cdef int result
+        t = any_as_nmod_mat(other, self.val.mod)
+        if t is NotImplemented:
+            raise TypeError("cannot convert input to nmod_mat")
+        if (nmod_mat_nrows(self.val) != nmod_mat_ncols(self.val) or
+            nmod_mat_nrows(self.val) != nmod_mat_nrows((<nmod_mat>t).val)):
+            raise ValueError("need a square system and compatible right hand side")
+        u = nmod_mat.__new__(nmod_mat)
+        nmod_mat_init(u.val, nmod_mat_nrows((<nmod_mat>t).val),
+            nmod_mat_ncols((<nmod_mat>t).val), self.val.mod.n)
+        result = nmod_mat_solve(u.val, self.val, (<nmod_mat>t).val)
+        if not result:
+            raise ZeroDivisionError("singular matrix in solve()")
+        return u
+
 
 #----------------------------------------------------------------------------#
 #                                                                            #

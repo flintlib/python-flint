@@ -399,7 +399,7 @@ cdef extern from "fmpz_mat.h":
     void fmpz_mat_det(fmpz_t det,  fmpz_mat_t A)
     long fmpz_mat_rank( fmpz_mat_t A)
     void fmpz_mat_inv(fmpz_mat_t B, fmpz_t den, fmpz_mat_t A)
-
+    int fmpz_mat_solve(fmpz_mat_t X, fmpz_t den, fmpz_mat_t A, fmpz_mat_t B)
 
 cdef extern from "fmpq.h":
     ctypedef struct fmpq_struct:
@@ -607,7 +607,6 @@ cdef extern from "fmpq_mat.h":
     int fmpq_mat_inv(fmpq_mat_t B, fmpq_mat_t A)
     long fmpq_mat_rref(fmpq_mat_t B, fmpq_mat_t A)
     void fmpq_mat_transpose(fmpq_mat_t B, fmpq_mat_t A)
-
 
 cdef extern from "arith.h":
     void arith_number_of_partitions(fmpz_t res, ulong n)
