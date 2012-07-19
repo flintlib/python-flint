@@ -224,6 +224,7 @@ cdef int any_as_nmod(mp_limb_t * val, obj, nmod_t mod) except -1:
 cdef any_as_nmod_poly(obj, nmod_t mod):
     cdef nmod_poly r
     cdef mp_limb_t v
+    # XXX: should check that modulus is the same here, and not all over the place
     if typecheck(obj, nmod_poly):
         return obj
     if any_as_nmod(&v, obj, mod):
@@ -491,6 +492,24 @@ cdef class fmpz:
         if stype == FMPZ_TMP: fmpz_clear(sval)
         return u
 
+    def gcd(self, other):
+        """
+        Returns the greatest common divisor of self and other.
+
+            >>> fmpz(30).gcd(45)
+            fmpz(15)
+        """
+        cdef fmpz_struct tval[1]
+        cdef int ttype = FMPZ_UNKNOWN
+        ttype = fmpz_set_any_ref(tval, other)
+        if ttype == FMPZ_UNKNOWN:
+            raise TypeError("input must be an integer")
+        u = fmpz.__new__(fmpz)
+        fmpz_gcd((<fmpz>u).val, self.val, tval)
+        if ttype == FMPZ_TMP:
+            fmpz_clear(tval)
+        return u
+
     def factor(self):
         """
         Factors self into pseudoprimes, returning a list of
@@ -732,6 +751,23 @@ cdef class fmpz_poly:
             raise NotImplementedError("fmpz_poly modular exponentiation")
         res = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_pow(res.val, self.val, exp)
+        return res
+
+    def gcd(self, other):
+        """
+        Returns the greatest common divisor of self and other.
+
+            >>> A = fmpz_poly([2,0,1,0,5]); B = fmpz_poly([2,3,4])
+            >>> (A*B).gcd(B)
+            fmpz_poly([2, 3, 4])
+
+        """
+        cdef fmpz_poly res
+        other = any_as_fmpz_poly(other)
+        if other is NotImplemented:
+            raise TypeError("cannot convert input to fmpz_poly")
+        res = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_gcd(res.val, self.val, (<fmpz_poly>other).val)
         return res
 
     def factor(self):
@@ -1566,6 +1602,23 @@ cdef class fmpq_poly:
         fmpq_poly_pow(res.val, self.val, exp)
         return res
 
+    def gcd(self, other):
+        """
+        Returns the greatest common divisor of self and other.
+
+            >>> A = fmpq_poly([1,2,6],6); B = fmpq_poly([4,2,1],12)
+            >>> (A * B).gcd(B)
+            fmpq_poly([4, 2, 1])
+
+        """
+        cdef fmpq_poly res
+        other = any_as_fmpq_poly(other)
+        if other is NotImplemented:
+            raise TypeError("cannot convert input to fmpq_poly")
+        res = fmpq_poly.__new__(fmpq_poly)
+        fmpq_poly_gcd(res.val, self.val, (<fmpq_poly>other).val)
+        return res
+
     def factor(self):
         """
         Factors self into irreducible polynomials. Returns (c, factors)
@@ -2255,6 +2308,26 @@ cdef class nmod_poly:
         res = nmod_poly.__new__(nmod_poly)
         nmod_poly_init_preinv(res.val, (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
         nmod_poly_pow(res.val, self.val, exp)
+        return res
+
+    def gcd(self, other):
+        """
+        Returns the monic greatest common divisor of self and other.
+
+            >>> A = nmod_poly([1,2,3,4], 7); B = nmod_poly([4,1,5], 7)
+            >>> (A * B).gcd(B) * 5
+            nmod_poly([4L, 1L, 5L], 7)
+
+        """
+        cdef nmod_poly res
+        other = any_as_nmod_poly(other, (<nmod_poly>self).val.mod)
+        if other is NotImplemented:
+            raise TypeError("cannot convert input to nmod_poly")
+        if self.val.mod.n != (<nmod_poly>other).val.mod.n:
+            raise ValueError("moduli must be the same")
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        nmod_poly_gcd(res.val, self.val, (<nmod_poly>other).val)
         return res
 
     def factor(self, algorithm=None):

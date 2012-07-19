@@ -519,6 +519,7 @@ cdef extern from "fmpq_poly.h":
     void fmpq_poly_shift_right(fmpq_poly_t res, fmpq_poly_t poly, long n)
     void fmpq_poly_divrem(fmpq_poly_t Q, fmpq_poly_t R, fmpq_poly_t poly1, fmpq_poly_t poly2)
     void fmpq_poly_div(fmpq_poly_t Q, fmpq_poly_t poly1, fmpq_poly_t poly2)
+    void fmpq_poly_gcd(fmpq_poly_t g, fmpq_poly_t a, fmpq_poly_t b)
     void fmpq_poly_rem(fmpq_poly_t R, fmpq_poly_t poly1, fmpq_poly_t poly2)
     void fmpq_poly_inv_series(fmpq_poly_t Qinv, fmpq_poly_t Q, long n)
     void fmpq_poly_div_series(fmpq_poly_t Q, fmpq_poly_t A, fmpq_poly_t B, long n)
