@@ -605,7 +605,8 @@ cdef extern from "fmpq_mat.h":
     int fmpq_mat_solve_fraction_free(fmpq_mat_t X, fmpq_mat_t A, fmpq_mat_t B)
     int fmpq_mat_solve_dixon(fmpq_mat_t X, fmpq_mat_t A, fmpq_mat_t B)
     int fmpq_mat_inv(fmpq_mat_t B, fmpq_mat_t A)
-    long fmpq_mat_rref(long * perm, fmpq_mat_t B, fmpq_mat_t A)
+    long fmpq_mat_rref(fmpq_mat_t B, fmpq_mat_t A)
+    void fmpq_mat_transpose(fmpq_mat_t B, fmpq_mat_t A)
 
 
 cdef extern from "arith.h":

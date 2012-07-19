@@ -1173,6 +1173,19 @@ cdef class fmpz_mat:
             fmpz_clear(den)
             fmpz_mat_clear(tmp)
 
+    def transpose(self):
+        """
+        Returns the transpose of self.
+
+            >>> fmpz_mat(2,3,range(6)).transpose()
+            fmpz_mat(3, 2, [0, 3, 1, 4, 2, 5])
+        """
+        cdef fmpz_mat u
+        u = fmpz_mat.__new__(fmpz_mat)
+        fmpz_mat_init(u.val, fmpz_mat_ncols(self.val), fmpz_mat_nrows(self.val))
+        fmpz_mat_transpose(u.val, self.val)
+        return u
+
 #----------------------------------------------------------------------------#
 #                                                                            #
 #                                  fmpq                                      #
@@ -1923,6 +1936,18 @@ cdef class fmpq_mat:
             raise ZeroDivisionError("matrix is singular")
         return u
 
+    def transpose(self):
+        """
+        Returns the transpose of self.
+        
+            >>> fmpq_mat(2,3,range(6)).transpose()
+            fmpq_mat(3, 2, [fmpq(0,1), fmpq(3,1), fmpq(1,1), fmpq(4,1), fmpq(2,1), fmpq(5,1)])
+        """
+        cdef fmpq_mat u
+        u = fmpq_mat.__new__(fmpq_mat)
+        fmpq_mat_init(u.val, fmpq_mat_ncols(self.val), fmpq_mat_nrows(self.val))
+        fmpq_mat_transpose(u.val, self.val)
+        return u
 
 #----------------------------------------------------------------------------#
 #                                                                            #
@@ -2643,6 +2668,20 @@ cdef class nmod_mat:
             nmod_mat_ncols(self.val), self.val.mod.n)
         if not nmod_mat_inv(u.val, self.val):
             raise ZeroDivisionError("matrix is singular")
+        return u
+
+    def transpose(self):
+        """
+        Returns the transpose of self.
+
+            >>> nmod_mat(2,3,range(6),7).transpose()
+            nmod_mat(3, 2, [0L, 3L, 1L, 4L, 2L, 5L], 7)
+        """
+        cdef nmod_mat u
+        u = nmod_mat.__new__(nmod_mat)
+        nmod_mat_init(u.val, nmod_mat_ncols(self.val),
+            nmod_mat_nrows(self.val), self.val.mod.n)
+        nmod_mat_transpose(u.val, self.val)
         return u
 
 #----------------------------------------------------------------------------#
