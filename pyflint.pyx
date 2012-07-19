@@ -491,6 +491,33 @@ cdef class fmpz:
         if stype == FMPZ_TMP: fmpz_clear(sval)
         return u
 
+    def factor(self):
+        """
+        Factors self into pseudoprimes, returning a list of
+        (prime, exp) pairs. The sign is ignored.
+
+            >>> fmpz(5040).factor()
+            [(fmpz(2), 4), (fmpz(3), 2), (fmpz(5), 1), (fmpz(7), 1)]
+
+        Warning: this is a preliminary implementation and should only
+        be used for integers that fit in a single word, or which are
+        larger but only have very small prime factors. It will
+        crash if trying to factor a large integer with large
+        prime factors.
+        """
+        cdef fmpz_factor_t fac
+        cdef int i
+        fmpz_factor_init(fac)
+        fmpz_factor(fac, self.val)
+        res = [0] * fac.num
+        for 0 <= i < fac.num:
+            u = fmpz.__new__(fmpz)
+            fmpz_set((<fmpz>u).val, &fac.p[i])
+            exp = <long> fac.exp[i]
+            res[i] = (u, exp)
+        fmpz_factor_clear(fac)
+        return res
+
 
 #----------------------------------------------------------------------------#
 #                                                                            #
@@ -707,6 +734,36 @@ cdef class fmpz_poly:
         fmpz_poly_pow(res.val, self.val, exp)
         return res
 
+    def factor(self):
+        """
+        Factors self into irreducible factors, returning a tuple
+        (c, factors) where c is the content of the coefficients and
+        factors is a list of (poly, exp) pairs.
+
+            >>> (-73 * fmpz_poly([1,2,3]) ** 3 * fmpz_poly([5,6,7,8,9]) ** 8).factor()
+            (fmpz(-73), [(fmpz_poly([1, 2, 3]), 3), (fmpz_poly([5, 6, 7, 8, 9]), 8)])
+            >>> chebyshev_t_polynomial(6).factor()
+            (fmpz(1), [(fmpz_poly([-1, 0, 2]), 1), (fmpz_poly([1, 0, -16, 0, 16]), 1)])
+            >>> (fmpz_poly([-1,1])**100).factor()
+            (fmpz(1), [(fmpz_poly([-1, 1]), 100)])
+            >>> fmpz_poly([1,2,3,4,5,6]).factor()
+            (fmpz(1), [(fmpz_poly([1, 2, 3, 4, 5, 6]), 1)])
+
+        """
+        cdef fmpz_poly_factor_t fac
+        cdef int i
+        fmpz_poly_factor_init(fac)
+        fmpz_poly_factor_zassenhaus(fac, self.val)
+        res = [0] * fac.num
+        for 0 <= i < fac.num:
+            u = fmpz_poly.__new__(fmpz_poly)
+            fmpz_poly_set((<fmpz_poly>u).val, &fac.p[i])
+            exp = fac.exp[i]
+            res[i] = (u, exp)
+        c = fmpz.__new__(fmpz)
+        fmpz_set((<fmpz>c).val, &fac.c)
+        fmpz_poly_factor_clear(fac)
+        return c, res
 
 #----------------------------------------------------------------------------#
 #                                                                            #
@@ -1509,6 +1566,27 @@ cdef class fmpq_poly:
         fmpq_poly_pow(res.val, self.val, exp)
         return res
 
+    def factor(self):
+        """
+        Factors self into irreducible polynomials. Returns (c, factors)
+        where c is the leading coefficient and factors is a list of
+        (poly, exp) pairs with all poly monic.
+
+            >>> legendre_polynomial(5).factor()
+            (fmpq(63,8), [(fmpq_poly([0, 1]), 1), (fmpq_poly([15, 0, -70, 0, 63], 63), 1)])
+            >>> (fmpq_poly([1,-1],10) ** 5 * fmpq_poly([1,2,3],7)).factor()
+            (fmpq(-3,700000), [(fmpq_poly([1, 2, 3], 3), 1), (fmpq_poly([-1, 1]), 5)])
+
+        """
+        c, fac = self.numer().factor()
+        c = fmpq(c)
+        for i in range(len(fac)):
+            base, exp = fac[i]
+            lead = base[base.degree()]
+            base = fmpq_poly(base, lead)
+            c *= lead ** exp
+            fac[i] = (base, exp)
+        return c / self.denom(), fac
 
 #----------------------------------------------------------------------------#
 #                                                                            #
@@ -2178,6 +2256,53 @@ cdef class nmod_poly:
         nmod_poly_init_preinv(res.val, (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
         nmod_poly_pow(res.val, self.val, exp)
         return res
+
+    def factor(self, algorithm=None):
+        """
+        Factors self into irreducible factors, returning a tuple
+        (c, factors) where c is the leading coefficient and
+        factors is a list of (poly, exp) pairs with all polynomials
+        monic.
+
+            >>> nmod_poly(range(10), 3).factor()
+            (nmod(2, 3), [(nmod_poly([0L, 1L], 3), 1), (nmod_poly([2L, 1L], 3), 7)])
+            >>> nmod_poly(range(10), 19).factor()
+            (nmod(9, 19), [(nmod_poly([0L, 1L], 19), 1), (nmod_poly([3L, 7L, 2L, 15L, 1L], 19), 1), (nmod_poly([12L, 15L, 12L, 7L, 1L], 19), 1)])
+            >>> nmod_poly(range(10), 53).factor()
+            (nmod(9, 53), [(nmod_poly([0L, 1L], 53), 1), (nmod_poly([6L, 12L, 18L, 24L, 30L, 36L, 42L, 48L, 1L], 53), 1)])
+
+        Algorithm can be None (default), 'berlekamp', or
+        'cantor-zassenhaus'.
+
+            >>> nmod_poly([3,2,1,2,3], 7).factor(algorithm='berlekamp')
+            (nmod(3, 7), [(nmod_poly([2L, 1L], 7), 1), (nmod_poly([4L, 1L], 7), 1), (nmod_poly([1L, 4L, 1L], 7), 1)])
+            >>> nmod_poly([3,2,1,2,3], 7).factor(algorithm='cantor-zassenhaus')
+            (nmod(3, 7), [(nmod_poly([4L, 1L], 7), 1), (nmod_poly([2L, 1L], 7), 1), (nmod_poly([1L, 4L, 1L], 7), 1)])
+
+        """
+        cdef nmod_poly_factor_t fac
+        cdef mp_limb_t lead
+        cdef int i
+        nmod_poly_factor_init(fac)
+        if algorithm == 'berlekamp':
+            lead = nmod_poly_factor_with_berlekamp(fac, self.val)
+        elif algorithm == 'cantor-zassenhaus':
+            lead = nmod_poly_factor_with_cantor_zassenhaus(fac, self.val)
+        else:
+            lead = nmod_poly_factor(fac, self.val)
+        res = [None] * fac.num
+        for 0 <= i < fac.num:
+            u = nmod_poly.__new__(nmod_poly)
+            nmod_poly_init_preinv((<nmod_poly>u).val,
+                (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
+            nmod_poly_set((<nmod_poly>u).val, &fac.p[i])
+            exp = fac.exp[i]
+            res[i] = (u, exp)
+        c = nmod.__new__(nmod)
+        (<nmod>c).mod = self.val.mod
+        (<nmod>c).val = lead
+        nmod_poly_factor_clear(fac)
+        return c, res
 
 
 #----------------------------------------------------------------------------#

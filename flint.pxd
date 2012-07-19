@@ -34,6 +34,14 @@ cdef extern from "nmod_poly.h":
         long length
         nmod_t mod
     ctypedef nmod_poly_struct nmod_poly_t[1]
+
+    ctypedef struct nmod_poly_factor_struct:
+        nmod_poly_struct *p
+        long *exp
+        long num
+        long alloc
+    ctypedef nmod_poly_factor_struct nmod_poly_factor_t[1]
+
     void nmod_poly_init(nmod_poly_t poly, mp_limb_t n)
     void nmod_poly_init_preinv(nmod_poly_t poly, mp_limb_t n, mp_limb_t ninv)
     void nmod_poly_init2(nmod_poly_t poly, mp_limb_t n, long alloc)
@@ -93,6 +101,13 @@ cdef extern from "nmod_poly.h":
     void nmod_poly_tanh_series(nmod_poly_t g, nmod_poly_t h, long n)
     void nmod_poly_log_series(nmod_poly_t res, nmod_poly_t f, long n)
     void nmod_poly_exp_series(nmod_poly_t f, nmod_poly_t h, long n)
+
+    int nmod_poly_is_irreducible(nmod_poly_t f)
+    mp_limb_t nmod_poly_factor_with_berlekamp(nmod_poly_factor_t result, nmod_poly_t poly)
+    mp_limb_t nmod_poly_factor_with_cantor_zassenhaus(nmod_poly_factor_t result, nmod_poly_t poly)
+    mp_limb_t nmod_poly_factor(nmod_poly_factor_t result, nmod_poly_t input)
+    void nmod_poly_factor_init(nmod_poly_factor_t fac)
+    void nmod_poly_factor_clear(nmod_poly_factor_t fac)
 
 cdef extern from "nmod_mat.h":
     ctypedef struct nmod_mat_struct:
@@ -227,12 +242,33 @@ cdef extern from "fmpz.h":
     void fmpz_CRT_ui_unsigned(fmpz_t out,  fmpz_t r1,  fmpz_t m1, ulong r2, ulong m2)
     void fmpz_set_ui_mod(fmpz_t f, mp_limb_t x, mp_limb_t m)
 
+cdef extern from "fmpz_factor.h":
+    ctypedef struct fmpz_factor_struct:
+        int sign
+        fmpz_struct * p
+        fmpz_struct * exp
+        long alloc
+        long num
+    ctypedef fmpz_factor_struct fmpz_factor_t[1]
+    void fmpz_factor_init(fmpz_factor_t factor)
+    void fmpz_factor_clear(fmpz_factor_t factor)
+    void fmpz_factor(fmpz_factor_t factor, fmpz_t n)
+
 cdef extern from "fmpz_poly.h":
     ctypedef struct fmpz_poly_struct:
         fmpz_struct * coeffs
         long alloc
         long length
     ctypedef fmpz_poly_struct fmpz_poly_t[1]
+
+    ctypedef struct fmpz_poly_factor_struct:
+        fmpz_struct c
+        fmpz_poly_struct *p
+        long *exp
+        long num
+        long alloc
+    ctypedef fmpz_poly_factor_struct fmpz_poly_factor_t[1]
+
     void fmpz_poly_init(fmpz_poly_t poly)
     void fmpz_poly_init2(fmpz_poly_t poly, long alloc)
     void fmpz_poly_realloc(fmpz_poly_t poly, long alloc)
@@ -319,6 +355,11 @@ cdef extern from "fmpz_poly.h":
     void fmpz_poly_get_nmod_poly(nmod_poly_t res, fmpz_poly_t poly)
     void fmpz_poly_set_nmod_poly(fmpz_poly_t res, nmod_poly_t poly)
     void fmpz_poly_set_nmod_poly_unsigned(fmpz_poly_t res, nmod_poly_t poly)
+
+cdef extern from "fmpz_poly_factor.h":
+    void fmpz_poly_factor_init(fmpz_poly_factor_t fac)
+    void fmpz_poly_factor_clear(fmpz_poly_factor_t fac)
+    void fmpz_poly_factor_zassenhaus(fmpz_poly_factor_t fac, fmpz_poly_t G)
 
 cdef extern from "fmpz_mat.h":
     ctypedef struct fmpz_mat_struct:
