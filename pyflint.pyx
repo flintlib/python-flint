@@ -1227,6 +1227,59 @@ cdef class fmpz_mat:
             raise ZeroDivisionError("singular matrix in solve()")
         return u, d
 
+    def rref(self, inplace=False):
+        """
+        Computes the reduced row echelon form (rref) of self,
+        either returning a new copy or modifying self in-place.
+        Returns (rref, denominator, rank).
+
+            >>> A = fmpz_mat(3,3,range(9))
+            >>> A.rref()
+            (fmpz_mat(3, 3, [-3, 0, 3, 0, -3, -6, 0, 0, 0]), fmpz(-3), 2)
+            >>> A.rref(inplace=True)
+            (fmpz_mat(3, 3, [-3, 0, 3, 0, -3, -6, 0, 0, 0]), fmpz(-3), 2)
+            >>> A
+            fmpz_mat(3, 3, [-3, 0, 3, 0, -3, -6, 0, 0, 0])
+
+        """
+        cdef fmpz d
+        if inplace:
+            res = self
+        else:
+            res = fmpz_mat.__new__(fmpz_mat)
+            fmpz_mat_init((<fmpz_mat>res).val, fmpz_mat_nrows(self.val), fmpz_mat_ncols(self.val))
+        d = fmpz.__new__(fmpz)
+        rank = fmpz_mat_rref((<fmpz_mat>res).val, d.val, self.val)
+        return res, d, rank
+
+    def nullspace(self):
+        """
+        Computes a basis for the nullspace of self. Returns (X, nullity)
+        where nullity is the rank of the nullspace of self and X is a
+        matrix whose first (nullity) columns are linearly independent,
+        and such that self * X = 0.
+
+            >>> A = fmpz_mat(3,5,range(1,16))
+            >>> X, nullity = A.nullspace()
+            >>> A.rank(), nullity, X.rank()
+            (2, 3, 3)
+            >>> A * X
+            fmpz_mat(3, 5, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+            >>> print(X)
+            [  5,  10,  15, 0, 0]
+            [-10, -15, -20, 0, 0]
+            [  5,   0,   0, 0, 0]
+            [  0,   5,   0, 0, 0]
+            [  0,   0,   5, 0, 0]
+
+        """
+        cdef fmpz_mat res
+        res = fmpz_mat.__new__(fmpz_mat)
+        fmpz_mat_init(res.val, fmpz_mat_ncols(self.val), fmpz_mat_ncols(self.val))
+        nullity = fmpz_mat_nullspace(res.val, self.val)
+        return res, nullity
+
+
 #----------------------------------------------------------------------------#
 #                                                                            #
 #                                  fmpq                                      #
@@ -2037,6 +2090,30 @@ cdef class fmpq_mat:
             raise ZeroDivisionError("singular matrix in solve()")
         return u
 
+    def rref(self, inplace=False):
+        """
+        Computes the reduced row echelon form (rref) of self,
+        either returning a new copy or modifying self in-place.
+        Returns (rref, rank).
+
+            >>> A = fmpq_mat(3,3,range(9))
+            >>> A.rref()
+            (fmpq_mat(3, 3, [fmpq(1,1), fmpq(0,1), fmpq(-1,1), fmpq(0,1), fmpq(1,1), fmpq(2,1), fmpq(0,1), fmpq(0,1), fmpq(0,1)]), 2)
+            >>> A.rref(inplace=True)
+            (fmpq_mat(3, 3, [fmpq(1,1), fmpq(0,1), fmpq(-1,1), fmpq(0,1), fmpq(1,1), fmpq(2,1), fmpq(0,1), fmpq(0,1), fmpq(0,1)]), 2)
+            >>> A
+            fmpq_mat(3, 3, [fmpq(1,1), fmpq(0,1), fmpq(-1,1), fmpq(0,1), fmpq(1,1), fmpq(2,1), fmpq(0,1), fmpq(0,1), fmpq(0,1)])
+
+        """
+        if inplace:
+            res = self
+        else:
+            res = fmpq_mat.__new__(fmpq_mat)
+            fmpq_mat_init((<fmpq_mat>res).val, fmpq_mat_nrows(self.val), fmpq_mat_ncols(self.val))
+        rank = fmpq_mat_rref((<fmpq_mat>res).val, self.val)
+        return res, rank
+
+
 #----------------------------------------------------------------------------#
 #                                                                            #
 #                               nmod                                         #
@@ -2810,6 +2887,56 @@ cdef class nmod_mat:
         if not result:
             raise ZeroDivisionError("singular matrix in solve()")
         return u
+
+    def rref(self, inplace=False):
+        """
+        Computes the reduced row echelon form (rref) of self,
+        either returning a new copy or modifying self in-place.
+        Returns (rref, rank).
+
+            >>> A = nmod_mat(3,3,range(9),23)
+            >>> A.rref()
+            (nmod_mat(3, 3, [1L, 0L, 22L, 0L, 1L, 2L, 0L, 0L, 0L], 23), 2)
+            >>> A.rref(inplace=True)
+            (nmod_mat(3, 3, [1L, 0L, 22L, 0L, 1L, 2L, 0L, 0L, 0L], 23), 2)
+            >>> A
+            nmod_mat(3, 3, [1L, 0L, 22L, 0L, 1L, 2L, 0L, 0L, 0L], 23)
+
+        """
+        if inplace:
+            res = self
+        else:
+            res = nmod_mat.__new__(nmod_mat)
+            nmod_mat_init_set((<nmod_mat>res).val, self.val)
+        rank = nmod_mat_rref((<nmod_mat>res).val)
+        return res, rank
+
+    def nullspace(self):
+        """
+        Computes a basis for the nullspace of self. Returns (X, nullity)
+        where nullity is the rank of the nullspace of self and X is a
+        matrix whose first (nullity) columns are linearly independent,
+        and such that self * X = 0.
+
+            >>> A = nmod_mat(3,5,range(1,16),23)
+            >>> X, nullity = A.nullspace()
+            >>> A.rank(), nullity, X.rank()
+            (2, 3, 3)
+            >>> A * X
+            nmod_mat(3, 5, [0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L], 23)
+            >>> print(X)
+            [ 1,  2,  3, 0, 0]
+            [21, 20, 19, 0, 0]
+            [ 1,  0,  0, 0, 0]
+            [ 0,  1,  0, 0, 0]
+            [ 0,  0,  1, 0, 0]
+
+        """
+        cdef nmod_mat res
+        res = nmod_mat.__new__(nmod_mat)
+        nmod_mat_init(res.val, nmod_mat_ncols(self.val), nmod_mat_ncols(self.val), self.val.mod.n)
+        nullity = nmod_mat_nullspace(res.val, self.val)
+        return res, nullity
 
 
 #----------------------------------------------------------------------------#

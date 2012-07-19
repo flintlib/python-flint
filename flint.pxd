@@ -155,7 +155,7 @@ cdef extern from "nmod_mat.h":
     long nmod_mat_lu(long * P, nmod_mat_t A, int rank_check)
     int nmod_mat_solve(nmod_mat_t X, nmod_mat_t A, nmod_mat_t B)
     int nmod_mat_solve_vec(mp_ptr x, nmod_mat_t A, mp_srcptr b)
-    long nmod_mat_rref(long * P, nmod_mat_t A)
+    long nmod_mat_rref(nmod_mat_t A)
     long nmod_mat_nullspace(nmod_mat_t X, nmod_mat_t A)
 
 cdef extern from "fmpz.h":
@@ -397,9 +397,11 @@ cdef extern from "fmpz_mat.h":
     void fmpz_mat_scalar_mul_ui(fmpz_mat_t B,  fmpz_mat_t A, ulong c)
     void fmpz_mat_mul(fmpz_mat_t C,  fmpz_mat_t A,  fmpz_mat_t B)
     void fmpz_mat_det(fmpz_t det,  fmpz_mat_t A)
-    long fmpz_mat_rank( fmpz_mat_t A)
+    long fmpz_mat_rank(fmpz_mat_t A)
+    long fmpz_mat_rref(fmpz_mat_t R, fmpz_t den, fmpz_mat_t A)
     void fmpz_mat_inv(fmpz_mat_t B, fmpz_t den, fmpz_mat_t A)
     int fmpz_mat_solve(fmpz_mat_t X, fmpz_t den, fmpz_mat_t A, fmpz_mat_t B)
+    long fmpz_mat_nullspace(fmpz_mat_t res, fmpz_mat_t mat)
 
 cdef extern from "fmpq.h":
     ctypedef struct fmpq_struct:
