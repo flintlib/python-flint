@@ -1235,11 +1235,11 @@ cdef class fmpz_mat:
 
             >>> A = fmpz_mat(3,3,range(9))
             >>> A.rref()
-            (fmpz_mat(3, 3, [-3, 0, 3, 0, -3, -6, 0, 0, 0]), fmpz(-3), 2)
+            (fmpz_mat(3, 3, [3, 0, -3, 0, 3, 6, 0, 0, 0]), fmpz(3), 2)
             >>> A.rref(inplace=True)
-            (fmpz_mat(3, 3, [-3, 0, 3, 0, -3, -6, 0, 0, 0]), fmpz(-3), 2)
+            (fmpz_mat(3, 3, [3, 0, -3, 0, 3, 6, 0, 0, 0]), fmpz(3), 2)
             >>> A
-            fmpz_mat(3, 3, [-3, 0, 3, 0, -3, -6, 0, 0, 0])
+            fmpz_mat(3, 3, [3, 0, -3, 0, 3, 6, 0, 0, 0])
 
         """
         cdef fmpz d
@@ -2008,7 +2008,6 @@ cdef class fmpq_mat:
                 if c is not NotImplemented:
                     return (<fmpq_mat>t).__mul_fmpq(c)
                 return NotImplemented
-        return NotImplemented
 
     def __div__(fmpq_mat s, t):
         t = any_as_fmpq(t)
