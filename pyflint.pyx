@@ -315,8 +315,9 @@ cdef class fmpz:
         cdef bint res = 0
         cdef long tl
         cdef fmpz_struct tval[1]
-        cdef fmpz_struct *sval = (<fmpz>s).val
+        cdef fmpz_struct * sval
         cdef int ttype
+        sval = &((<fmpz>s).val[0])
         if PyInt_Check(<PyObject*>t):
             tl = PyInt_AS_LONG(<PyObject*>t)
             if   op == 2: res = fmpz_cmp_si(sval, tl) == 0
@@ -1013,15 +1014,16 @@ cdef class fmpz_mat:
 
     def __add__(s, t):
         cdef fmpz_mat u
-        cdef fmpz_mat_struct *sval, *tval
+        cdef fmpz_mat_struct *sval
+        cdef fmpz_mat_struct *tval
         sm = any_as_fmpz_mat(s)
         if sm is NotImplemented:
             return sm
         tm = any_as_fmpz_mat(t)
         if tm is NotImplemented:
             return tm
-        sval = (<fmpz_mat>sm).val
-        tval = (<fmpz_mat>tm).val
+        sval = &(<fmpz_mat>s).val[0]
+        tval = &(<fmpz_mat>t).val[0]
         if (fmpz_mat_nrows(sval) != fmpz_mat_nrows(tval) or
            fmpz_mat_ncols(sval) != fmpz_mat_ncols(tval)):
             raise ValueError("incompatible shapes for matrix addition")
@@ -1032,15 +1034,16 @@ cdef class fmpz_mat:
 
     def __sub__(s, t):
         cdef fmpz_mat u
-        cdef fmpz_mat_struct *sval, *tval
+        cdef fmpz_mat_struct *sval
+        cdef fmpz_mat_struct *tval
         sm = any_as_fmpz_mat(s)
         if sm is NotImplemented:
             return sm
         tm = any_as_fmpz_mat(t)
         if tm is NotImplemented:
             return tm
-        sval = (<fmpz_mat>sm).val
-        tval = (<fmpz_mat>tm).val
+        sval = &(<fmpz_mat>s).val[0]
+        tval = &(<fmpz_mat>t).val[0]
         if (fmpz_mat_nrows(sval) != fmpz_mat_nrows(tval) or
            fmpz_mat_ncols(sval) != fmpz_mat_ncols(tval)):
             raise ValueError("incompatible shapes for matrix subtraction")
@@ -1058,11 +1061,12 @@ cdef class fmpz_mat:
 
     def __mul__(s, t):
         cdef fmpz_mat u
-        cdef fmpz_mat_struct *sval, *tval
+        cdef fmpz_mat_struct *sval
+        cdef fmpz_mat_struct *tval
         cdef int ttype
         if typecheck(s, fmpz_mat) and typecheck(t, fmpz_mat):
-            sval = (<fmpz_mat>s).val
-            tval = (<fmpz_mat>t).val
+            sval = &(<fmpz_mat>s).val[0]
+            tval = &(<fmpz_mat>t).val[0]
             if fmpz_mat_ncols(sval) != fmpz_mat_nrows(tval):
                 raise ValueError("incompatible shapes for matrix multiplication")
             u = fmpz_mat.__new__(fmpz_mat)
@@ -1904,15 +1908,16 @@ cdef class fmpq_mat:
 
     def __add__(s, t):
         cdef fmpq_mat u
-        cdef fmpq_mat_struct *sval, *tval
+        cdef fmpq_mat_struct *sval
+        cdef fmpq_mat_struct *tval
         s = any_as_fmpq_mat(s)
         if s is NotImplemented:
             return s
         t = any_as_fmpq_mat(t)
         if t is NotImplemented:
             return t
-        sval = (<fmpq_mat>s).val
-        tval = (<fmpq_mat>t).val
+        sval = &(<fmpq_mat>s).val[0]
+        tval = &(<fmpq_mat>t).val[0]
         if (fmpq_mat_nrows(sval) != fmpq_mat_nrows(tval) or
            fmpq_mat_ncols(sval) != fmpq_mat_ncols(tval)):
             raise ValueError("incompatible shapes for matrix addition")
@@ -1923,15 +1928,16 @@ cdef class fmpq_mat:
 
     def __sub__(s, t):
         cdef fmpq_mat u
-        cdef fmpq_mat_struct *sval, *tval
+        cdef fmpq_mat_struct *sval
+        cdef fmpq_mat_struct *tval
         s = any_as_fmpq_mat(s)
         if s is NotImplemented:
             return s
         t = any_as_fmpq_mat(t)
         if t is NotImplemented:
             return t
-        sval = (<fmpq_mat>s).val
-        tval = (<fmpq_mat>t).val
+        sval = &(<fmpq_mat>s).val[0]
+        tval = &(<fmpq_mat>t).val[0]
         if (fmpq_mat_nrows(sval) != fmpq_mat_nrows(tval) or
            fmpq_mat_ncols(sval) != fmpq_mat_ncols(tval)):
             raise ValueError("incompatible shapes for matrix subtraction")
@@ -2731,19 +2737,20 @@ cdef class nmod_mat:
 
     def __add__(s, t):
         cdef nmod_mat r
-        cdef nmod_mat_struct *sv, *tv
+        cdef nmod_mat_struct *sv
+        cdef nmod_mat_struct *tv
         if typecheck(s, nmod_mat):
-            sv = (<nmod_mat>s).val
+            sv = &(<nmod_mat>s).val[0]
             t = any_as_nmod_mat(t, sv.mod)
             if t is NotImplemented:
                 return t
-            tv = (<nmod_mat>t).val
+            tv = &(<nmod_mat>t).val[0]
         else:
-            tv = (<nmod_mat>t).val
+            tv = &(<nmod_mat>t).val[0]
             s = any_as_nmod_mat(s, tv.mod)
             if s is NotImplemented:
                 return s
-            sv = (<nmod_mat>s).val
+            sv = &(<nmod_mat>s).val[0]
         if sv.mod.n != tv.mod.n:
             raise ValueError("cannot add nmod_mats with different moduli")
         if sv.r != tv.r or sv.c != tv.c:
@@ -2755,19 +2762,20 @@ cdef class nmod_mat:
 
     def __sub__(s, t):
         cdef nmod_mat r
-        cdef nmod_mat_struct *sv, *tv
+        cdef nmod_mat_struct *sv
+        cdef nmod_mat_struct *tv
         if typecheck(s, nmod_mat):
-            sv = (<nmod_mat>s).val
+            sv = &(<nmod_mat>s).val[0]
             t = any_as_nmod_mat(t, sv.mod)
             if t is NotImplemented:
                 return t
-            tv = (<nmod_mat>t).val
+            tv = &(<nmod_mat>t).val[0]
         else:
-            tv = (<nmod_mat>t).val
+            tv = &(<nmod_mat>t).val[0]
             s = any_as_nmod_mat(s, tv.mod)
             if s is NotImplemented:
                 return s
-            sv = (<nmod_mat>s).val
+            sv = &(<nmod_mat>s).val[0]
         if sv.mod.n != tv.mod.n:
             raise ValueError("cannot subtract nmod_mats with different moduli")
         if sv.r != tv.r or sv.c != tv.c:
@@ -2785,24 +2793,25 @@ cdef class nmod_mat:
 
     def __mul__(s, t):
         cdef nmod_mat r
-        cdef nmod_mat_struct *sv, *tv
+        cdef nmod_mat_struct *sv
+        cdef nmod_mat_struct *tv
         cdef mp_limb_t c
         if typecheck(s, nmod_mat):
-            sv = (<nmod_mat>s).val
+            sv = &(<nmod_mat>s).val[0]
             u = any_as_nmod_mat(t, sv.mod)
             if u is NotImplemented:
                 if any_as_nmod(&c, t, sv.mod):
                     return (<nmod_mat>s).__mul_nmod(c)
                 return NotImplemented
-            tv = (<nmod_mat>u).val
+            tv = &(<nmod_mat>u).val[0]
         else:
-            tv = (<nmod_mat>t).val
+            tv = &(<nmod_mat>t).val[0]
             u = any_as_nmod_mat(s, tv.mod)
             if u is NotImplemented:
                 if any_as_nmod(&c, s, tv.mod):
                     return (<nmod_mat>t).__mul_nmod(c)
                 return NotImplemented
-            sv = (<nmod_mat>u).val
+            sv = &(<nmod_mat>u).val[0]
         if sv.mod.n != tv.mod.n:
             raise ValueError("cannot multiply nmod_mats with different moduli")
         if sv.c != tv.r:
