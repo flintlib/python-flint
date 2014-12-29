@@ -2,10 +2,10 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 
-ext_modules = [Extension("flint", ["pyflint.pyx"], libraries=["flint"])]
+ext_modules = [Extension("flint", ["src/pyflint.pyx"], libraries=["flint", "arb"])]
 
 for e in ext_modules:
-    e.pyrex_directives  =  {"embedsignature":  True}
+    e.cython_directives  =  {"embedsignature":  True}
 
 setup(
   name = 'flint',
@@ -19,3 +19,4 @@ setup(
   license = 'BSD',
   classifiers=['Topic :: Scientific/Engineering :: Mathematics']
 )
+

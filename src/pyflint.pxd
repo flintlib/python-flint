@@ -1,5 +1,10 @@
 from flint cimport *
 
+cdef class Context:
+    cpdef public bint pretty
+    cpdef public long prec
+    cpdef arf_rnd_t rnd
+
 cdef class fmpz:
     cdef fmpz_t val
 
@@ -27,3 +32,13 @@ cdef class nmod_poly:
 
 cdef class nmod_mat:
     cdef nmod_mat_t val
+
+cdef class arf:
+    cdef arf_t val
+
+cdef class arb:
+    cdef arb_t val
+
+cdef class acb:
+    cdef acb_t val
+

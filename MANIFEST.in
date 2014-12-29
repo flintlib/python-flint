@@ -1,9 +1,9 @@
 include LICENSE
 include CHANGES
 include README
-include *.pxd
-include *.pyx
-include *.py
+include src/*.pxd
+include src/*.pyx
+include src/*.py
 include doc/source/*.py
 include doc/source/*.rst
 include doc/Makefile

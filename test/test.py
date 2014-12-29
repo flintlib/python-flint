@@ -159,6 +159,10 @@ def test_fmpz_mat():
     assert ~~M(2,2,[1,2,3,4]) == M(2,2,[1,2,3,4])
     assert raises(lambda: M.randrank(4,3,4,1), ValueError)
     assert raises(lambda: M.randrank(3,4,4,1), ValueError)
+    assert M(1,1,[3]) ** 5 == M(1,1,[3**5])
+    assert raises(lambda: M(1,2) ** 3, ValueError)
+    assert raises(lambda: M(1,1) ** M(1,1), TypeError)
+    assert raises(lambda: 1 ** M(1,1), TypeError)
 
 def test_fmpq():
     Q = flint.fmpq
@@ -384,7 +388,7 @@ def test_nmod_mat():
     assert A*(B*C) == (A*B)*C
     assert bool(M(2,2,[0,0,0,0],17)) == False
     assert bool(M(2,2,[0,0,0,1],17)) == True
-    assert repr(M(2,2,[1,2,3,4],17)) == 'nmod_mat(2, 2, [1L, 2L, 3L, 4L], 17)'
+    assert repr(M(2,2,[1,2,3,4],17)) == 'nmod_mat(2, 2, [1, 2, 3, 4], 17)'
     assert str(M(2,2,[1,2,3,4],17)) == '[1, 2]\n[3, 4]'
     assert M(1,2,[3,4],17) / 3 == M(1,2,[3,4],17) * (~G(3,17))
     assert (~M(2,2,[1,2,3,4], 17)).det() == ~(M(2,2,[1,2,3,4], 17).det())
@@ -403,3 +407,4 @@ if __name__ == "__main__":
     sys.stdout.write("test_nmod_poly..."); test_nmod_poly(); print("OK")
     sys.stdout.write("test_nmod_mat..."); test_nmod_mat(); print("OK")
     sys.stdout.write("doctests..."); doctest.testmod(flint); print("OK")
+
