@@ -46,7 +46,9 @@ must be available at compile time. If they are in a nonstandard location
 (for example, if they have been built but not installed),
 use a command such as the following to build:
 
-    python ./setup.py build_ext --include-dirs=/home/fredrik/src/flint2:/home/fredrik/src/arb --library-dirs=/home/fredrik/src/flint2:/home/fredrik/src/arb
+    python ./setup.py build_ext \
+        --include-dirs=/home/fredrik/src/flint2:/home/fredrik/src/arb \
+        --library-dirs=/home/fredrik/src/flint2:/home/fredrik/src/arb
 
 Likewise, before starting the Python interpreter, tell the linker
 where to find the library files using something like:
