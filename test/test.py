@@ -397,6 +397,9 @@ def test_nmod_mat():
 
 
 if __name__ == "__main__":
+    import sys
+    reload(sys)
+    sys.setdefaultencoding("UTF-8")
     sys.stdout.write("test_fmpz..."); test_fmpz(); print("OK")
     sys.stdout.write("test_fmpz_poly..."); test_fmpz_poly(); print("OK")
     sys.stdout.write("test_fmpz_mat..."); test_fmpz_mat(); print("OK")

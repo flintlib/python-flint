@@ -63,7 +63,6 @@ cdef class arb:
     r"""
     Represents a real number `x` by a midpoint `m` and a radius `r`
     such that `x \in [m \pm r] = [m-r, m+r]`.
-
     The midpoint and radius are both floating-point numbers. The radius
     uses a fixed, implementation-defined precision (30 bits).
     The precision used for midpoints is controlled by :attr:`ctx.prec` (bits)
@@ -266,154 +265,371 @@ cdef class arb:
         return u
 
     def floor(s):
+        r"""
+        Computes the floor function `\lfloor s \rfloor`.
+
+            >>> print(arb.pi().floor())
+            3.0
+            >>> print((arb.pi() - arb.pi()).floor())
+            [-0.5 ± 0.5]
+        """
         u = arb.__new__(arb)
         arb_floor((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def ceil(s):
+        r"""
+        Computes the ceiling function `\lceil s \rceil`.
+
+            >>> print(arb.pi().ceil())
+            4.0
+            >>> print((arb.pi() - arb.pi()).ceil())
+            [0.5 ± 0.5]
+        """
         u = arb.__new__(arb)
         arb_ceil((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def sqrt(s):
+        r"""
+        Computes the square root `\sqrt{s}`.
+
+            >>> showgood(lambda: arb(3).sqrt(), dps=25)
+            1.732050807568877293527446
+            >>> showgood(lambda: arb(0).sqrt(), dps=25)
+            0.0
+            >>> showgood(lambda: arb(-1).sqrt(), dps=25)
+            Traceback (most recent call last):
+              ...
+            ValueError: no convergence
+
+        This function is undefined for negative input.
+        Use :meth:`.acb.sqrt` for the complex extension.
+        """
         u = arb.__new__(arb)
         arb_sqrt((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def rsqrt(s):
+        r"""
+        Computes the reciprocal square root `1/\sqrt{s}`.
+
+            >>> showgood(lambda: arb(3).rsqrt(), dps=25)
+            0.5773502691896257645091488
+            >>> showgood(lambda: arb(0).rsqrt(), dps=25)
+            Traceback (most recent call last):
+              ...
+            ValueError: no convergence
+            >>> showgood(lambda: arb(-1).rsqrt(), dps=25)
+            Traceback (most recent call last):
+              ...
+            ValueError: no convergence
+
+        This function is undefined for negative input.
+        Use :meth:`.acb.rsqrt` for the complex extension.
+        """
         u = arb.__new__(arb)
         arb_rsqrt((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def exp(s):
+        r"""
+        Computes the exponential function `\exp(s)`.
+
+            >>> showgood(lambda: arb(1).exp(), dps=25)
+            2.718281828459045235360287
+        """
         u = arb.__new__(arb)
         arb_exp((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def expm1(s):
+        r"""
+        Computes `\exp(s) - 1`, accurately for small *s*.
+
+            >>> showgood(lambda: (arb(10) ** -8).expm1(), dps=25)
+            1.000000005000000016666667e-8
+        """
         u = arb.__new__(arb)
         arb_expm1((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def log(s):
+        r"""
+        Computes the natural logarithm `\log(s)`.
+
+            >>> showgood(lambda: arb(2).log(), dps=25)
+            0.6931471805599453094172321
+            >>> showgood(lambda: arb(100).exp().log(), dps=25)
+            100.0
+            >>> showgood(lambda: arb(-1).sqrt(), dps=25)
+            Traceback (most recent call last):
+              ...
+            ValueError: no convergence
+
+        This function is undefined for negative input.
+        Use :meth:`.acb.log` for the complex extension.
+        """
         u = arb.__new__(arb)
         arb_log((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def sin(s):
+        r"""
+        Computes the sine `\sin(s)`.
+
+            >>> showgood(lambda: arb(1).sin(), dps=25)
+            0.8414709848078965066525023
+        """
         u = arb.__new__(arb)
         arb_sin((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def cos(s):
+        r"""
+        Computes the cosine `\cos(s)`.
+
+            >>> showgood(lambda: arb(1).cos(), dps=25)
+            0.5403023058681397174009366
+        """
         u = arb.__new__(arb)
         arb_cos((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def sin_cos(s):
+        r"""
+        Computes `\sin(s)` and `\cos(s)` simultaneously.
+
+            >>> showgood(lambda: arb(1).sin_cos(), dps=25)
+            (0.8414709848078965066525023, 0.5403023058681397174009366)
+        """
         u = arb.__new__(arb)
         v = arb.__new__(arb)
         arb_sin_cos((<arb>u).val, (<arb>v).val, (<arb>s).val, getprec())
         return u, v
 
     def sin_pi(s):
+        r"""
+        Computes the sine `\sin(\pi s)`.
+
+            >>> showgood(lambda: arb(0.75).sin_pi(), dps=25)
+            0.7071067811865475244008444
+            >>> showgood(lambda: arb(1).sin_pi(), dps=25)
+            0.0
+        """
         u = arb.__new__(arb)
         arb_sin_pi((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def cos_pi(s):
+        r"""
+        Computes the cosine `\cos(\pi s)`.
+
+            >>> showgood(lambda: arb(0.75).cos_pi(), dps=25)
+            -0.7071067811865475244008444
+            >>> showgood(lambda: arb(0.5).cos_pi(), dps=25)
+            0.0
+        """
         u = arb.__new__(arb)
         arb_cos_pi((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def sin_cos_pi(s):
+        r"""
+        Computes `\sin(\pi s)` and `\cos(\pi s)` simultaneously.
+
+            >>> showgood(lambda: arb(0.75).sin_cos_pi(), dps=25)
+            (0.7071067811865475244008444, -0.7071067811865475244008444)
+        """
         u = arb.__new__(arb)
         v = arb.__new__(arb)
         arb_sin_cos_pi((<arb>u).val, (<arb>v).val, (<arb>s).val, getprec())
         return u, v
 
     def tan(s):
+        r"""
+        Computes the tangent `\tan(s)`.
+
+            >>> showgood(lambda: arb(1).tan(), dps=25)
+            1.557407724654902230506975
+        """
         u = arb.__new__(arb)
         arb_tan((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def cot(s):
+        r"""
+        Computes the cotangent `\cot(s)`.
+
+            >>> showgood(lambda: arb(1).cot(), dps=25)
+            0.64209261593433070300642
+        """
         u = arb.__new__(arb)
         arb_cot((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def tan_pi(s):
+        r"""
+        Computes the tangent `\tan(\pi s)`.
+
+            >>> showgood(lambda: arb(0.125).tan_pi(), dps=25)
+            0.4142135623730950488016887
+            >>> showgood(lambda: arb(1).tan_pi(), dps=25)
+            0.0
+        """
         u = arb.__new__(arb)
         arb_tan_pi((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def cot_pi(s):
+        r"""
+        Computes the cotangent `\cot(\pi s)`.
+
+            >>> showgood(lambda: arb(0.125).cot_pi(), dps=25)
+            2.414213562373095048801689
+            >>> showgood(lambda: arb(0.5).cot_pi(), dps=25)
+            0.0
+        """
         u = arb.__new__(arb)
         arb_cot_pi((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     @classmethod
     def sin_pi_fmpq(cls, fmpq s):
+        r"""
+        Computes the algebraic sine value `\sin(\pi s)`.
+
+            >>> showgood(lambda: arb.sin_pi_fmpq(fmpq(3,4)), dps=25)
+            0.7071067811865475244008444
+        """
         u = arb.__new__(arb)
         arb_sin_pi_fmpq((<arb>u).val, (<fmpq>s).val, getprec())
         return u
 
     @classmethod
     def cos_pi_fmpq(cls, fmpq s):
+        r"""
+        Computes the algebraic cosine value `\cos(\pi s)`.
+
+            >>> showgood(lambda: arb.cos_pi_fmpq(fmpq(3,4)), dps=25)
+            -0.7071067811865475244008444
+        """
         u = arb.__new__(arb)
         arb_cos_pi_fmpq((<arb>u).val, (<fmpq>s).val, getprec())
         return u
 
     @classmethod
     def sin_cos_pi_fmpq(cls, fmpq s):
+        r"""
+        Computes `\sin(\pi s)` and `\cos(\pi s)` simultaneously.
+
+            >>> showgood(lambda: arb.sin_cos_pi_fmpq(fmpq(3,4)), dps=25)
+            (0.7071067811865475244008444, -0.7071067811865475244008444)
+        """
         u = arb.__new__(arb)
         v = arb.__new__(arb)
         arb_sin_cos_pi_fmpq((<arb>u).val, (<arb>v).val, (<fmpq>s).val, getprec())
         return u, v
 
     def atan(s):
+        r"""
+        Computes the inverse tangent `\operatorname{atan}(s)`.
+
+            >>> showgood(lambda: arb(1).atan(), dps=25)
+            0.7853981633974483096156608
+        """
         u = arb.__new__(arb)
         arb_atan((<arb>u).val, (<arb>s).val, getprec())
         return u
 
-    def atan2(s, t):
+    @classmethod
+    def atan2(cls, s, t):
+        r"""
+        Computes the two-argument inverse tangent `\operatorname{atan2}(s,t)`.
+
+            >>> showgood(lambda: arb.atan2(-10,-5), dps=25)
+            -2.034443935795702735445578
+        """
+        s = any_as_arb(s)
         t = any_as_arb(t)
         u = arb.__new__(arb)
         arb_atan2((<arb>u).val, (<arb>s).val, (<arb>t).val, getprec())
         return u
 
     def acos(s):
+        r"""
+        Computes the inverse cosine `\operatorname{acos}(s)`.
+
+            >>> showgood(lambda: arb(0).acos(), dps=25)
+            1.570796326794896619231322
+        """
         u = arb.__new__(arb)
         arb_acos((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def asin(s):
+        r"""
+        Computes the inverse sine `\operatorname{asin}(s)`.
+
+            >>> showgood(lambda: arb(1).asin(), dps=25)
+            1.570796326794896619231322
+        """
         u = arb.__new__(arb)
         arb_asin((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def sinh(s):
+        r"""
+        Computes the hyperbolic sine `\sinh(s)`.
+
+            >>> showgood(lambda: arb(1).sinh(), dps=25)
+            1.175201193643801456882382
+        """
         u = arb.__new__(arb)
         arb_sinh((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def cosh(s):
+        r"""
+        Computes the hyperbolic cosine `\cosh(s)`.
+
+            >>> showgood(lambda: arb(1).cosh(), dps=25)
+            1.543080634815243778477906
+        """
         u = arb.__new__(arb)
-        arb_sinh((<arb>u).val, (<arb>s).val, getprec())
+        arb_cosh((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def sinh_cosh(s):
+        r"""
+        Computes `\sinh(s)` and `\cosh(s)` simultaneously.
+
+            >>> showgood(lambda: arb(1).sinh_cosh(), dps=25)
+            (1.175201193643801456882382, 1.543080634815243778477906)
+        """
         u = arb.__new__(arb)
         v = arb.__new__(arb)
         arb_sinh_cosh((<arb>u).val, (<arb>v).val, (<arb>s).val, getprec())
         return u, v
 
     def tanh(s):
+        r"""
+        Computes the hyperbolic tangent `\tanh(s)`.
+
+            >>> showgood(lambda: arb(1).tanh(), dps=25)
+            0.7615941559557648881194583
+        """
         u = arb.__new__(arb)
         arb_tanh((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def coth(s):
+        r"""
+        Computes the hyperbolic cotangent `\coth(s)`.
+
+            >>> showgood(lambda: arb(1).coth(), dps=25)
+            1.313035285499331303636161
+        """
         u = arb.__new__(arb)
         arb_coth((<arb>u).val, (<arb>s).val, getprec())
         return u
@@ -426,7 +642,7 @@ cdef class arb:
             362880.0
             >>> showgood(lambda: arb(-2.5).gamma(), dps=25)
             -0.9453087204829418812256893
-            >>> showgood(lambda: (arb.const_pi() ** 10).gamma(), dps=25)
+            >>> showgood(lambda: (arb.pi() ** 10).gamma(), dps=25)
             1.705646271897306403570389e+424898
             >>> showgood(lambda: arb(0).gamma(), dps=25)  # pole
             Traceback (most recent call last):
@@ -439,34 +655,69 @@ cdef class arb:
 
     @classmethod
     def gamma_fmpq(cls, fmpq s):
+        """
+        Computes the gamma function `\Gamma(s)`, exploiting the fact that
+        *s* is a rational number to improve performance.
+
+            >>> showgood(lambda: arb.gamma_fmpq(fmpq(1,4)), dps=25)
+            3.625609908221908311930685
+        """
         u = arb.__new__(arb)
         arb_gamma_fmpq((<arb>u).val, (<fmpq>s).val, getprec())
         return u
 
     def rgamma(s):
+        """
+        Computes the reciprocal gamma function `1/\Gamma(s)`, avoiding
+        division by zero at the poles of the gamma function.
+
+            >>> showgood(lambda: arb(1.5).rgamma(), dps=25)
+            1.128379167095512573896159
+            >>> print(arb(0).rgamma())
+            0.0
+            >>> print(arb(-1).rgamma())
+            0.0
+            >>> print(arb(-3,1e-10).rgamma())
+            [0.0 ± 6.0e-10]
+        """
         u = arb.__new__(arb)
         arb_rgamma((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def lgamma(s):
+        """
+        Computes the logarithmic gamma function `\log \Gamma(s)`.
+
+            >>> showgood(lambda: arb(100).lgamma(), dps=25)
+            359.134205369575398776044
+
+        This function is undefined for negative `s`. Use :meth:`.acb.lgamma`
+        for the complex extension.
+        """
         u = arb.__new__(arb)
         arb_lgamma((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def digamma(s):
+        """
+        Computes the digamma function `\psi(s)`.
+
+            >>> showgood(lambda: arb(1).digamma(), dps=25)
+            -0.5772156649015328606065121
+        """
         u = arb.__new__(arb)
         arb_digamma((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def rising_ui(s, ulong n):
         """
-        Computes the rising factorial rf(s,n) where n is an unsigned
+        Computes the rising factorial `(s)_n` where *n* is an unsigned
         integer. The current implementation does not use the gamma function,
-        so n should be moderate.
+        so *n* should be moderate.
 
-            >>> showgood(lambda: arb.const_pi().rising_ui(0), dps=25)
+            >>> showgood(lambda: arb.pi().rising_ui(0), dps=25)
             1.0
-            >>> showgood(lambda: arb.const_pi().rising_ui(10), dps=25)
+            >>> showgood(lambda: arb.pi().rising_ui(10), dps=25)
             299606572.3661012684972888
         """
         u = arb.__new__(arb)
@@ -476,9 +727,9 @@ cdef class arb:
     @classmethod
     def rising_fmpq_ui(cls, fmpq s, ulong n):
         """
-        Computes the rising factorial rf(s,n) where s is an fmpq and n is an
-        unsigned integer. The current implementation does not use the
-        gamma function, so n should be moderate.
+        Computes the rising factorial `(s)_n` where *s* is a rational
+        number and *n* is an unsigned integer. The current implementation
+        does not use the gamma function, so *n* should be moderate.
 
             >>> showgood(lambda: arb.rising_fmpq_ui(fmpq(-1,3), 100), dps=25)
             -4.960517984074284420131903e+154
@@ -489,10 +740,10 @@ cdef class arb:
 
     def rising2_ui(s, ulong n):
         """
-        Computes the rising factorial rf(s,n) where n is an unsigned
-        integer, along with the first derivative with respect to s.
+        Computes the rising factorial `(s)_n` where *n* is an unsigned
+        integer, along with the first derivative with respect to `(s)_n`.
         The current implementation does not use the gamma function,
-        so n should be moderate.
+        so *n* should be moderate.
 
             >>> u, v = arb(3).rising2_ui(5)
             >>> print(u); print(v)
@@ -513,6 +764,9 @@ cdef class arb:
             1.06695419071121453245037
             >>> showgood(lambda: arb(4.25).zeta(2.75), dps=25)
             0.01991885526414599096374229
+
+        This function is undefined for some
+        combinations of `s, a`. Use :meth:`.acb.zeta` for the complex extension.
         """
         u = arb.__new__(arb)
         if a is None:
@@ -539,6 +793,9 @@ cdef class arb:
             Traceback (most recent call last):
               ...
             ValueError: no convergence
+
+        This function is undefined for negative input.
+        Use :meth:`.acb.agm` for the complex extension.
         """
         t = any_as_arb(t)
         u = arb.__new__(arb)
@@ -582,77 +839,135 @@ cdef class arb:
 
     @classmethod
     def fac_ui(cls, ulong n):
+        """
+        Computes the factorial `n!`.
+
+            >>> print(arb.fac_ui(10))
+            3628800.0
+            >>> showgood(lambda: arb.fac_ui(10**9).log(), dps=25)
+            19723265848.22698260792313
+        """
         u = arb.__new__(arb)
         arb_fac_ui((<arb>u).val, n, getprec())
         return u
 
     def bin_ui(s, ulong k):
+        """
+        Computes the binomial coefficient `{s \choose k}`.
+        The current implementation does not use the gamma function,
+        so *k* should be moderate.
+
+            >>> print(arb(10).bin_ui(5))
+            252.0
+            >>> showgood(lambda: arb.pi().bin_ui(100), dps=25)
+            5.478392395095119521549286e-9
+        """
         u = arb.__new__(arb)
         arb_bin_ui((<arb>u).val, (<arb>s).val, k, getprec())
         return u
 
     @classmethod
     def bin_uiui(cls, ulong n, ulong k):
+        """
+        Computes the binomial coefficient `{n \choose k}`.
+        The current implementation does not use the gamma function,
+        so *k* should be moderate.
+
+            >>> print(arb.bin_uiui(10, 5))
+            252.0
+        """
         u = arb.__new__(arb)
         arb_bin_uiui((<arb>u).val, n, k, getprec())
         return u
 
     @classmethod
     def fib_ui(cls, ulong n):
+        """
+        Computes the Fibonacci number `F_n`.
+
+            >>> print(arb.fib_ui(10))
+            55.0
+        """
         u = arb.__new__(arb)
         arb_fib_ui((<arb>u).val, n, getprec())
         return u
 
     @classmethod
     def fib_fmpz(cls, fmpz n):
+        """
+        Computes the Fibonacci number `F_n`, where *n* may be a bignum.
+
+            >>> print(arb.fib_fmpz(fmpz(10)))
+            55.0
+            >>> showgood(lambda: arb.fib_fmpz(fmpz(10**100)).log(), dps=25)
+            4.812118250596034474977589e+99
+        """
         u = arb.__new__(arb)
         arb_fib_fmpz((<arb>u).val, (<fmpz>n).val, getprec())
         return u
 
     @classmethod
     def polylog(cls, arb s, arb z):
+        """
+        Computes the polylogarithm `\operatorname{Li}_s(z)`.
+
+            >>> showgood(lambda: arb.polylog(arb(2), arb(-1)), dps=25)
+            -0.8224670334241132182362076
+            >>> showgood(lambda: arb.polylog(arb(1.75), arb(-3)), dps=25)
+            -1.81368994587806016161262
+            >>> showgood(lambda: arb.polylog(arb(4.75), arb(-2.5)), dps=25)
+            -2.322090601785704585092044
+
+        This function is undefined for some
+        combinations of `s, z`. Use :meth:`.acb.polylog` for the complex extension.
+        """
         u = arb.__new__(arb)
         arb_polylog((<arb>u).val, (<arb>s).val, (<arb>z).val, getprec())
         return u
 
-    @classmethod
-    def polylog_si(cls, long s, arb z):
-        u = arb.__new__(arb)
-        arb_polylog_si((<arb>u).val, s, (<arb>z).val, getprec())
-        return u
+    def chebyshev_t_ui(s, ulong n, bint pair=False):
+        """
+        Computes the Chebyshev polynomial of the first kind `T_n(s)`.
+        If *pair* is True, returns the pair `(T_n(s), T_{n-1}(s))`.
 
-    def dilog(s):
-        u = arb.__new__(arb)
-        arb_polylog_si((<arb>u).val, 2, (<arb>s).val, getprec())
-        return u
+            >>> showgood(lambda: (arb(1)/3).chebyshev_t_ui(3), dps=25)
+            -0.8518518518518518518518519
+            >>> showgood(lambda: (arb(1)/3).chebyshev_t_ui(4), dps=25)
+            0.2098765432098765432098765
+            >>> showgood(lambda: (arb(1)/3).chebyshev_t_ui(4, pair=True), dps=25)
+            (0.2098765432098765432098765, -0.8518518518518518518518519)
+        """
+        if pair:
+            u = arb.__new__(arb)
+            v = arb.__new__(arb)
+            arb_chebyshev_t2_ui((<arb>u).val, (<arb>v).val, n, (<arb>s).val, getprec())
+            return u, v
+        else:
+            u = arb.__new__(arb)
+            arb_chebyshev_t_ui((<arb>u).val, n, (<arb>s).val, getprec())
+            return u
 
-    def chebyshev_t_ui(s, ulong n):
-        u = arb.__new__(arb)
-        arb_chebyshev_t_ui((<arb>u).val, n, (<arb>s).val, getprec())
-        return u
+    def chebyshev_u_ui(s, ulong n, bint pair=False):
+        """
+        Computes the Chebyshev polynomial of the second kind `U_n(s)`.
+        If *pair* is True, returns the pair `(U_n(s), U_{n-1}(s))`.
 
-    def chebyshev_t2_ui(s, ulong n):
-        u = arb.__new__(arb)
-        v = arb.__new__(arb)
-        arb_chebyshev_t2_ui((<arb>u).val, (<arb>v).val, n, (<arb>s).val, getprec())
-        return u
-
-    def chebyshev_u_ui(s, ulong n):
-        u = arb.__new__(arb)
-        arb_chebyshev_u_ui((<arb>u).val, n, (<arb>s).val, getprec())
-        return u
-
-    def chebyshev_u2_ui(s, ulong n):
-        u = arb.__new__(arb)
-        v = arb.__new__(arb)
-        arb_chebyshev_u2_ui((<arb>u).val, (<arb>v).val, n, (<arb>s).val, getprec())
-        return u
-
-    @classmethod
-    def atan(cls, arb b, arb a):
-        u = arb.__new__(arb)
-        arb_atan2((<arb>u).val, (<arb>b).val, (<arb>a).val, getprec())
-        return u
+            >>> showgood(lambda: (arb(1)/3).chebyshev_u_ui(3), dps=25)
+            -1.037037037037037037037037
+            >>> showgood(lambda: (arb(1)/3).chebyshev_u_ui(4), dps=25)
+            -0.1358024691358024691358025
+            >>> showgood(lambda: (arb(1)/3).chebyshev_u_ui(4, pair=True), dps=25)
+            (-0.1358024691358024691358025, -1.037037037037037037037037)
+        """
+        if pair:
+            u = arb.__new__(arb)
+            v = arb.__new__(arb)
+            arb_chebyshev_u2_ui((<arb>u).val, (<arb>v).val, n, (<arb>s).val, getprec())
+            return u, v
+        else:
+            u = arb.__new__(arb)
+            arb_chebyshev_u_ui((<arb>u).val, n, (<arb>s).val, getprec())
+            return u
 
     @classmethod
     def const_pi(cls):

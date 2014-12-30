@@ -1,3 +1,16 @@
+def goodness(x):
+    if isinstance(x, tuple) or isinstance(x, list):
+        return min(goodness(y) for y in x)
+    assert isinstance(x, arb)
+    return arb_rel_accuracy_bits((<arb>x).val)
+
+def goodstr(x):
+    if isinstance(x, tuple):
+        return "(" + ", ".join(goodstr(y) for y in x) + ")"
+    if isinstance(x, list):
+        return "[" + ", ".join(goodstr(y) for y in x) + "]"
+    assert isinstance(x, arb)
+    return str(x.mid())
 
 def good(func, long prec=0, long maxprec=0, long dps=0,
         long maxdps=0, long padding=10, bint verbose=False, bint show=False):
@@ -28,14 +41,13 @@ def good(func, long prec=0, long maxprec=0, long dps=0,
             if verbose:
                 print "eval prec = %i" % ctx.prec
             v = func()
-            assert isinstance(v, arb)
-            acc = arb_rel_accuracy_bits((<arb>v).val)
+            acc = goodness(v)
             if verbose:
                 print "good bits = %i" % acc
             if acc > prec + padding:
                 if show:
                     ctx.dps = dps
-                    print(str(v.mid()))
+                    print(goodstr(v))
                     return
                 else:
                     return v
