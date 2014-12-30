@@ -199,6 +199,11 @@ cdef class acb:
     def log(s):
         r"""
         Computes the natural logarithm `\log(s)`.
+
+            >>> showgood(lambda: acb(1,2).log(), dps=25)
+            0.8047189562170501873003797 + 1.107148717794090503017065j
+            >>> showgood(lambda: acb(-5).log(), dps=25)
+            1.609437912434100374600759 + 3.141592653589793238462643j
         """
         u = acb.__new__(acb)
         acb_log((<acb>u).val, (<acb>s).val, getprec())
