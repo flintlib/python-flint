@@ -1,16 +1,24 @@
 def goodness(x):
     if isinstance(x, tuple) or isinstance(x, list):
         return min(goodness(y) for y in x)
-    assert isinstance(x, arb)
-    return arb_rel_accuracy_bits((<arb>x).val)
+    if isinstance(x, arb):
+        return arb_rel_accuracy_bits((<arb>x).val)
+    if isinstance(x, arb):
+        return arb_rel_accuracy_bits((<arb>x).val)
+    if isinstance(x, acb):
+        return min(goodness(x.real), goodness(x.imag))
+    raise TypeError("must have arb or acb")
 
 def goodstr(x):
     if isinstance(x, tuple):
         return "(" + ", ".join(goodstr(y) for y in x) + ")"
     if isinstance(x, list):
         return "[" + ", ".join(goodstr(y) for y in x) + "]"
-    assert isinstance(x, arb)
-    return str(x.mid())
+    if isinstance(x, arb):
+        return str(x.mid())
+    if isinstance(x, acb):
+        return str(acb(x.real.mid(), x.imag.mid()))
+    raise TypeError("must have arb or acb")
 
 def good(func, long prec=0, long maxprec=0, long dps=0,
         long maxdps=0, long padding=10, bint verbose=False, bint show=False):
