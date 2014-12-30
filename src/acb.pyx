@@ -308,7 +308,9 @@ cdef class acb:
         """
         Computes the constant `\pi`.
 
-            >>> showgood(lambda: acb.const_pi().real, dps=25)
+            >>> showgood(lambda: acb.const_pi(), dps=25)
+            3.141592653589793238462643
+            >>> showgood(lambda: acb.pi(), dps=25)  # alias
             3.141592653589793238462643
         """
         u = acb.__new__(acb)

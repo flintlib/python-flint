@@ -976,6 +976,8 @@ cdef class arb:
 
             >>> showgood(arb.const_pi, dps=25)
             3.141592653589793238462643
+            >>> showgood(arb.pi, dps=25)    # alias
+            3.141592653589793238462643
         """
         u = arb.__new__(arb)
         arb_const_pi((<arb>u).val, getprec())
