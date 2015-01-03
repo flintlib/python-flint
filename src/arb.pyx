@@ -1,4 +1,135 @@
-cdef int arb_set_python(arb_t x, obj, bint allow_conversion):
+def _str_trunc(s, trunc=0):
+    if trunc > 0 and len(s) > 3 * trunc:
+        left = right = trunc
+        omitted = len(s) - left - right
+        return s[:left] + ("{...%s digits...}" % omitted) + s[-right:]
+    return s
+
+# helper to format (digits, exp) as floating-point or fixed-point
+def _digits_as_fpstr(d, e, minfix=-4, maxfix=6, condense=0, allow_padding=False):
+    if d == "0":
+        return d
+    n = len(d)
+    assert n >= 1 and d[0] != "0"
+    exp = n + e - 1
+    if minfix <= exp <= maxfix:
+        exp_part = ""
+        if exp < 0:
+            int_part = "0"
+            frac_part = ("0" * (-1-exp)) + d
+        else:
+            dotpos = exp + 1
+            if exp + 1 < n:
+                int_part = d[:dotpos]
+                frac_part = d[dotpos:]
+            elif allow_padding:
+                int_part = d + "0" * (dotpos - n)
+                frac_part = ""
+            else:
+                int_part = d[0]
+                frac_part = d[1:]
+                if exp >= 0:
+                    exp_part = "e+" + str(exp)
+                else:
+                    exp_part = "e-" + str(-exp)
+    else:
+        int_part = d[0]
+        frac_part = d[1:]
+        if exp >= 0:
+            exp_part = "e+" + str(exp)
+        else:
+            exp_part = "e-" + str(-exp)
+    if condense > 0:
+        int_part = _str_trunc(int_part, condense)
+        frac_part = _str_trunc(frac_part, condense)
+        exp_part = _str_trunc(exp_part, condense)
+    if frac_part:
+        return int_part + "." + frac_part + exp_part
+    else:
+        return int_part + exp_part
+
+# return (s, sshift, error)
+def _roundstr(s, n, direction):
+    assert n >= 1
+    m = len(s)
+    if m <= n:
+        return (s, 0, fmpz(0))
+    if direction == "d":
+        up = False
+    elif direction == "u":
+        up = True
+    else:
+        up = s[n] in "56789"
+    if not up:
+        return (s[:n], m-n, fmpz(s[n:]))
+    else:
+        # todo: 10s complement in linear time
+        err = fmpz(10)**(m-n) - fmpz(s[n:])
+        # round up
+        i = n - 1
+        while i >= 0 and s[i] == '9':
+            i -= 1
+        if i < 0:
+            s = "1" + ("0" * (n-1))
+            t = m-n+1
+        else:
+            s = s[:i] + str(int(s[i]) + 1) + "0" * (n-i-1)
+            t = m-n
+        return (s, t, -err)
+
+def arb_from_float_str(str s):
+    s = s.strip().lower()
+    if s == "+inf" or s == "inf":
+        return arb.pos_inf()
+    elif s == "-inf":
+        return arb.neg_inf()
+    elif s == "nan":
+        return arb.indeterminate()
+    elif s == "":
+        return arb(0)
+    if "e" in s:
+        man, exp = s.split("e")
+        if exp.startswith("+"):
+            exp = exp[1:]
+        exp = fmpz(exp)
+    else:
+        man = s
+        exp = fmpz(0)
+    minus = False
+    if man.startswith("+"):
+        man = man[1:]
+    elif man.startswith("-"):
+        minus = True
+        man = man[1:]
+    if "." in man:
+        integral, fractional = man.split(".")
+    else:
+        integral = man
+        fractional = ""
+    exp -= len(fractional)
+    man = fmpz(integral + fractional)
+    if minus:
+        man = -man
+    if exp >= 0:
+        return man * (arb(10) ** exp)
+    else:
+        return man / (arb(10) ** (-exp))  # exact for small binary fractions
+
+def arb_from_str(str s):
+    s = s.strip()
+    if ("/" in s) and ("+/-" not in s):
+        return arb(fmpq(s))
+    if s.startswith("[") and s.endswith("]"):
+        s = s[1:-1]
+    for sep in ("+/-", "+-", "±"):
+        if sep in s:
+            mid, rad = s.split(sep)
+            mid = arb_from_float_str(mid)
+            rad = arb_from_float_str(rad)
+            return arb(mid, rad)
+    return arb_from_float_str(s)
+
+cdef int arb_set_python(arb_t x, obj, bint allow_conversion) except -1:
     """
     Sets an arb_t given any Python object. If allow_conversion is set,
     conversions for the arb() constructor are done (from tuples, strings, etc.)
@@ -42,6 +173,11 @@ cdef int arb_set_python(arb_t x, obj, bint allow_conversion):
         arb_set_arf(x, (<arf>v).val)
         return 1
 
+    if allow_conversion and typecheck(obj, str):
+        obj = arb_from_str(obj)
+        arb_set(x, (<arb>obj).val)
+        return 1
+
     return 0
 
 cdef inline int arb_set_any_ref(arb_t x, obj):
@@ -58,9 +194,8 @@ def any_as_arb(x):
         return x
     return arb(x)
 
-
-cdef class arb:
-    r"""
+cdef class arb(flint_scalar):
+    ur"""
     Represents a real number `x` by a midpoint `m` and a radius `r`
     such that `x \in [m \pm r] = [m-r, m+r]`.
     The midpoint and radius are both floating-point numbers. The radius
@@ -70,45 +205,32 @@ cdef class arb:
 
     The constructor accepts a midpoint *mid* and a radius *rad*, either of
     which defaults to zero if omitted. The arguments can be tuples
-    `(a, b)` representing exact floating-point data `a 2^b`.
+    `(a, b)` representing exact floating-point data `a 2^b`, integers,
+    floating-point numbers, rational strings, or decimal strings.
     If the radius is nonzero, it might be rounded up to a slightly larger
     value than the exact value passed by the user.
 
         >>> arb(10.25)
         arb((41, -2))
         >>> print(1 / arb(4))  # exact
-        0.25
+        0.250000000000000
         >>> print(1 / arb(3))  # approximate
-        [0.333333333333333 ± 5.55e-17]
+        [0.333333333333333 +/- 3.71e-16]
+        >>> print(arb("3.0"))
+        3.00000000000000
+        >>> print(arb("0.1"))
+        [0.100000000000000 +/- 2.23e-17]
+        >>> print(arb("1/10"))
+        [0.100000000000000 +/- 2.23e-17]
+        >>> print(arb("3.14159 +/- 0.00001"))
+        [3.1416 +/- 2.01e-5]
         >>> ctx.dps = 50
-        >>> print(1 / arb(3))
-        [0.33333333333333333333333333333333333333333333333333 ± 6.68e-52]
+        >>> print(arb("1/3"))
+        [0.33333333333333333333333333333333333333333333333333 +/- 3.78e-51]
         >>> ctx.default()
 
-    .. warning::
-
-        Decimal printing introduces rounding error in the last displayed digit.
-        This error is not added to the printed radius. For example, `2^{-1000}`
-        is represented exactly internally and therefore prints without a radius,
-        but the printed decimal value is not exact:
-
-            >>> print(arb((1,-1000)))
-            9.33263618503219e-302
-
-        A workaround for rigorous decimal conversion is to compute
-        `\lfloor x 10^n \rfloor`, `\lceil x 10^n \rceil`:
-
-            >>> x = arb((1,-1000)) * 10**310
-            >>> print(x.floor()); print(x.ceil()); print(x.floor().rad()); print(x.ceil().rad())
-            933263618.0
-            933263619.0
-            0.0
-            0.0
-
-        More robust radix conversion functions will be added in the future.
-        When in doubt, the power-of-two representation shown by :func:`repr`
-        is authoritative.
-
+    Converting to or from decimal results in some loss of accuracy.
+    See :meth:`.arb.str` for details.
     """
 
     cdef arb_t val
@@ -121,14 +243,19 @@ cdef class arb:
 
     def __init__(self, mid=None, rad=None):
         if mid is not None:
-            if not arb_set_python(self.val, mid, 1):
+            if arb_set_python(self.val, mid, 1) == 0:
                 raise TypeError("cannot create arb from type %s" % type(mid))
         if rad is not None:
-            rad = arf(rad)
-            arb_add_error_arf(self.val, (<arf>rad).val)
+            rad = arb(rad)
+            arb_add_error(self.val, (<arb>rad).val)
+            #rad = arf(rad)
+            #arb_add_error_arf(self.val, (<arf>rad).val)
 
-    def is_zero(self):
+    cpdef bint is_zero(self):
         return arb_is_zero(self.val)
+
+    cpdef bint is_finite(self):
+        return arb_is_finite(self.val)
 
     def mid(self):
         cdef arf x = arf()
@@ -140,9 +267,33 @@ cdef class arb:
         arf_set_mag(x.val, arb_radref(self.val))
         return x
 
-    def __repr__(self):
-        if ctx.pretty:
-            return str(self)
+    def mid_rad_10exp(self, long n=0):
+        """
+        Returns an *fmpz* triple (*mid*, *rad*, *exp*) where the larger of *mid*
+        and *rad* has *n* digits plus a few digits (*n* defaults to the current
+        precision), such that *self* is contained in
+        `[\operatorname{mid} \pm \operatorname{rad}] 10^{\operatorname{exp}}`.
+
+            >>> (arb(1) / 3).mid_rad_10exp(10)
+            (fmpz(333333333333333), fmpz(2), fmpz(-15))
+            >>> (arb(1) / 3).mid_rad_10exp(20)
+            (fmpz(3333333333333333148296162), fmpz(555111516), fmpz(-25))
+            >>> arb(0,1e-100).mid_rad_10exp(10)
+            (fmpz(0), fmpz(100000000507904), fmpz(-114))
+            >>> arb(-1,1e100).mid_rad_10exp()
+            (fmpz(0), fmpz(10000000169485008897), fmpz(81))
+
+        """
+        cdef fmpz mid, rad, exp
+        if n <= 0:
+            n = ctx.dps
+        mid = fmpz()
+        rad = fmpz()
+        exp = fmpz()
+        arb_get_fmpz_mid_rad_10exp(mid.val, rad.val, exp.val, self.val, n)
+        return mid, rad, exp
+
+    def repr(self):
         mid = self.mid()
         rad = self.rad()
         if rad.is_zero():
@@ -150,13 +301,140 @@ cdef class arb:
         else:
             return "arb(%s, %s)" % (mid._repr_str(), rad._repr_str())
 
-    def __str__(self):
-        mid = self.mid()
-        rad = self.rad()
-        if rad.is_zero():
-            return mid._dec_str()
+    def str(self, long n=0, bint radius=True, bint more=False, long condense=0):
+        ur"""
+        Produces a human-readable decimal representation of self, with
+        up to *n* printed digits (which defaults to the current precision)
+        for the midpoint. The output can be parsed by the *arb* constructor.
+
+        Since the internal representation is binary, conversion
+        to decimal (and back from decimal) is generally inexact.
+        Binary-decimal-binary roundtrips may result in significantly
+        larger intervals, and should therefore be done sparingly.
+
+            >>> print arb.pi().str()
+            [3.14159265358979 +/- 3.57e-15]
+            >>> print arb.pi().str(5)
+            [3.1416 +/- 7.35e-6]
+            >>> print arb.pi().str(5, radius=False)
+            3.1416
+
+        By default, the output is truncated so that all displayed digits
+        are guaranteed to be correct, up to adding or subtracting 1 in the
+        last displayed digit (as a special case, if the output ends with a
+        string of 0s, the correct decimal expansion to infinite precision
+        could have a string of 9s).
+
+            >>> print (arb(1) - arb("1e-10")).str(5)
+            [1.0000 +/- 4e-10]
+            >>> print (arb(1) - arb("1e-10")).str(10)
+            [0.9999999999 +/- 3e-15]
+
+        To force more digits, set *more* to *True*.
+
+            >>> print arb("0.1").str(30)
+            [0.100000000000000 +/- 2.23e-17]
+            >>> print arb("0.1").str(30, more=True)
+            [0.0999999999999999916733273153113 +/- 1.39e-17]
+
+        Note that setting *more* to *True* results in a smaller printed radius,
+        since there is less error from the conversion back to decimal.
+
+            >>> x = arb.pi().sin()
+            >>> print(x.str())
+            [+/- 5.68e-16]
+            >>> print(x.str(more=True))
+            [1.22460635382238e-16 +/- 4.45e-16]
+
+        The error indicated in the output may be much larger than the actual
+        error in the internal representation of *self*. For example, if *self*
+        is accurate to 1000 digits and printing is done at 10-digit precision,
+        the output might only appear as being accurate to 10 digits. It is
+        even possible for *self* to be exact and have an inexact decimal
+        representation.
+
+        The *condense* option can be passed to show only leading and trailing
+        digits of the fractional, integer and exponent parts of the output.
+
+            >>> ctx.dps = 1000
+            >>> print arb.pi().str(condense=10)
+            [3.1415926535{...979 digits...}9216420199 +/- 1.17e-1000]
+            >>> print arb.fac_ui(300).str(condense=10)
+            3060575122{...595 digits...}0000000000.0000000000{...365 digits...}0000000000
+            >>> print arb(10**100).exp().str(condense=5)
+            [1.53837{...989 digits...}96534e+434{...92 digits...}17483 +/- 4.84e+434{...92 digits...}16483]
+            >>> ctx.default()
+
+        """
+        # TODO: cleanup
+        if ctx.unicode:
+            PM = "±"
         else:
-            return "[%s ± %s]" % (mid._dec_str(), rad._dec_str(3))
+            PM = "+/-"
+        if not self.is_finite():
+            if arf_is_nan(arb_midref(self.val)):
+                return "nan"
+            else:
+                return "[%s inf]" % PM
+        if n <= 0:
+            n = ctx.dps
+        # limit to roughly as many good digits as we can get
+        if not more:
+            good = int(arb_rel_accuracy_bits(self.val) * 0.30102999566398119521)
+            n = min(n, good)
+        mid, rad, exp = self.mid_rad_10exp(n)
+        if n >= 1:
+            negative = mid < 0
+            mid = abs(mid)
+            mids = str(mid)
+            if more:
+                good = n
+            else:
+                if rad == 0:
+                    good = n
+                else:
+                    rads = str(rad)
+                    good = len(mids) - len(rads) - 1
+                    good = min(n, good)
+                    if good < 1:
+                        # just print radius
+                        rad += abs(mid)
+                        rads = str(rad)
+                        rads = str(rad)
+                        rads, extraexp, extrarad = _roundstr(rads, 3, "u")
+                        rads = _digits_as_fpstr(rads, exp + extraexp, minfix=-2, maxfix=2, condense=condense)
+                        return "[%s %s]" % (PM, rads)
+
+            extraexp = 0
+            if mid:
+                mids, extraexp, extrarad = _roundstr(mids, n, "n")
+                rad += abs(extrarad)
+            else:
+                mids = "0"
+            mids = _digits_as_fpstr(mids, exp + extraexp, minfix=-4, maxfix=max(6, n-1), condense=condense)
+            if negative:
+                mids = "-" + mids
+            if rad == 0:
+                return mids
+            rads = str(rad)
+            rads, extraexp, extrarad = _roundstr(rads, 3, "u")
+            rads = _digits_as_fpstr(rads, exp + extraexp, minfix=-2, maxfix=2, condense=condense)
+            if radius:
+                return "[%s %s %s]" % (mids, PM, rads)
+            else:
+                return mids
+        else:
+            # just print radius
+            rad += abs(mid)
+            rads = str(rad)
+            rads = str(rad)
+            rads, extraexp, extrarad = _roundstr(rads, 3, "u")
+            rads = _digits_as_fpstr(rads, exp + extraexp, minfix=-2, maxfix=2, condense=condense)
+            return "[%s %s]" % (PM, rads)
+
+
+    def __float__(self):
+        return arf_get_d(arb_midref(self.val), ARF_RND_DOWN)
 
     def __contains__(self, other):
         other = any_as_arb(other)
@@ -265,26 +543,26 @@ cdef class arb:
         return u
 
     def floor(s):
-        r"""
+        ur"""
         Computes the floor function `\lfloor s \rfloor`.
 
             >>> print(arb.pi().floor())
-            3.0
-            >>> print((arb.pi() - arb.pi()).floor())
-            [-0.5 ± 0.5]
+            3.00000000000000
+            >>> print((arb.pi() - arb.pi()).floor().str(more=True))
+            [-0.500000000000000 +/- 0.501]
         """
         u = arb.__new__(arb)
         arb_floor((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def ceil(s):
-        r"""
+        ur"""
         Computes the ceiling function `\lceil s \rceil`.
 
             >>> print(arb.pi().ceil())
-            4.0
-            >>> print((arb.pi() - arb.pi()).ceil())
-            [0.5 ± 0.5]
+            4.00000000000000
+            >>> print((arb.pi() - arb.pi()).ceil().str(more=True))
+            [0.500000000000000 +/- 0.501]
         """
         u = arb.__new__(arb)
         arb_ceil((<arb>u).val, (<arb>s).val, getprec())
@@ -297,7 +575,7 @@ cdef class arb:
             >>> showgood(lambda: arb(3).sqrt(), dps=25)
             1.732050807568877293527446
             >>> showgood(lambda: arb(0).sqrt(), dps=25)
-            0.0
+            0
             >>> showgood(lambda: arb(-1).sqrt(), dps=25)
             Traceback (most recent call last):
               ...
@@ -361,7 +639,7 @@ cdef class arb:
             >>> showgood(lambda: arb(2).log(), dps=25)
             0.6931471805599453094172321
             >>> showgood(lambda: arb(100).exp().log(), dps=25)
-            100.0
+            100.0000000000000000000000
             >>> showgood(lambda: arb(-1).sqrt(), dps=25)
             Traceback (most recent call last):
               ...
@@ -415,7 +693,7 @@ cdef class arb:
             >>> showgood(lambda: arb(0.75).sin_pi(), dps=25)
             0.7071067811865475244008444
             >>> showgood(lambda: arb(1).sin_pi(), dps=25)
-            0.0
+            0
         """
         u = arb.__new__(arb)
         arb_sin_pi((<arb>u).val, (<arb>s).val, getprec())
@@ -428,7 +706,7 @@ cdef class arb:
             >>> showgood(lambda: arb(0.75).cos_pi(), dps=25)
             -0.7071067811865475244008444
             >>> showgood(lambda: arb(0.5).cos_pi(), dps=25)
-            0.0
+            0
         """
         u = arb.__new__(arb)
         arb_cos_pi((<arb>u).val, (<arb>s).val, getprec())
@@ -462,7 +740,7 @@ cdef class arb:
         Computes the cotangent `\cot(s)`.
 
             >>> showgood(lambda: arb(1).cot(), dps=25)
-            0.64209261593433070300642
+            0.6420926159343307030064200
         """
         u = arb.__new__(arb)
         arb_cot((<arb>u).val, (<arb>s).val, getprec())
@@ -475,7 +753,7 @@ cdef class arb:
             >>> showgood(lambda: arb(0.125).tan_pi(), dps=25)
             0.4142135623730950488016887
             >>> showgood(lambda: arb(1).tan_pi(), dps=25)
-            0.0
+            0
         """
         u = arb.__new__(arb)
         arb_tan_pi((<arb>u).val, (<arb>s).val, getprec())
@@ -488,7 +766,7 @@ cdef class arb:
             >>> showgood(lambda: arb(0.125).cot_pi(), dps=25)
             2.414213562373095048801689
             >>> showgood(lambda: arb(0.5).cot_pi(), dps=25)
-            0.0
+            0
         """
         u = arb.__new__(arb)
         arb_cot_pi((<arb>u).val, (<arb>s).val, getprec())
@@ -639,7 +917,7 @@ cdef class arb:
         Computes the gamma function `\Gamma(s)`.
 
             >>> showgood(lambda: arb(10).gamma(), dps=25)
-            362880.0
+            362880.0000000000000000000
             >>> showgood(lambda: arb(-2.5).gamma(), dps=25)
             -0.9453087204829418812256893
             >>> showgood(lambda: (arb.pi() ** 10).gamma(), dps=25)
@@ -667,18 +945,18 @@ cdef class arb:
         return u
 
     def rgamma(s):
-        """
+        ur"""
         Computes the reciprocal gamma function `1/\Gamma(s)`, avoiding
         division by zero at the poles of the gamma function.
 
             >>> showgood(lambda: arb(1.5).rgamma(), dps=25)
             1.128379167095512573896159
             >>> print(arb(0).rgamma())
-            0.0
+            0
             >>> print(arb(-1).rgamma())
-            0.0
+            0
             >>> print(arb(-3,1e-10).rgamma())
-            [0.0 ± 6.0e-10]
+            [+/- 6.01e-10]
         """
         u = arb.__new__(arb)
         arb_rgamma((<arb>u).val, (<arb>s).val, getprec())
@@ -689,7 +967,7 @@ cdef class arb:
         Computes the logarithmic gamma function `\log \Gamma(s)`.
 
             >>> showgood(lambda: arb(100).lgamma(), dps=25)
-            359.134205369575398776044
+            359.1342053695753987760440
 
         This function is undefined for negative `s`. Use :meth:`.acb.lgamma`
         for the complex extension.
@@ -716,7 +994,7 @@ cdef class arb:
         so *n* should be moderate.
 
             >>> showgood(lambda: arb.pi().rising_ui(0), dps=25)
-            1.0
+            1.000000000000000000000000
             >>> showgood(lambda: arb.pi().rising_ui(10), dps=25)
             299606572.3661012684972888
         """
@@ -747,8 +1025,8 @@ cdef class arb:
 
             >>> u, v = arb(3).rising2_ui(5)
             >>> print(u); print(v)
-            2520.0
-            2754.0
+            2520.00000000000
+            2754.00000000000
         """
         u = arb.__new__(arb)
         v = arb.__new__(arb)
@@ -761,7 +1039,7 @@ cdef class arb:
         zeta function `\zeta(s,a)` if a second parameter is passed.
 
             >>> showgood(lambda: arb(4.25).zeta(), dps=25)
-            1.06695419071121453245037
+            1.066954190711214532450370
             >>> showgood(lambda: arb(4.25).zeta(2.75), dps=25)
             0.01991885526414599096374229
 
@@ -786,9 +1064,9 @@ cdef class arb:
             >>> showgood(lambda: arb(2).agm(100), dps=25)
             29.64467336236643624632443
             >>> showgood(lambda: arb(0).agm(0), dps=25)
-            0.0
+            0
             >>> showgood(arb(0).agm, dps=25)
-            0.0
+            0
             >>> showgood(arb(-2).agm, dps=25)   # not defined for negatives
             Traceback (most recent call last):
               ...
@@ -827,7 +1105,7 @@ cdef class arb:
         Computes the Bernoulli number `B_n`.
 
             >>> showgood(lambda: arb.bernoulli_ui(1), dps=25)
-            -0.5
+            -0.5000000000000000000000000
             >>> showgood(lambda: arb.bernoulli_ui(2), dps=25)
             0.1666666666666666666666667
             >>> showgood(lambda: arb.bernoulli_ui(10**7), dps=25)
@@ -843,7 +1121,7 @@ cdef class arb:
         Computes the factorial `n!`.
 
             >>> print(arb.fac_ui(10))
-            3628800.0
+            3628800.00000000
             >>> showgood(lambda: arb.fac_ui(10**9).log(), dps=25)
             19723265848.22698260792313
         """
@@ -858,7 +1136,7 @@ cdef class arb:
         so *k* should be moderate.
 
             >>> print(arb(10).bin_ui(5))
-            252.0
+            252.000000000000
             >>> showgood(lambda: arb.pi().bin_ui(100), dps=25)
             5.478392395095119521549286e-9
         """
@@ -874,7 +1152,7 @@ cdef class arb:
         so *k* should be moderate.
 
             >>> print(arb.bin_uiui(10, 5))
-            252.0
+            252.000000000000
         """
         u = arb.__new__(arb)
         arb_bin_uiui((<arb>u).val, n, k, getprec())
@@ -886,7 +1164,7 @@ cdef class arb:
         Computes the Fibonacci number `F_n`.
 
             >>> print(arb.fib_ui(10))
-            55.0
+            55.0000000000000
         """
         u = arb.__new__(arb)
         arb_fib_ui((<arb>u).val, n, getprec())
@@ -898,7 +1176,7 @@ cdef class arb:
         Computes the Fibonacci number `F_n`, where *n* may be a bignum.
 
             >>> print(arb.fib_fmpz(fmpz(10)))
-            55.0
+            55.0000000000000
             >>> showgood(lambda: arb.fib_fmpz(fmpz(10**100)).log(), dps=25)
             4.812118250596034474977589e+99
         """
@@ -914,7 +1192,7 @@ cdef class arb:
             >>> showgood(lambda: arb.polylog(arb(2), arb(-1)), dps=25)
             -0.8224670334241132182362076
             >>> showgood(lambda: arb.polylog(arb(1.75), arb(-3)), dps=25)
-            -1.81368994587806016161262
+            -1.813689945878060161612620
             >>> showgood(lambda: arb.polylog(arb(4.75), arb(-2.5)), dps=25)
             -2.322090601785704585092044
 
@@ -1079,5 +1357,23 @@ cdef class arb:
         """
         u = arb.__new__(arb)
         arb_const_glaisher((<arb>u).val, getprec())
+        return u
+
+    @classmethod
+    def pos_inf(cls):
+        u = arb.__new__(arb)
+        arb_pos_inf((<arb>u).val)
+        return u
+
+    @classmethod
+    def neg_inf(cls):
+        u = arb.__new__(arb)
+        arb_neg_inf((<arb>u).val)
+        return u
+
+    @classmethod
+    def nan(cls):
+        u = arb.__new__(arb)
+        arb_indeterminate((<arb>u).val)
         return u
 

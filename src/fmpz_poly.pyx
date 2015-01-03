@@ -32,7 +32,7 @@ cdef fmpz_poly_set_list(fmpz_poly_t poly, list val):
             raise TypeError("unsupported coefficient in list")
     fmpz_clear(x)
 
-cdef class fmpz_poly:
+cdef class fmpz_poly(flint_poly):
     """
     The fmpz_poly type represents dense univariate polynomials over
     the integers.
@@ -113,7 +113,7 @@ cdef class fmpz_poly:
         v = fmpz(x)  # XXX
         fmpz_poly_set_coeff_fmpz(self.val, i, (<fmpz>v).val)
 
-    def __str__(self):
+    def str(self):
         cdef char * s = fmpz_poly_get_str_pretty(self.val, "x")
         try:
             res = str(s)
@@ -121,10 +121,8 @@ cdef class fmpz_poly:
             libc.stdlib.free(s)
         return res
 
-    def __repr__(self):
-        if ctx.pretty:
-            return str(self)
-        return "fmpz_poly(%s)" % map(int, self.coeffs())
+    def repr(self):
+        return "fmpz_poly([%s])" % (", ".join(map(str, self.coeffs())))
 
     def __nonzero__(self):
         return not fmpz_poly_is_zero(self.val)

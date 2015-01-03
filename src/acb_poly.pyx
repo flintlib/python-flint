@@ -1,3 +1,3 @@
-cdef class acb_poly:
+cdef class acb_poly(flint_poly):
     pass
 

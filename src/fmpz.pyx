@@ -62,7 +62,7 @@ cdef any_as_fmpz(obj):
     else:
         return NotImplemented
 
-cdef class fmpz:
+cdef class fmpz(flint_scalar):
     """
     The fmpz type represents multiprecision integers.
 
@@ -86,6 +86,10 @@ cdef class fmpz:
                 fmpz_set(self.val, (<fmpz>val).val)
             else:
                 if fmpz_set_any_ref(self.val, val) == FMPZ_UNKNOWN: # XXX
+                    if typecheck(val, str):
+                        if fmpz_set_str(self.val, val, 10) != 0:
+                            raise ValueError("invalid string for fmpz")
+                        return
                     raise TypeError("cannot create fmpz from type %s" % type(val))
 
     # XXX: improve!
@@ -128,7 +132,7 @@ cdef class fmpz:
                 return NotImplemented
         return res
 
-    def __str__(self):
+    def str(self):
         cdef char * s = fmpz_get_str(NULL, 10, self.val)
         try:
             res = str(s)
@@ -136,10 +140,8 @@ cdef class fmpz:
             libc.stdlib.free(s)
         return res
 
-    def __repr__(self):
-        if ctx.pretty:
-            return str(self)
-        return "fmpz(%s)" % self.__str__()
+    def repr(self):
+        return "fmpz(%s)" % self.str()
 
     def __nonzero__(self):
         return not fmpz_is_zero(self.val)

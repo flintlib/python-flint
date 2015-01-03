@@ -1,4 +1,4 @@
 build/*
 src/*.c
 doc/build/*
-fmake
+fmake*

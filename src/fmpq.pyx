@@ -9,7 +9,7 @@ cdef any_as_fmpq(obj):
     fmpz_one(fmpq_denref((<fmpq>q).val))
     return q
 
-cdef class fmpq:
+cdef class fmpq(flint_scalar):
     """
     The fmpq type represents multiprecision rational numbers.
 
@@ -31,6 +31,17 @@ cdef class fmpq:
         if q is None:
             if p is None:
                 return # zero
+            elif typecheck(p, fmpq):
+                fmpq_set(self.val, (<fmpq>p).val)
+                return
+            elif typecheck(p, str):
+                if "/" in p:
+                    p, q = p.split("/")
+                    p = fmpz(p)
+                    q = fmpz(q)
+                else:
+                    p = fmpz(p)
+                    q = fmpz(1)
             else:
                 p = any_as_fmpq(p)
                 if p is NotImplemented:
@@ -78,15 +89,13 @@ cdef class fmpq:
     p = property(numer)
     q = property(denom)
 
-    def __repr__(self):
-        if ctx.pretty:
-            return str(self)
+    def repr(self):
         if self.q == 1:
             return "fmpq(%s)" % self.p
         else:
             return "fmpq(%s,%s)" % (self.p, self.q)
 
-    def __str__(self):
+    def str(self):
         if self.q == 1:
             return str(self.p)
         else:

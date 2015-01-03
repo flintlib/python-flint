@@ -15,9 +15,9 @@ def goodstr(x):
     if isinstance(x, list):
         return "[" + ", ".join(goodstr(y) for y in x) + "]"
     if isinstance(x, arb):
-        return str(x.mid())
+        return x.str(radius=False)
     if isinstance(x, acb):
-        return str(acb(x.real.mid(), x.imag.mid()))
+        return x.str(radius=False)
     raise TypeError("must have arb or acb")
 
 def good(func, long prec=0, long maxprec=0, long dps=0,

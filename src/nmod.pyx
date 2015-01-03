@@ -23,7 +23,7 @@ cdef int any_as_nmod(mp_limb_t * val, obj, nmod_t mod) except -1:
         return 1
     return 0
 
-cdef class nmod:
+cdef class nmod(flint_scalar):
     """
     The nmod type represents elements of Z/nZ for word-size n.
 
@@ -42,12 +42,10 @@ cdef class nmod:
         if not any_as_nmod(&self.val, val, self.mod):
             raise TypeError("cannot create nmod from object of type %s" % type(val))
 
-    def __repr__(self):
-        if ctx.pretty:
-            return str(self)
+    def repr(self):
         return "nmod(%s, %s)" % (self.val, self.mod.n)
 
-    def __str__(self):
+    def str(self):
         return str(int(self.val))
 
     def __int__(self):

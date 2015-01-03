@@ -31,7 +31,7 @@ cdef nmod_poly_set_list(nmod_poly_t poly, list val):
         else:
             raise TypeError("unsupported coefficient in list")
 
-cdef class nmod_poly:
+cdef class nmod_poly(flint_poly):
     """
     The nmod_poly type represents dense univariate polynomials
     over Z/nZ for word-size n.
@@ -121,12 +121,10 @@ cdef class nmod_poly:
             (<nmod>(L[i])).val = nmod_poly_get_coeff_ui(self.val, i)
         return L
 
-    def __repr__(self):
-        if ctx.pretty:
-            return str(self)
+    def repr(self):
         return "nmod_poly(%s, %s)" % (map(int, self.coeffs()), self.modulus())
 
-    def __str__(self):
+    def str(self):
         return str(fmpz_poly(map(int, self.coeffs())))
 
     def __getitem__(self, long i):

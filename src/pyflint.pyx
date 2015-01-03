@@ -58,6 +58,7 @@ cdef class Context:
     cpdef public long _prec
     cpdef public long _dps
     cpdef arf_rnd_t rnd
+    cpdef public bint unicode
 
     def __init__(self):
         self.default()
@@ -66,6 +67,7 @@ cdef class Context:
         self.pretty = False
         self.rnd = ARF_RND_DOWN
         self.prec = 53
+        self.unicode = False
 
     property prec:
 
@@ -100,6 +102,68 @@ cdef inline long getprec(long prec=0):
         return prec
     else:
         return thectx._prec
+
+cdef class flint_elem:
+
+    def __repr__(self):
+        if ctx.pretty:
+            return self.str()
+        else:
+            return self.repr()
+
+    def __str__(self):
+        return self.str()
+
+cdef class flint_scalar(flint_elem):
+    pass
+
+cdef class flint_poly(flint_elem):
+    pass
+
+
+cdef class flint_mat(flint_elem):
+    """
+    Base class for matrices.
+    """
+
+    def repr(self):
+        if ctx.pretty:
+            return str(self)
+        # XXX
+        return "%s(%i, %i, [%s])" % (type(self).__name__,
+            self.nrows(), self.ncols(), (", ".join(map(str, self.entries()))))
+
+    def str(self, *args, **kwargs):
+        tab = self.table()
+        if len(tab) == 0 or len(tab[0]) == 0:
+            return "[]"
+        tab = [[r.str(*args, **kwargs) for r in row] for row in tab]
+        widths = []
+        for i in xrange(len(tab[0])):
+            w = max([len(row[i]) for row in tab])
+            widths.append(w)
+        for i in xrange(len(tab)):
+            tab[i] = [s.rjust(widths[j]) for j, s in enumerate(tab[i])]
+            tab[i] = "[" + (", ".join(tab[i])) + "]"
+        return "\n".join(tab)
+
+    def entries(self):
+        cdef long i, j, m, n
+        m = self.nrows()
+        n = self.ncols()
+        L = [None] * (m * n)
+        for i from 0 <= i < m:
+            for j from 0 <= j < n:
+                L[i*n + j] = self[i, j]
+        return L
+
+    def table(self):
+        cdef long i, m, n
+        m = self.nrows()
+        n = self.ncols()
+        L = self.entries()
+        return [L[i*n : (i+1)*n] for i in range(m)]
+
 
 include "fmpz.pyx"
 include "fmpz_poly.pyx"

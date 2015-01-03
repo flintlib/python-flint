@@ -1,3 +1,3 @@
-cdef class arb_poly:
+cdef class arb_poly(flint_poly):
     pass
 

@@ -3,7 +3,7 @@ cdef any_as_fmpz_mat(obj):
         return obj
     return NotImplemented
 
-cdef class fmpz_mat:
+cdef class fmpz_mat(flint_mat):
     """
     The fmpz_mat type represents dense matrices over the integers.
 
@@ -114,15 +114,6 @@ cdef class fmpz_mat:
         """
         return fmpz_mat_ncols(self.val)
 
-    def __repr__(self):
-        if ctx.pretty:
-            return str(self)
-        return "fmpz_mat(%i, %i, [%s])" % (self.nrows(), self.ncols(),
-            (", ".join(map(str, self.entries()))))
-
-    def __str__(self):
-        return matrix_to_str(self.table())
-
     def __getitem__(self, index):
         cdef long i, j
         cdef fmpz x
@@ -140,43 +131,6 @@ cdef class fmpz_mat:
             raise ValueError("index %i,%i exceeds matrix dimensions" % (i, j))
         c = fmpz(value)  # XXX
         fmpz_set(fmpz_mat_entry(self.val, i, j), (<fmpz>c).val)
-
-    def entries(self):
-        """
-        Returns self as a flat list of fmpz entries,
-        output in row-major order.
-
-            >>> A = fmpz_mat(2, 4, range(8))
-            >>> A.entries()
-            [fmpz(0), fmpz(1), fmpz(2), fmpz(3), fmpz(4), fmpz(5), fmpz(6), fmpz(7)]
-
-        """
-        cdef long i, j, m, n
-        cdef fmpz t
-        m = self.nrows()
-        n = self.ncols()
-        L = [None] * (m * n)
-        for i from 0 <= i < m:
-            for j from 0 <= j < n:
-                t = fmpz.__new__(fmpz)
-                fmpz_set(t.val, fmpz_mat_entry(self.val, i, j))
-                L[i*n + j] = t
-        return L
-
-    def table(self):
-        """
-        Returns self as a nested list of fmpz entries,
-        output in row-major order.
-
-            >>> A = fmpz_mat(2, 4, range(8))
-            >>> A.table()
-            [[fmpz(0), fmpz(1), fmpz(2), fmpz(3)], [fmpz(4), fmpz(5), fmpz(6), fmpz(7)]]
-        """
-        cdef long i, m, n
-        m = self.nrows()
-        n = self.ncols()
-        L = self.entries()
-        return [L[i*n:(i+1)*n] for i in range(m)]
 
     def det(self):
         """

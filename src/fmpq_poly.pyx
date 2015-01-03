@@ -34,7 +34,7 @@ cdef fmpq_poly_set_list(fmpq_poly_t poly, list val):
             continue
         raise TypeError("unsupported coefficient in list")
 
-cdef class fmpq_poly:
+cdef class fmpq_poly(flint_poly):
     """
     The fmpq_poly type represents dense univariate polynomials
     over the rational numbers. For efficiency reasons, an fmpq_poly is
@@ -141,10 +141,7 @@ cdef class fmpq_poly:
         v = fmpq(x)  # XXX
         fmpq_poly_set_coeff_fmpq(self.val, i, (<fmpq>v).val)
 
-    def __repr__(self):
-        if ctx.pretty:
-            return str(self)
-        #return "fmpq_poly(%r)" % self.coeffs()
+    def repr(self):
         d = self.denom()
         n = self.numer()
         if d == 1:
@@ -152,7 +149,7 @@ cdef class fmpq_poly:
         else:
             return "fmpq_poly(%s, %s)" % (map(int, n.coeffs()), d)
 
-    def __str__(self):
+    def str(self):
         cdef char * s = fmpq_poly_get_str_pretty(self.val, "x")
         try:
             res = str(s)

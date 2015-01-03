@@ -44,7 +44,7 @@ def any_as_arb_or_acb(x):
     except (TypeError, ValueError):
         return acb(x)
 
-cdef class acb:
+cdef class acb(flint_scalar):
 
     cdef acb_t val
 
@@ -76,28 +76,32 @@ cdef class acb:
         arb_set(im.val, acb_imagref(self.val))
         return im
 
-    def __repr__(self):
-        if ctx.pretty:
-            return str(self)
+    def repr(self):
         real = self.real
         imag = self.imag
         if imag.is_zero():
-            return "acb(%s)" % repr(real)
+            return "acb(%s)" % real._repr_()
         else:
-            return "acb(%s, %s)" % (repr(real), repr(imag))
+            return "acb(%s, %s)" % (real._repr_(), imag._repr_())
 
-    def __str__(self):
+    def str(self, *args, **kwargs):
         real = self.real
         imag = self.imag
         if imag.is_zero():
-            return str(real)
+            return real.str(*args, **kwargs)
         elif real.is_zero():
-            return str(imag) + "j"
+            return imag.str(*args, **kwargs) + "j"
         else:
-            if arf_sgn(arb_midref((<arb>imag).val)) < 0:
-                return "%s - %sj" % (str(real), str(imag)[1:])
+            re = real.str(*args, **kwargs)
+            im = imag.str(*args, **kwargs)
+            if im.startswith("-"):
+                return "%s - %sj" % (re, im[1:])
             else:
-                return "%s + %sj" % (str(real), str(imag))
+                return "%s + %sj" % (re, im)
+
+    def __complex__(self):
+        return complex(arf_get_d(arb_midref(acb_realref(self.val)), ARF_RND_DOWN),
+                       arf_get_d(arb_midref(acb_imagref(self.val)), ARF_RND_DOWN))
 
     def __pos__(self):
         res = acb.__new__(acb)
@@ -234,7 +238,7 @@ cdef class acb:
         Computes the gamma function `\Gamma(s)`.
 
             >>> showgood(lambda: acb(1,2).gamma(), dps=25)
-            0.151904002670036137448161 + 0.01980488016185498197191013j
+            0.1519040026700361374481610 + 0.01980488016185498197191013j
         """
         u = acb.__new__(acb)
         acb_gamma((<acb>u).val, (<acb>s).val, getprec())
@@ -248,9 +252,9 @@ cdef class acb:
             >>> showgood(lambda: acb(1,2).rgamma(), dps=25)
             6.473073626019134501563613 - 0.8439438407732021454882999j
             >>> print(acb(0).rgamma())
-            0.0
+            0
             >>> print(acb(-1).rgamma())
-            0.0
+            0
 
         """
         u = acb.__new__(acb)
@@ -266,7 +270,7 @@ cdef class acb:
             >>> showgood(lambda: acb(1,2).lgamma(), dps=25)
             -1.876078786430929341229996 + 0.1296463163097883113837075j
             >>> showgood(lambda: (acb(0,10).lgamma() - acb(0,10).gamma().log()).imag / arb.pi(), dps=25)
-            4.0
+            4.000000000000000000000000
         """
         u = acb.__new__(acb)
         acb_lgamma((<acb>u).val, (<acb>s).val, getprec())
@@ -291,7 +295,7 @@ cdef class acb:
             >>> showgood(lambda: acb(0.5,1000).zeta(), dps=25)
             0.3563343671943960550744025 + 0.9319978312329936651150604j
             >>> showgood(lambda: acb(1,2).zeta(acb(2,3)), dps=25)
-            -2.95305957208855672287624 + 3.410962524512050603254574j
+            -2.953059572088556722876240 + 3.410962524512050603254574j
         """
         if a is None:
             u = acb.__new__(acb)
@@ -394,7 +398,7 @@ cdef class acb:
         Computes `\sin(s)` and `\cos(s)` simultaneously.
 
             >>> showgood(lambda: acb(1,2).sin_cos(), dps=15)
-            (3.16577851321617 + 1.95960104142161j, 2.03272300701967 - 3.0518977991518j)
+            (3.16577851321617 + 1.95960104142161j, 2.03272300701967 - 3.05189779915180j)
         """
         u = acb.__new__(acb)
         v = acb.__new__(acb)
@@ -486,7 +490,7 @@ cdef class acb:
         so *n* should be moderate.
 
             >>> showgood(lambda: acb(1,2).rising_ui(5), dps=25)
-            -540.0 - 100.0j
+            -540.0000000000000000000000 - 100.0000000000000000000000j
         """
         u = acb.__new__(acb)
         acb_rising_ui((<acb>u).val, (<acb>s).val, n, getprec())
@@ -500,7 +504,7 @@ cdef class acb:
         so *n* should be moderate.
 
             >>> showgood(lambda: acb(1,2).rising2_ui(5), dps=25)
-            (-540.0 - 100.0j, -666.0 + 420.0j)
+            (-540.0000000000000000000000 - 100.0000000000000000000000j, -666.0000000000000000000000 + 420.0000000000000000000000j)
         """
         u = acb.__new__(acb)
         v = acb.__new__(acb)

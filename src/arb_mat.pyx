@@ -1,4 +1,4 @@
-cdef class arb_mat:
+cdef class arb_mat(flint_mat):
     """
     """
 
@@ -88,15 +88,6 @@ cdef class arb_mat:
         """
         return arb_mat_ncols(self.val)
 
-    def __repr__(self):
-        if ctx.pretty:
-            return str(self)
-        return "arb_mat(%i, %i, [%s])" % (self.nrows(), self.ncols(),
-            (", ".join(map(repr, self.entries()))))
-
-    def __str__(self):
-        return matrix_to_str(self.table())
-
     def __getitem__(self, index):
         cdef long i, j
         cdef arb x
@@ -115,43 +106,6 @@ cdef class arb_mat:
         c = arb(value)  # XXX
         arb_set(arb_mat_entry(self.val, i, j), (<arb>c).val)
 
-    def entries(s):
-        """
-        Returns s as a flat list of arb entries,
-        output in row-major order.
-
-            >>> A = arb_mat(1, 2, [2, 3])
-            >>> A.entries()
-            [arb((1, 1)), arb((3, 0))]
-
-        """
-        cdef long i, j, m, n
-        cdef arb t
-        m = s.nrows()
-        n = s.ncols()
-        L = [None] * (m * n)
-        for i from 0 <= i < m:
-            for j from 0 <= j < n:
-                t = arb.__new__(arb)
-                arb_set(t.val, arb_mat_entry(s.val, i, j))
-                L[i*n + j] = t
-        return L
-
-    def table(s):
-        """
-        Returns s as a nested list of arb entries,
-        output in row-major order.
-
-            >>> A = arb_mat(2, 1, [2, 3])
-            >>> A.table()
-            [[arb((1, 1))], [arb((3, 0))]]
-        """
-        cdef long i, m, n
-        m = s.nrows()
-        n = s.ncols()
-        L = s.entries()
-        return [L[i*n:(i+1)*n] for i in range(m)]
-
     def det(s):
         """
         Returns the determinant of s as an arb.
@@ -159,14 +113,14 @@ cdef class arb_mat:
 
             >>> A = arb_mat(3, 3, range(9))
             >>> showgood(lambda: A.det(), dps=25)    # singular
-            0.0
+            0
             >>> A[2,2] = 10
             >>> showgood(lambda: A.det(), dps=25)
-            -6.0
+            -6.000000000000000000000000
             >>> showgood(lambda: (A * A).det())
-            36.0
+            36.0000000000000
             >>> print(arb_mat(0, 0).det())
-            1.0
+            1.00000000000000
         """
         cdef arb d
         if arb_mat_nrows(s.val) != arb_mat_ncols(s.val):
@@ -176,12 +130,14 @@ cdef class arb_mat:
         return d
 
     def __pos__(s):
-        return s  # round?
+        cdef arb_mat u
+        u = arb_mat.__new__(arb_mat)
+        arb_mat_init(u.val, arb_mat_nrows(s.val), arb_mat_ncols(s.val))
+        arb_mat_set(u.val, s.val)   # round?
+        return u
 
     def __neg__(s):
         cdef arb_mat u
-        if arb_mat_nrows(s.val) != arb_mat_ncols(s.val):
-            raise ValueError("matrix must be square")
         u = arb_mat.__new__(arb_mat)
         arb_mat_init(u.val, arb_mat_nrows(s.val), arb_mat_ncols(s.val))
         arb_mat_neg(u.val, s.val)   # round?

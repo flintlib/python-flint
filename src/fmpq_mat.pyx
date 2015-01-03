@@ -5,7 +5,7 @@ cdef any_as_fmpq_mat(obj):
         return fmpq_mat(obj)
     return NotImplemented
 
-cdef class fmpq_mat:
+cdef class fmpq_mat(flint_mat):
     """
     Represents a dense matrix over the rational numbers.
 
@@ -86,14 +86,6 @@ cdef class fmpq_mat:
     cpdef long ncols(self):
         return fmpq_mat_ncols(self.val)
 
-    def __repr__(self):
-        if ctx.pretty:
-            return str(self)
-        return "fmpq_mat(%i, %i, %s)" % (self.nrows(), self.ncols(), self.entries())
-
-    def __str__(self):
-        return matrix_to_str(self.table())
-
     def __getitem__(self, index):
         cdef long i, j
         cdef fmpq x
@@ -111,26 +103,6 @@ cdef class fmpq_mat:
             raise ValueError("index %i,%i exceeds matrix dimensions" % (i, j))
         c = fmpq(value)  # XXX
         fmpq_set(fmpq_mat_entry(self.val, i, j), (<fmpq>c).val)
-
-    def entries(self):
-        cdef long i, j, m, n
-        cdef fmpq t
-        m = self.nrows()
-        n = self.ncols()
-        L = [None] * (m * n)
-        for i from 0 <= i < m:
-            for j from 0 <= j < n:
-                t = fmpq.__new__(fmpq)
-                fmpq_set(t.val, fmpq_mat_entry(self.val, i, j))
-                L[i*n + j] = t
-        return L
-
-    def table(self):
-        cdef long i, m, n
-        m = self.nrows()
-        n = self.ncols()
-        L = self.entries()
-        return [L[i*n:(i+1)*n] for i in range(m)]
 
     def det(self):
         """
@@ -288,7 +260,7 @@ cdef class fmpq_mat:
         Returns the transpose of self.
         
             >>> fmpq_mat(2,3,range(6)).transpose()
-            fmpq_mat(3, 2, [fmpq(0), fmpq(3), fmpq(1), fmpq(4), fmpq(2), fmpq(5)])
+            fmpq_mat(3, 2, [0, 3, 1, 4, 2, 5])
         """
         cdef fmpq_mat u
         u = fmpq_mat.__new__(fmpq_mat)
@@ -351,11 +323,11 @@ cdef class fmpq_mat:
 
             >>> A = fmpq_mat(3,3,range(9))
             >>> A.rref()
-            (fmpq_mat(3, 3, [fmpq(1), fmpq(0), fmpq(-1), fmpq(0), fmpq(1), fmpq(2), fmpq(0), fmpq(0), fmpq(0)]), 2)
+            (fmpq_mat(3, 3, [1, 0, -1, 0, 1, 2, 0, 0, 0]), 2)
             >>> A.rref(inplace=True)
-            (fmpq_mat(3, 3, [fmpq(1), fmpq(0), fmpq(-1), fmpq(0), fmpq(1), fmpq(2), fmpq(0), fmpq(0), fmpq(0)]), 2)
+            (fmpq_mat(3, 3, [1, 0, -1, 0, 1, 2, 0, 0, 0]), 2)
             >>> A
-            fmpq_mat(3, 3, [fmpq(1), fmpq(0), fmpq(-1), fmpq(0), fmpq(1), fmpq(2), fmpq(0), fmpq(0), fmpq(0)])
+            fmpq_mat(3, 3, [1, 0, -1, 0, 1, 2, 0, 0, 0])
 
         """
         if inplace:

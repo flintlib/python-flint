@@ -879,6 +879,8 @@ cdef extern from "arb.h":
     int arb_contains(const arb_t x, const arb_t y)
     void arb_get_interval_fmpz_2exp(fmpz_t a, fmpz_t b, fmpz_t exp, const arb_t x)
     int arb_get_unique_fmpz(fmpz_t z, const arb_t x)
+    void arb_get_fmpz_mid_rad_10exp(fmpz_t mid, fmpz_t rad, fmpz_t exp, const arb_t x, long n)
+
     void arb_floor(arb_t z, const arb_t x, long prec)
     void arb_ceil(arb_t z, const arb_t x, long prec)
     void arb_set_interval_arf(arb_t x, const arf_t a, const arf_t b, long prec)
@@ -1169,7 +1171,6 @@ cdef extern from "partitions.h":
 cdef extern from "bernoulli.h":
     void bernoulli_fmpq_ui(fmpq_t, ulong)
 
-
 cdef extern from "arb_mat.h":
     ctypedef struct arb_mat_struct:
         arb_ptr entries
@@ -1226,4 +1227,21 @@ cdef extern from "arb_mat.h":
     void arb_mat_det(arb_t det, const arb_mat_t A, long prec)
 
     void arb_mat_exp(arb_mat_t B, const arb_mat_t A, long prec)
+
+cdef extern from "acb_modular.h":
+    void acb_modular_theta(acb_t theta1, acb_t theta2, acb_t theta3, acb_t theta4, const acb_t z, const acb_t tau, long prec)
+    void acb_modular_eta(acb_t r, const acb_t tau, long prec)
+    void acb_modular_j(acb_t r, const acb_t tau, long prec)
+    void acb_modular_lambda(acb_t r, const acb_t tau, long prec)
+    void acb_modular_delta(acb_t r, const acb_t tau, long prec)
+    void acb_modular_eisenstein(acb_ptr r, const acb_t tau, long len, long prec)
+    void acb_modular_elliptic_p(acb_t wp, const acb_t z, const acb_t tau, long prec)
+    void acb_modular_elliptic_p_zpx(acb_ptr wp, const acb_t z, const acb_t tau, long len, long prec)
+
+cdef extern from "acb_hypgeom.h":
+    void acb_hypgeom_bessel_j(acb_t res, const acb_t nu, const acb_t z, long prec)
+    void acb_hypgeom_erf(acb_t res, const acb_t z, long prec)
+    void acb_hypgeom_pfq_direct(acb_t res, acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long n, long prec)
+    void acb_hypgeom_u_asymp(acb_t res, const acb_t a, const acb_t b, const acb_t z, long n, long prec)
+    long acb_hypgeom_pfq_choose_n(acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long prec)
 
