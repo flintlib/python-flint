@@ -256,7 +256,15 @@ cdef class arb_mat(flint_mat):
             raise ZeroDivisionError("matrix is singular")
         return u
 
+    # ???
+    inv = __invert__
+
     def solve(s, t):
+        """
+        Solves `AX = B` where *A* is a square matrix given by *s* and
+        `B` is a matrix given by *t*.
+        Raises :exc:`ZeroDivisionError` if *A* is numerically singular.
+        """
         cdef arb_mat u
         t = arb_mat.convert(t)
         if (arb_mat_nrows(s.val) != arb_mat_ncols(s.val) or
@@ -269,6 +277,9 @@ cdef class arb_mat(flint_mat):
         return u
 
     def exp(s):
+        """
+        Computes the matrix exponential of *s*.
+        """
         cdef arb_mat u
         if arb_mat_nrows(s.val) != arb_mat_ncols(s.val):
             raise ValueError("matrix must be square")

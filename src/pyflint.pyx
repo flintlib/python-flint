@@ -68,6 +68,7 @@ cdef class Context:
         self.rnd = ARF_RND_DOWN
         self.prec = 53
         self.unicode = False
+        self.threads = 1
 
     property prec:
 
@@ -89,9 +90,20 @@ cdef class Context:
         def __get__(self):
             return self._dps
 
+    property threads:
+
+        def __set__(self, long num):
+            assert num >= 1 and num <= 64
+            flint_set_num_threads(num)
+
+        def __get__(self):
+            return flint_get_num_threads()
 
     def __repr__(self):
         return "pretty = %s\nprec = %s" % (self.pretty, self.prec)
+
+    def cleanup(self):
+        flint_cleanup()
 
 cdef Context thectx = Context()
 

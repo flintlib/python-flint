@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Python bindings for FLINT
+Python-FLINT
 ==========================================================
 
 Python extension module wrapping FLINT (Fast Library for Number Theory)
@@ -18,13 +18,15 @@ Author: Fredrik Johansson <fredrik.johansson@gmail.com>
 
 Repository: https://github.com/fredrik-johansson/python-flint/
 
-Setup
------
+Introduction
+------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    setup.rst
+   general.rst
+
 
 Reference
 ---------

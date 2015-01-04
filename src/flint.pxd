@@ -31,6 +31,9 @@ cdef extern from "flint.h":
     ctypedef void * flint_rand_t
     void flint_randinit(flint_rand_t state)
     void flint_randclear(flint_rand_t state)
+    void flint_set_num_threads(long)
+    long flint_get_num_threads()
+    void flint_cleanup()
 
 cdef extern from "nmod_vec.h":
     ctypedef struct nmod_t:
@@ -1170,6 +1173,7 @@ cdef extern from "partitions.h":
 
 cdef extern from "bernoulli.h":
     void bernoulli_fmpq_ui(fmpq_t, ulong)
+    void bernoulli_cache_compute(long n)
 
 cdef extern from "arb_mat.h":
     ctypedef struct arb_mat_struct:
@@ -1237,6 +1241,8 @@ cdef extern from "acb_modular.h":
     void acb_modular_eisenstein(acb_ptr r, const acb_t tau, long len, long prec)
     void acb_modular_elliptic_p(acb_t wp, const acb_t z, const acb_t tau, long prec)
     void acb_modular_elliptic_p_zpx(acb_ptr wp, const acb_t z, const acb_t tau, long len, long prec)
+    void acb_modular_elliptic_k(acb_t w, const acb_t m, long prec)
+    void acb_modular_elliptic_k_cpx(acb_ptr w, const acb_t m, long len, long prec)
 
 cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_bessel_j(acb_t res, const acb_t nu, const acb_t z, long prec)

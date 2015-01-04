@@ -80,9 +80,9 @@ cdef class acb(flint_scalar):
         real = self.real
         imag = self.imag
         if imag.is_zero():
-            return "acb(%s)" % real._repr_()
+            return "acb(%s)" % real.repr()
         else:
-            return "acb(%s, %s)" % (real._repr_(), imag._repr_())
+            return "acb(%s, %s)" % (real.repr(), imag.repr())
 
     def str(self, *args, **kwargs):
         real = self.real
@@ -523,5 +523,188 @@ cdef class acb(flint_scalar):
         """
         u = acb.__new__(acb)
         acb_polylog((<acb>u).val, (<acb>s).val, (<acb>z).val, getprec())
+        return u
+
+    @classmethod
+    def hypgeom(cls, a, b, z, long n=-1):
+        r"""
+        Computes the generalized hypergeometric function `{}_pF_q(a;b;z)`
+        given lists of complex numbers `a` and `b` and a complex number `z`.
+
+        Currently, the implementation only uses direct summation
+        of the hypergeometric series. No analytic continuation is performed,
+        and no asymptotic expansions are used.
+        The optional parameter *n*, if nonnegative, controls the number
+        of terms to add in the hypergeometric series. This is just a tuning
+        parameter: a rigorous error bound is computed regardless of *n*.
+
+            >>> showgood(lambda: acb.hypgeom([1+1j, 2-2j], [3, fmpq(1,3)], acb.pi()), dps=25)  # 2F2
+            144.9760711583421645394627 - 51.06535684838559608699106j
+
+        """
+        cdef long i, p, q, prec
+        cdef acb_ptr aa, bb
+        a = [any_as_acb(t) for t in a]
+        b = [any_as_acb(t) for t in b] + [acb(1)]  # todo: remove from a if there
+        z = acb(z)
+        p = len(a)
+        q = len(b)
+        aa = <acb_ptr>libc.stdlib.malloc(p * cython.sizeof(acb_struct))
+        bb = <acb_ptr>libc.stdlib.malloc(q * cython.sizeof(acb_struct))
+        for i in range(p):
+            aa[i] = (<acb>(a[i])).val[0]
+        for i in range(q):
+            bb[i] = (<acb>(b[i])).val[0]
+        u = acb.__new__(acb)
+        acb_hypgeom_pfq_direct((<acb>u).val, aa, p, bb, q, (<acb>z).val, n, getprec())
+        libc.stdlib.free(aa)
+        libc.stdlib.free(bb)
+        return u
+
+    @classmethod
+    def hypgeom_u(cls, a, b, z, long n=-1):
+        r"""
+        Computes Tricomi's confluent hypergeometric function `U(a,b,z)`
+        given complex numbers `a`, `b`, `z`.
+
+        Currently, the implementation only uses the asymptotic
+        series. If `|z|` is small, the attainable accuracy is limited.
+        The optional parameter *n*, if nonnegative, controls the number
+        of terms to add in the asymptotic series. This is just a tuning
+        parameter: a rigorous error bound is computed regardless of *n*.
+
+            >>> showgood(lambda: acb.hypgeom_u(1+1j, 2+3j, 400+500j), dps=25)
+            0.001836433961463105354717547 - 0.003358699641979853540147122j
+            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=0))
+            [+/- 3.41] + [+/- 3.41]j
+            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=30))
+            [0.7808944974 +/- 7.46e-11] + [-0.267478306 +/- 5.25e-10]j
+            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=60))
+            [0.78089 +/- 8.14e-6] + [-0.2675 +/- 2.54e-5]j
+        """
+        a = any_as_acb(a)
+        b = any_as_acb(b)
+        z = any_as_acb(z)
+        t = z**(-a)
+        u = acb.__new__(acb)
+        acb_hypgeom_u_asymp((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, n, getprec())
+        return t * u
+
+    @classmethod
+    def bessel_j(cls, a, z):
+        r"""
+        Computes the Bessel function of the first kind `J_a(z)`.
+
+            >>> showgood(lambda: acb.bessel_j(1+2j, 2+3j), dps=25)
+            0.5041904509946947234759103 - 0.1765180072689450645147231j
+        """
+        a = any_as_acb(a)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_bessel_j((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
+        return u
+
+    def erf(s):
+        r"""
+        Computes the error function `\operatorname{erf}(s)`.
+
+            >>> showgood(lambda: acb(2+3j).erf() - 1, dps=25)
+            -21.82946142761456838910309 + 8.687318271470163144428079j
+            >>> showgood(lambda: acb("77.7").erf() - 1, dps=25, maxdps=10000)
+            -7.929310690520378873143053e-2625
+        """
+        u = acb.__new__(acb)
+        acb_hypgeom_erf((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    @classmethod
+    def modular_theta(cls, z, tau):
+        r"""
+        Computes the Jacobi theta functions `\theta_1(z,\tau)`,
+        `\theta_2(z,\tau)`, `\theta_3(z,\tau)`, `\theta_4(z,\tau)`,
+        returning all four values as a tuple.
+        We define the theta functions with a factor `\pi` for *z* included;
+        for example
+        `\theta_3(z,\tau) = 1 + 2 \sum_{n=1}^{\infty} q^{n^2} \cos(2n\pi z)`.
+
+            >>> for i in range(4):
+            ...     showgood(lambda: acb.modular_theta(1+1j, 1.25+3j)[i], dps=25)
+            ... 
+            1.820235910124989594900076 - 1.216251950154477951760042j
+            -1.220790267576967690128359 - 1.827055516791154669091679j
+            0.9694430387796704100046143 - 0.03055696120816803328582847j
+            1.030556961196006476576271 + 0.03055696120816803328582847j
+        """
+        z = any_as_acb(z)
+        tau = any_as_acb(tau)
+        t1 = acb.__new__(acb)
+        t2 = acb.__new__(acb)
+        t3 = acb.__new__(acb)
+        t4 = acb.__new__(acb)
+        acb_modular_theta((<acb>t1).val, (<acb>t2).val,
+                          (<acb>t3).val, (<acb>t4).val,
+                          (<acb>z).val, (<acb>tau).val, getprec())
+        return (t1, t2, t3, t4)
+
+    def modular_eta(tau):
+        r"""
+        Computes the Dedekind eta function `\eta(\tau)`.
+
+            >>> showgood(lambda: acb(1+1j).modular_eta(), dps=25)
+            0.7420487758365647263392722 + 0.1988313702299107190516142j
+        """
+        u = acb.__new__(acb)
+        acb_modular_eta((<acb>u).val, (<acb>tau).val, getprec())
+        return u
+
+    def modular_j(tau):
+        r"""
+        Computes the modular *j*-invariant `j(\tau)`.
+
+            >>> showgood(lambda: (1 + acb(-163).sqrt()/2).modular_j(), dps=25)
+            262537412640769488.0000000
+            >>> showgood(lambda: acb(3.25+100j).modular_j() - 744, dps=25, maxdps=2000)
+            -3.817428033843319485125773e-539 - 7.503618895582604309279721e+272j
+        """
+        u = acb.__new__(acb)
+        acb_modular_j((<acb>u).val, (<acb>tau).val, getprec())
+        return u
+
+    def modular_lambda(tau):
+        r"""
+        Computes the modular lambda function `\lambda(\tau)`.
+
+            >>> showgood(lambda: acb(0.25+5j).modular_lambda(), dps=25)
+            1.704995415668039343330405e-6 + 1.704992508662079437786598e-6j
+        """
+        u = acb.__new__(acb)
+        acb_modular_lambda((<acb>u).val, (<acb>tau).val, getprec())
+        return u
+
+    def modular_delta(tau):
+        r"""
+        Computes the modular discriminant `\Delta(\tau)`.
+
+            >>> showgood(lambda: acb(0.25+5j).modular_delta(), dps=25)
+            1.237896015010281684100435e-26 + 2.271101068324093838679275e-14j
+        """
+        u = acb.__new__(acb)
+        acb_modular_delta((<acb>u).val, (<acb>tau).val, getprec())
+        return u
+
+    def elliptic_k(m):
+        """
+        Computes the complete elliptic integral of the first kind `K(m)`.
+
+            >>> showgood(lambda: 2 * acb(0).elliptic_k(), dps=25)
+            3.141592653589793238462643
+            >>> showgood(lambda: acb(100+50j).elliptic_k(), dps=25)
+            0.2052037361984861505113972 + 0.3158446040520529200980591j
+            >>> showgood(lambda: (1 - acb("1e-100")).elliptic_k(), dps=25)
+            116.5155490108221748197340
+
+        """
+        u = acb.__new__(acb)
+        acb_modular_elliptic_k((<acb>u).val, (<acb>m).val, getprec())
         return u
 

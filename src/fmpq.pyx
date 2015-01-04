@@ -77,11 +77,17 @@ cdef class fmpq(flint_scalar):
             raise NotImplementedError("fmpq comparisons")
 
     def numer(self):
+        """
+        Returns the numerator of *self* as an *fmpz*.
+        """
         cdef fmpz x = fmpz.__new__(fmpz)
         fmpz_set(x.val, fmpq_numref(self.val))
         return x
 
     def denom(self):
+        """
+        Returns the denominator of *self* as an *fmpz*.
+        """
         cdef fmpz x = fmpz.__new__(fmpz)
         fmpz_set(x.val, fmpq_denref(self.val))
         return x
@@ -235,15 +241,23 @@ cdef class fmpq(flint_scalar):
         return u
 
     @staticmethod
-    def bernoulli_ui(ulong n):
+    def bernoulli_ui(ulong n, bint cache=False):
         """
-        Returns the nth Bernoulli number B_n as an fmpq.
+        Returns the Bernoulli number `B_n` as an *fmpq*.
 
             >>> [fmpq.bernoulli_ui(n) for n in range(8)]
             [fmpq(1), fmpq(-1,2), fmpq(1,6), fmpq(0), fmpq(-1,30), fmpq(0), fmpq(1,42), fmpq(0)]
             >>> fmpq.bernoulli_ui(50)
             fmpq(495057205241079648212477525,66)
+
+        If *cache* is set to *True*, all the Bernoulli numbers up to *n* are
+        computed and cached for fast subsequent retrieval. This feature should
+        obviously be used with caution if *n* is large. Calling
+        :func:`ctx.cleanup()` frees cached Bernoulli numbers.
         """
+        if cache:
+            assert n <= 1000000
+            bernoulli_cache_compute(n+1)
         u = fmpq.__new__(fmpq)
         bernoulli_fmpq_ui((<fmpq>u).val, n)
         return u
@@ -251,7 +265,7 @@ cdef class fmpq(flint_scalar):
     @staticmethod
     def harmonic_ui(ulong n):
         """
-        Returns the harmonic number H_n as an fmpq.
+        Returns the harmonic number `H_n` as an *fmpq*.
 
             >>> [fmpq.harmonic_ui(n) for n in range(6)]
             [fmpq(0), fmpq(1), fmpq(3,2), fmpq(11,6), fmpq(25,12), fmpq(137,60)]

@@ -111,6 +111,7 @@ To do
 * Support for Python-level multithreading (there is some global state)
 * Support for subclassing (maybe, not a priority)
 * Improved printing and string input/output
+* IPython hooks (TeX pretty-printing etc.)
 * Python 3.x support
 * Windows support
 
