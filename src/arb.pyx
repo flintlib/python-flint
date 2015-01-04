@@ -432,9 +432,22 @@ cdef class arb(flint_scalar):
             rads = _digits_as_fpstr(rads, exp + extraexp, minfix=-2, maxfix=2, condense=condense)
             return "[%s %s]" % (PM, rads)
 
-
     def __float__(self):
         return arf_get_d(arb_midref(self.val), ARF_RND_DOWN)
+
+    def __richcmp__(s, t, int op):
+        cdef bint res
+        d = s - t
+        if not typecheck(s, arb):
+            return NotImplemented
+        res = 0
+        if   op == 2: res = arb_is_zero((<arb>d).val)
+        elif op == 3: res = arb_is_nonzero((<arb>d).val)
+        elif op == 0: res = arb_is_negative((<arb>d).val)
+        elif op == 1: res = arb_is_nonpositive((<arb>d).val)
+        elif op == 4: res = arb_is_positive((<arb>d).val)
+        elif op == 5: res = arb_is_nonnegative((<arb>d).val)
+        return res
 
     def __contains__(self, other):
         other = any_as_arb(other)

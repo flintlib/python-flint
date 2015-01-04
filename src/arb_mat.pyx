@@ -109,7 +109,10 @@ cdef class arb_mat(flint_mat):
     def det(s):
         """
         Returns the determinant of s as an arb.
-        Convergence might fail if the matrix is singular.
+
+        If the matrix is singular, the result will be an interval
+        containing zero. As currently implemented, the width of this interval
+        will not generally converge to zero as the precision increases.
 
             >>> A = arb_mat(3, 3, range(9))
             >>> showgood(lambda: A.det(), dps=25)    # singular

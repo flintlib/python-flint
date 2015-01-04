@@ -78,4 +78,29 @@ invalid input leads to undefined behavior!
 Inexact numbers
 -----------------
 
+WRITE MORE HERE.
 
+Be careful about using Python float and complex literals as input.
+Doing ``arb(0.1)`` actually gives an interval containing
+the rational number
+
+.. math ::
+
+    3602879701896397 \times 2^-55 = 0.1000000000000000055511151231257827021181583404541015625
+
+which might not be what you want. Do ``arb("0.1")``, ``arb("1/10")``
+or ``arb(fmpq(1,10))`` if
+you want the correct decimal fraction. But small integers and
+power-of-two denominators are safe, for example ``arb(100.25)``.
+
+Pointwise boolean predicates (such as the usual comparison operators)
+involving inexact numbers return
+*True* only if the predicate certainly is true (i.e. it holds for all
+combinations of points that can be chosen from the set-valued inputs),
+and return *False* if the
+predicate either definitely is false or the truth cannot be determined.
+To determine that a predicate is definitely false,
+test both the predicate and the inverse predicate,
+e.g. if either ``x < y`` or ``y <= x`` returns *True*, then the other
+is definitely false; if both return *False*, then neither can be
+determined from the available data.

@@ -329,9 +329,9 @@ cdef class fmpz(flint_scalar):
         fmpz_factor_clear(fac)
         return res
 
-    def number_of_partitions(s):
+    def number_of_partitions(n):
         """
-        Returns p(n), the number of partitions of n, as an fmpz.
+        Returns `p(n)`, the number of partitions of `n`, as an *fmpz*.
 
             >>> [int(fmpz(n).number_of_partitions()) for n in range(8)]
             [1, 1, 2, 3, 5, 7, 11, 15]
@@ -339,14 +339,20 @@ cdef class fmpz(flint_scalar):
             fmpz(190569292)
             >>> len(str(fmpz(10**9).number_of_partitions()))
             35219
+
+        Warning: the partition function grows rapidly.
+        On a 32-bit system, `n` must not be larger than about `10^{16}`.
+        On a 64-bit system, `n` must not be larger than about `10^{20}`.
+        For large `n`, this function benefits from setting ``ctx.threads = 2``
+        on multicore systems.
         """
         cdef fmpz v = fmpz()
-        partitions_fmpz_fmpz(v.val, s.val, 0)
+        partitions_fmpz_fmpz(v.val, n.val, 0)
         return v
 
     def moebius_mu(s):
         """
-        Returns the Moebius function mu(n) as an fmpz.
+        Returns the Moebius function `\mu(n)` as an *fmpz*.
 
             >>> [int(fmpz(n).moebius_mu()) for n in range(10)]
             [0, 1, -1, -1, 0, -1, 1, -1, 0, 0]
