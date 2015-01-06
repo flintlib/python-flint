@@ -129,9 +129,55 @@ cdef class flint_elem:
 cdef class flint_scalar(flint_elem):
     pass
 
-cdef class flint_poly(flint_elem):
-    pass
+# use?
+cdef bint is_scalar(x):
+    """
+    Returns True if x is a flint_scalar or a Python scalar (int, long,
+    float, complex).
+    """
+    if typecheck(x, flint_scalar):
+        return True
+    if typecheck(x, flint_elem):
+        return False
+    if typecheck(x, int):
+        return True
+    if typecheck(x, long):
+        return True
+    if typecheck(x, float):
+        return True
+    if typecheck(x, complex):
+        return True
+    return False
 
+cdef class flint_poly(flint_elem):
+    """
+    Base class for polynomials.
+    """
+
+    def __iter__(self):
+        cdef long i, n
+        n = self.length()
+        for i in range(n):
+            yield self[i]
+
+    def str(self):
+        coeffs = [str(c) for c in self]
+        if not coeffs:
+            return "0"
+        s = []
+        for i, c in enumerate(coeffs):
+            if c == "0":
+                continue
+            else:
+                if c.startswith("-"):
+                    c = "(" + c + ")"
+                if i == 0:
+                    s.append("%s" % c)
+                elif i == 1:
+                    s.append("%s*x" % c)
+                else:
+                    s.append("%s*x^%s" % (c, i))
+        return " + ".join(s)
 
 cdef class flint_mat(flint_elem):
     """
@@ -175,7 +221,6 @@ cdef class flint_mat(flint_elem):
         n = self.ncols()
         L = self.entries()
         return [L[i*n : (i+1)*n] for i in range(m)]
-
 
 include "fmpz.pyx"
 include "fmpz_poly.pyx"

@@ -29,6 +29,7 @@ cdef fmpz_poly_set_list(fmpz_poly_t poly, list val):
         elif fmpz_set_python(x, val[i]):
             fmpz_poly_set_coeff_fmpz(poly, i, x)
         else:
+            fmpz_clear(x)
             raise TypeError("unsupported coefficient in list")
     fmpz_clear(x)
 
