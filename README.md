@@ -92,7 +92,7 @@ Numerical evaluation:
 Documentation
 -------------------------------------
 
-Complete API documentation is available.
+API documentation is available here: http://fredrikj.net/python-flint/
 
 To do
 -------------------------------------
