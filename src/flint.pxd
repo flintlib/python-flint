@@ -263,6 +263,10 @@ cdef extern from "fmpz.h":
     void fmpz_CRT_ui_unsigned(fmpz_t out,  fmpz_t r1,  fmpz_t m1, ulong r2, ulong m2)
     void fmpz_set_ui_mod(fmpz_t f, mp_limb_t x, mp_limb_t m)
     int fmpz_moebius_mu(const fmpz_t f)
+    void fmpz_fib_ui(fmpz_t f, ulong n)
+    void fmpz_rfac_ui(fmpz_t r, const fmpz_t x, ulong n)
+    void fmpz_rfac_uiui(fmpz_t r, ulong x, ulong n)
+    void fmpz_primorial(fmpz_t res, ulong n)
 
 cdef extern from "fmpz_factor.h":
     ctypedef struct fmpz_factor_struct:

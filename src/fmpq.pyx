@@ -101,11 +101,20 @@ cdef class fmpq(flint_scalar):
         else:
             return "fmpq(%s,%s)" % (self.p, self.q)
 
-    def str(self):
+    def str(self, **kwargs):
+        """
+        Converts *self* to a string, forwarding optional keyword arguments
+        to :meth:`.fmpz.str`.
+
+            >>> fmpq.bernoulli_ui(12).str()
+            '-691/2730'
+            >>> fmpq.bernoulli_ui(100).str(base=2, condense=10)
+            '-110001110{...257 digits...}0011011111/1000001000110010'
+        """
         if self.q == 1:
-            return str(self.p)
+            return self.p.str(**kwargs)
         else:
-            return "%s/%s" % (self.p, self.q)
+            return "%s/%s" % (self.p.str(**kwargs), self.q.str(**kwargs))
 
     def __nonzero__(self):
         return not fmpq_is_zero(self.val)

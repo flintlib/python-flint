@@ -112,7 +112,7 @@ def test_fmpz_poly():
     assert bool(Z([])) == False
     assert bool(Z([1])) == True
     assert repr(Z([1,2])) == "fmpz_poly([1, 2])"
-    assert str(Z([1,2])) == "2*x+1"
+    assert str(Z([1,2])) == "2*x + 1"
     p = Z([3,4,5])
     assert p(2) == 31
     assert p(flint.fmpq(2,3)) == flint.fmpq(71,9)
@@ -350,7 +350,7 @@ def test_nmod_poly():
     assert P([1,2,3,4,5],17) // P([2,3,4],17) == P([3,16,14],17)
     assert P([1,2,3,4,5],17) ** 2 == P([1,2,3,4,5],17) * P([1,2,3,4,5],17)
     assert P([1,2,3],17) * flint.nmod(3,17) == P([3,6,9],17)
-    assert str(P([1,2,3],17)) == "3*x^2+2*x+1"
+    assert str(P([1,2,3],17)) == "3*x^2 + 2*x + 1"
     p = P([3,4,5],17)
     assert p(14) == flint.nmod(2,17)
     assert p(P([1,2,3],17)) == P([12,11,11,9,11],17)

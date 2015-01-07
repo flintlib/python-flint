@@ -3,5 +3,6 @@
 
 .. autoclass :: flint.nmod_poly
   :members:
+  :inherited-members:
   :undoc-members:
 

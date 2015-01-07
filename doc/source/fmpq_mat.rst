@@ -3,5 +3,6 @@
 
 .. autoclass :: flint.fmpq_mat
   :members:
+  :inherited-members:
   :undoc-members:
 

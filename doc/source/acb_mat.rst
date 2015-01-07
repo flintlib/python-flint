@@ -3,5 +3,6 @@
 
 .. autoclass :: flint.acb_mat
   :members:
+  :inherited-members:
   :undoc-members:
 

@@ -78,7 +78,14 @@ invalid input leads to undefined behavior!
 Inexact numbers
 -----------------
 
-WRITE MORE HERE.
+Real and complex numbers are represented by intervals. All operations on
+real and complex numbers output intervals representing rigorous error bounds.
+This also extends to polynomials and matrices of real and complex numbers.
+
+The working precision for real and complex arithmetic is controlled by the
+global context object attributes :func:`ctx.prec` (in bits)
+:func:`ctx.dps` (in decimal digits). Changing either attribute changes
+the other to match.
 
 Be careful about using Python float and complex literals as input.
 Doing ``arb(0.1)`` actually gives an interval containing
@@ -86,7 +93,7 @@ the rational number
 
 .. math ::
 
-    3602879701896397 \times 2^-55 = 0.1000000000000000055511151231257827021181583404541015625
+    3602879701896397 \times 2^{-55} = 0.1000000000000000055511151231257827021181583404541015625
 
 which might not be what you want. Do ``arb("0.1")``, ``arb("1/10")``
 or ``arb(fmpq(1,10))`` if

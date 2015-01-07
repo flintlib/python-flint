@@ -3,5 +3,6 @@
 
 .. autoclass :: flint.arb
   :members:
+  :inherited-members:
   :undoc-members:
 

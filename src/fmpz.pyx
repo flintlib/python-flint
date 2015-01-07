@@ -132,12 +132,24 @@ cdef class fmpz(flint_scalar):
                 return NotImplemented
         return res
 
-    def str(self):
-        cdef char * s = fmpz_get_str(NULL, 10, self.val)
+    def str(self, int base=10, long condense=0):
+        """
+        Converts *self* to a string, optionally in a non-decimal base
+        and optionally showing only leading and trailing digits.
+
+            >>> (fmpz(3) ** 100).str()
+            '515377520732011331036461129765621272702107522001'
+            >>> (fmpz(3) ** 100).str(base=3, condense=10)
+            '1000000000{...81 digits...}0000000000'
+        """
+        assert 2 <= base <= 36
+        cdef char * s = fmpz_get_str(NULL, base, self.val)
         try:
             res = str(s)
         finally:
             libc.stdlib.free(s)
+        if condense > 0:
+            res = _str_trunc(res, condense)
         return res
 
     def repr(self):
@@ -330,7 +342,7 @@ cdef class fmpz(flint_scalar):
         return res
 
     def number_of_partitions(n):
-        """
+        r"""
         Returns `p(n)`, the number of partitions of `n`, as an *fmpz*.
 
             >>> [int(fmpz(n).number_of_partitions()) for n in range(8)]
@@ -340,7 +352,7 @@ cdef class fmpz(flint_scalar):
             >>> len(str(fmpz(10**9).number_of_partitions()))
             35219
 
-        Warning: the partition function grows rapidly.
+        The partition function grows rapidly.
         On a 32-bit system, `n` must not be larger than about `10^{16}`.
         On a 64-bit system, `n` must not be larger than about `10^{20}`.
         For large `n`, this function benefits from setting ``ctx.threads = 2``
@@ -350,15 +362,131 @@ cdef class fmpz(flint_scalar):
         partitions_fmpz_fmpz(v.val, n.val, 0)
         return v
 
-    def moebius_mu(s):
-        """
+    def moebius_mu(n):
+        r"""
         Returns the Moebius function `\mu(n)` as an *fmpz*.
 
             >>> [int(fmpz(n).moebius_mu()) for n in range(10)]
             [0, 1, -1, -1, 0, -1, 1, -1, 0, 0]
         """
         cdef fmpz v = fmpz()
-        fmpz_set_si(v.val, fmpz_moebius_mu(s.val))
+        fmpz_set_si(v.val, fmpz_moebius_mu(n.val))
         return v
 
+    @classmethod
+    def fac_ui(cls, ulong n):
+        r"""
+        Returns the factorial `n!` as an *fmpz*.
+
+            >>> fmpz.fac_ui(10)
+            fmpz(3628800)
+        """
+        u = fmpz.__new__(fmpz)
+        fmpz_fac_ui((<fmpz>u).val, n)
+        return u
+
+    @classmethod
+    def primorial_ui(cls, ulong n):
+        r"""
+        Returns the product of all primes less than or equal to *n*
+        (*n* primorial) as an *fmpz*.
+
+            >>> fmpz.primorial_ui(10)
+            fmpz(210)
+        """
+        u = fmpz.__new__(fmpz)
+        fmpz_primorial((<fmpz>u).val, n)
+        return u
+
+    @classmethod
+    def fib_ui(cls, ulong n):
+        r"""
+        Returns the Fibonacci number `F_n` as an *fmpz*.
+
+            >>> fmpz.fib_ui(10)
+            fmpz(55)
+        """
+        u = fmpz.__new__(fmpz)
+        fmpz_fib_ui((<fmpz>u).val, n)
+        return u
+
+    def rising_ui(s, ulong n):
+        r"""
+        Returns the rising factorial `s (s+1) \cdots (s+n-1)` as an *fmpz*.
+
+            >>> fmpz(10).rising_ui(5)
+            fmpz(240240)
+        """
+        u = fmpz.__new__(fmpz)
+        fmpz_rfac_ui((<fmpz>u).val, (<fmpz>s).val, n)
+        return u
+
+    @classmethod
+    def rising_uiui(cls, ulong s, ulong n):
+        r"""
+        Returns the rising factorial `s (s+1) \cdots (s+n-1)` as an *fmpz*.
+
+            >>> fmpz.rising_uiui(10,5)
+            fmpz(240240)
+        """
+        u = fmpz.__new__(fmpz)
+        fmpz_rfac_uiui((<fmpz>u).val, s, n)
+        return u
+
+    @classmethod
+    def bin_uiui(cls, ulong n, ulong k):
+        r"""
+        Returns the binomial coefficient `{n \choose k}` as an *fmpz*.
+        """
+        u = fmpz.__new__(fmpz)
+        fmpz_bin_uiui((<fmpz>u).val, n, k)
+        return u
+
+    @classmethod
+    def bell_number_ui(cls, ulong n):
+        r"""
+        Returns the Bell number `B_n` as an *fmpz*.
+
+            >>> fmpz.bell_number_ui(10)
+            fmpz(115975)
+        """
+        u = fmpz.__new__(fmpz)
+        arith_bell_number((<fmpz>u).val, n)
+        return u
+
+    @classmethod
+    def euler_number_ui(cls, ulong n):
+        r"""
+        Returns the Euler number `E_n` as an *fmpz*.
+
+            >>> fmpz.euler_number_ui(10)
+            fmpz(-50521)
+        """
+        u = fmpz.__new__(fmpz)
+        arith_euler_number((<fmpz>u).val, n)
+        return u
+
+    @classmethod
+    def stirling_number_1_uiui(cls, ulong n, ulong k):
+        r"""
+        Returns the Stirling number of the first kind `S_1(n,k)` as an *fmpz*.
+
+            >>> fmpz.stirling_number_1_uiui(10,5)
+            fmpz(-269325)
+        """
+        u = fmpz.__new__(fmpz)
+        arith_stirling_number_1((<fmpz>u).val, n, k)
+        return u
+
+    @classmethod
+    def stirling_number_2_uiui(cls, ulong n, ulong k):
+        r"""
+        Returns the Stirling number of the second kind `S_2(n,k)` as an *fmpz*.
+
+            >>> fmpz.stirling_number_2_uiui(10,5)
+            fmpz(42525)
+        """
+        u = fmpz.__new__(fmpz)
+        arith_stirling_number_2((<fmpz>u).val, n, k)
+        return u
 

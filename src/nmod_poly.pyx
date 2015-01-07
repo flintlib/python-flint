@@ -38,9 +38,9 @@ cdef class nmod_poly(flint_poly):
 
         >>> a = nmod_poly([5,1,10,14,8], 7)
         >>> print a
-        x^4+3*x^2+x+5
+        x^4 + 3*x^2 + x + 5
         >>> print -a
-        6*x^4+4*x^2+6*x+2
+        6*x^4 + 4*x^2 + 6*x + 2
         >>> list(nmod_poly(range(3), 2))
         [nmod(0, 2), nmod(1, 2)]
         >>> nmod_poly([1, 2, 3], 23) ** 3
@@ -123,9 +123,6 @@ cdef class nmod_poly(flint_poly):
 
     def repr(self):
         return "nmod_poly(%s, %s)" % (map(int, self.coeffs()), self.modulus())
-
-    def str(self):
-        return str(fmpz_poly(map(int, self.coeffs())))
 
     def __getitem__(self, long i):
         cdef nmod x

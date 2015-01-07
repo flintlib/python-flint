@@ -160,23 +160,42 @@ cdef class flint_poly(flint_elem):
         for i in range(n):
             yield self[i]
 
-    def str(self):
+    def coeffs(self):
+        return list(self)
+
+    def str(self, bint ascending=False):
+        """
+        Convert to a human-readable string (generic implementation for
+        all polynomial types).
+
+        If *ascending* is *True*, the monomials are output from low degree to
+        high, otherwise from high to low.
+        """
         coeffs = [str(c) for c in self]
         if not coeffs:
             return "0"
         s = []
-        for i, c in enumerate(coeffs):
+        coeffs = enumerate(coeffs)
+        if not ascending:
+            coeffs = reversed(list(coeffs))
+        for i, c in coeffs:
             if c == "0":
                 continue
             else:
-                if c.startswith("-"):
+                if c.startswith("-") or (" " in c):
                     c = "(" + c + ")"
                 if i == 0:
                     s.append("%s" % c)
                 elif i == 1:
-                    s.append("%s*x" % c)
+                    if c == "1":
+                        s.append("x")
+                    else:
+                        s.append("%s*x" % c)
                 else:
-                    s.append("%s*x^%s" % (c, i))
+                    if c == "1":
+                        s.append("x^%s" % i)
+                    else:
+                        s.append("%s*x^%s" % (c, i))
         return " + ".join(s)
 
 cdef class flint_mat(flint_elem):

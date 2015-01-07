@@ -31,6 +31,7 @@ cdef class arb_mat(flint_mat):
         x = cls.convert_operand(x)
         if x is NotImplemented:
             raise TypeError("unable to convert type %s to type %s" % (type(x), cls))
+        return x
 
     @cython.embedsignature(False)
     def __init__(self, *args):
@@ -213,7 +214,7 @@ cdef class arb_mat(flint_mat):
                 return (<arb_mat>s)._mul_arb_(t)
             if typecheck(t, acb):
                 return acb_mat(s) * t
-            if typecheck(t, (int, long)):
+            if typecheck(t, (int, long)): # BUGG!
                 return (<arb_mat>s)._mul_fmpz_(fmpz(t))
         else:
             if typecheck(s, fmpz):
@@ -222,7 +223,7 @@ cdef class arb_mat(flint_mat):
                 return (<arb_mat>t)._mul_arb_(s)
             if typecheck(s, acb):
                 return acb_mat(t) * s
-            if typecheck(s, (int, long)):
+            if typecheck(s, (int, long)): # BUGG!
                 return (<arb_mat>t)._mul_fmpz_(fmpz(s))
         s = arb_mat.convert_operand(s)
         if s is NotImplemented:
@@ -249,7 +250,21 @@ cdef class arb_mat(flint_mat):
         arb_mat_pow_ui((<arb_mat>u).val, (<arb_mat>s).val, exp, getprec())
         return u
 
-    def __invert__(s):
+    def inv(s):
+        """
+        Returns the inverse matrix of the square matrix *s*.
+        Raises :exc:`ZeroDivisionError` if *s* is numerically singular.
+
+            >>> A = arb_mat(2, 2, [1, 5, 2, 4])
+            >>> print(A * A.inv())
+            [[1.0000000000000 +/- 6.11e-16],                 [+/- 3.34e-16]]
+            [                [+/- 4.45e-16], [1.0000000000000 +/- 5.56e-16]]
+            >>> A = arb_mat(2, 2, [1, 5, 2, 10])
+            >>> A.inv()
+            Traceback (most recent call last):
+              ...
+            ZeroDivisionError: matrix is singular
+        """
         cdef arb_mat u
         if arb_mat_nrows(s.val) != arb_mat_ncols(s.val):
             raise ValueError("matrix must be square")
@@ -259,14 +274,18 @@ cdef class arb_mat(flint_mat):
             raise ZeroDivisionError("matrix is singular")
         return u
 
-    # ???
-    inv = __invert__
-
     def solve(s, t):
         """
         Solves `AX = B` where *A* is a square matrix given by *s* and
         `B` is a matrix given by *t*.
         Raises :exc:`ZeroDivisionError` if *A* is numerically singular.
+
+            >>> A = arb_mat(2, 2, [1, 2, 3, 4])
+            >>> X = arb_mat(2, 3, range(6))
+            >>> B = A * X
+            >>> print(A.solve(B))
+            [                [+/- 4.74e-15], [1.0000000000000 +/- 4.78e-15], [2.0000000000000 +/- 8.52e-15]]
+            [[3.0000000000000 +/- 3.56e-15], [4.0000000000000 +/- 3.59e-15], [5.0000000000000 +/- 6.28e-15]]
         """
         cdef arb_mat u
         t = arb_mat.convert(t)
@@ -282,6 +301,10 @@ cdef class arb_mat(flint_mat):
     def exp(s):
         """
         Computes the matrix exponential of *s*.
+
+            >>> print(arb_mat(2, 2, [1, 4, -2, 1]).exp())
+            [ [-2.58607310345045 +/- 5.06e-15],  [1.18429895089106 +/- 1.15e-15]]
+            [[-0.592149475445530 +/- 5.73e-16], [-2.58607310345045 +/- 5.06e-15]]
         """
         cdef arb_mat u
         if arb_mat_nrows(s.val) != arb_mat_ncols(s.val):

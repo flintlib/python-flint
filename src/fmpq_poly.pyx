@@ -112,21 +112,6 @@ cdef class fmpq_poly(flint_poly):
     p = property(numer)
     q = property(denom)
 
-    def __iter__(self):
-        cdef long i, n
-        n = self.length()
-        for i from 0 <= i < n:
-            yield self[i]
-
-    def coeffs(self):
-        cdef long i, n
-        cdef list L
-        n = self.length()
-        L = [fmpq() for i in range(n)]
-        for i from 0 <= i < n:
-            fmpq_poly_get_coeff_fmpq((<fmpq>(L[i])).val, self.val, i)
-        return L
-
     def __getitem__(self, long i):
         cdef fmpq x
         x = fmpq()
@@ -148,14 +133,6 @@ cdef class fmpq_poly(flint_poly):
             return "fmpq_poly(%s)" % map(int, n.coeffs())
         else:
             return "fmpq_poly(%s, %s)" % (map(int, n.coeffs()), d)
-
-    def str(self):
-        cdef char * s = fmpq_poly_get_str_pretty(self.val, "x")
-        try:
-            res = str(s)
-        finally:
-            libc.stdlib.free(s)
-        return res
 
     def __nonzero__(self):
         return not fmpq_poly_is_zero(self.val)

@@ -85,21 +85,6 @@ cdef class fmpz_poly(flint_poly):
             r = not r
         return r
 
-    def __iter__(self):
-        cdef long i, n
-        n = self.length()
-        for i from 0 <= i < n:
-            yield self[i]
-
-    def coeffs(self):
-        cdef long i, n
-        cdef list L
-        n = self.length()
-        L = [fmpz() for i in range(n)]
-        for i from 0 <= i < n:
-            fmpz_poly_get_coeff_fmpz((<fmpz>(L[i])).val, self.val, i)
-        return L
-
     def __getitem__(self, long i):
         cdef fmpz x
         x = fmpz()
@@ -113,14 +98,6 @@ cdef class fmpz_poly(flint_poly):
             raise ValueError("cannot assign to index < 0 of polynomial")
         v = fmpz(x)  # XXX
         fmpz_poly_set_coeff_fmpz(self.val, i, (<fmpz>v).val)
-
-    def str(self):
-        cdef char * s = fmpz_poly_get_str_pretty(self.val, "x")
-        try:
-            res = str(s)
-        finally:
-            libc.stdlib.free(s)
-        return res
 
     def repr(self):
         return "fmpz_poly([%s])" % (", ".join(map(str, self.coeffs())))

@@ -3,7 +3,7 @@ cdef arb_poly_coerce_operands(x, y):
         x, y = y, x
     if isinstance(y, (int, long, float, fmpz, fmpq, arb, fmpz_poly, fmpq_poly)):
         return x, arb_poly(y)
-    if isinstance(x, (complex, acb)):
+    if isinstance(y, (complex, acb)):
         return acb_poly(x), acb_poly(y)
     return NotImplemented, NotImplemented
 
