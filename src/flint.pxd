@@ -314,6 +314,7 @@ cdef extern from "fmpz_poly.h":
     int fmpz_poly_set_str(fmpz_poly_t poly, char * str)
     char * fmpz_poly_get_str(fmpz_poly_t poly)
     char * fmpz_poly_get_str_pretty(fmpz_poly_t poly, char * x)
+    fmpz_struct * fmpz_poly_get_coeff_ptr(fmpz_poly_t poly, long n)
     void fmpz_poly_zero(fmpz_poly_t poly)
     void fmpz_poly_one(fmpz_poly_t poly)
     void fmpz_poly_zero_coeffs(fmpz_poly_t poly, long i, long j)
@@ -373,6 +374,10 @@ cdef extern from "fmpz_poly.h":
     #void fmpz_poly_evaluate_mpq(mpq_t res, fmpz_poly_t f, mpq_t a)
     mp_limb_t fmpz_poly_evaluate_mod(fmpz_poly_t poly, mp_limb_t a, mp_limb_t n)
     void fmpz_poly_compose(fmpz_poly_t res, fmpz_poly_t poly1, fmpz_poly_t poly2)
+
+    void fmpz_poly_compose_series(fmpz_poly_t res, const fmpz_poly_t poly1, const fmpz_poly_t poly2, long n)
+    void fmpz_poly_revert_series(fmpz_poly_t Qinv, const fmpz_poly_t Q, long n)
+
     void fmpz_poly_signature(long * r1, long * r2, fmpz_poly_t poly)
     int fmpz_poly_print(fmpz_poly_t poly)
     int fmpz_poly_print_pretty(fmpz_poly_t poly, char * x)
@@ -591,6 +596,8 @@ cdef extern from "fmpq_poly.h":
     int fmpq_poly_print_pretty(fmpq_poly_t poly, char * var)
     #int fmpq_poly_fread(FILE * file, fmpq_poly_t poly)
     int fmpq_poly_read(fmpq_poly_t poly)
+    void fmpq_poly_compose_series(fmpq_poly_t res, fmpq_poly_t poly1, fmpq_poly_t poly2, long n)
+    void fmpq_poly_revert_series(fmpq_poly_t res, fmpq_poly_t poly1, long n)
 
 cdef extern from "fmpq_mat.h":
     ctypedef struct fmpq_mat_struct:
@@ -1255,6 +1262,16 @@ cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_u_asymp(acb_t res, const acb_t a, const acb_t b, const acb_t z, long n, long prec)
     long acb_hypgeom_pfq_choose_n(acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long prec)
 
+cdef extern from "acb_mat.h":
+    ctypedef struct acb_mat_struct:
+        acb_ptr entries
+        long r
+        long c
+        acb_ptr * rows
+
+    ctypedef acb_mat_struct acb_mat_t[1]
+
+
 cdef extern from "arb_poly.h":
     ctypedef struct arb_poly_struct:
         arb_ptr coeffs
@@ -1278,7 +1295,7 @@ cdef extern from "arb_poly.h":
     void arb_poly_set_coeff_si(arb_poly_t poly, long n, long x)
     void arb_poly_set_coeff_arb(arb_poly_t poly, long n, const arb_t x)
     void arb_poly_get_coeff_arb(arb_t x, const arb_poly_t poly, long n)
-    arb_ptr arb_poly_get_coeff_ptr(poly, n)
+    arb_ptr arb_poly_get_coeff_ptr(arb_poly_t poly, long n)
     void _arb_poly_reverse(arb_ptr res, arb_srcptr poly, long len, long n)
     void _arb_poly_shift_right(arb_ptr res, arb_srcptr poly, long len, long n)
     void arb_poly_shift_right(arb_poly_t res, const arb_poly_t poly, long n)
@@ -1471,7 +1488,7 @@ cdef extern from "acb_poly.h":
     void acb_poly_set_coeff_si(acb_poly_t poly, long n, long x)
     void acb_poly_set_coeff_acb(acb_poly_t poly, long n, const acb_t x)
     void acb_poly_get_coeff_acb(acb_t x, const acb_poly_t poly, long n)
-    acb_ptr acb_poly_get_coeff_ptr(poly, n)
+    acb_ptr acb_poly_get_coeff_ptr(arb_poly_t poly, long n)
     void _acb_poly_shift_right(acb_ptr res, acb_srcptr poly, long len, long n)
     void acb_poly_shift_right(acb_poly_t res, const acb_poly_t poly, long n)
     void _acb_poly_shift_left(acb_ptr res, acb_srcptr poly, long len, long n)
@@ -1621,4 +1638,20 @@ cdef extern from "acb_poly.h":
     void _acb_poly_polylog_cpx(acb_ptr w, const acb_t s, const acb_t z, long len, long prec)
     void _acb_poly_polylog_series(acb_ptr res, acb_srcptr s, long slen, const acb_t z, long len, long prec)
     void acb_poly_polylog_series(acb_poly_t res, const acb_poly_t s, const acb_t z, long n, long prec)
+
+    void _acb_poly_pow_series(acb_ptr h, acb_srcptr f, long flen, acb_srcptr g, long glen, long len, long prec)
+    void acb_poly_pow_series(acb_poly_t h, const acb_poly_t f, const acb_poly_t g, long len, long prec)
+    void _acb_poly_pow_acb_series(acb_ptr h, acb_srcptr f, long flen, const acb_t g, long len, long prec)
+    void acb_poly_pow_acb_series(acb_poly_t h, const acb_poly_t f, const acb_t g, long len, long prec)
+
+    void _acb_poly_agm1_series(acb_ptr res, acb_srcptr z, long zlen, long len, long prec)
+    void acb_poly_agm1_series(acb_poly_t res, const acb_poly_t z, long n, long prec)
+
+    void _acb_poly_elliptic_k_series(acb_ptr res, acb_srcptr z, long zlen, long len, long prec)
+    void acb_poly_elliptic_k_series(acb_poly_t res, const acb_poly_t z, long n, long prec)
+    void _acb_poly_elliptic_p_series(acb_ptr res, acb_srcptr z, long zlen, const acb_t tau, long len, long prec)
+    void acb_poly_elliptic_p_series(acb_poly_t res, const acb_poly_t z, const acb_t tau, long n, long prec)
+
+    void _acb_poly_erf_series(acb_ptr res, acb_srcptr h, long hlen, long len, long prec)
+    void acb_poly_erf_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
 

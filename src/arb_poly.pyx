@@ -1,3 +1,4 @@
+# TODO: division bug (and others...)
 cdef arb_poly_coerce_operands(x, y):
     if not typecheck(x, arb_poly):
         x, y = y, x

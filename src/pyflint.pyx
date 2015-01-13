@@ -59,6 +59,7 @@ cdef class Context:
     cpdef public long _dps
     cpdef arf_rnd_t rnd
     cpdef public bint unicode
+    cpdef public long _cap
 
     def __init__(self):
         self.default()
@@ -69,6 +70,7 @@ cdef class Context:
         self.prec = 53
         self.unicode = False
         self.threads = 1
+        self.cap = 10
 
     property prec:
 
@@ -89,6 +91,16 @@ cdef class Context:
 
         def __get__(self):
             return self._dps
+
+    property cap:
+
+        def __set__(self, long cap):
+            if cap < 0:
+                raise ValueError("cap must be >= 0")
+            self._cap = cap
+
+        def __get__(self):
+            return self._cap
 
     property threads:
 
@@ -114,6 +126,12 @@ cdef inline long getprec(long prec=0):
         return prec
     else:
         return thectx._prec
+
+cdef inline long getcap(long cap=-1):
+    if cap >= 0:
+        return cap
+    else:
+        return thectx._cap
 
 cdef class flint_elem:
 
@@ -241,26 +259,46 @@ cdef class flint_mat(flint_elem):
         L = self.entries()
         return [L[i*n : (i+1)*n] for i in range(m)]
 
+cdef class flint_series(flint_elem):
+    """
+    Base class for power series.
+    """
+    def __iter__(self):
+        cdef long i, n
+        n = self.length()
+        for i in range(n):
+            yield self[i]
+
+    def coeffs(self):
+        return list(self)
+
+
+
 include "fmpz.pyx"
 include "fmpz_poly.pyx"
 include "fmpz_mat.pyx"
+include "fmpz_series.pyx"
 
 include "fmpq.pyx"
 include "fmpq_poly.pyx"
 include "fmpq_mat.pyx"
+include "fmpq_series.pyx"
 
 include "nmod.pyx"
 include "nmod_poly.pyx"
 include "nmod_mat.pyx"
+include "nmod_series.pyx"
 
 include "arf.pyx"
 include "arb.pyx"
 include "arb_poly.pyx"
 include "arb_mat.pyx"
+include "arb_series.pyx"
 
 include "acb.pyx"
 include "acb_poly.pyx"
 include "acb_mat.pyx"
+include "acb_series.pyx"
 
 include "functions.pyx"
 

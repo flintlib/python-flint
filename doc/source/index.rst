@@ -67,3 +67,15 @@ Polynomial types
    arb_poly.rst
    acb_poly.rst
 
+Power series types
+..................
+
+.. toctree::
+   :maxdepth: 1
+
+   fmpz_series.rst
+   fmpq_series.rst
+   nmod_series.rst
+   arb_series.rst
+   acb_series.rst
+

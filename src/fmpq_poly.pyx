@@ -123,8 +123,9 @@ cdef class fmpq_poly(flint_poly):
     def __setitem__(self, long i, x):
         if i < 0:
             raise ValueError("cannot assign to index < 0 of polynomial")
-        v = fmpq(x)  # XXX
-        fmpq_poly_set_coeff_fmpq(self.val, i, (<fmpq>v).val)
+        if not typecheck(x, fmpq):
+            x = fmpq(x)
+        fmpq_poly_set_coeff_fmpq(self.val, i, (<fmpq>x).val)
 
     def repr(self):
         d = self.denom()
