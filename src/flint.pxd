@@ -969,6 +969,7 @@ cdef extern from "arb.h":
     void arb_log_arf(arb_t z, const arf_t x, long prec)
     void arb_log_ui(arb_t z, ulong x, long prec)
     void arb_log_fmpz(arb_t z, const fmpz_t x, long prec)
+    void arb_log1p(arb_t z, const arb_t x, long prec)
     void arb_exp(arb_t z, const arb_t x, long prec)
     void arb_expm1(arb_t z, const arb_t x, long prec)
     void arb_sin(arb_t s, const arb_t x, long prec)
@@ -994,6 +995,9 @@ cdef extern from "arb.h":
     void arb_atan2(arb_t z, const arb_t b, const arb_t a, long prec)
     void arb_asin(arb_t z, const arb_t x, long prec)
     void arb_acos(arb_t z, const arb_t x, long prec)
+    void arb_atanh(arb_t z, const arb_t x, long prec)
+    void arb_asinh(arb_t z, const arb_t x, long prec)
+    void arb_acosh(arb_t z, const arb_t x, long prec)
     void arb_fac_ui(arb_t z, ulong n, long prec)
     void arb_bin_ui(arb_t z, const arb_t n, ulong k, long prec)
     void arb_bin_uiui(arb_t z, ulong n, ulong k, long prec)
@@ -1087,6 +1091,7 @@ cdef extern from "acb.h":
     int acb_contains_fmpq(const acb_t x, const fmpq_t y)
     int acb_contains_fmpz(const acb_t x, const fmpz_t y)
     int acb_contains(const acb_t x, const acb_t y)
+    int acb_get_unique_fmpz(fmpz_t z, const acb_t x)
     void acb_set_ui(acb_t z, ulong c)
     void acb_set_si(acb_t z, long c)
     void acb_set_fmpz(acb_t z, const fmpz_t c)
@@ -1178,6 +1183,8 @@ cdef extern from "acb.h":
     void acb_polylog_si(acb_t w, long s, const acb_t z, long prec)
     void acb_agm1(acb_t m, const acb_t z, long prec)
     void acb_agm1_cpx(acb_ptr m, const acb_t z, long len, long prec)
+    void acb_log1p(acb_t r, const acb_t z, long prec)
+    void acb_atan(acb_t r, const acb_t z, long prec)
 
 cdef extern from "partitions.h":
     void partitions_fmpz_fmpz(fmpz_t, const fmpz_t, int)
@@ -1185,63 +1192,6 @@ cdef extern from "partitions.h":
 cdef extern from "bernoulli.h":
     void bernoulli_fmpq_ui(fmpq_t, ulong)
     void bernoulli_cache_compute(long n)
-
-cdef extern from "arb_mat.h":
-    ctypedef struct arb_mat_struct:
-        arb_ptr entries
-        long r
-        long c
-        arb_ptr * rows
-
-    ctypedef arb_mat_struct arb_mat_t[1]
-
-    arb_struct * arb_mat_entry(arb_mat_t mat, long i, long j)
-
-    long arb_mat_nrows(const arb_mat_t x)
-    long arb_mat_ncols(const arb_mat_t x)
-
-    void arb_mat_init(arb_mat_t mat, long r, long c)
-    void arb_mat_clear(arb_mat_t mat)
-
-    void arb_mat_set(arb_mat_t dest, const arb_mat_t src)
-    void arb_mat_set_fmpz_mat(arb_mat_t dest, const fmpz_mat_t src)
-    void arb_mat_set_fmpq_mat(arb_mat_t dest, const fmpq_mat_t src, long prec)
-    void arb_mat_printd(const arb_mat_t mat, long digits)
-    int arb_mat_equal(const arb_mat_t mat1, const arb_mat_t mat2)
-    int arb_mat_overlaps(const arb_mat_t mat1, const arb_mat_t mat2)
-    int arb_mat_contains(const arb_mat_t mat1, const arb_mat_t mat2)
-    int arb_mat_contains_fmpq_mat(const arb_mat_t mat1, const fmpq_mat_t mat2)
-    int arb_mat_contains_fmpz_mat(const arb_mat_t mat1, const fmpz_mat_t mat2)
-
-    void arb_mat_zero(arb_mat_t mat)
-    void arb_mat_one(arb_mat_t mat)
-
-    void arb_mat_bound_inf_norm(mag_t b, const arb_mat_t A)
-
-    void arb_mat_neg(arb_mat_t dest, const arb_mat_t src)
-    void arb_mat_add(arb_mat_t res, const arb_mat_t mat1, const arb_mat_t mat2, long prec)
-    void arb_mat_sub(arb_mat_t res, const arb_mat_t mat1, const arb_mat_t mat2, long prec)
-    void arb_mat_mul(arb_mat_t res, const arb_mat_t mat1, const arb_mat_t mat2, long prec)
-    void arb_mat_pow_ui(arb_mat_t B, const arb_mat_t A, ulong exp, long prec)
-
-    void arb_mat_scalar_mul_2exp_si(arb_mat_t B, const arb_mat_t A, long c)
-    void arb_mat_scalar_addmul_si(arb_mat_t B, const arb_mat_t A, long c, long prec)
-    void arb_mat_scalar_mul_si(arb_mat_t B, const arb_mat_t A, long c, long prec)
-    void arb_mat_scalar_div_si(arb_mat_t B, const arb_mat_t A, long c, long prec)
-    void arb_mat_scalar_addmul_fmpz(arb_mat_t B, const arb_mat_t A, const fmpz_t c, long prec)
-    void arb_mat_scalar_mul_fmpz(arb_mat_t B, const arb_mat_t A, const fmpz_t c, long prec)
-    void arb_mat_scalar_div_fmpz(arb_mat_t B, const arb_mat_t A, const fmpz_t c, long prec)
-    void arb_mat_scalar_addmul_arb(arb_mat_t B, const arb_mat_t A, const arb_t c, long prec)
-    void arb_mat_scalar_mul_arb(arb_mat_t B, const arb_mat_t A, const arb_t c, long prec)
-    void arb_mat_scalar_div_arb(arb_mat_t B, const arb_mat_t A, const arb_t c, long prec)
-
-    int arb_mat_lu(long * P, arb_mat_t LU, const arb_mat_t A, long prec)
-    void arb_mat_solve_lu_precomp(arb_mat_t X, const long * perm, const arb_mat_t A, const arb_mat_t B, long prec)
-    int arb_mat_solve(arb_mat_t X, const arb_mat_t A, const arb_mat_t B, long prec)
-    int arb_mat_inv(arb_mat_t X, const arb_mat_t A, long prec)
-    void arb_mat_det(arb_t det, const arb_mat_t A, long prec)
-
-    void arb_mat_exp(arb_mat_t B, const arb_mat_t A, long prec)
 
 cdef extern from "acb_modular.h":
     void acb_modular_theta(acb_t theta1, acb_t theta2, acb_t theta3, acb_t theta4, const acb_t z, const acb_t tau, long prec)
@@ -1261,16 +1211,6 @@ cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_pfq_direct(acb_t res, acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long n, long prec)
     void acb_hypgeom_u_asymp(acb_t res, const acb_t a, const acb_t b, const acb_t z, long n, long prec)
     long acb_hypgeom_pfq_choose_n(acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long prec)
-
-cdef extern from "acb_mat.h":
-    ctypedef struct acb_mat_struct:
-        acb_ptr entries
-        long r
-        long c
-        acb_ptr * rows
-
-    ctypedef acb_mat_struct acb_mat_t[1]
-
 
 cdef extern from "arb_poly.h":
     ctypedef struct arb_poly_struct:
@@ -1465,6 +1405,69 @@ cdef extern from "arb_poly.h":
     void _arb_poly_riemann_siegel_z_series(arb_ptr res, arb_srcptr h, long hlen, long len, long prec)
     void arb_poly_riemann_siegel_z_series(arb_poly_t res, const arb_poly_t h, long n, long prec)
 
+    void arb_poly_swinnerton_dyer_ui(arb_poly_t poly, ulong n, long prec)
+    int arb_poly_get_unique_fmpz_poly(fmpz_poly_t res, const arb_poly_t src)
+
+cdef extern from "arb_mat.h":
+    ctypedef struct arb_mat_struct:
+        arb_ptr entries
+        long r
+        long c
+        arb_ptr * rows
+
+    ctypedef arb_mat_struct arb_mat_t[1]
+
+    arb_struct * arb_mat_entry(arb_mat_t mat, long i, long j)
+
+    long arb_mat_nrows(const arb_mat_t x)
+    long arb_mat_ncols(const arb_mat_t x)
+
+    void arb_mat_init(arb_mat_t mat, long r, long c)
+    void arb_mat_clear(arb_mat_t mat)
+
+    void arb_mat_set(arb_mat_t dest, const arb_mat_t src)
+    void arb_mat_set_fmpz_mat(arb_mat_t dest, const fmpz_mat_t src)
+    void arb_mat_set_fmpq_mat(arb_mat_t dest, const fmpq_mat_t src, long prec)
+    void arb_mat_printd(const arb_mat_t mat, long digits)
+    int arb_mat_equal(const arb_mat_t mat1, const arb_mat_t mat2)
+    int arb_mat_overlaps(const arb_mat_t mat1, const arb_mat_t mat2)
+    int arb_mat_contains(const arb_mat_t mat1, const arb_mat_t mat2)
+    int arb_mat_contains_fmpq_mat(const arb_mat_t mat1, const fmpq_mat_t mat2)
+    int arb_mat_contains_fmpz_mat(const arb_mat_t mat1, const fmpz_mat_t mat2)
+
+    void arb_mat_zero(arb_mat_t mat)
+    void arb_mat_one(arb_mat_t mat)
+
+    void arb_mat_bound_inf_norm(mag_t b, const arb_mat_t A)
+
+    void arb_mat_neg(arb_mat_t dest, const arb_mat_t src)
+    void arb_mat_add(arb_mat_t res, const arb_mat_t mat1, const arb_mat_t mat2, long prec)
+    void arb_mat_sub(arb_mat_t res, const arb_mat_t mat1, const arb_mat_t mat2, long prec)
+    void arb_mat_mul(arb_mat_t res, const arb_mat_t mat1, const arb_mat_t mat2, long prec)
+    void arb_mat_pow_ui(arb_mat_t B, const arb_mat_t A, ulong exp, long prec)
+
+    void arb_mat_scalar_mul_2exp_si(arb_mat_t B, const arb_mat_t A, long c)
+    void arb_mat_scalar_addmul_si(arb_mat_t B, const arb_mat_t A, long c, long prec)
+    void arb_mat_scalar_mul_si(arb_mat_t B, const arb_mat_t A, long c, long prec)
+    void arb_mat_scalar_div_si(arb_mat_t B, const arb_mat_t A, long c, long prec)
+    void arb_mat_scalar_addmul_fmpz(arb_mat_t B, const arb_mat_t A, const fmpz_t c, long prec)
+    void arb_mat_scalar_mul_fmpz(arb_mat_t B, const arb_mat_t A, const fmpz_t c, long prec)
+    void arb_mat_scalar_div_fmpz(arb_mat_t B, const arb_mat_t A, const fmpz_t c, long prec)
+    void arb_mat_scalar_addmul_arb(arb_mat_t B, const arb_mat_t A, const arb_t c, long prec)
+    void arb_mat_scalar_mul_arb(arb_mat_t B, const arb_mat_t A, const arb_t c, long prec)
+    void arb_mat_scalar_div_arb(arb_mat_t B, const arb_mat_t A, const arb_t c, long prec)
+
+    int arb_mat_lu(long * P, arb_mat_t LU, const arb_mat_t A, long prec)
+    void arb_mat_solve_lu_precomp(arb_mat_t X, const long * perm, const arb_mat_t A, const arb_mat_t B, long prec)
+    int arb_mat_solve(arb_mat_t X, const arb_mat_t A, const arb_mat_t B, long prec)
+    int arb_mat_inv(arb_mat_t X, const arb_mat_t A, long prec)
+    void arb_mat_det(arb_t det, const arb_mat_t A, long prec)
+
+    void arb_mat_exp(arb_mat_t B, const arb_mat_t A, long prec)
+
+    void _arb_mat_charpoly(arb_ptr cp, const arb_mat_t mat, long prec)
+    void arb_mat_charpoly(arb_poly_t cp, const arb_mat_t mat, long prec)
+
 
 cdef extern from "acb_poly.h":
     ctypedef struct acb_poly_struct:
@@ -1654,4 +1657,65 @@ cdef extern from "acb_poly.h":
 
     void _acb_poly_erf_series(acb_ptr res, acb_srcptr h, long hlen, long len, long prec)
     void acb_poly_erf_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
+    int acb_poly_get_unique_fmpz_poly(fmpz_poly_t res, const acb_poly_t src)
+
+cdef extern from "acb_mat.h":
+    ctypedef struct acb_mat_struct:
+        acb_ptr entries
+        long r
+        long c
+        acb_ptr * rows
+
+    ctypedef acb_mat_struct acb_mat_t[1]
+
+    acb_struct * acb_mat_entry(acb_mat_t mat, long i, long j)
+
+    long acb_mat_nrows(const acb_mat_t x)
+    long acb_mat_ncols(const acb_mat_t x)
+
+    void acb_mat_init(acb_mat_t mat, long r, long c)
+    void acb_mat_clear(acb_mat_t mat)
+
+    void acb_mat_set(acb_mat_t dest, const acb_mat_t src)
+    void acb_mat_set_fmpz_mat(acb_mat_t dest, const fmpz_mat_t src)
+    void acb_mat_set_fmpq_mat(acb_mat_t dest, const fmpq_mat_t src, long prec)
+    void acb_mat_printd(const acb_mat_t mat, long digits)
+    int acb_mat_equal(const acb_mat_t mat1, const acb_mat_t mat2)
+    int acb_mat_overlaps(const acb_mat_t mat1, const acb_mat_t mat2)
+    int acb_mat_contains(const acb_mat_t mat1, const acb_mat_t mat2)
+    int acb_mat_contains_fmpq_mat(const acb_mat_t mat1, const fmpq_mat_t mat2)
+    int acb_mat_contains_fmpz_mat(const acb_mat_t mat1, const fmpz_mat_t mat2)
+
+    void acb_mat_zero(acb_mat_t mat)
+    void acb_mat_one(acb_mat_t mat)
+
+    void acb_mat_bound_inf_norm(mag_t b, const acb_mat_t A)
+
+    void acb_mat_neg(acb_mat_t dest, const acb_mat_t src)
+    void acb_mat_add(acb_mat_t res, const acb_mat_t mat1, const acb_mat_t mat2, long prec)
+    void acb_mat_sub(acb_mat_t res, const acb_mat_t mat1, const acb_mat_t mat2, long prec)
+    void acb_mat_mul(acb_mat_t res, const acb_mat_t mat1, const acb_mat_t mat2, long prec)
+    void acb_mat_pow_ui(acb_mat_t B, const acb_mat_t A, ulong exp, long prec)
+
+    void acb_mat_scalar_mul_2exp_si(acb_mat_t B, const acb_mat_t A, long c)
+    void acb_mat_scalar_addmul_si(acb_mat_t B, const acb_mat_t A, long c, long prec)
+    void acb_mat_scalar_mul_si(acb_mat_t B, const acb_mat_t A, long c, long prec)
+    void acb_mat_scalar_div_si(acb_mat_t B, const acb_mat_t A, long c, long prec)
+    void acb_mat_scalar_addmul_fmpz(acb_mat_t B, const acb_mat_t A, const fmpz_t c, long prec)
+    void acb_mat_scalar_mul_fmpz(acb_mat_t B, const acb_mat_t A, const fmpz_t c, long prec)
+    void acb_mat_scalar_div_fmpz(acb_mat_t B, const acb_mat_t A, const fmpz_t c, long prec)
+    void acb_mat_scalar_addmul_acb(acb_mat_t B, const acb_mat_t A, const acb_t c, long prec)
+    void acb_mat_scalar_mul_acb(acb_mat_t B, const acb_mat_t A, const acb_t c, long prec)
+    void acb_mat_scalar_div_acb(acb_mat_t B, const acb_mat_t A, const acb_t c, long prec)
+
+    int acb_mat_lu(long * P, acb_mat_t LU, const acb_mat_t A, long prec)
+    void acb_mat_solve_lu_precomp(acb_mat_t X, const long * perm, const acb_mat_t A, const acb_mat_t B, long prec)
+    int acb_mat_solve(acb_mat_t X, const acb_mat_t A, const acb_mat_t B, long prec)
+    int acb_mat_inv(acb_mat_t X, const acb_mat_t A, long prec)
+    void acb_mat_det(acb_t det, const acb_mat_t A, long prec)
+
+    void acb_mat_exp(acb_mat_t B, const acb_mat_t A, long prec)
+
+    void _acb_mat_charpoly(acb_ptr cp, const acb_mat_t mat, long prec)
+    void acb_mat_charpoly(acb_poly_t cp, const acb_mat_t mat, long prec)
 

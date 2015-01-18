@@ -287,10 +287,19 @@ cdef class fmpz_poly(flint_poly):
         return u
 
     @staticmethod
-    def swinnerton_dyer_ui(ulong n):
+    def swinnerton_dyer_ui(ulong n, bint use_arb=True):
+        cdef arb_poly_t t
         if n > 20:
             raise OverflowError("that's way too large...")
         u = fmpz_poly.__new__(fmpz_poly)
-        fmpz_poly_swinnerton_dyer((<fmpz_poly>u).val, n)
+        if use_arb:
+            arb_poly_init(t)
+            arb_poly_swinnerton_dyer_ui(t, n, 0)
+            if not arb_poly_get_unique_fmpz_poly((<fmpz_poly>u).val, t):
+                arb_poly_clear(t)
+                raise ValueError("insufficient precision")
+            arb_poly_clear(t)
+        else:
+            fmpz_poly_swinnerton_dyer((<fmpz_poly>u).val, n)
         return u
 

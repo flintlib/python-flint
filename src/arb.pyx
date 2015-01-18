@@ -665,6 +665,22 @@ cdef class arb(flint_scalar):
         arb_log((<arb>u).val, (<arb>s).val, getprec())
         return u
 
+    def log1p(s):
+        r"""
+        Computes `\log(1+s)`, accurately for small *s*.
+
+            >>> showgood(lambda: acb(1).log1p(), dps=25)
+            0.6931471805599453094172321
+            >>> showgood(lambda: arb("1e-100000000000000000").log1p(), dps=25)
+            1.000000000000000000000000e-100000000000000000
+
+        This function is undefined for `s \le -1`.
+        Use :meth:`.acb.log1p` for the complex extension.
+        """
+        u = arb.__new__(arb)
+        arb_log1p((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
     def sin(s):
         r"""
         Computes the sine `\sin(s)`.
@@ -867,6 +883,21 @@ cdef class arb(flint_scalar):
         """
         u = arb.__new__(arb)
         arb_asin((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def atanh(s):
+        u = arb.__new__(arb)
+        arb_atanh((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def asinh(s):
+        u = arb.__new__(arb)
+        arb_asinh((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def acosh(s):
+        u = arb.__new__(arb)
+        arb_acosh((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def sinh(s):
@@ -1389,4 +1420,11 @@ cdef class arb(flint_scalar):
         u = arb.__new__(arb)
         arb_indeterminate((<arb>u).val)
         return u
+
+    def unique_fmpz(self):
+        u = fmpz.__new__(fmpz)
+        if arb_get_unique_fmpz((<fmpz>u).val, self.val):
+            return u
+        else:
+            return None
 

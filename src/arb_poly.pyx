@@ -1,11 +1,14 @@
-# TODO: division bug (and others...)
 cdef arb_poly_coerce_operands(x, y):
-    if not typecheck(x, arb_poly):
-        x, y = y, x
-    if isinstance(y, (int, long, float, fmpz, fmpq, arb, fmpz_poly, fmpq_poly)):
-        return x, arb_poly(y)
-    if isinstance(y, (complex, acb)):
-        return acb_poly(x), acb_poly(y)
+    if typecheck(x, arb_poly):
+        if isinstance(y, (int, long, float, fmpz, fmpq, arb, fmpz_poly, fmpq_poly)):
+            return x, arb_poly(y)
+        if isinstance(y, (complex, acb)):
+            return acb_poly(x), acb_poly(y)
+    else:
+        if isinstance(x, (int, long, float, fmpz, fmpq, arb, fmpz_poly, fmpq_poly)):
+            return arb_poly(x), y
+        if isinstance(x, (complex, acb)):
+            return acb_poly(x), acb_poly(y)
     return NotImplemented, NotImplemented
 
 cdef arb_poly_set_list(arb_poly_t poly, list val, long prec):
@@ -278,4 +281,11 @@ cdef class arb_poly(flint_poly):
         if isinstance(t, (complex)):
             return s(acb(t))
         raise TypeError("cannot call arb_poly with input of type %s", type(t))
+
+    def unique_fmpz_poly(self):
+        u = fmpz_poly.__new__(fmpz_poly)
+        if arb_poly_get_unique_fmpz_poly((<fmpz_poly>u).val, self.val):
+            return u
+        else:
+            return None
 

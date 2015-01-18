@@ -1,8 +1,10 @@
 cdef acb_poly_coerce_operands(x, y):
-    if not typecheck(x, acb_poly):
-        x, y = y, x
-    if isinstance(y, (int, long, float, complex, fmpz, fmpq, arb, acb, fmpz_poly, fmpq_poly, arb_poly)):
-        return x, acb_poly(y)
+    if typecheck(x, acb_poly):
+        if isinstance(y, (int, long, float, complex, fmpz, fmpq, arb, acb, fmpz_poly, fmpq_poly, arb_poly)):
+            return x, acb_poly(y)
+    else:
+        if isinstance(x, (int, long, float, complex, fmpz, fmpq, arb, acb, fmpz_poly, fmpq_poly, arb_poly)):
+            return acb_poly(x), y
     return NotImplemented, NotImplemented
 
 cdef acb_poly_set_list(acb_poly_t poly, list val, long prec):
@@ -268,4 +270,11 @@ cdef class acb_poly(flint_poly):
         if isinstance(t, (fmpz_poly, fmpq_poly, arb_poly)):
             return s(acb_poly(t))
         raise TypeError("cannot call acb_poly with input of type %s", type(t))
+
+    def unique_fmpz_poly(self):
+        u = fmpz_poly.__new__(fmpz_poly)
+        if acb_poly_get_unique_fmpz_poly((<fmpz_poly>u).val, self.val):
+            return u
+        else:
+            return None
 

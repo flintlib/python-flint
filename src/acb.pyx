@@ -213,6 +213,30 @@ cdef class acb(flint_scalar):
         acb_log((<acb>u).val, (<acb>s).val, getprec())
         return u
 
+    def log1p(s):
+        r"""
+        Computes `\log(1+s)`, accurately for small *s*.
+
+            >>> showgood(lambda: acb(1,2).log1p(), dps=25)
+            1.039720770839917964125848 + 0.7853981633974483096156608j
+            >>> showgood(lambda: acb(0,"1e-100000000000000000").log1p(), dps=25)
+            5.000000000000000000000000e-200000000000000001 + 1.000000000000000000000000e-100000000000000000j
+        """
+        u = acb.__new__(acb)
+        acb_log1p((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def atan(s):
+        r"""
+        Computes the inverse tangent `\operatorname{atan}(s)`.
+
+            >>> showgood(lambda: acb(1,2).atan(), dps=25)
+            1.338972522294493561124194 + 0.4023594781085250936501898j
+        """
+        u = acb.__new__(acb)
+        acb_atan((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
     def agm(s, t=None):
         """
         Computes the arithmetic-geometric mean `M(s,t)`, or `M(s) = M(s,1)`
@@ -707,4 +731,11 @@ cdef class acb(flint_scalar):
         u = acb.__new__(acb)
         acb_modular_elliptic_k((<acb>u).val, (<acb>m).val, getprec())
         return u
+
+    def unique_fmpz(self):
+        u = fmpz.__new__(fmpz)
+        if acb_get_unique_fmpz((<fmpz>u).val, self.val):
+            return u
+        else:
+            return None
 
