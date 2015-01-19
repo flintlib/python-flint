@@ -216,6 +216,13 @@ cdef class flint_poly(flint_elem):
                         s.append("%s*x^%s" % (c, i))
         return " + ".join(s)
 
+    def roots(self, **kwargs):
+        """
+        Isolates the complex roots of *self*. See :meth:`.acb_poly.roots`
+        for details.
+        """
+        return acb_poly(self).roots(**kwargs)
+
 cdef class flint_mat(flint_elem):
     """
     Base class for matrices.

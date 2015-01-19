@@ -76,6 +76,18 @@ cdef class acb(flint_scalar):
         arb_set(im.val, acb_imagref(self.val))
         return im
 
+    def mid(self):
+        cdef acb u = acb()
+        arf_set(arb_midref(acb_realref(u.val)), arb_midref(acb_realref(self.val)))
+        arf_set(arb_midref(acb_imagref(u.val)), arb_midref(acb_imagref(self.val)))
+        return u
+
+    def rad(self):
+        cdef acb u = acb()
+        arf_set_mag(arb_midref(acb_realref(u.val)), arb_radref(acb_realref(self.val)))
+        arf_set_mag(arb_midref(acb_imagref(u.val)), arb_radref(acb_imagref(self.val)))
+        return u
+
     def repr(self):
         real = self.real
         imag = self.imag

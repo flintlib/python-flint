@@ -679,6 +679,7 @@ cdef extern from "mag.h":
     void mag_init(mag_t x)
     void mag_clear(mag_t x)
     void mag_zero(mag_t x)
+    void mag_set(mag_t x, const mag_t y)
 
 cdef extern from "arf.h":
     ctypedef struct arf_struct:
@@ -1071,6 +1072,11 @@ cdef extern from "acb.h":
     arb_ptr acb_realref(const acb_t x)
     arb_ptr acb_imagref(const acb_t x)
 
+    acb_ptr _acb_vec_init(long n)
+    void _acb_vec_clear(acb_ptr v, long n)
+    void _acb_vec_sort_pretty(acb_ptr vec, long len)
+    void acb_printd(const acb_t z, long digits)
+
     void acb_init(acb_t x)
     void acb_clear(acb_t x)
     int acb_is_zero(const acb_t z)
@@ -1228,6 +1234,7 @@ cdef extern from "arb_poly.h":
     void _arb_poly_normalise(arb_poly_t poly)
     void arb_poly_swap(arb_poly_t poly1, arb_poly_t poly2)
     void arb_poly_set(arb_poly_t poly, const arb_poly_t src)
+    void arb_poly_set_round(arb_poly_t dest, const arb_poly_t src, long prec)
     long arb_poly_length(const arb_poly_t poly)
     long arb_poly_degree(const arb_poly_t poly)
     void arb_poly_zero(arb_poly_t poly)
@@ -1515,6 +1522,7 @@ cdef extern from "acb_poly.h":
     void _acb_poly_integral(acb_ptr res, acb_srcptr poly, long len, long prec)
     void acb_poly_integral(acb_poly_t res, const acb_poly_t poly, long prec)
     void acb_poly_set(acb_poly_t dest, const acb_poly_t src)
+    void acb_poly_set_round(acb_poly_t dest, const acb_poly_t src, long prec)
     void acb_poly_set_arb_poly(acb_poly_t poly, const arb_poly_t re)
     void acb_poly_set2_arb_poly(acb_poly_t poly, const arb_poly_t re, const arb_poly_t im)
     void acb_poly_set_fmpq_poly(acb_poly_t poly, const fmpq_poly_t re, long prec)

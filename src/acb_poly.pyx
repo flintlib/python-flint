@@ -23,6 +23,16 @@ cdef acb_poly_set_list(acb_poly_t poly, list val, long prec):
             raise TypeError("unsupported coefficient type for acb_poly")
     acb_clear(x)
 
+cdef int acb_vec_check_tol(acb_srcptr vec, long n, tol) except -1:
+    cdef acb t
+    tol = arb(tol)
+    for i in range(n):
+        t = acb.__new__(acb)
+        acb_set(t.val, &vec[i])
+        if not (abs(t.rad()) <= tol):
+            return 0
+    return 1
+
 cdef class acb_poly(flint_poly):
 
     cdef acb_poly_t val
@@ -277,4 +287,75 @@ cdef class acb_poly(flint_poly):
             return u
         else:
             return None
+
+    def roots(s, tol=None, maxprec=None):
+        """
+        Attempts to isolate all the complex roots of *s*.
+        If *tol* is specified, the roots are further refined
+        to at least the requested tolerance.
+        The input polynomial must be squarefree and sufficiently
+        accurate. Raises an exception if unsuccessful.
+
+            >>> for c in acb_poly.from_roots([1,2,3,4,5]).roots(1e-10): print(c)
+            ...
+            [1.00000000000000 +/- 7.71e-18] + [+/- 7.59e-18]j
+            [2.00000000000000 +/- 1.18e-16] + [+/- 1.16e-16]j
+            [3.00000000000000 +/- 4.24e-16] + [+/- 4.22e-16]j
+            [4.00000000000000 +/- 7.21e-16] + [+/- 7.00e-16]j
+            [5.00000000000000 +/- 2.41e-16] + [+/- 2.24e-16]j
+            >>> for c in acb_poly.from_roots([1,2,2,4,5]).roots(1e-10): print(c)
+            ...
+            Traceback (most recent call last):
+              ...
+            ValueError: roots() failed to converge: insufficient precision, or squareful input
+
+        """
+        cdef long prec, initial_prec, target_prec, isolated, maxiter, deg, i
+        cdef acb_ptr roots
+        cdef acb_poly_t tmp
+        deg = s.degree()
+        if deg < 0:
+            return []
+
+        roots = _acb_vec_init(deg)
+        acb_poly_init(tmp)
+        pyroots = []
+
+        try:
+            initial_prec = 32
+            prec = initial_prec
+
+            if maxprec is None:
+                maxprec = 2 * getprec()
+
+            while 1:
+                maxiter = min(max(deg, 32), prec)
+                acb_poly_set_round(tmp, s.val, prec)
+
+                if prec == initial_prec:
+                    isolated = acb_poly_find_roots(roots, tmp, NULL, maxiter, prec)
+                else:
+                    isolated = acb_poly_find_roots(roots, tmp, roots, maxiter, prec)
+
+                if isolated == deg:
+                    if tol is None:
+                        break
+                    elif acb_vec_check_tol(roots, deg, tol) == 1:
+                        break
+
+                prec *= 2
+
+                if prec > maxprec:
+                    raise ValueError("roots() failed to converge: insufficient precision, or squareful input")
+
+            _acb_vec_sort_pretty(roots, deg)
+            pyroots = [acb.__new__(acb) for i in range(deg)]
+            for i in range(deg):
+                acb_set((<acb>(pyroots[i])).val, &roots[i])
+
+        finally:
+            acb_poly_clear(tmp)
+            _acb_vec_clear(roots, deg)
+
+        return pyroots
 
