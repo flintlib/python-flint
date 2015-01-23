@@ -454,3 +454,15 @@ cdef class acb_series(flint_series):
         (<acb_series>u).prec = cap
         return u
 
+    @classmethod
+    def gamma_upper(cls, s, z):
+        cdef long cap
+        s = acb(s)
+        z = acb_series(z)
+        cap = getcap()
+        cap = min(cap, (<acb_series>z).prec)
+        u = acb_series.__new__(acb_series)
+        acb_poly_gamma_upper_series((<acb_series>u).val, (<acb>s).val, (<acb_series>z).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+

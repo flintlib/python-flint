@@ -77,57 +77,15 @@ def _roundstr(s, n, direction):
             t = m-n
         return (s, t, -err)
 
-def arb_from_float_str(str s):
-    s = s.strip().lower()
-    if s == "+inf" or s == "inf":
-        return arb.pos_inf()
-    elif s == "-inf":
-        return arb.neg_inf()
-    elif s == "nan":
-        return arb.indeterminate()
-    elif s == "":
-        return arb(0)
-    if "e" in s:
-        man, exp = s.split("e")
-        if exp.startswith("+"):
-            exp = exp[1:]
-        exp = fmpz(exp)
-    else:
-        man = s
-        exp = fmpz(0)
-    minus = False
-    if man.startswith("+"):
-        man = man[1:]
-    elif man.startswith("-"):
-        minus = True
-        man = man[1:]
-    if "." in man:
-        integral, fractional = man.split(".")
-    else:
-        integral = man
-        fractional = ""
-    exp -= len(fractional)
-    man = fmpz(integral + fractional)
-    if minus:
-        man = -man
-    if exp >= 0:
-        return man * (arb(10) ** exp)
-    else:
-        return man / (arb(10) ** (-exp))  # exact for small binary fractions
-
 def arb_from_str(str s):
     s = s.strip()
     if ("/" in s) and ("+/-" not in s):
         return arb(fmpq(s))
-    if s.startswith("[") and s.endswith("]"):
-        s = s[1:-1]
-    for sep in ("+/-", "+-", "±"):
-        if sep in s:
-            mid, rad = s.split(sep)
-            mid = arb_from_float_str(mid)
-            rad = arb_from_float_str(rad)
-            return arb(mid, rad)
-    return arb_from_float_str(s)
+    a = arb.__new__(arb)
+    if arb_set_str((<arb>a).val, s, getprec()) == 0:
+        return a
+    else:
+        raise ValueError("invalid string for arb()")
 
 cdef int arb_set_python(arb_t x, obj, bint allow_conversion) except -1:
     """
@@ -400,7 +358,6 @@ cdef class arb(flint_scalar):
                         # just print radius
                         rad += abs(mid)
                         rads = str(rad)
-                        rads = str(rad)
                         rads, extraexp, extrarad = _roundstr(rads, 3, "u")
                         rads = _digits_as_fpstr(rads, exp + extraexp, minfix=-2, maxfix=2, condense=condense)
                         return "[%s %s]" % (PM, rads)
@@ -426,7 +383,6 @@ cdef class arb(flint_scalar):
         else:
             # just print radius
             rad += abs(mid)
-            rads = str(rad)
             rads = str(rad)
             rads, extraexp, extrarad = _roundstr(rads, 3, "u")
             rads = _digits_as_fpstr(rads, exp + extraexp, minfix=-2, maxfix=2, condense=condense)

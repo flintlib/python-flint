@@ -896,6 +896,8 @@ cdef extern from "arb.h":
     int arb_get_unique_fmpz(fmpz_t z, const arb_t x)
     void arb_get_fmpz_mid_rad_10exp(fmpz_t mid, fmpz_t rad, fmpz_t exp, const arb_t x, long n)
 
+    int arb_set_str(arb_t res, const char * inp, long prec)
+
     void arb_floor(arb_t z, const arb_t x, long prec)
     void arb_ceil(arb_t z, const arb_t x, long prec)
     void arb_set_interval_arf(arb_t x, const arf_t a, const arf_t b, long prec)
@@ -1217,6 +1219,11 @@ cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_pfq_direct(acb_t res, acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long n, long prec)
     void acb_hypgeom_u_asymp(acb_t res, const acb_t a, const acb_t b, const acb_t z, long n, long prec)
     long acb_hypgeom_pfq_choose_n(acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long prec)
+    void acb_hypgeom_gamma_upper(acb_t res, const acb_t s, const acb_t z, int modified, long prec)
+    void acb_hypgeom_gamma_upper_asymp(acb_t res, const acb_t s, const acb_t z, int modified, long prec)
+    void acb_hypgeom_expint(acb_t res, const acb_t s, const acb_t z, long prec)
+    void acb_hypgeom_erfc(acb_t res, const acb_t z, long prec)
+    void acb_hypgeom_erfi(acb_t res, const acb_t z, long prec)
 
 cdef extern from "arb_poly.h":
     ctypedef struct arb_poly_struct:
@@ -1666,6 +1673,9 @@ cdef extern from "acb_poly.h":
     void _acb_poly_erf_series(acb_ptr res, acb_srcptr h, long hlen, long len, long prec)
     void acb_poly_erf_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
     int acb_poly_get_unique_fmpz_poly(fmpz_poly_t res, const acb_poly_t src)
+
+    void _acb_poly_gamma_upper_series(acb_ptr g, const acb_t s, acb_srcptr h, long hlen, long n, long prec)
+    void acb_poly_gamma_upper_series(acb_poly_t g, const acb_t s, const acb_poly_t h, long n, long prec)
 
 cdef extern from "acb_mat.h":
     ctypedef struct acb_mat_struct:

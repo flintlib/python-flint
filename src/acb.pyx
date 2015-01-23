@@ -76,6 +76,18 @@ cdef class acb(flint_scalar):
         arb_set(im.val, acb_imagref(self.val))
         return im
 
+    def __richcmp__(s, t, int op):
+        cdef bint res
+        d = s - t
+        if not typecheck(s, acb):
+            return NotImplemented
+        res = 0
+        if   op == 2: res = acb_is_zero((<acb>d).val)
+        elif op == 3: res = arb_is_nonzero(acb_realref((<acb>d).val)) or arb_is_nonzero(acb_imagref((<acb>d).val))
+        else:
+            raise ValueError("comparing complex numbers")
+        return res
+
     def mid(self):
         cdef acb u = acb()
         arf_set(arb_midref(acb_realref(u.val)), arb_midref(acb_realref(self.val)))
@@ -750,4 +762,54 @@ cdef class acb(flint_scalar):
             return u
         else:
             return None
+
+    @classmethod
+    def gamma_upper(cls, s, z):
+        r"""
+        Computes the upper incomplete gamma function `\Gamma(s,z)`.
+
+            >>> showgood(lambda: acb.gamma_upper(1+2j, 2+3j), dps=25)
+            0.02614303924198793235765248 - 0.0007536537278463329391666679j
+        """
+        s = any_as_acb(s)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_gamma_upper((<acb>u).val, (<acb>s).val, (<acb>z).val, 0, getprec())
+        return u
+
+    @classmethod
+    def expint(cls, s, z):
+        r"""
+        Computes the exponential integral `E_s(z)`.
+
+            >>> showgood(lambda: acb.expint(1+2j, 2+3j), dps=25)
+            -0.01442661495527080336037156 + 0.01942348372986687164972794j
+        """
+        s = any_as_acb(s)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_expint((<acb>u).val, (<acb>s).val, (<acb>z).val, getprec())
+        return u
+
+    def erfc(s):
+        r"""
+        Computes the complementary error function `\operatorname{erfc}(s)`.
+
+            >>> showgood(lambda: acb("77.7").erfc(), dps=25)
+            7.929310690520378873143053e-2625
+        """
+        u = acb.__new__(acb)
+        acb_hypgeom_erfc((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def erfi(s):
+        r"""
+        Computes the imaginary error function `\operatorname{erfi}(s)`.
+
+            >>> showgood(lambda: acb(10).erfi(), dps=25)
+            1.524307422708669699360547e+42
+        """
+        u = acb.__new__(acb)
+        acb_hypgeom_erfi((<acb>u).val, (<acb>s).val, getprec())
+        return u
 
