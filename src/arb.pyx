@@ -5,82 +5,11 @@ def _str_trunc(s, trunc=0):
         return s[:left] + ("{...%s digits...}" % omitted) + s[-right:]
     return s
 
-# helper to format (digits, exp) as floating-point or fixed-point
-def _digits_as_fpstr(d, e, minfix=-4, maxfix=6, condense=0, allow_padding=False):
-    if d == "0":
-        return d
-    n = len(d)
-    assert n >= 1 and d[0] != "0"
-    exp = n + e - 1
-    if minfix <= exp <= maxfix:
-        exp_part = ""
-        if exp < 0:
-            int_part = "0"
-            frac_part = ("0" * (-1-exp)) + d
-        else:
-            dotpos = exp + 1
-            if exp + 1 < n:
-                int_part = d[:dotpos]
-                frac_part = d[dotpos:]
-            elif allow_padding:
-                int_part = d + "0" * (dotpos - n)
-                frac_part = ""
-            else:
-                int_part = d[0]
-                frac_part = d[1:]
-                if exp >= 0:
-                    exp_part = "e+" + str(exp)
-                else:
-                    exp_part = "e-" + str(-exp)
-    else:
-        int_part = d[0]
-        frac_part = d[1:]
-        if exp >= 0:
-            exp_part = "e+" + str(exp)
-        else:
-            exp_part = "e-" + str(-exp)
-    if condense > 0:
-        int_part = _str_trunc(int_part, condense)
-        frac_part = _str_trunc(frac_part, condense)
-        exp_part = _str_trunc(exp_part, condense)
-    if frac_part:
-        return int_part + "." + frac_part + exp_part
-    else:
-        return int_part + exp_part
-
-# return (s, sshift, error)
-def _roundstr(s, n, direction):
-    assert n >= 1
-    m = len(s)
-    if m <= n:
-        return (s, 0, fmpz(0))
-    if direction == "d":
-        up = False
-    elif direction == "u":
-        up = True
-    else:
-        up = s[n] in "56789"
-    if not up:
-        return (s[:n], m-n, fmpz(s[n:]))
-    else:
-        # todo: 10s complement in linear time
-        err = fmpz(10)**(m-n) - fmpz(s[n:])
-        # round up
-        i = n - 1
-        while i >= 0 and s[i] == '9':
-            i -= 1
-        if i < 0:
-            s = "1" + ("0" * (n-1))
-            t = m-n+1
-        else:
-            s = s[:i] + str(int(s[i]) + 1) + "0" * (n-i-1)
-            t = m-n
-        return (s, t, -err)
-
 def arb_from_str(str s):
     s = s.strip()
     if ("/" in s) and ("+/-" not in s):
         return arb(fmpq(s))
+    s = s.replace("±", "+/-")
     a = arb.__new__(arb)
     if arb_set_str((<arb>a).val, s, getprec()) == 0:
         return a
@@ -320,73 +249,29 @@ cdef class arb(flint_scalar):
             >>> print arb.fac_ui(300).str(condense=10)
             3060575122{...595 digits...}0000000000.0000000000{...365 digits...}0000000000
             >>> print arb(10**100).exp().str(condense=5)
-            [1.53837{...989 digits...}96534e+434{...92 digits...}17483 +/- 4.84e+434{...92 digits...}16483]
+            [1.53837{...989 digits...}96534e+43429{...90 digits...}17483 +/- 4.84e+43429{...90 digits...}16483]
             >>> ctx.default()
 
         """
-        # TODO: cleanup
-        if ctx.unicode:
-            PM = "±"
-        else:
-            PM = "+/-"
-        if not self.is_finite():
-            if arf_is_nan(arb_midref(self.val)):
-                return "nan"
-            else:
-                return "[%s inf]" % PM
+        cdef ulong flags
+        cdef char * s
+        flags = 0
+        if not radius:
+            flags |= ARB_STR_NO_RADIUS
+        if more:
+            flags |= ARB_STR_MORE
+        if condense > 0:
+            flags |= ARB_STR_CONDENSE * condense
         if n <= 0:
             n = ctx.dps
-        # limit to roughly as many good digits as we can get
-        if not more:
-            good = int(arb_rel_accuracy_bits(self.val) * 0.30102999566398119521)
-            n = min(n, good)
-        mid, rad, exp = self.mid_rad_10exp(n)
-        if n >= 1:
-            negative = mid < 0
-            mid = abs(mid)
-            mids = str(mid)
-            if more:
-                good = n
-            else:
-                if rad == 0:
-                    good = n
-                else:
-                    rads = str(rad)
-                    good = len(mids) - len(rads) - 1
-                    good = min(n, good)
-                    if good < 1:
-                        # just print radius
-                        rad += abs(mid)
-                        rads = str(rad)
-                        rads, extraexp, extrarad = _roundstr(rads, 3, "u")
-                        rads = _digits_as_fpstr(rads, exp + extraexp, minfix=-2, maxfix=2, condense=condense)
-                        return "[%s %s]" % (PM, rads)
-
-            extraexp = 0
-            if mid:
-                mids, extraexp, extrarad = _roundstr(mids, n, "n")
-                rad += abs(extrarad)
-            else:
-                mids = "0"
-            mids = _digits_as_fpstr(mids, exp + extraexp, minfix=-4, maxfix=max(6, n-1), condense=condense)
-            if negative:
-                mids = "-" + mids
-            if rad == 0:
-                return mids
-            rads = str(rad)
-            rads, extraexp, extrarad = _roundstr(rads, 3, "u")
-            rads = _digits_as_fpstr(rads, exp + extraexp, minfix=-2, maxfix=2, condense=condense)
-            if radius:
-                return "[%s %s %s]" % (mids, PM, rads)
-            else:
-                return mids
-        else:
-            # just print radius
-            rad += abs(mid)
-            rads = str(rad)
-            rads, extraexp, extrarad = _roundstr(rads, 3, "u")
-            rads = _digits_as_fpstr(rads, exp + extraexp, minfix=-2, maxfix=2, condense=condense)
-            return "[%s %s]" % (PM, rads)
+        s = arb_get_str(self.val, n, flags)
+        try:
+            res = str(s)
+        finally:
+            libc.stdlib.free(s)
+        if ctx.unicode:
+            res = res.replace("+/-", "±")
+        return res
 
     def __float__(self):
         return arf_get_d(arb_midref(self.val), ARF_RND_DOWN)

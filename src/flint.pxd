@@ -1062,6 +1062,11 @@ cdef extern from "arb.h":
     void arb_chebyshev_u_ui(arb_t a, ulong n, const arb_t x, long prec)
     void arb_chebyshev_u2_ui(arb_t a, arb_t b, ulong n, const arb_t x, long prec)
 
+    cdef ulong ARB_STR_MORE
+    cdef ulong ARB_STR_NO_RADIUS
+    cdef ulong ARB_STR_CONDENSE
+    char * arb_get_str(const arb_t x, long n, ulong flags)
+
 cdef extern from "acb.h":
     ctypedef struct acb_struct:
         arb_struct real
