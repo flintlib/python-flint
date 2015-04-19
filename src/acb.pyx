@@ -77,15 +77,24 @@ cdef class acb(flint_scalar):
         return im
 
     def __richcmp__(s, t, int op):
+        cdef acb_struct sval[1]
+        cdef acb_struct tval[1]
         cdef bint res
-        d = s - t
-        if not typecheck(s, acb):
-            return NotImplemented
-        res = 0
-        if   op == 2: res = acb_is_zero((<acb>d).val)
-        elif op == 3: res = arb_is_nonzero(acb_realref((<acb>d).val)) or arb_is_nonzero(acb_imagref((<acb>d).val))
-        else:
+        cdef int stype, ttype
+        if not (op == 2 or op == 3):
             raise ValueError("comparing complex numbers")
+        stype = acb_set_any_ref(sval, s)
+        if stype == FMPZ_UNKNOWN:
+            return NotImplemented
+        ttype = acb_set_any_ref(tval, t)
+        if ttype == FMPZ_UNKNOWN:
+            return NotImplemented
+        if op == 2:
+            res = acb_eq(sval, tval)
+        else:
+            res = acb_ne(sval, tval)
+        if stype == FMPZ_TMP: acb_clear(sval)
+        if ttype == FMPZ_TMP: acb_clear(tval)
         return res
 
     def mid(self):
@@ -610,33 +619,70 @@ cdef class acb(flint_scalar):
         return u
 
     @classmethod
-    def hypgeom_u(cls, a, b, z, long n=-1):
+    def hypgeom_u(cls, a, b, z, long n=-1, bint asymp=False):
         r"""
         Computes Tricomi's confluent hypergeometric function `U(a,b,z)`
         given complex numbers `a`, `b`, `z`.
 
-        Currently, the implementation only uses the asymptotic
-        series. If `|z|` is small, the attainable accuracy is limited.
+        If *asymp* is set to *True* the asymptotic series is forced.
+        If `|z|` is small, the attainable accuracy is then limited.
         The optional parameter *n*, if nonnegative, controls the number
         of terms to add in the asymptotic series. This is just a tuning
         parameter: a rigorous error bound is computed regardless of *n*.
 
             >>> showgood(lambda: acb.hypgeom_u(1+1j, 2+3j, 400+500j), dps=25)
             0.001836433961463105354717547 - 0.003358699641979853540147122j
-            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=0))
+            >>> showgood(lambda: acb.hypgeom_u(1+1j, 2+3j, -30), dps=25)
+            0.7808944974399200669072087 - 0.2674783064947089569672470j
+            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=0, asymp=True))
             [+/- 3.41] + [+/- 3.41]j
-            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=30))
+            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=30, asymp=True))
             [0.7808944974 +/- 7.46e-11] + [-0.2674783065 +/- 3.31e-11]j
-            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=60))
+            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=60, asymp=True))
             [0.78089 +/- 8.14e-6] + [-0.26748 +/- 5.34e-6]j
         """
         a = any_as_acb(a)
         b = any_as_acb(b)
         z = any_as_acb(z)
-        t = z**(-a)
+        if asymp:
+            t = z**(-a)
+            u = acb.__new__(acb)
+            acb_hypgeom_u_asymp((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, n, getprec())
+            return t * u
+        else:
+            u = acb.__new__(acb)
+            acb_hypgeom_u((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, getprec())
+            return u
+
+    @classmethod
+    def hypgeom_m(cls, a, b, z, bint regularized=False):
+        r"""
+        Computes Kummer's confluent hypergeometric function `M(a,b,z)`
+        given complex numbers `a`, `b`, `z`. Optionally, computes
+        the regularized version.
+
+            >>> showgood(lambda: acb.hypgeom_m(2+3j, 3+4j, 40000+50000j), dps=25)
+            3.730925582634533963357515e+17366 + 3.199717318207534638202987e+17367j
+            >>> showgood(lambda: acb.hypgeom_m(2+3j, 3+4j, 40000+50000j) / acb(3+4j).gamma(), dps=25)
+            -1.846160890579724375436801e+17368 + 2.721369772032882467996588e+17367j
+            >>> showgood(lambda: acb.hypgeom_m(5, -3, 10, regularized=True), dps=25)
+            832600407043.6938843410086
+            >>> showgood(lambda: acb.hypgeom_m(-5,-6,10), dps=25)
+            403.7777777777777777777778
+            >>> showgood(lambda: acb.hypgeom_m(-5,-5,10,regularized=True), dps=25)
+            0
+            >>> showgood(lambda: acb.hypgeom_m(-5,-6,10,regularized=True), dps=25)
+            0
+            >>> showgood(lambda: acb.hypgeom_m(-5,-4,10,regularized=True), dps=25)
+            -100000.0000000000000000000
+
+        """
+        a = any_as_acb(a)
+        b = any_as_acb(b)
+        z = any_as_acb(z)
         u = acb.__new__(acb)
-        acb_hypgeom_u_asymp((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, n, getprec())
-        return t * u
+        acb_hypgeom_m((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, regularized, getprec())
+        return u
 
     @classmethod
     def bessel_j(cls, a, z):
@@ -650,6 +696,23 @@ cdef class acb(flint_scalar):
         z = any_as_acb(z)
         u = acb.__new__(acb)
         acb_hypgeom_bessel_j((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
+        return u
+
+    @classmethod
+    def bessel_k(cls, a, z):
+        r"""
+        Computes the modified Bessel function of the second kind `K_a(z)`.
+
+            >>> showgood(lambda: acb.bessel_k(1+2j, 2+3j), dps=25)
+            -0.09884736370006798963642719 - 0.02870616366668971734065520j
+            >>> showgood(lambda: acb.bessel_k(3, 2), dps=25)
+            0.6473853909486341531592356
+
+        """
+        a = any_as_acb(a)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_bessel_k((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
         return u
 
     def erf(s):
@@ -756,6 +819,22 @@ cdef class acb(flint_scalar):
         acb_modular_elliptic_k((<acb>u).val, (<acb>m).val, getprec())
         return u
 
+    def elliptic_e(m):
+        """
+        Computes the complete elliptic integral of the second kind `E(m)`.
+
+            >>> showgood(lambda: 2 * acb(0).elliptic_e(), dps=25)
+            3.141592653589793238462643
+            >>> showgood(lambda: acb(100+50j).elliptic_e(), dps=25)
+            2.537235535915583230880553 - 10.10997759792420947130321j
+            >>> showgood(lambda: (1 - acb("1e-100")).elliptic_e(), dps=25)
+            1.000000000000000000000000
+
+        """
+        u = acb.__new__(acb)
+        acb_modular_elliptic_e((<acb>u).val, (<acb>m).val, getprec())
+        return u
+
     def unique_fmpz(self):
         u = fmpz.__new__(fmpz)
         if acb_get_unique_fmpz((<fmpz>u).val, self.val):
@@ -811,5 +890,78 @@ cdef class acb(flint_scalar):
         """
         u = acb.__new__(acb)
         acb_hypgeom_erfi((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def rel_accuracy_bits(self):
+        return acb_rel_accuracy_bits(self.val)
+
+    def ei(s):
+        r"""
+        Computes the exponential integral `\operatorname{Ei}(s)`.
+
+            >>> showgood(lambda: acb(10).ei(), dps=25)
+            2492.228976241877759138440
+        """
+        u = acb.__new__(acb)
+        acb_hypgeom_ei((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def si(s):
+        r"""
+        Computes the sine integral `\operatorname{Si}(s)`.
+
+            >>> showgood(lambda: acb(10).si(), dps=25)
+            1.658347594218874049330972
+        """
+        u = acb.__new__(acb)
+        acb_hypgeom_si((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def ci(s):
+        r"""
+        Computes the cosine integral `\operatorname{Ci}(s)`.
+
+            >>> showgood(lambda: acb(10).ci(), dps=25)
+            -0.04545643300445537263453283
+        """
+        u = acb.__new__(acb)
+        acb_hypgeom_ci((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def shi(s):
+        r"""
+        Computes the hyperbolic sine integral `\operatorname{Shi}(s)`.
+
+            >>> showgood(lambda: acb(10).shi(), dps=25)
+            1246.114490199423344411882
+        """
+        u = acb.__new__(acb)
+        acb_hypgeom_shi((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def chi(s):
+        r"""
+        Computes the hyperbolic cosine integral `\operatorname{Chi}(s)`.
+
+            >>> showgood(lambda: acb(10).chi(), dps=25)
+            1246.114486042454414726558
+        """
+        u = acb.__new__(acb)
+        acb_hypgeom_chi((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def li(s, bint offset=False):
+        r"""
+        Computes the logarithmic integral `\operatorname{li}(s)`, optionally
+        the offset logarithmic integral
+        `\operatorname{Li}(s) = \operatorname{li}(s) - \operatorname{li}(2)`.
+
+            >>> showgood(lambda: acb(10).li(), dps=25)
+            6.165599504787297937522982
+            >>> showgood(lambda: acb(10).li(offset=True), dps=25)
+            5.120435724669805152678393
+        """
+        u = acb.__new__(acb)
+        acb_hypgeom_li((<acb>u).val, (<acb>s).val, offset, getprec())
         return u
 

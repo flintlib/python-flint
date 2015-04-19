@@ -1269,3 +1269,6 @@ cdef class arb(flint_scalar):
         else:
             return None
 
+    def rel_accuracy_bits(self):
+        return arb_rel_accuracy_bits(self.val)
+

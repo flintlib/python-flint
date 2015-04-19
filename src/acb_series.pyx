@@ -347,6 +347,35 @@ cdef class acb_series(flint_series):
         (<acb_series>v).prec = cap
         return u, v
 
+    def sin_pi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_poly_sin_pi_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def cos_pi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_poly_cos_pi_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def sin_cos_pi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        v = acb_series.__new__(acb_series)
+        acb_poly_sin_cos_pi_series((<acb_series>u).val, (<acb_series>v).val, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        (<acb_series>v).prec = cap
+        return u, v
+
     def tan(s):
         cdef long cap
         cap = getcap()
@@ -465,4 +494,39 @@ cdef class acb_series(flint_series):
         acb_poly_gamma_upper_series((<acb_series>u).val, (<acb>s).val, (<acb_series>z).val, cap, getprec())
         (<acb_series>u).prec = cap
         return u
+
+    @classmethod
+    def hypgeom(cls, a, b, z, long n=-1, bint regularized=False):
+        r"""
+        Computes the generalized hypergeometric function `{}_pF_q(a;b;z)`
+        given lists of power series `a` and `b` and a power series `z`.
+
+        The optional parameter *n*, if nonnegative, controls the number
+        of terms to add in the hypergeometric series. This is just a tuning
+        parameter: a rigorous error bound is computed regardless of *n*.
+        """
+        cdef long i, p, q, prec, cap
+        cdef acb_poly_struct * aa
+        cdef acb_poly_struct * bb
+        a = [acb_series(t) for t in a]
+        b = [acb_series(t) for t in b] + [acb_series(1)]  # todo: remove from a if there
+        z = acb_series(z)
+        p = len(a)
+        q = len(b)
+        aa = <acb_poly_struct *>libc.stdlib.malloc(p * cython.sizeof(acb_poly_struct))
+        bb = <acb_poly_struct *>libc.stdlib.malloc(q * cython.sizeof(acb_poly_struct))
+        cap = getcap()
+        cap = min(cap, (<acb_series>z).prec)
+        for i in range(p):
+            cap = min(cap, (<acb_series>(a[i])).prec)
+            aa[i] = (<acb_series>(a[i])).val[0]
+        for i in range(q):
+            cap = min(cap, (<acb_series>(b[i])).prec)
+            bb[i] = (<acb_series>(b[i])).val[0]
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_pfq_series_direct((<acb_series>u).val, aa, p, bb, q, (<acb_series>z).val, regularized, n, cap, getprec())
+        libc.stdlib.free(aa)
+        libc.stdlib.free(bb)
+        (<acb_series>u).prec = cap
+        return u    
 

@@ -369,6 +369,35 @@ cdef class arb_series(flint_series):
         (<arb_series>v).prec = cap
         return u, v
 
+    def sin_pi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_poly_sin_pi_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def cos_pi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_poly_cos_pi_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def sin_cos_pi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        v = arb_series.__new__(arb_series)
+        arb_poly_sin_cos_pi_series((<arb_series>u).val, (<arb_series>v).val, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        (<arb_series>v).prec = cap
+        return u, v
+
     def tan(s):
         cdef long cap
         cap = getcap()

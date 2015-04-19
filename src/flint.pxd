@@ -1099,6 +1099,8 @@ cdef extern from "acb.h":
     void acb_neg_round(acb_t z, const acb_t x, long prec)
     void acb_swap(acb_t z, acb_t x)
     int acb_equal(const acb_t x, const acb_t y)
+    int acb_eq(const acb_t x, const acb_t y)
+    int acb_ne(const acb_t x, const acb_t y)
     int acb_overlaps(const acb_t x, const acb_t y)
     int acb_contains_zero(const acb_t x)
     int acb_contains_fmpq(const acb_t x, const fmpq_t y)
@@ -1199,6 +1201,10 @@ cdef extern from "acb.h":
     void acb_log1p(acb_t r, const acb_t z, long prec)
     void acb_atan(acb_t r, const acb_t z, long prec)
 
+    long acb_rel_error_bits(const acb_t x)
+    long acb_rel_accuracy_bits(const acb_t x)
+    long acb_bits(const acb_t x)
+
 cdef extern from "partitions.h":
     void partitions_fmpz_fmpz(fmpz_t, const fmpz_t, int)
 
@@ -1206,29 +1212,6 @@ cdef extern from "bernoulli.h":
     void bernoulli_fmpq_ui(fmpq_t, ulong)
     void bernoulli_cache_compute(long n)
 
-cdef extern from "acb_modular.h":
-    void acb_modular_theta(acb_t theta1, acb_t theta2, acb_t theta3, acb_t theta4, const acb_t z, const acb_t tau, long prec)
-    void acb_modular_eta(acb_t r, const acb_t tau, long prec)
-    void acb_modular_j(acb_t r, const acb_t tau, long prec)
-    void acb_modular_lambda(acb_t r, const acb_t tau, long prec)
-    void acb_modular_delta(acb_t r, const acb_t tau, long prec)
-    void acb_modular_eisenstein(acb_ptr r, const acb_t tau, long len, long prec)
-    void acb_modular_elliptic_p(acb_t wp, const acb_t z, const acb_t tau, long prec)
-    void acb_modular_elliptic_p_zpx(acb_ptr wp, const acb_t z, const acb_t tau, long len, long prec)
-    void acb_modular_elliptic_k(acb_t w, const acb_t m, long prec)
-    void acb_modular_elliptic_k_cpx(acb_ptr w, const acb_t m, long len, long prec)
-
-cdef extern from "acb_hypgeom.h":
-    void acb_hypgeom_bessel_j(acb_t res, const acb_t nu, const acb_t z, long prec)
-    void acb_hypgeom_erf(acb_t res, const acb_t z, long prec)
-    void acb_hypgeom_pfq_direct(acb_t res, acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long n, long prec)
-    void acb_hypgeom_u_asymp(acb_t res, const acb_t a, const acb_t b, const acb_t z, long n, long prec)
-    long acb_hypgeom_pfq_choose_n(acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long prec)
-    void acb_hypgeom_gamma_upper(acb_t res, const acb_t s, const acb_t z, int modified, long prec)
-    void acb_hypgeom_gamma_upper_asymp(acb_t res, const acb_t s, const acb_t z, int modified, long prec)
-    void acb_hypgeom_expint(acb_t res, const acb_t s, const acb_t z, long prec)
-    void acb_hypgeom_erfc(acb_t res, const acb_t z, long prec)
-    void acb_hypgeom_erfi(acb_t res, const acb_t z, long prec)
 
 cdef extern from "arb_poly.h":
     ctypedef struct arb_poly_struct:
@@ -1426,6 +1409,13 @@ cdef extern from "arb_poly.h":
 
     void arb_poly_swinnerton_dyer_ui(arb_poly_t poly, ulong n, long prec)
     int arb_poly_get_unique_fmpz_poly(fmpz_poly_t res, const arb_poly_t src)
+
+    void _arb_poly_sin_cos_pi_series(arb_ptr s, arb_ptr c, const arb_srcptr h, long hlen, long len, long prec)
+    void arb_poly_sin_cos_pi_series(arb_poly_t s, arb_poly_t c, const arb_poly_t h, long n, long prec)
+    void _arb_poly_sin_pi_series(arb_ptr g, arb_srcptr h, long hlen, long n, long prec)
+    void arb_poly_sin_pi_series(arb_poly_t g, const arb_poly_t h, long n, long prec)
+    void _arb_poly_cos_pi_series(arb_ptr g, arb_srcptr h, long hlen, long n, long prec)
+    void arb_poly_cos_pi_series(arb_poly_t g, const arb_poly_t h, long n, long prec)
 
 cdef extern from "arb_mat.h":
     ctypedef struct arb_mat_struct:
@@ -1682,6 +1672,13 @@ cdef extern from "acb_poly.h":
     void _acb_poly_gamma_upper_series(acb_ptr g, const acb_t s, acb_srcptr h, long hlen, long n, long prec)
     void acb_poly_gamma_upper_series(acb_poly_t g, const acb_t s, const acb_poly_t h, long n, long prec)
 
+    void _acb_poly_sin_cos_pi_series(acb_ptr s, acb_ptr c, const acb_srcptr h, long hlen, long len, long prec)
+    void acb_poly_sin_cos_pi_series(acb_poly_t s, acb_poly_t c, const acb_poly_t h, long n, long prec)
+    void _acb_poly_sin_pi_series(acb_ptr g, acb_srcptr h, long hlen, long n, long prec)
+    void acb_poly_sin_pi_series(acb_poly_t g, const acb_poly_t h, long n, long prec)
+    void _acb_poly_cos_pi_series(acb_ptr g, acb_srcptr h, long hlen, long n, long prec)
+    void acb_poly_cos_pi_series(acb_poly_t g, const acb_poly_t h, long n, long prec)
+
 cdef extern from "acb_mat.h":
     ctypedef struct acb_mat_struct:
         acb_ptr entries
@@ -1741,4 +1738,39 @@ cdef extern from "acb_mat.h":
 
     void _acb_mat_charpoly(acb_ptr cp, const acb_mat_t mat, long prec)
     void acb_mat_charpoly(acb_poly_t cp, const acb_mat_t mat, long prec)
+
+cdef extern from "acb_modular.h":
+    void acb_modular_theta(acb_t theta1, acb_t theta2, acb_t theta3, acb_t theta4, const acb_t z, const acb_t tau, long prec)
+    void acb_modular_eta(acb_t r, const acb_t tau, long prec)
+    void acb_modular_j(acb_t r, const acb_t tau, long prec)
+    void acb_modular_lambda(acb_t r, const acb_t tau, long prec)
+    void acb_modular_delta(acb_t r, const acb_t tau, long prec)
+    void acb_modular_eisenstein(acb_ptr r, const acb_t tau, long len, long prec)
+    void acb_modular_elliptic_p(acb_t wp, const acb_t z, const acb_t tau, long prec)
+    void acb_modular_elliptic_p_zpx(acb_ptr wp, const acb_t z, const acb_t tau, long len, long prec)
+    void acb_modular_elliptic_k(acb_t w, const acb_t m, long prec)
+    void acb_modular_elliptic_k_cpx(acb_ptr w, const acb_t m, long len, long prec)
+    void acb_modular_elliptic_e(acb_t w, const acb_t m, long prec)
+
+cdef extern from "acb_hypgeom.h":
+    void acb_hypgeom_bessel_j(acb_t res, const acb_t nu, const acb_t z, long prec)
+    void acb_hypgeom_bessel_k(acb_t res, const acb_t nu, const acb_t z, long prec)
+    void acb_hypgeom_erf(acb_t res, const acb_t z, long prec)
+    void acb_hypgeom_pfq_direct(acb_t res, acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long n, long prec)
+    void acb_hypgeom_u_asymp(acb_t res, const acb_t a, const acb_t b, const acb_t z, long n, long prec)
+    void acb_hypgeom_u(acb_t res, const acb_t a, const acb_t b, const acb_t z, long prec)
+    void acb_hypgeom_m(acb_t res, const acb_t a, const acb_t b, const acb_t z, int regularized, long prec)
+    long acb_hypgeom_pfq_choose_n(acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long prec)
+    void acb_hypgeom_gamma_upper(acb_t res, const acb_t s, const acb_t z, int modified, long prec)
+    void acb_hypgeom_gamma_upper_asymp(acb_t res, const acb_t s, const acb_t z, int modified, long prec)
+    void acb_hypgeom_expint(acb_t res, const acb_t s, const acb_t z, long prec)
+    void acb_hypgeom_erfc(acb_t res, const acb_t z, long prec)
+    void acb_hypgeom_erfi(acb_t res, const acb_t z, long prec)
+    void acb_hypgeom_pfq_series_direct(acb_poly_t res, const acb_poly_struct * a, long p, const acb_poly_struct * b, long q, const acb_poly_t z, int regularized, long n, long len, long prec)
+    void acb_hypgeom_ei(acb_t res, const acb_t z, long prec)
+    void acb_hypgeom_si(acb_t res, const acb_t z, long prec)
+    void acb_hypgeom_ci(acb_t res, const acb_t z, long prec)
+    void acb_hypgeom_shi(acb_t res, const acb_t z, long prec)
+    void acb_hypgeom_chi(acb_t res, const acb_t z, long prec)
+    void acb_hypgeom_li(acb_t res, const acb_t z, int offset, long prec)
 
