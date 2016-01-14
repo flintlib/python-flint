@@ -18,6 +18,12 @@ cdef int acb_set_python(acb_t x, obj, bint allow_conversion):
         mag_zero(arb_radref(acb_imagref(x)))
         return 1
 
+    if hasattr(obj, "_mpc_"):
+        xre, xim = obj._mpc_
+        arb_set_mpmath_mpf(acb_realref(x), xre)
+        arb_set_mpmath_mpf(acb_imagref(x), xim)
+        return 1
+
     return 0
 
 cdef inline int acb_set_any_ref(acb_t x, obj):
@@ -75,6 +81,10 @@ cdef class acb(flint_scalar):
         cdef arb im = arb()
         arb_set(im.val, acb_imagref(self.val))
         return im
+
+    @property
+    def _mpc_(self):
+        return (self.real._mpf_, self.imag._mpf_)
 
     def __richcmp__(s, t, int op):
         cdef acb_struct sval[1]
@@ -259,6 +269,16 @@ cdef class acb(flint_scalar):
         acb_log1p((<acb>u).val, (<acb>s).val, getprec())
         return u
 
+    def asin(s):
+        u = acb.__new__(acb)
+        acb_asin((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def acos(s):
+        u = acb.__new__(acb)
+        acb_acos((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
     def atan(s):
         r"""
         Computes the inverse tangent `\operatorname{atan}(s)`.
@@ -268,6 +288,21 @@ cdef class acb(flint_scalar):
         """
         u = acb.__new__(acb)
         acb_atan((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def asinh(s):
+        u = acb.__new__(acb)
+        acb_asinh((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def acosh(s):
+        u = acb.__new__(acb)
+        acb_acosh((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def atanh(s):
+        u = acb.__new__(acb)
+        acb_atanh((<acb>u).val, (<acb>s).val, getprec())
         return u
 
     def agm(s, t=None):
@@ -462,6 +497,28 @@ cdef class acb(flint_scalar):
         acb_sin_cos((<acb>u).val, (<acb>v).val, (<acb>s).val, getprec())
         return u, v
 
+    def tan(s):
+        r"""
+        Computes the tangent `\tan(s)`.
+
+            >>> showgood(lambda: acb(1,2).tan(), dps=25)
+            0.03381282607989669028437056 + 1.014793616146633568117054j
+        """
+        u = acb.__new__(acb)
+        acb_tan((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def cot(s):
+        r"""
+        Computes the cotangent `\cot(s)`.
+
+            >>> showgood(lambda: acb(1,2).cot(), dps=25)
+            0.03279775553375259406276455 - 0.9843292264581910294718882j
+        """
+        u = acb.__new__(acb)
+        acb_cot((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
     def sin_pi(s):
         r"""
         Computes the sine `\sin(\pi s)`.
@@ -496,28 +553,6 @@ cdef class acb(flint_scalar):
         acb_sin_cos_pi((<acb>u).val, (<acb>v).val, (<acb>s).val, getprec())
         return u, v
 
-    def tan(s):
-        r"""
-        Computes the tangent `\tan(s)`.
-
-            >>> showgood(lambda: acb(1,2).tan(), dps=25)
-            0.03381282607989669028437056 + 1.014793616146633568117054j
-        """
-        u = acb.__new__(acb)
-        acb_tan((<acb>u).val, (<acb>s).val, getprec())
-        return u
-
-    def cot(s):
-        r"""
-        Computes the cotangent `\cot(s)`.
-
-            >>> showgood(lambda: acb(1,2).cot(), dps=25)
-            0.03279775553375259406276455 - 0.9843292264581910294718882j
-        """
-        u = acb.__new__(acb)
-        acb_cot((<acb>u).val, (<acb>s).val, getprec())
-        return u
-
     def tan_pi(s):
         r"""
         Computes the tangent `\tan(\pi s)`.
@@ -538,6 +573,37 @@ cdef class acb(flint_scalar):
         """
         u = acb.__new__(acb)
         acb_cot_pi((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def sinh(s):
+        u = acb.__new__(acb)
+        acb_sinh((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def cosh(s):
+        u = acb.__new__(acb)
+        acb_cosh((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def sinh_cosh(s):
+        u = acb.__new__(acb)
+        v = acb.__new__(acb)
+        acb_sinh_cosh((<acb>u).val, (<acb>v).val, (<acb>s).val, getprec())
+        return u, v
+
+    def tanh(s):
+        u = acb.__new__(acb)
+        acb_tanh((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def coth(s):
+        u = acb.__new__(acb)
+        acb_coth((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def sinc(s):
+        u = acb.__new__(acb)
+        acb_sinc((<acb>u).val, (<acb>s).val, getprec())
         return u
 
     def rising_ui(s, ulong n):
@@ -580,6 +646,22 @@ cdef class acb(flint_scalar):
         """
         u = acb.__new__(acb)
         acb_polylog((<acb>u).val, (<acb>s).val, (<acb>z).val, getprec())
+        return u
+
+    @classmethod
+    def polygamma(cls, acb s, acb z):
+        u = acb.__new__(acb)
+        acb_polygamma((<acb>u).val, (<acb>s).val, (<acb>z).val, getprec())
+        return u
+
+    def log_barnes_g(s):
+        u = acb.__new__(acb)
+        acb_log_barnes_g((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def barnes_g(s):
+        u = acb.__new__(acb)
+        acb_barnes_g((<acb>u).val, (<acb>s).val, getprec())
         return u
 
     @classmethod
@@ -713,6 +795,30 @@ cdef class acb(flint_scalar):
         z = any_as_acb(z)
         u = acb.__new__(acb)
         acb_hypgeom_bessel_k((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
+        return u
+
+    @classmethod
+    def bessel_i(cls, a, z):
+        r"""
+        Computes the modified Bessel function of the first kind `I_a(z)`.
+
+        """
+        a = any_as_acb(a)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_bessel_i((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
+        return u
+
+    @classmethod
+    def bessel_y(cls, a, z):
+        r"""
+        Computes the Bessel function of the second kind `Y_a(z)`.
+
+        """
+        a = any_as_acb(a)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_bessel_y((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
         return u
 
     def erf(s):
@@ -963,5 +1069,130 @@ cdef class acb(flint_scalar):
         """
         u = acb.__new__(acb)
         acb_hypgeom_li((<acb>u).val, (<acb>s).val, offset, getprec())
+        return u
+
+    @classmethod
+    def hypgeom_2f1(cls, a, b, c, z, bint regularized=False):
+        r"""
+        """
+        a = any_as_acb(a)
+        b = any_as_acb(b)
+        c = any_as_acb(c)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_2f1((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>c).val,
+            (<acb>z).val, regularized, getprec())
+        return u
+
+    @classmethod
+    def legendre_p(cls, n, m, z, int type_=0):
+        r"""
+        """
+        n = any_as_acb(n)
+        m = any_as_acb(m)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_legendre_p((<acb>u).val, (<acb>n).val, (<acb>m).val,
+            (<acb>z).val, type_, getprec())
+        return u
+
+    @classmethod
+    def legendre_q(cls, n, m, z, int type_=0):
+        r"""
+        """
+        n = any_as_acb(n)
+        m = any_as_acb(m)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_legendre_q((<acb>u).val, (<acb>n).val, (<acb>m).val,
+            (<acb>z).val, type_, getprec())
+        return u
+
+    @classmethod
+    def spherical_y(cls, n, m, theta, phi):
+        r"""
+        """
+        theta = any_as_acb(theta)
+        phi = any_as_acb(phi)
+        u = acb.__new__(acb)
+        acb_hypgeom_spherical_y((<acb>u).val, n, m,
+            (<acb>theta).val, (<acb>phi).val, getprec())
+        return u
+
+    @classmethod
+    def jacobi_p(cls, n, a, b, z):
+        r"""
+        """
+        n = any_as_acb(n)
+        a = any_as_acb(a)
+        b = any_as_acb(b)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_jacobi_p((<acb>u).val, (<acb>n).val, (<acb>a).val, (<acb>b).val,
+            (<acb>z).val, getprec())
+        return u
+
+    @classmethod
+    def gegenbauer_c(cls, n, m, z):
+        r"""
+        """
+        n = any_as_acb(n)
+        m = any_as_acb(m)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_gegenbauer_c((<acb>u).val, (<acb>n).val, (<acb>m).val,
+            (<acb>z).val, getprec())
+        return u
+
+    @classmethod
+    def laguerre_l(cls, n, m, z):
+        r"""
+        """
+        n = any_as_acb(n)
+        m = any_as_acb(m)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_laguerre_l((<acb>u).val, (<acb>n).val, (<acb>m).val,
+            (<acb>z).val, getprec())
+        return u
+
+    @classmethod
+    def hermite_h(cls, n, z):
+        r"""
+        """
+        n = any_as_acb(n)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_hermite_h((<acb>u).val, (<acb>n).val, (<acb>z).val, getprec())
+        return u
+
+    @classmethod
+    def chebyshev_t(cls, n, z):
+        r"""
+        """
+        n = any_as_acb(n)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_chebyshev_t((<acb>u).val, (<acb>n).val, (<acb>z).val, getprec())
+        return u
+
+    @classmethod
+    def chebyshev_u(cls, n, z):
+        r"""
+        """
+        n = any_as_acb(n)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_chebyshev_u((<acb>u).val, (<acb>n).val, (<acb>z).val, getprec())
+        return u
+
+    @classmethod
+    def hypgeom_0f1(cls, a, z, bint regularized=False):
+        r"""
+        """
+        a = any_as_acb(a)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_0f1((<acb>u).val, (<acb>a).val, (<acb>z).val, regularized, getprec())
         return u
 

@@ -398,6 +398,15 @@ cdef class arb_series(flint_series):
         (<arb_series>v).prec = cap
         return u, v
 
+    def cot_pi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_poly_cot_pi_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
     def tan(s):
         cdef long cap
         cap = getcap()

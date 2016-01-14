@@ -376,6 +376,15 @@ cdef class acb_series(flint_series):
         (<acb_series>v).prec = cap
         return u, v
 
+    def cot_pi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_poly_cot_pi_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
     def tan(s):
         cdef long cap
         cap = getcap()

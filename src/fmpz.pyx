@@ -132,6 +132,9 @@ cdef class fmpz(flint_scalar):
                 return NotImplemented
         return res
 
+    def bit_length(self):
+        return fmpz_bits(self.val)
+
     def str(self, int base=10, long condense=0):
         """
         Converts *self* to a string, optionally in a non-decimal base

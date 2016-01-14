@@ -1176,6 +1176,12 @@ cdef extern from "acb.h":
     void acb_sin_cos_pi(acb_t s, acb_t c, const acb_t z, long prec)
     void acb_tan_pi(acb_t r, const acb_t z, long prec)
     void acb_cot_pi(acb_t r, const acb_t z, long prec)
+    void acb_sinh(acb_t r, const acb_t z, long prec)
+    void acb_cosh(acb_t r, const acb_t z, long prec)
+    void acb_sinh_cosh(acb_t s, acb_t c, const acb_t z, long prec)
+    void acb_tanh(acb_t r, const acb_t z, long prec)
+    void acb_coth(acb_t r, const acb_t z, long prec)
+    void acb_sinc(acb_t r, const acb_t z, long prec)
     void acb_pow_arb(acb_t z, const acb_t x, const arb_t y, long prec)
     void acb_pow(acb_t r, const acb_t x, const acb_t y, long prec)
     void acb_sqrt(acb_t y, const acb_t x, long prec)
@@ -1199,7 +1205,16 @@ cdef extern from "acb.h":
     void acb_agm1(acb_t m, const acb_t z, long prec)
     void acb_agm1_cpx(acb_ptr m, const acb_t z, long len, long prec)
     void acb_log1p(acb_t r, const acb_t z, long prec)
+    void acb_asin(acb_t r, const acb_t z, long prec)
+    void acb_acos(acb_t r, const acb_t z, long prec)
     void acb_atan(acb_t r, const acb_t z, long prec)
+    void acb_asinh(acb_t r, const acb_t z, long prec)
+    void acb_acosh(acb_t r, const acb_t z, long prec)
+    void acb_atanh(acb_t r, const acb_t z, long prec)
+
+    void acb_polygamma(acb_t w, const acb_t s, const acb_t z, long prec)
+    void acb_log_barnes_g(acb_t w, const acb_t z, long prec)
+    void acb_barnes_g(acb_t w, const acb_t z, long prec)
 
     long acb_rel_error_bits(const acb_t x)
     long acb_rel_accuracy_bits(const acb_t x)
@@ -1416,6 +1431,8 @@ cdef extern from "arb_poly.h":
     void arb_poly_sin_pi_series(arb_poly_t g, const arb_poly_t h, long n, long prec)
     void _arb_poly_cos_pi_series(arb_ptr g, arb_srcptr h, long hlen, long n, long prec)
     void arb_poly_cos_pi_series(arb_poly_t g, const arb_poly_t h, long n, long prec)
+    void _arb_poly_cot_pi_series(arb_ptr g, arb_srcptr h, long hlen, long n, long prec)
+    void arb_poly_cot_pi_series(arb_poly_t g, const arb_poly_t h, long n, long prec)
 
 cdef extern from "arb_mat.h":
     ctypedef struct arb_mat_struct:
@@ -1679,6 +1696,9 @@ cdef extern from "acb_poly.h":
     void _acb_poly_cos_pi_series(acb_ptr g, acb_srcptr h, long hlen, long n, long prec)
     void acb_poly_cos_pi_series(acb_poly_t g, const acb_poly_t h, long n, long prec)
 
+    void _acb_poly_cot_pi_series(acb_ptr g, acb_srcptr h, long hlen, long n, long prec)
+    void acb_poly_cot_pi_series(acb_poly_t g, const acb_poly_t h, long n, long prec)
+
 cdef extern from "acb_mat.h":
     ctypedef struct acb_mat_struct:
         acb_ptr entries
@@ -1755,6 +1775,8 @@ cdef extern from "acb_modular.h":
 cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_bessel_j(acb_t res, const acb_t nu, const acb_t z, long prec)
     void acb_hypgeom_bessel_k(acb_t res, const acb_t nu, const acb_t z, long prec)
+    void acb_hypgeom_bessel_i(acb_t res, const acb_t nu, const acb_t z, long prec)
+    void acb_hypgeom_bessel_y(acb_t res, const acb_t nu, const acb_t z, long prec)
     void acb_hypgeom_erf(acb_t res, const acb_t z, long prec)
     void acb_hypgeom_pfq_direct(acb_t res, acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long n, long prec)
     void acb_hypgeom_u_asymp(acb_t res, const acb_t a, const acb_t b, const acb_t z, long n, long prec)
@@ -1773,4 +1795,15 @@ cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_shi(acb_t res, const acb_t z, long prec)
     void acb_hypgeom_chi(acb_t res, const acb_t z, long prec)
     void acb_hypgeom_li(acb_t res, const acb_t z, int offset, long prec)
+    void acb_hypgeom_2f1(acb_t res, const acb_t a, const acb_t b, const acb_t c, const acb_t z, int regularized, long prec)
+    void acb_hypgeom_0f1(acb_t res, const acb_t a, const acb_t z, int regularized, long prec)
+    void acb_hypgeom_legendre_p(acb_t res, const acb_t n, const acb_t m, const acb_t z, int type, long prec)
+    void acb_hypgeom_legendre_q(acb_t res, const acb_t n, const acb_t m, const acb_t z, int type, long prec)
+    void acb_hypgeom_spherical_y(acb_t res, long n, long m, const acb_t theta, const acb_t phi, long prec)
+    void acb_hypgeom_jacobi_p(acb_t res, const acb_t n, const acb_t a, const acb_t b, const acb_t z, long prec)
+    void acb_hypgeom_gegenbauer_c(acb_t res, const acb_t n, const acb_t m, const acb_t z, long prec)
+    void acb_hypgeom_laguerre_l(acb_t res, const acb_t n, const acb_t m, const acb_t z, long prec)
+    void acb_hypgeom_hermite_h(acb_t res, const acb_t n, const acb_t z, long prec)
+    void acb_hypgeom_chebyshev_t(acb_t res, const acb_t n, const acb_t z, long prec)
+    void acb_hypgeom_chebyshev_u(acb_t res, const acb_t n, const acb_t z, long prec)
 

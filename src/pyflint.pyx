@@ -65,7 +65,7 @@ cdef class Context:
         self.default()
 
     def default(self):
-        self.pretty = False
+        self.pretty = True
         self.rnd = ARF_RND_DOWN
         self.prec = 53
         self.unicode = False

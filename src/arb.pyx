@@ -1,3 +1,9 @@
+try:
+    import mpmath
+    mpmath_mpz = mpmath.libmp.MPZ
+except ImportError:
+    mpmath_mpz = long
+
 def _str_trunc(s, trunc=0):
     if trunc > 0 and len(s) > 3 * trunc:
         left = right = trunc
@@ -15,6 +21,24 @@ def arb_from_str(str s):
         return a
     else:
         raise ValueError("invalid string for arb()")
+
+cdef arb_set_mpmath_mpf(arb_t x, obj):
+    sgn, man, exp, bc = obj
+
+    if not man:
+        if not exp:
+            arb_zero(x)
+        else:
+            arb_indeterminate(x)
+    else:
+        man = fmpz(long(man))
+        exp = fmpz(exp)
+
+        arb_set_fmpz(x, (<fmpz>man).val)
+        arb_mul_2exp_fmpz(x, x, (<fmpz>exp).val)
+
+        if sgn:
+            arb_neg(x, x)
 
 cdef int arb_set_python(arb_t x, obj, bint allow_conversion) except -1:
     """
@@ -53,6 +77,10 @@ cdef int arb_set_python(arb_t x, obj, bint allow_conversion) except -1:
     if typecheck(obj, float):
         arf_set_d(arb_midref(x), PyFloat_AS_DOUBLE(<PyObject*>obj))
         mag_zero(arb_radref(x))
+        return 1
+
+    if hasattr(obj, "_mpf_"):
+        arb_set_mpmath_mpf(x, obj._mpf_)
         return 1
 
     if allow_conversion and typecheck(obj, tuple):
@@ -179,6 +207,17 @@ cdef class arb(flint_scalar):
         exp = fmpz()
         arb_get_fmpz_mid_rad_10exp(mid.val, rad.val, exp.val, self.val, n)
         return mid, rad, exp
+
+    @property
+    def _mpf_(self):
+        if not self.is_finite():
+            return (0, mpmath_mpz(0), -123, -1)
+        man, exp = self.mid().man_exp()
+        man = mpmath_mpz(long(man))
+        if man < 0:
+            return (1, -man, long(exp), man.bit_length())
+        else:
+            return (0, man, long(exp), man.bit_length())
 
     def repr(self):
         mid = self.mid()
