@@ -844,6 +844,7 @@ cdef extern from "arb.h":
     void arb_neg(arb_t x, const arb_t y)
     void arb_neg_round(arb_t x, const arb_t y, long prec)
     void arb_abs(arb_t x, const arb_t y)
+    void arb_sgn(arb_t x, const arb_t y)
     void arb_set_arf(arb_t x, const arf_t y)
     void arb_set_si(arb_t x, long y)
     void arb_set_ui(arb_t x, ulong y)
@@ -1026,7 +1027,15 @@ cdef extern from "arb.h":
     void arb_zeta(arb_t z, const arb_t s, long prec)
     void arb_zeta_ui(arb_t z, ulong n, long prec)
     void arb_bernoulli_ui(arb_t z, ulong n, long prec)
+    void arb_bernoulli_fmpz(arb_t z, const fmpz_t n, long prec)
+    void arb_bernoulli_poly_ui(arb_t z, ulong n, const arb_t x, long prec)
     void arb_hurwitz_zeta(arb_t z, const arb_t s, const arb_t a, long prec)
+
+    void arb_bell_fmpz(arb_t z, const fmpz_t n, long prec)
+
+    void arb_partitions_fmpz(arb_t z, const fmpz_t n, long prec)
+    void arb_partitions_ui(arb_t z, ulong n, long prec)
+
 
     void arb_rising_ui_bs(arb_t y, const arb_t x, ulong n, long prec)
     void arb_rising_ui_rs(arb_t y, const arb_t x, ulong n, ulong m, long prec)
@@ -1134,6 +1143,8 @@ cdef extern from "acb.h":
     void acb_neg(acb_t z, const acb_t x)
     void acb_conj(acb_t z, const acb_t x)
     void acb_abs(arb_t u, const acb_t z, long prec)
+    void acb_sgn(acb_t u, const acb_t z, long prec)
+    void acb_csgn(arb_t u, const acb_t z)
     void acb_mul_ui(acb_t z, const acb_t x, ulong y, long prec)
     void acb_mul_si(acb_t z, const acb_t x, long y, long prec)
     void acb_mul_fmpz(acb_t z, const acb_t x, const fmpz_t y, long prec)
@@ -1783,6 +1794,7 @@ cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_u(acb_t res, const acb_t a, const acb_t b, const acb_t z, long prec)
     void acb_hypgeom_m(acb_t res, const acb_t a, const acb_t b, const acb_t z, int regularized, long prec)
     long acb_hypgeom_pfq_choose_n(acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long prec)
+    void acb_hypgeom_pfq(acb_t res, acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, int regularized, long prec)
     void acb_hypgeom_gamma_upper(acb_t res, const acb_t s, const acb_t z, int modified, long prec)
     void acb_hypgeom_gamma_upper_asymp(acb_t res, const acb_t s, const acb_t z, int modified, long prec)
     void acb_hypgeom_expint(acb_t res, const acb_t s, const acb_t z, long prec)
@@ -1806,4 +1818,7 @@ cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_hermite_h(acb_t res, const acb_t n, const acb_t z, long prec)
     void acb_hypgeom_chebyshev_t(acb_t res, const acb_t n, const acb_t z, long prec)
     void acb_hypgeom_chebyshev_u(acb_t res, const acb_t n, const acb_t z, long prec)
+
+cdef extern from "acb_dirichlet.h":
+    void acb_dirichlet_eta(acb_t res, const acb_t s, long prec)
 

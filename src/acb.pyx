@@ -161,6 +161,21 @@ cdef class acb(flint_scalar):
         acb_abs((<arb>res).val, (<acb>self).val, getprec())
         return res
 
+    def csgn(self):
+        res = arb.__new__(arb)
+        acb_csgn((<arb>res).val, (<acb>self).val)
+        return res
+
+    def sgn(self):
+        res = acb.__new__(acb)
+        acb_sgn((<acb>res).val, (<acb>self).val, getprec())
+        return res
+
+    def arg(self):
+        res = arb.__new__(arb)
+        acb_arg((<arb>res).val, (<acb>self).val, getprec())
+        return res
+
     def __add__(s, t):
         cdef acb_struct sval[1]
         cdef acb_struct tval[1]
@@ -665,7 +680,7 @@ cdef class acb(flint_scalar):
         return u
 
     @classmethod
-    def hypgeom(cls, a, b, z, long n=-1):
+    def hypgeom(cls, a, b, z, bint regularized=False, long n=-1):
         r"""
         Computes the generalized hypergeometric function `{}_pF_q(a;b;z)`
         given lists of complex numbers `a` and `b` and a complex number `z`.
@@ -684,7 +699,9 @@ cdef class acb(flint_scalar):
         cdef long i, p, q, prec
         cdef acb_ptr aa, bb
         a = [any_as_acb(t) for t in a]
-        b = [any_as_acb(t) for t in b] + [acb(1)]  # todo: remove from a if there
+        b = [any_as_acb(t) for t in b]
+        if n != -1:
+            b += [acb(1)]
         z = acb(z)
         p = len(a)
         q = len(b)
@@ -695,7 +712,12 @@ cdef class acb(flint_scalar):
         for i in range(q):
             bb[i] = (<acb>(b[i])).val[0]
         u = acb.__new__(acb)
-        acb_hypgeom_pfq_direct((<acb>u).val, aa, p, bb, q, (<acb>z).val, n, getprec())
+        if n == -1:
+            acb_hypgeom_pfq((<acb>u).val, aa, p, bb, q, (<acb>z).val, regularized, getprec())
+        else:
+            if regularized:
+                raise NotImplementedError
+            acb_hypgeom_pfq_direct((<acb>u).val, aa, p, bb, q, (<acb>z).val, n, getprec())
         libc.stdlib.free(aa)
         libc.stdlib.free(bb)
         return u
@@ -1194,5 +1216,10 @@ cdef class acb(flint_scalar):
         z = any_as_acb(z)
         u = acb.__new__(acb)
         acb_hypgeom_0f1((<acb>u).val, (<acb>a).val, (<acb>z).val, regularized, getprec())
+        return u
+
+    def dirichlet_eta(s):
+        u = acb.__new__(acb)
+        acb_dirichlet_eta((<acb>u).val, (<acb>s).val, getprec())
         return u
 

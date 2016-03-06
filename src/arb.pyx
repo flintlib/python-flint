@@ -353,6 +353,11 @@ cdef class arb(flint_scalar):
         arb_set_round((<arb>res).val, (<arb>res).val, getprec())
         return res
 
+    def sgn(self):
+        res = arb.__new__(arb)
+        arb_sgn((<arb>res).val, (<arb>self).val)
+        return res
+
     def __add__(s, t):
         cdef arb_struct sval[1]
         cdef arb_struct tval[1]
@@ -1037,6 +1042,39 @@ cdef class arb(flint_scalar):
         """
         u = arb.__new__(arb)
         arb_bernoulli_ui((<arb>u).val, n, getprec())
+        return u
+
+    @classmethod
+    def bell_fmpz(cls, fmpz n):
+        u = arb.__new__(arb)
+        arb_bell_fmpz((<arb>u).val, (<fmpz>n).val, getprec())
+        return u
+
+    @classmethod
+    def bernoulli_fmpz(cls, fmpz n):
+        u = arb.__new__(arb)
+        arb_bernoulli_fmpz((<arb>u).val, (<fmpz>n).val, getprec())
+        return u
+
+    @classmethod
+    def partitions_fmpz(cls, fmpz n):
+        u = arb.__new__(arb)
+        arb_partitions_fmpz((<arb>u).val, (<fmpz>n).val, getprec())
+        return u
+
+    @classmethod
+    def partitions_ui(cls, ulong n):
+        u = arb.__new__(arb)
+        arb_partitions_ui((<arb>u).val, n, getprec())
+        return u
+
+    @classmethod
+    def bernoulli_poly_ui(cls, ulong n, arb x):
+        """
+        Computes the Bernoulli polynomial `B_n(x)`.
+        """
+        u = arb.__new__(arb)
+        arb_bernoulli_poly_ui((<arb>u).val, n, (<arb>x).val, getprec())
         return u
 
     @classmethod
