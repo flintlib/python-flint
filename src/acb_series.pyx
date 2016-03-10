@@ -539,3 +539,54 @@ cdef class acb_series(flint_series):
         (<acb_series>u).prec = cap
         return u    
 
+    def airy_ai(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_airy_series((<acb_series>u).val, NULL, NULL, NULL, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def airy_ai_prime(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_airy_series(NULL, (<acb_series>u).val, NULL, NULL, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def airy_bi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_airy_series(NULL, NULL, (<acb_series>u).val, NULL, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def airy_bi_prime(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_airy_series(NULL, NULL, NULL, (<acb_series>u).val,(<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def airy(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        v = acb_series.__new__(acb_series)
+        w = acb_series.__new__(acb_series)
+        z = acb_series.__new__(acb_series)
+        acb_hypgeom_airy_series((<acb_series>u).val, (<acb_series>v).val, (<acb_series>w).val, (<acb_series>z).val, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        (<acb_series>v).prec = cap
+        (<acb_series>w).prec = cap
+        (<acb_series>z).prec = cap
+        return u, v, w, z
+

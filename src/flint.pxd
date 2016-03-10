@@ -1819,6 +1819,15 @@ cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_chebyshev_t(acb_t res, const acb_t n, const acb_t z, long prec)
     void acb_hypgeom_chebyshev_u(acb_t res, const acb_t n, const acb_t z, long prec)
 
+    void acb_hypgeom_airy_bound(mag_t ai, mag_t aip, mag_t bi, mag_t bip, const acb_t z)
+    void acb_hypgeom_airy_asymp(acb_t ai, acb_t aip, acb_t bi, acb_t bip, const acb_t z, long n, long prec)
+    void acb_hypgeom_airy_direct(acb_t ai, acb_t aip, acb_t bi, acb_t bip, const acb_t z, long n, long prec)
+    void acb_hypgeom_airy(acb_t ai, acb_t aip, acb_t bi, acb_t bip, const acb_t z, long prec)
+    void acb_hypgeom_airy_jet(acb_ptr ai, acb_ptr bi, const acb_t z, long len, long prec)
+    void _acb_hypgeom_airy_series(acb_ptr ai, acb_ptr ai_prime, acb_ptr bi, acb_ptr bi_prime, acb_srcptr z, long zlen, long len, long prec)
+    void acb_hypgeom_airy_series(acb_poly_t ai, acb_poly_t ai_prime, acb_poly_t bi, acb_poly_t bi_prime, const acb_poly_t z, long len, long prec)
+
+
 cdef extern from "acb_dirichlet.h":
     void acb_dirichlet_eta(acb_t res, const acb_t s, long prec)
 

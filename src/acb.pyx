@@ -1223,3 +1223,32 @@ cdef class acb(flint_scalar):
         acb_dirichlet_eta((<acb>u).val, (<acb>s).val, getprec())
         return u
 
+    def airy_ai(s):
+        u = acb.__new__(acb)
+        acb_hypgeom_airy((<acb>u).val, NULL, NULL, NULL, (<acb>s).val, getprec())
+        return u
+
+    def airy_ai_prime(s):
+        u = acb.__new__(acb)
+        acb_hypgeom_airy(NULL, (<acb>u).val, NULL, NULL, (<acb>s).val, getprec())
+        return u
+
+    def airy_bi(s):
+        u = acb.__new__(acb)
+        acb_hypgeom_airy(NULL, NULL, (<acb>u).val, NULL, (<acb>s).val, getprec())
+        return u
+
+    def airy_bi_prime(s):
+        u = acb.__new__(acb)
+        acb_hypgeom_airy(NULL, NULL, NULL, (<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def airy(s):
+        u = acb.__new__(acb)
+        v = acb.__new__(acb)
+        w = acb.__new__(acb)
+        z = acb.__new__(acb)
+        acb_hypgeom_airy((<acb>u).val, (<acb>v).val,
+                        (<acb>w).val, (<acb>z).val, (<acb>s).val, getprec())
+        return u, v, w, z
+
