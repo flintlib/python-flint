@@ -1252,3 +1252,13 @@ cdef class acb(flint_scalar):
                         (<acb>w).val, (<acb>z).val, (<acb>s).val, getprec())
         return u, v, w, z
 
+    def fresnel_s(s, bint normalized=True):
+        u = acb.__new__(acb)
+        acb_hypgeom_fresnel((<acb>u).val, NULL, (<acb>s).val, normalized, getprec())
+        return u
+
+    def fresnel_c(s, bint normalized=True):
+        u = acb.__new__(acb)
+        acb_hypgeom_fresnel(NULL, (<acb>u).val, (<acb>s).val, normalized, getprec())
+        return u
+

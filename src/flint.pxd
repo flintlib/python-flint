@@ -1827,6 +1827,13 @@ cdef extern from "acb_hypgeom.h":
     void _acb_hypgeom_airy_series(acb_ptr ai, acb_ptr ai_prime, acb_ptr bi, acb_ptr bi_prime, acb_srcptr z, long zlen, long len, long prec)
     void acb_hypgeom_airy_series(acb_poly_t ai, acb_poly_t ai_prime, acb_poly_t bi, acb_poly_t bi_prime, const acb_poly_t z, long len, long prec)
 
+    void acb_hypgeom_erf_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
+    void acb_hypgeom_erfc_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
+    void acb_hypgeom_erfi_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
+
+    void acb_hypgeom_fresnel(acb_t res1, acb_t res2, const acb_t z, int normalized, long prec)
+    void acb_hypgeom_fresnel_series(acb_poly_t res1, acb_poly_t res2, const acb_poly_t h, int normalized, long n, long prec)
+
 
 cdef extern from "acb_dirichlet.h":
     void acb_dirichlet_eta(acb_t res, const acb_t s, long prec)

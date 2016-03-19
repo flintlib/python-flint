@@ -488,7 +488,25 @@ cdef class acb_series(flint_series):
         cap = getcap()
         cap = min(cap, (<acb_series>s).prec)
         u = acb_series.__new__(acb_series)
-        acb_poly_erf_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
+        acb_hypgeom_erf_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def erfc(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_erfc_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def erfi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_erfi_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
         (<acb_series>u).prec = cap
         return u
 
@@ -589,4 +607,33 @@ cdef class acb_series(flint_series):
         (<acb_series>w).prec = cap
         (<acb_series>z).prec = cap
         return u, v, w, z
+
+    def fresnel(s, bint normalized=True):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        v = acb_series.__new__(acb_series)
+        acb_hypgeom_fresnel_series((<acb_series>u).val, (<acb_series>v).val, (<acb_series>s).val, normalized, cap, getprec())
+        (<acb_series>u).prec = cap
+        (<acb_series>v).prec = cap
+        return u, v
+
+    def fresnel_s(s, bint normalized=True):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_fresnel_series((<acb_series>u).val, NULL, (<acb_series>s).val, normalized, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def fresnel_c(s, bint normalized=True):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_fresnel_series(NULL, (<acb_series>u).val, (<acb_series>s).val, normalized, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
 
