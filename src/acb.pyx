@@ -788,6 +788,8 @@ cdef class acb(flint_scalar):
         acb_hypgeom_m((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, regularized, getprec())
         return u
 
+    hypgeom_1f1 = hypgeom_m
+
     @classmethod
     def bessel_j(cls, a, z):
         r"""
@@ -971,7 +973,7 @@ cdef class acb(flint_scalar):
             return None
 
     @classmethod
-    def gamma_upper(cls, s, z):
+    def gamma_upper(cls, s, z, int regularized=0):
         r"""
         Computes the upper incomplete gamma function `\Gamma(s,z)`.
 
@@ -981,7 +983,30 @@ cdef class acb(flint_scalar):
         s = any_as_acb(s)
         z = any_as_acb(z)
         u = acb.__new__(acb)
-        acb_hypgeom_gamma_upper((<acb>u).val, (<acb>s).val, (<acb>z).val, 0, getprec())
+        acb_hypgeom_gamma_upper((<acb>u).val, (<acb>s).val, (<acb>z).val, regularized, getprec())
+        return u
+
+    @classmethod
+    def gamma_lower(cls, s, z, int regularized=0):
+        r"""
+        Computes the lower incomplete gamma function `\gamma(s,z)`.
+        """
+        s = any_as_acb(s)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_gamma_lower((<acb>u).val, (<acb>s).val, (<acb>z).val, regularized, getprec())
+        return u
+
+    @classmethod
+    def beta_lower(cls, a, b, z, int regularized=0):
+        r"""
+        Computes the lower incomplete beta function `B(a,b;z)`.
+        """
+        a = any_as_acb(a)
+        b = any_as_acb(b)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_beta_lower((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, regularized, getprec())
         return u
 
     @classmethod
@@ -1094,16 +1119,23 @@ cdef class acb(flint_scalar):
         return u
 
     @classmethod
-    def hypgeom_2f1(cls, a, b, c, z, bint regularized=False):
+    def hypgeom_2f1(cls, a, b, c, z, bint regularized=False, bint ab=False, bint ac=False, bc=False, abc=False):
         r"""
         """
+        cdef int flags
         a = any_as_acb(a)
         b = any_as_acb(b)
         c = any_as_acb(c)
         z = any_as_acb(z)
         u = acb.__new__(acb)
+        flags = 0
+        if regularized: flags |= 1
+        if ab: flags |= 2
+        if ac: flags |= 4
+        if bc: flags |= 8
+        if abc: flags |= 16
         acb_hypgeom_2f1((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>c).val,
-            (<acb>z).val, regularized, getprec())
+            (<acb>z).val, flags, getprec())
         return u
 
     @classmethod

@@ -1697,9 +1697,6 @@ cdef extern from "acb_poly.h":
     void acb_poly_erf_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
     int acb_poly_get_unique_fmpz_poly(fmpz_poly_t res, const acb_poly_t src)
 
-    void _acb_poly_gamma_upper_series(acb_ptr g, const acb_t s, acb_srcptr h, long hlen, long n, long prec)
-    void acb_poly_gamma_upper_series(acb_poly_t g, const acb_t s, const acb_poly_t h, long n, long prec)
-
     void _acb_poly_sin_cos_pi_series(acb_ptr s, acb_ptr c, const acb_srcptr h, long hlen, long len, long prec)
     void acb_poly_sin_cos_pi_series(acb_poly_t s, acb_poly_t c, const acb_poly_t h, long n, long prec)
     void _acb_poly_sin_pi_series(acb_ptr g, acb_srcptr h, long hlen, long n, long prec)
@@ -1798,6 +1795,8 @@ cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_gamma_upper(acb_t res, const acb_t s, const acb_t z, int modified, long prec)
     void acb_hypgeom_gamma_upper_asymp(acb_t res, const acb_t s, const acb_t z, int modified, long prec)
     void acb_hypgeom_expint(acb_t res, const acb_t s, const acb_t z, long prec)
+    void acb_hypgeom_gamma_lower(acb_t res, const acb_t s, const acb_t z, int modified, long prec)
+    void acb_hypgeom_beta_lower(acb_t res, const acb_t a, const acb_t b, const acb_t z, int regularized, long prec)
     void acb_hypgeom_erfc(acb_t res, const acb_t z, long prec)
     void acb_hypgeom_erfi(acb_t res, const acb_t z, long prec)
     void acb_hypgeom_pfq_series_direct(acb_poly_t res, const acb_poly_struct * a, long p, const acb_poly_struct * b, long q, const acb_poly_t z, int regularized, long n, long len, long prec)
@@ -1834,6 +1833,51 @@ cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_fresnel(acb_t res1, acb_t res2, const acb_t z, int normalized, long prec)
     void acb_hypgeom_fresnel_series(acb_poly_t res1, acb_poly_t res2, const acb_poly_t h, int normalized, long n, long prec)
 
+    void _acb_hypgeom_gamma_upper_series(acb_ptr g, const acb_t s, acb_srcptr h, long hlen, int regularized, long n, long prec)
+    void acb_hypgeom_gamma_upper_series(acb_poly_t g, const acb_t s, const acb_poly_t h, int regularized, long n, long prec)
+
+    void _acb_hypgeom_gamma_lower_series(acb_ptr g, const acb_t s, acb_srcptr h, long hlen, int regularized, long n, long prec)
+    void acb_hypgeom_gamma_lower_series(acb_poly_t g, const acb_t s, const acb_poly_t h, int regularized, long n, long prec)
+
+    void _acb_hypgeom_beta_lower_series(acb_ptr g, const acb_t s, const acb_t t, acb_srcptr h, long hlen, int regularized, long n, long prec)
+    void acb_hypgeom_beta_lower_series(acb_poly_t g, const acb_t s, const acb_t t, const acb_poly_t h, int regularized, long n, long prec)
+
+    void acb_hypgeom_ei_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
+    void acb_hypgeom_si_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
+    void acb_hypgeom_ci_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
+    void acb_hypgeom_shi_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
+    void acb_hypgeom_chi_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
+    void acb_hypgeom_li_series(acb_poly_t res, const acb_poly_t h, int offset, long n, long prec)
+
+cdef extern from "arb_hypgeom.h":
+    void arb_hypgeom_pfq(arb_t res, arb_srcptr a, long p, arb_srcptr b, long q, const arb_t z, int regularized, long prec)
+    void arb_hypgeom_0f1(arb_t res, const arb_t a, const arb_t z, int regularized, long prec)
+    void arb_hypgeom_m(arb_t res, const arb_t a, const arb_t b, const arb_t z, int regularized, long prec)
+    void arb_hypgeom_1f1(arb_t res, const arb_t a, const arb_t b, const arb_t z, int regularized, long prec)
+    void arb_hypgeom_u(arb_t res, const arb_t a, const arb_t b, const arb_t z, long prec)
+    void arb_hypgeom_2f1(arb_t res, const arb_t a, const arb_t b, const arb_t c, const arb_t z, int regularized, long prec)
+
+    void arb_hypgeom_erf(arb_t res, const arb_t z, long prec)
+    void arb_hypgeom_erf_series(arb_poly_t g, const arb_poly_t h, long len, long prec)
+    void arb_hypgeom_erfc(arb_t res, const arb_t z, long prec)
+    void arb_hypgeom_erfc_series(arb_poly_t g, const arb_poly_t h, long len, long prec)
+    void arb_hypgeom_erfi(arb_t res, const arb_t z, long prec)
+    void arb_hypgeom_erfi_series(arb_poly_t g, const arb_poly_t h, long len, long prec)
+    void arb_hypgeom_fresnel(arb_t res1, arb_t res2, const arb_t z, int normalized, long prec)
+    void arb_hypgeom_fresnel_series(arb_poly_t s, arb_poly_t c, const arb_poly_t h, int normalized, long len, long prec)
+
+    void arb_hypgeom_ei(arb_t res, const arb_t z, long prec)
+    void arb_hypgeom_si(arb_t res, const arb_t z, long prec)
+    void arb_hypgeom_ci(arb_t res, const arb_t z, long prec)
+    void arb_hypgeom_shi(arb_t res, const arb_t z, long prec)
+    void arb_hypgeom_chi(arb_t res, const arb_t z, long prec)
+    void arb_hypgeom_li(arb_t res, const arb_t z, int offset, long prec)
+    void arb_hypgeom_ei_series(arb_poly_t res, const arb_poly_t h, long n, long prec)
+    void arb_hypgeom_si_series(arb_poly_t res, const arb_poly_t h, long n, long prec)
+    void arb_hypgeom_ci_series(arb_poly_t res, const arb_poly_t h, long n, long prec)
+    void arb_hypgeom_shi_series(arb_poly_t res, const arb_poly_t h, long n, long prec)
+    void arb_hypgeom_chi_series(arb_poly_t res, const arb_poly_t h, long n, long prec)
+    void arb_hypgeom_li_series(arb_poly_t res, const arb_poly_t h, int offset, long n, long prec)
 
 cdef extern from "acb_dirichlet.h":
     void acb_dirichlet_eta(acb_t res, const acb_t s, long prec)

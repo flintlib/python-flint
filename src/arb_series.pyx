@@ -480,3 +480,113 @@ cdef class arb_series(flint_series):
         (<arb_series>u).prec = cap
         return u
 
+    def erf(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_erf_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def erfc(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_erfc_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def erfi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_erfi_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def fresnel(s, bint normalized=True):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        v = arb_series.__new__(arb_series)
+        arb_hypgeom_fresnel_series((<arb_series>u).val, (<arb_series>v).val, (<arb_series>s).val, normalized, cap, getprec())
+        (<arb_series>u).prec = cap
+        (<arb_series>v).prec = cap
+        return u, v
+
+    def fresnel_s(s, bint normalized=True):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_fresnel_series((<arb_series>u).val, NULL, (<arb_series>s).val, normalized, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def fresnel_c(s, bint normalized=True):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_fresnel_series(NULL, (<arb_series>u).val, (<arb_series>s).val, normalized, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def ei(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_ei_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def si(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_si_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def ci(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_ci_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def shi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_shi_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def chi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_chi_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def li(s, bint offset=False):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_li_series((<arb_series>u).val, (<arb_series>s).val, offset, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+

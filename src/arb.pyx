@@ -1209,6 +1209,128 @@ cdef class arb(flint_scalar):
             arb_chebyshev_u_ui((<arb>u).val, n, (<arb>s).val, getprec())
             return u
 
+    def erf(s):
+        u = arb.__new__(arb)
+        arb_hypgeom_erf((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def erfc(s):
+        u = arb.__new__(arb)
+        arb_hypgeom_erfc((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def erfi(s):
+        u = arb.__new__(arb)
+        arb_hypgeom_erfi((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def fresnel_s(s, bint normalized=True):
+        u = arb.__new__(arb)
+        arb_hypgeom_fresnel((<arb>u).val, NULL, (<arb>s).val, normalized, getprec())
+        return u
+
+    def fresnel_c(s, bint normalized=True):
+        u = arb.__new__(arb)
+        arb_hypgeom_fresnel(NULL, (<arb>u).val, (<arb>s).val, normalized, getprec())
+        return u
+
+    def ei(s):
+        u = arb.__new__(arb)
+        arb_hypgeom_ei((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def si(s):
+        u = arb.__new__(arb)
+        arb_hypgeom_si((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def ci(s):
+        u = arb.__new__(arb)
+        arb_hypgeom_ci((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def shi(s):
+        u = arb.__new__(arb)
+        arb_hypgeom_shi((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def chi(s):
+        u = arb.__new__(arb)
+        arb_hypgeom_chi((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def li(s, bint offset=False):
+        u = arb.__new__(arb)
+        arb_hypgeom_li((<arb>u).val, (<arb>s).val, offset, getprec())
+        return u
+
+    @classmethod
+    def hypgeom(cls, a, b, z, bint regularized=False):
+        cdef long i, p, q, prec
+        cdef arb_ptr aa, bb
+        a = [any_as_arb(t) for t in a]
+        b = [any_as_arb(t) for t in b]
+        z = arb(z)
+        p = len(a)
+        q = len(b)
+        aa = <arb_ptr>libc.stdlib.malloc(p * cython.sizeof(arb_struct))
+        bb = <arb_ptr>libc.stdlib.malloc(q * cython.sizeof(arb_struct))
+        for i in range(p):
+            aa[i] = (<arb>(a[i])).val[0]
+        for i in range(q):
+            bb[i] = (<arb>(b[i])).val[0]
+        u = arb.__new__(arb)
+        arb_hypgeom_pfq((<arb>u).val, aa, p, bb, q, (<arb>z).val, regularized, getprec())
+        libc.stdlib.free(aa)
+        libc.stdlib.free(bb)
+        return u
+
+    @classmethod
+    def hypgeom_u(cls, a, b, z):
+        a = any_as_arb(a)
+        b = any_as_arb(b)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        arb_hypgeom_u((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>z).val, getprec())
+        return u
+
+    @classmethod
+    def hypgeom_m(cls, a, b, z, bint regularized=False):
+        a = any_as_arb(a)
+        b = any_as_arb(b)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        arb_hypgeom_m((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>z).val, regularized, getprec())
+        return u
+
+    hypgeom_1f1 = hypgeom_m
+
+    @classmethod
+    def hypgeom_0f1(cls, a, z, bint regularized=False):
+        a = any_as_arb(a)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        arb_hypgeom_0f1((<arb>u).val, (<arb>a).val, (<arb>z).val, regularized, getprec())
+        return u
+
+    @classmethod
+    def hypgeom_2f1(cls, a, b, c, z, bint regularized=False, bint ab=False, bint ac=False, bc=False, abc=False):
+        cdef int flags
+        a = any_as_arb(a)
+        b = any_as_arb(b)
+        c = any_as_arb(c)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        flags = 0
+        if regularized: flags |= 1
+        if ab: flags |= 2
+        if ac: flags |= 4
+        if bc: flags |= 8
+        if abc: flags |= 16
+        arb_hypgeom_2f1((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>c).val,
+            (<arb>z).val, flags, getprec())
+        return u
+
     @classmethod
     def const_pi(cls):
         """

@@ -511,14 +511,39 @@ cdef class acb_series(flint_series):
         return u
 
     @classmethod
-    def gamma_upper(cls, s, z):
+    def gamma_upper(cls, s, z, int regularized=0):
         cdef long cap
         s = acb(s)
         z = acb_series(z)
         cap = getcap()
         cap = min(cap, (<acb_series>z).prec)
         u = acb_series.__new__(acb_series)
-        acb_poly_gamma_upper_series((<acb_series>u).val, (<acb>s).val, (<acb_series>z).val, cap, getprec())
+        acb_hypgeom_gamma_upper_series((<acb_series>u).val, (<acb>s).val, (<acb_series>z).val, regularized, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    @classmethod
+    def gamma_lower(cls, s, z, int regularized=0):
+        cdef long cap
+        s = acb(s)
+        z = acb_series(z)
+        cap = getcap()
+        cap = min(cap, (<acb_series>z).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_gamma_lower_series((<acb_series>u).val, (<acb>s).val, (<acb_series>z).val, regularized, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    @classmethod
+    def beta_lower(cls, a, b, z, int regularized=0):
+        cdef long cap
+        a = acb(a)
+        b = acb(b)
+        z = acb_series(z)
+        cap = getcap()
+        cap = min(cap, (<acb_series>z).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_beta_lower_series((<acb_series>u).val, (<acb>a).val, (<acb>b).val, (<acb_series>z).val, regularized, cap, getprec())
         (<acb_series>u).prec = cap
         return u
 
@@ -634,6 +659,60 @@ cdef class acb_series(flint_series):
         cap = min(cap, (<acb_series>s).prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_fresnel_series(NULL, (<acb_series>u).val, (<acb_series>s).val, normalized, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def ei(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_ei_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def si(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_si_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def ci(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_ci_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def shi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_shi_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def chi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_chi_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def li(s, bint offset=False):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_hypgeom_li_series((<acb_series>u).val, (<acb_series>s).val, offset, cap, getprec())
         (<acb_series>u).prec = cap
         return u
 
