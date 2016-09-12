@@ -1265,6 +1265,100 @@ cdef class arb(flint_scalar):
         return u
 
     @classmethod
+    def bessel_j(cls, a, z):
+        a = any_as_arb(a)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        arb_hypgeom_bessel_j((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+        return u
+
+    @classmethod
+    def bessel_k(cls, a, z):
+        a = any_as_arb(a)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        arb_hypgeom_bessel_k((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+        return u
+
+    @classmethod
+    def bessel_i(cls, a, z):
+        a = any_as_arb(a)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        arb_hypgeom_bessel_i((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+        return u
+
+    @classmethod
+    def bessel_y(cls, a, z):
+        a = any_as_arb(a)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        arb_hypgeom_bessel_y((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+        return u
+
+    def airy_ai(s):
+        u = arb.__new__(arb)
+        arb_hypgeom_airy((<arb>u).val, NULL, NULL, NULL, (<arb>s).val, getprec())
+        return u
+
+    def airy_ai_prime(s):
+        u = arb.__new__(arb)
+        arb_hypgeom_airy(NULL, (<arb>u).val, NULL, NULL, (<arb>s).val, getprec())
+        return u
+
+    def airy_bi(s):
+        u = arb.__new__(arb)
+        arb_hypgeom_airy(NULL, NULL, (<arb>u).val, NULL, (<arb>s).val, getprec())
+        return u
+
+    def airy_bi_prime(s):
+        u = arb.__new__(arb)
+        arb_hypgeom_airy(NULL, NULL, NULL, (<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def airy(s):
+        u = arb.__new__(arb)
+        v = arb.__new__(arb)
+        w = arb.__new__(arb)
+        z = arb.__new__(arb)
+        arb_hypgeom_airy((<arb>u).val, (<arb>v).val,
+                        (<arb>w).val, (<arb>z).val, (<arb>s).val, getprec())
+        return u, v, w, z
+
+    @classmethod
+    def gamma_upper(cls, s, z, int regularized=0):
+        s = any_as_arb(s)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        arb_hypgeom_gamma_upper((<arb>u).val, (<arb>s).val, (<arb>z).val, regularized, getprec())
+        return u
+
+    @classmethod
+    def gamma_lower(cls, s, z, int regularized=0):
+        s = any_as_arb(s)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        arb_hypgeom_gamma_lower((<arb>u).val, (<arb>s).val, (<arb>z).val, regularized, getprec())
+        return u
+
+    @classmethod
+    def beta_lower(cls, a, b, z, int regularized=0):
+        a = any_as_arb(a)
+        b = any_as_arb(b)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        arb_hypgeom_beta_lower((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>z).val, regularized, getprec())
+        return u
+
+    @classmethod
+    def expint(cls, s, z):
+        s = any_as_arb(s)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        arb_hypgeom_expint((<arb>u).val, (<arb>s).val, (<arb>z).val, getprec())
+        return u
+
+    @classmethod
     def hypgeom(cls, a, b, z, bint regularized=False):
         cdef long i, p, q, prec
         cdef arb_ptr aa, bb

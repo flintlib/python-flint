@@ -590,3 +590,91 @@ cdef class arb_series(flint_series):
         (<arb_series>u).prec = cap
         return u
 
+    def airy_ai(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_airy_series((<arb_series>u).val, NULL, NULL, NULL, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def airy_ai_prime(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_airy_series(NULL, (<arb_series>u).val, NULL, NULL, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def airy_bi(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_airy_series(NULL, NULL, (<arb_series>u).val, NULL, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def airy_bi_prime(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_airy_series(NULL, NULL, NULL, (<arb_series>u).val,(<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    def airy(s):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        v = arb_series.__new__(arb_series)
+        w = arb_series.__new__(arb_series)
+        z = arb_series.__new__(arb_series)
+        arb_hypgeom_airy_series((<arb_series>u).val, (<arb_series>v).val, (<arb_series>w).val, (<arb_series>z).val, (<arb_series>s).val, cap, getprec())
+        (<arb_series>u).prec = cap
+        (<arb_series>v).prec = cap
+        (<arb_series>w).prec = cap
+        (<arb_series>z).prec = cap
+        return u, v, w, z
+
+    @classmethod
+    def gamma_upper(cls, s, z, int regularized=0):
+        cdef long cap
+        s = arb(s)
+        z = arb_series(z)
+        cap = getcap()
+        cap = min(cap, (<arb_series>z).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_gamma_upper_series((<arb_series>u).val, (<arb>s).val, (<arb_series>z).val, regularized, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    @classmethod
+    def gamma_lower(cls, s, z, int regularized=0):
+        cdef long cap
+        s = arb(s)
+        z = arb_series(z)
+        cap = getcap()
+        cap = min(cap, (<arb_series>z).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_gamma_lower_series((<arb_series>u).val, (<arb>s).val, (<arb_series>z).val, regularized, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+
+    @classmethod
+    def beta_lower(cls, a, b, z, int regularized=0):
+        cdef long cap
+        a = arb(a)
+        b = arb(b)
+        z = arb_series(z)
+        cap = getcap()
+        cap = min(cap, (<arb_series>z).prec)
+        u = arb_series.__new__(arb_series)
+        arb_hypgeom_beta_lower_series((<arb_series>u).val, (<arb>a).val, (<arb>b).val, (<arb_series>z).val, regularized, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+

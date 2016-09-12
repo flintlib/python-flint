@@ -1879,6 +1879,24 @@ cdef extern from "arb_hypgeom.h":
     void arb_hypgeom_chi_series(arb_poly_t res, const arb_poly_t h, long n, long prec)
     void arb_hypgeom_li_series(arb_poly_t res, const arb_poly_t h, int offset, long n, long prec)
 
+    void arb_hypgeom_bessel_j(arb_t res, const arb_t nu, const arb_t z, long prec)
+    void arb_hypgeom_bessel_k(arb_t res, const arb_t nu, const arb_t z, long prec)
+    void arb_hypgeom_bessel_i(arb_t res, const arb_t nu, const arb_t z, long prec)
+    void arb_hypgeom_bessel_y(arb_t res, const arb_t nu, const arb_t z, long prec)
+
+    void arb_hypgeom_airy(arb_t ai, arb_t aip, arb_t bi, arb_t bip, const arb_t z, long prec)
+    void arb_hypgeom_airy_series(arb_poly_t ai, arb_poly_t ai_prime, arb_poly_t bi, arb_poly_t bi_prime, const arb_poly_t z, long len, long prec)
+
+    void arb_hypgeom_expint(arb_t res, const arb_t s, const arb_t z, long prec)
+    void arb_hypgeom_gamma_upper(arb_t res, const arb_t s, const arb_t z, int modified, long prec)
+    void arb_hypgeom_gamma_lower(arb_t res, const arb_t s, const arb_t z, int modified, long prec)
+    void arb_hypgeom_beta_lower(arb_t res, const arb_t a, const arb_t b, const arb_t z, int regularized, long prec)
+
+    void arb_hypgeom_gamma_upper_series(arb_poly_t g, const arb_t s, const arb_poly_t h, int regularized, long n, long prec)
+    void arb_hypgeom_gamma_lower_series(arb_poly_t g, const arb_t s, const arb_poly_t h, int regularized, long n, long prec)
+    void arb_hypgeom_beta_lower_series(arb_poly_t g, const arb_t s, const arb_t t, const arb_poly_t h, int regularized, long n, long prec)
+
+
 cdef extern from "acb_dirichlet.h":
     void acb_dirichlet_eta(acb_t res, const acb_t s, long prec)
 
