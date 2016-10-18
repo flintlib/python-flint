@@ -1707,6 +1707,8 @@ cdef extern from "acb_poly.h":
     void _acb_poly_cot_pi_series(acb_ptr g, acb_srcptr h, long hlen, long n, long prec)
     void acb_poly_cot_pi_series(acb_poly_t g, const acb_poly_t h, long n, long prec)
 
+    void acb_poly_root_bound_fujiwara(mag_t bound, acb_poly_t poly)
+
 cdef extern from "acb_mat.h":
     ctypedef struct acb_mat_struct:
         acb_ptr entries

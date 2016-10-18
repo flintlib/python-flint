@@ -359,3 +359,14 @@ cdef class acb_poly(flint_poly):
 
         return pyroots
 
+    def root_bound(self):
+        """Returns an upper bound for the absolute value of
+        the roots of self."""
+        cdef mag_t m
+        mag_init(m)
+        r = arb()
+        acb_poly_root_bound_fujiwara(m, self.val)
+        arf_set_mag(arb_midref((<arb>r).val), m)
+        mag_clear(m)
+        return r
+
