@@ -6,7 +6,7 @@ and Arb (arbitrary-precision ball arithmetic). Features:
 
 * Integers, rationals, integers mod n
 * Real and complex numbers with rigorous error tracking
-* Polynomials and matrices over all the above types
+* Polynomials, power series and matrices over all the above types
 * Lots of special functions
 
 Author: Fredrik Johansson <fredrik.johansson@gmail.com>
@@ -97,9 +97,10 @@ API documentation is available here: http://fredrikj.net/python-flint/
 To do
 -------------------------------------
 
-* Power series
-* Finite fields
-* p-adic numbers
+* Work on packaging and the build system
+* Continuous integration
+* Write more tests and add missing docstrings
+* Wrap missing flint types: finite fields, p-adic numbers, multiprecision integer mods, rational functions
 * Rational functions
 * Vector or array types (maybe)
 * Many convenience methods
@@ -112,11 +113,11 @@ To do
 * Support for subclassing (maybe, not a priority)
 * Improved printing and string input/output
 * IPython hooks (TeX pretty-printing etc.)
-* Python 3.x support
+* Python 3.x support (should mostly work, needs minor touches)
 * Windows support
 
 License
 ------------
 
-Python-FLINT is licensed MIT. FLINT and Arb are GPL v2+.
+Python-FLINT is licensed MIT. FLINT and Arb are LGPL v2.1+.
 
