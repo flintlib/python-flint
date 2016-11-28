@@ -1294,3 +1294,8 @@ cdef class acb(flint_scalar):
         acb_hypgeom_fresnel(NULL, (<acb>u).val, (<acb>s).val, normalized, getprec())
         return u
 
+    def log_sin_pi(s):
+        u = acb.__new__(acb)
+        acb_log_sin_pi((<acb>u).val, (<acb>s).val, getprec())
+        return u
+

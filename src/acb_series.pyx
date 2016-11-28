@@ -29,7 +29,10 @@ cdef class acb_series(flint_series):
         if val is not None:
             if typecheck(val, acb_series):
                 acb_poly_set(self.val, (<acb_series>val).val)
-                self.prec = min((<fmpz_series>val).prec, getcap())
+                self.prec = min((<acb_series>val).prec, getcap())
+            elif typecheck(val, arb_series):
+                acb_poly_set_arb_poly(self.val, (<arb_series>val).val)
+                self.prec = min((<arb_series>val).prec, getcap())
             elif typecheck(val, fmpz_series):
                 acb_poly_set_fmpz_poly(self.val, (<fmpz_series>val).val, getprec())
                 self.prec = min((<fmpz_series>val).prec, getcap())

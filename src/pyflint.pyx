@@ -112,7 +112,13 @@ cdef class Context:
             return flint_get_num_threads()
 
     def __repr__(self):
-        return "pretty = %s\nprec = %s" % (self.pretty, self.prec)
+        return "pretty = %-8s  # pretty-print repr() output\n" \
+               "unicode = %-8s # use unicode characters in output\n" \
+               "prec = %-8s    # real/complex precision (in bits)\n"   \
+               "dps = %-8s     # real/complex precision (in digits)\n"    \
+               "cap = %-8s     # power series precision\n"    \
+               "threads = %-8s # max number of threads used internally\n" % \
+            (self.pretty, self.unicode, self.prec, self.dps, self.cap, self.threads)
 
     def cleanup(self):
         flint_cleanup()
@@ -146,26 +152,6 @@ cdef class flint_elem:
 
 cdef class flint_scalar(flint_elem):
     pass
-
-# use?
-cdef bint is_scalar(x):
-    """
-    Returns True if x is a flint_scalar or a Python scalar (int, long,
-    float, complex).
-    """
-    if typecheck(x, flint_scalar):
-        return True
-    if typecheck(x, flint_elem):
-        return False
-    if typecheck(x, int):
-        return True
-    if typecheck(x, long):
-        return True
-    if typecheck(x, float):
-        return True
-    if typecheck(x, complex):
-        return True
-    return False
 
 cdef class flint_poly(flint_elem):
     """
@@ -308,4 +294,6 @@ include "acb_mat.pyx"
 include "acb_series.pyx"
 
 include "functions.pyx"
+
+include "dirichlet.pyx"
 
