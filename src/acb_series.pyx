@@ -719,3 +719,13 @@ cdef class acb_series(flint_series):
         (<acb_series>u).prec = cap
         return u
 
+    def lambertw(s, branch=0):
+        cdef long cap
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        k = any_as_fmpz(branch)
+        u = acb_series.__new__(acb_series)
+        acb_poly_lambertw_series((<acb_series>u).val, (<acb_series>s).val, (<fmpz>k).val, 0, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+

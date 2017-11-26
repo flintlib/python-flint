@@ -874,6 +874,7 @@ cdef extern from "arb.h":
     void arb_get_mag(mag_t z, const arb_t x)
     void arb_get_abs_ubound_arf(arf_t u, const arb_t x, long prec)
     void arb_get_abs_lbound_arf(arf_t u, const arb_t x, long prec)
+    void arb_nonnegative_part(arb_t u, const arb_t x)
     long arb_rel_error_bits(const arb_t x)
     long arb_rel_accuracy_bits(const arb_t x)
     long arb_bits(const arb_t x)
@@ -989,6 +990,8 @@ cdef extern from "arb.h":
     void arb_sin_cos_pi_fmpq(arb_t s, arb_t c, const fmpq_t x, long prec)
     void arb_sin_pi_fmpq(arb_t s, const fmpq_t x, long prec)
     void arb_cos_pi_fmpq(arb_t c, const fmpq_t x, long prec)
+    void arb_sinc(arb_t s, const arb_t x, long prec)
+    void arb_sinc_pi(arb_t s, const arb_t x, long prec)
     void arb_sinh(arb_t z, const arb_t x, long prec)
     void arb_cosh(arb_t z, const arb_t x, long prec)
     void arb_sinh_cosh(arb_t s, arb_t c, const arb_t x, long prec)
@@ -1035,6 +1038,8 @@ cdef extern from "arb.h":
 
     void arb_partitions_fmpz(arb_t z, const fmpz_t n, long prec)
     void arb_partitions_ui(arb_t z, ulong n, long prec)
+
+    void arb_lambertw(arb_t z, const arb_t x, int flags, long prec)
 
 
     void arb_rising_ui_bs(arb_t y, const arb_t x, ulong n, long prec)
@@ -1193,6 +1198,7 @@ cdef extern from "acb.h":
     void acb_tanh(acb_t r, const acb_t z, long prec)
     void acb_coth(acb_t r, const acb_t z, long prec)
     void acb_sinc(acb_t r, const acb_t z, long prec)
+    void acb_sinc_pi(acb_t r, const acb_t z, long prec)
     void acb_pow_arb(acb_t z, const acb_t x, const arb_t y, long prec)
     void acb_pow(acb_t r, const acb_t x, const acb_t y, long prec)
     void acb_sqrt(acb_t y, const acb_t x, long prec)
@@ -1215,6 +1221,7 @@ cdef extern from "acb.h":
     void acb_polylog_si(acb_t w, long s, const acb_t z, long prec)
     void acb_agm1(acb_t m, const acb_t z, long prec)
     void acb_agm1_cpx(acb_ptr m, const acb_t z, long len, long prec)
+    void acb_expm1(acb_t r, const acb_t z, long prec)
     void acb_log1p(acb_t r, const acb_t z, long prec)
     void acb_asin(acb_t r, const acb_t z, long prec)
     void acb_acos(acb_t r, const acb_t z, long prec)
@@ -1227,6 +1234,8 @@ cdef extern from "acb.h":
     void acb_polygamma(acb_t w, const acb_t s, const acb_t z, long prec)
     void acb_log_barnes_g(acb_t w, const acb_t z, long prec)
     void acb_barnes_g(acb_t w, const acb_t z, long prec)
+
+    void acb_lambertw(acb_t z, const acb_t x, const fmpz_t k, int flags, long prec)
 
     long acb_rel_error_bits(const acb_t x)
     long acb_rel_accuracy_bits(const acb_t x)
@@ -1445,6 +1454,8 @@ cdef extern from "arb_poly.h":
     void arb_poly_cos_pi_series(arb_poly_t g, const arb_poly_t h, long n, long prec)
     void _arb_poly_cot_pi_series(arb_ptr g, arb_srcptr h, long hlen, long n, long prec)
     void arb_poly_cot_pi_series(arb_poly_t g, const arb_poly_t h, long n, long prec)
+
+    void arb_poly_lambertw_series(arb_poly_t res, const arb_poly_t z, int flags, long len, long prec)
 
 cdef extern from "arb_mat.h":
     ctypedef struct arb_mat_struct:
@@ -1710,6 +1721,8 @@ cdef extern from "acb_poly.h":
 
     void acb_poly_root_bound_fujiwara(mag_t bound, acb_poly_t poly)
 
+    void acb_poly_lambertw_series(acb_poly_t res, const acb_poly_t z, const fmpz_t k, int flags, long len, long prec)
+
 cdef extern from "acb_mat.h":
     ctypedef struct acb_mat_struct:
         acb_ptr entries
@@ -1965,4 +1978,20 @@ cdef extern from "acb_dirichlet.h":
 
     void acb_dirichlet_l(acb_t res, const acb_t s, const dirichlet_group_t G, const dirichlet_char_t chi, long prec)
     void acb_dirichlet_hardy_z(acb_ptr res, const acb_t t, const dirichlet_group_t G, const dirichlet_char_t chi, long len, long prec)
+
+cdef extern from "acb_elliptic.h":
+    void acb_elliptic_rf(acb_t res, const acb_t x, const acb_t y, const acb_t z, int flags, long prec)
+    void acb_elliptic_rj(acb_t res, const acb_t x, const acb_t y, const acb_t z, const acb_t p, int flags, long prec)
+    void acb_elliptic_rg(acb_t res, const acb_t x, const acb_t y, const acb_t z, int flags, long prec)
+    void acb_elliptic_f(acb_t res, const acb_t phi, const acb_t m, int times_pi, long prec)
+    void acb_elliptic_e_inc(acb_t res, const acb_t phi, const acb_t m, int times_pi, long prec)
+    void acb_elliptic_pi(acb_t res, const acb_t n, const acb_t m, long prec)
+    void acb_elliptic_pi_inc(acb_t res, const acb_t n, const acb_t phi, const acb_t m, int times_pi, long prec)
+    void acb_elliptic_p(acb_t res, const acb_t z, const acb_t tau, long prec)
+    void acb_elliptic_zeta(acb_t res, const acb_t z, const acb_t tau, long prec)
+    void acb_elliptic_sigma(acb_t res, const acb_t z, const acb_t tau, long prec)
+    void acb_elliptic_roots(acb_t e1, acb_t e2, acb_t e3, const acb_t tau, long prec)
+    void acb_elliptic_invariants(acb_t g2, acb_t g3, const acb_t tau, long prec)
+    void acb_elliptic_inv_p(acb_t res, const acb_t z, const acb_t tau, long prec)
+
 

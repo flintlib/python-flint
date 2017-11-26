@@ -723,6 +723,16 @@ cdef class arb(flint_scalar):
         arb_sin_cos_pi_fmpq((<arb>u).val, (<arb>v).val, (<fmpq>s).val, getprec())
         return u, v
 
+    def sinc(s):
+        u = arb.__new__(arb)
+        arb_sinc((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def sinc_pi(s):
+        u = arb.__new__(arb)
+        arb_sinc_pi((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
     def atan(s):
         r"""
         Computes the inverse tangent `\operatorname{atan}(s)`.
@@ -1564,4 +1574,22 @@ cdef class arb(flint_scalar):
 
     def rel_accuracy_bits(self):
         return arb_rel_accuracy_bits(self.val)
+
+    def lambertw(s, int branch=0):
+        cdef int flags
+        if branch == 0:
+            flags = 0
+        elif branch == -1:
+            flags = 1
+        else:
+            raise ValueError("invalid branch")
+        u = arb.__new__(arb)
+        arb_lambertw((<arb>u).val, (<arb>s).val, flags, getprec())
+        return u
+
+    def nonnegative_part(self):
+        res = arb.__new__(arb)
+        arb_set_round((<arb>res).val, (<arb>self).val, getprec())
+        arb_nonnegative_part((<arb>res).val, (<arb>res).val)
+        return res
 
