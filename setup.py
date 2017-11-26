@@ -31,7 +31,7 @@ setup(
     cmdclass={'build_ext': build_ext},
     ext_modules=ext_modules,
     description='bindings for FLINT',
-    version='0.1.2',
+    version='0.1.3',
     url='https://github.com/python-flint/python-flint',
     author='Fredrik Johansson',
     author_email='fredrik.johansson@gmail.com',
