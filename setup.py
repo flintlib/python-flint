@@ -8,6 +8,9 @@ from numpy.distutils.system_info import default_include_dirs, default_lib_dirs
 
 if sys.platform == 'win32':
     libraries = ["flint", "arb", "mpir", "mpfr", "pthreads"]
+    default_lib_dirs += [
+        os.path.join(d, "manual-link") for d in default_lib_dirs
+    ]
 else:
     libraries = ["flint", "arb"]
 
