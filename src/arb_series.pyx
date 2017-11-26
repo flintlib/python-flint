@@ -678,3 +678,19 @@ cdef class arb_series(flint_series):
         (<arb_series>u).prec = cap
         return u
 
+    def lambertw(s, int branch=0):
+        cdef int flags
+        cdef long cap
+        if branch == 0:
+            flags = 0
+        elif branch == -1:
+            flags = 1
+        else:
+            raise ValueError("invalid branch")
+        cap = getcap()
+        cap = min(cap, (<arb_series>s).prec)
+        u = arb_series.__new__(arb_series)
+        arb_poly_lambertw_series((<arb_series>u).val, (<arb_series>s).val, flags, cap, getprec())
+        (<arb_series>u).prec = cap
+        return u
+

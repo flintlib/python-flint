@@ -478,6 +478,11 @@ cdef class acb(flint_scalar):
         acb_exp_pi_i((<acb>u).val, (<acb>s).val, getprec())
         return u
 
+    def expm1(s):
+        u = acb.__new__(acb)
+        acb_expm1((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
     def sin(s):
         r"""
         Computes the sine `\sin(s)`.
@@ -621,6 +626,11 @@ cdef class acb(flint_scalar):
         acb_sinc((<acb>u).val, (<acb>s).val, getprec())
         return u
 
+    def sinc_pi(s):
+        u = acb.__new__(acb)
+        acb_sinc_pi((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
     def rising_ui(s, ulong n):
         """
         Computes the rising factorial `(s)_n` where *n* is an unsigned
@@ -650,7 +660,7 @@ cdef class acb(flint_scalar):
         return u, v
 
     @classmethod
-    def polylog(cls, acb s, acb z):
+    def polylog(cls, s, z):
         """
         Computes the polylogarithm `\operatorname{Li}_s(z)`.
 
@@ -660,12 +670,16 @@ cdef class acb(flint_scalar):
             -6.854984251829306907116775 + 7.375884252099214498443165j
         """
         u = acb.__new__(acb)
+        s = any_as_acb(s)
+        z = any_as_acb(z)
         acb_polylog((<acb>u).val, (<acb>s).val, (<acb>z).val, getprec())
         return u
 
     @classmethod
-    def polygamma(cls, acb s, acb z):
+    def polygamma(cls, s, z):
         u = acb.__new__(acb)
+        s = any_as_acb(s)
+        z = any_as_acb(z)
         acb_polygamma((<acb>u).val, (<acb>s).val, (<acb>z).val, getprec())
         return u
 
@@ -1297,5 +1311,168 @@ cdef class acb(flint_scalar):
     def log_sin_pi(s):
         u = acb.__new__(acb)
         acb_log_sin_pi((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    @classmethod
+    def elliptic_rf(cls, x, y, z):
+        r"""
+        """
+        x = any_as_acb(x)
+        y = any_as_acb(y)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_elliptic_rf((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>z).val, 0, getprec())
+        return u
+
+    @classmethod
+    def elliptic_rc(cls, x, y):
+        r"""
+        """
+        x = any_as_acb(x)
+        y = any_as_acb(y)
+        u = acb.__new__(acb)
+        acb_elliptic_rf((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>y).val, 0, getprec())
+        return u
+
+    @classmethod
+    def elliptic_rj(cls, x, y, z, p):
+        r"""
+        """
+        x = any_as_acb(x)
+        y = any_as_acb(y)
+        z = any_as_acb(z)
+        p = any_as_acb(p)
+        u = acb.__new__(acb)
+        acb_elliptic_rj((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>z).val, (<acb>p).val, 0, getprec())
+        return u
+
+    @classmethod
+    def elliptic_rd(cls, x, y, z):
+        r"""
+        """
+        x = any_as_acb(x)
+        y = any_as_acb(y)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_elliptic_rj((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>z).val, (<acb>z).val, 0, getprec())
+        return u
+
+    @classmethod
+    def elliptic_rg(cls, x, y, z):
+        r"""
+        """
+        x = any_as_acb(x)
+        y = any_as_acb(y)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_elliptic_rg((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>z).val, 0, getprec())
+        return u
+
+    @classmethod
+    def elliptic_f(cls, phi, m, bint pi=False):
+        r"""
+        """
+        phi = any_as_acb(phi)
+        m = any_as_acb(m)
+        u = acb.__new__(acb)
+        acb_elliptic_f((<acb>u).val, (<acb>phi).val, (<acb>m).val, pi, getprec())
+        return u
+
+    @classmethod
+    def elliptic_e_inc(cls, phi, m, bint pi=False):
+        r"""
+        """
+        phi = any_as_acb(phi)
+        m = any_as_acb(m)
+        u = acb.__new__(acb)
+        acb_elliptic_e_inc((<acb>u).val, (<acb>phi).val, (<acb>m).val, pi, getprec())
+        return u
+
+    @classmethod
+    def elliptic_pi(cls, n, m):
+        r"""
+        """
+        n = any_as_acb(n)
+        m = any_as_acb(m)
+        u = acb.__new__(acb)
+        acb_elliptic_pi((<acb>u).val, (<acb>n).val, (<acb>m).val, getprec())
+        return u
+
+    @classmethod
+    def elliptic_pi_inc(cls, n, phi, m, bint pi=False):
+        r"""
+        """
+        n = any_as_acb(n)
+        phi = any_as_acb(phi)
+        m = any_as_acb(m)
+        u = acb.__new__(acb)
+        acb_elliptic_pi_inc((<acb>u).val, (<acb>n).val, (<acb>phi).val, (<acb>m).val, pi, getprec())
+        return u
+
+    @classmethod
+    def elliptic_p(cls, z, tau):
+        r"""
+        """
+        z = any_as_acb(z)
+        tau = any_as_acb(tau)
+        u = acb.__new__(acb)
+        acb_elliptic_p((<acb>u).val, (<acb>z).val, (<acb>tau).val, getprec())
+        return u
+
+    @classmethod
+    def elliptic_zeta(cls, z, tau):
+        r"""
+        """
+        z = any_as_acb(z)
+        tau = any_as_acb(tau)
+        u = acb.__new__(acb)
+        acb_elliptic_zeta((<acb>u).val, (<acb>z).val, (<acb>tau).val, getprec())
+        return u
+
+    @classmethod
+    def elliptic_sigma(cls, z, tau):
+        r"""
+        """
+        z = any_as_acb(z)
+        tau = any_as_acb(tau)
+        u = acb.__new__(acb)
+        acb_elliptic_sigma((<acb>u).val, (<acb>z).val, (<acb>tau).val, getprec())
+        return u
+
+    @classmethod
+    def elliptic_inv_p(cls, z, tau):
+        r"""
+        """
+        z = any_as_acb(z)
+        tau = any_as_acb(tau)
+        u = acb.__new__(acb)
+        acb_elliptic_inv_p((<acb>u).val, (<acb>z).val, (<acb>tau).val, getprec())
+        return u
+
+    @classmethod
+    def elliptic_roots(cls, tau):
+        r"""
+        """
+        tau = any_as_acb(tau)
+        e1 = acb.__new__(acb)
+        e2 = acb.__new__(acb)
+        e3 = acb.__new__(acb)
+        acb_elliptic_roots((<acb>e1).val, (<acb>e2).val, (<acb>e3).val, (<acb>tau).val, getprec())
+        return (e1, e2, e3)
+
+    @classmethod
+    def elliptic_invariants(cls, tau):
+        r"""
+        """
+        tau = any_as_acb(tau)
+        g1 = acb.__new__(acb)
+        g2 = acb.__new__(acb)
+        acb_elliptic_invariants((<acb>g1).val, (<acb>g2).val, (<acb>tau).val, getprec())
+        return (g1, g2)
+
+    def lambertw(s, branch=0, int flags=0):
+        u = acb.__new__(acb)
+        k = any_as_fmpz(branch)
+        acb_lambertw((<acb>u).val, (<acb>s).val, (<fmpz>k).val, flags, getprec())
         return u
 
