@@ -8,7 +8,7 @@ for e in ext_modules:
     e.cython_directives  =  {"embedsignature":  True}
 
 setup(
-  name = 'flint',
+  name = 'python-flint',
   cmdclass = {'build_ext':build_ext},
   ext_modules = ext_modules,
   description = 'bindings for FLINT',
