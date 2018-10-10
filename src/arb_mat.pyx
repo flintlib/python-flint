@@ -93,6 +93,14 @@ cdef class arb_mat(flint_mat):
                     for j from 0 <= j < n:
                         x = any_as_arb(row[j])
                         arb_set(arb_mat_entry(self.val, i, j), (<arb>x).val)
+            elif hasattr(val, "rows"):   # allows conversion from mpmath matrices
+                m = val.rows
+                n = val.cols
+                arb_mat_init(self.val, m, n)
+                for i from 0 <= i < m:
+                    for j from 0 <= j < n:
+                        x = any_as_arb(val[i,j])
+                        arb_set(arb_mat_entry(self.val, i, j), (<arb>x).val)
             else:
                 raise TypeError("cannot create arb_mat from input of type %s" % type(val))
         elif len(args) == 2:

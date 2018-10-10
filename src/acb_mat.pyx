@@ -94,6 +94,14 @@ cdef class acb_mat(flint_mat):
                     for j from 0 <= j < n:
                         x = any_as_acb(row[j])
                         acb_set(acb_mat_entry(self.val, i, j), (<acb>x).val)
+            elif hasattr(val, "rows"):   # allows conversion from mpmath matrices
+                m = val.rows
+                n = val.cols
+                acb_mat_init(self.val, m, n)
+                for i from 0 <= i < m:
+                    for j from 0 <= j < n:
+                        x = any_as_acb(val[i,j])
+                        acb_set(acb_mat_entry(self.val, i, j), (<acb>x).val)
             else:
                 raise TypeError("cannot create acb_mat from input of type %s" % type(val))
         elif len(args) == 2:

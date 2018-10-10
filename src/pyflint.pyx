@@ -252,6 +252,9 @@ cdef class flint_mat(flint_elem):
         L = self.entries()
         return [L[i*n : (i+1)*n] for i in range(m)]
 
+    # supports mpmath conversions
+    tolist = table
+
 cdef class flint_series(flint_elem):
     """
     Base class for power series.

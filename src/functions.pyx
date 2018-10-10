@@ -64,7 +64,7 @@ def good(func, long prec=0, long maxprec=0, long dps=0,
             morebits *= 2
     finally:
         ctx.prec = orig
-    raise ValueError("no convergence")
+    raise ValueError("no convergence (maxprec=%i, try higher maxprec)" % maxprec)
 
 def showgood(func, **kwargs):
     kwargs["show"] = True
