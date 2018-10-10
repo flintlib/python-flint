@@ -65,6 +65,22 @@ cdef class fmpz_mat(flint_mat):
             val = args[0]
             if typecheck(val, fmpz_mat):
                 fmpz_mat_init_set(self.val, (<fmpz_mat>val).val)
+            elif isinstance(val, (list, tuple)):
+                m = len(val)
+                n = 0
+                if m != 0:
+                    if not isinstance(val[0], (list, tuple)):
+                        raise TypeError("single input to fmpz_mat must be a list of lists")
+                    n = len(val[0])
+                    for i from 1 <= i < m:
+                        if len(val[i]) != n:
+                            raise ValueError("input rows have different lengths")
+                fmpz_mat_init(self.val, m, n)
+                for i from 0 <= i < m:
+                    row = val[i]
+                    for j from 0 <= j < n:
+                        x = fmpz(row[j])
+                        fmpz_set(fmpz_mat_entry(self.val, i, j), (<fmpz>x).val)
             else:
                 raise TypeError("cannot create fmpz_mat from input of type %s" % type(val))
         elif len(args) == 2:

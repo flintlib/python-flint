@@ -78,6 +78,22 @@ cdef class acb_mat(flint_mat):
                 n = fmpq_mat_ncols((<fmpq_mat>val).val)
                 acb_mat_init(self.val, m, n)
                 acb_mat_set_fmpq_mat(self.val, (<fmpq_mat>val).val, getprec())
+            elif isinstance(val, (list, tuple)):
+                m = len(val)
+                n = 0
+                if m != 0:
+                    if not isinstance(val[0], (list, tuple)):
+                        raise TypeError("single input to acb_mat must be a list of lists")
+                    n = len(val[0])
+                    for i from 1 <= i < m:
+                        if len(val[i]) != n:
+                            raise ValueError("input rows have different lengths")
+                acb_mat_init(self.val, m, n)
+                for i from 0 <= i < m:
+                    row = val[i]
+                    for j from 0 <= j < n:
+                        x = any_as_acb(row[j])
+                        acb_set(acb_mat_entry(self.val, i, j), (<acb>x).val)
             else:
                 raise TypeError("cannot create acb_mat from input of type %s" % type(val))
         elif len(args) == 2:

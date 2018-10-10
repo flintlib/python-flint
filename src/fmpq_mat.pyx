@@ -43,6 +43,22 @@ cdef class fmpq_mat(flint_mat):
                 fmpq_mat_init(self.val, fmpz_mat_nrows((<fmpz_mat>val).val),
                                         fmpz_mat_ncols((<fmpz_mat>val).val))
                 fmpq_mat_set_fmpz_mat(self.val, (<fmpz_mat>val).val)
+            elif isinstance(val, (list, tuple)):
+                m = len(val)
+                n = 0
+                if m != 0:
+                    if not isinstance(val[0], (list, tuple)):
+                        raise TypeError("single input to fmpq_mat must be a list of lists")
+                    n = len(val[0])
+                    for i from 1 <= i < m:
+                        if len(val[i]) != n:
+                            raise ValueError("input rows have different lengths")
+                fmpq_mat_init(self.val, m, n)
+                for i from 0 <= i < m:
+                    row = val[i]
+                    for j from 0 <= j < n:
+                        x = fmpq(row[j])
+                        fmpq_set(fmpq_mat_entry(self.val, i, j), (<fmpq>x).val)
             else:
                 raise TypeError("cannot create fmpq_mat from input of type %s" % type(val))
         elif len(args) == 2:

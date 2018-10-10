@@ -3,6 +3,8 @@ import flint
 import operator
 import doctest
 
+ctx = flint.ctx
+
 def raises(f, exception):
     try:
         f()
@@ -50,8 +52,12 @@ def test_fmpz():
     assert isinstance(int(flint.fmpz(2)), int)
     assert long(flint.fmpz(2)) == 2
     assert isinstance(long(flint.fmpz(2)), long)
+    ctx.pretty = False
     assert repr(flint.fmpz(0)) == "fmpz(0)"
     assert repr(flint.fmpz(-27)) == "fmpz(-27)"
+    ctx.pretty = True
+    assert repr(flint.fmpz(0)) == "0"
+    assert repr(flint.fmpz(-27)) == "-27"
     assert bool(flint.fmpz(0)) == False
     assert bool(flint.fmpz(1)) == True
 
@@ -111,7 +117,9 @@ def test_fmpz_poly():
     assert Z([]).coeffs() == []
     assert bool(Z([])) == False
     assert bool(Z([1])) == True
+    ctx.pretty = False
     assert repr(Z([1,2])) == "fmpz_poly([1, 2])"
+    ctx.pretty = True
     assert str(Z([1,2])) == "2*x + 1"
     p = Z([3,4,5])
     assert p(2) == 31
@@ -150,7 +158,9 @@ def test_fmpz_mat():
     assert A*(B*C) == (A*B)*C
     assert bool(M(2,2,[0,0,0,0])) == False
     assert bool(M(2,2,[0,0,0,1])) == True
+    ctx.pretty = False
     assert repr(M(2,2,[1,2,3,4])) == 'fmpz_mat(2, 2, [1, 2, 3, 4])'
+    ctx.pretty = True
     assert str(M(2,2,[1,2,3,4])) == '[1, 2]\n[3, 4]'
     assert M(1,2,[3,4]) * flint.fmpq(1,3) == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
     assert flint.fmpq(1,3) * M(1,2,[3,4]) == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
@@ -163,6 +173,9 @@ def test_fmpz_mat():
     assert raises(lambda: M(1,2) ** 3, ValueError)
     assert raises(lambda: M(1,1) ** M(1,1), TypeError)
     assert raises(lambda: 1 ** M(1,1), TypeError)
+    assert raises(lambda: M([1]), TypeError)
+    assert raises(lambda: M([[1],[2,3]]), ValueError)
+    assert M([[1,2,3],[4,5,6]]) == M(2,3,[1,2,3,4,5,6])
 
 def test_fmpq():
     Q = flint.fmpq
@@ -192,7 +205,9 @@ def test_fmpq():
     assert 5 / Q(2,3) == Q(15,2)
     assert flint.fmpz(5) / Q(2,3) == Q(15,2)
     assert operator.truediv(Q(2,3), 5) == Q(2,15)
+    ctx.pretty = False
     assert repr(Q(-2,3)) == "fmpq(-2,3)"
+    ctx.pretty = True
     assert str(Q(-2,3)) == "-2/3"
     assert Q(2,3).p == Q(2,3).numer() == 2
     assert Q(2,3).q == Q(2,3).denom() == 3
@@ -244,7 +259,9 @@ def test_fmpq_poly():
     assert Q([1,2]).length() == 2
     assert (Q([1,2,3]) / 5).numer() == (Q([1,2,3]) / 5).p == Z([1,2,3])
     assert (Q([1,2,3]) / 5).denom() == (Q([1,2,3]) / 5).q == 5
+    ctx.pretty = False
     assert repr(Q([15,20,10]) / 25) == "fmpq_poly([3, 4, 2], 5)"
+    ctx.pretty = True
     assert str(Q([3,4,2],5)) == "2/5*x^2 + 4/5*x + 3/5"
     a = Q([2,2,3],4)
     assert a[2] == flint.fmpq(3,4)
@@ -288,6 +305,9 @@ def test_fmpq_mat():
     assert ~~Q(2,2,[1,2,3,4]) == Q(2,2,[1,2,3,4])
     assert raises(lambda: ~Q(2,2,[1,1,1,1]), ZeroDivisionError)
     assert raises(lambda: ~Q(2,1,[1,1]), ValueError)
+    assert raises(lambda: Q([1]), TypeError)
+    assert raises(lambda: Q([[1],[2,3]]), ValueError)
+    assert Q([[1,2,3],[4,5,6]]) == Q(2,3,[1,2,3,4,5,6])
 
 def test_nmod():
     G = flint.nmod
@@ -388,13 +408,17 @@ def test_nmod_mat():
     assert A*(B*C) == (A*B)*C
     assert bool(M(2,2,[0,0,0,0],17)) == False
     assert bool(M(2,2,[0,0,0,1],17)) == True
+    ctx.pretty = False
     assert repr(M(2,2,[1,2,3,4],17)) == 'nmod_mat(2, 2, [1, 2, 3, 4], 17)'
+    ctx.pretty = True
     assert str(M(2,2,[1,2,3,4],17)) == '[1, 2]\n[3, 4]'
     assert M(1,2,[3,4],17) / 3 == M(1,2,[3,4],17) * (~G(3,17))
     assert (~M(2,2,[1,2,3,4], 17)).det() == ~(M(2,2,[1,2,3,4], 17).det())
     assert ~~M(2,2,[1,2,3,4], 17) == M(2,2,[1,2,3,4], 17)
     assert M(2,2,[0,1,2,3],17) * M(2, 2, [2,3,4,5], 17) == M(2,2,[4,5,16,4],17)
-
+    assert raises(lambda: M([1], 5), TypeError)
+    assert raises(lambda: M([[1],[2,3]], 5), ValueError)
+    assert M([[1,2,3],[4,5,6]], 5) == M(2,3,[1,2,3,4,5,6], 5)
 
 if __name__ == "__main__":
     sys.stdout.write("test_fmpz..."); test_fmpz(); print("OK")
