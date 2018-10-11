@@ -680,6 +680,7 @@ cdef extern from "mag.h":
     void mag_clear(mag_t x)
     void mag_zero(mag_t x)
     void mag_set(mag_t x, const mag_t y)
+    void mag_set_ui_2exp_si(mag_t x, ulong v, long e)
 
 cdef extern from "arf.h":
     ctypedef struct arf_struct:
@@ -751,7 +752,7 @@ cdef extern from "arf.h":
     int arf_set_round_fmpz_2exp(arf_t y, const fmpz_t x, const fmpz_t exp, long prec, arf_rnd_t rnd)
     void arf_abs_bound_lt_2exp_fmpz(fmpz_t b, const arf_t x)
     void arf_abs_bound_le_2exp_fmpz(fmpz_t b, const arf_t x)
-    arf_abs_bound_lt_2exp_si(const arf_t x)
+    long arf_abs_bound_lt_2exp_si(const arf_t x)
     void arf_get_fmpz_2exp(fmpz_t man, fmpz_t exp, const arf_t x)
     void arf_get_fmpz(fmpz_t z, const arf_t x, arf_rnd_t rnd)
     long arf_get_si(const arf_t x, arf_rnd_t rnd)
@@ -1151,6 +1152,21 @@ cdef extern from "acb.h":
     void acb_abs(arb_t u, const acb_t z, long prec)
     void acb_sgn(acb_t u, const acb_t z, long prec)
     void acb_csgn(arb_t u, const acb_t z)
+
+    void acb_real_abs(acb_t res, const acb_t z, int analytic, long prec)
+    void acb_real_sgn(acb_t res, const acb_t z, int analytic, long prec)
+    void acb_real_heaviside(acb_t res, const acb_t z, int analytic, long prec)
+    void acb_real_floor(acb_t res, const acb_t z, int analytic, long prec)
+    void acb_real_ceil(acb_t res, const acb_t z, int analytic, long prec)
+    void acb_real_max(acb_t res, const acb_t x, const acb_t y, int analytic, long prec)
+    void acb_real_min(acb_t res, const acb_t x, const acb_t y, int analytic, long prec)
+    void acb_real_sqrtpos(acb_t res, const acb_t z, int analytic, long prec)
+
+    void acb_sqrt_analytic(acb_t res, const acb_t z, int analytic, long prec)
+    void acb_rsqrt_analytic(acb_t res, const acb_t z, int analytic, long prec)
+    void acb_log_analytic(acb_t res, const acb_t z, int analytic, long prec)
+    void acb_pow_analytic(acb_t res, const acb_t z, const acb_t w, int analytic, long prec)
+
     void acb_mul_ui(acb_t z, const acb_t x, ulong y, long prec)
     void acb_mul_si(acb_t z, const acb_t x, long y, long prec)
     void acb_mul_fmpz(acb_t z, const acb_t x, const fmpz_t y, long prec)
@@ -2001,5 +2017,25 @@ cdef extern from "acb_elliptic.h":
     void acb_elliptic_roots(acb_t e1, acb_t e2, acb_t e3, const acb_t tau, long prec)
     void acb_elliptic_invariants(acb_t g2, acb_t g3, const acb_t tau, long prec)
     void acb_elliptic_inv_p(acb_t res, const acb_t z, const acb_t tau, long prec)
+
+cdef extern from "acb_calc.h":
+    ctypedef int (*acb_calc_func_t)(acb_ptr out, const acb_t inp, void * param, long order, long prec)
+
+    ctypedef struct acb_calc_integrate_opt_struct:
+        long deg_limit
+        long eval_limit
+        long depth_limit
+        int use_heap
+        int verbose
+
+    ctypedef acb_calc_integrate_opt_struct acb_calc_integrate_opt_t[1]
+
+    void acb_calc_integrate_opt_init(acb_calc_integrate_opt_t options)
+
+    int acb_calc_integrate(acb_t res, acb_calc_func_t f, void * param,
+        const acb_t a, const acb_t b,
+        long goal, const mag_t tol,
+        const acb_calc_integrate_opt_t options,
+        long prec)
 
 

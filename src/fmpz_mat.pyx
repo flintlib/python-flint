@@ -404,22 +404,22 @@ cdef class fmpz_mat(flint_mat):
         Returns the inverse of the matrix, which by default will
         be of type fmpq_mat::
 
-        >>> fmpz_mat(3,3,[1,2,4,0,1,1,2,-1,0]).inv()
-        [-1/3,  4/3,  2/3]
-        [-2/3,  8/3,  1/3]
-        [ 2/3, -5/3, -1/3]
+            >>> fmpz_mat(3,3,[1,2,4,0,1,1,2,-1,0]).inv()
+            [-1/3,  4/3,  2/3]
+            [-2/3,  8/3,  1/3]
+            [ 2/3, -5/3, -1/3]
 
         If *integer* is set, returns the inverse as an fmpz_mat,
         or raises an exception if the matrix is not invertible
         over the integers.
 
-        >>> fmpz_mat([[5,1],[19,4]]).inv(integer=True)
-        [  4, -1]
-        [-19,  5]
-        >>> fmpz_mat([[5,1],[19,5]]).inv(integer=True)
-        Traceback (most recent call last):
-          ...
-        ValueError: matrix is not invertible over the integers
+            >>> fmpz_mat([[5,1],[19,4]]).inv(integer=True)
+            [  4, -1]
+            [-19,  5]
+            >>> fmpz_mat([[5,1],[19,5]]).inv(integer=True)
+            Traceback (most recent call last):
+              ...
+            ValueError: matrix is not invertible over the integers
 
         """
         cdef fmpz_mat_t tmp

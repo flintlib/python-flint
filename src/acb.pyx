@@ -50,6 +50,38 @@ def any_as_arb_or_acb(x):
     except (TypeError, ValueError):
         return acb(x)
 
+
+# Copied with modifications from sage/rings/complex_arb.pyx
+cdef class IntegrationContext:
+    cdef object f
+    cdef object exn_type
+    cdef object exn_obj
+    cdef object exn_tb
+
+cdef int acb_calc_func_callback(acb_ptr out, const acb_t inp, void * param, long order, long prec):
+    cdef IntegrationContext ictx
+    cdef acb x
+    try:
+        ictx = <IntegrationContext>param
+        if ictx.exn_type is not None or order >= 2:
+            acb_indeterminate(out)
+            return 0
+        x = acb.__new__(acb)
+        acb_set(x.val, inp)
+        try:
+            y = ictx.f(x, (order == 1))
+            if not typecheck(y, acb):
+                raise TypeError("integrand must return an acb")
+            acb_set(out, (<acb> y).val)
+        except:
+            import sys
+            ictx.exn_type, ictx.exn_obj, ictx.exn_tb = sys.exc_info()
+            acb_indeterminate(out)
+        return 0
+    finally:
+        pass
+
+
 cdef class acb(flint_scalar):
 
     cdef acb_t val
@@ -258,7 +290,13 @@ cdef class acb(flint_scalar):
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 
-    def log(s):
+    def pow(s, t, bint analytic=False):
+        t = any_as_acb(t)
+        u = acb.__new__(acb)
+        acb_pow_analytic((<acb>u).val, (<acb>s).val, (<acb>t).val, analytic, getprec())
+        return u
+
+    def log(s, bint analytic=False):
         r"""
         Computes the natural logarithm `\log(s)`.
 
@@ -268,7 +306,7 @@ cdef class acb(flint_scalar):
             1.609437912434100374600759 + 3.141592653589793238462643j
         """
         u = acb.__new__(acb)
-        acb_log((<acb>u).val, (<acb>s).val, getprec())
+        acb_log_analytic((<acb>u).val, (<acb>s).val, analytic, getprec())
         return u
 
     def log1p(s):
@@ -430,7 +468,7 @@ cdef class acb(flint_scalar):
 
     pi = const_pi
 
-    def sqrt(s):
+    def sqrt(s, bint analytic=False):
         r"""
         Computes the square root `\sqrt{s}`.
 
@@ -438,10 +476,10 @@ cdef class acb(flint_scalar):
             1.272019649514068964252422 + 0.7861513777574232860695586j
         """
         u = acb.__new__(acb)
-        acb_sqrt((<acb>u).val, (<acb>s).val, getprec())
+        acb_sqrt_analytic((<acb>u).val, (<acb>s).val, analytic, getprec())
         return u
 
-    def rsqrt(s):
+    def rsqrt(s, bint analytic=False):
         r"""
         Computes the reciprocal square root `1/\sqrt{s}`.
 
@@ -449,7 +487,7 @@ cdef class acb(flint_scalar):
             0.5688644810057831072783079 - 0.3515775842541429284870573j
         """
         u = acb.__new__(acb)
-        acb_rsqrt((<acb>u).val, (<acb>s).val, getprec())
+        acb_rsqrt_analytic((<acb>u).val, (<acb>s).val, analytic, getprec())
         return u
 
     def exp(s):
@@ -1473,4 +1511,142 @@ cdef class acb(flint_scalar):
         k = any_as_fmpz(branch)
         acb_lambertw((<acb>u).val, (<acb>s).val, (<fmpz>k).val, flags, getprec())
         return u
+
+    def real_abs(s, bint analytic=False):
+        r"""
+        Absolute value of a real variable, extended to a piecewise complex
+        analytic function. This function is useful for integration.
+        """
+        u = acb.__new__(acb)
+        acb_real_abs((<acb>u).val, (<acb>s).val, analytic, getprec())
+        return u
+
+    def real_sgn(s, bint analytic=False):
+        r"""
+        Sign function of a real variable, extended to a piecewise complex
+        analytic function. This function is useful for integration.
+        """
+        u = acb.__new__(acb)
+        acb_real_sgn((<acb>u).val, (<acb>s).val, analytic, getprec())
+        return u
+
+    def real_heaviside(s, bint analytic=False):
+        r"""
+        Heaviside step function of a real variable, extended to a piecewise complex
+        analytic function. This function is useful for integration.
+        """
+        u = acb.__new__(acb)
+        acb_real_heaviside((<acb>u).val, (<acb>s).val, analytic, getprec())
+        return u
+
+    def real_floor(s, bint analytic=False):
+        r"""
+        Floor function of a real variable, extended to a piecewise complex
+        analytic function. This function is useful for integration.
+        """
+        u = acb.__new__(acb)
+        acb_real_floor((<acb>u).val, (<acb>s).val, analytic, getprec())
+        return u
+
+    def real_ceil(s, bint analytic=False):
+        r"""
+        Ceiling function of a real variable, extended to a piecewise complex
+        analytic function. This function is useful for integration.
+        """
+        u = acb.__new__(acb)
+        acb_real_ceil((<acb>u).val, (<acb>s).val, analytic, getprec())
+        return u
+
+    def real_max(s, t, bint analytic=False):
+        r"""
+        Maximum value of two real variables, extended to a piecewise complex
+        analytic function. This function is useful for integration.
+        """
+        u = acb.__new__(acb)
+        acb_real_max((<acb>u).val, (<acb>s).val, (<acb>t).val, analytic, getprec())
+        return u
+
+    def real_min(s, t, bint analytic=False):
+        r"""
+        Minimum value of two real variables, extended to a piecewise complex
+        analytic function. This function is useful for integration.
+        """
+        u = acb.__new__(acb)
+        acb_real_min((<acb>u).val, (<acb>s).val, (<acb>t).val, analytic, getprec())
+        return u
+
+    def real_sqrt(s, bint analytic=False):
+        r"""
+        Square root of a real variable assumed to be nonnegative, extended
+        to a piecewise complex analytic function. This function is
+        useful for integration.
+        """
+        u = acb.__new__(acb)
+        acb_real_sqrtpos((<acb>u).val, (<acb>s).val, analytic, getprec())
+        return u
+
+    @classmethod
+    def integral(cls, func, a, b, params=None,
+            rel_tol=None, abs_tol=None,
+            deg_limit=None, eval_limit=None, depth_limit=None,
+            use_heap=None, verbose=None):
+
+        cdef IntegrationContext ictx = IntegrationContext()
+        cdef acb_calc_integrate_opt_t arb_opts
+        cdef long cgoal, prec
+        cdef mag_t ctol
+        cdef arb tmp
+        cdef acb ca, cb, res
+
+        ca = any_as_acb(a)
+        cb = any_as_acb(b)
+
+        mag_init(ctol)
+
+        ictx.f = func
+        ictx.exn_type = None
+
+        acb_calc_integrate_opt_init(arb_opts)
+        if deg_limit is not None:
+            arb_opts.deg_limit = deg_limit
+        if eval_limit is not None:
+            arb_opts.eval_limit = eval_limit
+        if depth_limit is not None:
+            arb_opts.depth_limit = depth_limit
+        if use_heap is not None:
+            arb_opts.use_heap = use_heap
+        if verbose is not None:
+            arb_opts.verbose = verbose
+
+        prec = ctx.prec
+
+        if rel_tol is None:
+            cgoal = prec
+        else:
+            tmp = any_as_arb(rel_tol)
+            cgoal = arf_abs_bound_lt_2exp_si(arb_midref(tmp.val))
+            cgoal = -cgoal
+
+        if abs_tol is None:
+            mag_set_ui_2exp_si(ctol, 1, -prec)
+        else:
+            tmp = any_as_arb(abs_tol)
+            arb_get_mag(ctol, tmp.val)
+
+        res = acb.__new__(acb)
+
+        try:
+            acb_calc_integrate(
+                    res.val,
+                    <acb_calc_func_t> acb_calc_func_callback,
+                    <void *> ictx,
+                    ca.val, cb.val,
+                    cgoal, ctol, arb_opts, prec)
+        finally:
+            mag_clear(ctol)
+
+        if ictx.exn_type is not None:
+            raise ictx.exn_type, ictx.exn_obj, ictx.exn_tb
+
+        return res
 
