@@ -162,6 +162,16 @@ cdef class acb_mat(flint_mat):
         c = any_as_acb(value)
         acb_set(acb_mat_entry(self.val, i, j), (<acb>c).val)
 
+    def transpose(self):
+        """
+        Returns the transpose of self.
+        """
+        cdef acb_mat u
+        u = acb_mat.__new__(acb_mat)
+        acb_mat_init(u.val, acb_mat_ncols(self.val), acb_mat_nrows(self.val))
+        acb_mat_transpose(u.val, self.val)
+        return u
+
     def det(s):
         """
         Returns the determinant of s as an acb.

@@ -631,27 +631,28 @@ cdef class acb(flint_scalar):
         acb_sinc_pi((<acb>u).val, (<acb>s).val, getprec())
         return u
 
-    def rising_ui(s, ulong n):
+    def rising(s, n):
         """
-        Computes the rising factorial `(s)_n` where *n* is an unsigned
-        integer. The current implementation does not use the gamma function,
-        so *n* should be moderate.
+        Computes the rising factorial `(s)_n`.
 
-            >>> showgood(lambda: acb(1,2).rising_ui(5), dps=25)
+            >>> showgood(lambda: acb(1,2).rising(5), dps=25)
             -540.0000000000000000000000 - 100.0000000000000000000000j
+            >>> showgood(lambda: acb(1,2).rising(2+3j), dps=25)
+            0.3898076751098812033498554 - 0.01296289149274537721607465j
         """
         u = acb.__new__(acb)
-        acb_rising_ui((<acb>u).val, (<acb>s).val, n, getprec())
+        n = any_as_acb(n)
+        acb_rising((<acb>u).val, (<acb>s).val, (<acb>n).val, getprec())
         return u
 
-    def rising2_ui(s, ulong n):
+    def rising2(s, ulong n):
         """
         Computes the rising factorial `(s)_n` where *n* is an unsigned
         integer, along with the first derivative with respect to `(s)_n`.
         The current implementation does not use the gamma function,
         so *n* should be moderate.
 
-            >>> showgood(lambda: acb(1,2).rising2_ui(5), dps=25)
+            >>> showgood(lambda: acb(1,2).rising2(5), dps=25)
             (-540.0000000000000000000000 - 100.0000000000000000000000j, -666.0000000000000000000000 + 420.0000000000000000000000j)
         """
         u = acb.__new__(acb)
@@ -699,9 +700,6 @@ cdef class acb(flint_scalar):
         Computes the generalized hypergeometric function `{}_pF_q(a;b;z)`
         given lists of complex numbers `a` and `b` and a complex number `z`.
 
-        Currently, the implementation only uses direct summation
-        of the hypergeometric series. No analytic continuation is performed,
-        and no asymptotic expansions are used.
         The optional parameter *n*, if nonnegative, controls the number
         of terms to add in the hypergeometric series. This is just a tuning
         parameter: a rigorous error bound is computed regardless of *n*.

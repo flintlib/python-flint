@@ -413,8 +413,8 @@ def test_nmod_mat():
     ctx.pretty = True
     assert str(M(2,2,[1,2,3,4],17)) == '[1, 2]\n[3, 4]'
     assert M(1,2,[3,4],17) / 3 == M(1,2,[3,4],17) * (~G(3,17))
-    assert (~M(2,2,[1,2,3,4], 17)).det() == ~(M(2,2,[1,2,3,4], 17).det())
-    assert ~~M(2,2,[1,2,3,4], 17) == M(2,2,[1,2,3,4], 17)
+    assert M(2,2,[1,2,3,4], 17).inv().det() == ~(M(2,2,[1,2,3,4], 17).det())
+    assert M(2,2,[1,2,3,4], 17).inv().inv() == M(2,2,[1,2,3,4], 17)
     assert M(2,2,[0,1,2,3],17) * M(2, 2, [2,3,4,5], 17) == M(2,2,[4,5,16,4],17)
     assert raises(lambda: M([1], 5), TypeError)
     assert raises(lambda: M([[1],[2,3]], 5), ValueError)

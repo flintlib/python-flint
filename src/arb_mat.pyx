@@ -161,6 +161,16 @@ cdef class arb_mat(flint_mat):
         c = any_as_arb(value)
         arb_set(arb_mat_entry(self.val, i, j), (<arb>c).val)
 
+    def transpose(self):
+        """
+        Returns the transpose of self.
+        """
+        cdef arb_mat u
+        u = arb_mat.__new__(arb_mat)
+        arb_mat_init(u.val, arb_mat_ncols(self.val), arb_mat_nrows(self.val))
+        arb_mat_transpose(u.val, self.val)
+        return u
+
     def det(s):
         """
         Returns the determinant of s as an arb.

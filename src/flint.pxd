@@ -1047,6 +1047,7 @@ cdef extern from "arb.h":
     void arb_rising_ui_rec(arb_t y, const arb_t x, ulong n, long prec)
     void arb_rising_ui(arb_t z, const arb_t x, ulong n, long prec)
     void arb_rising_fmpq_ui(arb_t y, const fmpq_t x, ulong n, long prec)
+    void arb_rising(arb_t y, const arb_t x, const arb_t n, long prec)
 
     void arb_rising2_ui_rs(arb_t u, arb_t v, const arb_t x, ulong n, ulong m, long prec)
     void arb_rising2_ui_bs(arb_t u, arb_t v, const arb_t x, ulong n, long prec)
@@ -1211,6 +1212,8 @@ cdef extern from "acb.h":
     void acb_rising2_ui_rs(acb_t u, acb_t v, const acb_t x, ulong n, ulong m, long prec)
     void acb_rising2_ui(acb_t u, acb_t v, const acb_t x, ulong n, long prec)
     void acb_rising_ui_get_mag(mag_t bound, const acb_t s, ulong n)
+    void acb_rising(acb_t y, const acb_t x, const acb_t n, long prec)
+
     void acb_gamma(acb_t y, const acb_t x, long prec)
     void acb_rgamma(acb_t y, const acb_t x, long prec)
     void acb_lgamma(acb_t y, const acb_t x, long prec)
@@ -1517,6 +1520,8 @@ cdef extern from "arb_mat.h":
     void _arb_mat_charpoly(arb_ptr cp, const arb_mat_t mat, long prec)
     void arb_mat_charpoly(arb_poly_t cp, const arb_mat_t mat, long prec)
 
+    void arb_mat_transpose(arb_mat_t B, const arb_mat_t A)
+
 
 cdef extern from "acb_poly.h":
     ctypedef struct acb_poly_struct:
@@ -1782,6 +1787,9 @@ cdef extern from "acb_mat.h":
 
     void _acb_mat_charpoly(acb_ptr cp, const acb_mat_t mat, long prec)
     void acb_mat_charpoly(acb_poly_t cp, const acb_mat_t mat, long prec)
+
+    void acb_mat_transpose(acb_mat_t B, const acb_mat_t A)
+    
 
 cdef extern from "acb_modular.h":
     void acb_modular_theta(acb_t theta1, acb_t theta2, acb_t theta3, acb_t theta4, const acb_t z, const acb_t tau, long prec)

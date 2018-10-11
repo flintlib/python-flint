@@ -413,27 +413,15 @@ cdef class fmpz(flint_scalar):
         fmpz_fib_ui((<fmpz>u).val, n)
         return u
 
-    def rising_ui(s, ulong n):
+    def rising(s, ulong n):
         r"""
         Returns the rising factorial `s (s+1) \cdots (s+n-1)` as an *fmpz*.
 
-            >>> fmpz(10).rising_ui(5)
+            >>> fmpz(10).rising(5)
             fmpz(240240)
         """
         u = fmpz.__new__(fmpz)
         fmpz_rfac_ui((<fmpz>u).val, (<fmpz>s).val, n)
-        return u
-
-    @classmethod
-    def rising_uiui(cls, ulong s, ulong n):
-        r"""
-        Returns the rising factorial `s (s+1) \cdots (s+n-1)` as an *fmpz*.
-
-            >>> fmpz.rising_uiui(10,5)
-            fmpz(240240)
-        """
-        u = fmpz.__new__(fmpz)
-        fmpz_rfac_uiui((<fmpz>u).val, s, n)
         return u
 
     @classmethod

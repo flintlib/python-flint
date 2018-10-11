@@ -424,7 +424,7 @@ cdef class acb_series(flint_series):
         (<acb_series>u).prec = cap
         return u
 
-    def rising_ui(s, ulong n):
+    def rising(s, ulong n):
         cdef long cap
         cap = getcap()
         cap = min(cap, (<acb_series>s).prec)

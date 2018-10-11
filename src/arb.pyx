@@ -925,19 +925,20 @@ cdef class arb(flint_scalar):
         arb_digamma((<arb>u).val, (<arb>s).val, getprec())
         return u
 
-    def rising_ui(s, ulong n):
+    def rising(s, n):
         """
-        Computes the rising factorial `(s)_n` where *n* is an unsigned
-        integer. The current implementation does not use the gamma function,
-        so *n* should be moderate.
+        Computes the rising factorial `(s)_n`.
 
-            >>> showgood(lambda: arb.pi().rising_ui(0), dps=25)
+            >>> showgood(lambda: arb.pi().rising(0), dps=25)
             1.000000000000000000000000
-            >>> showgood(lambda: arb.pi().rising_ui(10), dps=25)
+            >>> showgood(lambda: arb.pi().rising(10), dps=25)
             299606572.3661012684972888
+            >>> showgood(lambda: arb.pi().rising(0.5), dps=25)
+            1.703592785410167015590330
         """
         u = arb.__new__(arb)
-        arb_rising_ui((<arb>u).val, (<arb>s).val, n, getprec())
+        n = any_as_arb(n)
+        arb_rising((<arb>u).val, (<arb>s).val, (<arb>n).val, getprec())
         return u
 
     @classmethod
@@ -954,14 +955,14 @@ cdef class arb(flint_scalar):
         arb_rising_fmpq_ui((<arb>u).val, (<fmpq>s).val, n, getprec())
         return u
 
-    def rising2_ui(s, ulong n):
+    def rising2(s, ulong n):
         """
         Computes the rising factorial `(s)_n` where *n* is an unsigned
         integer, along with the first derivative with respect to `(s)_n`.
         The current implementation does not use the gamma function,
         so *n* should be moderate.
 
-            >>> u, v = arb(3).rising2_ui(5)
+            >>> u, v = arb(3).rising2(5)
             >>> print(u); print(v)
             2520.00000000000
             2754.00000000000
