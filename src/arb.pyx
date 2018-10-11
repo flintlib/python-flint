@@ -1,9 +1,3 @@
-try:
-    import mpmath
-    mpmath_mpz = mpmath.libmp.MPZ
-except ImportError:
-    mpmath_mpz = long
-
 def _str_trunc(s, trunc=0):
     if trunc > 0 and len(s) > 3 * trunc:
         left = right = trunc
@@ -210,6 +204,11 @@ cdef class arb(flint_scalar):
 
     @property
     def _mpf_(self):
+        try:
+            import mpmath
+            mpmath_mpz = mpmath.libmp.MPZ
+        except ImportError:
+            mpmath_mpz = long
         if not self.is_finite():
             return (0, mpmath_mpz(0), -123, -1)
         man, exp = self.mid().man_exp()

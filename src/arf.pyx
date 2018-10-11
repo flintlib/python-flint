@@ -90,11 +90,9 @@ cdef class arf:
 
     def _dec_str(self, num_digits=None):
         if arf_is_normal(self.val):
-            from mpmath.libmp import from_man_exp, to_str, prec_to_dps
             if num_digits is None:
                 num_digits = prec_to_dps(getprec())
-            man, exp = self.man_exp()
-            return to_str(from_man_exp(int(man), int(exp)), num_digits)
+            return arb(self).str(num_digits, radius=False)
         elif arf_is_zero(self.val):
             return "0.0"
         elif arf_is_pos_inf(self.val):

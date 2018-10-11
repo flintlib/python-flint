@@ -33,10 +33,10 @@ setup(
     name='python-flint',
     cmdclass={'build_ext': build_ext},
     ext_modules=ext_modules,
-    description='bindings for FLINT',
+    description='Bindings for FLINT and Arb',
     version='0.1.3',
     url='https://github.com/python-flint/python-flint',
     author='Fredrik Johansson',
     author_email='fredrik.johansson@gmail.com',
-    license='BSD',
+    license='MIT',
     classifiers=['Topic :: Scientific/Engineering :: Mathematics'])
