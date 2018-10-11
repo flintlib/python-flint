@@ -283,7 +283,7 @@ cdef class nmod_mat:
     def __truediv__(nmod_mat s, t):
         return nmod_mat.__div__(s, t)
 
-    def __invert__(self):
+    def inv(self):
         cdef nmod_mat u
         if not nmod_mat_is_square(self.val):
             raise ValueError("matrix must be square")

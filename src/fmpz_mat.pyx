@@ -7,46 +7,53 @@ cdef class fmpz_mat(flint_mat):
     """
     The fmpz_mat type represents dense matrices over the integers.
 
-    An fmpz_mat can be constructed empty, from a list of entries
-    in row-major order, or from an existing matrix::
+    An fmpz_mat can be constructed empty, from a list of entries in
+    row-major order, from a list of lists, or from an existing matrix::
 
         >>> fmpz_mat(2, 4)
-        fmpz_mat(2, 4, [0, 0, 0, 0, 0, 0, 0, 0])
+        [0, 0, 0, 0]
+        [0, 0, 0, 0]
         >>> A = fmpz_mat(2, 4, range(8))
-        >>> print(A)
+        >>> A
         [0, 1, 2, 3]
         [4, 5, 6, 7]
         >>> fmpz_mat(A) == A
         True
+        >>> fmpz_mat([[1,2,3],[4,5,6]])
+        [1, 2, 3]
+        [4, 5, 6]
 
     Entries can be accessed and set::
 
         >>> A[0,1]
-        fmpz(1)
+        1
         >>> A[1,3] = 8
         >>> A
-        fmpz_mat(2, 4, [0, 1, 2, 3, 4, 5, 6, 8])
+        [0, 1, 2, 3]
+        [4, 5, 6, 8]
 
     Arithmetic operations are supported::
 
         >>> A * 3
-        fmpz_mat(2, 4, [0, 3, 6, 9, 12, 15, 18, 24])
+        [ 0,  3,  6,  9]
+        [12, 15, 18, 24]
         >>> A + (-A)
-        fmpz_mat(2, 4, [0, 0, 0, 0, 0, 0, 0, 0])
+        [0, 0, 0, 0]
+        [0, 0, 0, 0]
         >>> A * fmpz_mat(4, 3, range(12))
-        fmpz_mat(2, 3, [42, 48, 54, 123, 146, 169])
+        [ 42,  48,  54]
+        [123, 146, 169]
         >>> A * fmpz_mat(3, 3, range(9))
         Traceback (most recent call last):
           ...
         ValueError: incompatible shapes for matrix multiplication
 
-    The ~ operator returns the inverse of the matrix, which will
-    be of type fmpq_mat::
+    Disabling pretty-printing::
 
-        >>> print(~fmpz_mat(3,3,[1,2,4,0,1,1,2,-1,0]))
-        [-1/3,  4/3,  2/3]
-        [-2/3,  8/3,  1/3]
-        [ 2/3, -5/3, -1/3]
+        >>> ctx.pretty = False
+        >>> fmpz_mat([[1,2,3],[4,5,6]])
+        fmpz_mat(2, 3, [1, 2, 3, 4, 5, 6])
+        >>> ctx.pretty = True
 
     """
 
@@ -154,14 +161,14 @@ cdef class fmpz_mat(flint_mat):
 
             >>> A = fmpz_mat(3, 3, range(9))
             >>> A.det()
-            fmpz(0)
+            0
             >>> A[2,2] = 10
             >>> A.det()
-            fmpz(-6)
+            -6
             >>> (A * A).det()
-            fmpz(36)
+            36
             >>> fmpz_mat(0, 0).det()
-            fmpz(1)
+            1
 
         """
         cdef fmpz d
@@ -281,17 +288,17 @@ cdef class fmpz_mat(flint_mat):
         construct a Hadamard matrix of the specified size, even if one exists.
         It always succeeds if *n* is a power of two.
 
-            >>> print fmpz_mat.hadamard(1)
+            >>> fmpz_mat.hadamard(1)
             [1]
-            >>> print fmpz_mat.hadamard(2)
+            >>> fmpz_mat.hadamard(2)
             [1,  1]
             [1, -1]
-            >>> print fmpz_mat.hadamard(4)
+            >>> fmpz_mat.hadamard(4)
             [1,  1,  1,  1]
             [1, -1,  1, -1]
             [1,  1, -1, -1]
             [1, -1, -1,  1]
-            >>> print(fmpz_mat.hadamard(12))
+            >>> fmpz_mat.hadamard(12)
             [ 1, -1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1]
             [-1, -1,  1, -1,  1, -1,  1, -1,  1, -1,  1, -1]
             [ 1,  1,  1, -1,  1,  1, -1, -1, -1, -1,  1,  1]
@@ -334,7 +341,7 @@ cdef class fmpz_mat(flint_mat):
         entries up to the specified number of bits in size. Small and
         zero entries are generated with increased probability.
 
-            >>> print(fmpz_mat.randtest(3, 2, 100))   # doctest: +SKIP
+            >>> fmpz_mat.randtest(3, 2, 100)   # doctest: +SKIP
             [        5442103460568216, 1906839377153448]
             [-37778931862922801979391,                0]
             [                       0,                1]
@@ -350,7 +357,7 @@ cdef class fmpz_mat(flint_mat):
         Returns a random (m, n) matrix with uniformly chosen entries up
         to the specified number of bits in size.
 
-            >>> print(fmpz_mat.randbits(3, 2, 100))   # doctest: +SKIP
+            >>> fmpz_mat.randbits(3, 2, 100)   # doctest: +SKIP
             [  502804798116524380422349115480, -93136769489619409388141424916]
             [-1201505897735399116254292047234, 145439343004100224514654363320]
             [ 1183889243483733739229662952032, 632771515833349927306121868518]
@@ -366,7 +373,7 @@ cdef class fmpz_mat(flint_mat):
         Returns a random sparse (m, n) matrix of the specified rank
         with entries up to the specified number of bits in size.
 
-            >>> print(flint.fmpz_mat.randrank(3,6,2,20))   # doctest: +SKIP
+            >>> fmpz_mat.randrank(3,6,2,20)   # doctest: +SKIP
             [0, 484749, 0, 0, 0,     0]
             [0,      0, 0, 0, 0,     0]
             [0,      0, 0, 0, 0, -2048]
@@ -392,9 +399,31 @@ cdef class fmpz_mat(flint_mat):
         """
         return fmpz_mat_rank(self.val)
 
-    def __invert__(self):
-        # XXX: write flint function for this
+    def inv(self, bint integer=False):
+        """
+        Returns the inverse of the matrix, which by default will
+        be of type fmpq_mat::
+
+        >>> fmpz_mat(3,3,[1,2,4,0,1,1,2,-1,0]).inv()
+        [-1/3,  4/3,  2/3]
+        [-2/3,  8/3,  1/3]
+        [ 2/3, -5/3, -1/3]
+
+        If *integer* is set, returns the inverse as an fmpz_mat,
+        or raises an exception if the matrix is not invertible
+        over the integers.
+
+        >>> fmpz_mat([[5,1],[19,4]]).inv(integer=True)
+        [  4, -1]
+        [-19,  5]
+        >>> fmpz_mat([[5,1],[19,5]]).inv(integer=True)
+        Traceback (most recent call last):
+          ...
+        ValueError: matrix is not invertible over the integers
+
+        """
         cdef fmpz_mat_t tmp
+        cdef fmpz_mat v
         cdef fmpq_mat u
         cdef fmpz_t den
         if not fmpz_mat_is_square(self.val):
@@ -405,10 +434,17 @@ cdef class fmpz_mat(flint_mat):
             fmpz_mat_inv(tmp, den, self.val)
             if fmpz_is_zero(den):
                 raise ZeroDivisionError("matrix is singular")
-            u = fmpq_mat.__new__(fmpq_mat)
-            fmpq_mat_init(u.val, fmpz_mat_nrows(self.val), fmpz_mat_ncols(self.val))
-            fmpq_mat_set_fmpz_mat_div_fmpz(u.val, tmp, den)
-            return u
+            if integer:
+                if not fmpz_is_pm1(den):
+                    raise ValueError("matrix is not invertible over the integers")
+                v = fmpz_mat.__new__(fmpz_mat)
+                fmpz_mat_init_set(v.val, tmp)
+                return v
+            else:
+                u = fmpq_mat.__new__(fmpq_mat)
+                fmpq_mat_init(u.val, fmpz_mat_nrows(self.val), fmpz_mat_ncols(self.val))
+                fmpq_mat_set_fmpz_mat_div_fmpz(u.val, tmp, den)
+                return u
         finally:
             fmpz_clear(den)
             fmpz_mat_clear(tmp)
@@ -418,7 +454,8 @@ cdef class fmpz_mat(flint_mat):
         Returns the transpose of self.
 
             >>> fmpz_mat(2,3,range(6)).transpose()
-            fmpz_mat(3, 2, [0, 3, 1, 4, 2, 5])
+            [0, 3, 1]
+            [4, 2, 5]
         """
         cdef fmpz_mat u
         u = fmpz_mat.__new__(fmpz_mat)
@@ -473,6 +510,7 @@ cdef class fmpz_mat(flint_mat):
         either returning a new copy or modifying self in-place.
         Returns (rref, denominator, rank).
 
+            >>> ctx.pretty = False
             >>> A = fmpz_mat(3,3,range(9))
             >>> A.rref()
             (fmpz_mat(3, 3, [3, 0, -3, 0, 3, 6, 0, 0, 0]), fmpz(3), 2)
@@ -480,6 +518,7 @@ cdef class fmpz_mat(flint_mat):
             (fmpz_mat(3, 3, [3, 0, -3, 0, 3, 6, 0, 0, 0]), fmpz(3), 2)
             >>> A
             fmpz_mat(3, 3, [3, 0, -3, 0, 3, 6, 0, 0, 0])
+            >>> ctx.pretty = True
 
         """
         cdef fmpz d
@@ -504,8 +543,10 @@ cdef class fmpz_mat(flint_mat):
             >>> A.rank(), nullity, X.rank()
             (2, 3, 3)
             >>> A * X
-            fmpz_mat(3, 5, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-            >>> print(X)
+            [0, 0, 0, 0, 0]
+            [0, 0, 0, 0, 0]
+            [0, 0, 0, 0, 0]
+            >>> X
             [  5,  10,  15, 0, 0]
             [-10, -15, -20, 0, 0]
             [  5,   0,   0, 0, 0]

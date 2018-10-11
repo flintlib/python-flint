@@ -261,7 +261,7 @@ cdef class fmpq_mat(flint_mat):
     def __truediv__(fmpq_mat s, t):
         return fmpq_mat.__div__(s, t)
 
-    def __invert__(self):
+    def inv(self):
         cdef fmpq_mat u
         if not fmpq_mat_is_square(self.val):
             raise ValueError("matrix must be square")
