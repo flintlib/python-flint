@@ -11,6 +11,7 @@ python:
 
 before_install:
   - sudo apt-get install cython python-dev
+  - pip install Cython
   - sudo apt-get install libmpfr-dev
   - sudo apt-get install libflint-dev
   - wget https://github.com/fredrik-johansson/arb/archive/2.15.0.tar.gz
