@@ -280,7 +280,8 @@ cdef class acb_mat(flint_mat):
         acb_mat_scalar_div_acb(u.val, s.val, t.val, getprec())
         return u
 
-    def __div__(s, t):
+    @staticmethod
+    def _div_(s, t):
         cdef acb_mat u
         if typecheck(s, acb_mat):
             s, t = acb_mat_coerce_scalar(s, t)
@@ -288,6 +289,12 @@ cdef class acb_mat(flint_mat):
                 return s
             return s._scalar_div_(t)
         return NotImplemented
+
+    def __truediv__(s, t):
+        return acb_mat._div_(s, t)
+
+    def __div__(s, t):
+        return acb_mat._div_(s, t)
 
     def __pow__(s, e, m):
         cdef acb_mat u
@@ -383,4 +390,3 @@ cdef class acb_mat(flint_mat):
         u = acb_poly.__new__(acb_poly)
         acb_mat_charpoly(u.val, s.val, getprec())
         return u
-

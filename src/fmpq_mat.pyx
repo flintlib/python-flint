@@ -251,15 +251,18 @@ cdef class fmpq_mat(flint_mat):
                     return (<fmpq_mat>t).__mul_fmpq(c)
                 return NotImplemented
 
-    def __div__(fmpq_mat s, t):
+    @staticmethod
+    def _div_(fmpq_mat s, t):
         t = any_as_fmpq(t)
         if t is NotImplemented:
             return t
         return s * (1 / t)
 
-    # __truediv__ = __div__ doesn't seem to work?
-    def __truediv__(fmpq_mat s, t):
-        return fmpq_mat.__div__(s, t)
+    def __truediv__(s, t):
+        return fmpq_mat._div_(s, t)
+
+    def __div__(s, t):
+        return fmpq_mat._div_(s, t)
 
     def inv(self):
         cdef fmpq_mat u

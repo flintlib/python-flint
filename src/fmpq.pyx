@@ -171,7 +171,8 @@ cdef class fmpq(flint_scalar):
         fmpq_mul(r.val, (<fmpq>s).val, (<fmpq>t).val)
         return r
 
-    def __div__(s, t):
+    @staticmethod
+    def _div_(s, t):
         cdef fmpq r
         s = any_as_fmpq(s)
         if s is NotImplemented:
@@ -185,20 +186,11 @@ cdef class fmpq(flint_scalar):
         fmpq_div(r.val, (<fmpq>s).val, (<fmpq>t).val)
         return r
 
-    # __truediv__ = __div__ doesn't seem to work?
     def __truediv__(s, t):
-        cdef fmpq r
-        s = any_as_fmpq(s)
-        if s is NotImplemented:
-            return s
-        t = any_as_fmpq(t)
-        if t is NotImplemented:
-            return t
-        if fmpq_is_zero((<fmpq>t).val):
-            raise ZeroDivisionError("fmpq division by zero")
-        r = fmpq.__new__(fmpq)
-        fmpq_div(r.val, (<fmpq>s).val, (<fmpq>t).val)
-        return r
+        return fmpq._div_(s, t)
+
+    def __div__(s, t):
+        return fmpq._div_(s, t)
 
     def next(s, bint signed=True, bint minimal=True):
         """

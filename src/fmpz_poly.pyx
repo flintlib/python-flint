@@ -6,7 +6,7 @@ cdef any_as_fmpz_poly(x):
         res = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_set_fmpz(res.val, (<fmpz>x).val)
         return res
-    elif PyInt_Check(<PyObject*>x):
+    elif PY_MAJOR_VERSION < 3 and PyInt_Check(<PyObject*>x):
         res = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_set_si(res.val, PyInt_AS_LONG(<PyObject*>x))
         return res

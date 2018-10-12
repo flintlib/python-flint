@@ -256,7 +256,8 @@ cdef class acb(flint_scalar):
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 
-    def __div__(s, t):
+    @staticmethod
+    cdef _div_(s, t):
         cdef acb_struct sval[1]
         cdef acb_struct tval[1]
         cdef int stype, ttype
@@ -271,6 +272,12 @@ cdef class acb(flint_scalar):
         if stype == FMPZ_TMP: acb_clear(sval)
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
+
+    def __truediv__(s, t):
+        return acb._div_(s, t)
+
+    def __div__(s, t):
+        return acb._div_(s, t)
 
     def __pow__(s, t, u):
         cdef acb_struct sval[1]
@@ -453,20 +460,16 @@ cdef class acb(flint_scalar):
             return u
 
     @classmethod
-    def const_pi(cls):
+    def pi(cls):
         """
         Computes the constant `\pi`.
 
-            >>> showgood(lambda: acb.const_pi(), dps=25)
-            3.141592653589793238462643
-            >>> showgood(lambda: acb.pi(), dps=25)  # alias
+            >>> showgood(lambda: acb.pi(), dps=25)
             3.141592653589793238462643
         """
         u = acb.__new__(acb)
         acb_const_pi((<acb>u).val, getprec())
         return u
-
-    pi = const_pi
 
     def sqrt(s, bint analytic=False):
         r"""

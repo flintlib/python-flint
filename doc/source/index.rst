@@ -42,6 +42,7 @@ Scalar types
    nmod.rst
    arb.rst
    acb.rst
+   dirichlet.rst
 
 Matrix types
 ............

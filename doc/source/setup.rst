@@ -1,11 +1,11 @@
 Setup
 ===============================================================================
 
-First install both FLINT and Arb (currently, the git versions are required).
+First install both FLINT (version 2.5 or later) and Arb (version 2.15 or later).
 See:
 
-* https://github.com/fredrik-johansson/flint2/
-* https://github.com/fredrik-johansson/arb/
+* http://flintlib.org/
+* http://arblib.org/
 
 Install build dependencies::
 

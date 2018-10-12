@@ -124,7 +124,8 @@ cdef class nmod(flint_scalar):
             return r
         return NotImplemented
 
-    def __div__(s, t):
+    @staticmethod
+    def _div_(s, t):
         cdef nmod r
         cdef mp_limb_t sval, tval, x
         cdef nmod_t mod
@@ -148,6 +149,12 @@ cdef class nmod(flint_scalar):
         r.mod = mod
         r.val = x
         return r
+
+    def __truediv__(s, t):
+        return nmod._div_(s, t)
+
+    def __div__(s, t):
+        return nmod._div_(s, t)
 
     def __invert__(self):
         return (1 / self)   # XXX: speed up

@@ -26,10 +26,24 @@ cdef extern from "Python.h":
     double PyComplex_RealAsDouble(PyObject *op)
     double PyComplex_ImagAsDouble(PyObject *op)
 
+from cpython.version cimport PY_MAJOR_VERSION
+
+cdef chars_from_str(s):
+    if PY_MAJOR_VERSION < 3:
+        return s
+    else:
+        return s.encode('ascii')
+
+cdef str_from_chars(s):
+    if PY_MAJOR_VERSION < 3:
+        return str(s)
+    else:
+        return bytes(s).decode('ascii')
+
 def matrix_to_str(tab):
     if len(tab) == 0 or len(tab[0]) == 0:
         return "[]"
-    tab = [map(str, row) for row in tab]
+    tab = [[str(c) for c in row] for row in tab]
     widths = []
     for i in xrange(len(tab[0])):
         w = max([len(row[i]) for row in tab])

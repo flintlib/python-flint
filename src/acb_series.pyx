@@ -152,7 +152,8 @@ cdef class acb_series(flint_series):
             i += 1
         return i
 
-    def __div__(s, t):
+    @staticmethod
+    def _truediv_(s, t):
         cdef long cap, sval, tval
         cdef acb_poly_t stmp, ttmp
         if type(s) is type(t):
@@ -199,7 +200,10 @@ cdef class acb_series(flint_series):
         return s / t
 
     def __truediv__(s, t):
-        return acb_series.__div__(s, t)
+        return acb_series._div_(s, t)
+
+    def __div__(s, t):
+        return acb_series._div_(s, t)
 
     def __pow__(s, t, mod):
         cdef long cap

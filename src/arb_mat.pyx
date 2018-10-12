@@ -279,7 +279,8 @@ cdef class arb_mat(flint_mat):
         arb_mat_scalar_div_arb(u.val, s.val, t.val, getprec())
         return u
 
-    def __div__(s, t):
+    @staticmethod
+    def _div_(s, t):
         cdef arb_mat u
         if typecheck(s, arb_mat):
             s, t = arb_mat_coerce_scalar(s, t)
@@ -287,6 +288,12 @@ cdef class arb_mat(flint_mat):
                 return s
             return s._scalar_div_(t)
         return NotImplemented
+
+    def __truediv__(s, t):
+        return arb_mat._div_(s, t)
+
+    def __div__(s, t):
+        return arb_mat._div_(s, t)
 
     def __pow__(s, e, m):
         cdef arb_mat u

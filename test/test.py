@@ -3,6 +3,9 @@ import flint
 import operator
 import doctest
 
+if sys.version_info[0] >= 3:
+    long = int
+
 ctx = flint.ctx
 
 def raises(f, exception):
@@ -66,9 +69,9 @@ def test_fmpz_poly():
     assert Z() == Z([])
     assert Z() == Z([0])
     assert Z() == Z([0,flint.fmpz(0),0])
-    assert Z() == Z([0,0L,0])
+    assert Z() == Z([0,0,0])
     assert Z() != Z([1])
-    assert Z([1]) == Z([1L])
+    assert Z([1]) == Z([1])
     assert Z([1]) == Z([flint.fmpz(1)])
     assert Z(Z([1,2])) == Z([1,2])
     for ztype in [int, long, flint.fmpz]:
@@ -147,8 +150,8 @@ def test_fmpz_mat():
     assert raises(lambda: a + c, ValueError)
     assert (a * 3).entries() == [3,6,9,12,15,18]
     assert (3 * a).entries() == [3,6,9,12,15,18]
-    assert (a * 3L).entries() == [3,6,9,12,15,18]
-    assert (3L * a).entries() == [3,6,9,12,15,18]
+    assert (a * long(3)).entries() == [3,6,9,12,15,18]
+    assert (long(3) * a).entries() == [3,6,9,12,15,18]
     assert (a * flint.fmpz(3)).entries() == [3,6,9,12,15,18]
     assert (flint.fmpz(3) * a).entries() == [3,6,9,12,15,18]
     assert M.randrank(5,7,3,10).rank() == 3
@@ -186,7 +189,7 @@ def test_fmpq():
     assert Q(2) != 1
     assert 1 != Q(2)
     assert Q(1,2) != 1
-    assert Q(2,3) == Q(flint.fmpz(2),3L)
+    assert Q(2,3) == Q(flint.fmpz(2),long(3))
     assert Q(-2,-4) == Q(1,2)
     assert bool(Q(0)) == False
     assert bool(Q(1)) == True
@@ -397,8 +400,8 @@ def test_nmod_mat():
     assert raises(lambda: a + c, ValueError)
     assert (a * 3).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
     assert (3 * a).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
-    assert (a * 3L).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
-    assert (3L * a).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
+    assert (a * long(3)).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
+    assert (long(3) * a).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
     assert (a * flint.fmpz(3)).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
     assert (flint.fmpz(3) * a).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
     assert M(2,2,[1,1,2,2],17).rank() == 1

@@ -118,7 +118,7 @@ cdef class nmod_mat:
         if ctx.pretty:
             return str(self)
         return "nmod_mat(%i, %i, %s, %i)" % (self.nrows(), self.ncols(),
-            map(int, self.entries()), self.modulus())
+            [int(c) for c in self.entries()], self.modulus())
 
     def __str__(self):
         return matrix_to_str(self.table())
@@ -272,16 +272,19 @@ cdef class nmod_mat:
         nmod_mat_mul(r.val, sv, tv)
         return r
 
-    def __div__(nmod_mat s, t):
+    @staticmethod
+    def _div_(nmod_mat s, t):
         cdef mp_limb_t v
         if not any_as_nmod(&v, t, s.val.mod):
             return NotImplemented
         t = nmod(v, s.val.mod.n)
         return s * (~t)
 
-    # __truediv__ = __div__ doesn't seem to work?
-    def __truediv__(nmod_mat s, t):
-        return nmod_mat.__div__(s, t)
+    def __truediv__(s, t):
+        return nmod_mat._div_(s, t)
+
+    def __div__(s, t):
+        return nmod_mat._div_(s, t)
 
     def inv(self):
         cdef nmod_mat u

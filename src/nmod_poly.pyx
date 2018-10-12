@@ -122,7 +122,7 @@ cdef class nmod_poly(flint_poly):
         return L
 
     def repr(self):
-        return "nmod_poly(%s, %s)" % (map(int, self.coeffs()), self.modulus())
+        return "nmod_poly(%s, %s)" % ([int(c) for c in self.coeffs()], self.modulus())
 
     def __getitem__(self, long i):
         cdef nmod x

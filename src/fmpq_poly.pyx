@@ -131,9 +131,9 @@ cdef class fmpq_poly(flint_poly):
         d = self.denom()
         n = self.numer()
         if d == 1:
-            return "fmpq_poly(%s)" % map(int, n.coeffs())
+            return "fmpq_poly(%s)" % [int(c) for c in n.coeffs()]
         else:
-            return "fmpq_poly(%s, %s)" % (map(int, n.coeffs()), d)
+            return "fmpq_poly(%s, %s)" % ([int(c) for c in n.coeffs()], d)
 
     def __nonzero__(self):
         return not fmpq_poly_is_zero(self.val)
@@ -228,7 +228,8 @@ cdef class fmpq_poly(flint_poly):
         fmpq_poly_rem(r.val, (<fmpq_poly>s).val, (<fmpq_poly>t).val)
         return r
 
-    def __div__(fmpq_poly s, t):
+    @staticmethod
+    def _div_(fmpq_poly s, t):
         cdef fmpq_poly r
         t = any_as_fmpq(t)
         if t is NotImplemented:
@@ -239,9 +240,11 @@ cdef class fmpq_poly(flint_poly):
         fmpq_poly_scalar_div_fmpq(r.val, (<fmpq_poly>s).val, (<fmpq>t).val)
         return r
 
-    # __truediv__ = __div__ doesn't seem to work?
-    def __truediv__(fmpq_poly s, t):
-        return fmpq_poly.__div__(s, t)
+    def __div__(s, t):
+        return fmpq_poly._div_(s, t)
+
+    def __truediv__(s, t):
+        return fmpq_poly._div_(s, t)
 
     def __divmod__(s, t):
         cdef fmpq_poly P, Q

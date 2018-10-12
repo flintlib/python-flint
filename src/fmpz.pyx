@@ -4,12 +4,12 @@ cdef inline int fmpz_set_pylong(fmpz_t x, obj):
     longval = PyLong_AsLongAndOverflow(<PyObject*>obj, &overflow)
     if overflow:
         s = "%x" % obj
-        fmpz_set_str(x, s, 16)
+        fmpz_set_str(x, chars_from_str(s), 16)
     else:
         fmpz_set_si(x, longval)
 
 cdef inline int fmpz_set_python(fmpz_t x, obj):
-    if PyInt_Check(<PyObject*>obj):
+    if PY_MAJOR_VERSION < 3 and PyInt_Check(<PyObject*>obj):
         fmpz_set_si(x, PyInt_AS_LONG(<PyObject*>obj))
         return 1
     if PyLong_Check(<PyObject*>obj):
@@ -24,7 +24,7 @@ cdef fmpz_get_intlong(fmpz_t x):
     cdef char * s
     if COEFF_IS_MPZ(x[0]):
         s = fmpz_get_str(NULL, 16, x)
-        v = int(s, 16)
+        v = int(str_from_chars(s), 16)
         libc.stdlib.free(s)
         return v
     else:
@@ -34,14 +34,13 @@ cdef int fmpz_set_any_ref(fmpz_t x, obj):
     if typecheck(obj, fmpz):
         x[0] = (<fmpz>obj).val[0]
         return FMPZ_REF
-    if PyInt_Check(<PyObject*>obj):
+    if PY_MAJOR_VERSION < 3 and PyInt_Check(<PyObject*>obj):
         fmpz_init(x)
         fmpz_set_si(x, PyInt_AS_LONG(<PyObject*>obj))
         return FMPZ_TMP
     if PyLong_Check(<PyObject*>obj):
         fmpz_init(x)
-        s = "%x" % obj
-        fmpz_set_str(x, s, 16)
+        fmpz_set_pylong(x, obj)
         return FMPZ_TMP
     return FMPZ_UNKNOWN
 
@@ -87,7 +86,7 @@ cdef class fmpz(flint_scalar):
             else:
                 if fmpz_set_any_ref(self.val, val) == FMPZ_UNKNOWN: # XXX
                     if typecheck(val, str):
-                        if fmpz_set_str(self.val, val, 10) != 0:
+                        if fmpz_set_str(self.val, chars_from_str(val), 10) != 0:
                             raise ValueError("invalid string for fmpz")
                         return
                     raise TypeError("cannot create fmpz from type %s" % type(val))
@@ -109,7 +108,7 @@ cdef class fmpz(flint_scalar):
         cdef fmpz_struct * sval
         cdef int ttype
         sval = &((<fmpz>s).val[0])
-        if PyInt_Check(<PyObject*>t):
+        if PY_MAJOR_VERSION < 3 and PyInt_Check(<PyObject*>t):
             tl = PyInt_AS_LONG(<PyObject*>t)
             if   op == 2: res = fmpz_cmp_si(sval, tl) == 0
             elif op == 3: res = fmpz_cmp_si(sval, tl) != 0
@@ -148,7 +147,7 @@ cdef class fmpz(flint_scalar):
         assert 2 <= base <= 36
         cdef char * s = fmpz_get_str(NULL, base, self.val)
         try:
-            res = str(s)
+            res = str_from_chars(s)
         finally:
             libc.stdlib.free(s)
         if condense > 0:

@@ -18,7 +18,7 @@ is usually an ordinary method of that type, for instance :meth:`.arb.exp`.
 A function with a different signature can either provided as a classmethod
 that takes all inputs as function arguments, or as a
 method of the "primary" input, taking the other inputs
-as arguments to the method (for example :meth:`.arb.rising_ui`).
+as arguments to the method (for example :meth:`.arb.rising`).
 
 When a method involves different types for inputs and outputs (or
 just among the inputs), it will

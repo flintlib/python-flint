@@ -11,7 +11,7 @@ def arb_from_str(str s):
         return arb(fmpq(s))
     s = s.replace("±", "+/-")
     a = arb.__new__(arb)
-    if arb_set_str((<arb>a).val, s, getprec()) == 0:
+    if arb_set_str((<arb>a).val, chars_from_str(s), getprec()) == 0:
         return a
     else:
         raise ValueError("invalid string for arb()")
@@ -57,7 +57,7 @@ cdef int arb_set_python(arb_t x, obj, bint allow_conversion) except -1:
         arb_set_fmpq(x, (<fmpq>obj).val, getprec())
         return 1
 
-    if PyInt_Check(<PyObject*>obj):
+    if PY_MAJOR_VERSION < 3 and PyInt_Check(<PyObject*>obj):
         arb_set_si(x, PyInt_AS_LONG(<PyObject*>obj))
         return 1
 
@@ -304,7 +304,7 @@ cdef class arb(flint_scalar):
             n = ctx.dps
         s = arb_get_str(self.val, n, flags)
         try:
-            res = str(s)
+            res = str_from_chars(s)
         finally:
             libc.stdlib.free(s)
         if ctx.unicode:
@@ -405,7 +405,8 @@ cdef class arb(flint_scalar):
         if ttype == FMPZ_TMP: arb_clear(tval)
         return u
 
-    def __div__(s, t):
+    @staticmethod
+    def _div_(s, t):
         cdef arb_struct sval[1]
         cdef arb_struct tval[1]
         cdef int stype, ttype
@@ -420,6 +421,12 @@ cdef class arb(flint_scalar):
         if stype == FMPZ_TMP: arb_clear(sval)
         if ttype == FMPZ_TMP: arb_clear(tval)
         return u
+
+    def __truediv__(s, t):
+        return arb._div_(s, t)
+
+    def __div__(s, t):
+        return arb._div_(s, t)
 
     def __pow__(s, t, modulus):
         cdef arb_struct sval[1]
@@ -1436,20 +1443,16 @@ cdef class arb(flint_scalar):
         return u
 
     @classmethod
-    def const_pi(cls):
+    def pi(cls):
         """
         Computes the constant `\pi`.
 
-            >>> showgood(arb.const_pi, dps=25)
-            3.141592653589793238462643
-            >>> showgood(arb.pi, dps=25)    # alias
+            >>> showgood(arb.pi, dps=25)
             3.141592653589793238462643
         """
         u = arb.__new__(arb)
         arb_const_pi((<arb>u).val, getprec())
         return u
-
-    pi = const_pi
 
     @classmethod
     def const_sqrt_pi(cls):

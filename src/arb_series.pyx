@@ -153,7 +153,8 @@ cdef class arb_series(flint_series):
             i += 1
         return i
 
-    def __div__(s, t):
+    @staticmethod
+    def _div_(s, t):
         cdef long cap, sval, tval
         cdef arb_poly_t stmp, ttmp
         if type(s) is type(t):
@@ -200,7 +201,10 @@ cdef class arb_series(flint_series):
         return s / t
 
     def __truediv__(s, t):
-        return arb_series.__div__(s, t)
+        return arb_series._div_(s, t)
+
+    def __div__(s, t):
+        return arb_series._div_(s, t)
 
     def __pow__(s, t, mod):
         cdef long cap

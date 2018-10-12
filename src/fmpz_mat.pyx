@@ -259,11 +259,15 @@ cdef class fmpz_mat(flint_mat):
                 return fmpq_mat(s) * t
         return NotImplemented
 
-    def __div__(fmpz_mat s, t):
+    @staticmethod
+    def _div_(fmpz_mat s, t):
         return s * (1 / fmpq(t))
 
-    def __truediv__(fmpz_mat s, t):
-        return s.__div__(t)
+    def __truediv__(s, t):
+        return fmpz_mat._div_(s, t)
+
+    def __div__(s, t):
+        return fmpz_mat._div_(s, t)
 
     def __pow__(self, e, m):
         cdef fmpz_mat t
