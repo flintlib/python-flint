@@ -1,3 +1,5 @@
+dist: xenial
+
 language: python
 
 sudo: true
@@ -7,13 +9,7 @@ python:
   - 3.6
   - 3.7-dev
 
-addons:
-    apt:
-        sources:
-            - debian-sid
-
 before_install:
-  - sudo apt-get update
   - sudo apt-get install cython python-dev
   - sudo apt-get install libflint-dev
   - wget https://github.com/fredrik-johansson/arb/archive/2.15.0.tar.gz
