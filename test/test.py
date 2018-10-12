@@ -433,5 +433,9 @@ if __name__ == "__main__":
     sys.stdout.write("test_nmod..."); test_nmod(); print("OK")
     sys.stdout.write("test_nmod_poly..."); test_nmod_poly(); print("OK")
     sys.stdout.write("test_nmod_mat..."); test_nmod_mat(); print("OK")
-    sys.stdout.write("doctests..."); doctest.testmod(flint); print("OK")
-
+    sys.stdout.write("doctests...");
+    fail, total = doctest.testmod(flint);
+    if fail == 0:
+        print("OK")
+    else:
+        raise AssertionError("%i of %i doctests failed" % (fail, total))
