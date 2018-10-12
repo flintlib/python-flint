@@ -17,7 +17,7 @@ before_install:
   - tar -xf arb-2.15.0.tar.gz
   - cd arb-2.15.0
   - ./configure --disable-static
-  - make -j4 > /dev/null 2>&1
+  - make -j4
   - sudo make install
   - cd ..
 
