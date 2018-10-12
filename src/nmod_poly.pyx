@@ -37,16 +37,18 @@ cdef class nmod_poly(flint_poly):
     over Z/nZ for word-size n.
 
         >>> a = nmod_poly([5,1,10,14,8], 7)
-        >>> print a
+        >>> a
         x^4 + 3*x^2 + x + 5
-        >>> print -a
+        >>> -a
         6*x^4 + 4*x^2 + 6*x + 2
-        >>> list(nmod_poly(range(3), 2))
+        >>> ctx.pretty = False
+        >>> list(nmod_poly(list(range(3)), 2))
         [nmod(0, 2), nmod(1, 2)]
         >>> nmod_poly([1, 2, 3], 23) ** 3
         nmod_poly([1, 6, 21, 21, 17, 8, 4], 23)
         >>> divmod(nmod_poly([2,0,1,1,6],23), nmod_poly([3,5,7],23))
         (nmod_poly([4, 0, 14], 23), nmod_poly([13, 3], 23))
+        >>> ctx.pretty = True
 
     """
 
@@ -278,7 +280,7 @@ cdef class nmod_poly(flint_poly):
 
             >>> A = nmod_poly([1,2,3,4], 7); B = nmod_poly([4,1,5], 7)
             >>> (A * B).gcd(B) * 5
-            nmod_poly([4, 1, 5], 7)
+            5*x^2 + x + 4
 
         """
         cdef nmod_poly res
@@ -299,20 +301,20 @@ cdef class nmod_poly(flint_poly):
         factors is a list of (poly, exp) pairs with all polynomials
         monic.
 
-            >>> nmod_poly(range(10), 3).factor()
-            (nmod(2, 3), [(nmod_poly([0, 1], 3), 1), (nmod_poly([2, 1], 3), 7)])
-            >>> nmod_poly(range(10), 19).factor()
-            (nmod(9, 19), [(nmod_poly([0, 1], 19), 1), (nmod_poly([3, 7, 2, 15, 1], 19), 1), (nmod_poly([12, 15, 12, 7, 1], 19), 1)])
-            >>> nmod_poly(range(10), 53).factor()
-            (nmod(9, 53), [(nmod_poly([0, 1], 53), 1), (nmod_poly([6, 12, 18, 24, 30, 36, 42, 48, 1], 53), 1)])
+            >>> nmod_poly(list(range(10)), 3).factor()
+            (2, [(x, 1), (x + 2, 7)])
+            >>> nmod_poly(list(range(10)), 19).factor()
+            (9, [(x, 1), (x^4 + 15*x^3 + 2*x^2 + 7*x + 3, 1), (x^4 + 7*x^3 + 12*x^2 + 15*x + 12, 1)])
+            >>> nmod_poly(list(range(10)), 53).factor()
+            (9, [(x, 1), (x^8 + 48*x^7 + 42*x^6 + 36*x^5 + 30*x^4 + 24*x^3 + 18*x^2 + 12*x + 6, 1)])
 
         Algorithm can be None (default), 'berlekamp', or
         'cantor-zassenhaus'.
 
             >>> nmod_poly([3,2,1,2,3], 7).factor(algorithm='berlekamp')
-            (nmod(3, 7), [(nmod_poly([2, 1], 7), 1), (nmod_poly([4, 1], 7), 1), (nmod_poly([1, 4, 1], 7), 1)])
+            (3, [(x + 2, 1), (x + 4, 1), (x^2 + 4*x + 1, 1)])
             >>> nmod_poly([3,2,1,2,3], 7).factor(algorithm='cantor-zassenhaus')
-            (nmod(3, 7), [(nmod_poly([4, 1], 7), 1), (nmod_poly([2, 1], 7), 1), (nmod_poly([1, 4, 1], 7), 1)])
+            (3, [(x + 4, 1), (x + 2, 1), (x^2 + 4*x + 1, 1)])
 
         """
         cdef nmod_poly_factor_t fac

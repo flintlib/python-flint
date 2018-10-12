@@ -45,7 +45,7 @@ cdef class dirichlet_char(object):
 
         >>> chi = dirichlet_char(dirichlet_group(7), 0)
         >>> for n in range(7):
-        ...     print chi(n)
+        ...     print(chi(n))
         ... 
         0
         1.00000000000000
@@ -56,7 +56,7 @@ cdef class dirichlet_char(object):
         1.00000000000000
         >>> chi = dirichlet_char(dirichlet_group(7), 1)
         >>> for n in range(7):
-        ...     print chi(n)
+        ...     print(chi(n))
         ... 
         0
         1.00000000000000

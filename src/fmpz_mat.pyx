@@ -458,8 +458,9 @@ cdef class fmpz_mat(flint_mat):
         Returns the transpose of self.
 
             >>> fmpz_mat(2,3,range(6)).transpose()
-            [0, 3, 1]
-            [4, 2, 5]
+            [0, 3]
+            [1, 4]
+            [2, 5]
         """
         cdef fmpz_mat u
         u = fmpz_mat.__new__(fmpz_mat)

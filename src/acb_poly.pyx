@@ -91,7 +91,7 @@ cdef class acb_poly(flint_poly):
         Constructs the monic polynomial whose roots are the given complex numbers.
 
             >>> acb_poly.from_roots(range(4))
-            acb_poly([0, -6.00000000000000, 11.0000000000000, -6.00000000000000, 1.00000000000000])
+            1.00000000000000*x^4 + (-6.00000000000000)*x^3 + 11.0000000000000*x^2 + (-6.00000000000000)*x
         """
         cdef acb_ptr xs
         cdef long i, n

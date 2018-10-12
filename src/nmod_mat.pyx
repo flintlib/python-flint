@@ -168,7 +168,7 @@ cdef class nmod_mat:
         Returns the determinant of self as an nmod.
 
             >>> nmod_mat(2,2,[1,2,3,4],17).det()
-            nmod(15, 17)
+            15
 
         """
         if not nmod_mat_is_square(self.val):
@@ -302,7 +302,9 @@ cdef class nmod_mat:
         Returns the transpose of self.
 
             >>> nmod_mat(2,3,range(6),7).transpose()
-            nmod_mat(3, 2, [0, 3, 1, 4, 2, 5], 7)
+            [0, 3]
+            [1, 4]
+            [2, 5]
         """
         cdef nmod_mat u
         u = nmod_mat.__new__(nmod_mat)
@@ -319,7 +321,7 @@ cdef class nmod_mat:
             >>> A = nmod_mat(2, 2, [1,4,8,3], 11)
             >>> B = nmod_mat(2, 3, range(6), 11)
             >>> X = A.solve(B)
-            >>> print X
+            >>> X
             [8,  5, 2]
             [9, 10, 0]
             >>> A*X == B
@@ -358,11 +360,17 @@ cdef class nmod_mat:
 
             >>> A = nmod_mat(3,3,range(9),23)
             >>> A.rref()
-            (nmod_mat(3, 3, [1, 0, 22, 0, 1, 2, 0, 0, 0], 23), 2)
+            ([1, 0, 22]
+            [0, 1,  2]
+            [0, 0,  0], 2)
             >>> A.rref(inplace=True)
-            (nmod_mat(3, 3, [1, 0, 22, 0, 1, 2, 0, 0, 0], 23), 2)
+            ([1, 0, 22]
+            [0, 1,  2]
+            [0, 0,  0], 2)
             >>> A
-            nmod_mat(3, 3, [1, 0, 22, 0, 1, 2, 0, 0, 0], 23)
+            [1, 0, 22]
+            [0, 1,  2]
+            [0, 0,  0]
 
         """
         if inplace:
@@ -385,8 +393,10 @@ cdef class nmod_mat:
             >>> A.rank(), nullity, X.rank()
             (2, 3, 3)
             >>> A * X
-            nmod_mat(3, 5, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 23)
-            >>> print(X)
+            [0, 0, 0, 0, 0]
+            [0, 0, 0, 0, 0]
+            [0, 0, 0, 0, 0]
+            >>> X
             [ 1,  2,  3, 0, 0]
             [21, 20, 19, 0, 0]
             [ 1,  0,  0, 0, 0]

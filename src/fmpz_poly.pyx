@@ -39,9 +39,9 @@ cdef class fmpz_poly(flint_poly):
     the integers.
 
         >>> fmpz_poly([1,2,3]) ** 3
-        fmpz_poly([1, 6, 21, 44, 63, 54, 27])
+        27*x^6 + 54*x^5 + 63*x^4 + 44*x^3 + 21*x^2 + 6*x + 1
         >>> divmod(fmpz_poly([2,0,1,1,6]), fmpz_poly([3,5,7]))
-        (fmpz_poly([]), fmpz_poly([2, 0, 1, 1, 6]))
+        (0, 6*x^4 + x^3 + x^2 + 2)
     """
 
     cdef fmpz_poly_t val
@@ -225,7 +225,7 @@ cdef class fmpz_poly(flint_poly):
 
             >>> A = fmpz_poly([2,0,1,0,5]); B = fmpz_poly([2,3,4])
             >>> (A*B).gcd(B)
-            fmpz_poly([2, 3, 4])
+            4*x^2 + 3*x + 2
 
         """
         cdef fmpz_poly res
@@ -243,13 +243,13 @@ cdef class fmpz_poly(flint_poly):
         factors is a list of (poly, exp) pairs.
 
             >>> (-73 * fmpz_poly([1,2,3]) ** 3 * fmpz_poly([5,6,7,8,9]) ** 8).factor()
-            (fmpz(-73), [(fmpz_poly([1, 2, 3]), 3), (fmpz_poly([5, 6, 7, 8, 9]), 8)])
+            (-73, [(3*x^2 + 2*x + 1, 3), (9*x^4 + 8*x^3 + 7*x^2 + 6*x + 5, 8)])
             >>> chebyshev_t_polynomial(6).factor()
-            (fmpz(1), [(fmpz_poly([-1, 0, 2]), 1), (fmpz_poly([1, 0, -16, 0, 16]), 1)])
+            (1, [(2*x^2 + (-1), 1), (16*x^4 + (-16)*x^2 + 1, 1)])
             >>> (fmpz_poly([-1,1])**100).factor()
-            (fmpz(1), [(fmpz_poly([-1, 1]), 100)])
+            (1, [(x + (-1), 100)])
             >>> fmpz_poly([1,2,3,4,5,6]).factor()
-            (fmpz(1), [(fmpz_poly([1, 2, 3, 4, 5, 6]), 1)])
+            (1, [(6*x^5 + 5*x^4 + 4*x^3 + 3*x^2 + 2*x + 1, 1)])
 
         """
         cdef fmpz_poly_factor_t fac
@@ -273,7 +273,7 @@ cdef class fmpz_poly(flint_poly):
         Returns the nth cyclotomic polynomial Phi_n(x) as an fmpz_poly.
 
             >>> fmpz_poly.cyclotomic_ui(12)
-            fmpz_poly([1, 0, -1, 0, 1])
+            x^4 + (-1)*x^2 + 1
 
         """
         u = fmpz_poly.__new__(fmpz_poly)

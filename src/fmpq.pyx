@@ -14,7 +14,7 @@ cdef class fmpq(flint_scalar):
     The fmpq type represents multiprecision rational numbers.
 
         >>> fmpq(1,7) + fmpq(50,51)
-        fmpq(401,357)
+        401/357
 
     """
 
@@ -200,31 +200,27 @@ cdef class fmpq(flint_scalar):
         only the nonnegative rational numbers are considered.
 
             >>> fmpq(23456789,98765432).next()
-            fmpq(-23456789,98765432)
+            -23456789/98765432
             >>> fmpq(23456789,98765432).next(signed=False)
-            fmpq(98765432,23456789)
+            98765432/23456789
             >>> fmpq(23456789,98765432).next(signed=False, minimal=False)
-            fmpq(98765432,75308643)
-            >>> a = fmpq(0)
+            98765432/75308643
+            >>> a, b, c, d = [fmpq(0)], [fmpq(0)], [fmpq(0)], [fmpq(0)]
             >>> for i in range(20):
-            ...     a = a.next(); print a,
+            ...     a.append(a[-1].next())
+            ...     b.append(b[-1].next(signed=False))
+            ...     c.append(c[-1].next(minimal=False))
+            ...     d.append(d[-1].next(signed=False, minimal=False))
             ... 
-            1 -1 1/2 -1/2 2 -2 1/3 -1/3 3 -3 2/3 -2/3 3/2 -3/2 1/4 -1/4 4 -4 3/4 -3/4
-            >>> a = fmpq(0)
-            >>> for i in range(20):
-            ...     a = a.next(signed=False); print a,
-            ... 
-            1 1/2 2 1/3 3 2/3 3/2 1/4 4 3/4 4/3 1/5 5 2/5 5/2 3/5 5/3 4/5 5/4 1/6
-            >>> a = fmpq(0)
-            >>> for i in range(20):
-            ...     a = a.next(minimal=False); print a,
-            ... 
-            1 -1 1/2 -1/2 2 -2 1/3 -1/3 3/2 -3/2 2/3 -2/3 3 -3 1/4 -1/4 4/3 -4/3 3/5 -3/5
-            >>> a = fmpq(0)
-            >>> for i in range(20):
-            ...     a = a.next(signed=False, minimal=False); print a,
-            ... 
-            1 1/2 2 1/3 3/2 2/3 3 1/4 4/3 3/5 5/2 2/5 5/3 3/4 4 1/5 5/4 4/7 7/3 3/8
+            >>> a
+            [0, 1, -1, 1/2, -1/2, 2, -2, 1/3, -1/3, 3, -3, 2/3, -2/3, 3/2, -3/2, 1/4, -1/4, 4, -4, 3/4, -3/4]
+            >>> b
+            [0, 1, 1/2, 2, 1/3, 3, 2/3, 3/2, 1/4, 4, 3/4, 4/3, 1/5, 5, 2/5, 5/2, 3/5, 5/3, 4/5, 5/4, 1/6]
+            >>> c
+            [0, 1, -1, 1/2, -1/2, 2, -2, 1/3, -1/3, 3/2, -3/2, 2/3, -2/3, 3, -3, 1/4, -1/4, 4/3, -4/3, 3/5, -3/5]
+            >>> d
+            [0, 1, 1/2, 2, 1/3, 3/2, 2/3, 3, 1/4, 4/3, 3/5, 5/2, 2/5, 5/3, 3/4, 4, 1/5, 5/4, 4/7, 7/3, 3/8]
+
         """
         u = fmpq.__new__(fmpq)
         if signed:
@@ -247,9 +243,9 @@ cdef class fmpq(flint_scalar):
         Returns the Bernoulli number `B_n` as an *fmpq*.
 
             >>> [fmpq.bernoulli_ui(n) for n in range(8)]
-            [fmpq(1), fmpq(-1,2), fmpq(1,6), fmpq(0), fmpq(-1,30), fmpq(0), fmpq(1,42), fmpq(0)]
+            [1, -1/2, 1/6, 0, -1/30, 0, 1/42, 0]
             >>> fmpq.bernoulli_ui(50)
-            fmpq(495057205241079648212477525,66)
+            495057205241079648212477525/66
 
         If *cache* is set to *True*, all the Bernoulli numbers up to *n* are
         computed and cached for fast subsequent retrieval. This feature should
@@ -269,9 +265,9 @@ cdef class fmpq(flint_scalar):
         Returns the harmonic number `H_n` as an *fmpq*.
 
             >>> [fmpq.harmonic_ui(n) for n in range(6)]
-            [fmpq(0), fmpq(1), fmpq(3,2), fmpq(11,6), fmpq(25,12), fmpq(137,60)]
+            [0, 1, 3/2, 11/6, 25/12, 137/60]
             >>> fmpq.harmonic_ui(50)
-            fmpq(13943237577224054960759,3099044504245996706400)
+            13943237577224054960759/3099044504245996706400
         """
         cdef fmpq v = fmpq()
         fmpq_harmonic_ui(v.val, n)

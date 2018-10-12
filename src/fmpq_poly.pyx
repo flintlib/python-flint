@@ -41,11 +41,13 @@ cdef class fmpq_poly(flint_poly):
     structurally an integer polynomial with a single common denominator.
 
         >>> fmpq_poly([1,2,3],5) ** 3
-        fmpq_poly([1, 6, 21, 44, 63, 54, 27], 125)
-        >>> print _
         27/125*x^6 + 54/125*x^5 + 63/125*x^4 + 44/125*x^3 + 21/125*x^2 + 6/125*x + 1/125
+        >>> ctx.pretty = False
+        >>> fmpq_poly([1,2,3],5) ** 3
+        fmpq_poly([1, 6, 21, 44, 63, 54, 27], 125)
         >>> divmod(fmpq_poly([2,0,1,1,6]), fmpq_poly([3,5,7]))
         (fmpq_poly([38, -161, 294], 343), fmpq_poly([572, 293], 343))
+        >>> ctx.pretty = True
 
     """
 
@@ -275,7 +277,7 @@ cdef class fmpq_poly(flint_poly):
 
             >>> A = fmpq_poly([1,2,6],6); B = fmpq_poly([4,2,1],12)
             >>> (A * B).gcd(B)
-            fmpq_poly([4, 2, 1])
+            x^2 + 2*x + 4
 
         """
         cdef fmpq_poly res
@@ -293,9 +295,9 @@ cdef class fmpq_poly(flint_poly):
         (poly, exp) pairs with all poly monic.
 
             >>> legendre_polynomial(5).factor()
-            (fmpq(63,8), [(fmpq_poly([0, 1]), 1), (fmpq_poly([15, 0, -70, 0, 63], 63), 1)])
+            (63/8, [(x, 1), (x^4 + (-10/9)*x^2 + 5/21, 1)])
             >>> (fmpq_poly([1,-1],10) ** 5 * fmpq_poly([1,2,3],7)).factor()
-            (fmpq(-3,700000), [(fmpq_poly([1, 2, 3], 3), 1), (fmpq_poly([-1, 1]), 5)])
+            (-3/700000, [(x^2 + 2/3*x + 1/3, 1), (x + (-1), 5)])
 
         """
         c, fac = self.numer().factor()

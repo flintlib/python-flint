@@ -10,11 +10,11 @@ cdef class fmpq_mat(flint_mat):
     Represents a dense matrix over the rational numbers.
 
         >>> A = fmpq_mat(3,3,[1,3,5,2,4,6,fmpq(2,3),2,4])
-        >>> print (~A)
+        >>> A.inv()
         [-3,  3/2, 3/2]
         [ 3, -1/2,  -3]
         [-1,    0, 3/2]
-        >>> print (~A) * A
+        >>> A.inv() * A
         [1, 0, 0]
         [0, 1, 0]
         [0, 0, 1]
@@ -125,7 +125,7 @@ cdef class fmpq_mat(flint_mat):
         Returns the determinant of self as an fmpq.
 
             >>> (fmpq_mat(2,2,[1,2,3,4]) / 5).det()
-            fmpq(-2,25)
+            -2/25
         """
         cdef fmpq d
         if not fmpq_mat_is_square(self.val):
@@ -279,7 +279,10 @@ cdef class fmpq_mat(flint_mat):
         Returns the transpose of self.
         
             >>> fmpq_mat(2,3,range(6)).transpose()
-            fmpq_mat(3, 2, [0, 3, 1, 4, 2, 5])
+            [0, 3]
+            [1, 4]
+            [2, 5]
+
         """
         cdef fmpq_mat u
         u = fmpq_mat.__new__(fmpq_mat)
@@ -298,7 +301,7 @@ cdef class fmpq_mat(flint_mat):
             >>> A = fmpq_mat(2, 2, [1,4,8,3])
             >>> B = fmpq_mat(2, 3, range(6))
             >>> X = A.solve(B)
-            >>> print X
+            >>> X
             [12/29, 13/29, 14/29]
             [-3/29,  4/29, 11/29]
             >>> A*X == B
@@ -342,11 +345,17 @@ cdef class fmpq_mat(flint_mat):
 
             >>> A = fmpq_mat(3,3,range(9))
             >>> A.rref()
-            (fmpq_mat(3, 3, [1, 0, -1, 0, 1, 2, 0, 0, 0]), 2)
+            ([1, 0, -1]
+            [0, 1,  2]
+            [0, 0,  0], 2)
             >>> A.rref(inplace=True)
-            (fmpq_mat(3, 3, [1, 0, -1, 0, 1, 2, 0, 0, 0]), 2)
+            ([1, 0, -1]
+            [0, 1,  2]
+            [0, 0,  0], 2)
             >>> A
-            fmpq_mat(3, 3, [1, 0, -1, 0, 1, 2, 0, 0, 0])
+            [1, 0, -1]
+            [0, 1,  2]
+            [0, 0,  0]
 
         """
         if inplace:

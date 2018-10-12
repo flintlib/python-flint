@@ -14,13 +14,13 @@ cdef class arf:
         or a tuple containing (mantissa, exponent)::
 
             >>> arf(-100)
-            arf((-25, 2))
+            -100.000000000000
             >>> arf(15.125)
-            arf((121, -3))
+            15.1250000000000
             >>> arf(arf(3))
-            arf((3, 0))
+            3.00000000000000
             >>> arf((10,-2))
-            arf((5, -1))
+            2.50000000000000
 
         """
         if val is not None:

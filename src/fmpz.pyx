@@ -66,7 +66,7 @@ cdef class fmpz(flint_scalar):
     The fmpz type represents multiprecision integers.
 
         >>> fmpz(3) ** 25
-        fmpz(847288609443)
+        847288609443
 
     """
 
@@ -303,7 +303,7 @@ cdef class fmpz(flint_scalar):
         Returns the greatest common divisor of self and other.
 
             >>> fmpz(30).gcd(45)
-            fmpz(15)
+            15
         """
         cdef fmpz_struct tval[1]
         cdef int ttype = FMPZ_UNKNOWN
@@ -322,7 +322,7 @@ cdef class fmpz(flint_scalar):
         (prime, exp) pairs. The sign is ignored.
 
             >>> fmpz(5040).factor()
-            [(fmpz(2), 4), (fmpz(3), 2), (fmpz(5), 1), (fmpz(7), 1)]
+            [(2, 4), (3, 2), (5, 1), (7, 1)]
 
         Warning: this is a preliminary implementation and should only
         be used for integers that fit in a single word, or which are
@@ -347,10 +347,10 @@ cdef class fmpz(flint_scalar):
         r"""
         Returns `p(n)`, the number of partitions of `n`, as an *fmpz*.
 
-            >>> [int(fmpz(n).number_of_partitions()) for n in range(8)]
+            >>> [fmpz(n).number_of_partitions() for n in range(8)]
             [1, 1, 2, 3, 5, 7, 11, 15]
             >>> fmpz(100).number_of_partitions()
-            fmpz(190569292)
+            190569292
             >>> len(str(fmpz(10**9).number_of_partitions()))
             35219
 
@@ -368,7 +368,7 @@ cdef class fmpz(flint_scalar):
         r"""
         Returns the Moebius function `\mu(n)` as an *fmpz*.
 
-            >>> [int(fmpz(n).moebius_mu()) for n in range(10)]
+            >>> [fmpz(n).moebius_mu() for n in range(10)]
             [0, 1, -1, -1, 0, -1, 1, -1, 0, 0]
         """
         cdef fmpz v = fmpz()
@@ -381,7 +381,7 @@ cdef class fmpz(flint_scalar):
         Returns the factorial `n!` as an *fmpz*.
 
             >>> fmpz.fac_ui(10)
-            fmpz(3628800)
+            3628800
         """
         u = fmpz.__new__(fmpz)
         fmpz_fac_ui((<fmpz>u).val, n)
@@ -394,7 +394,7 @@ cdef class fmpz(flint_scalar):
         (*n* primorial) as an *fmpz*.
 
             >>> fmpz.primorial_ui(10)
-            fmpz(210)
+            210
         """
         u = fmpz.__new__(fmpz)
         fmpz_primorial((<fmpz>u).val, n)
@@ -406,7 +406,7 @@ cdef class fmpz(flint_scalar):
         Returns the Fibonacci number `F_n` as an *fmpz*.
 
             >>> fmpz.fib_ui(10)
-            fmpz(55)
+            55
         """
         u = fmpz.__new__(fmpz)
         fmpz_fib_ui((<fmpz>u).val, n)
@@ -417,7 +417,7 @@ cdef class fmpz(flint_scalar):
         Returns the rising factorial `s (s+1) \cdots (s+n-1)` as an *fmpz*.
 
             >>> fmpz(10).rising(5)
-            fmpz(240240)
+            240240
         """
         u = fmpz.__new__(fmpz)
         fmpz_rfac_ui((<fmpz>u).val, (<fmpz>s).val, n)
@@ -438,7 +438,7 @@ cdef class fmpz(flint_scalar):
         Returns the Bell number `B_n` as an *fmpz*.
 
             >>> fmpz.bell_number_ui(10)
-            fmpz(115975)
+            115975
         """
         u = fmpz.__new__(fmpz)
         arith_bell_number((<fmpz>u).val, n)
@@ -450,7 +450,7 @@ cdef class fmpz(flint_scalar):
         Returns the Euler number `E_n` as an *fmpz*.
 
             >>> fmpz.euler_number_ui(10)
-            fmpz(-50521)
+            -50521
         """
         u = fmpz.__new__(fmpz)
         arith_euler_number((<fmpz>u).val, n)
@@ -462,7 +462,7 @@ cdef class fmpz(flint_scalar):
         Returns the Stirling number of the first kind `S_1(n,k)` as an *fmpz*.
 
             >>> fmpz.stirling_number_1_uiui(10,5)
-            fmpz(-269325)
+            -269325
         """
         u = fmpz.__new__(fmpz)
         arith_stirling_number_1((<fmpz>u).val, n, k)
@@ -474,7 +474,7 @@ cdef class fmpz(flint_scalar):
         Returns the Stirling number of the second kind `S_2(n,k)` as an *fmpz*.
 
             >>> fmpz.stirling_number_2_uiui(10,5)
-            fmpz(42525)
+            42525
         """
         u = fmpz.__new__(fmpz)
         arith_stirling_number_2((<fmpz>u).val, n, k)

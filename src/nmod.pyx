@@ -28,7 +28,7 @@ cdef class nmod(flint_scalar):
     The nmod type represents elements of Z/nZ for word-size n.
 
         >>> nmod(10,17) * 2
-        nmod(3, 17)
+        3
 
     """
 

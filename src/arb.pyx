@@ -120,7 +120,7 @@ cdef class arb(flint_scalar):
     value than the exact value passed by the user.
 
         >>> arb(10.25)
-        arb((41, -2))
+        10.2500000000000
         >>> print(1 / arb(4))  # exact
         0.250000000000000
         >>> print(1 / arb(3))  # approximate
@@ -184,13 +184,13 @@ cdef class arb(flint_scalar):
         `[\operatorname{mid} \pm \operatorname{rad}] 10^{\operatorname{exp}}`.
 
             >>> (arb(1) / 3).mid_rad_10exp(10)
-            (fmpz(333333333333333), fmpz(2), fmpz(-15))
+            (333333333333333, 2, -15)
             >>> (arb(1) / 3).mid_rad_10exp(20)
-            (fmpz(3333333333333333148296162), fmpz(555111516), fmpz(-25))
+            (3333333333333333148296162, 555111516, -25)
             >>> arb(0,1e-100).mid_rad_10exp(10)
-            (fmpz(0), fmpz(100000000507904), fmpz(-114))
+            (0, 100000000376832, -114)
             >>> arb(-1,1e100).mid_rad_10exp()
-            (fmpz(0), fmpz(10000000169485008897), fmpz(81))
+            (0, 10000000083585662976, 81)
 
         """
         cdef fmpz mid, rad, exp
@@ -237,11 +237,11 @@ cdef class arb(flint_scalar):
         Binary-decimal-binary roundtrips may result in significantly
         larger intervals, and should therefore be done sparingly.
 
-            >>> print arb.pi().str()
-            [3.14159265358979 +/- 3.57e-15]
-            >>> print arb.pi().str(5)
+            >>> print(arb.pi().str())
+            [3.14159265358979 +/- 3.34e-15]
+            >>> print(arb.pi().str(5))
             [3.1416 +/- 7.35e-6]
-            >>> print arb.pi().str(5, radius=False)
+            >>> print(arb.pi().str(5, radius=False))
             3.1416
 
         By default, the output is truncated so that all displayed digits
@@ -250,16 +250,16 @@ cdef class arb(flint_scalar):
         string of 0s, the correct decimal expansion to infinite precision
         could have a string of 9s).
 
-            >>> print (arb(1) - arb("1e-10")).str(5)
+            >>> print((arb(1) - arb("1e-10")).str(5))
             [1.0000 +/- 4e-10]
-            >>> print (arb(1) - arb("1e-10")).str(10)
+            >>> print((arb(1) - arb("1e-10")).str(10))
             [0.9999999999 +/- 3e-15]
 
         To force more digits, set *more* to *True*.
 
-            >>> print arb("0.1").str(30)
+            >>> print(arb("0.1").str(30))
             [0.100000000000000 +/- 2.23e-17]
-            >>> print arb("0.1").str(30, more=True)
+            >>> print(arb("0.1").str(30, more=True))
             [0.0999999999999999916733273153113 +/- 1.39e-17]
 
         Note that setting *more* to *True* results in a smaller printed radius,
@@ -267,9 +267,9 @@ cdef class arb(flint_scalar):
 
             >>> x = arb.pi().sin()
             >>> print(x.str())
-            [+/- 5.68e-16]
+            [+/- 3.46e-16]
             >>> print(x.str(more=True))
-            [1.22460635382238e-16 +/- 4.45e-16]
+            [1.22460635382238e-16 +/- 2.23e-16]
 
         The error indicated in the output may be much larger than the actual
         error in the internal representation of *self*. For example, if *self*
@@ -282,11 +282,11 @@ cdef class arb(flint_scalar):
         digits of the fractional, integer and exponent parts of the output.
 
             >>> ctx.dps = 1000
-            >>> print arb.pi().str(condense=10)
-            [3.1415926535{...979 digits...}9216420199 +/- 1.17e-1000]
-            >>> print arb.fac_ui(300).str(condense=10)
+            >>> print(arb.pi().str(condense=10))
+            [3.1415926535{...979 digits...}9216420199 +/- 9.28e-1001]
+            >>> print(arb.fac_ui(300).str(condense=10))
             3060575122{...595 digits...}0000000000.0000000000{...365 digits...}0000000000
-            >>> print arb(10**100).exp().str(condense=5)
+            >>> print(arb(10**100).exp().str(condense=5))
             [1.53837{...989 digits...}96534e+43429{...90 digits...}17483 +/- 4.84e+43429{...90 digits...}16483]
             >>> ctx.default()
 
@@ -483,7 +483,7 @@ cdef class arb(flint_scalar):
             >>> showgood(lambda: arb(-1).sqrt(), dps=25)
             Traceback (most recent call last):
               ...
-            ValueError: no convergence
+            ValueError: no convergence (maxprec=960, try higher maxprec)
 
         This function is undefined for negative input.
         Use :meth:`.acb.sqrt` for the complex extension.
@@ -501,11 +501,11 @@ cdef class arb(flint_scalar):
             >>> showgood(lambda: arb(0).rsqrt(), dps=25)
             Traceback (most recent call last):
               ...
-            ValueError: no convergence
+            ValueError: no convergence (maxprec=960, try higher maxprec)
             >>> showgood(lambda: arb(-1).rsqrt(), dps=25)
             Traceback (most recent call last):
               ...
-            ValueError: no convergence
+            ValueError: no convergence (maxprec=960, try higher maxprec)
 
         This function is undefined for negative input.
         Use :meth:`.acb.rsqrt` for the complex extension.
@@ -547,7 +547,7 @@ cdef class arb(flint_scalar):
             >>> showgood(lambda: arb(-1).sqrt(), dps=25)
             Traceback (most recent call last):
               ...
-            ValueError: no convergence
+            ValueError: no convergence (maxprec=960, try higher maxprec)
 
         This function is undefined for negative input.
         Use :meth:`.acb.log` for the complex extension.
@@ -870,7 +870,7 @@ cdef class arb(flint_scalar):
             >>> showgood(lambda: arb(0).gamma(), dps=25)  # pole
             Traceback (most recent call last):
               ...
-            ValueError: no convergence
+            ValueError: no convergence (maxprec=960, try higher maxprec)
         """
         u = arb.__new__(arb)
         arb_gamma((<arb>u).val, (<arb>s).val, getprec())
@@ -1016,7 +1016,7 @@ cdef class arb(flint_scalar):
             >>> showgood(arb(-2).agm, dps=25)   # not defined for negatives
             Traceback (most recent call last):
               ...
-            ValueError: no convergence
+            ValueError: no convergence (maxprec=960, try higher maxprec)
 
         This function is undefined for negative input.
         Use :meth:`.acb.agm` for the complex extension.
@@ -1039,7 +1039,7 @@ cdef class arb(flint_scalar):
             >>> showgood(lambda: arb.zeta_ui(1))  # pole
             Traceback (most recent call last):
               ...
-            ValueError: no convergence
+            ValueError: no convergence (maxprec=630, try higher maxprec)
         """
         u = arb.__new__(arb)
         arb_zeta_ui((<arb>u).val, n, getprec())
