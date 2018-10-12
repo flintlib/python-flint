@@ -21,6 +21,7 @@ before_install:
   - ./configure --disable-static
   - make -j4
   - sudo make install
+  - sudo ldconfig
   - cd ..
 
 install:
