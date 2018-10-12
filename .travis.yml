@@ -23,8 +23,7 @@ before_install:
   - cd ..
 
 install:
-  - python setup.py build_ext
-  - sudo python setup.py install
+  - pip install .
 
 script:
   - python test/test.py
