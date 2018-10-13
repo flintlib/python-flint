@@ -1538,6 +1538,17 @@ cdef extern from "arb_mat.h":
 
     void arb_mat_transpose(arb_mat_t B, const arb_mat_t A)
 
+    void arb_mat_trace(arb_t trace, const arb_mat_t mat, long prec)
+    void arb_mat_ones(arb_mat_t mat)
+    void arb_mat_hilbert(arb_mat_t mat, long prec)
+    void arb_mat_pascal(arb_mat_t mat, int triangular, long prec)
+    void arb_mat_stirling(arb_mat_t mat, int kind, long prec)
+    void arb_mat_dct(arb_mat_t mat, int type, long prec)
+
+    void arb_mat_get_mid(arb_mat_t B, const arb_mat_t A)
+
+    int arb_mat_eq(const arb_mat_t mat1, const arb_mat_t mat2)
+    int arb_mat_ne(const arb_mat_t mat1, const arb_mat_t mat2)
 
 cdef extern from "acb_poly.h":
     ctypedef struct acb_poly_struct:

@@ -1519,6 +1519,11 @@ cdef class acb(flint_scalar):
         r"""
         Absolute value of a real variable, extended to a piecewise complex
         analytic function. This function is useful for integration.
+
+            >>> f = lambda z, a: (z**3).real_abs(analytic=a)
+            >>> showgood(lambda: acb.integral(f, -1, 1), dps=25)
+            0.5000000000000000000000000
+
         """
         u = acb.__new__(acb)
         acb_real_abs((<acb>u).val, (<acb>s).val, analytic, getprec())

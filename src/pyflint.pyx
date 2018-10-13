@@ -259,6 +259,14 @@ cdef class flint_mat(flint_elem):
                 L[i*n + j] = self[i, j]
         return L
 
+    def __iter__(self):
+        cdef long i, j, m, n
+        m = self.nrows()
+        n = self.ncols()
+        for i from 0 <= i < m:
+            for j from 0 <= j < n:
+                yield self[i, j]
+
     def table(self):
         cdef long i, m, n
         m = self.nrows()

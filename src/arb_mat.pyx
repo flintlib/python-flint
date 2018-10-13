@@ -24,6 +24,7 @@ cdef arb_mat_coerce_scalar(x, y):
 
 cdef class arb_mat(flint_mat):
     """
+    Represents a matrix over the real numbers.
     """
 
     cdef arb_mat_t val
@@ -161,26 +162,22 @@ cdef class arb_mat(flint_mat):
         c = any_as_arb(value)
         arb_set(arb_mat_entry(self.val, i, j), (<arb>c).val)
 
-    def transpose(self):
+    def transpose(s):
         """
-        Returns the transpose of self.
+        Returns the transpose of *s*.
         """
         cdef arb_mat u
         u = arb_mat.__new__(arb_mat)
-        arb_mat_init(u.val, arb_mat_ncols(self.val), arb_mat_nrows(self.val))
-        arb_mat_transpose(u.val, self.val)
+        arb_mat_init(u.val, arb_mat_ncols(s.val), arb_mat_nrows(s.val))
+        arb_mat_transpose(u.val, s.val)
         return u
 
     def det(s):
         """
-        Returns the determinant of s as an arb.
-
-        If the matrix is singular, the result will be an interval
-        containing zero. As currently implemented, the width of this interval
-        will not generally converge to zero as the precision increases.
+        Returns the determinant of the square matrix *s* as an *arb*.
 
             >>> A = arb_mat(3, 3, range(9))
-            >>> showgood(lambda: A.det(), dps=25)    # singular
+            >>> showgood(lambda: A.det(), dps=25)    # exact singular
             0
             >>> A[2,2] = 10
             >>> showgood(lambda: A.det(), dps=25)
@@ -362,7 +359,7 @@ cdef class arb_mat(flint_mat):
 
     def exp(s):
         """
-        Computes the matrix exponential of *s*.
+        Returns the matrix exponential of *s*.
 
             >>> print(arb_mat(2, 2, [1, 4, -2, 1]).exp())
             [ [-2.58607310345045 +/- 5.06e-15],  [1.18429895089106 +/- 1.15e-15]]
@@ -378,7 +375,7 @@ cdef class arb_mat(flint_mat):
 
     def charpoly(s):
         """
-        Computes the characteristic polynomial of *s*.
+        Returns the characteristic polynomial of *s* as an *arb_poly*.
 
             >>> print(arb_mat(2, 2, [1, 1, 1, 0]).charpoly())
             1.00000000000000*x^2 + (-1.00000000000000)*x + (-1.00000000000000)
@@ -390,3 +387,208 @@ cdef class arb_mat(flint_mat):
         arb_mat_charpoly(u.val, s.val, getprec())
         return u
 
+    def mid(s):
+        """
+        Returns the matrix consisting of the midpoints of the entries of *s*.
+
+            >>> arb_mat([["1.5 +/- 0.1", 3]]).mid()
+            [1.50000000000000, 3.00000000000000]
+        """
+        cdef arb_mat u
+        u = arb_mat.__new__(arb_mat)
+        arb_mat_init(u.val, arb_mat_nrows(s.val), arb_mat_ncols(s.val))
+        arb_mat_get_mid(u.val, s.val)
+        return u
+
+    def trace(s):
+        """
+        Returns the trace of the square matrix *s* as an *arb*.
+
+            >>> arb_mat([[3,4],[5,7]]).trace()
+            10.0000000000000
+        """
+        cdef arb d
+        if arb_mat_nrows(s.val) != arb_mat_ncols(s.val):
+            raise ValueError("matrix must be square")
+        d = arb.__new__(arb)
+        arb_mat_trace(d.val, s.val, getprec())
+        return d
+
+    @classmethod
+    def hilbert(cls, long n, long m):
+        """
+        Returns the *n* by *m* truncated Hilbert matrix.
+
+            >>> arb_mat.hilbert(6,2)
+            [                1.00000000000000,                0.500000000000000]
+            [               0.500000000000000, [0.333333333333333 +/- 3.71e-16]]
+            [[0.333333333333333 +/- 3.71e-16],                0.250000000000000]
+            [               0.250000000000000, [0.200000000000000 +/- 4.45e-17]]
+            [[0.200000000000000 +/- 4.45e-17], [0.166666666666667 +/- 3.71e-16]]
+            [[0.166666666666667 +/- 3.71e-16], [0.142857142857143 +/- 1.79e-16]]
+        """
+        cdef arb_mat u
+        assert n >= 0
+        assert m >= 0
+        u = arb_mat.__new__(arb_mat)
+        arb_mat_init(u.val, n, m)
+        arb_mat_hilbert(u.val, getprec())
+        return u
+
+    @classmethod
+    def pascal(cls, long n, long m, int triangular=0):
+        """
+        Returns the *n* by *m* truncated Pascal matrix. If *triangular*
+        is 0, the symmetric version of this matrix is returned; if
+        *triangular* is -1 or 1, the lower or upper triangular version
+        of the Pascal matrix is returned.
+
+            >>> arb_mat.pascal(3, 4)
+            [1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000]
+            [1.00000000000000, 2.00000000000000, 3.00000000000000, 4.00000000000000]
+            [1.00000000000000, 3.00000000000000, 6.00000000000000, 10.0000000000000]
+            >>> arb_mat.pascal(3, 4, 1)
+            [1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000]
+            [               0, 1.00000000000000, 2.00000000000000, 3.00000000000000]
+            [               0,                0, 1.00000000000000, 3.00000000000000]
+            >>> arb_mat.pascal(3, 4, -1)
+            [1.00000000000000,                0,                0, 0]
+            [1.00000000000000, 1.00000000000000,                0, 0]
+            [1.00000000000000, 2.00000000000000, 1.00000000000000, 0]
+
+        """
+        cdef arb_mat u
+        assert n >= 0
+        assert m >= 0
+        u = arb_mat.__new__(arb_mat)
+        arb_mat_init(u.val, n, m)
+        arb_mat_pascal(u.val, triangular, getprec())
+        return u
+
+    @classmethod
+    def stirling(cls, long n, long m, int kind=0):
+        """
+        Returns the *n* by *m* truncated Stirling matrix. The
+        parameter *kind* can be 0 for unsigned Stirling numbers of the
+        first kind, 1 for signed Stirling numbers of the first kind,
+        and 2 for Stirling numbers of the second kind.
+
+            >>> arb_mat.stirling(5, 4)
+            [1.00000000000000,                0,                0,                0]
+            [               0, 1.00000000000000,                0,                0]
+            [               0, 1.00000000000000, 1.00000000000000,                0]
+            [               0, 2.00000000000000, 3.00000000000000, 1.00000000000000]
+            [               0, 6.00000000000000, 11.0000000000000, 6.00000000000000]
+            >>> arb_mat.stirling(5, 4, 1)
+            [1.00000000000000,                 0,                 0,                 0]
+            [               0,  1.00000000000000,                 0,                 0]
+            [               0, -1.00000000000000,  1.00000000000000,                 0]
+            [               0,  2.00000000000000, -3.00000000000000,  1.00000000000000]
+            [               0, -6.00000000000000,  11.0000000000000, -6.00000000000000]
+            >>> arb_mat.stirling(5, 4, 2)
+            [1.00000000000000,                0,                0,                0]
+            [               0, 1.00000000000000,                0,                0]
+            [               0, 1.00000000000000, 1.00000000000000,                0]
+            [               0, 1.00000000000000, 3.00000000000000, 1.00000000000000]
+            [               0, 1.00000000000000, 7.00000000000000, 6.00000000000000]
+        """
+        cdef arb_mat u
+        assert n >= 0
+        assert m >= 0
+        if not 0 <= kind <= 2:
+            raise ValueError("expected kind = 0, 1 or 2")
+        u = arb_mat.__new__(arb_mat)
+        arb_mat_init(u.val, n, m)
+        arb_mat_stirling(u.val, kind, getprec())
+        return u
+
+    @classmethod
+    def dct(cls, long n, long m=-1):
+        """
+        Returns the size *n* by *n* DCT matrix (optionally a separate
+        number of columns *m* can be given in which case the periodic
+        extension of the smaller dimension is used).
+
+            >>> print(arb_mat.dct(4).str(4))
+            [              0.5000,                0.5000,                0.5000,                0.5000]
+            [[0.6533 +/- 1.86e-5],  [0.2706 +/- 1.96e-6], [-0.2706 +/- 1.96e-6], [-0.6533 +/- 1.86e-5]]
+            [   [0.5000 +/- 3e-9],    [-0.5000 +/- 3e-9],    [-0.5000 +/- 3e-9],     [0.5000 +/- 3e-9]]
+            [[0.2706 +/- 1.96e-6], [-0.6533 +/- 1.86e-5],  [0.6533 +/- 1.86e-5], [-0.2706 +/- 1.96e-6]]
+
+        """
+        cdef arb_mat u
+        if m < 0:
+            m = n
+        assert n >= 0
+        u = arb_mat.__new__(arb_mat)
+        arb_mat_init(u.val, n, m)
+        arb_mat_dct(u.val, 0, getprec())
+        return u
+
+    def overlaps(s, arb_mat t):
+        """
+        Returns whether *s* and *t* overlap (in the sense of balls).
+
+            >>> A = arb_mat([[1,2],[3,4]])
+            >>> ((A / 3) * 3).overlaps(A)
+            True
+            >>> ((A / 3) * 3 + 0.0001).overlaps(A)
+            False
+        """
+        return bool(arb_mat_overlaps(s.val, t.val))
+
+    def contains(s, t):
+        """
+        Returns whether *t* is contained in *s* (in the sense of balls).
+
+            >>> A = arb_mat([[1,2],[3,4]])
+            >>> ((A / 3) * 3).contains(A)
+            True
+            >>> A.contains((A / 3) * 3)
+            False
+            >>> ((A / 3) * 3).contains(fmpz_mat([[1,2],[3,4]]))
+            True
+            >>> ((A / 3) * 3).contains(fmpz_mat([[1,2],[3,5]]))
+            False
+            >>> (A / 3).contains(fmpq_mat([[1,2],[3,4]]) / 3)
+            True
+        """
+        if isinstance(t, arb_mat):
+            return bool(arb_mat_contains(s.val, (<arb_mat>t).val))
+        if isinstance(t, fmpz_mat):
+            return bool(arb_mat_contains_fmpz_mat(s.val, (<fmpz_mat>t).val))
+        if isinstance(t, fmpq_mat):
+            return bool(arb_mat_contains_fmpq_mat(s.val, (<fmpq_mat>t).val))
+        raise TypeError("expected a matrix of compatible type")
+
+    def chop(s, tol=0):
+        """
+        Returns a copy of *s* where entries that contain zero and are
+        bounded by *tol* in magnitude have been replaced by exact zeros.
+
+            >>> print(arb_mat.stirling(4, 4).inv().str(5, radius=False))
+            [1.0000,       0,              0,              0]
+            [     0,  1.0000, [+/- 1.20e-15], [+/- 5.00e-16]]
+            [     0, -1.0000,         1.0000, [+/- 1.67e-16]]
+            [     0,  1.0000,        -3.0000,         1.0000]
+            >>> print(arb_mat.stirling(4, 4).inv().chop(1e-6).str(5, radius=False))
+            [1.0000,       0,       0,      0]
+            [     0,  1.0000,       0,      0]
+            [     0, -1.0000,  1.0000,      0]
+            [     0,  1.0000, -3.0000, 1.0000]
+
+        """
+        cdef arb_mat u
+        cdef arb b
+        cdef long i, j, n, m
+        u = arb_mat(s)
+        n = s.nrows()
+        m = s.ncols()
+        b = arb(tol)
+        arb_get_mag_lower(arb_radref(b.val), b.val)
+        arf_zero(arb_midref(b.val))
+        for i from 0 <= i < n:
+            for j from 0 <= j < m:
+                if arb_contains_zero(arb_mat_entry(u.val, i, j)) and arb_contains(b.val, arb_mat_entry(u.val, i, j)):
+                    arb_zero(arb_mat_entry(u.val, i, j))
+        return u

@@ -1,6 +1,6 @@
-def goodness(x, bint bothcomplex=True):
-    if isinstance(x, tuple) or isinstance(x, list):
-        return min(goodness(y, bothcomplex) for y in x)
+def goodness(x, bint bothcomplex=True, metric=None):
+    if metric is not None:
+        x = metric(x)
     if isinstance(x, arb):
         return arb_rel_accuracy_bits((<arb>x).val)
     if isinstance(x, acb):
@@ -8,6 +8,8 @@ def goodness(x, bint bothcomplex=True):
             return min(goodness(x.real), goodness(x.imag))
         else:
             return acb_rel_accuracy_bits((<acb>x).val)
+    if isinstance(x, (tuple, list, arb_mat, acb_mat, arb_poly, acb_poly, arb_series, acb_series)):
+        return min(goodness(y, bothcomplex) for y in x)
     raise TypeError("must have arb or acb")
 
 def goodstr(x):
@@ -22,7 +24,7 @@ def goodstr(x):
     raise TypeError("must have arb or acb")
 
 def good(func, long prec=0, long maxprec=0, long dps=0,
-        long maxdps=0, long padding=10, bint verbose=False, bint show=False, bint bothcomplex=True):
+        long maxdps=0, long padding=10, bint verbose=False, bint show=False, bint bothcomplex=True, metric=None):
     cdef long orig, morebits, acc
 
     if dps > 0:
@@ -34,6 +36,9 @@ def good(func, long prec=0, long maxprec=0, long dps=0,
         prec = ctx.prec
     if maxprec == 0:
         maxprec = 10 * prec + 100
+
+    if metric == "abssum":
+        metric = lambda L: sum(abs(c) for c in L)
 
     # for printing
     if dps == 0:
@@ -50,7 +55,7 @@ def good(func, long prec=0, long maxprec=0, long dps=0,
             if verbose:
                 print "eval prec = %i" % ctx.prec
             v = func()
-            acc = goodness(v, bothcomplex)
+            acc = goodness(v, bothcomplex, metric)
             if verbose:
                 print "good bits = %i" % acc
             if acc > prec + padding:
