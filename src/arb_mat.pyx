@@ -25,6 +25,15 @@ cdef arb_mat_coerce_scalar(x, y):
 cdef class arb_mat(flint_mat):
     """
     Represents a matrix over the real numbers.
+
+        >>> A = arb_mat([[1,2],[3,4]]) ** 2 / 5
+        >>> A
+        [[1.40000000000000 +/- 3.12e-16],                2.00000000000000]
+        [               3.00000000000000, [4.40000000000000 +/- 1.43e-15]]
+        >>> print(A.str(5, radius=False))
+        [1.4000, 2.0000]
+        [3.0000, 4.4000]
+
     """
 
     cdef arb_mat_t val
@@ -309,10 +318,13 @@ cdef class arb_mat(flint_mat):
         arb_mat_pow_ui((<arb_mat>u).val, (<arb_mat>s).val, exp, getprec())
         return u
 
-    def inv(s):
+    def inv(s, nonstop=False):
         """
         Returns the inverse matrix of the square matrix *s*.
-        Raises :exc:`ZeroDivisionError` if *s* is numerically singular.
+
+        If *s* is numerically singular, raises :exc:`ZeroDivisionError`
+        unless *nonstop* is set in which case a matrix with NaN entries
+        is returned.
 
             >>> A = arb_mat(2, 2, [1, 5, 2, 4])
             >>> print(A * A.inv())
@@ -323,6 +335,10 @@ cdef class arb_mat(flint_mat):
             Traceback (most recent call last):
               ...
             ZeroDivisionError: matrix is singular
+            >>> A.inv(nonstop=True)
+            [nan, nan]
+            [nan, nan]
+
         """
         cdef arb_mat u
         if arb_mat_nrows(s.val) != arb_mat_ncols(s.val):
@@ -330,14 +346,22 @@ cdef class arb_mat(flint_mat):
         u = arb_mat.__new__(arb_mat)
         arb_mat_init(u.val, arb_mat_nrows(s.val), arb_mat_ncols(s.val))
         if not arb_mat_inv(u.val, s.val, getprec()):
-            raise ZeroDivisionError("matrix is singular")
+            if nonstop:
+                for i from 0 <= i < arb_mat_nrows(u.val):
+                    for j from 0 <= j < arb_mat_nrows(u.val):
+                        arb_indeterminate(arb_mat_entry(u.val, i, j))
+            else:
+                raise ZeroDivisionError("matrix is singular")
         return u
 
-    def solve(s, t):
+    def solve(s, t, nonstop=False):
         """
         Solves `AX = B` where *A* is a square matrix given by *s* and
         `B` is a matrix given by *t*.
-        Raises :exc:`ZeroDivisionError` if *A* is numerically singular.
+
+        If *A* is numerically singular, raises :exc:`ZeroDivisionError`
+        unless *nonstop* is set in which case a matrix with NaN entries
+        is returned.
 
             >>> A = arb_mat(2, 2, [1, 2, 3, 4])
             >>> X = arb_mat(2, 3, range(6))
@@ -345,8 +369,17 @@ cdef class arb_mat(flint_mat):
             >>> print(A.solve(B))
             [                 [+/- 4.74e-15], [1.00000000000000 +/- 4.78e-15], [2.00000000000000 +/- 8.52e-15]]
             [[3.00000000000000 +/- 3.56e-15], [4.00000000000000 +/- 3.59e-15], [5.00000000000000 +/- 6.28e-15]]
+            >>> arb_mat([[1,1],[0,0]]).solve(arb_mat(2,3))
+            Traceback (most recent call last):
+              ...
+            ZeroDivisionError: singular matrix in solve()
+            >>> arb_mat([[1,1],[0,0]]).solve(arb_mat(2,3), nonstop=True)
+            [nan, nan, nan]
+            [nan, nan, nan]
+
         """
         cdef arb_mat u
+        cdef long i, j
         t = arb_mat.convert(t)
         if (arb_mat_nrows(s.val) != arb_mat_ncols(s.val) or
             arb_mat_nrows(s.val) != arb_mat_nrows((<arb_mat>t).val)):
@@ -354,7 +387,12 @@ cdef class arb_mat(flint_mat):
         u = arb_mat.__new__(arb_mat)
         arb_mat_init(u.val, arb_mat_nrows((<arb_mat>t).val), arb_mat_ncols((<arb_mat>t).val))
         if not arb_mat_solve(u.val, s.val, (<arb_mat>t).val, getprec()):
-            raise ZeroDivisionError("singular matrix in solve()")
+            if nonstop:
+                for i from 0 <= i < arb_mat_nrows(u.val):
+                    for j from 0 <= j < arb_mat_ncols(u.val):
+                        arb_indeterminate(arb_mat_entry(u.val, i, j))
+            else:
+                raise ZeroDivisionError("singular matrix in solve()")
         return u
 
     def exp(s):
@@ -561,10 +599,10 @@ cdef class arb_mat(flint_mat):
             return bool(arb_mat_contains_fmpq_mat(s.val, (<fmpq_mat>t).val))
         raise TypeError("expected a matrix of compatible type")
 
-    def chop(s, tol=0):
+    def chop(s, tol):
         """
-        Returns a copy of *s* where entries that contain zero and are
-        bounded by *tol* in magnitude have been replaced by exact zeros.
+        Returns a copy of *s* where entries that are bounded by *tol* in
+        magnitude have been replaced by exact zeros.
 
             >>> print(arb_mat.stirling(4, 4).inv().str(5, radius=False))
             [1.0000,       0,              0,              0]
@@ -589,6 +627,7 @@ cdef class arb_mat(flint_mat):
         arf_zero(arb_midref(b.val))
         for i from 0 <= i < n:
             for j from 0 <= j < m:
-                if arb_contains_zero(arb_mat_entry(u.val, i, j)) and arb_contains(b.val, arb_mat_entry(u.val, i, j)):
+                # and arb_contains_zero(...)?
+                if arb_contains(b.val, arb_mat_entry(u.val, i, j)):
                     arb_zero(arb_mat_entry(u.val, i, j))
         return u
