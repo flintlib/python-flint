@@ -1815,8 +1815,13 @@ cdef extern from "acb_mat.h":
     void _acb_mat_charpoly(acb_ptr cp, const acb_mat_t mat, long prec)
     void acb_mat_charpoly(acb_poly_t cp, const acb_mat_t mat, long prec)
 
+
+    void acb_mat_conjugate(acb_mat_t mat1, const acb_mat_t mat2)
     void acb_mat_transpose(acb_mat_t B, const acb_mat_t A)
-    
+    void acb_mat_trace(acb_t trace, const acb_mat_t mat, long prec)
+    void acb_mat_get_mid(acb_mat_t B, const acb_mat_t A)
+
+    void acb_mat_dft(acb_mat_t res, int kind, long prec)
 
 cdef extern from "acb_modular.h":
     void acb_modular_theta(acb_t theta1, acb_t theta2, acb_t theta3, acb_t theta4, const acb_t z, const acb_t tau, long prec)

@@ -141,17 +141,17 @@ cdef class arb_mat(flint_mat):
     def __richcmp__(s, t, int op):
         return NotImplementedError
 
-    cpdef long nrows(self):
+    cpdef long nrows(s):
         """
-        Returns the number of rows of self.
+        Returns the number of rows of *s*.
         """
-        return arb_mat_nrows(self.val)
+        return arb_mat_nrows(s.val)
 
-    cpdef long ncols(self):
+    cpdef long ncols(s):
         """
-        Returns the number of columns of self.
+        Returns the number of columns of *s*.
         """
-        return arb_mat_ncols(self.val)
+        return arb_mat_ncols(s.val)
 
     def __getitem__(self, index):
         cdef long i, j
@@ -318,7 +318,7 @@ cdef class arb_mat(flint_mat):
         arb_mat_pow_ui((<arb_mat>u).val, (<arb_mat>s).val, exp, getprec())
         return u
 
-    def inv(s, nonstop=False):
+    def inv(s, bint nonstop=False):
         """
         Returns the inverse matrix of the square matrix *s*.
 
@@ -354,7 +354,7 @@ cdef class arb_mat(flint_mat):
                 raise ZeroDivisionError("matrix is singular")
         return u
 
-    def solve(s, t, nonstop=False):
+    def solve(s, t, bint nonstop=False):
         """
         Solves `AX = B` where *A* is a square matrix given by *s* and
         `B` is a matrix given by *t*.
