@@ -351,6 +351,7 @@ cdef class acb_mat(flint_mat):
 
         """
         cdef acb_mat u
+        cdef long i, j
         if acb_mat_nrows(s.val) != acb_mat_ncols(s.val):
             raise ValueError("matrix must be square")
         u = acb_mat.__new__(acb_mat)
@@ -364,7 +365,7 @@ cdef class acb_mat(flint_mat):
                 raise ZeroDivisionError("matrix is singular")
         return u
 
-    def solve(s, t, bint nonstop=False):
+    def solve(s, t, bint nonstop=False, algorithm=None):
         """
         Solves `AX = B` where *A* is a square matrix given by *s* and
         `B` is a matrix given by *t*.
@@ -383,15 +384,26 @@ cdef class acb_mat(flint_mat):
             [nan + nanj, nan + nanj, nan + nanj]
             [nan + nanj, nan + nanj, nan + nanj]
 
+        The optional *algorithm* can be None (default), "lu", or "precond".
         """
         cdef acb_mat u
+        cdef bint res
+        cdef long i, j
         t = acb_mat.convert(t)
         if (acb_mat_nrows(s.val) != acb_mat_ncols(s.val) or
             acb_mat_nrows(s.val) != acb_mat_nrows((<acb_mat>t).val)):
             raise ValueError("need a square system and compatible right hand side")
         u = acb_mat.__new__(acb_mat)
         acb_mat_init(u.val, acb_mat_nrows((<acb_mat>t).val), acb_mat_ncols((<acb_mat>t).val))
-        if not acb_mat_solve(u.val, s.val, (<acb_mat>t).val, getprec()):
+        if algorithm is None:
+            res = acb_mat_solve(u.val, s.val, (<acb_mat>t).val, getprec())
+        elif algorithm == 'lu':
+            res = acb_mat_solve_lu(u.val, s.val, (<acb_mat>t).val, getprec())
+        elif algorithm == 'precond':
+            res = acb_mat_solve_precond(u.val, s.val, (<acb_mat>t).val, getprec())
+        else:
+            raise ValueError("unknown algorithm")
+        if not res:
             if nonstop:
                 for i from 0 <= i < acb_mat_nrows(u.val):
                     for j from 0 <= j < acb_mat_ncols(u.val):

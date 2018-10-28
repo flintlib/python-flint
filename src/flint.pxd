@@ -1528,6 +1528,8 @@ cdef extern from "arb_mat.h":
     int arb_mat_lu(long * P, arb_mat_t LU, const arb_mat_t A, long prec)
     void arb_mat_solve_lu_precomp(arb_mat_t X, const long * perm, const arb_mat_t A, const arb_mat_t B, long prec)
     int arb_mat_solve(arb_mat_t X, const arb_mat_t A, const arb_mat_t B, long prec)
+    int arb_mat_solve_lu(arb_mat_t X, const arb_mat_t A, const arb_mat_t B, long prec)
+    int arb_mat_solve_precond(arb_mat_t X, const arb_mat_t A, const arb_mat_t B, long prec)
     int arb_mat_inv(arb_mat_t X, const arb_mat_t A, long prec)
     void arb_mat_det(arb_t det, const arb_mat_t A, long prec)
 
@@ -1549,6 +1551,8 @@ cdef extern from "arb_mat.h":
 
     int arb_mat_eq(const arb_mat_t mat1, const arb_mat_t mat2)
     int arb_mat_ne(const arb_mat_t mat1, const arb_mat_t mat2)
+
+    void arb_mat_frobenius_norm(arb_t res, const arb_mat_t A, long prec)
 
 cdef extern from "acb_poly.h":
     ctypedef struct acb_poly_struct:
@@ -1807,6 +1811,8 @@ cdef extern from "acb_mat.h":
     int acb_mat_lu(long * P, acb_mat_t LU, const acb_mat_t A, long prec)
     void acb_mat_solve_lu_precomp(acb_mat_t X, const long * perm, const acb_mat_t A, const acb_mat_t B, long prec)
     int acb_mat_solve(acb_mat_t X, const acb_mat_t A, const acb_mat_t B, long prec)
+    int acb_mat_solve_lu(acb_mat_t X, const acb_mat_t A, const acb_mat_t B, long prec)
+    int acb_mat_solve_precond(acb_mat_t X, const acb_mat_t A, const acb_mat_t B, long prec)
     int acb_mat_inv(acb_mat_t X, const acb_mat_t A, long prec)
     void acb_mat_det(acb_t det, const acb_mat_t A, long prec)
 
@@ -1822,6 +1828,8 @@ cdef extern from "acb_mat.h":
     void acb_mat_get_mid(acb_mat_t B, const acb_mat_t A)
 
     void acb_mat_dft(acb_mat_t res, int kind, long prec)
+
+    void acb_mat_frobenius_norm(arb_t res, const acb_mat_t A, long prec)
 
 cdef extern from "acb_modular.h":
     void acb_modular_theta(acb_t theta1, acb_t theta2, acb_t theta3, acb_t theta4, const acb_t z, const acb_t tau, long prec)
