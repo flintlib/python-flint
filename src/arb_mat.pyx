@@ -138,9 +138,6 @@ cdef class arb_mat(flint_mat):
     def __nonzero__(self):
         raise NotImplementedError
 
-    def __richcmp__(s, t, int op):
-        return NotImplementedError
-
     cpdef long nrows(s):
         """
         Returns the number of rows of *s*.
@@ -641,3 +638,18 @@ cdef class arb_mat(flint_mat):
                 if arb_contains(b.val, arb_mat_entry(u.val, i, j)):
                     arb_zero(arb_mat_entry(u.val, i, j))
         return u
+
+    def __richcmp__(s, t, int op):
+        cdef int stype, ttype
+        cdef bint res
+        if not (op == 2 or op == 3):
+            raise ValueError("comparing matrices")
+        if type(s) is not type(t):
+            s, t = arb_mat_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+        if op == 2:
+            res = arb_mat_eq((<arb_mat>s).val, (<arb_mat>t).val)
+        else:
+            res = arb_mat_ne((<arb_mat>s).val, (<arb_mat>t).val)
+        return res

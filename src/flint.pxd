@@ -1551,6 +1551,7 @@ cdef extern from "arb_mat.h":
 
     int arb_mat_eq(const arb_mat_t mat1, const arb_mat_t mat2)
     int arb_mat_ne(const arb_mat_t mat1, const arb_mat_t mat2)
+    int arb_mat_equal(const arb_mat_t mat1, const arb_mat_t mat2)
 
     void arb_mat_frobenius_norm(arb_t res, const arb_mat_t A, long prec)
 
@@ -1830,6 +1831,10 @@ cdef extern from "acb_mat.h":
     void acb_mat_dft(acb_mat_t res, int kind, long prec)
 
     void acb_mat_frobenius_norm(arb_t res, const acb_mat_t A, long prec)
+
+    int acb_mat_eq(const acb_mat_t mat1, const acb_mat_t mat2)
+    int acb_mat_ne(const acb_mat_t mat1, const acb_mat_t mat2)
+    int acb_mat_equal(const acb_mat_t mat1, const acb_mat_t mat2)
 
 cdef extern from "acb_modular.h":
     void acb_modular_theta(acb_t theta1, acb_t theta2, acb_t theta3, acb_t theta4, const acb_t z, const acb_t tau, long prec)
