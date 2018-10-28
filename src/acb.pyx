@@ -1594,6 +1594,11 @@ cdef class acb(flint_scalar):
         r"""
         Maximum value of two real variables, extended to a piecewise complex
         analytic function. This function is useful for integration.
+
+            >>> f = lambda x, a: x.sin().real_max(x.cos(), analytic=a)
+            >>> showgood(lambda: acb.integral(f, 0, acb.pi()))
+            2.41421356237310
+
         """
         u = acb.__new__(acb)
         acb_real_max((<acb>u).val, (<acb>s).val, (<acb>t).val, analytic, getprec())
@@ -1603,6 +1608,11 @@ cdef class acb(flint_scalar):
         r"""
         Minimum value of two real variables, extended to a piecewise complex
         analytic function. This function is useful for integration.
+
+            >>> f = lambda x, a: x.sin().real_min(x.cos(), analytic=a)
+            >>> showgood(lambda: acb.integral(f, 0, acb.pi()))
+            -0.414213562373095
+
         """
         u = acb.__new__(acb)
         acb_real_min((<acb>u).val, (<acb>s).val, (<acb>t).val, analytic, getprec())
@@ -1613,6 +1623,11 @@ cdef class acb(flint_scalar):
         Square root of a real variable assumed to be nonnegative, extended
         to a piecewise complex analytic function. This function is
         useful for integration.
+
+            >>> acb.integral(lambda x, a: x.sqrt(analytic=a), 0, 1)
+            [0.6666666666667 +/- 4.19e-14] + [+/- 1.12e-16]j
+            >>> acb.integral(lambda x, a: x.real_sqrt(analytic=a), 0, 1)
+            [0.6666666666667 +/- 4.19e-14]
         """
         u = acb.__new__(acb)
         acb_real_sqrtpos((<acb>u).val, (<acb>s).val, analytic, getprec())

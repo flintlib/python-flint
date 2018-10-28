@@ -480,3 +480,30 @@ cdef class fmpz(flint_scalar):
         arith_stirling_number_2((<fmpz>u).val, n, k)
         return u
 
+    def divisor_sigma(n, k):
+        r"""
+        Returns the divisor sum `\sigma_k(n)` as an *fmpz*.
+
+            >>> fmpz(60).divisor_sigma(0)
+            12
+            >>> fmpz(60).divisor_sigma(1)
+            168
+            >>> fmpz(60).divisor_sigma(10)
+            605263138639095300
+        """
+        cdef fmpz v = fmpz()
+        arith_divisor_sigma(v.val, n.val, k)
+        return v
+
+    def euler_phi(n):
+        r"""
+        Returns the Euler totient function `\varphi(n)`, returning an *fmpz*.
+
+            >>> fmpz(60).euler_phi()
+            16
+            >>> fmpz(3**10).euler_phi()
+            39366
+        """
+        cdef fmpz v = fmpz()
+        arith_euler_phi(v.val, n.val)
+        return v

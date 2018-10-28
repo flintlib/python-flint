@@ -294,7 +294,7 @@ cdef class fmpq_poly(flint_poly):
         where c is the leading coefficient and factors is a list of
         (poly, exp) pairs with all poly monic.
 
-            >>> legendre_polynomial(5).factor()
+            >>> fmpq_poly.legendre_p(5).factor()
             (63/8, [(x, 1), (x^4 + (-10/9)*x^2 + 5/21, 1)])
             >>> (fmpq_poly([1,-1],10) ** 5 * fmpq_poly([1,2,3],7)).factor()
             (-3/700000, [(x^2 + 2/3*x + 1/3, 1), (x + (-1), 5)])
@@ -313,9 +313,46 @@ cdef class fmpq_poly(flint_poly):
     def roots(self, **kwargs):
         """
         Computes the complex roots of this polynomial. See
-        :method:`.fmpz_poly.roots`.
+        :meth:`.fmpz_poly.roots`.
 
             >>> fmpq_poly([fmpq(2,3),1]).roots()
             [([-0.666666666666667 +/- 3.34e-16], 1)]
         """
         return self.numer().roots(**kwargs)
+
+    @staticmethod
+    def bernoulli_poly(n):
+        r"""
+        Returns the Bernoulli polynomial `B_n(x)` as an *fmpq_poly*.
+
+            >>> fmpq_poly.bernoulli_poly(2)
+            x^2 + (-1)*x + 1/6
+        """
+        cdef fmpq_poly v = fmpq_poly()
+        arith_bernoulli_polynomial(v.val, n)
+        return v
+
+    @staticmethod
+    def euler_poly(n):
+        r"""
+        Returns the Euler polynomial `E_n(x)` as an *fmpq_poly*.
+
+            >>> fmpq_poly.euler_poly(3)
+            x^3 + (-3/2)*x^2 + 1/4
+        """
+        cdef fmpq_poly v = fmpq_poly()
+        arith_euler_polynomial(v.val, n)
+        return v
+
+    @staticmethod
+    def legendre_p(n):
+        r"""
+        Returns the Legendre polynomial `P_n(x)` as an *fmpq_poly*.
+
+            >>> fmpq_poly.legendre_p(3)
+            5/2*x^3 + (-3/2)*x
+
+        """
+        cdef fmpq_poly v = fmpq_poly()
+        arith_legendre_polynomial(v.val, n)
+        return v

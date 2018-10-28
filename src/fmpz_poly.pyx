@@ -35,7 +35,7 @@ cdef fmpz_poly_set_list(fmpz_poly_t poly, list val):
 
 cdef class fmpz_poly(flint_poly):
     """
-    The fmpz_poly type represents dense univariate polynomials over
+    The *fmpz_poly* type represents dense univariate polynomials over
     the integers.
 
         >>> fmpz_poly([1,2,3]) ** 3
@@ -254,7 +254,7 @@ cdef class fmpz_poly(flint_poly):
 
             >>> (-73 * fmpz_poly([1,2,3]) ** 3 * fmpz_poly([5,6,7,8,9]) ** 8).factor()
             (-73, [(3*x^2 + 2*x + 1, 3), (9*x^4 + 8*x^3 + 7*x^2 + 6*x + 5, 8)])
-            >>> chebyshev_t_polynomial(6).factor()
+            >>> fmpz_poly.chebyshev_t(6).factor()
             (1, [(2*x^2 + (-1), 1), (16*x^4 + (-16)*x^2 + 1, 1)])
             >>> (fmpz_poly([-1,1])**100).factor()
             (1, [(x + (-1), 100)])
@@ -277,42 +277,6 @@ cdef class fmpz_poly(flint_poly):
         fmpz_set((<fmpz>c).val, &fac.c)
         fmpz_poly_factor_clear(fac)
         return c, res
-
-    @staticmethod
-    def cyclotomic_ui(ulong n):
-        """
-        Returns the nth cyclotomic polynomial Phi_n(x) as an fmpz_poly.
-
-            >>> fmpz_poly.cyclotomic_ui(12)
-            x^4 + (-1)*x^2 + 1
-
-        """
-        u = fmpz_poly.__new__(fmpz_poly)
-        fmpz_poly_cyclotomic((<fmpz_poly>u).val, n)
-        return u
-
-    @staticmethod
-    def cos_minpoly_ui(ulong n):
-        u = fmpz_poly.__new__(fmpz_poly)
-        fmpz_poly_cos_minpoly((<fmpz_poly>u).val, n)
-        return u
-
-    @staticmethod
-    def swinnerton_dyer_ui(ulong n, bint use_arb=True):
-        cdef arb_poly_t t
-        if n > 20:
-            raise OverflowError("that's way too large...")
-        u = fmpz_poly.__new__(fmpz_poly)
-        if use_arb:
-            arb_poly_init(t)
-            arb_poly_swinnerton_dyer_ui(t, n, 0)
-            if not arb_poly_get_unique_fmpz_poly((<fmpz_poly>u).val, t):
-                arb_poly_clear(t)
-                raise ValueError("insufficient precision")
-            arb_poly_clear(t)
-        else:
-            fmpz_poly_swinnerton_dyer((<fmpz_poly>u).val, n)
-        return u
 
     def roots(self, bint verbose=False):
         """
@@ -361,3 +325,87 @@ cdef class fmpz_poly(flint_poly):
         fmpz_poly_factor_clear(fac)
         return roots
 
+    @staticmethod
+    def cyclotomic(ulong n):
+        r"""
+        Returns the cyclotomic polynomial `\Phi_n(x)` as an *fmpz_poly*.
+
+            >>> fmpz_poly.cyclotomic(12)
+            x^4 + (-1)*x^2 + 1
+
+        """
+        u = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_cyclotomic((<fmpz_poly>u).val, n)
+        return u
+
+    @staticmethod
+    def cos_minpoly(ulong n):
+        r"""
+        Returns the monic polynomial of `2 \cos(2 \pi / n)` as an *fmpz_poly*.
+
+            >>> fmpz_poly.cos_minpoly(7)
+            x^3 + x^2 + (-2)*x + (-1)
+
+        """
+        u = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_cos_minpoly((<fmpz_poly>u).val, n)
+        return u
+
+    @staticmethod
+    def chebyshev_t(n):
+        r"""
+        Returns the Chebyshev polynomial of the first kind `T_n(x)`
+        as an *fmpz_poly*.
+
+            >>> fmpz_poly.chebyshev_t(3)
+            4*x^3 + (-3)*x
+
+        """
+        cdef fmpz_poly v = fmpz_poly()
+        arith_chebyshev_t_polynomial(v.val, n)
+        return v
+
+    @staticmethod
+    def chebyshev_u(n):
+        r"""
+        Returns the Chebyshev polynomial of the second kind `U_n(x)`
+        as an *fmpz_poly*.
+
+            >>> fmpz_poly.chebyshev_u(3)
+            8*x^3 + (-4)*x
+
+        """
+        cdef fmpz_poly v = fmpz_poly()
+        arith_chebyshev_u_polynomial(v.val, n)
+        return v
+
+    @staticmethod
+    def swinnerton_dyer(ulong n, bint use_arb=True):
+        r"""
+        Returns the Swinnerton-Dyer polynomial `S_n(x)` as an *fmpz_poly*.
+        Warning: the degree is `2^n`.
+
+            >>> fmpz_poly.swinnerton_dyer(0)
+            x
+            >>> fmpz_poly.swinnerton_dyer(1)
+            x^2 + (-2)
+            >>> fmpz_poly.swinnerton_dyer(2)
+            x^4 + (-10)*x^2 + 1
+            >>> fmpz_poly.swinnerton_dyer(3)
+            x^8 + (-40)*x^6 + 352*x^4 + (-960)*x^2 + 576
+
+        """
+        cdef arb_poly_t t
+        if n > 20:
+            raise OverflowError("that's way too large...")
+        u = fmpz_poly.__new__(fmpz_poly)
+        if use_arb:
+            arb_poly_init(t)
+            arb_poly_swinnerton_dyer_ui(t, n, 0)
+            if not arb_poly_get_unique_fmpz_poly((<fmpz_poly>u).val, t):
+                arb_poly_clear(t)
+                raise ValueError("insufficient precision")
+            arb_poly_clear(t)
+        else:
+            fmpz_poly_swinnerton_dyer((<fmpz_poly>u).val, n)
+        return u

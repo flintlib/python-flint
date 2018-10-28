@@ -325,7 +325,7 @@ cdef class arb(flint_scalar):
         return res
 
     def __float__(self):
-        return arf_get_d(arb_midref(self.val), ARF_RND_DOWN)
+        return arf_get_d(arb_midref(self.val), ARF_RND_NEAR)
 
     def __richcmp__(s, t, int op):
         cdef bint res

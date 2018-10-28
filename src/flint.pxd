@@ -648,6 +648,7 @@ cdef extern from "fmpq_mat.h":
     void fmpq_mat_det(fmpq_t det, fmpq_mat_t mat)
     int fmpq_mat_solve_fraction_free(fmpq_mat_t X, fmpq_mat_t A, fmpq_mat_t B)
     int fmpq_mat_solve_dixon(fmpq_mat_t X, fmpq_mat_t A, fmpq_mat_t B)
+    int fmpq_mat_solve_fmpz_mat(fmpq_mat_t X, const fmpz_mat_t A, const fmpz_mat_t B)
     int fmpq_mat_inv(fmpq_mat_t B, fmpq_mat_t A)
     long fmpq_mat_rref(fmpq_mat_t B, fmpq_mat_t A)
     void fmpq_mat_transpose(fmpq_mat_t B, fmpq_mat_t A)
@@ -697,6 +698,7 @@ cdef extern from "arf.h":
 
     ctypedef int arf_rnd_t
     cdef arf_rnd_t ARF_RND_DOWN
+    cdef arf_rnd_t ARF_RND_NEAR
 
     void arf_init(arf_t x)
     void arf_clear(arf_t x)

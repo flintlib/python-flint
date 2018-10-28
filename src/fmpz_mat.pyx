@@ -468,19 +468,25 @@ cdef class fmpz_mat(flint_mat):
         fmpz_mat_transpose(u.val, self.val)
         return u
 
-    def solve(self, other):
+    def solve(self, other, bint integer=False):
         """
-        Given self = A and other = B, returns a matrix X and
-        denominator den such that A*(X/den) = B, assuming that
-        self is square and invertible.
-
-        TODO: support Dixon solver
+        Given self = A and other = B, returns an *fmpq_mat* X
+        such that AX = B, assuming that self is square and invertible.
+        If *integer* is true, returns an *fmpz_mat*, solving the
+        system only if the system matrix is invertible over the integers.
 
             >>> A = fmpz_mat(2, 2, [1,4,8,3])
             >>> B = fmpz_mat(2, 3, range(6))
-            >>> X, d = A.solve(B)
-            >>> A*X == B*d
-            True
+            >>> A.solve(B)
+            [12/29, 13/29, 14/29]
+            [-3/29,  4/29, 11/29]
+            >>> A.solve(B, integer=True)
+            Traceback (most recent call last):
+              ...
+            ValueError: matrix is not invertible over the integers
+            >>> fmpz_mat([[1,2], [3,5]]).solve(B, integer=True)
+            [ 6,  3, 0]
+            [-3, -1, 1]
             >>> fmpz_mat(2, 2, [1,0,2,0]).solve(B)
             Traceback (most recent call last):
               ...
@@ -490,8 +496,10 @@ cdef class fmpz_mat(flint_mat):
               ...
             ValueError: need a square system and compatible right hand side
 
+
         """
         cdef fmpz_mat u
+        cdef fmpq_mat v
         cdef fmpz d
         cdef int result
         t = any_as_fmpz_mat(other)
@@ -500,14 +508,24 @@ cdef class fmpz_mat(flint_mat):
         if (fmpz_mat_nrows(self.val) != fmpz_mat_ncols(self.val) or
             fmpz_mat_nrows(self.val) != fmpz_mat_nrows((<fmpz_mat>t).val)):
             raise ValueError("need a square system and compatible right hand side")
-        u = fmpz_mat.__new__(fmpz_mat)
-        fmpz_mat_init(u.val, fmpz_mat_nrows((<fmpz_mat>t).val),
-            fmpz_mat_ncols((<fmpz_mat>t).val))
-        d = fmpz.__new__(fmpz)
-        result = fmpz_mat_solve(u.val, d.val, self.val, (<fmpz_mat>t).val)
-        if not result:
-            raise ZeroDivisionError("singular matrix in solve()")
-        return u, d
+        if not integer:
+            v = fmpq_mat(fmpz_mat_nrows((<fmpz_mat>t).val), fmpz_mat_ncols((<fmpz_mat>t).val))
+            result = fmpq_mat_solve_fmpz_mat(v.val, self.val, (<fmpz_mat>t).val)
+            if not result:
+                raise ZeroDivisionError("singular matrix in solve()")
+            return v
+        else:
+            u = fmpz_mat.__new__(fmpz_mat)
+            fmpz_mat_init(u.val, fmpz_mat_nrows((<fmpz_mat>t).val),
+                fmpz_mat_ncols((<fmpz_mat>t).val))
+            d = fmpz.__new__(fmpz)
+            result = fmpz_mat_solve(u.val, d.val, self.val, (<fmpz_mat>t).val)
+            if not fmpz_is_pm1(d.val):
+                raise ValueError("matrix is not invertible over the integers")
+            u *= d
+            if not result:
+                raise ZeroDivisionError("singular matrix in solve()")
+            return u
 
     def rref(self, inplace=False):
         """
