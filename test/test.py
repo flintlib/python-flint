@@ -425,6 +425,16 @@ def test_nmod_mat():
     assert raises(lambda: M([[1],[2,3]], 5), ValueError)
     assert M([[1,2,3],[4,5,6]], 5) == M(2,3,[1,2,3,4,5,6], 5)
 
+def test_arb():
+    A = flint.arb
+    assert A(3) > A(2.5)
+    assert A(3) >= A("2.5")
+    assert A(3) < A((3,1))
+    assert A(3) <= A("inf")
+    assert A(3) == A(3)
+    assert A(3) != A(2)
+    assert not (A("1.1") == A("1.1"))
+
 if __name__ == "__main__":
     sys.stdout.write("test_fmpz..."); test_fmpz(); print("OK")
     sys.stdout.write("test_fmpz_poly..."); test_fmpz_poly(); print("OK")
@@ -435,6 +445,7 @@ if __name__ == "__main__":
     sys.stdout.write("test_nmod..."); test_nmod(); print("OK")
     sys.stdout.write("test_nmod_poly..."); test_nmod_poly(); print("OK")
     sys.stdout.write("test_nmod_mat..."); test_nmod_mat(); print("OK")
+    sys.stdout.write("test_arb.."); test_arb(); print("OK")
     sys.stdout.write("doctests...");
     fail, total = doctest.testmod(flint);
     if fail == 0:

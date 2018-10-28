@@ -179,14 +179,61 @@ cdef class arb(flint_scalar):
     cpdef bint is_finite(self):
         return arb_is_finite(self.val)
 
+    cpdef bint is_nan(self):
+        return arf_is_nan(arb_midref(self.val))
+
+    cpdef bint is_exact(self):
+        return arb_is_exact(self.val)
+
+    def man_exp(self):
+        """
+        Decomposes *self* into an integer mantissa and an exponent,
+        returning an *fmpz* pair. Requires that *self* is exact
+        and finite.
+
+            >>> arb("1.1").mid().man_exp()
+            (4953959590107545, -52)
+            >>> arb("1.1").rad().man_exp()
+            (1, -52)
+            >>> arb(0).man_exp()
+            (0, 0)
+            >>> arb("1.1").man_exp()
+            Traceback (most recent call last):
+              ...
+            ValueError: man_exp requires an exact, finite value
+            >>> arb("+inf").man_exp()
+            Traceback (most recent call last):
+              ...
+            ValueError: man_exp requires an exact, finite value
+        """
+        cdef fmpz man, exp
+        if not self.is_finite() or not self.is_exact():
+            raise ValueError("man_exp requires an exact, finite value")
+        man = fmpz()
+        exp = fmpz()
+        arf_get_fmpz_2exp(man.val, exp.val, arb_midref(self.val))
+        return man, exp
+
     def mid(self):
-        cdef arf x = arf()
-        arf_set(x.val, arb_midref(self.val))
+        """
+        Returns the midpoint of *self* as an exact *arb*:
+
+            >>> arb("1 +/- 0.3").mid()
+            1.00000000000000
+        """
+        cdef arb x = arb()
+        arf_set(arb_midref(x.val), arb_midref(self.val))
         return x
 
     def rad(self):
-        cdef arf x = arf()
-        arf_set_mag(x.val, arb_radref(self.val))
+        """
+        Returns the radius of *self* as an exact *arb*:
+
+            >>> print(arb("1 +/- 0.3").rad().str(5, radius=False))
+            0.30000
+        """
+        cdef arb x = arb()
+        arf_set_mag(arb_midref(x.val), arb_radref(self.val))
         return x
 
     def mid_rad_10exp(self, long n=0):
@@ -329,16 +376,24 @@ cdef class arb(flint_scalar):
 
     def __richcmp__(s, t, int op):
         cdef bint res
-        d = s - t
-        if not typecheck(s, arb):
+        cdef arb_struct sval[1]
+        cdef arb_struct tval[1]
+        cdef int stype, ttype
+        stype = arb_set_any_ref(sval, s)
+        if stype == FMPZ_UNKNOWN:
+            return NotImplemented
+        ttype = arb_set_any_ref(tval, t)
+        if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         res = 0
-        if   op == 2: res = arb_is_zero((<arb>d).val)
-        elif op == 3: res = arb_is_nonzero((<arb>d).val)
-        elif op == 0: res = arb_is_negative((<arb>d).val)
-        elif op == 1: res = arb_is_nonpositive((<arb>d).val)
-        elif op == 4: res = arb_is_positive((<arb>d).val)
-        elif op == 5: res = arb_is_nonnegative((<arb>d).val)
+        if   op == 2: res = arb_eq(sval, tval)
+        elif op == 3: res = arb_ne(sval, tval)
+        elif op == 0: res = arb_lt(sval, tval)
+        elif op == 1: res = arb_le(sval, tval)
+        elif op == 4: res = arb_gt(sval, tval)
+        elif op == 5: res = arb_ge(sval, tval)
+        if stype == FMPZ_TMP: arb_clear(sval)
+        if ttype == FMPZ_TMP: arb_clear(tval)
         return res
 
     def __contains__(self, other):

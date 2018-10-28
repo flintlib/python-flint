@@ -684,6 +684,7 @@ cdef extern from "mag.h":
     void mag_zero(mag_t x)
     void mag_set(mag_t x, const mag_t y)
     void mag_set_ui_2exp_si(mag_t x, ulong v, long e)
+    void mag_hypot(mag_t x, const mag_t y, const mag_t z)
 
 cdef extern from "arf.h":
     ctypedef struct arf_struct:
@@ -835,6 +836,12 @@ cdef extern from "arb.h":
     void arb_clear(arb_t x)
     int arb_is_exact(const arb_t x)
     int arb_equal(const arb_t x, const arb_t y)
+    int arb_eq(const arb_t x, const arb_t y)
+    int arb_ne(const arb_t x, const arb_t y)
+    int arb_lt(const arb_t x, const arb_t y)
+    int arb_le(const arb_t x, const arb_t y)
+    int arb_gt(const arb_t x, const arb_t y)
+    int arb_ge(const arb_t x, const arb_t y)
     void arb_zero(arb_t x)
     int arb_is_zero(const arb_t x)
     void arb_pos_inf(arb_t x)

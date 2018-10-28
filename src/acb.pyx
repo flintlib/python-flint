@@ -165,12 +165,38 @@ cdef class acb(flint_scalar):
         return bool(acb_overlaps((<acb>self).val, (<acb>other).val))
 
     def mid(self):
+        """
+        Returns an exact *acb* representing the midpoint of *self*:
+
+            >>> acb("1 +/- 0.3", "2 +/- 0.4").mid()
+            1.00000000000000 + 2.00000000000000j
+        """
         cdef acb u = acb()
         arf_set(arb_midref(acb_realref(u.val)), arb_midref(acb_realref(self.val)))
         arf_set(arb_midref(acb_imagref(u.val)), arb_midref(acb_imagref(self.val)))
         return u
 
     def rad(self):
+        """
+        Returns an upper bound for the radius (magnitude of error) of self as an *arb*.
+
+            >>> print(acb("1 +/- 0.3", "2 +/- 0.4").rad().str(5, radius=False))
+            0.50000
+        """
+        cdef arb u = arb()
+        mag_hypot(arb_radref(u.val), arb_radref(acb_realref(self.val)), arb_radref(acb_imagref(self.val)))
+        arf_set_mag(arb_midref(u.val), arb_radref(u.val))
+        mag_zero(arb_radref(u.val))
+        return u
+
+    def complex_rad(self):
+        """
+        Returns an *acb* representing the radii of the real and imaginary parts of *self*
+        together a single complex number.
+
+            >>> print(acb("1 +/- 0.3", "2 +/- 0.4").complex_rad().str(5, radius=False))
+            0.30000 + 0.40000j
+        """
         cdef acb u = acb()
         arf_set_mag(arb_midref(acb_realref(u.val)), arb_radref(acb_realref(self.val)))
         arf_set_mag(arb_midref(acb_imagref(u.val)), arb_radref(acb_imagref(self.val)))
@@ -200,8 +226,8 @@ cdef class acb(flint_scalar):
                 return "%s + %sj" % (re, im)
 
     def __complex__(self):
-        return complex(arf_get_d(arb_midref(acb_realref(self.val)), ARF_RND_DOWN),
-                       arf_get_d(arb_midref(acb_imagref(self.val)), ARF_RND_DOWN))
+        return complex(arf_get_d(arb_midref(acb_realref(self.val)), ARF_RND_NEAR),
+                       arf_get_d(arb_midref(acb_imagref(self.val)), ARF_RND_NEAR))
 
     def __pos__(self):
         res = acb.__new__(acb)
