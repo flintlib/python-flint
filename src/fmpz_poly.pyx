@@ -265,7 +265,8 @@ cdef class fmpz_poly(flint_poly):
         cdef fmpz_poly_factor_t fac
         cdef int i
         fmpz_poly_factor_init(fac)
-        fmpz_poly_factor(fac, self.val)
+        # should use fmpz_poly_factor, but not available in 2.5.2
+        fmpz_poly_factor_zassenhaus(fac, self.val)
         res = [0] * fac.num
         for 0 <= i < fac.num:
             u = fmpz_poly.__new__(fmpz_poly)
