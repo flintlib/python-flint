@@ -572,3 +572,43 @@ cdef class acb_mat(flint_mat):
         else:
             res = acb_mat_ne((<acb_mat>s).val, (<acb_mat>t).val)
         return res
+
+    @property
+    def real(s):
+        """
+        Entrywise real part of this matrix as an *arb_mat*.
+
+            >>> print(acb_mat.dft(3).real.str(5, radius=False))
+            [0.57735,  0.57735,  0.57735]
+            [0.57735, -0.28868, -0.28868]
+            [0.57735, -0.28868, -0.28868]
+        """
+        cdef arb_mat u
+        cdef long i, j, n, m
+        n = s.nrows()
+        m = s.ncols()
+        u = arb_mat(n, m)
+        for i from 0 <= i < n:
+            for j from 0 <= j < m:
+                acb_get_real(arb_mat_entry(u.val, i, j), acb_mat_entry(s.val, i, j))
+        return u
+
+    @property
+    def imag(s):
+        """
+        Entrywise imaginary part of this matrix as an *arb_mat*.
+
+            >>> print(acb_mat.dft(3).imag.str(5, radius=False))
+            [0,        0,        0]
+            [0, -0.50000,  0.50000]
+            [0,  0.50000, -0.50000]
+        """
+        cdef arb_mat u
+        cdef long i, j, n, m
+        n = s.nrows()
+        m = s.ncols()
+        u = arb_mat(n, m)
+        for i from 0 <= i < n:
+            for j from 0 <= j < m:
+                acb_get_imag(arb_mat_entry(u.val, i, j), acb_mat_entry(s.val, i, j))
+        return u

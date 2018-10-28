@@ -1152,6 +1152,8 @@ cdef extern from "acb.h":
     void acb_abs(arb_t u, const acb_t z, long prec)
     void acb_sgn(acb_t u, const acb_t z, long prec)
     void acb_csgn(arb_t u, const acb_t z)
+    void acb_get_real(arb_t u, const acb_t z)
+    void acb_get_imag(arb_t u, const acb_t z)
 
     void acb_real_abs(acb_t res, const acb_t z, int analytic, long prec)
     void acb_real_sgn(acb_t res, const acb_t z, int analytic, long prec)
