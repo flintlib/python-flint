@@ -394,6 +394,8 @@ cdef extern from "fmpz_poly_factor.h":
     void fmpz_poly_factor_init(fmpz_poly_factor_t fac)
     void fmpz_poly_factor_clear(fmpz_poly_factor_t fac)
     void fmpz_poly_factor_zassenhaus(fmpz_poly_factor_t fac, fmpz_poly_t G)
+    void fmpz_poly_factor(fmpz_poly_factor_t fac, fmpz_poly_t G)
+    void fmpz_poly_factor_squarefree(fmpz_poly_factor_t fac, fmpz_poly_t G)
 
 cdef extern from "fmpz_mat.h":
     ctypedef struct fmpz_mat_struct:
@@ -2069,4 +2071,7 @@ cdef extern from "acb_calc.h":
         const acb_calc_integrate_opt_t options,
         long prec)
 
-
+cdef extern from "arb_fmpz_poly.h":
+    void arb_fmpz_poly_evaluate_arb(arb_t res, const fmpz_poly_t poly, const arb_t x, long prec)
+    void arb_fmpz_poly_evaluate_acb(acb_t res, const fmpz_poly_t poly, const acb_t x, long prec)
+    void arb_fmpz_poly_complex_roots(acb_ptr roots, const fmpz_poly_t poly, int flags, long prec)

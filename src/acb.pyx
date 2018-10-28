@@ -38,9 +38,22 @@ cdef inline int acb_set_any_ref(acb_t x, obj):
     return FMPZ_UNKNOWN
 
 def any_as_acb(x):
+    cdef acb t
     if typecheck(x, acb):
         return x
-    return acb(x)
+    t = acb()
+    if acb_set_python(t.val, x, 0) == 0:
+        raise TypeError("cannot create acb from type %s" % type(x))
+    return t
+
+def any_as_acb_or_notimplemented(x):
+    cdef acb t
+    if typecheck(x, acb):
+        return x
+    t = acb()
+    if acb_set_python(t.val, x, 0) == 0:
+        return NotImplemented
+    return t
 
 def any_as_arb_or_acb(x):
     if typecheck(x, arb) or typecheck(x, acb):
@@ -138,6 +151,18 @@ cdef class acb(flint_scalar):
         if stype == FMPZ_TMP: acb_clear(sval)
         if ttype == FMPZ_TMP: acb_clear(tval)
         return res
+
+    def __contains__(self, other):
+        other = any_as_acb(other)
+        return acb_contains(self.val, (<acb>other).val)
+
+    def contains(self, other):
+        other = any_as_acb(other)
+        return bool(acb_contains(self.val, (<acb>other).val))
+
+    def overlaps(self, other):
+        other = any_as_acb(other)
+        return bool(acb_overlaps((<acb>self).val, (<acb>other).val))
 
     def mid(self):
         cdef acb u = acb()

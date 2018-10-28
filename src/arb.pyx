@@ -99,9 +99,22 @@ cdef inline int arb_set_any_ref(arb_t x, obj):
     return FMPZ_UNKNOWN
 
 def any_as_arb(x):
+    cdef arb t
     if typecheck(x, arb):
         return x
-    return arb(x)
+    t = arb()
+    if arb_set_python(t.val, x, 0) == 0:
+        raise TypeError("cannot create arb from type %s" % type(x))
+    return t
+
+def any_as_arb_or_notimplemented(x):
+    cdef arb t
+    if typecheck(x, arb):
+        return x
+    t = arb()
+    if arb_set_python(t.val, x, 0) == 0:
+        return NotImplemented
+    return t
 
 cdef class arb(flint_scalar):
     ur"""
@@ -331,6 +344,10 @@ cdef class arb(flint_scalar):
     def __contains__(self, other):
         other = any_as_arb(other)
         return arb_contains(self.val, (<arb>other).val)
+
+    def contains(self, other):
+        other = any_as_arb(other)
+        return bool(arb_contains(self.val, (<arb>other).val))
 
     def overlaps(self, other):
         other = any_as_arb(other)

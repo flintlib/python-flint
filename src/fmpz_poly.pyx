@@ -122,6 +122,16 @@ cdef class fmpz_poly(flint_poly):
         t = any_as_fmpq_poly(other)
         if t is not NotImplemented:
             return fmpq_poly(self)(t)
+        t = any_as_arb_or_notimplemented(other)
+        if t is not NotImplemented:
+            v = arb.__new__(arb)
+            arb_fmpz_poly_evaluate_arb((<arb>v).val, self.val, (<arb>t).val, getprec())
+            return v
+        t = any_as_acb_or_notimplemented(other)
+        if t is not NotImplemented:
+            v = acb.__new__(acb)
+            arb_fmpz_poly_evaluate_acb((<acb>v).val, self.val, (<acb>t).val, getprec())
+            return v
         raise TypeError("cannot call fmpz_poly with input of type %s", type(other))
 
     def __pos__(self):
@@ -255,7 +265,7 @@ cdef class fmpz_poly(flint_poly):
         cdef fmpz_poly_factor_t fac
         cdef int i
         fmpz_poly_factor_init(fac)
-        fmpz_poly_factor_zassenhaus(fac, self.val)
+        fmpz_poly_factor(fac, self.val)
         res = [0] * fac.num
         for 0 <= i < fac.num:
             u = fmpz_poly.__new__(fmpz_poly)
@@ -302,4 +312,51 @@ cdef class fmpz_poly(flint_poly):
         else:
             fmpz_poly_swinnerton_dyer((<fmpz_poly>u).val, n)
         return u
+
+    def roots(self, bint verbose=False):
+        """
+        Computes all the complex roots of this polynomial.
+        Returns a list of pairs (*c*, *m*) where *c* is the root
+        as an *acb* and *m* is the multiplicity of the root.
+
+            >>> fmpz_poly([]).roots()
+            []
+            >>> fmpz_poly([1]).roots()
+            []
+            >>> fmpz_poly([2,0,1]).roots()
+            [([1.41421356237310 +/- 4.96e-15]j, 1), ([-1.41421356237310 +/- 4.96e-15]j, 1)]
+            >>> for c, m in (fmpz_poly([2,3,4]) * fmpz_poly([5,6,7,11])**3).roots():
+            ...     print((c,m))
+            ...
+            ([-0.375000000000000 +/- 1.0e-19] + [0.599478940414090 +/- 5.75e-17]j, 1)
+            ([-0.375000000000000 +/- 1.0e-19] + [-0.599478940414090 +/- 5.75e-17]j, 1)
+            ([-0.735284727404843 +/- 4.11e-16], 3)
+            ([0.0494605455206031 +/- 1.33e-17] + [0.784693167647185 +/- 2.85e-16]j, 3)
+            ([0.0494605455206031 +/- 1.33e-17] + [-0.784693167647185 +/- 2.85e-16]j, 3)
+
+        """
+        cdef fmpz_poly_factor_t fac
+        cdef long deg, i, j
+        cdef int exp, flags
+        cdef acb_ptr croots
+        if not self:
+            return []
+        flags = 0
+        if verbose:
+            flags = 1
+        roots = []
+        fmpz_poly_factor_init(fac)
+        fmpz_poly_factor_squarefree(fac, self.val)
+        for 0 <= i < fac.num:
+            deg = fmpz_poly_degree(&fac.p[i]);
+            exp = fac.exp[i]
+            croots = _acb_vec_init(deg)
+            arb_fmpz_poly_complex_roots(croots, &fac.p[i], flags, getprec())
+            for 0 <= j < deg:
+                v = acb()
+                acb_set(v.val, &croots[j])
+                roots.append((v, exp))
+            _acb_vec_clear(croots, deg)
+        fmpz_poly_factor_clear(fac)
+        return roots
 

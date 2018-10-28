@@ -101,7 +101,7 @@ cdef class arb_mat(flint_mat):
                 for i from 0 <= i < m:
                     row = val[i]
                     for j from 0 <= j < n:
-                        x = any_as_arb(row[j])
+                        x = arb(row[j])
                         arb_set(arb_mat_entry(self.val, i, j), (<arb>x).val)
             elif hasattr(val, "rows"):   # allows conversion from mpmath matrices
                 m = val.rows
@@ -109,7 +109,7 @@ cdef class arb_mat(flint_mat):
                 arb_mat_init(self.val, m, n)
                 for i from 0 <= i < m:
                     for j from 0 <= j < n:
-                        x = any_as_arb(val[i,j])
+                        x = arb(val[i,j])
                         arb_set(arb_mat_entry(self.val, i, j), (<arb>x).val)
             else:
                 raise TypeError("cannot create arb_mat from input of type %s" % type(val))
@@ -130,7 +130,7 @@ cdef class arb_mat(flint_mat):
                 raise ValueError("list of entries has the wrong length")
             for i from 0 <= i < m:
                 for j from 0 <= j < n:
-                    x = any_as_arb(entries[i*n + j])
+                    x = arb(entries[i*n + j])
                     arb_set(arb_mat_entry(self.val, i, j), (<arb>x).val)
         else:
             raise ValueError("arb_mat: expected 1-3 arguments")

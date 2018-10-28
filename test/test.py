@@ -129,6 +129,8 @@ def test_fmpz_poly():
     assert p(flint.fmpq(2,3)) == flint.fmpq(71,9)
     assert p(Z([1,-1])) == Z([12,-14,5])
     assert p(flint.fmpq_poly([2,3],5)) == flint.fmpq_poly([27,24,9],5)
+    assert p(flint.arb("1.1")).overlaps(flint.arb("13.45"))
+    assert p(flint.acb("1.1", "1.2")).overlaps(flint.acb("6.25", "18.00"))
 
 def test_fmpz_mat():
     M = flint.fmpz_mat

@@ -12,7 +12,6 @@ cdef int any_as_nmod(mp_limb_t * val, obj, nmod_t mod) except -1:
         return 1
     q = any_as_fmpq(obj)
     if q is not NotImplemented:
-        # XXX: write an fmpq_mod_ui or fmpq_get_nmod in flint
         fmpz_init(t)
         fmpz_set_ui(t, mod.n)
         success = fmpq_mod_fmpz(t, (<fmpq>q).val, t)

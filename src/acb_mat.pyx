@@ -98,7 +98,7 @@ cdef class acb_mat(flint_mat):
                 for i from 0 <= i < m:
                     row = val[i]
                     for j from 0 <= j < n:
-                        x = any_as_acb(row[j])
+                        x = acb(row[j])
                         acb_set(acb_mat_entry(self.val, i, j), (<acb>x).val)
             elif hasattr(val, "rows"):   # allows conversion from mpmath matrices
                 m = val.rows
@@ -106,7 +106,7 @@ cdef class acb_mat(flint_mat):
                 acb_mat_init(self.val, m, n)
                 for i from 0 <= i < m:
                     for j from 0 <= j < n:
-                        x = any_as_acb(val[i,j])
+                        x = acb(val[i,j])
                         acb_set(acb_mat_entry(self.val, i, j), (<acb>x).val)
             else:
                 raise TypeError("cannot create acb_mat from input of type %s" % type(val))
@@ -127,7 +127,7 @@ cdef class acb_mat(flint_mat):
                 raise ValueError("list of entries has the wrong length")
             for i from 0 <= i < m:
                 for j from 0 <= j < n:
-                    x = any_as_acb(entries[i*n + j])
+                    x = acb(entries[i*n + j])
                     acb_set(acb_mat_entry(self.val, i, j), (<acb>x).val)
         else:
             raise ValueError("acb_mat: expected 1-3 arguments")
