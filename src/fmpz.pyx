@@ -323,12 +323,13 @@ cdef class fmpz(flint_scalar):
 
             >>> fmpz(5040).factor()
             [(2, 4), (3, 2), (5, 1), (7, 1)]
+            >>> fmpz(10**35 + 1).factor()
+            [(11, 1), (9091, 1), (909091, 1), (4147571, 1), (265212793249617641, 1)]
+            >>> len(fmpz.fac_ui(1000).factor())
+            168
 
-        Warning: this is a preliminary implementation and should only
-        be used for integers that fit in a single word, or which are
-        larger but only have very small prime factors. It will
-        crash if trying to factor a large integer with large
-        prime factors.
+        Warning: factoring large integers can be slow unless all
+        prime factors are small.
         """
         cdef fmpz_factor_t fac
         cdef int i

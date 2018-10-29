@@ -5,9 +5,9 @@ cdef any_as_fmpz_mat(obj):
 
 cdef class fmpz_mat(flint_mat):
     """
-    The fmpz_mat type represents dense matrices over the integers.
+    The *fmpz_mat* type represents dense matrices over the integers.
 
-    An fmpz_mat can be constructed empty, from a list of entries in
+    An *fmpz_mat* can be constructed empty, from a list of entries in
     row-major order, from a list of lists, or from an existing matrix::
 
         >>> fmpz_mat(2, 4)
@@ -133,7 +133,7 @@ cdef class fmpz_mat(flint_mat):
 
     cpdef long ncols(self):
         """
-        Returns the number of columns of self.
+        Returns the number of columns of *self*.
         """
         return fmpz_mat_ncols(self.val)
 
@@ -157,7 +157,7 @@ cdef class fmpz_mat(flint_mat):
 
     def det(self):
         """
-        Returns the determinant of self as an fmpz.
+        Returns the determinant of *self* as an *fmpz*.
 
             >>> A = fmpz_mat(3, 3, range(9))
             >>> A.det()
@@ -341,7 +341,7 @@ cdef class fmpz_mat(flint_mat):
     @classmethod
     def randtest(cls, ulong m, ulong n, ulong bits):
         """
-        Returns a random (m, n) matrix with non-uniformly chosen
+        Returns a random (*m*, *n*) matrix with non-uniformly chosen
         entries up to the specified number of bits in size. Small and
         zero entries are generated with increased probability.
 
@@ -358,7 +358,7 @@ cdef class fmpz_mat(flint_mat):
     @classmethod
     def randbits(cls, ulong m, ulong n, ulong bits):
         """
-        Returns a random (m, n) matrix with uniformly chosen entries up
+        Returns a random (*m*, *n*) matrix with uniformly chosen entries up
         to the specified number of bits in size.
 
             >>> fmpz_mat.randbits(3, 2, 100)   # doctest: +SKIP
@@ -374,7 +374,7 @@ cdef class fmpz_mat(flint_mat):
     @classmethod
     def randrank(cls, ulong m, ulong n, ulong rank, ulong bits):
         """
-        Returns a random sparse (m, n) matrix of the specified rank
+        Returns a random sparse (*m*, *n*) matrix of the specified rank
         with entries up to the specified number of bits in size.
 
             >>> fmpz_mat.randrank(3,6,2,20)   # doctest: +SKIP
@@ -392,7 +392,7 @@ cdef class fmpz_mat(flint_mat):
 
     def rank(self):
         """
-        Returns the rank of self.
+        Returns the rank of *self*.
 
             >>> A = fmpz_mat(3, 3, range(9))
             >>> A.rank()
@@ -405,15 +405,15 @@ cdef class fmpz_mat(flint_mat):
 
     def inv(self, bint integer=False):
         """
-        Returns the inverse of the matrix, which by default will
-        be of type fmpq_mat::
+        Returns the inverse matrix of *self*, which by default will
+        be of type *fmpq_mat*::
 
             >>> fmpz_mat(3,3,[1,2,4,0,1,1,2,-1,0]).inv()
             [-1/3,  4/3,  2/3]
             [-2/3,  8/3,  1/3]
             [ 2/3, -5/3, -1/3]
 
-        If *integer* is set, returns the inverse as an fmpz_mat,
+        If *integer* is set, returns the inverse as an *fmpz_mat*,
         or raises an exception if the matrix is not invertible
         over the integers.
 
@@ -455,7 +455,7 @@ cdef class fmpz_mat(flint_mat):
 
     def transpose(self):
         """
-        Returns the transpose of self.
+        Returns the transpose of *self*.
 
             >>> fmpz_mat(2,3,range(6)).transpose()
             [0, 3]
@@ -470,8 +470,10 @@ cdef class fmpz_mat(flint_mat):
 
     def solve(self, other, bint integer=False):
         """
-        Given self = A and other = B, returns an *fmpq_mat* X
-        such that AX = B, assuming that self is square and invertible.
+        Given matrices *A* and *B* represented by *self* and *other*,
+        returns an *fmpq_mat* *X* such that `AX = B`, assuming that
+        *A* is square and invertible.
+
         If *integer* is true, returns an *fmpz_mat*, solving the
         system only if the system matrix is invertible over the integers.
 
@@ -495,7 +497,6 @@ cdef class fmpz_mat(flint_mat):
             Traceback (most recent call last):
               ...
             ValueError: need a square system and compatible right hand side
-
 
         """
         cdef fmpz_mat u
@@ -529,9 +530,9 @@ cdef class fmpz_mat(flint_mat):
 
     def rref(self, inplace=False):
         """
-        Computes the reduced row echelon form (rref) of self,
+        Computes the reduced row echelon form (rref) of *self*,
         either returning a new copy or modifying self in-place.
-        Returns (rref, denominator, rank).
+        Returns (*rref*, *denominator*, *rank*).
 
             >>> ctx.pretty = False
             >>> A = fmpz_mat(3,3,range(9))
@@ -556,10 +557,10 @@ cdef class fmpz_mat(flint_mat):
 
     def nullspace(self):
         """
-        Computes a basis for the nullspace of self. Returns (X, nullity)
-        where nullity is the rank of the nullspace of self and X is a
-        matrix whose first (nullity) columns are linearly independent,
-        and such that self * X = 0.
+        Computes a basis for the nullspace of the matrix *A* represented
+        by *self*. Returns (*X*, *nullity*) where nullity is the rank of
+        the nullspace of *A* and *X* is a matrix whose first *nullity*
+        columns are linearly independent, and such that `AX = 0`.
 
             >>> A = fmpz_mat(3,5,range(1,16))
             >>> X, nullity = A.nullspace()
@@ -583,3 +584,107 @@ cdef class fmpz_mat(flint_mat):
         nullity = fmpz_mat_nullspace(res.val, self.val)
         return res, nullity
 
+    def lll(self, bint transform=False, double delta=0.99, double eta=0.51, rep="zbasis", gram="approx"):
+        r"""
+        Returns the LLL reduction of *self*, optionally along with
+        a transformation matrix.
+
+            >>> M = fmpz_mat([[11,17],[13,19]])
+            >>> M.lll()
+            [ 2, 2]
+            [-3, 3]
+            >>> L, T = M.lll(transform=True)
+            >>> T * M == L
+            True
+
+        """
+        cdef fmpz_mat u, v
+        cdef fmpz_lll_t ctx
+        cdef long i
+        cdef int rt
+        cdef int gt
+        if rep == "zbasis":
+            rt = 1
+        elif rep == "gram":
+            rt = 0
+        else:
+            raise ValueError("rep must be 'zbasis' or 'gram'")
+        if gram == "approx":
+            gt = 0
+        elif gram == "exact":
+            gt = 1
+        else:
+            raise ValueError("gram must be 'approx' or 'exact'")
+        fmpz_lll_context_init(ctx, delta, eta, rt, gt)
+        u = fmpz_mat(self)
+        if transform:
+            v = fmpz_mat(self.nrows(), self.nrows())
+            for 0 <= i < self.nrows():
+                v[i,i] = 1
+            fmpz_lll(u.val, v.val, ctx)
+            return u, v
+        else:
+            fmpz_lll(u.val, NULL, ctx)
+            return u
+
+    def hnf(self, bint transform=False):
+        """
+        Returns the Hermite normal form of *self*, optionally
+        with a transformation matrix.
+
+            >>> A = fmpz_mat(3,4,range(12))
+            >>> A.hnf()
+            [4, 0, -4, -8]
+            [0, 1,  2,  3]
+            [0, 0,  0,  0]
+            >>> H, T = A.hnf(transform=True)
+            >>> H == T * A
+            True
+        """
+        cdef fmpz_mat H
+        cdef fmpz_mat U
+        H = fmpz_mat(self.nrows(), self.ncols())
+        if transform:
+            U = fmpz_mat(self.nrows(), self.nrows())
+            fmpz_mat_hnf_transform(H.val, U.val, self.val)
+            return H, U
+        else:
+            fmpz_mat_hnf(H.val, self.val)
+            return H
+
+    def is_hnf(self):
+        """
+        Determines whether *self* is in Hermite normal form.
+
+            >>> fmpz_mat(3,4,range(12)).is_hnf()
+            False
+            >>> fmpz_mat(3,4,range(12)).hnf().is_hnf()
+            True
+        """
+        return bool(fmpz_mat_is_in_hnf(self.val))
+
+    def snf(self):
+        """
+        Returns the Smith normal form of *self*.
+
+            >>> A = fmpz_mat(3,4,range(12))
+            >>> A.snf()
+            [1, 0, 0, 0]
+            [0, 4, 0, 0]
+            [0, 0, 0, 0]
+        """
+        cdef fmpz_mat H
+        H = fmpz_mat(self.nrows(), self.ncols())
+        fmpz_mat_snf(H.val, self.val)
+        return H
+
+    def is_snf(self):
+        """
+        Determines whether *self* is in Smith normal form.
+
+            >>> fmpz_mat(3,4,range(12)).is_snf()
+            False
+            >>> fmpz_mat(3,4,range(12)).snf().is_snf()
+            True
+        """
+        return bool(fmpz_mat_is_in_snf(self.val))

@@ -442,6 +442,25 @@ cdef extern from "fmpz_mat.h":
     int fmpz_mat_is_hadamard(const fmpz_mat_t A)
     int fmpz_mat_hadamard(fmpz_mat_t A)
 
+    void fmpz_mat_hnf(fmpz_mat_t H, const fmpz_mat_t A)
+    void fmpz_mat_hnf_transform(fmpz_mat_t H, fmpz_mat_t U, const  fmpz_mat_t A)
+    int fmpz_mat_is_in_hnf(const fmpz_mat_t A)
+    void fmpz_mat_snf(fmpz_mat_t S, const fmpz_mat_t A)
+    int fmpz_mat_is_in_snf(const fmpz_mat_t A)
+
+cdef extern from "fmpz_lll.h":
+    ctypedef struct fmpz_lll_struct:
+        double delta
+        double eta
+        int rt
+        int gt
+
+    ctypedef fmpz_lll_struct fmpz_lll_t[1]
+
+    void fmpz_lll_context_init(fmpz_lll_t fl, double delta, double eta, int rt, int gt)
+    void fmpz_lll(fmpz_mat_t B, fmpz_mat_t U, const fmpz_lll_t fl)
+
+
 cdef extern from "fmpq.h":
     ctypedef struct fmpq_struct:
         fmpz_struct num
@@ -2044,6 +2063,8 @@ cdef extern from "acb_dirichlet.h":
 
     void acb_dirichlet_l(acb_t res, const acb_t s, const dirichlet_group_t G, const dirichlet_char_t chi, long prec)
     void acb_dirichlet_hardy_z(acb_ptr res, const acb_t t, const dirichlet_group_t G, const dirichlet_char_t chi, long len, long prec)
+
+    void acb_dirichlet_stieltjes(acb_t res, const fmpz_t n, const acb_t a, long prec);
 
 cdef extern from "acb_elliptic.h":
     void acb_elliptic_rf(acb_t res, const acb_t x, const acb_t y, const acb_t z, int flags, long prec)

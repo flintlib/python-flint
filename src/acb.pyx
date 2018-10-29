@@ -492,7 +492,7 @@ cdef class acb(flint_scalar):
 
     def zeta(s, a=None):
         """
-        Computes the Riemann zeta function `\zeta(s)` or the Hurwitz
+        The Riemann zeta function `\zeta(s)`, or the Hurwitz
         zeta function `\zeta(s,a)` if a second parameter is passed.
 
             >>> showgood(lambda: acb(0.5,1000).zeta(), dps=25)
@@ -1560,8 +1560,58 @@ cdef class acb(flint_scalar):
         acb_elliptic_invariants((<acb>g1).val, (<acb>g2).val, (<acb>tau).val, getprec())
         return (g1, g2)
 
-    def lambertw(s, branch=0, int flags=0):
+    def lambertw(s, branch=0, bint left=False, bint middle=False):
+        r"""
+        Lambert *W* function, `W_k(s)` where *k* is given by *branch*.
+
+            >>> showgood(lambda: acb(1).lambertw(), dps=25)
+            0.5671432904097838729999687
+            >>> showgood(lambda: acb(1).lambertw(-1), dps=25)
+            -1.533913319793574507919741 - 4.375185153061898385470907j
+            >>> showgood(lambda: acb(1).lambertw(-2), dps=25)
+            -2.401585104868002884174140 - 10.77629951611507089849710j
+
+        The branch cuts follow Corless et al. by default. This function
+        allows selecting alternative branch cuts in order to support
+        continuous analytic continuation on complex intervals.
+
+        If *left* is set, computes `W_{\mathrm{left}|k}(z)`
+        which corresponds to `W_k(z)` in the upper
+        half plane and `W_{k+1}(z)` in the lower half plane, connected continuously
+        to the left of the branch points.
+        In other words, the branch cut on `(-\infty,0)` is rotated counterclockwise
+        to `(0,+\infty)`.
+        (For `k = -1` and `k = 0`, there is also a branch cut on `(-1/e,0)`,
+        continuous from below instead of from above to maintain counterclockwise
+        continuity.)
+
+        If *middle* is set, computes
+        `W_{\mathrm{middle}}(z)` which corresponds to
+        `W_{-1}(z)` in the upper half plane and `W_{1}(z)` in the lower half
+        plane, connected continuously through `(-1/e,0)` with branch cuts
+        on `(-\infty,-1/e)` and `(0,+\infty)`. `W_{\mathrm{middle}}(z)` extends the
+        real analytic function `W_{-1}(x)` defined on `(-1/e,0)` to a complex
+        analytic function, whereas the standard branch `W_{-1}(z)` has a branch
+        cut along the real segment.
+
+            >>> acb(-5,"+/- 1e-20").lambertw()
+            [0.844844605432170 +/- 6.18e-16] + [+/- 1.98]j
+            >>> acb(-5,"+/- 1e-20").lambertw(left=True)
+            [0.844844605432170 +/- 7.85e-16] + [1.97500875488903 +/- 4.05e-15]j
+            >>> acb(-5,"+/- 1e-20").lambertw(-1, left=True)
+            [0.844844605432170 +/- 7.85e-16] + [-1.97500875488903 +/- 4.05e-15]j
+            >>> acb(-0.25,"+/- 1e-20").lambertw(middle=True)
+            [-2.15329236411035 +/- 1.48e-15] + [+/- 4.87e-16]j
+
+        """
+        cdef int flags
         u = acb.__new__(acb)
+        flags = 0
+        if middle:
+            flags = 4
+            branch = -1
+        elif left:
+            flags = 2
         k = any_as_fmpz(branch)
         acb_lambertw((<acb>u).val, (<acb>s).val, (<fmpz>k).val, flags, getprec())
         return u
@@ -1657,6 +1707,27 @@ cdef class acb(flint_scalar):
         """
         u = acb.__new__(acb)
         acb_real_sqrtpos((<acb>u).val, (<acb>s).val, analytic, getprec())
+        return u
+
+    @classmethod
+    def stieltjes(cls, n, a=1):
+        r"""
+        Generalized Stieltjes constant `\gamma_n(a)`.
+
+            >>> showgood(lambda: acb.stieltjes(1), dps=25)
+            -0.07281584548367672486058638
+            >>> showgood(lambda: acb.stieltjes(10**10), dps=25)
+            7.588362123713105194822403e+12397849705
+            >>> showgood(lambda: acb.stieltjes(1000, 2+3j), dps=25)
+            -1.206122870741999199264747e+494 - 1.389205283963836265123849e+494j
+        """
+        cdef acb u
+        n = fmpz(n)
+        if n < 0:
+            raise ValueError("n must be nonnegative")
+        a = acb(a)
+        u = acb.__new__(acb)
+        acb_dirichlet_stieltjes(u.val, (<fmpz>n).val, (<acb>a).val, getprec())
         return u
 
     @classmethod
