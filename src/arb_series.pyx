@@ -698,3 +698,74 @@ cdef class arb_series(flint_series):
         (<arb_series>u).prec = cap
         return u
 
+    @staticmethod
+    def find_roots(f, a, b, maxn=100000):
+        """
+        Isolates the roots of a given real analytic function *f* on the
+        interval [*a*, *b*]. The function *f* takes an *arb_series* as input
+        and outputs an *arb_series*.
+
+        This is just a test implementation; more options including support
+        for Newton refinement will be added in a future version.
+
+            >>> for c in arb_series.find_roots(lambda x: x.sin(), -8, 8): print(c)
+            ...
+            (-6.96875000000000, -5.93750000000000)
+            (-3.87500000000000, -1.81250000000000)
+            (-0.781250000000000, 0.250000000000000)
+            (2.18750000000000, 4.12500000000000)
+            (6.06250000000000, 7.03125000000000)
+            >>> for c in arb_series.find_roots(lambda x: x.riemann_siegel_z(), 0, 30): print(c)
+            ...
+            (14.1210937500000, 14.1796875000000)
+            (20.9765625000000, 21.0351562500000)
+            (24.9609375000000, 25.0195312500000)
+
+        """
+        orig_cap = ctx.cap
+        def xsgn(x):
+            if x < 0:
+                return -1
+            if x > 0:
+                return 1
+            return 0
+        try:
+            roots = []
+            ctx.cap = 1
+            queue = [(arb(a),arb(b))]
+            qvals = [(xsgn(f(arb_series(a))[0]), xsgn(f(arb_series(b))[0]))]
+            if 0 in qvals[0]:
+                raise ValueError("unknown sign at an endpoint; try a slightly larger interval")
+            n = 0
+            while queue:
+                n += 1
+                if n >= maxn:
+                    raise ValueError("failed to converge")
+                a, b = queue.pop()
+                fa, fb = qvals.pop()
+                m, r = (a+b)/2, (b-a)/2
+                ctx.cap = 1
+                v = f(arb_series([arb(m, r)]))
+                if v[0] != 0:
+                    continue
+                #ctx.cap = 1
+                #fa = xsgn(f(arb_series(a))[0])
+                #fb = xsgn(f(arb_series(b))[0])
+                ctx.cap = 2
+                if fa * fb < 0 and f(arb_series([arb(m, r),1]))[1] != 0:
+                    roots.append((a,b))
+                    continue
+                ctx.cap = 1
+                fm = xsgn(f(arb_series(m))[0])
+                if fm == 0:
+                    m = a + (b-a)*(33/64.)
+                    fm = xsgn(f(arb_series(m))[0])
+                    if fm == 0:
+                        raise ValueError("unknown sign at a bisection point")
+                queue.append((m,b))
+                qvals.append((fm,fb))
+                queue.append((a,m))
+                qvals.append((fa,fm))
+        finally:
+            ctx.cap = orig_cap
+        return roots

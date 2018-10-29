@@ -63,7 +63,7 @@ cdef any_as_fmpz(obj):
 
 cdef class fmpz(flint_scalar):
     """
-    The fmpz type represents multiprecision integers.
+    The *fmpz* type represents an arbitrary-size integer.
 
         >>> fmpz(3) ** 25
         847288609443
@@ -458,11 +458,11 @@ cdef class fmpz(flint_scalar):
         return u
 
     @classmethod
-    def stirling_number_1_uiui(cls, ulong n, ulong k):
+    def stirling_s1(cls, ulong n, ulong k):
         r"""
         Returns the Stirling number of the first kind `S_1(n,k)` as an *fmpz*.
 
-            >>> fmpz.stirling_number_1_uiui(10,5)
+            >>> fmpz.stirling_s1(10,5)
             -269325
         """
         u = fmpz.__new__(fmpz)
@@ -470,11 +470,11 @@ cdef class fmpz(flint_scalar):
         return u
 
     @classmethod
-    def stirling_number_2_uiui(cls, ulong n, ulong k):
+    def stirling_s2(cls, ulong n, ulong k):
         r"""
         Returns the Stirling number of the second kind `S_2(n,k)` as an *fmpz*.
 
-            >>> fmpz.stirling_number_2_uiui(10,5)
+            >>> fmpz.stirling_s2(10,5)
             42525
         """
         u = fmpz.__new__(fmpz)
@@ -498,7 +498,7 @@ cdef class fmpz(flint_scalar):
 
     def euler_phi(n):
         r"""
-        Returns the Euler totient function `\varphi(n)`, returning an *fmpz*.
+        Returns the Euler totient function `\varphi(n)` as an *fmpz*.
 
             >>> fmpz(60).euler_phi()
             16

@@ -36,8 +36,8 @@ cdef fmpq_poly_set_list(fmpq_poly_t poly, list val):
 
 cdef class fmpq_poly(flint_poly):
     """
-    The fmpq_poly type represents dense univariate polynomials
-    over the rational numbers. For efficiency reasons, an fmpq_poly is
+    The *fmpq_poly* type represents dense univariate polynomials
+    over the rational numbers. For efficiency reasons, an *fmpq_poly* is
     structurally an integer polynomial with a single common denominator.
 
         >>> fmpq_poly([1,2,3],5) ** 3
@@ -273,7 +273,7 @@ cdef class fmpq_poly(flint_poly):
 
     def gcd(self, other):
         """
-        Returns the greatest common divisor of self and other.
+        Returns the greatest common divisor of *self* and *other*.
 
             >>> A = fmpq_poly([1,2,6],6); B = fmpq_poly([4,2,1],12)
             >>> (A * B).gcd(B)
@@ -290,9 +290,9 @@ cdef class fmpq_poly(flint_poly):
 
     def factor(self):
         """
-        Factors self into irreducible polynomials. Returns (c, factors)
-        where c is the leading coefficient and factors is a list of
-        (poly, exp) pairs with all poly monic.
+        Factors *self* into irreducible polynomials. Returns (*c*, *factors*)
+        where *c* is the leading coefficient and *factors* is a list of
+        (*poly*, *exp*) pairs with all *poly* monic.
 
             >>> fmpq_poly.legendre_p(5).factor()
             (63/8, [(x, 1), (x^4 + (-10/9)*x^2 + 5/21, 1)])

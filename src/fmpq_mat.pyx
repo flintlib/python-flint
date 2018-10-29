@@ -35,7 +35,6 @@ cdef class fmpq_mat(flint_mat):
         if len(args) == 1:
             val = args[0]
             if typecheck(val, fmpq_mat):
-                # XXX: need fmpq_mat_init_set(self.val, (<fmpq_mat>val).val)
                 fmpq_mat_init(self.val, fmpq_mat_nrows((<fmpq_mat>val).val),
                                         fmpq_mat_ncols((<fmpq_mat>val).val))
                 fmpq_mat_set(self.val, (<fmpq_mat>val).val)
