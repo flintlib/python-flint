@@ -122,7 +122,7 @@ cdef class fmpq_mat(flint_mat):
 
     def det(self):
         """
-        Returns the determinant of self as an fmpq.
+        Returns the determinant of *self* as an *fmpq*.
 
             >>> (fmpq_mat(2,2,[1,2,3,4]) / 5).det()
             -2/25
@@ -265,6 +265,17 @@ cdef class fmpq_mat(flint_mat):
         return fmpq_mat._div_(s, t)
 
     def inv(self):
+        """
+        Returns the inverse matrix of *self*.
+
+            >>> (fmpq_mat([[1,2],[3,4]]) / 5).inv()
+            [ -10,    5]
+            [15/2, -5/2]
+            >>> (fmpq_mat([[1,2],[3,6]]) / 5).inv()
+            Traceback (most recent call last):
+              ...
+            ZeroDivisionError: matrix is singular
+        """
         cdef fmpq_mat u
         if not fmpq_mat_is_square(self.val):
             raise ValueError("matrix must be square")
@@ -276,13 +287,12 @@ cdef class fmpq_mat(flint_mat):
 
     def transpose(self):
         """
-        Returns the transpose of self.
+        Returns the transpose of *self*.
         
             >>> fmpq_mat(2,3,range(6)).transpose()
             [0, 3]
             [1, 4]
             [2, 5]
-
         """
         cdef fmpq_mat u
         u = fmpq_mat.__new__(fmpq_mat)
@@ -290,12 +300,13 @@ cdef class fmpq_mat(flint_mat):
         fmpq_mat_transpose(u.val, self.val)
         return u
 
-    def solve(self, other, algorithm="fraction-free"):
+    def solve(self, other, algorithm=None):
         """
-        Given self = A and other = B, returns a matrix X such
-        that A*X = B, assuming that self is square and invertible.
+        Given matrices *A* and *B* represented by *self* and *other*,
+        returns an *fmpq_mat* *X* such that `AX = B`, assuming that
+        *A* is square and invertible.
 
-        Algorithm can be "fraction-free" or "dixon"
+        Algorithm can *None* for a default choice, or "fflu" or "dixon"
         (faster for large matrices).
 
             >>> A = fmpq_mat(2, 2, [1,4,8,3])
@@ -329,19 +340,26 @@ cdef class fmpq_mat(flint_mat):
         u = fmpq_mat.__new__(fmpq_mat)
         fmpq_mat_init(u.val, fmpq_mat_nrows((<fmpq_mat>t).val),
             fmpq_mat_ncols((<fmpq_mat>t).val))
-        if algorithm == "fraction-free":
+        if algorithm is None:
+            if fmpq_mat_nrows(self.val) < 25:
+                result = fmpq_mat_solve_fraction_free(u.val, self.val, (<fmpq_mat>t).val)
+            else:
+                result = fmpq_mat_solve_dixon(u.val, self.val, (<fmpq_mat>t).val)
+        elif algorithm == "fflu":
             result = fmpq_mat_solve_fraction_free(u.val, self.val, (<fmpq_mat>t).val)
-        else:
+        elif algorithm == "dixon":
             result = fmpq_mat_solve_dixon(u.val, self.val, (<fmpq_mat>t).val)
+        else:
+            raise ValueError("unknown algorithm")
         if not result:
             raise ZeroDivisionError("singular matrix in solve()")
         return u
 
     def rref(self, inplace=False):
         """
-        Computes the reduced row echelon form (rref) of self,
+        Computes the reduced row echelon form (rref) of *self*,
         either returning a new copy or modifying self in-place.
-        Returns (rref, rank).
+        Returns (*rref*, *rank*).
 
             >>> A = fmpq_mat(3,3,range(9))
             >>> A.rref()
@@ -366,3 +384,37 @@ cdef class fmpq_mat(flint_mat):
         rank = fmpq_mat_rref((<fmpq_mat>res).val, self.val)
         return res, rank
 
+    @classmethod
+    def hilbert(cls, long n, long m):
+        """
+        Returns the *n* by *m* truncated Hilbert matrix.
+
+            >>> fmpq_mat.hilbert(2,3)
+            [  1, 1/2, 1/3]
+            [1/2, 1/3, 1/4]
+        """
+        cdef fmpq_mat u
+        u = fmpq_mat(n, m)
+        fmpq_mat_hilbert_matrix(u.val)
+        return u
+
+    def numer_denom(self):
+        """
+        Returns (*A*, *d*) where *A* is an *fmpz_mat* and *d* is an
+        *fmpz* representing the minimal denominator such that
+        *A* times *d* equals *self*.
+
+            >>> A, d = fmpq_mat.hilbert(3,3).numer_denom()
+            >>> A
+            [60, 30, 20]
+            [30, 20, 15]
+            [20, 15, 12]
+            >>> d
+            60
+        """
+        cdef fmpz_mat num
+        cdef fmpz_den
+        num = fmpz_mat(self.nrows(), self.ncols())
+        den = fmpz()
+        fmpq_mat_get_fmpz_mat_matwise(num.val, den.val, self.val)
+        return num, den

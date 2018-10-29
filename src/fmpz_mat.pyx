@@ -474,8 +474,10 @@ cdef class fmpz_mat(flint_mat):
         returns an *fmpq_mat* *X* such that `AX = B`, assuming that
         *A* is square and invertible.
 
-        If *integer* is true, returns an *fmpz_mat*, solving the
+        If *integer* is *True*, returns an *fmpz_mat*, solving the
         system only if the system matrix is invertible over the integers.
+        (Warning: solving with *integer* set to *True* is
+        currently slow for large matrices.)
 
             >>> A = fmpz_mat(2, 2, [1,4,8,3])
             >>> B = fmpz_mat(2, 3, range(6))
