@@ -938,6 +938,10 @@ cdef extern from "arb.h":
     void arb_set_interval_arf(arb_t x, const arf_t a, const arf_t b, long prec)
     void arb_get_interval_arf(arf_t a, arf_t b, const arb_t x, long prec)
     void arb_union(arb_t z, const arb_t x, const arb_t y, long prec)
+    int arb_intersection(arb_t z, const arb_t x, const arb_t y, long prec)
+    void arb_min(arb_t z, const arb_t x, const arb_t y, long prec)
+    void arb_max(arb_t z, const arb_t x, const arb_t y, long prec)
+
     void arb_get_rand_fmpq(fmpq_t q, flint_rand_t state, const arb_t x, long bits)
 
     void arb_add(arb_t z, const arb_t x, const arb_t y, long prec)
@@ -1113,6 +1117,8 @@ cdef extern from "arb.h":
     void arb_chebyshev_t2_ui(arb_t a, arb_t b, ulong n, const arb_t x, long prec)
     void arb_chebyshev_u_ui(arb_t a, ulong n, const arb_t x, long prec)
     void arb_chebyshev_u2_ui(arb_t a, arb_t b, ulong n, const arb_t x, long prec)
+
+    void arb_root_ui(arb_t z, const arb_t x, ulong k, long prec)
 
     cdef ulong ARB_STR_MORE
     cdef ulong ARB_STR_NO_RADIUS
@@ -1303,6 +1309,8 @@ cdef extern from "acb.h":
     long acb_rel_error_bits(const acb_t x)
     long acb_rel_accuracy_bits(const acb_t x)
     long acb_bits(const acb_t x)
+
+    void acb_root_ui(acb_t z, const acb_t x, ulong k, long prec)
 
 cdef extern from "partitions.h":
     void partitions_fmpz_fmpz(fmpz_t, const fmpz_t, int)
@@ -1892,6 +1900,7 @@ cdef extern from "acb_modular.h":
     void acb_modular_elliptic_k(acb_t w, const acb_t m, long prec)
     void acb_modular_elliptic_k_cpx(acb_ptr w, const acb_t m, long len, long prec)
     void acb_modular_elliptic_e(acb_t w, const acb_t m, long prec)
+    void acb_modular_hilbert_class_poly(fmpz_poly_t res, long D)
 
 cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_bessel_j(acb_t res, const acb_t nu, const acb_t z, long prec)

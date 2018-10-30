@@ -887,7 +887,7 @@ cdef class arb(flint_scalar):
 
     def sinc(s):
         r"""
-        Sinc function, `\operatorname(sinc)(x) = \sin(x)/x`.
+        Sinc function, `\operatorname{sinc}(x) = \sin(x)/x`.
 
             >>> showgood(lambda: arb(3).sinc(), dps=25)
             0.04704000268662240736691493
@@ -898,7 +898,7 @@ cdef class arb(flint_scalar):
 
     def sinc_pi(s):
         r"""
-        Normalized sinc function, `\operatorname(sinc)(\pi x) = \sin(\pi x)/(\pi x)`.
+        Normalized sinc function, `\operatorname{sinc}(\pi x) = \sin(\pi x)/(\pi x)`.
 
             >>> showgood(lambda: arb(1.5).sinc_pi(), dps=25)
             -0.2122065907891937810251784
@@ -920,8 +920,8 @@ cdef class arb(flint_scalar):
         arb_atan((<arb>u).val, (<arb>s).val, getprec())
         return u
 
-    @classmethod
-    def atan2(cls, s, t):
+    @staticmethod
+    def atan2(s, t):
         r"""
         Two-argument inverse tangent `\operatorname{atan2}(s,t)`.
 
@@ -1145,7 +1145,7 @@ cdef class arb(flint_scalar):
 
     def rising(s, n):
         """
-        Rhe rising factorial `(s)_n`.
+        Rising factorial `(s)_n`.
 
             >>> showgood(lambda: arb.pi().rising(0), dps=25)
             1.000000000000000000000000
@@ -1382,99 +1382,6 @@ cdef class arb(flint_scalar):
         arb_polylog((<arb>u).val, (<arb>s).val, (<arb>self).val, getprec())
         return u
 
-    def erf(s):
-        u = arb.__new__(arb)
-        arb_hypgeom_erf((<arb>u).val, (<arb>s).val, getprec())
-        return u
-
-    def erfc(s):
-        u = arb.__new__(arb)
-        arb_hypgeom_erfc((<arb>u).val, (<arb>s).val, getprec())
-        return u
-
-    def erfi(s):
-        u = arb.__new__(arb)
-        arb_hypgeom_erfi((<arb>u).val, (<arb>s).val, getprec())
-        return u
-
-    def fresnel_s(s, bint normalized=True):
-        u = arb.__new__(arb)
-        arb_hypgeom_fresnel((<arb>u).val, NULL, (<arb>s).val, normalized, getprec())
-        return u
-
-    def fresnel_c(s, bint normalized=True):
-        u = arb.__new__(arb)
-        arb_hypgeom_fresnel(NULL, (<arb>u).val, (<arb>s).val, normalized, getprec())
-        return u
-
-    def ei(s):
-        u = arb.__new__(arb)
-        arb_hypgeom_ei((<arb>u).val, (<arb>s).val, getprec())
-        return u
-
-    def si(s):
-        u = arb.__new__(arb)
-        arb_hypgeom_si((<arb>u).val, (<arb>s).val, getprec())
-        return u
-
-    def ci(s):
-        u = arb.__new__(arb)
-        arb_hypgeom_ci((<arb>u).val, (<arb>s).val, getprec())
-        return u
-
-    def shi(s):
-        u = arb.__new__(arb)
-        arb_hypgeom_shi((<arb>u).val, (<arb>s).val, getprec())
-        return u
-
-    def chi(s):
-        u = arb.__new__(arb)
-        arb_hypgeom_chi((<arb>u).val, (<arb>s).val, getprec())
-        return u
-
-    def li(s, bint offset=False):
-        u = arb.__new__(arb)
-        arb_hypgeom_li((<arb>u).val, (<arb>s).val, offset, getprec())
-        return u
-
-    @classmethod
-    def bessel_j(cls, a, z):
-        a = any_as_arb(a)
-        z = any_as_arb(z)
-        u = arb.__new__(arb)
-        arb_hypgeom_bessel_j((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
-        return u
-
-    @classmethod
-    def bessel_y(cls, a, z):
-        a = any_as_arb(a)
-        z = any_as_arb(z)
-        u = arb.__new__(arb)
-        arb_hypgeom_bessel_y((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
-        return u
-
-    @classmethod
-    def bessel_k(cls, a, z, bint scaled=False):
-        a = any_as_arb(a)
-        z = any_as_arb(z)
-        u = arb.__new__(arb)
-        if scaled:
-            arb_hypgeom_bessel_k_scaled((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
-        else:
-            arb_hypgeom_bessel_k((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
-        return u
-
-    @classmethod
-    def bessel_i(cls, a, z, bint scaled=False):
-        a = any_as_arb(a)
-        z = any_as_arb(z)
-        u = arb.__new__(arb)
-        if scaled:
-            arb_hypgeom_bessel_i_scaled((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
-        else:
-            arb_hypgeom_bessel_i((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
-        return u
-
     def airy_ai(s, int derivative=0):
         r"""
         Airy function `\operatorname{Ai}(s)`, or
@@ -1580,6 +1487,333 @@ cdef class arb(flint_scalar):
             arb_hypgeom_airy_zero(NULL, NULL, NULL, (<arb>u).val, (<fmpz>n).val, getprec())
         else:
             raise ValueError("derivative must be 0 or 1")
+        return u
+
+    def chebyshev_t(s, n):
+        r"""
+        Chebyshev function of the first kind `T_n(s)`.
+
+            >>> showgood(lambda: (arb(1)/3).chebyshev_t(3), dps=25)
+            -0.8518518518518518518518519
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        arb_hypgeom_chebyshev_t((<arb>v).val, (<arb>n).val, (<arb>s).val, getprec())
+        return v
+
+    def chebyshev_u(s, n):
+        r"""
+        Chebyshev function of the second kind `U_n(s)`.
+
+            >>> showgood(lambda: (arb(1)/3).chebyshev_u(3), dps=25)
+            -1.037037037037037037037037
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        arb_hypgeom_chebyshev_u((<arb>v).val, (<arb>n).val, (<arb>s).val, getprec())
+        return v
+
+    def jacobi_p(s, n, a, b):
+        r"""
+        Jacobi polynomial (or Jacobi function) `P_n^{a,b}(s)`.
+
+            >>> showgood(lambda: (arb(1)/3).jacobi_p(5, 0.25, 0.5), dps=25)
+            0.4131944444444444444444444
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        a = any_as_arb(a)
+        b = any_as_arb(b)
+        arb_hypgeom_jacobi_p((<arb>v).val, (<arb>n).val, (<arb>a).val, (<arb>b).val, (<arb>s).val, getprec())
+        return v
+
+    def gegenbauer_c(s, n, m):
+        r"""
+        Gegenbauer function `C_n^{m}(s)`.
+
+            >>> showgood(lambda: (arb(1)/3).gegenbauer_c(5, 0.25), dps=25)
+            0.1321855709876543209876543
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        m = any_as_arb(m)
+        arb_hypgeom_gegenbauer_c((<arb>v).val, (<arb>n).val, (<arb>m).val, (<arb>s).val, getprec())
+        return v
+
+    def laguerre_l(s, n, m=0):
+        r"""
+        Laguerre function `L_n^{m}(s)`.
+
+            >>> showgood(lambda: (arb(1)/3).laguerre_l(5, 0.25), dps=25)
+            0.03871323490012002743484225
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        m = any_as_arb(m)
+        arb_hypgeom_laguerre_l((<arb>v).val, (<arb>n).val, (<arb>m).val, (<arb>s).val, getprec())
+        return v
+
+    def hermite_h(s, n):
+        r"""
+        Hermite function `H_n(s)`.
+
+            >>> showgood(lambda: (arb(1)/3).hermite_h(5), dps=25)
+            34.20576131687242798353909
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        arb_hypgeom_hermite_h((<arb>v).val, (<arb>n).val, (<arb>s).val, getprec())
+        return v
+
+    def legendre_p(s, n, m=0, int type=2):
+        r"""
+        Legendre function of the first kind `P_n^m(z)`.
+
+            >>> showgood(lambda: (arb(1)/3).legendre_p(5), dps=25)
+            0.3333333333333333333333333
+            >>> showgood(lambda: (arb(1)/3).legendre_p(5, 1.5), dps=25)
+            -2.372124991643971726805456
+            >>> showgood(lambda: (arb(3)).legendre_p(5, 1.5, type=3), dps=25)
+            17099.70021476473458984981
+
+        The optional parameter *type* can be 2 or 3, and selects between
+        two different branch cut conventions (see *Mathematica* and *mpmath*).
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        m = any_as_arb(m)
+        if type != 2 and type != 3:
+            raise ValueError("type must be 2 or 3")
+        type -= 2
+        arb_hypgeom_legendre_p((<arb>v).val, (<arb>n).val, (<arb>m).val, (<arb>s).val, type, getprec())
+        return v
+
+    def legendre_q(s, n, m=0, int type=2):
+        r"""
+        Legendre function of the second kind `Q_n^m(z)`.
+
+            >>> showgood(lambda: (arb(1)/3).legendre_q(5), dps=25)
+            0.1655245300933242182362054
+            >>> showgood(lambda: (arb(1)/3).legendre_q(5, 1.5), dps=25)
+            -6.059967350218583975575616
+
+        The optional parameter *type* can be 2 or 3, and selects between
+        two different branch cut conventions (see *Mathematica* and *mpmath*).
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        m = any_as_arb(m)
+        if type != 2 and type != 3:
+            raise ValueError("type must be 2 or 3")
+        type -= 2
+        arb_hypgeom_legendre_q((<arb>v).val, (<arb>n).val, (<arb>m).val, (<arb>s).val, type, getprec())
+        return v
+
+    @staticmethod
+    def legendre_p_root(ulong n, ulong k, bint weight=False):
+        r"""
+        Returns the index *k* zero of the Legendre polynomial `P_n(x)`.
+        The zeros are indexed in decreasing order.
+
+        If *weight* is True, returns a tuple (*x*, *w*) where *x* is
+        the zero and *w* is the corresponding weight for Gauss-Legendre
+        quadrature on `(-1,1)`.
+
+            >>> for k in range(5):
+            ...     showgood(lambda: arb.legendre_p_root(5,k), dps=25)
+            ...
+            0.9061798459386639927976269
+            0.5384693101056830910363144
+            0
+            -0.5384693101056830910363144
+            -0.9061798459386639927976269
+
+            >>> for k in range(3):
+            ...     showgood(lambda: arb.legendre_p_root(3,k,weight=True), dps=15)
+            ...
+            (0.774596669241483, 0.555555555555556)
+            (0, 0.888888888888889)
+            (-0.774596669241483, 0.555555555555556)
+
+        """
+        cdef arb x, w
+        if k >= n:
+            raise ValueError("require k < n")
+        if weight:
+            x = arb.__new__(arb)
+            w = arb.__new__(arb)
+            arb_hypgeom_legendre_p_ui_root(x.val, w.val, n, k, getprec())
+            return x, w
+        else:
+            x = arb.__new__(arb)
+            arb_hypgeom_legendre_p_ui_root(x.val, NULL, n, k, getprec())
+            return x
+
+    def erf(s):
+        r"""
+        Error function `\operatorname{erf}(s)`.
+
+            >>> showgood(lambda: arb(3).erf(), dps=25)
+            0.9999779095030014145586272
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_erf((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def erfc(s):
+        r"""
+        Complementary error function `\operatorname{erfc}(s)`.
+
+            >>> showgood(lambda: arb(3).erfc(), dps=25)
+            2.209049699858544137277613e-5
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_erfc((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def erfi(s):
+        r"""
+        Imaginary error function `\operatorname{erfi}(s)`.
+
+            >>> showgood(lambda: arb(3).erfi(), dps=25)
+            1629.994622601565651061648
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_erfi((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def fresnel_s(s, bint normalized=True):
+        r"""
+        Fresnel sine integral `S(s)`, optionally not normalized.
+
+            >>> showgood(lambda: arb(3).fresnel_s(), dps=25)
+            0.4963129989673750360976123
+            >>> showgood(lambda: arb(3).fresnel_s(normalized=False), dps=25)
+            0.7735625268937690171497722
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_fresnel((<arb>u).val, NULL, (<arb>s).val, normalized, getprec())
+        return u
+
+    def fresnel_c(s, bint normalized=True):
+        r"""
+        Fresnel cosine integral `C(s)`, optionally not normalized.
+
+            >>> showgood(lambda: arb(3).fresnel_c(), dps=25)
+            0.6057207892976856295561611
+            >>> showgood(lambda: arb(3).fresnel_c(normalized=False), dps=25)
+            0.7028635577302687301744099
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_fresnel(NULL, (<arb>u).val, (<arb>s).val, normalized, getprec())
+        return u
+
+    def ei(s):
+        r"""
+        Exponential integral `\operatorname{Ei}(s)`.
+
+            >>> showgood(lambda: arb(3).ei(), dps=25)
+            9.933832570625416558008336
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_ei((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def si(s):
+        r"""
+        Sine integral `\operatorname{Si}(s)`.
+
+            >>> showgood(lambda: arb(3).si(), dps=25)
+            1.848652527999468256397730
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_si((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def ci(s):
+        r"""
+        Cosine integral `\operatorname{Ci}(s)`.
+
+            >>> showgood(lambda: arb(3).ci(), dps=25)
+            0.1196297860080003276264723
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_ci((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def shi(s):
+        r"""
+        Hyperbolic sine integral `\operatorname{Shi}(s)`.
+
+            >>> showgood(lambda: arb(3).shi(), dps=25)
+            4.973440475859806797710418
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_shi((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def chi(s):
+        r"""
+        Hyperbolic cosine integral `\operatorname{Chi}(s)`.
+
+            >>> showgood(lambda: arb(3).chi(), dps=25)
+            4.960392094765609760297918
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_chi((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def li(s, bint offset=False):
+        r"""
+        Logarithmic integral `\operatorname{li}(s)`, optionally
+        the offset logarithmic integral
+        `\operatorname{Li}(s) = \operatorname{li}(s) - \operatorname{li}(2)`.
+
+            >>> showgood(lambda: arb(10).li(), dps=25)
+            6.165599504787297937522982
+            >>> showgood(lambda: arb(10).li(offset=True), dps=25)
+            5.120435724669805152678393
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_li((<arb>u).val, (<arb>s).val, offset, getprec())
+        return u
+
+    @classmethod
+    def bessel_j(cls, a, z):
+        a = any_as_arb(a)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        arb_hypgeom_bessel_j((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+        return u
+
+    @classmethod
+    def bessel_y(cls, a, z):
+        a = any_as_arb(a)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        arb_hypgeom_bessel_y((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+        return u
+
+    @classmethod
+    def bessel_k(cls, a, z, bint scaled=False):
+        a = any_as_arb(a)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        if scaled:
+            arb_hypgeom_bessel_k_scaled((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+        else:
+            arb_hypgeom_bessel_k((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+        return u
+
+    @classmethod
+    def bessel_i(cls, a, z, bint scaled=False):
+        a = any_as_arb(a)
+        z = any_as_arb(z)
+        u = arb.__new__(arb)
+        if scaled:
+            arb_hypgeom_bessel_i_scaled((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+        else:
+            arb_hypgeom_bessel_i((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
         return u
 
     @classmethod
@@ -1834,162 +2068,72 @@ cdef class arb(flint_scalar):
         arb_nonnegative_part((<arb>res).val, (<arb>res).val)
         return res
 
-    def chebyshev_t(s, n):
-        r"""
-        Chebyshev function of the first kind `T_n(s)`.
+    def union(s, t):
+        """
+        Returns a ball containing the union of *s* and *t*.
 
-            >>> showgood(lambda: (arb(1)/3).chebyshev_t(3), dps=25)
-            -0.8518518518518518518518519
+            >>> x = arb(3).union(5); x.lower(); x.upper()
+            [2.99999999813735 +/- 4.86e-15]
+            [5.00000000186265 +/- 4.86e-15]
         """
         v = arb.__new__(arb)
-        n = any_as_arb(n)
-        arb_hypgeom_chebyshev_t((<arb>v).val, (<arb>n).val, (<arb>s).val, getprec())
+        t = any_as_arb(t)
+        arb_union((<arb>v).val, (<arb>s).val, (<arb>t).val, getprec())
         return v
 
-    def chebyshev_u(s, n):
-        r"""
-        Chebyshev function of the second kind `U_n(s)`.
+    def intersection(s, t):
+        """
+        Returns a ball containing the intersection of *s* and *t*.
+        If *s* and *t* are non-overlapping, raises ValueError.
 
-            >>> showgood(lambda: (arb(1)/3).chebyshev_u(3), dps=25)
-            -1.037037037037037037037037
+            >>> arb("10 +/- 8.001").intersection(arb("0 +/- 2.001"))
+            [2.00 +/- 1.01e-3]
+            >>> arb(2).intersection(3)
+            Traceback (most recent call last):
+              ...
+            ValueError: empty intersection
         """
         v = arb.__new__(arb)
-        n = any_as_arb(n)
-        arb_hypgeom_chebyshev_u((<arb>v).val, (<arb>n).val, (<arb>s).val, getprec())
-        return v
+        t = any_as_arb(t)
+        if arb_intersection((<arb>v).val, (<arb>s).val, (<arb>t).val, getprec()):
+            return v
+        raise ValueError("empty intersection")
 
-    def jacobi_p(s, n, a, b):
-        r"""
-        Jacobi polynomial (or Jacobi function) `P_n^{a,b}(s)`.
+    def min(s, t):
+        """
+        Minimum value of *s* and *t*.
 
-            >>> showgood(lambda: (arb(1)/3).jacobi_p(5, 0.25, 0.5), dps=25)
-            0.4131944444444444444444444
+            >>> arb(2).min(3)
+            2.00000000000000
+            >>> arb(2).min(arb("3 +/- 1.1"))
+            [2e+0 +/- 0.101]
         """
         v = arb.__new__(arb)
-        n = any_as_arb(n)
-        a = any_as_arb(a)
-        b = any_as_arb(b)
-        arb_hypgeom_jacobi_p((<arb>v).val, (<arb>n).val, (<arb>a).val, (<arb>b).val, (<arb>s).val, getprec())
+        t = any_as_arb(t)
+        arb_min((<arb>v).val, (<arb>s).val, (<arb>t).val, getprec())
         return v
 
-    def gegenbauer_c(s, n, m):
-        r"""
-        Gegenbauer function `C_n^{m}(s)`.
+    def max(s, t):
+        """
+        Maximum value of *s* and *t*.
 
-            >>> showgood(lambda: (arb(1)/3).gegenbauer_c(5, 0.25), dps=25)
-            0.1321855709876543209876543
+            >>> arb(2).max(arb("3 +/- 1.1"))
+            [+/- 4.11]
+            >>> arb(4).max(arb("3 +/- 1.1"))
+            [4e+0 +/- 0.101]
         """
         v = arb.__new__(arb)
-        n = any_as_arb(n)
-        m = any_as_arb(m)
-        arb_hypgeom_gegenbauer_c((<arb>v).val, (<arb>n).val, (<arb>m).val, (<arb>s).val, getprec())
+        t = any_as_arb(t)
+        arb_max((<arb>v).val, (<arb>s).val, (<arb>t).val, getprec())
         return v
 
-    def laguerre_l(s, n, m=0):
-        r"""
-        Laguerre function `L_n^{m}(s)`.
+    def root(s, ulong n):
+        """
+        Principal *n*-th root of *s*.
 
-            >>> showgood(lambda: (arb(1)/3).laguerre_l(5, 0.25), dps=25)
-            0.03871323490012002743484225
+            >>> showgood(lambda: arb(10).root(3), dps=25)
+            2.154434690031883721759294
         """
         v = arb.__new__(arb)
-        n = any_as_arb(n)
-        m = any_as_arb(m)
-        arb_hypgeom_laguerre_l((<arb>v).val, (<arb>n).val, (<arb>m).val, (<arb>s).val, getprec())
+        arb_root_ui((<arb>v).val, (<arb>s).val, n, getprec())
         return v
-
-    def hermite_h(s, n):
-        r"""
-        Hermite function `H_n(s)`.
-
-            >>> showgood(lambda: (arb(1)/3).hermite_h(5), dps=25)
-            34.20576131687242798353909
-        """
-        v = arb.__new__(arb)
-        n = any_as_arb(n)
-        arb_hypgeom_hermite_h((<arb>v).val, (<arb>n).val, (<arb>s).val, getprec())
-        return v
-
-    def legendre_p(s, n, m=0, int type=2):
-        r"""
-        Legendre function of the first kind `P_n^m(z)`.
-
-            >>> showgood(lambda: (arb(1)/3).legendre_p(5), dps=25)
-            0.3333333333333333333333333
-            >>> showgood(lambda: (arb(1)/3).legendre_p(5, 1.5), dps=25)
-            -2.372124991643971726805456
-            >>> showgood(lambda: (arb(3)).legendre_p(5, 1.5, type=3), dps=25)
-            17099.70021476473458984981
-
-        The optional parameter *type* can be 2 or 3, and selects between
-        two different branch cut conventions (see *Mathematica* and *mpmath*).
-        """
-        v = arb.__new__(arb)
-        n = any_as_arb(n)
-        m = any_as_arb(m)
-        if type != 2 and type != 3:
-            raise ValueError("type must be 2 or 3")
-        type -= 2
-        arb_hypgeom_legendre_p((<arb>v).val, (<arb>n).val, (<arb>m).val, (<arb>s).val, type, getprec())
-        return v
-
-    def legendre_q(s, n, m=0, int type=2):
-        r"""
-        Legendre function of the second kind `Q_n^m(z)`.
-
-            >>> showgood(lambda: (arb(1)/3).legendre_q(5), dps=25)
-            0.1655245300933242182362054
-            >>> showgood(lambda: (arb(1)/3).legendre_q(5, 1.5), dps=25)
-            -6.059967350218583975575616
-
-        The optional parameter *type* can be 2 or 3, and selects between
-        two different branch cut conventions (see *Mathematica* and *mpmath*).
-        """
-        v = arb.__new__(arb)
-        n = any_as_arb(n)
-        m = any_as_arb(m)
-        if type != 2 and type != 3:
-            raise ValueError("type must be 2 or 3")
-        type -= 2
-        arb_hypgeom_legendre_q((<arb>v).val, (<arb>n).val, (<arb>m).val, (<arb>s).val, type, getprec())
-        return v
-
-    @staticmethod
-    def legendre_p_root(ulong n, ulong k, bint weight=False):
-        r"""
-        Returns the index *k* zero of the Legendre polynomial `P_n(x)`.
-        The zeros are indexed in decreasing order.
-
-        If *weight* is True, returns a tuple (*x*, *w*) where *x* is
-        the zero and *w* is the corresponding weight for Gauss-Legendre
-        quadrature on `(-1,1)`.
-
-            >>> for k in range(5):
-            ...     showgood(lambda: arb.legendre_p_root(5,k), dps=25)
-            ...
-            0.9061798459386639927976269
-            0.5384693101056830910363144
-            0
-            -0.5384693101056830910363144
-            -0.9061798459386639927976269
-
-            >>> for k in range(3):
-            ...     showgood(lambda: arb.legendre_p_root(3,k,weight=True), dps=15)
-            ...
-            (0.774596669241483, 0.555555555555556)
-            (0, 0.888888888888889)
-            (-0.774596669241483, 0.555555555555556)
-
-        """
-        cdef arb x, w
-        if k >= n:
-            raise ValueError("require k < n")
-        if weight:
-            x = arb.__new__(arb)
-            w = arb.__new__(arb)
-            arb_hypgeom_legendre_p_ui_root(x.val, w.val, n, k, getprec())
-            return x, w
-        else:
-            x = arb.__new__(arb)
-            arb_hypgeom_legendre_p_ui_root(x.val, NULL, n, k, getprec())
-            return x

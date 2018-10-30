@@ -538,8 +538,8 @@ cdef class acb(flint_scalar):
             acb_hurwitz_zeta((<acb>u).val, (<acb>s).val, (<acb>a).val, getprec())
             return u
 
-    @classmethod
-    def pi(cls):
+    @staticmethod
+    def pi():
         """
         Computes the constant `\pi`.
 
@@ -773,7 +773,7 @@ cdef class acb(flint_scalar):
 
     def rising(s, n):
         """
-        Computes the rising factorial `(s)_n`.
+        Rising factorial `(s)_n`.
 
             >>> showgood(lambda: acb(1,2).rising(5), dps=25)
             -540.0000000000000000000000 - 100.0000000000000000000000j
@@ -814,191 +814,6 @@ cdef class acb(flint_scalar):
         u = acb.__new__(acb)
         s = any_as_acb(s)
         acb_polylog((<acb>u).val, (<acb>s).val, (<acb>self).val, getprec())
-        return u
-
-    @classmethod
-    def polygamma(cls, s, z):
-        u = acb.__new__(acb)
-        s = any_as_acb(s)
-        z = any_as_acb(z)
-        acb_polygamma((<acb>u).val, (<acb>s).val, (<acb>z).val, getprec())
-        return u
-
-    def log_barnes_g(s):
-        u = acb.__new__(acb)
-        acb_log_barnes_g((<acb>u).val, (<acb>s).val, getprec())
-        return u
-
-    def barnes_g(s):
-        u = acb.__new__(acb)
-        acb_barnes_g((<acb>u).val, (<acb>s).val, getprec())
-        return u
-
-    @classmethod
-    def hypgeom(cls, a, b, z, bint regularized=False, long n=-1):
-        r"""
-        Computes the generalized hypergeometric function `{}_pF_q(a;b;z)`
-        given lists of complex numbers `a` and `b` and a complex number `z`.
-
-        The optional parameter *n*, if nonnegative, controls the number
-        of terms to add in the hypergeometric series. This is just a tuning
-        parameter: a rigorous error bound is computed regardless of *n*.
-
-            >>> showgood(lambda: acb.hypgeom([1+1j, 2-2j], [3, fmpq(1,3)], acb.pi()), dps=25)  # 2F2
-            144.9760711583421645394627 - 51.06535684838559608699106j
-
-        """
-        cdef long i, p, q, prec
-        cdef acb_ptr aa, bb
-        a = [any_as_acb(t) for t in a]
-        b = [any_as_acb(t) for t in b]
-        if n != -1:
-            b += [acb(1)]
-        z = acb(z)
-        p = len(a)
-        q = len(b)
-        aa = <acb_ptr>libc.stdlib.malloc(p * cython.sizeof(acb_struct))
-        bb = <acb_ptr>libc.stdlib.malloc(q * cython.sizeof(acb_struct))
-        for i in range(p):
-            aa[i] = (<acb>(a[i])).val[0]
-        for i in range(q):
-            bb[i] = (<acb>(b[i])).val[0]
-        u = acb.__new__(acb)
-        if n == -1:
-            acb_hypgeom_pfq((<acb>u).val, aa, p, bb, q, (<acb>z).val, regularized, getprec())
-        else:
-            if regularized:
-                raise NotImplementedError
-            acb_hypgeom_pfq_direct((<acb>u).val, aa, p, bb, q, (<acb>z).val, n, getprec())
-        libc.stdlib.free(aa)
-        libc.stdlib.free(bb)
-        return u
-
-    @classmethod
-    def hypgeom_u(cls, a, b, z, long n=-1, bint asymp=False):
-        r"""
-        Computes Tricomi's confluent hypergeometric function `U(a,b,z)`
-        given complex numbers `a`, `b`, `z`.
-
-        If *asymp* is set to *True* the asymptotic series is forced.
-        If `|z|` is small, the attainable accuracy is then limited.
-        The optional parameter *n*, if nonnegative, controls the number
-        of terms to add in the asymptotic series. This is just a tuning
-        parameter: a rigorous error bound is computed regardless of *n*.
-
-            >>> showgood(lambda: acb.hypgeom_u(1+1j, 2+3j, 400+500j), dps=25)
-            0.001836433961463105354717547 - 0.003358699641979853540147122j
-            >>> showgood(lambda: acb.hypgeom_u(1+1j, 2+3j, -30), dps=25)
-            0.7808944974399200669072087 - 0.2674783064947089569672470j
-            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=0, asymp=True))
-            [+/- 3.41] + [+/- 3.41]j
-            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=30, asymp=True))
-            [0.7808944974 +/- 7.46e-11] + [-0.2674783065 +/- 3.31e-11]j
-            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=60, asymp=True))
-            [0.78089 +/- 8.14e-6] + [-0.26748 +/- 5.34e-6]j
-        """
-        a = any_as_acb(a)
-        b = any_as_acb(b)
-        z = any_as_acb(z)
-        if asymp:
-            t = z**(-a)
-            u = acb.__new__(acb)
-            acb_hypgeom_u_asymp((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, n, getprec())
-            return t * u
-        else:
-            u = acb.__new__(acb)
-            acb_hypgeom_u((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, getprec())
-            return u
-
-    @classmethod
-    def hypgeom_1f1(cls, a, b, z, bint regularized=False):
-        r"""
-        Computes Kummer's confluent hypergeometric function `{}_1F_1(a,b,z)`
-        given complex numbers `a`, `b`, `z`. Optionally, computes
-        the regularized version.
-
-            >>> showgood(lambda: acb.hypgeom_1f1(2+3j, 3+4j, 40000+50000j), dps=25)
-            3.730925582634533963357515e+17366 + 3.199717318207534638202987e+17367j
-            >>> showgood(lambda: acb.hypgeom_1f1(2+3j, 3+4j, 40000+50000j) / acb(3+4j).gamma(), dps=25)
-            -1.846160890579724375436801e+17368 + 2.721369772032882467996588e+17367j
-            >>> showgood(lambda: acb.hypgeom_1f1(5, -3, 10, regularized=True), dps=25)
-            832600407043.6938843410086
-            >>> showgood(lambda: acb.hypgeom_1f1(-5,-6,10), dps=25)
-            403.7777777777777777777778
-            >>> showgood(lambda: acb.hypgeom_1f1(-5,-5,10,regularized=True), dps=25)
-            0
-            >>> showgood(lambda: acb.hypgeom_1f1(-5,-6,10,regularized=True), dps=25)
-            0
-            >>> showgood(lambda: acb.hypgeom_1f1(-5,-4,10,regularized=True), dps=25)
-            -100000.0000000000000000000
-
-        """
-        a = any_as_acb(a)
-        b = any_as_acb(b)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_hypgeom_1f1((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, regularized, getprec())
-        return u
-
-    @classmethod
-    def bessel_j(cls, a, z):
-        r"""
-        Computes the Bessel function of the first kind `J_a(z)`.
-
-            >>> showgood(lambda: acb.bessel_j(1+2j, 2+3j), dps=25)
-            0.5041904509946947234759103 - 0.1765180072689450645147231j
-        """
-        a = any_as_acb(a)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_hypgeom_bessel_j((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
-        return u
-
-    @classmethod
-    def bessel_k(cls, a, z, bint scaled=False):
-        r"""
-        Computes the modified Bessel function of the second kind `K_a(z)`.
-
-            >>> showgood(lambda: acb.bessel_k(1+2j, 2+3j), dps=25)
-            -0.09884736370006798963642719 - 0.02870616366668971734065520j
-            >>> showgood(lambda: acb.bessel_k(3, 2), dps=25)
-            0.6473853909486341531592356
-
-        """
-        a = any_as_acb(a)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        if scaled:
-            acb_hypgeom_bessel_k_scaled((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
-        else:
-            acb_hypgeom_bessel_k((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
-        return u
-
-    @classmethod
-    def bessel_i(cls, a, z, bint scaled=False):
-        r"""
-        Computes the modified Bessel function of the first kind `I_a(z)`.
-
-        """
-        a = any_as_acb(a)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        if scaled:
-            acb_hypgeom_bessel_i_scaled((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
-        else:
-            acb_hypgeom_bessel_i((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
-        return u
-
-    @classmethod
-    def bessel_y(cls, a, z):
-        r"""
-        Computes the Bessel function of the second kind `Y_a(z)`.
-
-        """
-        a = any_as_acb(a)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_hypgeom_bessel_y((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
         return u
 
     def erf(s):
@@ -1420,21 +1235,6 @@ cdef class acb(flint_scalar):
         acb_hypgeom_legendre_q((<acb>v).val, (<acb>n).val, (<acb>m).val, (<acb>s).val, type, getprec())
         return v
 
-    @classmethod
-    def hypgeom_0f1(cls, a, z, bint regularized=False):
-        r"""
-        """
-        a = any_as_acb(a)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_hypgeom_0f1((<acb>u).val, (<acb>a).val, (<acb>z).val, regularized, getprec())
-        return u
-
-    def dirichlet_eta(s):
-        u = acb.__new__(acb)
-        acb_dirichlet_eta((<acb>u).val, (<acb>s).val, getprec())
-        return u
-
     def airy_ai(s, int derivative=0):
         r"""
         Airy function `\operatorname{Ai}(s)`, or
@@ -1489,178 +1289,6 @@ cdef class acb(flint_scalar):
         acb_hypgeom_airy((<acb>u).val, (<acb>v).val,
                         (<acb>w).val, (<acb>z).val, (<acb>s).val, getprec())
         return u, v, w, z
-
-    def fresnel_s(s, bint normalized=True):
-        u = acb.__new__(acb)
-        acb_hypgeom_fresnel((<acb>u).val, NULL, (<acb>s).val, normalized, getprec())
-        return u
-
-    def fresnel_c(s, bint normalized=True):
-        u = acb.__new__(acb)
-        acb_hypgeom_fresnel(NULL, (<acb>u).val, (<acb>s).val, normalized, getprec())
-        return u
-
-    def log_sin_pi(s):
-        u = acb.__new__(acb)
-        acb_log_sin_pi((<acb>u).val, (<acb>s).val, getprec())
-        return u
-
-    @classmethod
-    def elliptic_rf(cls, x, y, z):
-        r"""
-        """
-        x = any_as_acb(x)
-        y = any_as_acb(y)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_elliptic_rf((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>z).val, 0, getprec())
-        return u
-
-    @classmethod
-    def elliptic_rc(cls, x, y):
-        r"""
-        """
-        x = any_as_acb(x)
-        y = any_as_acb(y)
-        u = acb.__new__(acb)
-        acb_elliptic_rf((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>y).val, 0, getprec())
-        return u
-
-    @classmethod
-    def elliptic_rj(cls, x, y, z, p):
-        r"""
-        """
-        x = any_as_acb(x)
-        y = any_as_acb(y)
-        z = any_as_acb(z)
-        p = any_as_acb(p)
-        u = acb.__new__(acb)
-        acb_elliptic_rj((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>z).val, (<acb>p).val, 0, getprec())
-        return u
-
-    @classmethod
-    def elliptic_rd(cls, x, y, z):
-        r"""
-        """
-        x = any_as_acb(x)
-        y = any_as_acb(y)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_elliptic_rj((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>z).val, (<acb>z).val, 0, getprec())
-        return u
-
-    @classmethod
-    def elliptic_rg(cls, x, y, z):
-        r"""
-        """
-        x = any_as_acb(x)
-        y = any_as_acb(y)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_elliptic_rg((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>z).val, 0, getprec())
-        return u
-
-    @classmethod
-    def elliptic_f(cls, phi, m, bint pi=False):
-        r"""
-        """
-        phi = any_as_acb(phi)
-        m = any_as_acb(m)
-        u = acb.__new__(acb)
-        acb_elliptic_f((<acb>u).val, (<acb>phi).val, (<acb>m).val, pi, getprec())
-        return u
-
-    @classmethod
-    def elliptic_e_inc(cls, phi, m, bint pi=False):
-        r"""
-        """
-        phi = any_as_acb(phi)
-        m = any_as_acb(m)
-        u = acb.__new__(acb)
-        acb_elliptic_e_inc((<acb>u).val, (<acb>phi).val, (<acb>m).val, pi, getprec())
-        return u
-
-    @classmethod
-    def elliptic_pi(cls, n, m):
-        r"""
-        """
-        n = any_as_acb(n)
-        m = any_as_acb(m)
-        u = acb.__new__(acb)
-        acb_elliptic_pi((<acb>u).val, (<acb>n).val, (<acb>m).val, getprec())
-        return u
-
-    @classmethod
-    def elliptic_pi_inc(cls, n, phi, m, bint pi=False):
-        r"""
-        """
-        n = any_as_acb(n)
-        phi = any_as_acb(phi)
-        m = any_as_acb(m)
-        u = acb.__new__(acb)
-        acb_elliptic_pi_inc((<acb>u).val, (<acb>n).val, (<acb>phi).val, (<acb>m).val, pi, getprec())
-        return u
-
-    @classmethod
-    def elliptic_p(cls, z, tau):
-        r"""
-        """
-        z = any_as_acb(z)
-        tau = any_as_acb(tau)
-        u = acb.__new__(acb)
-        acb_elliptic_p((<acb>u).val, (<acb>z).val, (<acb>tau).val, getprec())
-        return u
-
-    @classmethod
-    def elliptic_zeta(cls, z, tau):
-        r"""
-        """
-        z = any_as_acb(z)
-        tau = any_as_acb(tau)
-        u = acb.__new__(acb)
-        acb_elliptic_zeta((<acb>u).val, (<acb>z).val, (<acb>tau).val, getprec())
-        return u
-
-    @classmethod
-    def elliptic_sigma(cls, z, tau):
-        r"""
-        """
-        z = any_as_acb(z)
-        tau = any_as_acb(tau)
-        u = acb.__new__(acb)
-        acb_elliptic_sigma((<acb>u).val, (<acb>z).val, (<acb>tau).val, getprec())
-        return u
-
-    @classmethod
-    def elliptic_inv_p(cls, z, tau):
-        r"""
-        """
-        z = any_as_acb(z)
-        tau = any_as_acb(tau)
-        u = acb.__new__(acb)
-        acb_elliptic_inv_p((<acb>u).val, (<acb>z).val, (<acb>tau).val, getprec())
-        return u
-
-    @classmethod
-    def elliptic_roots(cls, tau):
-        r"""
-        """
-        tau = any_as_acb(tau)
-        e1 = acb.__new__(acb)
-        e2 = acb.__new__(acb)
-        e3 = acb.__new__(acb)
-        acb_elliptic_roots((<acb>e1).val, (<acb>e2).val, (<acb>e3).val, (<acb>tau).val, getprec())
-        return (e1, e2, e3)
-
-    @classmethod
-    def elliptic_invariants(cls, tau):
-        r"""
-        """
-        tau = any_as_acb(tau)
-        g1 = acb.__new__(acb)
-        g2 = acb.__new__(acb)
-        acb_elliptic_invariants((<acb>g1).val, (<acb>g2).val, (<acb>tau).val, getprec())
-        return (g1, g2)
 
     def lambertw(s, branch=0, bint left=False, bint middle=False):
         r"""
@@ -1950,4 +1578,389 @@ cdef class acb(flint_scalar):
         for i in range(n):
             (<acb>(v[i])).val[0] = w[i]
         libc.stdlib.free(w)
+        return v
+
+    def fresnel_s(s, bint normalized=True):
+        u = acb.__new__(acb)
+        acb_hypgeom_fresnel((<acb>u).val, NULL, (<acb>s).val, normalized, getprec())
+        return u
+
+    def fresnel_c(s, bint normalized=True):
+        u = acb.__new__(acb)
+        acb_hypgeom_fresnel(NULL, (<acb>u).val, (<acb>s).val, normalized, getprec())
+        return u
+
+    def log_sin_pi(s):
+        u = acb.__new__(acb)
+        acb_log_sin_pi((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    @classmethod
+    def elliptic_rf(cls, x, y, z):
+        r"""
+        """
+        x = any_as_acb(x)
+        y = any_as_acb(y)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_elliptic_rf((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>z).val, 0, getprec())
+        return u
+
+    @classmethod
+    def elliptic_rc(cls, x, y):
+        r"""
+        """
+        x = any_as_acb(x)
+        y = any_as_acb(y)
+        u = acb.__new__(acb)
+        acb_elliptic_rf((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>y).val, 0, getprec())
+        return u
+
+    @classmethod
+    def elliptic_rj(cls, x, y, z, p):
+        r"""
+        """
+        x = any_as_acb(x)
+        y = any_as_acb(y)
+        z = any_as_acb(z)
+        p = any_as_acb(p)
+        u = acb.__new__(acb)
+        acb_elliptic_rj((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>z).val, (<acb>p).val, 0, getprec())
+        return u
+
+    @classmethod
+    def elliptic_rd(cls, x, y, z):
+        r"""
+        """
+        x = any_as_acb(x)
+        y = any_as_acb(y)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_elliptic_rj((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>z).val, (<acb>z).val, 0, getprec())
+        return u
+
+    @classmethod
+    def elliptic_rg(cls, x, y, z):
+        r"""
+        """
+        x = any_as_acb(x)
+        y = any_as_acb(y)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_elliptic_rg((<acb>u).val, (<acb>x).val, (<acb>y).val, (<acb>z).val, 0, getprec())
+        return u
+
+    @classmethod
+    def elliptic_f(cls, phi, m, bint pi=False):
+        r"""
+        """
+        phi = any_as_acb(phi)
+        m = any_as_acb(m)
+        u = acb.__new__(acb)
+        acb_elliptic_f((<acb>u).val, (<acb>phi).val, (<acb>m).val, pi, getprec())
+        return u
+
+    @classmethod
+    def elliptic_e_inc(cls, phi, m, bint pi=False):
+        r"""
+        """
+        phi = any_as_acb(phi)
+        m = any_as_acb(m)
+        u = acb.__new__(acb)
+        acb_elliptic_e_inc((<acb>u).val, (<acb>phi).val, (<acb>m).val, pi, getprec())
+        return u
+
+    @classmethod
+    def elliptic_pi(cls, n, m):
+        r"""
+        """
+        n = any_as_acb(n)
+        m = any_as_acb(m)
+        u = acb.__new__(acb)
+        acb_elliptic_pi((<acb>u).val, (<acb>n).val, (<acb>m).val, getprec())
+        return u
+
+    @classmethod
+    def elliptic_pi_inc(cls, n, phi, m, bint pi=False):
+        r"""
+        """
+        n = any_as_acb(n)
+        phi = any_as_acb(phi)
+        m = any_as_acb(m)
+        u = acb.__new__(acb)
+        acb_elliptic_pi_inc((<acb>u).val, (<acb>n).val, (<acb>phi).val, (<acb>m).val, pi, getprec())
+        return u
+
+    @classmethod
+    def elliptic_p(cls, z, tau):
+        r"""
+        """
+        z = any_as_acb(z)
+        tau = any_as_acb(tau)
+        u = acb.__new__(acb)
+        acb_elliptic_p((<acb>u).val, (<acb>z).val, (<acb>tau).val, getprec())
+        return u
+
+    @classmethod
+    def elliptic_zeta(cls, z, tau):
+        r"""
+        """
+        z = any_as_acb(z)
+        tau = any_as_acb(tau)
+        u = acb.__new__(acb)
+        acb_elliptic_zeta((<acb>u).val, (<acb>z).val, (<acb>tau).val, getprec())
+        return u
+
+    @classmethod
+    def elliptic_sigma(cls, z, tau):
+        r"""
+        """
+        z = any_as_acb(z)
+        tau = any_as_acb(tau)
+        u = acb.__new__(acb)
+        acb_elliptic_sigma((<acb>u).val, (<acb>z).val, (<acb>tau).val, getprec())
+        return u
+
+    @classmethod
+    def elliptic_inv_p(cls, z, tau):
+        r"""
+        """
+        z = any_as_acb(z)
+        tau = any_as_acb(tau)
+        u = acb.__new__(acb)
+        acb_elliptic_inv_p((<acb>u).val, (<acb>z).val, (<acb>tau).val, getprec())
+        return u
+
+    @classmethod
+    def elliptic_roots(cls, tau):
+        r"""
+        """
+        tau = any_as_acb(tau)
+        e1 = acb.__new__(acb)
+        e2 = acb.__new__(acb)
+        e3 = acb.__new__(acb)
+        acb_elliptic_roots((<acb>e1).val, (<acb>e2).val, (<acb>e3).val, (<acb>tau).val, getprec())
+        return (e1, e2, e3)
+
+    @classmethod
+    def elliptic_invariants(cls, tau):
+        r"""
+        """
+        tau = any_as_acb(tau)
+        g1 = acb.__new__(acb)
+        g2 = acb.__new__(acb)
+        acb_elliptic_invariants((<acb>g1).val, (<acb>g2).val, (<acb>tau).val, getprec())
+        return (g1, g2)
+
+    @classmethod
+    def hypgeom_0f1(cls, a, z, bint regularized=False):
+        r"""
+        """
+        a = any_as_acb(a)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_0f1((<acb>u).val, (<acb>a).val, (<acb>z).val, regularized, getprec())
+        return u
+
+    def dirichlet_eta(s):
+        u = acb.__new__(acb)
+        acb_dirichlet_eta((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    @classmethod
+    def polygamma(cls, s, z):
+        u = acb.__new__(acb)
+        s = any_as_acb(s)
+        z = any_as_acb(z)
+        acb_polygamma((<acb>u).val, (<acb>s).val, (<acb>z).val, getprec())
+        return u
+
+    def log_barnes_g(s):
+        u = acb.__new__(acb)
+        acb_log_barnes_g((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def barnes_g(s):
+        u = acb.__new__(acb)
+        acb_barnes_g((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    @classmethod
+    def hypgeom(cls, a, b, z, bint regularized=False, long n=-1):
+        r"""
+        Computes the generalized hypergeometric function `{}_pF_q(a;b;z)`
+        given lists of complex numbers `a` and `b` and a complex number `z`.
+
+        The optional parameter *n*, if nonnegative, controls the number
+        of terms to add in the hypergeometric series. This is just a tuning
+        parameter: a rigorous error bound is computed regardless of *n*.
+
+            >>> showgood(lambda: acb.hypgeom([1+1j, 2-2j], [3, fmpq(1,3)], acb.pi()), dps=25)  # 2F2
+            144.9760711583421645394627 - 51.06535684838559608699106j
+
+        """
+        cdef long i, p, q, prec
+        cdef acb_ptr aa, bb
+        a = [any_as_acb(t) for t in a]
+        b = [any_as_acb(t) for t in b]
+        if n != -1:
+            b += [acb(1)]
+        z = acb(z)
+        p = len(a)
+        q = len(b)
+        aa = <acb_ptr>libc.stdlib.malloc(p * cython.sizeof(acb_struct))
+        bb = <acb_ptr>libc.stdlib.malloc(q * cython.sizeof(acb_struct))
+        for i in range(p):
+            aa[i] = (<acb>(a[i])).val[0]
+        for i in range(q):
+            bb[i] = (<acb>(b[i])).val[0]
+        u = acb.__new__(acb)
+        if n == -1:
+            acb_hypgeom_pfq((<acb>u).val, aa, p, bb, q, (<acb>z).val, regularized, getprec())
+        else:
+            if regularized:
+                raise NotImplementedError
+            acb_hypgeom_pfq_direct((<acb>u).val, aa, p, bb, q, (<acb>z).val, n, getprec())
+        libc.stdlib.free(aa)
+        libc.stdlib.free(bb)
+        return u
+
+    @classmethod
+    def hypgeom_u(cls, a, b, z, long n=-1, bint asymp=False):
+        r"""
+        Computes Tricomi's confluent hypergeometric function `U(a,b,z)`
+        given complex numbers `a`, `b`, `z`.
+
+        If *asymp* is set to *True* the asymptotic series is forced.
+        If `|z|` is small, the attainable accuracy is then limited.
+        The optional parameter *n*, if nonnegative, controls the number
+        of terms to add in the asymptotic series. This is just a tuning
+        parameter: a rigorous error bound is computed regardless of *n*.
+
+            >>> showgood(lambda: acb.hypgeom_u(1+1j, 2+3j, 400+500j), dps=25)
+            0.001836433961463105354717547 - 0.003358699641979853540147122j
+            >>> showgood(lambda: acb.hypgeom_u(1+1j, 2+3j, -30), dps=25)
+            0.7808944974399200669072087 - 0.2674783064947089569672470j
+            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=0, asymp=True))
+            [+/- 3.41] + [+/- 3.41]j
+            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=30, asymp=True))
+            [0.7808944974 +/- 7.46e-11] + [-0.2674783065 +/- 3.31e-11]j
+            >>> print(acb.hypgeom_u(1+1j, 2+3j, -30, n=60, asymp=True))
+            [0.78089 +/- 8.14e-6] + [-0.26748 +/- 5.34e-6]j
+        """
+        a = any_as_acb(a)
+        b = any_as_acb(b)
+        z = any_as_acb(z)
+        if asymp:
+            t = z**(-a)
+            u = acb.__new__(acb)
+            acb_hypgeom_u_asymp((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, n, getprec())
+            return t * u
+        else:
+            u = acb.__new__(acb)
+            acb_hypgeom_u((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, getprec())
+            return u
+
+    @classmethod
+    def hypgeom_1f1(cls, a, b, z, bint regularized=False):
+        r"""
+        Computes Kummer's confluent hypergeometric function `{}_1F_1(a,b,z)`
+        given complex numbers `a`, `b`, `z`. Optionally, computes
+        the regularized version.
+
+            >>> showgood(lambda: acb.hypgeom_1f1(2+3j, 3+4j, 40000+50000j), dps=25)
+            3.730925582634533963357515e+17366 + 3.199717318207534638202987e+17367j
+            >>> showgood(lambda: acb.hypgeom_1f1(2+3j, 3+4j, 40000+50000j) / acb(3+4j).gamma(), dps=25)
+            -1.846160890579724375436801e+17368 + 2.721369772032882467996588e+17367j
+            >>> showgood(lambda: acb.hypgeom_1f1(5, -3, 10, regularized=True), dps=25)
+            832600407043.6938843410086
+            >>> showgood(lambda: acb.hypgeom_1f1(-5,-6,10), dps=25)
+            403.7777777777777777777778
+            >>> showgood(lambda: acb.hypgeom_1f1(-5,-5,10,regularized=True), dps=25)
+            0
+            >>> showgood(lambda: acb.hypgeom_1f1(-5,-6,10,regularized=True), dps=25)
+            0
+            >>> showgood(lambda: acb.hypgeom_1f1(-5,-4,10,regularized=True), dps=25)
+            -100000.0000000000000000000
+
+        """
+        a = any_as_acb(a)
+        b = any_as_acb(b)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_1f1((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, regularized, getprec())
+        return u
+
+    @classmethod
+    def bessel_j(cls, a, z):
+        r"""
+        Computes the Bessel function of the first kind `J_a(z)`.
+
+            >>> showgood(lambda: acb.bessel_j(1+2j, 2+3j), dps=25)
+            0.5041904509946947234759103 - 0.1765180072689450645147231j
+        """
+        a = any_as_acb(a)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_bessel_j((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
+        return u
+
+    @classmethod
+    def bessel_k(cls, a, z, bint scaled=False):
+        r"""
+        Computes the modified Bessel function of the second kind `K_a(z)`.
+
+            >>> showgood(lambda: acb.bessel_k(1+2j, 2+3j), dps=25)
+            -0.09884736370006798963642719 - 0.02870616366668971734065520j
+            >>> showgood(lambda: acb.bessel_k(3, 2), dps=25)
+            0.6473853909486341531592356
+
+        """
+        a = any_as_acb(a)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        if scaled:
+            acb_hypgeom_bessel_k_scaled((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
+        else:
+            acb_hypgeom_bessel_k((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
+        return u
+
+    @classmethod
+    def bessel_i(cls, a, z, bint scaled=False):
+        r"""
+        Computes the modified Bessel function of the first kind `I_a(z)`.
+
+        """
+        a = any_as_acb(a)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        if scaled:
+            acb_hypgeom_bessel_i_scaled((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
+        else:
+            acb_hypgeom_bessel_i((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
+        return u
+
+    @classmethod
+    def bessel_y(cls, a, z):
+        r"""
+        Computes the Bessel function of the second kind `Y_a(z)`.
+
+        """
+        a = any_as_acb(a)
+        z = any_as_acb(z)
+        u = acb.__new__(acb)
+        acb_hypgeom_bessel_y((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
+        return u
+
+    def root(s, ulong n):
+        """
+        Principal *n*-th root of *s*.
+
+            >>> showgood(lambda: acb(-1).root(3), dps=25)
+            0.5000000000000000000000000 + 0.8660254037844386467637232j
+            >>> showgood(lambda: acb(10,11).root(3), dps=25)
+            2.364674532267765964410078 + 0.6739866114818132500777466j
+        """
+        v = acb.__new__(acb)
+        acb_root_ui((<acb>v).val, (<acb>s).val, n, getprec())
         return v
