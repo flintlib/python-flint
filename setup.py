@@ -6,6 +6,12 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 from numpy.distutils.system_info import default_include_dirs, default_lib_dirs
 
+
+from distutils.sysconfig import get_config_vars
+
+(opt,) = get_config_vars('OPT')
+os.environ['OPT'] = " ".join(flag for flag in opt.split() if flag != '-Wstrict-prototypes')
+
 if sys.platform == 'win32':
     libraries = ["flint", "arb", "mpir", "mpfr", "pthreads"]
     default_lib_dirs += [
