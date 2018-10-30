@@ -1291,13 +1291,15 @@ cdef class arb(flint_scalar):
         arb_partitions_fmpz((<arb>u).val, (<fmpz>n).val, getprec())
         return u
 
-    @staticmethod
-    def bernoulli_poly(ulong n, arb x):
+    def bernoulli_poly(s, ulong n):
         """
-        Returns the value of the Bernoulli polynomial `B_n(x)`.
+        Returns the value of the Bernoulli polynomial `B_n(s)`.
+
+            >>> showgood(lambda: arb("3.141").bernoulli_poly(5), dps=25)
+            113.5165117028492010000000
         """
         u = arb.__new__(arb)
-        arb_bernoulli_poly_ui((<arb>u).val, n, (<arb>x).val, getprec())
+        arb_bernoulli_poly_ui((<arb>u).val, n, s.val, getprec())
         return u
 
     @staticmethod

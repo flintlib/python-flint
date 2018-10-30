@@ -1832,6 +1832,17 @@ cdef class acb(flint_scalar):
         acb_dirichlet_stieltjes(u.val, (<fmpz>n).val, (<acb>a).val, getprec())
         return u
 
+    def bernoulli_poly(s, ulong n):
+        """
+        Returns the value of the Bernoulli polynomial `B_n(s)`.
+
+            >>> showgood(lambda: acb(0.25+0.25j).bernoulli_poly(5), dps=25)
+            -0.05859375000000000000000000 + 0.006510416666666666666666667j
+        """
+        u = acb.__new__(acb)
+        acb_bernoulli_poly_ui((<acb>u).val, n, s.val, getprec())
+        return u
+
     @classmethod
     def integral(cls, func, a, b, params=None,
             rel_tol=None, abs_tol=None,

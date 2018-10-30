@@ -1296,6 +1296,8 @@ cdef extern from "acb.h":
     void acb_log_barnes_g(acb_t w, const acb_t z, long prec)
     void acb_barnes_g(acb_t w, const acb_t z, long prec)
 
+    void acb_bernoulli_poly_ui(acb_t res, ulong n, const acb_t x, long prec)
+
     void acb_lambertw(acb_t z, const acb_t x, const fmpz_t k, int flags, long prec)
 
     long acb_rel_error_bits(const acb_t x)
