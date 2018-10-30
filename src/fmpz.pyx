@@ -344,15 +344,15 @@ cdef class fmpz(flint_scalar):
         fmpz_factor_clear(fac)
         return res
 
-    def number_of_partitions(n):
+    def partitions_p(n):
         r"""
         Returns `p(n)`, the number of partitions of `n`, as an *fmpz*.
 
-            >>> [fmpz(n).number_of_partitions() for n in range(8)]
+            >>> [fmpz(n).partitions_p() for n in range(8)]
             [1, 1, 2, 3, 5, 7, 11, 15]
-            >>> fmpz(100).number_of_partitions()
+            >>> fmpz(100).partitions_p()
             190569292
-            >>> len(str(fmpz(10**9).number_of_partitions()))
+            >>> len(str(fmpz(10**9).partitions_p()))
             35219
 
         The partition function grows rapidly.
@@ -434,11 +434,11 @@ cdef class fmpz(flint_scalar):
         return u
 
     @classmethod
-    def bell_number_ui(cls, ulong n):
+    def bell_number(cls, ulong n):
         r"""
         Returns the Bell number `B_n` as an *fmpz*.
 
-            >>> fmpz.bell_number_ui(10)
+            >>> fmpz.bell_number(10)
             115975
         """
         u = fmpz.__new__(fmpz)
@@ -446,11 +446,11 @@ cdef class fmpz(flint_scalar):
         return u
 
     @classmethod
-    def euler_number_ui(cls, ulong n):
+    def euler_number(cls, ulong n):
         r"""
         Returns the Euler number `E_n` as an *fmpz*.
 
-            >>> fmpz.euler_number_ui(10)
+            >>> fmpz.euler_number(10)
             -50521
         """
         u = fmpz.__new__(fmpz)

@@ -1,11 +1,11 @@
-def _str_trunc(s, trunc=0):
+cdef _str_trunc(s, trunc=0):
     if trunc > 0 and len(s) > 3 * trunc:
         left = right = trunc
         omitted = len(s) - left - right
         return s[:left] + ("{...%s digits...}" % omitted) + s[-right:]
     return s
 
-def arb_from_str(str s):
+cdef arb_from_str(str s):
     s = s.strip()
     if ("/" in s) and ("+/-" not in s):
         return arb(fmpq(s))
@@ -98,7 +98,7 @@ cdef inline int arb_set_any_ref(arb_t x, obj):
         return FMPZ_TMP
     return FMPZ_UNKNOWN
 
-def any_as_arb(x):
+cdef any_as_arb(x):
     cdef arb t
     if typecheck(x, arb):
         return x
@@ -107,7 +107,7 @@ def any_as_arb(x):
         raise TypeError("cannot create arb from type %s" % type(x))
     return t
 
-def any_as_arb_or_notimplemented(x):
+cdef any_as_arb_or_notimplemented(x):
     cdef arb t
     if typecheck(x, arb):
         return x
@@ -234,6 +234,58 @@ cdef class arb(flint_scalar):
         """
         cdef arb x = arb()
         arf_set_mag(arb_midref(x.val), arb_radref(self.val))
+        return x
+
+    def abs_lower(self):
+        """
+        Lower bound for the absolute value of *self*.
+        The output is an *arb* holding an exact floating-point number
+        that has been rounded down to the current precision.
+
+            >>> print(arb("-5 +/- 2").abs_lower().str(5, radius=False))
+            3.0000
+        """
+        cdef arb x = arb()
+        arb_get_abs_lbound_arf(arb_midref(x.val), self.val, getprec())
+        return x
+
+    def abs_upper(self):
+        """
+        Upper bound for the absolute value of *self*.
+        The output is an *arb* holding an exact floating-point number
+        that has been rounded up to the current precision.
+
+            >>> print(arb("-5 +/- 2").abs_upper().str(5, radius=False))
+            7.0000
+        """
+        cdef arb x = arb()
+        arb_get_abs_ubound_arf(arb_midref(x.val), self.val, getprec())
+        return x
+
+    def lower(self):
+        """
+        Lower bound for *self* (towards `-\infty`).
+        The output is an *arb* holding an exact floating-point number
+        that has been rounded down to the current precision.
+
+            >>> print(arb("-5 +/- 2").lower().str(5, radius=False))
+            -7.0000
+        """
+        cdef arb x = arb()
+        arb_get_lbound_arf(arb_midref(x.val), self.val, getprec())
+        return x
+
+    def upper(self):
+        """
+        Upper bound for *self* (towards `+\infty`).
+        The output is an *arb* holding an exact floating-point number
+        that has been rounded up to the current precision.
+
+            >>> print(arb("-5 +/- 2").upper().str(5, radius=False))
+            -3.0000
+        """
+        cdef arb x = arb()
+        arb_get_ubound_arf(arb_midref(x.val), self.val, getprec())
         return x
 
     def mid_rad_10exp(self, long n=0):
@@ -425,6 +477,16 @@ cdef class arb(flint_scalar):
         return res
 
     def sgn(self):
+        """
+        Sign function, returning an *arb*.
+
+            >>> arb(-3).sgn()
+            -1.00000000000000
+            >>> arb(0).sgn()
+            0
+            >>> arb("0 +/- 1").sgn()
+            [+/- 1.01]
+        """
         res = arb.__new__(arb)
         arb_sgn((<arb>res).val, (<arb>self).val)
         return res
@@ -520,7 +582,7 @@ cdef class arb(flint_scalar):
 
     def floor(s):
         ur"""
-        Computes the floor function `\lfloor s \rfloor`.
+        Floor function `\lfloor s \rfloor`.
 
             >>> print(arb.pi().floor())
             3.00000000000000
@@ -533,7 +595,7 @@ cdef class arb(flint_scalar):
 
     def ceil(s):
         ur"""
-        Computes the ceiling function `\lceil s \rceil`.
+        Ceiling function `\lceil s \rceil`.
 
             >>> print(arb.pi().ceil())
             4.00000000000000
@@ -546,7 +608,7 @@ cdef class arb(flint_scalar):
 
     def sqrt(s):
         r"""
-        Computes the square root `\sqrt{s}`.
+        Square root `\sqrt{s}`.
 
             >>> showgood(lambda: arb(3).sqrt(), dps=25)
             1.732050807568877293527446
@@ -566,7 +628,7 @@ cdef class arb(flint_scalar):
 
     def rsqrt(s):
         r"""
-        Computes the reciprocal square root `1/\sqrt{s}`.
+        Reciprocal square root `1/\sqrt{s}`.
 
             >>> showgood(lambda: arb(3).rsqrt(), dps=25)
             0.5773502691896257645091488
@@ -588,7 +650,7 @@ cdef class arb(flint_scalar):
 
     def exp(s):
         r"""
-        Computes the exponential function `\exp(s)`.
+        Exponential function `\exp(s)`.
 
             >>> showgood(lambda: arb(1).exp(), dps=25)
             2.718281828459045235360287
@@ -599,7 +661,7 @@ cdef class arb(flint_scalar):
 
     def expm1(s):
         r"""
-        Computes `\exp(s) - 1`, accurately for small *s*.
+        The exponential function `\exp(s) - 1`, computed accurately for small *s*.
 
             >>> showgood(lambda: (arb(10) ** -8).expm1(), dps=25)
             1.000000005000000016666667e-8
@@ -610,7 +672,7 @@ cdef class arb(flint_scalar):
 
     def log(s):
         r"""
-        Computes the natural logarithm `\log(s)`.
+        The natural logarithm `\log(s)`.
 
             >>> showgood(lambda: arb(2).log(), dps=25)
             0.6931471805599453094172321
@@ -646,7 +708,7 @@ cdef class arb(flint_scalar):
 
     def sin(s):
         r"""
-        Computes the sine `\sin(s)`.
+        Sine function `\sin(s)`.
 
             >>> showgood(lambda: arb(1).sin(), dps=25)
             0.8414709848078965066525023
@@ -657,7 +719,7 @@ cdef class arb(flint_scalar):
 
     def cos(s):
         r"""
-        Computes the cosine `\cos(s)`.
+        Cosine function `\cos(s)`.
 
             >>> showgood(lambda: arb(1).cos(), dps=25)
             0.5403023058681397174009366
@@ -680,7 +742,7 @@ cdef class arb(flint_scalar):
 
     def sin_pi(s):
         r"""
-        Computes the sine `\sin(\pi s)`.
+        Sine function `\sin(\pi s)`.
 
             >>> showgood(lambda: arb(0.75).sin_pi(), dps=25)
             0.7071067811865475244008444
@@ -693,7 +755,7 @@ cdef class arb(flint_scalar):
 
     def cos_pi(s):
         r"""
-        Computes the cosine `\cos(\pi s)`.
+        Cosine function `\cos(\pi s)`.
 
             >>> showgood(lambda: arb(0.75).cos_pi(), dps=25)
             -0.7071067811865475244008444
@@ -718,7 +780,7 @@ cdef class arb(flint_scalar):
 
     def tan(s):
         r"""
-        Computes the tangent `\tan(s)`.
+        Tangent function `\tan(s)`.
 
             >>> showgood(lambda: arb(1).tan(), dps=25)
             1.557407724654902230506975
@@ -729,7 +791,7 @@ cdef class arb(flint_scalar):
 
     def cot(s):
         r"""
-        Computes the cotangent `\cot(s)`.
+        Cotangent function `\cot(s)`.
 
             >>> showgood(lambda: arb(1).cot(), dps=25)
             0.6420926159343307030064200
@@ -740,7 +802,7 @@ cdef class arb(flint_scalar):
 
     def tan_pi(s):
         r"""
-        Computes the tangent `\tan(\pi s)`.
+        Tangent function `\tan(\pi s)`.
 
             >>> showgood(lambda: arb(0.125).tan_pi(), dps=25)
             0.4142135623730950488016887
@@ -753,7 +815,7 @@ cdef class arb(flint_scalar):
 
     def cot_pi(s):
         r"""
-        Computes the cotangent `\cot(\pi s)`.
+        Cotangent function `\cot(\pi s)`.
 
             >>> showgood(lambda: arb(0.125).cot_pi(), dps=25)
             2.414213562373095048801689
@@ -767,7 +829,7 @@ cdef class arb(flint_scalar):
     @classmethod
     def sin_pi_fmpq(cls, fmpq s):
         r"""
-        Computes the algebraic sine value `\sin(\pi s)`.
+        Returns the algebraic sine value `\sin(\pi s)`.
 
             >>> showgood(lambda: arb.sin_pi_fmpq(fmpq(3,4)), dps=25)
             0.7071067811865475244008444
@@ -779,7 +841,7 @@ cdef class arb(flint_scalar):
     @classmethod
     def cos_pi_fmpq(cls, fmpq s):
         r"""
-        Computes the algebraic cosine value `\cos(\pi s)`.
+        Returns the algebraic cosine value `\cos(\pi s)`.
 
             >>> showgood(lambda: arb.cos_pi_fmpq(fmpq(3,4)), dps=25)
             -0.7071067811865475244008444
@@ -801,19 +863,55 @@ cdef class arb(flint_scalar):
         arb_sin_cos_pi_fmpq((<arb>u).val, (<arb>v).val, (<fmpq>s).val, getprec())
         return u, v
 
+    def sec(s):
+        """
+        Secant.
+
+            >>> showgood(lambda: arb(1).sec(), dps=25)
+            1.850815717680925617911753
+        """
+        u = arb.__new__(arb)
+        arb_sec((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def csc(s):
+        """
+        Cosecant.
+
+            >>> showgood(lambda: arb(1).csc(), dps=25)
+            1.188395105778121216261599
+        """
+        u = arb.__new__(arb)
+        arb_csc((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
     def sinc(s):
+        r"""
+        Sinc function, `\operatorname(sinc)(x) = \sin(x)/x`.
+
+            >>> showgood(lambda: arb(3).sinc(), dps=25)
+            0.04704000268662240736691493
+        """
         u = arb.__new__(arb)
         arb_sinc((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def sinc_pi(s):
+        r"""
+        Normalized sinc function, `\operatorname(sinc)(\pi x) = \sin(\pi x)/(\pi x)`.
+
+            >>> showgood(lambda: arb(1.5).sinc_pi(), dps=25)
+            -0.2122065907891937810251784
+            >>> showgood(lambda: arb(2).sinc_pi(), dps=25)
+            0
+        """
         u = arb.__new__(arb)
         arb_sinc_pi((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def atan(s):
         r"""
-        Computes the inverse tangent `\operatorname{atan}(s)`.
+        Inverse tangent `\operatorname{atan}(s)`.
 
             >>> showgood(lambda: arb(1).atan(), dps=25)
             0.7853981633974483096156608
@@ -825,7 +923,7 @@ cdef class arb(flint_scalar):
     @classmethod
     def atan2(cls, s, t):
         r"""
-        Computes the two-argument inverse tangent `\operatorname{atan2}(s,t)`.
+        Two-argument inverse tangent `\operatorname{atan2}(s,t)`.
 
             >>> showgood(lambda: arb.atan2(-10,-5), dps=25)
             -2.034443935795702735445578
@@ -838,7 +936,7 @@ cdef class arb(flint_scalar):
 
     def acos(s):
         r"""
-        Computes the inverse cosine `\operatorname{acos}(s)`.
+        Inverse cosine `\operatorname{acos}(s)`.
 
             >>> showgood(lambda: arb(0).acos(), dps=25)
             1.570796326794896619231322
@@ -849,7 +947,7 @@ cdef class arb(flint_scalar):
 
     def asin(s):
         r"""
-        Computes the inverse sine `\operatorname{asin}(s)`.
+        Inverse sine `\operatorname{asin}(s)`.
 
             >>> showgood(lambda: arb(1).asin(), dps=25)
             1.570796326794896619231322
@@ -859,23 +957,41 @@ cdef class arb(flint_scalar):
         return u
 
     def atanh(s):
+        r"""
+        Inverse hyperbolic tangent `\operatorname{atanh}(s)`.
+
+            >>> showgood(lambda: arb("0.99").atanh(), dps=25)
+            2.646652412362246197705061
+        """
         u = arb.__new__(arb)
         arb_atanh((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def asinh(s):
+        r"""
+        Inverse hyperbolic sine `\operatorname{asinh}(s)`.
+
+            >>> showgood(lambda: arb(1000).asinh(), dps=25)
+            7.600902709541988611523290
+        """
         u = arb.__new__(arb)
         arb_asinh((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def acosh(s):
+        r"""
+        Inverse hyperbolic cosine `\operatorname{acosh}(s)`.
+
+            >>> showgood(lambda: arb(2).acosh(), dps=25)
+            1.316957896924816708625046
+        """
         u = arb.__new__(arb)
         arb_acosh((<arb>u).val, (<arb>s).val, getprec())
         return u
 
     def sinh(s):
         r"""
-        Computes the hyperbolic sine `\sinh(s)`.
+        Hyperbolic sine `\sinh(s)`.
 
             >>> showgood(lambda: arb(1).sinh(), dps=25)
             1.175201193643801456882382
@@ -886,7 +1002,7 @@ cdef class arb(flint_scalar):
 
     def cosh(s):
         r"""
-        Computes the hyperbolic cosine `\cosh(s)`.
+        Hyperbolic cosine `\cosh(s)`.
 
             >>> showgood(lambda: arb(1).cosh(), dps=25)
             1.543080634815243778477906
@@ -909,7 +1025,7 @@ cdef class arb(flint_scalar):
 
     def tanh(s):
         r"""
-        Computes the hyperbolic tangent `\tanh(s)`.
+        Hyperbolic tangent `\tanh(s)`.
 
             >>> showgood(lambda: arb(1).tanh(), dps=25)
             0.7615941559557648881194583
@@ -920,7 +1036,7 @@ cdef class arb(flint_scalar):
 
     def coth(s):
         r"""
-        Computes the hyperbolic cotangent `\coth(s)`.
+        Hyperbolic cotangent `\coth(s)`.
 
             >>> showgood(lambda: arb(1).coth(), dps=25)
             1.313035285499331303636161
@@ -929,9 +1045,31 @@ cdef class arb(flint_scalar):
         arb_coth((<arb>u).val, (<arb>s).val, getprec())
         return u
 
+    def sech(s):
+        r"""
+        Hyperbolic secant `\operatorname{sech}(s)`.
+
+            >>> showgood(lambda: arb(1).sech(), dps=25)
+            0.6480542736638853995749774
+        """
+        u = arb.__new__(arb)
+        arb_sech((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def csch(s):
+        r"""
+        Hyperbolic cosecant `\operatorname{csch}(s)`.
+
+            >>> showgood(lambda: arb(1).csch(), dps=25)
+            0.8509181282393215451338428
+        """
+        u = arb.__new__(arb)
+        arb_csch((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
     def gamma(s):
         """
-        Computes the gamma function `\Gamma(s)`.
+        The gamma function `\Gamma(s)`.
 
             >>> showgood(lambda: arb(10).gamma(), dps=25)
             362880.0000000000000000000
@@ -948,11 +1086,12 @@ cdef class arb(flint_scalar):
         arb_gamma((<arb>u).val, (<arb>s).val, getprec())
         return u
 
-    @classmethod
-    def gamma_fmpq(cls, fmpq s):
+    @staticmethod
+    def gamma_fmpq(fmpq s):
         """
-        Computes the gamma function `\Gamma(s)`, exploiting the fact that
-        *s* is a rational number to improve performance.
+        Computes the gamma function `\Gamma(s)` of a given *fmpq* *s*,
+        exploiting the fact that *s* is an exact rational number to
+        improve performance.
 
             >>> showgood(lambda: arb.gamma_fmpq(fmpq(1,4)), dps=25)
             3.625609908221908311930685
@@ -963,7 +1102,7 @@ cdef class arb(flint_scalar):
 
     def rgamma(s):
         ur"""
-        Computes the reciprocal gamma function `1/\Gamma(s)`, avoiding
+        Reciprocal gamma function `1/\Gamma(s)`, avoiding
         division by zero at the poles of the gamma function.
 
             >>> showgood(lambda: arb(1.5).rgamma(), dps=25)
@@ -981,7 +1120,7 @@ cdef class arb(flint_scalar):
 
     def lgamma(s):
         """
-        Computes the logarithmic gamma function `\log \Gamma(s)`.
+        The logarithmic gamma function `\log \Gamma(s)`.
 
             >>> showgood(lambda: arb(100).lgamma(), dps=25)
             359.1342053695753987760440
@@ -995,7 +1134,7 @@ cdef class arb(flint_scalar):
 
     def digamma(s):
         """
-        Computes the digamma function `\psi(s)`.
+        The digamma function `\psi(s)`.
 
             >>> showgood(lambda: arb(1).digamma(), dps=25)
             -0.5772156649015328606065121
@@ -1006,7 +1145,7 @@ cdef class arb(flint_scalar):
 
     def rising(s, n):
         """
-        Computes the rising factorial `(s)_n`.
+        Rhe rising factorial `(s)_n`.
 
             >>> showgood(lambda: arb.pi().rising(0), dps=25)
             1.000000000000000000000000
@@ -1020,8 +1159,8 @@ cdef class arb(flint_scalar):
         arb_rising((<arb>u).val, (<arb>s).val, (<arb>n).val, getprec())
         return u
 
-    @classmethod
-    def rising_fmpq_ui(cls, fmpq s, ulong n):
+    @staticmethod
+    def rising_fmpq_ui(fmpq s, ulong n):
         """
         Computes the rising factorial `(s)_n` where *s* is a rational
         number and *n* is an unsigned integer. The current implementation
@@ -1098,76 +1237,71 @@ cdef class arb(flint_scalar):
         arb_agm((<arb>u).val, (<arb>s).val, (<arb>t).val, getprec())
         return u
 
-    @classmethod
-    def zeta_ui(cls, ulong n):
+    @staticmethod
+    def bernoulli(n):
         """
-        Computes the Riemann zeta function value `\zeta(n)`. This is
-        faster than :meth:`.arb.zeta`.
+        Computes the Bernoulli number `B_n` as an *arb*,
+        where *n* is a given integer.
 
-            >>> showgood(lambda: arb.zeta_ui(2), dps=25)
-            1.644934066848226436472415
-            >>> showgood(lambda: arb.zeta_ui(500) - 1, dps=25)
-            3.054936363499604682051979e-151
-            >>> showgood(lambda: arb.zeta_ui(1))  # pole
-            Traceback (most recent call last):
-              ...
-            ValueError: no convergence (maxprec=630, try higher maxprec)
-        """
-        u = arb.__new__(arb)
-        arb_zeta_ui((<arb>u).val, n, getprec())
-        return u
-
-    @classmethod
-    def bernoulli_ui(cls, ulong n):
-        """
-        Computes the Bernoulli number `B_n`.
-
-            >>> showgood(lambda: arb.bernoulli_ui(1), dps=25)
+            >>> showgood(lambda: arb.bernoulli(1), dps=25)
             -0.5000000000000000000000000
-            >>> showgood(lambda: arb.bernoulli_ui(2), dps=25)
+            >>> showgood(lambda: arb.bernoulli(2), dps=25)
             0.1666666666666666666666667
-            >>> showgood(lambda: arb.bernoulli_ui(10**7), dps=25)
+            >>> showgood(lambda: arb.bernoulli(10**7), dps=25)
             -4.983176441416329828329241e+57675260
+            >>> showgood(lambda: arb.bernoulli(10**30), dps=25)
+            -5.048207707665410387507573e+28767525649738633122783863898083
         """
         u = arb.__new__(arb)
-        arb_bernoulli_ui((<arb>u).val, n, getprec())
-        return u
-
-    @classmethod
-    def bell_fmpz(cls, fmpz n):
-        u = arb.__new__(arb)
-        arb_bell_fmpz((<arb>u).val, (<fmpz>n).val, getprec())
-        return u
-
-    @classmethod
-    def bernoulli_fmpz(cls, fmpz n):
-        u = arb.__new__(arb)
+        n = fmpz(n)
         arb_bernoulli_fmpz((<arb>u).val, (<fmpz>n).val, getprec())
         return u
 
-    @classmethod
-    def partitions_fmpz(cls, fmpz n):
+    @staticmethod
+    def bell_number(n):
+        r"""
+        Computes the Bell number `B_n` as an *arb*, where *n* is a given integer.
+
+            >>> showgood(lambda: arb.bell_number(1), dps=25)
+            1.000000000000000000000000
+            >>> showgood(lambda: arb.bell_number(10), dps=25)
+            115975.0000000000000000000
+            >>> showgood(lambda: arb.bell_number(10**20), dps=25)
+            5.382701131762816107395343e+1794956117137290721328
+        """
         u = arb.__new__(arb)
+        n = fmpz(n)
+        arb_bell_fmpz((<arb>u).val, (<fmpz>n).val, getprec())
+        return u
+
+    @staticmethod
+    def partitions_p(n):
+        """
+        Number of partitions of the integer *n*, evaluated as an *arb*.
+
+            >>> showgood(lambda: arb.partitions_p(10), dps=25)
+            42.00000000000000000000000
+            >>> showgood(lambda: arb.partitions_p(100), dps=25)
+            190569292.0000000000000000
+            >>> showgood(lambda: arb.partitions_p(10**50), dps=25)
+            3.285979358867807890529967e+11140086280105007830283557
+        """
+        u = arb.__new__(arb)
+        n = fmpz(n)
         arb_partitions_fmpz((<arb>u).val, (<fmpz>n).val, getprec())
         return u
 
-    @classmethod
-    def partitions_ui(cls, ulong n):
-        u = arb.__new__(arb)
-        arb_partitions_ui((<arb>u).val, n, getprec())
-        return u
-
-    @classmethod
-    def bernoulli_poly_ui(cls, ulong n, arb x):
+    @staticmethod
+    def bernoulli_poly(ulong n, arb x):
         """
-        Computes the Bernoulli polynomial `B_n(x)`.
+        Returns the value of the Bernoulli polynomial `B_n(x)`.
         """
         u = arb.__new__(arb)
         arb_bernoulli_poly_ui((<arb>u).val, n, (<arb>x).val, getprec())
         return u
 
-    @classmethod
-    def fac_ui(cls, ulong n):
+    @staticmethod
+    def fac_ui(ulong n):
         """
         Computes the factorial `n!`.
 
@@ -1195,8 +1329,8 @@ cdef class arb(flint_scalar):
         arb_bin_ui((<arb>u).val, (<arb>s).val, k, getprec())
         return u
 
-    @classmethod
-    def bin_uiui(cls, ulong n, ulong k):
+    @staticmethod
+    def bin_uiui(ulong n, ulong k):
         """
         Computes the binomial coefficient `{n \choose k}`.
         The current implementation does not use the gamma function,
@@ -1209,34 +1343,24 @@ cdef class arb(flint_scalar):
         arb_bin_uiui((<arb>u).val, n, k, getprec())
         return u
 
-    @classmethod
-    def fib_ui(cls, ulong n):
+    @staticmethod
+    def fib(n):
         """
-        Computes the Fibonacci number `F_n`.
+        Computes the Fibonacci number `F_n` as an *arb*,
+        where *n* is a given integer.
 
-            >>> print(arb.fib_ui(10))
+            >>> print(arb.fib(10))
             55.0000000000000
-        """
-        u = arb.__new__(arb)
-        arb_fib_ui((<arb>u).val, n, getprec())
-        return u
-
-    @classmethod
-    def fib_fmpz(cls, fmpz n):
-        """
-        Computes the Fibonacci number `F_n`, where *n* may be a bignum.
-
-            >>> print(arb.fib_fmpz(fmpz(10)))
-            55.0000000000000
-            >>> showgood(lambda: arb.fib_fmpz(fmpz(10**100)).log(), dps=25)
+            >>> showgood(lambda: arb.fib(10**100).log(), dps=25)
             4.812118250596034474977589e+99
         """
         u = arb.__new__(arb)
+        n = fmpz(n)
         arb_fib_fmpz((<arb>u).val, (<fmpz>n).val, getprec())
         return u
 
-    @classmethod
-    def polylog(cls, arb s, arb z):
+    @staticmethod
+    def polylog(arb s, arb z):
         """
         Computes the polylogarithm `\operatorname{Li}_s(z)`.
 
@@ -1254,16 +1378,16 @@ cdef class arb(flint_scalar):
         arb_polylog((<arb>u).val, (<arb>s).val, (<arb>z).val, getprec())
         return u
 
-    def chebyshev_t_ui(s, ulong n, bint pair=False):
+    def chebyshev_t(s, ulong n, bint pair=False):
         """
         Computes the Chebyshev polynomial of the first kind `T_n(s)`.
         If *pair* is True, returns the pair `(T_n(s), T_{n-1}(s))`.
 
-            >>> showgood(lambda: (arb(1)/3).chebyshev_t_ui(3), dps=25)
+            >>> showgood(lambda: (arb(1)/3).chebyshev_t(3), dps=25)
             -0.8518518518518518518518519
-            >>> showgood(lambda: (arb(1)/3).chebyshev_t_ui(4), dps=25)
+            >>> showgood(lambda: (arb(1)/3).chebyshev_t(4), dps=25)
             0.2098765432098765432098765
-            >>> showgood(lambda: (arb(1)/3).chebyshev_t_ui(4, pair=True), dps=25)
+            >>> showgood(lambda: (arb(1)/3).chebyshev_t(4, pair=True), dps=25)
             (0.2098765432098765432098765, -0.8518518518518518518518519)
         """
         if pair:
@@ -1276,16 +1400,16 @@ cdef class arb(flint_scalar):
             arb_chebyshev_t_ui((<arb>u).val, n, (<arb>s).val, getprec())
             return u
 
-    def chebyshev_u_ui(s, ulong n, bint pair=False):
+    def chebyshev_u(s, ulong n, bint pair=False):
         """
         Computes the Chebyshev polynomial of the second kind `U_n(s)`.
         If *pair* is True, returns the pair `(U_n(s), U_{n-1}(s))`.
 
-            >>> showgood(lambda: (arb(1)/3).chebyshev_u_ui(3), dps=25)
+            >>> showgood(lambda: (arb(1)/3).chebyshev_u(3), dps=25)
             -1.037037037037037037037037
-            >>> showgood(lambda: (arb(1)/3).chebyshev_u_ui(4), dps=25)
+            >>> showgood(lambda: (arb(1)/3).chebyshev_u(4), dps=25)
             -0.1358024691358024691358025
-            >>> showgood(lambda: (arb(1)/3).chebyshev_u_ui(4, pair=True), dps=25)
+            >>> showgood(lambda: (arb(1)/3).chebyshev_u(4, pair=True), dps=25)
             (-0.1358024691358024691358025, -1.037037037037037037037037)
         """
         if pair:

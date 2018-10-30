@@ -106,9 +106,9 @@ cdef class fmpq(flint_scalar):
         Converts *self* to a string, forwarding optional keyword arguments
         to :meth:`.fmpz.str`.
 
-            >>> fmpq.bernoulli_ui(12).str()
+            >>> fmpq.bernoulli(12).str()
             '-691/2730'
-            >>> fmpq.bernoulli_ui(100).str(base=2, condense=10)
+            >>> fmpq.bernoulli(100).str(base=2, condense=10)
             '-110001110{...257 digits...}0011011111/1000001000110010'
         """
         if self.q == 1:
@@ -238,18 +238,18 @@ cdef class fmpq(flint_scalar):
         return u
 
     @staticmethod
-    def bernoulli_ui(ulong n, bint cache=False):
+    def bernoulli(ulong n, bint cache=False):
         """
         Returns the Bernoulli number `B_n` as an *fmpq*.
 
-            >>> [fmpq.bernoulli_ui(n) for n in range(8)]
+            >>> [fmpq.bernoulli(n) for n in range(8)]
             [1, -1/2, 1/6, 0, -1/30, 0, 1/42, 0]
-            >>> fmpq.bernoulli_ui(50)
+            >>> fmpq.bernoulli(50)
             495057205241079648212477525/66
 
         If *cache* is set to *True*, all the Bernoulli numbers up to *n* are
         computed and cached for fast subsequent retrieval. This feature should
-        obviously be used with caution if *n* is large. Calling
+        be used with caution if *n* is large. Calling
         :func:`ctx.cleanup()` frees cached Bernoulli numbers.
         """
         if cache:
@@ -260,16 +260,15 @@ cdef class fmpq(flint_scalar):
         return u
 
     @staticmethod
-    def harmonic_ui(ulong n):
+    def harmonic(ulong n):
         """
         Returns the harmonic number `H_n` as an *fmpq*.
 
-            >>> [fmpq.harmonic_ui(n) for n in range(6)]
+            >>> [fmpq.harmonic(n) for n in range(6)]
             [0, 1, 3/2, 11/6, 25/12, 137/60]
-            >>> fmpq.harmonic_ui(50)
+            >>> fmpq.harmonic(50)
             13943237577224054960759/3099044504245996706400
         """
         cdef fmpq v = fmpq()
         fmpq_harmonic_ui(v.val, n)
         return v
-

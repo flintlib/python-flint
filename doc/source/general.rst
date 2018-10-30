@@ -1,6 +1,60 @@
 General concepts
 ===============================================================================
 
+Importing
+-----------------
+
+The ``flint`` module exposes a set of distinctly-named types together
+with a small number of top-level functions and objects.
+Most functionality is provided as methods on the types. This means
+that there should be no namespace conflicts with most user code
+(a possible exception is ``flint.ctx``, described below),
+with Python's builtin ``math`` and ``cmath`` modules, or with
+packages such as ``gmpy``, ``numpy``, ``sympy`` and ``mpmath``.
+For typical interactive use, it should therefore
+generally be safe to ``import *``:
+
+    >>> from flint import *
+    >>> fmpz(3) / 2
+    3/2
+
+For non-interactive use, it is still good manners to use explicit
+imports or preserve the ``flint`` namespace prefix::
+
+    >>> import flint
+    >>> flint.fmpz(3)
+    3/2
+
+Global context
+-----------------
+
+Various settings are controlled by a global context object,
+``flint.ctx``. Printing this object in the REPL shows the current
+settings, with a brief explanation of each parameter::
+
+    >>> from flint import ctx
+    >>> ctx
+    pretty = True      # pretty-print repr() output
+    unicode = False    # use unicode characters in output
+    prec = 53          # real/complex precision (in bits)
+    dps = 15           # real/complex precision (in digits)
+    cap = 10           # power series precision
+    threads = 1        # max number of threads used internally
+
+The user can mutate the properties directly, for example::
+
+    >>> ctx.pretty = False
+    >>> fmpq(3,2)
+    fmpq(3,2)
+    >>> ctx.pretty = True
+    3/2
+
+Calling ``ctx.default()`` restores the default settings.
+
+The special method ``ctx.cleanup()`` frees up internal caches
+used by MPFR, FLINT and Arb. The user does normally not have to
+worry about this.
+
 Types and methods
 -----------------
 
@@ -54,7 +108,7 @@ and polynomials. Some methods also allow explicitly performing the
 operation in-place. Civilized users will restrict their use of such
 methods to the point in the code where the object is first constructed::
 
-    def mutated_thing():   # ok
+    def create_thing():   # ok
         a = thing()
         a.mutate()
         return a
@@ -75,8 +129,8 @@ and result in appropriate exceptions being raised. But until the code
 matures, assume that such checks have not yet been implemented and that
 invalid input leads to undefined behavior!
 
-Inexact numbers
------------------
+Inexact numbers and numerical evaluation
+-----------------------------------------------------------------------
 
 Real and complex numbers are represented by intervals. All operations on
 real and complex numbers output intervals representing rigorous error bounds.
@@ -111,3 +165,10 @@ test both the predicate and the inverse predicate,
 e.g. if either ``x < y`` or ``y <= x`` returns *True*, then the other
 is definitely false; if both return *False*, then neither can be
 determined from the available data.
+
+The following convenience functions are provided for numerical evaluation
+with adaptive working precision.
+
+.. autofunction :: flint.good
+
+.. autofunction :: flint.showgood

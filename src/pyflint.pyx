@@ -1,6 +1,5 @@
 """
-Python wrapper for FLINT - Fast Library for Number Theory
-http://www.flintlib.org/
+Python wrapper for FLINT and Arb.
 """
 
 cimport flint
@@ -40,7 +39,7 @@ cdef str_from_chars(s):
     else:
         return bytes(s).decode('ascii')
 
-def matrix_to_str(tab):
+cdef matrix_to_str(tab):
     if len(tab) == 0 or len(tab[0]) == 0:
         return "[]"
     tab = [[str(c) for c in row] for row in tab]
@@ -67,7 +66,7 @@ cdef long prec_to_dps(n):
 cdef long dps_to_prec(n):
     return max(1, int(round((int(n)+1)*3.3219280948873626)))
 
-cdef class Context:
+cdef class FlintContext:
     cpdef public bint pretty
     cpdef public long _prec
     cpdef public long _dps
@@ -137,7 +136,7 @@ cdef class Context:
     def cleanup(self):
         flint_cleanup()
 
-cdef Context thectx = Context()
+cdef FlintContext thectx = FlintContext()
 
 ctx = thectx
 

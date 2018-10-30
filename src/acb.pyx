@@ -37,7 +37,7 @@ cdef inline int acb_set_any_ref(acb_t x, obj):
 
     return FMPZ_UNKNOWN
 
-def any_as_acb(x):
+cdef any_as_acb(x):
     cdef acb t
     if typecheck(x, acb):
         return x
@@ -46,7 +46,7 @@ def any_as_acb(x):
         raise TypeError("cannot create acb from type %s" % type(x))
     return t
 
-def any_as_acb_or_notimplemented(x):
+cdef any_as_acb_or_notimplemented(x):
     cdef acb t
     if typecheck(x, acb):
         return x
@@ -55,16 +55,18 @@ def any_as_acb_or_notimplemented(x):
         return NotImplemented
     return t
 
-def any_as_arb_or_acb(x):
+"""
+cdef any_as_arb_or_acb(x):
     if typecheck(x, arb) or typecheck(x, acb):
         return x
     try:
         return arb(x)
     except (TypeError, ValueError):
         return acb(x)
-
+"""
 
 # Copied with modifications from sage/rings/complex_arb.pyx
+@cython.internal
 cdef class IntegrationContext:
     cdef object f
     cdef object exn_type
@@ -243,6 +245,32 @@ cdef class acb(flint_scalar):
         res = arb.__new__(arb)
         acb_abs((<arb>res).val, (<acb>self).val, getprec())
         return res
+
+    def abs_lower(self):
+        """
+        Lower bound for the absolute value of *self*.
+        The output is an *arb* holding an exact floating-point number
+        that has been rounded down to the current precision.
+
+            >>> print(acb(3, "-5 +/- 2").abs_lower().str(5, radius=False))
+            4.2426
+        """
+        cdef arb x = arb()
+        acb_get_abs_lbound_arf(arb_midref(x.val), self.val, getprec())
+        return x
+
+    def abs_upper(self):
+        """
+        Upper bound for the absolute value of *self*.
+        The output is an *arb* holding an exact floating-point number
+        that has been rounded up to the current precision.
+
+            >>> print(acb(3, "-5 +/- 2").abs_upper().str(5, radius=False))
+            7.6158
+        """
+        cdef arb x = arb()
+        acb_get_abs_ubound_arf(arb_midref(x.val), self.val, getprec())
+        return x
 
     def csgn(self):
         res = arb.__new__(arb)
@@ -687,6 +715,16 @@ cdef class acb(flint_scalar):
         acb_cot_pi((<acb>u).val, (<acb>s).val, getprec())
         return u
 
+    def sec(s):
+        u = acb.__new__(acb)
+        acb_sec((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def csc(s):
+        u = acb.__new__(acb)
+        acb_csc((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
     def sinh(s):
         u = acb.__new__(acb)
         acb_sinh((<acb>u).val, (<acb>s).val, getprec())
@@ -711,6 +749,16 @@ cdef class acb(flint_scalar):
     def coth(s):
         u = acb.__new__(acb)
         acb_coth((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def sech(s):
+        u = acb.__new__(acb)
+        acb_sech((<acb>u).val, (<acb>s).val, getprec())
+        return u
+
+    def csch(s):
+        u = acb.__new__(acb)
+        acb_csch((<acb>u).val, (<acb>s).val, getprec())
         return u
 
     def sinc(s):
