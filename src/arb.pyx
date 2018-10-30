@@ -1378,50 +1378,6 @@ cdef class arb(flint_scalar):
         arb_polylog((<arb>u).val, (<arb>s).val, (<arb>z).val, getprec())
         return u
 
-    def chebyshev_t(s, ulong n, bint pair=False):
-        """
-        Computes the Chebyshev polynomial of the first kind `T_n(s)`.
-        If *pair* is True, returns the pair `(T_n(s), T_{n-1}(s))`.
-
-            >>> showgood(lambda: (arb(1)/3).chebyshev_t(3), dps=25)
-            -0.8518518518518518518518519
-            >>> showgood(lambda: (arb(1)/3).chebyshev_t(4), dps=25)
-            0.2098765432098765432098765
-            >>> showgood(lambda: (arb(1)/3).chebyshev_t(4, pair=True), dps=25)
-            (0.2098765432098765432098765, -0.8518518518518518518518519)
-        """
-        if pair:
-            u = arb.__new__(arb)
-            v = arb.__new__(arb)
-            arb_chebyshev_t2_ui((<arb>u).val, (<arb>v).val, n, (<arb>s).val, getprec())
-            return u, v
-        else:
-            u = arb.__new__(arb)
-            arb_chebyshev_t_ui((<arb>u).val, n, (<arb>s).val, getprec())
-            return u
-
-    def chebyshev_u(s, ulong n, bint pair=False):
-        """
-        Computes the Chebyshev polynomial of the second kind `U_n(s)`.
-        If *pair* is True, returns the pair `(U_n(s), U_{n-1}(s))`.
-
-            >>> showgood(lambda: (arb(1)/3).chebyshev_u(3), dps=25)
-            -1.037037037037037037037037
-            >>> showgood(lambda: (arb(1)/3).chebyshev_u(4), dps=25)
-            -0.1358024691358024691358025
-            >>> showgood(lambda: (arb(1)/3).chebyshev_u(4, pair=True), dps=25)
-            (-0.1358024691358024691358025, -1.037037037037037037037037)
-        """
-        if pair:
-            u = arb.__new__(arb)
-            v = arb.__new__(arb)
-            arb_chebyshev_u2_ui((<arb>u).val, (<arb>v).val, n, (<arb>s).val, getprec())
-            return u, v
-        else:
-            u = arb.__new__(arb)
-            arb_chebyshev_u_ui((<arb>u).val, n, (<arb>s).val, getprec())
-            return u
-
     def erf(s):
         u = arb.__new__(arb)
         arb_hypgeom_erf((<arb>u).val, (<arb>s).val, getprec())
@@ -1486,22 +1442,6 @@ cdef class arb(flint_scalar):
         return u
 
     @classmethod
-    def bessel_k(cls, a, z):
-        a = any_as_arb(a)
-        z = any_as_arb(z)
-        u = arb.__new__(arb)
-        arb_hypgeom_bessel_k((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
-        return u
-
-    @classmethod
-    def bessel_i(cls, a, z):
-        a = any_as_arb(a)
-        z = any_as_arb(z)
-        u = arb.__new__(arb)
-        arb_hypgeom_bessel_i((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
-        return u
-
-    @classmethod
     def bessel_y(cls, a, z):
         a = any_as_arb(a)
         z = any_as_arb(z)
@@ -1509,27 +1449,75 @@ cdef class arb(flint_scalar):
         arb_hypgeom_bessel_y((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
         return u
 
-    def airy_ai(s):
+    @classmethod
+    def bessel_k(cls, a, z, bint scaled=False):
+        a = any_as_arb(a)
+        z = any_as_arb(z)
         u = arb.__new__(arb)
-        arb_hypgeom_airy((<arb>u).val, NULL, NULL, NULL, (<arb>s).val, getprec())
+        if scaled:
+            arb_hypgeom_bessel_k_scaled((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+        else:
+            arb_hypgeom_bessel_k((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
         return u
 
-    def airy_ai_prime(s):
+    @classmethod
+    def bessel_i(cls, a, z, bint scaled=False):
+        a = any_as_arb(a)
+        z = any_as_arb(z)
         u = arb.__new__(arb)
-        arb_hypgeom_airy(NULL, (<arb>u).val, NULL, NULL, (<arb>s).val, getprec())
+        if scaled:
+            arb_hypgeom_bessel_i_scaled((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+        else:
+            arb_hypgeom_bessel_i((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
         return u
 
-    def airy_bi(s):
+    def airy_ai(s, int derivative=0):
+        r"""
+        Airy function `\operatorname{Ai}(s)`, or
+        `\operatorname{Ai}'(s)` if *derivative* is 1.
+
+            >>> showgood(lambda: arb(-1).airy_ai(), dps=25)
+            0.5355608832923521187995166
+            >>> showgood(lambda: arb(-1).airy_ai(derivative=1), dps=25)
+            -0.01016056711664520939504547
+        """
         u = arb.__new__(arb)
-        arb_hypgeom_airy(NULL, NULL, (<arb>u).val, NULL, (<arb>s).val, getprec())
+        if derivative == 0:
+            arb_hypgeom_airy((<arb>u).val, NULL, NULL, NULL, (<arb>s).val, getprec())
+        elif derivative == 1:
+            arb_hypgeom_airy(NULL, (<arb>u).val, NULL, NULL, (<arb>s).val, getprec())
+        else:
+            raise ValueError("derivative must be 0 or 1")
         return u
 
-    def airy_bi_prime(s):
+    def airy_bi(s, int derivative=0):
+        r"""
+        Airy function `\operatorname{Bi}(s)`, or
+        `\operatorname{Bi}'(s)` if *derivative* is 1.
+
+            >>> showgood(lambda: arb(-1).airy_bi(), dps=25)
+            0.1039973894969446118886900
+            >>> showgood(lambda: arb(-1).airy_bi(derivative=1), dps=25)
+            0.5923756264227923508167792
+        """
         u = arb.__new__(arb)
-        arb_hypgeom_airy(NULL, NULL, NULL, (<arb>u).val, (<arb>s).val, getprec())
+        if derivative == 0:
+            arb_hypgeom_airy(NULL, NULL, (<arb>u).val, NULL, (<arb>s).val, getprec())
+        elif derivative == 1:
+            arb_hypgeom_airy(NULL, NULL, NULL, (<arb>u).val, (<arb>s).val, getprec())
+        else:
+            raise ValueError("derivative must be 0 or 1")
         return u
 
     def airy(s):
+        r"""
+        Computes the Airy function values `\operatorname{Ai}(s)`,
+        `\operatorname{Ai}'(s)`, `\operatorname{Bi}(s)`,
+        `\operatorname{Bi}'(s)` simultaneously, returning a tuple.
+
+            >>> showgood(lambda: arb(-1).airy(), dps=10)
+            (0.5355608833, -0.01016056712, 0.1039973895, 0.5923756264)
+        """
         u = arb.__new__(arb)
         v = arb.__new__(arb)
         w = arb.__new__(arb)
@@ -1537,6 +1525,58 @@ cdef class arb(flint_scalar):
         arb_hypgeom_airy((<arb>u).val, (<arb>v).val,
                         (<arb>w).val, (<arb>z).val, (<arb>s).val, getprec())
         return u, v, w, z
+
+    @staticmethod
+    def airy_ai_zero(n, int derivative=0):
+        r"""
+        For positive integer *n*, returns the zero `a_n` of the
+        Airy function `\operatorname{Ai}(s)`, or the corresponding
+        zero `a'_n` of `\operatorname{Ai}'(s)` if *derivative* is 1.
+
+            >>> showgood(lambda: arb.airy_ai_zero(1), dps=25)
+            -2.338107410459767038489197
+            >>> showgood(lambda: arb.airy_ai_zero(1000), dps=25)
+            -281.0315196125215528353364
+            >>> showgood(lambda: arb.airy_ai_zero(1, derivative=1), dps=25)
+            -1.018792971647471089017325
+        """
+        n = fmpz(n)
+        if n <= 0:
+            raise ValueError("index must be >= 1")
+        u = arb.__new__(arb)
+        if derivative == 0:
+            arb_hypgeom_airy_zero((<arb>u).val, NULL, NULL, NULL, (<fmpz>n).val, getprec())
+        elif derivative == 1:
+            arb_hypgeom_airy_zero(NULL, (<arb>u).val, NULL, NULL, (<fmpz>n).val, getprec())
+        else:
+            raise ValueError("derivative must be 0 or 1")
+        return u
+
+    @staticmethod
+    def airy_bi_zero(n, int derivative=0):
+        r"""
+        For positive integer *n*, returns the zero `b_n` of the
+        Airy function `\operatorname{Bi}(s)`, or the corresponding
+        zero `b'_n` of `\operatorname{Bi}'(s)` if *derivative* is 1.
+
+            >>> showgood(lambda: arb.airy_bi_zero(1), dps=25)
+            -1.173713222709127924919980
+            >>> showgood(lambda: arb.airy_bi_zero(1000), dps=25)
+            -280.9378112034152401578834
+            >>> showgood(lambda: arb.airy_bi_zero(1, derivative=1), dps=25)
+            -2.294439682614123246622459
+        """
+        n = fmpz(n)
+        if n <= 0:
+            raise ValueError("index must be >= 1")
+        u = arb.__new__(arb)
+        if derivative == 0:
+            arb_hypgeom_airy_zero(NULL, NULL, (<arb>u).val, NULL, (<fmpz>n).val, getprec())
+        elif derivative == 1:
+            arb_hypgeom_airy_zero(NULL, NULL, NULL, (<arb>u).val, (<fmpz>n).val, getprec())
+        else:
+            raise ValueError("derivative must be 0 or 1")
+        return u
 
     @classmethod
     def gamma_upper(cls, s, z, int regularized=0):
@@ -1602,15 +1642,13 @@ cdef class arb(flint_scalar):
         return u
 
     @classmethod
-    def hypgeom_m(cls, a, b, z, bint regularized=False):
+    def hypgeom_1f1(cls, a, b, z, bint regularized=False):
         a = any_as_arb(a)
         b = any_as_arb(b)
         z = any_as_arb(z)
         u = arb.__new__(arb)
-        arb_hypgeom_m((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>z).val, regularized, getprec())
+        arb_hypgeom_1f1((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>z).val, regularized, getprec())
         return u
-
-    hypgeom_1f1 = hypgeom_m
 
     @classmethod
     def hypgeom_0f1(cls, a, z, bint regularized=False):
@@ -1792,3 +1830,162 @@ cdef class arb(flint_scalar):
         arb_nonnegative_part((<arb>res).val, (<arb>res).val)
         return res
 
+    def chebyshev_t(s, n):
+        r"""
+        Chebyshev function of the first kind `T_n(s)`.
+
+            >>> showgood(lambda: (arb(1)/3).chebyshev_t(3), dps=25)
+            -0.8518518518518518518518519
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        arb_hypgeom_chebyshev_t((<arb>v).val, (<arb>n).val, (<arb>s).val, getprec())
+        return v
+
+    def chebyshev_u(s, n):
+        r"""
+        Chebyshev function of the second kind `U_n(s)`.
+
+            >>> showgood(lambda: (arb(1)/3).chebyshev_u(3), dps=25)
+            -1.037037037037037037037037
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        arb_hypgeom_chebyshev_u((<arb>v).val, (<arb>n).val, (<arb>s).val, getprec())
+        return v
+
+    def jacobi_p(s, n, a, b):
+        r"""
+        Jacobi polynomial (or Jacobi function) `P_n^{a,b}(s)`.
+
+            >>> showgood(lambda: (arb(1)/3).jacobi_p(5, 0.25, 0.5), dps=25)
+            0.4131944444444444444444444
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        a = any_as_arb(a)
+        b = any_as_arb(b)
+        arb_hypgeom_jacobi_p((<arb>v).val, (<arb>n).val, (<arb>a).val, (<arb>b).val, (<arb>s).val, getprec())
+        return v
+
+    def gegenbauer_c(s, n, m):
+        r"""
+        Gegenbauer function `C_n^{m}(s)`.
+
+            >>> showgood(lambda: (arb(1)/3).gegenbauer_c(5, 0.25), dps=25)
+            0.1321855709876543209876543
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        m = any_as_arb(m)
+        arb_hypgeom_gegenbauer_c((<arb>v).val, (<arb>n).val, (<arb>m).val, (<arb>s).val, getprec())
+        return v
+
+    def laguerre_l(s, n, m=0):
+        r"""
+        Laguerre function `L_n^{m}(s)`.
+
+            >>> showgood(lambda: (arb(1)/3).laguerre_l(5, 0.25), dps=25)
+            0.03871323490012002743484225
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        m = any_as_arb(m)
+        arb_hypgeom_laguerre_l((<arb>v).val, (<arb>n).val, (<arb>m).val, (<arb>s).val, getprec())
+        return v
+
+    def hermite_h(s, n):
+        r"""
+        Hermite function `H_n(s)`.
+
+            >>> showgood(lambda: (arb(1)/3).hermite_h(5), dps=25)
+            34.20576131687242798353909
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        arb_hypgeom_hermite_h((<arb>v).val, (<arb>n).val, (<arb>s).val, getprec())
+        return v
+
+    def legendre_p(s, n, m=0, int type=2):
+        r"""
+        Legendre function of the first kind `P_n^m(z)`.
+
+            >>> showgood(lambda: (arb(1)/3).legendre_p(5), dps=25)
+            0.3333333333333333333333333
+            >>> showgood(lambda: (arb(1)/3).legendre_p(5, 1.5), dps=25)
+            -2.372124991643971726805456
+            >>> showgood(lambda: (arb(3)).legendre_p(5, 1.5, type=3), dps=25)
+            17099.70021476473458984981
+
+        The optional parameter *type* can be 2 or 3, and selects between
+        two different branch cut conventions (see *Mathematica* and *mpmath*).
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        m = any_as_arb(m)
+        if type != 2 and type != 3:
+            raise ValueError("type must be 2 or 3")
+        type -= 2
+        arb_hypgeom_legendre_p((<arb>v).val, (<arb>n).val, (<arb>m).val, (<arb>s).val, type, getprec())
+        return v
+
+    def legendre_q(s, n, m=0, int type=2):
+        r"""
+        Legendre function of the second kind `Q_n^m(z)`.
+
+            >>> showgood(lambda: (arb(1)/3).legendre_q(5), dps=25)
+            0.1655245300933242182362054
+            >>> showgood(lambda: (arb(1)/3).legendre_q(5, 1.5), dps=25)
+            -6.059967350218583975575616
+
+        The optional parameter *type* can be 2 or 3, and selects between
+        two different branch cut conventions (see *Mathematica* and *mpmath*).
+        """
+        v = arb.__new__(arb)
+        n = any_as_arb(n)
+        m = any_as_arb(m)
+        if type != 2 and type != 3:
+            raise ValueError("type must be 2 or 3")
+        type -= 2
+        arb_hypgeom_legendre_q((<arb>v).val, (<arb>n).val, (<arb>m).val, (<arb>s).val, type, getprec())
+        return v
+
+    @staticmethod
+    def legendre_p_root(ulong n, ulong k, bint weight=False):
+        r"""
+        Returns the index *k* zero of the Legendre polynomial `P_n(x)`.
+        The zeros are indexed in decreasing order.
+
+        If *weight* is True, returns a tuple (*x*, *w*) where *x* is
+        the zero and *w* is the corresponding weight for Gauss-Legendre
+        quadrature on `(-1,1)`.
+
+            >>> for k in range(5):
+            ...     showgood(lambda: arb.legendre_p_root(5,k), dps=25)
+            ...
+            0.9061798459386639927976269
+            0.5384693101056830910363144
+            0
+            -0.5384693101056830910363144
+            -0.9061798459386639927976269
+
+            >>> for k in range(3):
+            ...     showgood(lambda: arb.legendre_p_root(3,k,weight=True), dps=15)
+            ...
+            (0.774596669241483, 0.555555555555556)
+            (0, 0.888888888888889)
+            (-0.774596669241483, 0.555555555555556)
+
+        """
+        cdef arb x, w
+        if k >= n:
+            raise ValueError("require k < n")
+        if weight:
+            x = arb.__new__(arb)
+            w = arb.__new__(arb)
+            arb_hypgeom_legendre_p_ui_root(x.val, w.val, n, k, getprec())
+            return x, w
+        else:
+            x = arb.__new__(arb)
+            arb_hypgeom_legendre_p_ui_root(x.val, NULL, n, k, getprec())
+            return x

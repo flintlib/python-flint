@@ -1896,11 +1896,17 @@ cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_bessel_k(acb_t res, const acb_t nu, const acb_t z, long prec)
     void acb_hypgeom_bessel_i(acb_t res, const acb_t nu, const acb_t z, long prec)
     void acb_hypgeom_bessel_y(acb_t res, const acb_t nu, const acb_t z, long prec)
+
+    void acb_hypgeom_bessel_k_scaled(acb_t res, const acb_t nu, const acb_t z, long prec)
+    void acb_hypgeom_bessel_i_scaled(acb_t res, const acb_t nu, const acb_t z, long prec)
+
     void acb_hypgeom_erf(acb_t res, const acb_t z, long prec)
     void acb_hypgeom_pfq_direct(acb_t res, acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long n, long prec)
     void acb_hypgeom_u_asymp(acb_t res, const acb_t a, const acb_t b, const acb_t z, long n, long prec)
     void acb_hypgeom_u(acb_t res, const acb_t a, const acb_t b, const acb_t z, long prec)
     void acb_hypgeom_m(acb_t res, const acb_t a, const acb_t b, const acb_t z, int regularized, long prec)
+    void acb_hypgeom_1f1(acb_t res, const acb_t a, const acb_t b, const acb_t z, int regularized, long prec)
+
     long acb_hypgeom_pfq_choose_n(acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, long prec)
     void acb_hypgeom_pfq(acb_t res, acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, int regularized, long prec)
     void acb_hypgeom_gamma_upper(acb_t res, const acb_t s, const acb_t z, int modified, long prec)
@@ -1995,8 +2001,12 @@ cdef extern from "arb_hypgeom.h":
     void arb_hypgeom_bessel_i(arb_t res, const arb_t nu, const arb_t z, long prec)
     void arb_hypgeom_bessel_y(arb_t res, const arb_t nu, const arb_t z, long prec)
 
+    void arb_hypgeom_bessel_k_scaled(arb_t res, const arb_t nu, const arb_t z, long prec)
+    void arb_hypgeom_bessel_i_scaled(arb_t res, const arb_t nu, const arb_t z, long prec)
+
     void arb_hypgeom_airy(arb_t ai, arb_t aip, arb_t bi, arb_t bip, const arb_t z, long prec)
     void arb_hypgeom_airy_series(arb_poly_t ai, arb_poly_t ai_prime, arb_poly_t bi, arb_poly_t bi_prime, const arb_poly_t z, long len, long prec)
+    void arb_hypgeom_airy_zero(arb_t ai, arb_t aip, arb_t bi, arb_t bip, const fmpz_t n, long prec)
 
     void arb_hypgeom_expint(arb_t res, const arb_t s, const arb_t z, long prec)
     void arb_hypgeom_gamma_upper(arb_t res, const arb_t s, const arb_t z, int modified, long prec)
@@ -2007,6 +2017,16 @@ cdef extern from "arb_hypgeom.h":
     void arb_hypgeom_gamma_lower_series(arb_poly_t g, const arb_t s, const arb_poly_t h, int regularized, long n, long prec)
     void arb_hypgeom_beta_lower_series(arb_poly_t g, const arb_t s, const arb_t t, const arb_poly_t h, int regularized, long n, long prec)
 
+    void arb_hypgeom_chebyshev_t(arb_t res, const arb_t nu, const arb_t z, long prec)
+    void arb_hypgeom_chebyshev_u(arb_t res, const arb_t nu, const arb_t z, long prec)
+    void arb_hypgeom_jacobi_p(arb_t res, const arb_t n, const arb_t a, const arb_t b, const arb_t z, long prec)
+    void arb_hypgeom_gegenbauer_c(arb_t res, const arb_t n, const arb_t m, const arb_t z, long prec)
+    void arb_hypgeom_laguerre_l(arb_t res, const arb_t n, const arb_t m, const arb_t z, long prec)
+    void arb_hypgeom_hermite_h(arb_t res, const arb_t nu, const arb_t z, long prec)
+    void arb_hypgeom_legendre_p(arb_t res, const arb_t n, const arb_t m, const arb_t z, int type, long prec)
+    void arb_hypgeom_legendre_q(arb_t res, const arb_t n, const arb_t m, const arb_t z, int type, long prec)
+
+    void arb_hypgeom_legendre_p_ui_root(arb_t res, arb_t weight, ulong n, ulong k, long prec);
 
 cdef extern from "dirichlet.h":
     ctypedef struct dirichlet_group_struct:

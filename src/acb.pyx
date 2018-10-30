@@ -911,25 +911,25 @@ cdef class acb(flint_scalar):
             return u
 
     @classmethod
-    def hypgeom_m(cls, a, b, z, bint regularized=False):
+    def hypgeom_1f1(cls, a, b, z, bint regularized=False):
         r"""
-        Computes Kummer's confluent hypergeometric function `M(a,b,z)`
+        Computes Kummer's confluent hypergeometric function `{}_1F_1(a,b,z)`
         given complex numbers `a`, `b`, `z`. Optionally, computes
         the regularized version.
 
-            >>> showgood(lambda: acb.hypgeom_m(2+3j, 3+4j, 40000+50000j), dps=25)
+            >>> showgood(lambda: acb.hypgeom_1f1(2+3j, 3+4j, 40000+50000j), dps=25)
             3.730925582634533963357515e+17366 + 3.199717318207534638202987e+17367j
-            >>> showgood(lambda: acb.hypgeom_m(2+3j, 3+4j, 40000+50000j) / acb(3+4j).gamma(), dps=25)
+            >>> showgood(lambda: acb.hypgeom_1f1(2+3j, 3+4j, 40000+50000j) / acb(3+4j).gamma(), dps=25)
             -1.846160890579724375436801e+17368 + 2.721369772032882467996588e+17367j
-            >>> showgood(lambda: acb.hypgeom_m(5, -3, 10, regularized=True), dps=25)
+            >>> showgood(lambda: acb.hypgeom_1f1(5, -3, 10, regularized=True), dps=25)
             832600407043.6938843410086
-            >>> showgood(lambda: acb.hypgeom_m(-5,-6,10), dps=25)
+            >>> showgood(lambda: acb.hypgeom_1f1(-5,-6,10), dps=25)
             403.7777777777777777777778
-            >>> showgood(lambda: acb.hypgeom_m(-5,-5,10,regularized=True), dps=25)
+            >>> showgood(lambda: acb.hypgeom_1f1(-5,-5,10,regularized=True), dps=25)
             0
-            >>> showgood(lambda: acb.hypgeom_m(-5,-6,10,regularized=True), dps=25)
+            >>> showgood(lambda: acb.hypgeom_1f1(-5,-6,10,regularized=True), dps=25)
             0
-            >>> showgood(lambda: acb.hypgeom_m(-5,-4,10,regularized=True), dps=25)
+            >>> showgood(lambda: acb.hypgeom_1f1(-5,-4,10,regularized=True), dps=25)
             -100000.0000000000000000000
 
         """
@@ -937,10 +937,8 @@ cdef class acb(flint_scalar):
         b = any_as_acb(b)
         z = any_as_acb(z)
         u = acb.__new__(acb)
-        acb_hypgeom_m((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, regularized, getprec())
+        acb_hypgeom_1f1((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>z).val, regularized, getprec())
         return u
-
-    hypgeom_1f1 = hypgeom_m
 
     @classmethod
     def bessel_j(cls, a, z):
@@ -957,7 +955,7 @@ cdef class acb(flint_scalar):
         return u
 
     @classmethod
-    def bessel_k(cls, a, z):
+    def bessel_k(cls, a, z, bint scaled=False):
         r"""
         Computes the modified Bessel function of the second kind `K_a(z)`.
 
@@ -970,11 +968,14 @@ cdef class acb(flint_scalar):
         a = any_as_acb(a)
         z = any_as_acb(z)
         u = acb.__new__(acb)
-        acb_hypgeom_bessel_k((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
+        if scaled:
+            acb_hypgeom_bessel_k_scaled((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
+        else:
+            acb_hypgeom_bessel_k((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
         return u
 
     @classmethod
-    def bessel_i(cls, a, z):
+    def bessel_i(cls, a, z, bint scaled=False):
         r"""
         Computes the modified Bessel function of the first kind `I_a(z)`.
 
@@ -982,7 +983,10 @@ cdef class acb(flint_scalar):
         a = any_as_acb(a)
         z = any_as_acb(z)
         u = acb.__new__(acb)
-        acb_hypgeom_bessel_i((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
+        if scaled:
+            acb_hypgeom_bessel_i_scaled((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
+        else:
+            acb_hypgeom_bessel_i((<acb>u).val, (<acb>a).val, (<acb>z).val, getprec())
         return u
 
     @classmethod
@@ -1290,107 +1294,131 @@ cdef class acb(flint_scalar):
             (<acb>z).val, flags, getprec())
         return u
 
-    @classmethod
-    def legendre_p(cls, n, m, z, int type_=0):
+    def chebyshev_t(s, n):
         r"""
+        Chebyshev function of the first kind `T_n(s)`.
+
+            >>> showgood(lambda: (acb(1)/3).chebyshev_t(3), dps=25)
+            -0.8518518518518518518518519
         """
+        v = acb.__new__(acb)
         n = any_as_acb(n)
-        m = any_as_acb(m)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_hypgeom_legendre_p((<acb>u).val, (<acb>n).val, (<acb>m).val,
-            (<acb>z).val, type_, getprec())
-        return u
+        acb_hypgeom_chebyshev_t((<acb>v).val, (<acb>n).val, (<acb>s).val, getprec())
+        return v
 
-    @classmethod
-    def legendre_q(cls, n, m, z, int type_=0):
+    def chebyshev_u(s, n):
         r"""
+        Chebyshev function of the second kind `U_n(s)`.
+
+            >>> showgood(lambda: (acb(1)/3).chebyshev_u(3), dps=25)
+            -1.037037037037037037037037
         """
+        v = acb.__new__(acb)
         n = any_as_acb(n)
-        m = any_as_acb(m)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_hypgeom_legendre_q((<acb>u).val, (<acb>n).val, (<acb>m).val,
-            (<acb>z).val, type_, getprec())
-        return u
+        acb_hypgeom_chebyshev_u((<acb>v).val, (<acb>n).val, (<acb>s).val, getprec())
+        return v
 
-    @classmethod
-    def spherical_y(cls, n, m, theta, phi):
+    def jacobi_p(s, n, a, b):
         r"""
-        """
-        theta = any_as_acb(theta)
-        phi = any_as_acb(phi)
-        u = acb.__new__(acb)
-        acb_hypgeom_spherical_y((<acb>u).val, n, m,
-            (<acb>theta).val, (<acb>phi).val, getprec())
-        return u
+        Jacobi polynomial (or Jacobi function) `P_n^{a,b}(s)`.
 
-    @classmethod
-    def jacobi_p(cls, n, a, b, z):
-        r"""
+            >>> showgood(lambda: (acb(1)/3).jacobi_p(5, 0.25, 0.5), dps=25)
+            0.4131944444444444444444444
         """
+        v = acb.__new__(acb)
         n = any_as_acb(n)
         a = any_as_acb(a)
         b = any_as_acb(b)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_hypgeom_jacobi_p((<acb>u).val, (<acb>n).val, (<acb>a).val, (<acb>b).val,
-            (<acb>z).val, getprec())
-        return u
+        acb_hypgeom_jacobi_p((<acb>v).val, (<acb>n).val, (<acb>a).val, (<acb>b).val, (<acb>s).val, getprec())
+        return v
 
-    @classmethod
-    def gegenbauer_c(cls, n, m, z):
+    def gegenbauer_c(s, n, m):
         r"""
+        Gegenbauer function `C_n^{m}(s)`.
+
+            >>> showgood(lambda: (acb(1)/3).gegenbauer_c(5, 0.25), dps=25)
+            0.1321855709876543209876543
         """
+        v = acb.__new__(acb)
         n = any_as_acb(n)
         m = any_as_acb(m)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_hypgeom_gegenbauer_c((<acb>u).val, (<acb>n).val, (<acb>m).val,
-            (<acb>z).val, getprec())
-        return u
+        acb_hypgeom_gegenbauer_c((<acb>v).val, (<acb>n).val, (<acb>m).val, (<acb>s).val, getprec())
+        return v
 
-    @classmethod
-    def laguerre_l(cls, n, m, z):
+    def laguerre_l(s, n, m=0):
         r"""
+        Laguerre function `L_n^{m}(s)`.
+
+            >>> showgood(lambda: (acb(1)/3).laguerre_l(5, 0.25), dps=25)
+            0.03871323490012002743484225
         """
+        v = acb.__new__(acb)
         n = any_as_acb(n)
         m = any_as_acb(m)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_hypgeom_laguerre_l((<acb>u).val, (<acb>n).val, (<acb>m).val,
-            (<acb>z).val, getprec())
-        return u
+        acb_hypgeom_laguerre_l((<acb>v).val, (<acb>n).val, (<acb>m).val, (<acb>s).val, getprec())
+        return v
 
-    @classmethod
-    def hermite_h(cls, n, z):
+    def hermite_h(s, n):
         r"""
-        """
-        n = any_as_acb(n)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_hypgeom_hermite_h((<acb>u).val, (<acb>n).val, (<acb>z).val, getprec())
-        return u
+        Hermite function `H_n(s)`.
 
-    @classmethod
-    def chebyshev_t(cls, n, z):
-        r"""
+            >>> showgood(lambda: (acb(1)/3).hermite_h(5), dps=25)
+            34.20576131687242798353909
         """
+        v = acb.__new__(acb)
         n = any_as_acb(n)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_hypgeom_chebyshev_t((<acb>u).val, (<acb>n).val, (<acb>z).val, getprec())
-        return u
+        acb_hypgeom_hermite_h((<acb>v).val, (<acb>n).val, (<acb>s).val, getprec())
+        return v
 
-    @classmethod
-    def chebyshev_u(cls, n, z):
+    def legendre_p(s, n, m=0, int type=2):
         r"""
+        Legendre function of the first kind `P_n^m(z)`.
+
+            >>> showgood(lambda: (acb(1)/3).legendre_p(5), dps=25)
+            0.3333333333333333333333333
+            >>> showgood(lambda: (acb(1)/3).legendre_p(5, 1.5), dps=25)
+            -2.372124991643971726805456
+            >>> showgood(lambda: (acb(3)).legendre_p(5, 1.5, type=2), dps=25)
+            -12091.31397811720689120900 - 12091.31397811720689120900j
+            >>> showgood(lambda: (acb(3)).legendre_p(5, 1.5, type=3), dps=25)
+            17099.70021476473458984981
+
+        The optional parameter *type* can be 2 or 3, and selects between
+        two different branch cut conventions (see *Mathematica* and *mpmath*).
         """
+        v = acb.__new__(acb)
         n = any_as_acb(n)
-        z = any_as_acb(z)
-        u = acb.__new__(acb)
-        acb_hypgeom_chebyshev_u((<acb>u).val, (<acb>n).val, (<acb>z).val, getprec())
-        return u
+        m = any_as_acb(m)
+        if type != 2 and type != 3:
+            raise ValueError("type must be 2 or 3")
+        type -= 2
+        acb_hypgeom_legendre_p((<acb>v).val, (<acb>n).val, (<acb>m).val, (<acb>s).val, type, getprec())
+        return v
+
+    def legendre_q(s, n, m=0, int type=2):
+        r"""
+        Legendre function of the second kind `Q_n^m(z)`.
+
+            >>> showgood(lambda: (acb(1)/3).legendre_q(5), dps=25)
+            0.1655245300933242182362054
+            >>> showgood(lambda: (acb(1)/3).legendre_q(5, 1.5), dps=25)
+            -6.059967350218583975575616
+            >>> showgood(lambda: (acb(3)).legendre_q(5, 1.5, type=2), dps=25)
+            -18992.99179585607569083751 + 18992.99179585607569083751j
+            >>> showgood(lambda: (acb(3)).legendre_q(5, 1.5, type=3), dps=25)
+            -0.0003010942389043591251820434j
+
+        The optional parameter *type* can be 2 or 3, and selects between
+        two different branch cut conventions (see *Mathematica* and *mpmath*).
+        """
+        v = acb.__new__(acb)
+        n = any_as_acb(n)
+        m = any_as_acb(m)
+        if type != 2 and type != 3:
+            raise ValueError("type must be 2 or 3")
+        type -= 2
+        acb_hypgeom_legendre_q((<acb>v).val, (<acb>n).val, (<acb>m).val, (<acb>s).val, type, getprec())
+        return v
 
     @classmethod
     def hypgeom_0f1(cls, a, z, bint regularized=False):
@@ -1407,27 +1435,53 @@ cdef class acb(flint_scalar):
         acb_dirichlet_eta((<acb>u).val, (<acb>s).val, getprec())
         return u
 
-    def airy_ai(s):
+    def airy_ai(s, int derivative=0):
+        r"""
+        Airy function `\operatorname{Ai}(s)`, or
+        `\operatorname{Ai}'(s)` if *derivative* is 1.
+
+            >>> showgood(lambda: acb(-1+1j).airy_ai(), dps=25)
+            0.8221174265552725939610246 - 0.1199663426644243438939006j
+            >>> showgood(lambda: acb(-1+1j).airy_ai(derivative=1), dps=25)
+            -0.3790604792268334962367164 - 0.6045001308622460716372591j
+        """
         u = acb.__new__(acb)
-        acb_hypgeom_airy((<acb>u).val, NULL, NULL, NULL, (<acb>s).val, getprec())
+        if derivative == 0:
+            acb_hypgeom_airy((<acb>u).val, NULL, NULL, NULL, (<acb>s).val, getprec())
+        elif derivative == 1:
+            acb_hypgeom_airy(NULL, (<acb>u).val, NULL, NULL, (<acb>s).val, getprec())
+        else:
+            raise ValueError("derivative must be 0 or 1")
         return u
 
-    def airy_ai_prime(s):
-        u = acb.__new__(acb)
-        acb_hypgeom_airy(NULL, (<acb>u).val, NULL, NULL, (<acb>s).val, getprec())
-        return u
+    def airy_bi(s, int derivative=0):
+        r"""
+        Airy function `\operatorname{Bi}(s)`, or
+        `\operatorname{Bi}'(s)` if *derivative* is 1.
 
-    def airy_bi(s):
+            >>> showgood(lambda: acb(-1+1j).airy_bi(), dps=25)
+            0.2142904015348735739780868 + 0.6739169237227052095951775j
+            >>> showgood(lambda: acb(-1+1j).airy_bi(derivative=1), dps=25)
+            0.8344734885227826369040951 - 0.3465260632668285285537957j
+        """
         u = acb.__new__(acb)
-        acb_hypgeom_airy(NULL, NULL, (<acb>u).val, NULL, (<acb>s).val, getprec())
-        return u
-
-    def airy_bi_prime(s):
-        u = acb.__new__(acb)
-        acb_hypgeom_airy(NULL, NULL, NULL, (<acb>u).val, (<acb>s).val, getprec())
+        if derivative == 0:
+            acb_hypgeom_airy(NULL, NULL, (<acb>u).val, NULL, (<acb>s).val, getprec())
+        elif derivative == 1:
+            acb_hypgeom_airy(NULL, NULL, NULL, (<acb>u).val, (<acb>s).val, getprec())
+        else:
+            raise ValueError("derivative must be 0 or 1")
         return u
 
     def airy(s):
+        r"""
+        Computes the Airy function values `\operatorname{Ai}(s)`,
+        `\operatorname{Ai}'(s)`, `\operatorname{Bi}(s)`,
+        `\operatorname{Bi}'(s)` simultaneously, returning a tuple.
+
+            >>> showgood(lambda: acb(-1+1j).airy(), dps=5)
+            (0.82212 - 0.11997j, -0.37906 - 0.60450j, 0.21429 + 0.67392j, 0.83447 - 0.34653j)
+        """
         u = acb.__new__(acb)
         v = acb.__new__(acb)
         w = acb.__new__(acb)
