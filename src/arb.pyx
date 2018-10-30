@@ -1361,23 +1361,25 @@ cdef class arb(flint_scalar):
         arb_fib_fmpz((<arb>u).val, (<fmpz>n).val, getprec())
         return u
 
-    @staticmethod
-    def polylog(arb s, arb z):
+    def polylog(self, s):
         """
-        Computes the polylogarithm `\operatorname{Li}_s(z)`.
+        Computes the polylogarithm `\operatorname{Li}_s(z)` where
+        the argument *z* is given by *self* and the order *s* is given
+        as an extra parameter.
 
-            >>> showgood(lambda: arb.polylog(arb(2), arb(-1)), dps=25)
+            >>> showgood(lambda: arb(-1).polylog(2), dps=25)
             -0.8224670334241132182362076
-            >>> showgood(lambda: arb.polylog(arb(1.75), arb(-3)), dps=25)
+            >>> showgood(lambda: arb(-3).polylog(1.75), dps=25)
             -1.813689945878060161612620
-            >>> showgood(lambda: arb.polylog(arb(4.75), arb(-2.5)), dps=25)
+            >>> showgood(lambda: arb(-2.5).polylog(4.75), dps=25)
             -2.322090601785704585092044
 
         This function is undefined for some
         combinations of `s, z`. Use :meth:`.acb.polylog` for the complex extension.
         """
         u = arb.__new__(arb)
-        arb_polylog((<arb>u).val, (<arb>s).val, (<arb>z).val, getprec())
+        s = any_as_arb(s)
+        arb_polylog((<arb>u).val, (<arb>s).val, (<arb>self).val, getprec())
         return u
 
     def erf(s):

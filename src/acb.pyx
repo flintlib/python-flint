@@ -800,20 +800,20 @@ cdef class acb(flint_scalar):
         acb_rising2_ui((<acb>u).val, (<acb>v).val, (<acb>s).val, n, getprec())
         return u, v
 
-    @classmethod
-    def polylog(cls, s, z):
+    def polylog(self, s):
         """
-        Computes the polylogarithm `\operatorname{Li}_s(z)`.
+        Computes the polylogarithm `\operatorname{Li}_s(z)` where
+        the argument *z* is given by *self* and the order *s* is given
+        as an extra parameter.
 
-            >>> showgood(lambda: acb.polylog(acb(2), acb(3)), dps=25)
+            >>> showgood(lambda: acb(3).polylog(2), dps=25)
             2.320180423313098396406194 - 3.451392295223202661433821j
-            >>> showgood(lambda: acb.polylog(acb(1,2), acb(2,3)), dps=25)
+            >>> showgood(lambda: acb(2,3).polylog(1+2j), dps=25)
             -6.854984251829306907116775 + 7.375884252099214498443165j
         """
         u = acb.__new__(acb)
         s = any_as_acb(s)
-        z = any_as_acb(z)
-        acb_polylog((<acb>u).val, (<acb>s).val, (<acb>z).val, getprec())
+        acb_polylog((<acb>u).val, (<acb>s).val, (<acb>self).val, getprec())
         return u
 
     @classmethod
@@ -1908,3 +1908,46 @@ cdef class acb(flint_scalar):
 
         return res
 
+    @staticmethod
+    def dft(vec, bint inverse=False):
+        r"""
+        Returns the discrete Fourier transform (DFT) of a given
+        iterable *vec*. The output is a list of *acb* entries.
+        If *inverse* is True, computes the inverse transform instead.
+
+            >>> for c in acb.dft(acb.dft(range(1,12)), inverse=True):
+            ...     print(c)
+            ...
+            [1.000000000000 +/- 1.06e-13] + [+/- 8.66e-14]j
+            [2.000000000000 +/- 1.25e-13] + [+/- 1.17e-13]j
+            [3.000000000000 +/- 1.29e-13] + [+/- 1.21e-13]j
+            [4.000000000000 +/- 1.34e-13] + [+/- 1.22e-13]j
+            [5.000000000000 +/- 1.40e-13] + [+/- 1.24e-13]j
+            [6.000000000000 +/- 1.50e-13] + [+/- 1.26e-13]j
+            [7.000000000000 +/- 1.43e-13] + [+/- 1.26e-13]j
+            [8.000000000000 +/- 1.47e-13] + [+/- 1.23e-13]j
+            [9.000000000000 +/- 1.47e-13] + [+/- 1.22e-13]j
+            [10.00000000000 +/- 1.50e-13] + [+/- 1.20e-13]j
+            [11.000000000000 +/- 1.43e-13] + [+/- 1.22e-13]j
+            >>> sum(acb.dft(acb.dft(range(1,10001)), inverse=True)).contains(50005000)
+            True
+
+        """
+        cdef long i, n
+        cdef acb_ptr w
+        cdef list v
+        v = [acb(t) for t in vec]
+        n = len(v)
+        if n == 0:
+            return v
+        w = <acb_ptr>libc.stdlib.malloc(n * cython.sizeof(acb_struct))
+        for i in range(n):
+            w[i] = (<acb>(v[i])).val[0]
+        if inverse:
+            acb_dft_inverse(w, w, n, getprec())
+        else:
+            acb_dft(w, w, n, getprec())
+        for i in range(n):
+            (<acb>(v[i])).val[0] = w[i]
+        libc.stdlib.free(w)
+        return v
