@@ -1235,6 +1235,21 @@ cdef class acb(flint_scalar):
         acb_hypgeom_legendre_q((<acb>v).val, (<acb>n).val, (<acb>m).val, (<acb>s).val, type, getprec())
         return v
 
+    @staticmethod
+    def spherical_y(long n, long m, theta, phi):
+        r"""
+        Spherical harmonic `Y_n^m(\theta, \phi)`.
+        The present implementation only supports integer *n* and *m*.
+
+            >>> showgood(lambda: acb.spherical_y(5, 3, 0.25, 0.75), dps=25)
+            0.02451377199072374024317003 - 0.03036343496553117039110087j
+        """
+        v = acb.__new__(acb)
+        theta = any_as_acb(theta)
+        phi = any_as_acb(phi)
+        acb_hypgeom_spherical_y((<acb>v).val, n, m, (<acb>theta).val, (<acb>phi).val, getprec())
+        return v
+
     def airy_ai(s, int derivative=0):
         r"""
         Airy function `\operatorname{Ai}(s)`, or

@@ -116,6 +116,22 @@ cdef any_as_arb_or_notimplemented(x):
         return NotImplemented
     return t
 
+cdef _arb_div_(s, t):
+    cdef arb_struct sval[1]
+    cdef arb_struct tval[1]
+    cdef int stype, ttype
+    stype = arb_set_any_ref(sval, s)
+    if stype == FMPZ_UNKNOWN:
+        return NotImplemented
+    ttype = arb_set_any_ref(tval, t)
+    if ttype == FMPZ_UNKNOWN:
+        return NotImplemented
+    u = arb.__new__(arb)
+    arb_div((<arb>u).val, sval, tval, getprec())
+    if stype == FMPZ_TMP: arb_clear(sval)
+    if ttype == FMPZ_TMP: arb_clear(tval)
+    return u
+
 cdef class arb(flint_scalar):
     ur"""
     Represents a real number `x` by a midpoint `m` and a radius `r`
@@ -539,28 +555,11 @@ cdef class arb(flint_scalar):
         if ttype == FMPZ_TMP: arb_clear(tval)
         return u
 
-    @staticmethod
-    def _div_(s, t):
-        cdef arb_struct sval[1]
-        cdef arb_struct tval[1]
-        cdef int stype, ttype
-        stype = arb_set_any_ref(sval, s)
-        if stype == FMPZ_UNKNOWN:
-            return NotImplemented
-        ttype = arb_set_any_ref(tval, t)
-        if ttype == FMPZ_UNKNOWN:
-            return NotImplemented
-        u = arb.__new__(arb)
-        arb_div((<arb>u).val, sval, tval, getprec())
-        if stype == FMPZ_TMP: arb_clear(sval)
-        if ttype == FMPZ_TMP: arb_clear(tval)
-        return u
-
     def __truediv__(s, t):
-        return arb._div_(s, t)
+        return _arb_div_(s, t)
 
     def __div__(s, t):
-        return arb._div_(s, t)
+        return _arb_div_(s, t)
 
     def __pow__(s, t, modulus):
         cdef arb_struct sval[1]
@@ -661,7 +660,7 @@ cdef class arb(flint_scalar):
 
     def expm1(s):
         r"""
-        The exponential function `\exp(s) - 1`, computed accurately for small *s*.
+        Exponential function `\exp(s) - 1`, computed accurately for small *s*.
 
             >>> showgood(lambda: (arb(10) ** -8).expm1(), dps=25)
             1.000000005000000016666667e-8
@@ -672,7 +671,7 @@ cdef class arb(flint_scalar):
 
     def log(s):
         r"""
-        The natural logarithm `\log(s)`.
+        Natural logarithm `\log(s)`.
 
             >>> showgood(lambda: arb(2).log(), dps=25)
             0.6931471805599453094172321
@@ -692,7 +691,7 @@ cdef class arb(flint_scalar):
 
     def log1p(s):
         r"""
-        Computes `\log(1+s)`, accurately for small *s*.
+        Natural logarithm `\log(1+s)`, computed accurately for small *s*.
 
             >>> showgood(lambda: acb(1).log1p(), dps=25)
             0.6931471805599453094172321
@@ -826,8 +825,8 @@ cdef class arb(flint_scalar):
         arb_cot_pi((<arb>u).val, (<arb>s).val, getprec())
         return u
 
-    @classmethod
-    def sin_pi_fmpq(cls, fmpq s):
+    @staticmethod
+    def sin_pi_fmpq(fmpq s):
         r"""
         Returns the algebraic sine value `\sin(\pi s)`.
 
@@ -838,8 +837,8 @@ cdef class arb(flint_scalar):
         arb_sin_pi_fmpq((<arb>u).val, (<fmpq>s).val, getprec())
         return u
 
-    @classmethod
-    def cos_pi_fmpq(cls, fmpq s):
+    @staticmethod
+    def cos_pi_fmpq(fmpq s):
         r"""
         Returns the algebraic cosine value `\cos(\pi s)`.
 
@@ -850,8 +849,8 @@ cdef class arb(flint_scalar):
         arb_cos_pi_fmpq((<arb>u).val, (<fmpq>s).val, getprec())
         return u
 
-    @classmethod
-    def sin_cos_pi_fmpq(cls, fmpq s):
+    @staticmethod
+    def sin_cos_pi_fmpq(fmpq s):
         r"""
         Computes `\sin(\pi s)` and `\cos(\pi s)` simultaneously.
 
@@ -865,7 +864,7 @@ cdef class arb(flint_scalar):
 
     def sec(s):
         """
-        Secant.
+        Secant function `\operatorname{sec}(s)`.
 
             >>> showgood(lambda: arb(1).sec(), dps=25)
             1.850815717680925617911753
@@ -876,7 +875,7 @@ cdef class arb(flint_scalar):
 
     def csc(s):
         """
-        Cosecant.
+        Cosecant function `\operatorname{csc}(s)`.
 
             >>> showgood(lambda: arb(1).csc(), dps=25)
             1.188395105778121216261599
@@ -1069,7 +1068,7 @@ cdef class arb(flint_scalar):
 
     def gamma(s):
         """
-        The gamma function `\Gamma(s)`.
+        Gamma function `\Gamma(s)`.
 
             >>> showgood(lambda: arb(10).gamma(), dps=25)
             362880.0000000000000000000
@@ -1120,7 +1119,7 @@ cdef class arb(flint_scalar):
 
     def lgamma(s):
         """
-        The logarithmic gamma function `\log \Gamma(s)`.
+        Logarithmic gamma function `\log \Gamma(s)`.
 
             >>> showgood(lambda: arb(100).lgamma(), dps=25)
             359.1342053695753987760440
@@ -1134,7 +1133,7 @@ cdef class arb(flint_scalar):
 
     def digamma(s):
         """
-        The digamma function `\psi(s)`.
+        Digamma function `\psi(s)`.
 
             >>> showgood(lambda: arb(1).digamma(), dps=25)
             -0.5772156649015328606065121
@@ -1192,7 +1191,7 @@ cdef class arb(flint_scalar):
 
     def zeta(s, a=None):
         """
-        Computes the Riemann zeta function `\zeta(s)` or the Hurwitz
+        Riemann zeta function `\zeta(s)` or the Hurwitz
         zeta function `\zeta(s,a)` if a second parameter is passed.
 
             >>> showgood(lambda: arb(4.25).zeta(), dps=25)
@@ -1213,7 +1212,7 @@ cdef class arb(flint_scalar):
 
     def agm(s, t=1):
         """
-        Computes the arithmetic-geometric mean `M(s,t)`, or `M(s) = M(s,1)`
+        The arithmetic-geometric mean `M(s,t)`, or `M(s) = M(s,1)`
         if no extra parameter is passed.
 
             >>> showgood(lambda: arb(2).sqrt().agm(), dps=25)
@@ -1302,10 +1301,24 @@ cdef class arb(flint_scalar):
         arb_bernoulli_poly_ui((<arb>u).val, n, s.val, getprec())
         return u
 
+    def fac(s):
+        r"""
+        Factorial, equivalent to `s! = \Gamma(s+1)`.
+
+            >>> showgood(lambda: arb(5).fac(), dps=25)
+            120.0000000000000000000000
+            >>> showgood(lambda: arb("0.1").fac(), dps=25)
+            0.9513507698668731836292487
+        """
+        u = arb.__new__(arb)
+        arb_add_ui((<arb>u).val, s.val, 1, getprec())
+        arb_gamma((<arb>u).val, (<arb>u).val, getprec())
+        return u
+
     @staticmethod
     def fac_ui(ulong n):
         """
-        Computes the factorial `n!`.
+        Factorial `n!`, given an integer.
 
             >>> print(arb.fac_ui(10))
             3628800.00000000
@@ -1316,15 +1329,15 @@ cdef class arb(flint_scalar):
         arb_fac_ui((<arb>u).val, n, getprec())
         return u
 
-    def bin_ui(s, ulong k):
+    def bin(s, ulong k):
         """
-        Computes the binomial coefficient `{s \choose k}`.
-        The current implementation does not use the gamma function,
-        so *k* should be moderate.
+        Binomial coefficient `{s \choose k}`. Currently *k* is limited
+        to an integer; this restriction will be removed in the future
+        by using the gamma function.
 
-            >>> print(arb(10).bin_ui(5))
+            >>> print(arb(10).bin(5))
             252.000000000000
-            >>> showgood(lambda: arb.pi().bin_ui(100), dps=25)
+            >>> showgood(lambda: arb.pi().bin(100), dps=25)
             5.478392395095119521549286e-9
         """
         u = arb.__new__(arb)
@@ -1334,9 +1347,7 @@ cdef class arb(flint_scalar):
     @staticmethod
     def bin_uiui(ulong n, ulong k):
         """
-        Computes the binomial coefficient `{n \choose k}`.
-        The current implementation does not use the gamma function,
-        so *k* should be moderate.
+        Binomial coefficient `{n \choose k}`.
 
             >>> print(arb.bin_uiui(10, 5))
             252.000000000000
@@ -1363,7 +1374,7 @@ cdef class arb(flint_scalar):
 
     def polylog(self, s):
         """
-        Computes the polylogarithm `\operatorname{Li}_s(z)` where
+        Polylogarithm `\operatorname{Li}_s(z)` where
         the argument *z* is given by *self* and the order *s* is given
         as an extra parameter.
 
@@ -1612,7 +1623,7 @@ cdef class arb(flint_scalar):
     @staticmethod
     def legendre_p_root(ulong n, ulong k, bint weight=False):
         r"""
-        Returns the index *k* zero of the Legendre polynomial `P_n(x)`.
+        Returns the index-*k* zero of the Legendre polynomial `P_n(x)`.
         The zeros are indexed in decreasing order.
 
         If *weight* is True, returns a tuple (*x*, *w*) where *x* is
@@ -1778,84 +1789,153 @@ cdef class arb(flint_scalar):
         arb_hypgeom_li((<arb>u).val, (<arb>s).val, offset, getprec())
         return u
 
-    @classmethod
-    def bessel_j(cls, a, z):
-        a = any_as_arb(a)
-        z = any_as_arb(z)
+    def bessel_j(self, n):
+        r"""
+        Bessel function `J_n(z)`, where the argument *z* is given by
+        *self* and the order *n* is passed as an extra parameter.
+
+            >>> showgood(lambda: arb(5).bessel_j(1), dps=25)
+            -0.3275791375914652220377343
+        """
+        n = any_as_arb(n)
         u = arb.__new__(arb)
-        arb_hypgeom_bessel_j((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+        arb_hypgeom_bessel_j((<arb>u).val, (<arb>n).val, (<arb>self).val, getprec())
         return u
 
-    @classmethod
-    def bessel_y(cls, a, z):
-        a = any_as_arb(a)
-        z = any_as_arb(z)
+    def bessel_y(self, n):
+        r"""
+        Bessel function `Y_n(z)`, where the argument *z* is given by
+        *self* and the order *n* is passed as an extra parameter.
+
+            >>> showgood(lambda: arb(5).bessel_y(1), dps=25)
+            0.1478631433912268448010507
+        """
+        n = any_as_arb(n)
         u = arb.__new__(arb)
-        arb_hypgeom_bessel_y((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+        arb_hypgeom_bessel_y((<arb>u).val, (<arb>n).val, (<arb>self).val, getprec())
         return u
 
-    @classmethod
-    def bessel_k(cls, a, z, bint scaled=False):
-        a = any_as_arb(a)
-        z = any_as_arb(z)
+    def bessel_k(self, n, bint scaled=False):
+        r"""
+        Bessel function `K_n(z)`, where the argument *z* is given by
+        *self* and the order *n* is passed as an extra parameter.
+        Optionally a scaled Bessel function can be computed.
+
+            >>> showgood(lambda: arb(5).bessel_k(1), dps=25)
+            0.004044613445452164208365022
+            >>> showgood(lambda: arb(5).bessel_k(1, scaled=True), dps=25)
+            0.6002738587883125829360457
+        """
+        n = any_as_arb(n)
         u = arb.__new__(arb)
         if scaled:
-            arb_hypgeom_bessel_k_scaled((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+            arb_hypgeom_bessel_k_scaled((<arb>u).val, (<arb>n).val, (<arb>self).val, getprec())
         else:
-            arb_hypgeom_bessel_k((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+            arb_hypgeom_bessel_k((<arb>u).val, (<arb>n).val, (<arb>self).val, getprec())
         return u
 
-    @classmethod
-    def bessel_i(cls, a, z, bint scaled=False):
-        a = any_as_arb(a)
-        z = any_as_arb(z)
+    def bessel_i(self, n, bint scaled=False):
+        r"""
+        Bessel function `I_n(z)`, where the argument *z* is given by
+        *self* and the order *n* is passed as an extra parameter.
+        Optionally a scaled Bessel function can be computed.
+
+            >>> showgood(lambda: arb(5).bessel_i(1), dps=25)
+            24.33564214245052719914305
+            >>> showgood(lambda: arb(5).bessel_i(1, scaled=True), dps=25)
+            0.1639722669445423569261229
+        """
+        n = any_as_arb(n)
         u = arb.__new__(arb)
         if scaled:
-            arb_hypgeom_bessel_i_scaled((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+            arb_hypgeom_bessel_i_scaled((<arb>u).val, (<arb>n).val, (<arb>self).val, getprec())
         else:
-            arb_hypgeom_bessel_i((<arb>u).val, (<arb>a).val, (<arb>z).val, getprec())
+            arb_hypgeom_bessel_i((<arb>u).val, (<arb>n).val, (<arb>self).val, getprec())
         return u
 
-    @classmethod
-    def gamma_upper(cls, s, z, int regularized=0):
+    def gamma_upper(self, s, int regularized=0):
+        r"""
+        Upper incomplete gamma function `\Gamma(s,z)`. The argument *z*
+        is given by *self* and the order *s* is passed as an extra parameter.
+        Optionally the regularized version `Q(s,z)` can be computed.
+
+            >>> showgood(lambda: arb(5).gamma_upper(2.5), dps=25)
+            0.1000132513171574223384170
+            >>> showgood(lambda: arb(5).gamma_upper(2.5, regularized=1), dps=25)
+            0.07523524614651217872207687
+        """
         s = any_as_arb(s)
-        z = any_as_arb(z)
         u = arb.__new__(arb)
-        arb_hypgeom_gamma_upper((<arb>u).val, (<arb>s).val, (<arb>z).val, regularized, getprec())
+        arb_hypgeom_gamma_upper((<arb>u).val, (<arb>s).val, (<arb>self).val, regularized, getprec())
         return u
 
-    @classmethod
-    def gamma_lower(cls, s, z, int regularized=0):
+    def gamma_lower(self, s, int regularized=0):
+        r"""
+        Lower incomplete gamma function `\gamma(s,z)`. The argument *z*
+        is given by *self* and the order *s* is passed as an extra parameter.
+        Optionally the regularized versions `P(s,z)` and
+        `\gamma^{*}(s,z) = z^{-s} P(s,z)` can be computed.
+
+            >>> showgood(lambda: arb(5).gamma_lower(2.5), dps=25)
+            1.229327136861979598135209
+            >>> showgood(lambda: arb(5).gamma_lower(2.5, regularized=1), dps=25)
+            0.9247647538534878212779231
+            >>> showgood(lambda: arb(5).gamma_lower(2.5, regularized=2), dps=25)
+            0.01654269482249807489997922
+        """
         s = any_as_arb(s)
-        z = any_as_arb(z)
         u = arb.__new__(arb)
-        arb_hypgeom_gamma_lower((<arb>u).val, (<arb>s).val, (<arb>z).val, regularized, getprec())
+        arb_hypgeom_gamma_lower((<arb>u).val, (<arb>s).val, (<arb>self).val, regularized, getprec())
         return u
 
-    @classmethod
-    def beta_lower(cls, a, b, z, int regularized=0):
+    def beta_lower(self, a, b, int regularized=0):
+        r"""
+        Lower incomplete beta function `B(a,b;z)`. The argument *z*
+        is given by *self* and the parameters *a* and *b* are passed
+        as extra function arguments.
+        Optionally the regularized version of this function can be computed.
+
+            >>> showgood(lambda: arb("0.9").beta_lower(1, 2.5), dps=25)
+            0.3987350889359326482672004
+            >>> showgood(lambda: arb("0.9").beta_lower(1, 2.5, regularized=True), dps=25)
+            0.9968377223398316206680011
+        """
         a = any_as_arb(a)
         b = any_as_arb(b)
-        z = any_as_arb(z)
         u = arb.__new__(arb)
-        arb_hypgeom_beta_lower((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>z).val, regularized, getprec())
+        arb_hypgeom_beta_lower((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>self).val, regularized, getprec())
         return u
 
-    @classmethod
-    def expint(cls, s, z):
+    def expint(self, s):
+        r"""
+        Generalized exponential integral `E_s(z)`. The argument *z*
+        is given by *self* and the order *s* is passed as an extra parameter.
+
+            >>> showgood(lambda: arb(5).expint(2), dps=25)
+            0.0009964690427088381099832386
+        """
         s = any_as_arb(s)
-        z = any_as_arb(z)
         u = arb.__new__(arb)
-        arb_hypgeom_expint((<arb>u).val, (<arb>s).val, (<arb>z).val, getprec())
+        arb_hypgeom_expint((<arb>u).val, (<arb>s).val, (<arb>self).val, getprec())
         return u
 
-    @classmethod
-    def hypgeom(cls, a, b, z, bint regularized=False):
+    def hypgeom(self, a, b, bint regularized=False):
+        r"""
+        Generalized hypergeometric function `{}_pF_q(a;b;z)`.
+        The argument *z* is given by *self* and the parameter vectors
+        *a* and *b* are given as extra functino arguments.
+        Optionally the regularized hypergeometric function can be
+        computed instead.
+
+            >>> showgood(lambda: arb(5).hypgeom([1,2,3],[5,4.5,6]), dps=25)
+            1.301849229178968153998454
+            >>> showgood(lambda: arb(5).hypgeom([1,2,3],[5,4.5,6],regularized=True), dps=25)
+            3.886189282817193519132054e-5
+        """
         cdef long i, p, q, prec
         cdef arb_ptr aa, bb
         a = [any_as_arb(t) for t in a]
         b = [any_as_arb(t) for t in b]
-        z = arb(z)
         p = len(a)
         q = len(b)
         aa = <arb_ptr>libc.stdlib.malloc(p * cython.sizeof(arb_struct))
@@ -1865,44 +1945,85 @@ cdef class arb(flint_scalar):
         for i in range(q):
             bb[i] = (<arb>(b[i])).val[0]
         u = arb.__new__(arb)
-        arb_hypgeom_pfq((<arb>u).val, aa, p, bb, q, (<arb>z).val, regularized, getprec())
+        arb_hypgeom_pfq((<arb>u).val, aa, p, bb, q, (<arb>self).val, regularized, getprec())
         libc.stdlib.free(aa)
         libc.stdlib.free(bb)
         return u
 
-    @classmethod
-    def hypgeom_u(cls, a, b, z):
+    def hypgeom_u(self, a, b):
+        r"""
+        The hypergeometric function `U(a,b,z)` where the argument *z*
+        is given by *self*
+
+            >>> showgood(lambda: arb(5).hypgeom_u(1, 2.5), dps=25)
+            0.2184157028890778783289036
+        """
         a = any_as_arb(a)
         b = any_as_arb(b)
-        z = any_as_arb(z)
         u = arb.__new__(arb)
-        arb_hypgeom_u((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>z).val, getprec())
+        arb_hypgeom_u((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>self).val, getprec())
         return u
 
-    @classmethod
-    def hypgeom_1f1(cls, a, b, z, bint regularized=False):
+    def hypgeom_1f1(self, a, b, bint regularized=False):
+        r"""
+        The hypergeometric function `{}_1F_1(a,b,z)` where the argument *z*
+        is given by *self*
+        Optionally the regularized version of this function can be computed.
+
+            >>> showgood(lambda: arb(-5).hypgeom_1f1(1, 2.5), dps=25)
+            0.2652884733179767675077230
+            >>> showgood(lambda: arb(-5).hypgeom_1f1(1, 2.5, regularized=True), dps=25)
+            0.1995639910417191573048664
+        """
         a = any_as_arb(a)
         b = any_as_arb(b)
-        z = any_as_arb(z)
         u = arb.__new__(arb)
-        arb_hypgeom_1f1((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>z).val, regularized, getprec())
+        arb_hypgeom_1f1((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>self).val, regularized, getprec())
         return u
 
-    @classmethod
-    def hypgeom_0f1(cls, a, z, bint regularized=False):
+    def hypgeom_0f1(self, a, bint regularized=False):
+        r"""
+        The hypergeometric function `{}_0F_1(a,z)` where the argument *z*
+        is given by *self*
+        Optionally the regularized version of this function can be computed.
+
+            >>> showgood(lambda: arb(-5).hypgeom_0f1(2.5), dps=25)
+            0.003114611044402738470826907
+            >>> showgood(lambda: arb(-5).hypgeom_0f1(2.5, regularized=True), dps=25)
+            0.002342974810739764377177885
+        """
         a = any_as_arb(a)
-        z = any_as_arb(z)
         u = arb.__new__(arb)
-        arb_hypgeom_0f1((<arb>u).val, (<arb>a).val, (<arb>z).val, regularized, getprec())
+        arb_hypgeom_0f1((<arb>u).val, (<arb>a).val, (<arb>self).val, regularized, getprec())
         return u
 
-    @classmethod
-    def hypgeom_2f1(cls, a, b, c, z, bint regularized=False, bint ab=False, bint ac=False, bc=False, abc=False):
+    def hypgeom_2f1(self, a, b, c, bint regularized=False, bint ab=False, bint ac=False, bc=False, abc=False):
+        r"""
+        The hypergeometric function `{}_2F_1(a,b,c,z)` where the argument *z*
+        is given by *self*
+        Optionally the regularized version of this function can be computed.
+
+            >>> showgood(lambda: arb(-5).hypgeom_2f1(1,2,3), dps=25)
+            0.2566592424617555999350018
+            >>> showgood(lambda: arb(-5).hypgeom_2f1(1,2,3,regularized=True), dps=25)
+            0.1283296212308777999675009
+
+        The flags *ab*, *ac*, *bc*, *abc* can be used to specify whether the
+        parameter differences `a-b`, `a-c, `b-c` and `a+b-c` represent
+        exact integers, even if the input intervals are inexact.
+        If the parameters are exact, these flags are not needed.
+
+            >>> showgood(lambda: arb("9/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5, abc=True), dps=25)
+            1.447530478120770807945697
+            >>> showgood(lambda: arb("9/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5), dps=25)
+            Traceback (most recent call last):
+              ...
+            ValueError: no convergence (maxprec=960, try higher maxprec)
+        """
         cdef int flags
         a = any_as_arb(a)
         b = any_as_arb(b)
         c = any_as_arb(c)
-        z = any_as_arb(z)
         u = arb.__new__(arb)
         flags = 0
         if regularized: flags |= 1
@@ -1911,13 +2032,13 @@ cdef class arb(flint_scalar):
         if bc: flags |= 8
         if abc: flags |= 16
         arb_hypgeom_2f1((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>c).val,
-            (<arb>z).val, flags, getprec())
+            (<arb>self).val, flags, getprec())
         return u
 
-    @classmethod
-    def pi(cls):
+    @staticmethod
+    def pi():
         """
-        Computes the constant `\pi`.
+        Returns the constant `\pi` as an *arb*.
 
             >>> showgood(arb.pi, dps=25)
             3.141592653589793238462643
@@ -1926,10 +2047,10 @@ cdef class arb(flint_scalar):
         arb_const_pi((<arb>u).val, getprec())
         return u
 
-    @classmethod
-    def const_sqrt_pi(cls):
+    @staticmethod
+    def const_sqrt_pi():
         """
-        Computes the constant `\sqrt{\pi}`.
+        The constant `\sqrt{\pi}`.
 
             >>> showgood(arb.const_sqrt_pi, dps=25)
             1.772453850905516027298167
@@ -1938,10 +2059,10 @@ cdef class arb(flint_scalar):
         arb_const_sqrt_pi((<arb>u).val, getprec())
         return u
 
-    @classmethod
-    def const_log2(cls):
+    @staticmethod
+    def const_log2():
         """
-        Computes the constant `\log(2)`.
+        The constant `\log(2)`.
 
             >>> showgood(arb.const_log2, dps=25)
             0.6931471805599453094172321
@@ -1950,10 +2071,10 @@ cdef class arb(flint_scalar):
         arb_const_log2((<arb>u).val, getprec())
         return u
 
-    @classmethod
-    def const_log10(cls):
+    @staticmethod
+    def const_log10():
         """
-        Computes the constant `\log(10)`.
+        The constant `\log(10)`.
 
             >>> showgood(arb.const_log10, dps=25)
             2.302585092994045684017991
@@ -1962,10 +2083,10 @@ cdef class arb(flint_scalar):
         arb_const_log10((<arb>u).val, getprec())
         return u
 
-    @classmethod
-    def const_euler(cls):
+    @staticmethod
+    def const_euler():
         """
-        Computes Euler's constant `\gamma`.
+        Euler's constant `\gamma`.
 
             >>> showgood(arb.const_euler, dps=25)
             0.5772156649015328606065121
@@ -1974,10 +2095,10 @@ cdef class arb(flint_scalar):
         arb_const_euler((<arb>u).val, getprec())
         return u
 
-    @classmethod
-    def const_catalan(cls):
+    @staticmethod
+    def const_catalan():
         """
-        Computes Catalan's constant.
+        Catalan's constant.
 
             >>> showgood(arb.const_catalan, dps=25)
             0.9159655941772190150546035
@@ -1986,10 +2107,10 @@ cdef class arb(flint_scalar):
         arb_const_catalan((<arb>u).val, getprec())
         return u
 
-    @classmethod
-    def const_e(cls):
+    @staticmethod
+    def const_e():
         """
-        Computes the constant `e`.
+        The constant `e`.
 
             >>> showgood(arb.const_e, dps=25)
             2.718281828459045235360287
@@ -1998,10 +2119,10 @@ cdef class arb(flint_scalar):
         arb_const_e((<arb>u).val, getprec())
         return u
 
-    @classmethod
-    def const_khinchin(cls):
+    @staticmethod
+    def const_khinchin():
         """
-        Computes Khinchin's constant `K`.
+        Khinchin's constant `K`.
 
             >>> showgood(arb.const_khinchin, dps=25)
             2.685452001065306445309715
@@ -2010,10 +2131,10 @@ cdef class arb(flint_scalar):
         arb_const_khinchin((<arb>u).val, getprec())
         return u
 
-    @classmethod
-    def const_glaisher(cls):
+    @staticmethod
+    def const_glaisher():
         """
-        Computes Glaisher's constant.
+        Glaisher's constant.
 
             >>> showgood(arb.const_glaisher, dps=25)
             1.282427129100622636875343
@@ -2022,25 +2143,37 @@ cdef class arb(flint_scalar):
         arb_const_glaisher((<arb>u).val, getprec())
         return u
 
-    @classmethod
-    def pos_inf(cls):
+    @staticmethod
+    def pos_inf():
         u = arb.__new__(arb)
         arb_pos_inf((<arb>u).val)
         return u
 
-    @classmethod
-    def neg_inf(cls):
+    @staticmethod
+    def neg_inf():
         u = arb.__new__(arb)
         arb_neg_inf((<arb>u).val)
         return u
 
-    @classmethod
-    def nan(cls):
+    @staticmethod
+    def nan():
         u = arb.__new__(arb)
         arb_indeterminate((<arb>u).val)
         return u
 
     def unique_fmpz(self):
+        r"""
+        If *self* represents exactly one integer, returns this value
+        as an *fmpz*; otherwise returns *None*.
+
+            >>> arb("5 +/- 0.1").unique_fmpz()
+            5
+            >>> arb("5 +/- 0.9").unique_fmpz()
+            5
+            >>> arb("5.1 +/- 0.9").unique_fmpz()
+            >>>
+
+        """
         u = fmpz.__new__(fmpz)
         if arb_get_unique_fmpz((<fmpz>u).val, self.val):
             return u
@@ -2051,6 +2184,16 @@ cdef class arb(flint_scalar):
         return arb_rel_accuracy_bits(self.val)
 
     def lambertw(s, int branch=0):
+        r"""
+        Lambert *W* function, `W_k(s)`. Either the principal
+        branch (`k = 0`) or the `k = -1` branch can be computed
+        by specifying *branch*.
+
+            >>> showgood(lambda: arb(10).lambertw(), dps=25)
+            1.745528002740699383074301
+            >>> showgood(lambda: arb("-0.1").lambertw(-1), dps=25)
+            -3.577152063957297218409392
+        """
         cdef int flags
         if branch == 0:
             flags = 0

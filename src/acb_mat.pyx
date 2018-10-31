@@ -382,6 +382,8 @@ cdef class acb_mat(flint_mat):
             [nan + nanj, nan + nanj, nan + nanj]
 
         The optional *algorithm* can be None (default), "lu", or "precond".
+        It can also be set to "approx" in which case an approximate
+        floating-point solution (warning: without error bounds!) is returned.
         """
         cdef acb_mat u
         cdef bint res
@@ -398,6 +400,8 @@ cdef class acb_mat(flint_mat):
             res = acb_mat_solve_lu(u.val, s.val, (<acb_mat>t).val, getprec())
         elif algorithm == 'precond':
             res = acb_mat_solve_precond(u.val, s.val, (<acb_mat>t).val, getprec())
+        elif algorithm == 'approx':
+            res = acb_mat_approx_solve(u.val, s.val, (<acb_mat>t).val, getprec())
         else:
             raise ValueError("unknown algorithm")
         if not res:
