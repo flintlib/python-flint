@@ -1922,10 +1922,10 @@ cdef class arb(flint_scalar):
     def hypgeom(self, a, b, bint regularized=False):
         r"""
         Generalized hypergeometric function `{}_pF_q(a;b;z)`.
-        The argument *z* is given by *self* and the parameter vectors
-        *a* and *b* are given as extra functino arguments.
+        The argument *z* is given by *self* and *a* and *b*
+        are additional lists of complex numbers defining the parameters.
         Optionally the regularized hypergeometric function can be
-        computed instead.
+        computed.
 
             >>> showgood(lambda: arb(5).hypgeom([1,2,3],[5,4.5,6]), dps=25)
             1.301849229178968153998454
