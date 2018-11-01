@@ -24,12 +24,12 @@ See:
 * http://flintlib.org/
 * http://arblib.org/
 
-The latest release of Python-FLINT can then be installed using::
+The latest release of Python-FLINT can then be installed using:
 
     pip install python-flint
 
 Python-FLINT can also be installed git checkout or a source archive
-as follows::
+as follows:
 
     pip install .
 
