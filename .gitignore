@@ -1,5 +1,7 @@
 build/*
+dist/*
 src/*.c
 doc/build/*
 fmake*
+MANIFEST
 .eggs

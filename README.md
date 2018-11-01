@@ -45,8 +45,6 @@ Import Python-FLINT:
 
 Number-theoretic functions:
 
-    >>> fmpz(10**40+1).factor()
-    [(17, 1), (5070721, 1), (5882353, 1), (19721061166646717498359681, 1)]
     >>> fmpz(1000).partitions_p()
     24061467864032622473692149727991
     >>> fmpq.bernoulli(64)
@@ -56,7 +54,7 @@ Polynomial arithmetic:
 
     >>> a = fmpz_poly([1,2,3]); b = fmpz_poly([2,3,4]); a.gcd(a * b)
     3*x^2 + 2*x + 1
-    >>> a = fmpz_poly(range(10001)); b = fmpz_poly(range(10000)); a.gcd(a * b).degree()
+    >>> a = fmpz_poly(list(range(10001))); b = fmpz_poly(list(range(10000))); a.gcd(a * b).degree()
     10000
     >>> x = fmpz_poly([0,1]); ((1-x**2)*(1+x**3)**3*(1+x+2*x)).factor()
     (-1, [(3*x + 1, 1), (x + (-1), 1), (x^2 + (-1)*x + 1, 3), (x + 1, 4)])
