@@ -7,11 +7,25 @@ See:
 * http://flintlib.org/
 * http://arblib.org/
 
-Install build dependencies::
+Python-FLINT is available on PyPI (the Python Package Index):
+
+* https://pypi.org/project/python-flint/
+
+The latest release can be installed using::
+
+    pip install python-flint
+
+Python-FLINT can also be installed git checkout or a source archive
+as follows::
+
+    pip install .
+
+To build Python-FLINT manually, you may first have to install
+some build dependencies::
 
     sudo apt-get install cython python-dev
 
-Build and install python-flint from source::
+Then run::
 
     python setup.py build_ext
     sudo python setup.py install
@@ -20,9 +34,11 @@ Run the test suite::
 
     python test/test.py
 
-Import using::
+Build the documentation::
 
-    >>> from flint import *
+    cd doc
+    make html
+    cd ..
 
 Additional paths
 ----------------
@@ -38,8 +54,4 @@ Likewise, before starting the Python interpreter, tell the linker
 where to find the library files using something like::
 
     export LD_LIBRARY_PATH=/home/fredrik/src/flint2:/home/fredrik/src/arb:$LD_LIBRARY_PATH
-
-You may also have to install the CPimport file::
-
-    sudo cp /home/fredrik/src/flint2/qadic/CPimport.txt /usr/local/share/flint/CPimport.txt
 

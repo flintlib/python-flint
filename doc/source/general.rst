@@ -7,8 +7,7 @@ Importing
 The ``flint`` module exposes a set of distinctly-named types together
 with a small number of top-level functions and objects.
 Most functionality is provided as methods on the types. This means
-that there should be no namespace conflicts with most user code
-(a possible exception is ``flint.ctx``, described below),
+that there should be no namespace conflicts with most user code,
 with Python's builtin ``math`` and ``cmath`` modules, or with
 packages such as ``gmpy``, ``numpy``, ``sympy`` and ``mpmath``.
 For typical interactive use, it should therefore
@@ -58,21 +57,19 @@ worry about this.
 Types and methods
 -----------------
 
-(Preliminary content.)
-
 As a general rule, C functions associated with a type in FLINT or Arb
 are exposed as methods of the corresponding Python type.
 
-For example, there is both an :meth:`.fmpq.bernoulli_ui` (which computes
-a Bernoulli number as an exact fraction) and :meth:`.arb.bernoulli_ui`
+For example, there is both an :meth:`.fmpq.bernoulli` (which computes
+a Bernoulli number as an exact fraction) and :meth:`.arb.bernoulli`
 (which computes a Bernoulli number as an approximate real number).
 
 A function that transforms a single value to the same type
 is usually an ordinary method of that type, for instance :meth:`.arb.exp`.
-A function with a different signature can either provided as a classmethod
-that takes all inputs as function arguments, or as a
+A function with a different signature can either provided as a
+static method that takes all inputs as function arguments, or as a
 method of the "primary" input, taking the other inputs
-as arguments to the method (for example :meth:`.arb.rising`).
+as arguments to the method (for example :meth:`.arb.bessel_j`).
 
 When a method involves different types for inputs and outputs (or
 just among the inputs), it will
@@ -80,18 +77,12 @@ typically be a method of the more "complex" type. For example, a matrix
 type is more "complex" than the underlying scalar type, so
 :meth:`.fmpz_mat.det` is a method of the matrix type, returning a scalar,
 and not vice versa.
-If the input type is not the same as the type that the method belongs
-to, it will typically be a classmethod (for example
-:meth:`.fmpq.bernoulli_ui`).
 
-The method-based interface is intended to be precise and to simplify the implementation
-somewhat, not primarily to be aesthetically pleasing. A functional
+The method-based interface is intended to keep the code simple,
+not to be aesthetically pleasing to mathematicians. A functional
 top-level interface might be added in the future, allowing more idiomatic
 mathematical notation (for example, :func:`exp` and
 :func:`det` as regular functions).
-Such an interface will presumably just involve type-dispatch glue, leaving
-all the interesting computational logic to the methods on the
-various mathematical types.
 
 Mutability
 ----------
@@ -124,17 +115,18 @@ can be caught at the Python level.
 
 Input that is obviously *invalid* (for example a negative number passed
 as a length) can also cause crashes or worse things to happen.
-Eventually, all such bad input should be caught at the Python level
-and result in appropriate exceptions being raised. But until the code
-matures, assume that such checks have not yet been implemented and that
-invalid input leads to undefined behavior!
+Ideally, bad input should be caught at the Python level and result in
+appropriate exceptions being raised, but this is not yet done
+systematically. At this time, users should assume that invalid
+input leads to undefined behavior!
 
 Inexact numbers and numerical evaluation
 -----------------------------------------------------------------------
 
-Real and complex numbers are represented by intervals. All operations on
-real and complex numbers output intervals representing rigorous error bounds.
-This also extends to polynomials and matrices of real and complex numbers.
+Real and complex numbers are represented by midpoint-radius intervals
+(balls). All operations on real and complex numbers output intervals
+representing rigorous error bounds. This also extends to polynomials
+and matrices of real and complex numbers.
 
 The working precision for real and complex arithmetic is controlled by the
 global context object attributes :func:`ctx.prec` (in bits)
@@ -151,8 +143,8 @@ the rational number
 
 which might not be what you want. Do ``arb("0.1")``, ``arb("1/10")``
 or ``arb(fmpq(1,10))`` if
-you want the correct decimal fraction. But small integers and
-power-of-two denominators are safe, for example ``arb(100.25)``.
+you want the correct decimal fraction. Small integers and
+power-of-two denominators are still safe, for example ``arb(100.25)``.
 
 Pointwise boolean predicates (such as the usual comparison operators)
 involving inexact numbers return
@@ -172,3 +164,25 @@ with adaptive working precision.
 .. autofunction :: flint.good
 
 .. autofunction :: flint.showgood
+
+Power series
+-----------------------------------------------------------------------
+
+Power series objects track the precision (the number of known terms)
+automatically.  The upper precision for power series is controlled by
+``flint.ctx.cap``, with the default value 10.
+
+    >>> fmpq_series([0,1]).exp()
+    1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + 1/120*x^5 + 1/720*x^6 + 1/5040*x^7 + 1/40320*x^8 + 1/362880*x^9 + O(x^10)
+    >>> ctx.cap = 4
+    >>> fmpq_series([0,1]).exp()
+    1 + x + 1/2*x^2 + 1/6*x^3 + O(x^4)
+    >>> ctx.cap = 10
+    >>> fmpq_series([0,1], prec=5).exp()
+    1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + O(x^5)
+
+    >>> ctx.cap = 3
+    >>> ctx.dps = 10
+    >>> arb_series([1,3,4]).exp()
+    ([2.718281828 +/- 4.79e-10]) + ([8.154845485 +/- 4.36e-10])*x + ([23.10539554 +/- 2.25e-9])*x^2 + O(x^3)
+    >>> ctx.default()

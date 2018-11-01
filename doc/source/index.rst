@@ -6,15 +6,19 @@
 Python-FLINT
 ==========================================================
 
-Python extension module wrapping FLINT (Fast Library for Number Theory)
-and Arb (arbitrary-precision ball arithmetic). Features:
+Python extension module wrapping FLINT_ (Fast Library for Number Theory)
+and Arb_ (arbitrary-precision ball arithmetic). Features:
+
+.. _FLINT: http://flintlib.org/
+.. _Arb: http://arblib.org/
+
 
 * Integers, rationals, integers mod n
 * Real and complex numbers with rigorous error tracking
 * Polynomials and matrices over all the above types
-* Lots of special functions
+* Lots of mathematical functions
 
-Author: Fredrik Johansson <fredrik.johansson@gmail.com>
+Author: `Fredrik Johansson <http://fredrikj.net/>`_ <fredrik.johansson@gmail.com>
 
 Repository: https://github.com/fredrik-johansson/python-flint/
 

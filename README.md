@@ -9,77 +9,65 @@ and Arb (arbitrary-precision ball arithmetic). Features:
 * Polynomials, power series and matrices over all the above types
 * Lots of special functions
 
-Author: Fredrik Johansson <fredrik.johansson@gmail.com>
+Documentation: http://fredrikj.net/python-flint/
 
 Repository: https://github.com/fredrik-johansson/python-flint/
+
+Author: Fredrik Johansson <fredrik.johansson@gmail.com>
 
 Installation
 ------------
 
-First install both FLINT and Arb (currently, the git versions are required).
+First install both FLINT (version 2.5 or later) and Arb (version 2.15 or later).
 See:
 
-* https://github.com/fredrik-johansson/flint2/
-* https://github.com/fredrik-johansson/arb/
+* http://flintlib.org/
+* http://arblib.org/
 
-Install build dependencies:
+The latest release of Python-FLINT can then be installed using::
 
-    sudo apt-get install cython python-dev
+    pip install python-flint
 
-Build and install python-flint from source:
+Python-FLINT can also be installed git checkout or a source archive
+as follows::
 
-    python setup.py build_ext
-    sudo python setup.py install
+    pip install .
 
-Run the test suite:
-
-    python test/test.py
-
-Import using:
-
-    >>> from flint import *
-
-### Additional paths
-
-The FLINT and Arb header files and library files (libflint.so and libarb.so)
-must be available at compile time. If they are in a nonstandard location
-(for example, if they have been built but not installed),
-use a command such as the following to build:
-
-    python ./setup.py build_ext \
-        --include-dirs=/home/fredrik/src/flint2:/home/fredrik/src/arb \
-        --library-dirs=/home/fredrik/src/flint2:/home/fredrik/src/arb
-
-Likewise, before starting the Python interpreter, tell the linker
-where to find the library files using something like:
-
-    export LD_LIBRARY_PATH=/home/fredrik/src/flint2:/home/fredrik/src/arb:$LD_LIBRARY_PATH
-
-You may also have to install the CPimport file:
-
-    sudo cp /home/fredrik/src/flint2/qadic/CPimport.txt /usr/local/share/flint/CPimport.txt
+See the documentation for further notes on building and installing
+Python-FLINT.
 
 Examples
 -------------------------------------
 
+Import Python-FLINT:
+
+    >>> from flint import *
+
 Number-theoretic functions:
 
-    >>> fmpz(1000).number_of_partitions()
-    fmpz(24061467864032622473692149727991)
-    >>> fmpq.bernoulli_ui(64)
-    fmpq(-106783830147866529886385444979142647942017,510)
+    >>> fmpz(10**40+1).factor()
+    [(17, 1), (5070721, 1), (5882353, 1), (19721061166646717498359681, 1)]
+    >>> fmpz(1000).partitions_p()
+    24061467864032622473692149727991
+    >>> fmpq.bernoulli(64)
+    -106783830147866529886385444979142647942017/510
 
 Polynomial arithmetic:
 
     >>> a = fmpz_poly([1,2,3]); b = fmpz_poly([2,3,4]); a.gcd(a * b)
-    fmpz_poly([1, 2, 3])
+    3*x^2 + 2*x + 1
     >>> a = fmpz_poly(range(10001)); b = fmpz_poly(range(10000)); a.gcd(a * b).degree()
     10000
+    >>> x = fmpz_poly([0,1]); ((1-x**2)*(1+x**3)**3*(1+x+2*x)).factor()
+    (-1, [(3*x + 1, 1), (x + (-1), 1), (x^2 + (-1)*x + 1, 3), (x + 1, 4)])
 
 Matrix arithmetic:
 
-    >>> (fmpz_mat(2,2,[1,1,1,0]) ** 10)
-    fmpz_mat(2, 2, [89, 55, 55, 34])
+    >>> fmpz_mat([[1,1],[1,0]]) ** 10
+    [89, 55]
+    [55, 34]
+    >>> fmpq_mat.hilbert(10,10).det()
+    1/46206893947914691316295628839036278726983680000000000
 
 Numerical evaluation:
 
@@ -88,36 +76,28 @@ Numerical evaluation:
     >>> showgood(lambda: (arb.pi() * 10**100 + arb(1)/1000).sin(), dps=25)
     0.0009999998333333416666664683
 
+Numerical integration:
 
-Documentation
--------------------------------------
-
-API documentation is available here: http://fredrikj.net/python-flint/
+    >>> ctx.dps = 30
+    >>> acb.integral(lambda x, _: (-x**2).exp(), -100, 100) ** 2
+    [3.141592653589793238462643383 +/- 3.11e-28]
 
 To do
 -------------------------------------
 
-* Work on packaging and the build system
-* Continuous integration
 * Write more tests and add missing docstrings
 * Wrap missing flint types: finite fields, p-adic numbers, multiprecision integer mods, rational functions
-* Rational functions
 * Vector or array types (maybe)
 * Many convenience methods
-* Lots of FLINT and Arb functions/methods that haven't been wrapped yet
 * Write generic implementations of functions missing for specific FLINT types
 * Proper handling of special values in various places (throwing Python exceptions instead of aborting, etc.)
 * Various automatic conversions
 * Conversions to and from external types (numpy, sage, sympy, mpmath, gmpy)
-* Support for Python-level multithreading (there is some global state)
-* Support for subclassing (maybe, not a priority)
 * Improved printing and string input/output
 * IPython hooks (TeX pretty-printing etc.)
-* Python 3.x support (should mostly work, needs minor touches)
 * Windows support
 
 License
 ------------
 
 Python-FLINT is licensed MIT. FLINT and Arb are LGPL v2.1+.
-
