@@ -2009,7 +2009,7 @@ cdef class arb(flint_scalar):
             0.1283296212308777999675009
 
         The flags *ab*, *ac*, *bc*, *abc* can be used to specify whether the
-        parameter differences `a-b`, `a-c, `b-c` and `a+b-c` represent
+        parameter differences `a-b`, `a-c`, `b-c` and `a+b-c` represent
         exact integers, even if the input intervals are inexact.
         If the parameters are exact, these flags are not needed.
 

@@ -98,6 +98,19 @@ cdef int acb_calc_func_callback(acb_ptr out, const acb_t inp, void * param, long
 
 
 cdef class acb(flint_scalar):
+    r"""
+    An *acb* represents a complex number by a rectangular enclosure
+    consisting of *arb* balls for the real and imaginary parts.
+
+        >>> acb(2)
+        2.00000000000000
+        >>> acb(2+3j)
+        2.00000000000000 + 3.00000000000000j
+        >>> acb("2 +/- 0.001", fmpq(2,3))
+        [2.00 +/- 1.01e-3] + [0.666666666666667 +/- 4.82e-16]j
+        >>> acb(-1) ** 0.25
+        [0.707106781186547 +/- 6.14e-16] + [0.707106781186547 +/- 6.15e-16]j
+    """
 
     cdef acb_t val
 
@@ -881,7 +894,7 @@ cdef class acb(flint_scalar):
 
     def sech(s):
         r"""
-        Hyperbolic secant function `\sech(s)`.
+        Hyperbolic secant function `\operatorname{sech}(s)`.
 
             >>> showgood(lambda: acb(2,3).sech(), dps=25)
             -0.2635129751583893096436042 - 0.03621163655876852087145690j
@@ -892,7 +905,7 @@ cdef class acb(flint_scalar):
 
     def csch(s):
         r"""
-        Hyperbolic cosecant function `\csch(s)`.
+        Hyperbolic cosecant function `\operatorname{csch}(s)`.
 
             >>> showgood(lambda: acb(2,3).csch(), dps=25)
             -0.2725486614629401995124985 - 0.04030057885689152187513248j
@@ -1278,7 +1291,7 @@ cdef class acb(flint_scalar):
             -0.2554517744447956247533786 - 0.1256637061435917295385057j
 
         The flags *ab*, *ac*, *bc*, *abc* can be used to specify whether the
-        parameter differences `a-b`, `a-c, `b-c` and `a+b-c` represent
+        parameter differences `a-b`, `a-c`, `b-c` and `a+b-c` represent
         exact integers, even if the input intervals are inexact.
         If the parameters are exact, these flags are not needed.
 
@@ -1563,7 +1576,6 @@ cdef class acb(flint_scalar):
             >>> f = lambda z, a: (z**3).real_abs(analytic=a)
             >>> showgood(lambda: acb.integral(f, -1, 1), dps=25)
             0.5000000000000000000000000
-
         """
         u = acb.__new__(acb)
         acb_real_abs((<acb>u).val, (<acb>s).val, analytic, getprec())
@@ -1573,6 +1585,13 @@ cdef class acb(flint_scalar):
         r"""
         Sign function of a real variable, extended to a piecewise complex
         analytic function. This function is useful for integration.
+
+            >>> acb(-5+2j).real_sgn()
+            -1.00000000000000
+            >>> acb(0).real_sgn()
+            0
+            >>> acb(0).real_sgn(analytic=True)
+            nan + nanj
         """
         u = acb.__new__(acb)
         acb_real_sgn((<acb>u).val, (<acb>s).val, analytic, getprec())
@@ -1582,6 +1601,15 @@ cdef class acb(flint_scalar):
         r"""
         Heaviside step function of a real variable, extended to a piecewise complex
         analytic function. This function is useful for integration.
+
+            >>> acb(-5+2j).real_heaviside(analytic=True)
+            0
+            >>> acb(5+2j).real_heaviside(analytic=True)
+            1.00000000000000
+            >>> acb(0).real_heaviside(analytic=True)
+            nan + nanj
+            >>> acb(0).real_heaviside()
+            0.500000000000000
         """
         u = acb.__new__(acb)
         acb_real_heaviside((<acb>u).val, (<acb>s).val, analytic, getprec())
@@ -1591,6 +1619,9 @@ cdef class acb(flint_scalar):
         r"""
         Floor function of a real variable, extended to a piecewise complex
         analytic function. This function is useful for integration.
+
+            >>> showgood(lambda: acb.integral(lambda x, a: x.real_floor(analytic=a), 0, 100), dps=15)
+            4950.00000000000
         """
         u = acb.__new__(acb)
         acb_real_floor((<acb>u).val, (<acb>s).val, analytic, getprec())
@@ -1600,6 +1631,9 @@ cdef class acb(flint_scalar):
         r"""
         Ceiling function of a real variable, extended to a piecewise complex
         analytic function. This function is useful for integration.
+
+            >>> showgood(lambda: acb.integral(lambda x, a: x.real_ceil(analytic=a), 0, 100), dps=15)
+            5050.00000000000
         """
         u = acb.__new__(acb)
         acb_real_ceil((<acb>u).val, (<acb>s).val, analytic, getprec())
@@ -2238,7 +2272,52 @@ cdef class acb(flint_scalar):
             rel_tol=None, abs_tol=None,
             deg_limit=None, eval_limit=None, depth_limit=None,
             use_heap=None, verbose=None):
+        r"""
+        Computes the integral `\int_a^b f(x) dx` where the integrand
+        *f* is defined by *func*.
 
+            >>> showgood(lambda: acb.integral(lambda x, _: x.sin(), 0, arb.pi()), dps=25)
+            2.000000000000000000000000
+            >>> showgood(lambda: acb.integral(lambda x, _: (x + x.sin()).gamma(), 1, 1+1j), dps=25)
+            -0.2732681890680958866139676 + 0.7064496061603478580993410j
+
+        The function *func* takes two parameters as input: the
+        argument *x* and a boolean flag *analytic*. If *analytic*
+        is False, *func* should return `f(x)`, and in this case
+        there are no restrictions on *f*; for instance, the integrand
+        can be discontinuous on *x*.
+        If *analytic* is True, *func* must verify that *f* is analytic
+        on *x*, and if not, return a non-finite ball instead of `f(x)`.
+
+        The *analytic* flag can be ignored for meromorphic functions,
+        because evaluation at poles automatically leads to non-finite
+        balls. However, it *must* be checked for functions that are
+        non-analytic in some regions (for instance, functions with
+        branch cuts such as `\sqrt{x}` and `\log(x)`), even if the
+        integration path does not touch any non-analytic points.
+        Some methods have an *analytic* option built-in, so the user
+        simply has to forward this flag:
+
+            >>> showgood(lambda: acb.integral(lambda x, _: x.sqrt(), 1, 4), dps=25)  # WRONG!!!
+            4.669414894781006338774348
+            >>> showgood(lambda: acb.integral(lambda x, a: x.sqrt(analytic=a), 1, 4), dps=25)  # correct
+            4.666666666666666666666667
+
+        The following works without handling the *analytic* flag,
+        because the integrand is meromorphic:
+
+            >>> showgood(lambda: acb.integral(lambda x, _: x.sech(), -1000, 1000), dps=25)
+            3.141592653589793238462643
+
+        The options *rel_tol* and *abs_tol* specify the relative
+        and absolute tolerance goal for the integration.
+        Both default to `2^{-p}` where *p* is the current precision.
+
+        The options *deg_limit*, *eval_limit*, *depth_limit* and
+        *use_heap* allow control over the amount of work done before
+        aborting; see the documentation for *acb_calc_integrate* for
+        details.
+        """
         cdef IntegrationContext ictx = IntegrationContext()
         cdef acb_calc_integrate_opt_t arb_opts
         cdef long cgoal, prec

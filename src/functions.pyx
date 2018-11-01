@@ -28,8 +28,8 @@ def good(func, long prec=0, long maxprec=0, long dps=0,
         long maxdps=0, long padding=10, bint verbose=False, bint show=False, bint parts=True, metric=None):
     """
     Evaluates *func*, automatically increasing the precision to get
-    a result accurate to the current precision (or the precision
-    specified by *prec* or *dps*).
+    a result accurate to the current working precision (or the
+    precision specified by *prec* or *dps*).
 
         >>> good(lambda: (arb.pi() + arb("1e-100")).sin())
         Traceback (most recent call last):
