@@ -7,7 +7,7 @@ and Arb (arbitrary-precision ball arithmetic). Features:
 * Integers, rationals, integers mod n
 * Real and complex numbers with rigorous error tracking
 * Polynomials, power series and matrices over all the above types
-* Lots of special functions
+* Lots of mathematical functions
 
 Documentation: http://fredrikj.net/python-flint/
 
