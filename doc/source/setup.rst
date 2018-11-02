@@ -7,15 +7,19 @@ See:
 * http://flintlib.org/
 * http://arblib.org/
 
-Python-FLINT is available on PyPI (the Python Package Index):
-
-* https://pypi.org/project/python-flint/
-
+Python-FLINT is available on PyPI, the Python Package Index
+(https://pypi.org/project/python-flint/).
 The latest release can be installed using::
 
     pip install python-flint
 
-Python-FLINT can also be installed git checkout or a source archive
+Python-FLINT is also available on conda-forge
+(https://anaconda.org/conda-forge/python-flint).
+It can be installed using::
+
+    conda install -c conda-forge python-flint
+
+Python-FLINT can also be installed from a local git checkout or a source archive
 as follows::
 
     pip install .
