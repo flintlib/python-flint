@@ -616,3 +616,162 @@ cdef class acb_mat(flint_mat):
             for j from 0 <= j < m:
                 acb_get_imag(arb_mat_entry(u.val, i, j), acb_mat_entry(s.val, i, j))
         return u
+
+    def eig(s, bint left=False, bint right=False, multiple=False, algorithm=None, tol=None, long maxiter=0, bint nonstop=False):
+        r"""
+        Computes eigenvalues and optionally eigenvectors of this matrix.
+        Returns either *E*, (*E*, *L*), (*E*, *R*) or (*E*, *L*, *R*)
+        depending on whether the flags *left* and *right* are set,
+        where *E* is a row matrix of the eigenvalues, *L* is a matrix
+        with the left eigenvectors as rows, and *R* is a matrix
+        with the right eigenvectors as columns.
+
+        The *algorithm* can be "rump", "vdhoeven_mourrain", or *None*
+        to use a default algorithm. Typically "rump" is slower and more
+        accurate while "vdhoeven_mourrain" (the current default)
+        is faster and less accurate.
+
+            >>> A = acb_mat([[2,3,5],[7,11,13],[17,19,23]])
+            >>> for c in A.eig(): print(c)
+            ...
+            [1.105299634957 +/- 6.34e-13] + [+/- 1.83e-13]j
+            [-1.917027627441 +/- 2.64e-13] + [+/- 1.83e-13]j
+            [36.811727992483 +/- 6.97e-13] + [+/- 1.83e-13]j
+            >>> for c in A.eig(algorithm="rump"): print(c)
+            ...
+            [1.10529963495745 +/- 4.71e-15] + [+/- 2.92e-15]j
+            [-1.91702762744092 +/- 8.45e-15] + [+/- 3.86e-15]j
+            [36.8117279924835 +/- 4.72e-14] + [+/- 9.07e-15]j
+
+        With the left and right eigenvector matrices, a complete
+        diagonalization of the matrix is produced:
+
+            >>> A = acb_mat([[2,3,5],[7,11,13],[17,19,23]])
+            >>> E, L, R = A.eig(left=True, right=True)
+            >>> D = acb_mat(3,3)
+            >>> for i in range(3): D[i,i] = E[0,i]
+            ...
+            >>> (L*A*R - D).contains(acb_mat(3,3))
+            True
+            >>> (R*D*L - A).contains(acb_mat(3,3))
+            True
+
+        Ill-conditioned or large matrices may require high precision
+        to isolate the eigenvalues::
+
+            >>> sum(acb_mat(arb_mat.hilbert(20,20)).eig())
+            Traceback (most recent call last):
+              ...
+            ValueError: failed to isolate eigenvalues (try higher prec, multiple=True for multiple eigenvalues, or nonstop=True to avoid the exception)
+            >>> sum(acb_mat(arb_mat.hilbert(20,20)).eig(nonstop=True))
+            nan + nanj
+            >>> showgood(lambda: sum(acb_mat(arb_mat.hilbert(20,20)).eig(nonstop=True)), parts=False)
+            2.47967321036454 + [+/- 1.48e-56]j
+
+        With default options, the method only succeeds if all eigenvalues can be
+        isolated. Multiple (overlapping) eigenvalues can be handled by
+        setting *multiple* = *True*.
+
+            >>> acb_mat.dft(4).eig()
+            Traceback (most recent call last):
+              ...
+            ValueError: failed to isolate eigenvalues (try higher prec, multiple=True for multiple eigenvalues, or nonstop=True to avoid the exception)
+            >>> acb_mat.dft(4).eig(nonstop=True)
+            [nan + nanj, nan + nanj, nan + nanj, nan + nanj]
+            >>> acb_mat.dft(4).eig(multiple=True)
+            [[-1.0000000000000 +/- 2.26e-15] + [+/- 1.23e-15]j, [+/- 4.96e-16] + [-1.00000000000000 +/- 3.72e-16]j, [1.00000000000000 +/- 4.98e-16] + [+/- 3.42e-16]j, [1.00000000000000 +/- 4.98e-16] + [+/- 3.42e-16]j]
+
+        At this time, computing the eigenvectors is not supported
+        with multiple eigenvalues:
+
+            >>> acb_mat.dft(4).eig(multiple=True, right=True)
+            Traceback (most recent call last):
+              ...
+            NotImplementedError: eigenvectors not supported with multiple=True
+
+        The *algorithm* can also be set to "approx" to compute
+        approximate eigenvalues and/or eigenvectors without error bounds.
+
+            >>> for c in acb_mat.dft(4).eig(algorithm="approx"): print(c.str(radius=False))
+            ...
+            -0.999999999999999 - 7.85046229341892e-17j
+            -2.35513868802566e-16 - 1.00000000000000j
+            1.00000000000000 - 6.64346650360854e-17j
+            0.999999999999999 - 5.14675360671472e-17j
+
+        If *algorithm* is set to "approx", then *multiple* has
+        no effect, and both eigenvalues and eigenvectors can be computed
+        regardless of overlap.
+
+            >>> E = acb_mat.dft(4).eig(algorithm="approx")
+            >>> E, R = acb_mat.dft(4).eig(right=True, algorithm="approx")
+            >>> E, L = acb_mat.dft(4).eig(left=True, algorithm="approx")
+            >>> E, L, R = acb_mat.dft(4).eig(left=True, right=True, algorithm="approx")
+
+        """
+        cdef acb_mat E, L, R
+        cdef acb_mat_struct *LP
+        cdef acb_mat_struct *RP
+        cdef mag_struct * magp
+        cdef long n, prec
+        cdef int success
+        cdef mag_t tolm
+        n = s.nrows()
+        if n != s.ncols():
+            raise ValueError("matrix must be square")
+        prec = getprec()
+        E = acb_mat(1, n)
+        if left:
+            L = acb_mat(n, n)
+            LP = &(L.val[0])
+        else:
+            LP = NULL
+        if right or algorithm != "approx":
+            R = acb_mat(n, n)
+            RP = &(R.val[0])
+        else:
+            RP = NULL
+        if tol is not None:
+            mag_init(tolm)
+            tol = arb(tol)
+            arb_get_mag(tolm, (<arb>tol).val)
+            magp = tolm
+        else:
+            magp = NULL
+        if n != 0:
+            if algorithm == "approx":
+                acb_mat_approx_eig_qr(acb_mat_entry(E.val, 0, 0),
+                    LP, RP,  s.val, magp, maxiter, getprec())
+            else:
+                acb_mat_approx_eig_qr(acb_mat_entry(E.val, 0, 0),
+                    NULL, RP, s.val, magp, maxiter, getprec())
+                if multiple:
+                    if left or right:
+                        raise NotImplementedError("eigenvectors not supported with multiple=True")
+                    if algorithm == "rump":
+                        success = acb_mat_eig_multiple_rump(acb_mat_entry(E.val, 0, 0),
+                            s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                    else:
+                        success = acb_mat_eig_multiple(acb_mat_entry(E.val, 0, 0),
+                            s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                else:
+                    if algorithm == "rump":
+                        success = acb_mat_eig_simple_rump(acb_mat_entry(E.val, 0, 0),
+                            LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                    elif algorithm == "vdhoeven_mourrain":
+                        success = acb_mat_eig_simple_vdhoeven_mourrain(acb_mat_entry(E.val, 0, 0),
+                            LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                    else:
+                        success = acb_mat_eig_simple(acb_mat_entry(E.val, 0, 0),
+                            LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                if not (nonstop or success):
+                    raise ValueError("failed to isolate eigenvalues (try higher prec, multiple=True for multiple eigenvalues, or nonstop=True to avoid the exception)")
+        if tol is not None:
+            mag_clear(tolm)
+        if not left and not right:
+            return E
+        if left and right:
+            return E, L, R
+        if left:
+            return E, L
+        return E, R

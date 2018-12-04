@@ -657,3 +657,11 @@ cdef class arb_mat(flint_mat):
         else:
             res = arb_mat_ne((<arb_mat>s).val, (<arb_mat>t).val)
         return res
+
+    def eig(s, *args, **kwargs):
+        r"""
+        Computes eigenvalues and/or eigenvectors of this matrix.
+        This is just a wrapper for :meth:`.acb_mat.eig`; see the
+        documentation for that method for details.
+        """
+        return acb_mat(s).eig(*args, **kwargs)
