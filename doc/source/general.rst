@@ -14,14 +14,14 @@ For typical interactive use, it should therefore
 generally be safe to ``import *``:
 
     >>> from flint import *
-    >>> fmpz(3) / 2
+    >>> fmpq(3) / 2
     3/2
 
 For non-interactive use, it is still good manners to use explicit
 imports or preserve the ``flint`` namespace prefix::
 
     >>> import flint
-    >>> flint.fmpz(3)
+    >>> flint.fmpq(3) / 2
     3/2
 
 Global context
