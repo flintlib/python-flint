@@ -6,7 +6,6 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 from numpy.distutils.system_info import default_include_dirs, default_lib_dirs
 
-
 from distutils.sysconfig import get_config_vars
 
 (opt,) = get_config_vars('OPT')
@@ -40,7 +39,7 @@ setup(
     cmdclass={'build_ext': build_ext},
     ext_modules=ext_modules,
     description='Bindings for FLINT and Arb',
-    version='0.2.0',
+    version='0.3.0',
     url='https://github.com/python-flint/python-flint',
     author='Fredrik Johansson',
     author_email='fredrik.johansson@gmail.com',

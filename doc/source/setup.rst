@@ -1,7 +1,7 @@
 Setup
 ===============================================================================
 
-First install both FLINT (version 2.5 or later) and Arb (version 2.15 or later).
+First install both FLINT (version 2.5 or later) and Arb (version 2.16 or later).
 See:
 
 * http://flintlib.org/

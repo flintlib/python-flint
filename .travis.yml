@@ -14,10 +14,10 @@ before_install:
   - pip install Cython
   - sudo apt-get install libmpfr-dev
   - sudo apt-get install libflint-dev
-  - wget https://github.com/fredrik-johansson/arb/archive/2.15.0.tar.gz
-  - mv 2.15.0.tar.gz arb-2.15.0.tar.gz
-  - tar -xf arb-2.15.0.tar.gz
-  - cd arb-2.15.0
+  - wget https://github.com/fredrik-johansson/arb/archive/2.16.0.tar.gz
+  - mv 2.16.0.tar.gz arb-2.16.0.tar.gz
+  - tar -xf arb-2.16.0.tar.gz
+  - cd arb-2.16.0
   - ./configure --disable-static
   - make -j4
   - sudo make install

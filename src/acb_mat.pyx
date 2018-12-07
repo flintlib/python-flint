@@ -622,7 +622,7 @@ cdef class acb_mat(flint_mat):
         Computes eigenvalues and optionally eigenvectors of this matrix.
         Returns either *E*, (*E*, *L*), (*E*, *R*) or (*E*, *L*, *R*)
         depending on whether the flags *left* and *right* are set,
-        where *E* is a row matrix of the eigenvalues, *L* is a matrix
+        where *E* is a list of the eigenvalues, *L* is a matrix
         with the left eigenvectors as rows, and *R* is a matrix
         with the right eigenvectors as columns.
 
@@ -649,7 +649,7 @@ cdef class acb_mat(flint_mat):
             >>> A = acb_mat([[2,3,5],[7,11,13],[17,19,23]])
             >>> E, L, R = A.eig(left=True, right=True)
             >>> D = acb_mat(3,3)
-            >>> for i in range(3): D[i,i] = E[0,i]
+            >>> for i in range(3): D[i,i] = E[i]
             ...
             >>> (L*A*R - D).contains(acb_mat(3,3))
             True
@@ -713,7 +713,7 @@ cdef class acb_mat(flint_mat):
         cdef acb_mat_struct *LP
         cdef acb_mat_struct *RP
         cdef mag_struct * magp
-        cdef long n, prec
+        cdef long i, n, prec
         cdef int success
         cdef mag_t tolm
         n = s.nrows()
@@ -768,10 +768,13 @@ cdef class acb_mat(flint_mat):
                     raise ValueError("failed to isolate eigenvalues (try higher prec, multiple=True for multiple eigenvalues, or nonstop=True to avoid the exception)")
         if tol is not None:
             mag_clear(tolm)
+        Elist = [acb() for i in range(n)]
+        for i in range(n):
+            acb_swap((<acb>(Elist [i])).val, acb_mat_entry(E.val, 0, i))
         if not left and not right:
-            return E
+            return Elist
         if left and right:
-            return E, L, R
+            return Elist, L, R
         if left:
-            return E, L
-        return E, R
+            return Elist, L
+        return Elist, R
