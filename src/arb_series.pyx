@@ -645,6 +645,44 @@ cdef class arb_series(flint_series):
         (<arb_series>z).prec = cap
         return u, v, w, z
 
+    def coulomb(self, l, eta):
+        cdef long cap
+        l = arb(l)
+        eta = arb(eta)
+        cap = getcap()
+        cap = min(cap, (<arb_series>self).prec)
+        F = arb_series.__new__(arb_series)
+        G = arb_series.__new__(arb_series)
+        arb_hypgeom_coulomb_series((<arb_series>F).val, (<arb_series>G).val,
+            (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
+        (<arb_series>F).prec = cap
+        (<arb_series>G).prec = cap
+        return F, G
+
+    def coulomb_f(self, l, eta):
+        cdef long cap
+        l = arb(l)
+        eta = arb(eta)
+        cap = getcap()
+        cap = min(cap, (<arb_series>self).prec)
+        F = arb_series.__new__(arb_series)
+        arb_hypgeom_coulomb_series((<arb_series>F).val, NULL,
+            (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
+        (<arb_series>F).prec = cap
+        return F
+
+    def coulomb_g(self, l, eta):
+        cdef long cap
+        l = arb(l)
+        eta = arb(eta)
+        cap = getcap()
+        cap = min(cap, (<arb_series>self).prec)
+        G = arb_series.__new__(arb_series)
+        arb_hypgeom_coulomb_series(NULL, (<arb_series>G).val,
+            (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
+        (<arb_series>G).prec = cap
+        return G
+
     @classmethod
     def gamma_upper(cls, s, z, int regularized=0):
         cdef long cap

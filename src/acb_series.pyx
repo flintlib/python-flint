@@ -640,6 +640,48 @@ cdef class acb_series(flint_series):
         (<acb_series>z).prec = cap
         return u, v, w, z
 
+    def coulomb(self, l, eta):
+        cdef long cap
+        l = acb(l)
+        eta = acb(eta)
+        cap = getcap()
+        cap = min(cap, (<acb_series>self).prec)
+        F = acb_series.__new__(acb_series)
+        G = acb_series.__new__(acb_series)
+        Hpos = acb_series.__new__(acb_series)
+        Hneg = acb_series.__new__(acb_series)
+        acb_hypgeom_coulomb_series((<acb_series>F).val, (<acb_series>G).val, (<acb_series>Hpos).val, (<acb_series>Hneg).val,
+            (<acb>l).val, (<acb>eta).val, (<acb_series>self).val, cap, getprec())
+        (<acb_series>F).prec = cap
+        (<acb_series>G).prec = cap
+        (<acb_series>Hpos).prec = cap
+        (<acb_series>Hneg).prec = cap
+        return F, G, Hpos, Hneg
+
+    def coulomb_f(self, l, eta):
+        cdef long cap
+        l = acb(l)
+        eta = acb(eta)
+        cap = getcap()
+        cap = min(cap, (<acb_series>self).prec)
+        F = acb_series.__new__(acb_series)
+        acb_hypgeom_coulomb_series((<acb_series>F).val, NULL, NULL, NULL,
+            (<acb>l).val, (<acb>eta).val, (<acb_series>self).val, cap, getprec())
+        (<acb_series>F).prec = cap
+        return F
+
+    def coulomb_g(self, l, eta):
+        cdef long cap
+        l = acb(l)
+        eta = acb(eta)
+        cap = getcap()
+        cap = min(cap, (<acb_series>self).prec)
+        G = acb_series.__new__(acb_series)
+        acb_hypgeom_coulomb_series(NULL, (<acb_series>G).val, NULL, NULL,
+            (<acb>l).val, (<acb>eta).val, (<acb_series>self).val, cap, getprec())
+        (<acb_series>G).prec = cap
+        return G
+
     def fresnel(s, bint normalized=True):
         cdef long cap
         cap = getcap()

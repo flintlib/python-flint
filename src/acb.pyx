@@ -2268,6 +2268,63 @@ cdef class acb(flint_scalar):
         return v
 
     @staticmethod
+    def zeta_zero(n):
+        """
+        Returns the *n*-th nontrivial zero of the Riemann zeta function.
+
+            >>> showgood(lambda: acb.zeta_zero(1), dps=25)
+            0.5000000000000000000000000 + 14.13472514173469379045725j
+            >>> showgood(lambda: acb.zeta_zero(2), dps=25)
+            0.5000000000000000000000000 + 21.02203963877155499262848j
+            >>> showgood(lambda: acb.zeta_zero(100), dps=25)
+            0.5000000000000000000000000 + 236.5242296658162058024755j
+            >>> showgood(lambda: acb.zeta_zero(10**6), dps=25)
+            0.5000000000000000000000000 + 600269.6770124449555212339j
+        """
+        n = fmpz(n)
+        if n < 1:
+            raise ValueError("require n >= 1")
+        v = acb.__new__(acb)
+        acb_dirichlet_zeta_zero((<acb>v).val, (<fmpz>n).val, getprec())
+        return v
+
+    @staticmethod
+    def zeta_zeros(n, long num):
+        """
+        Returns *num* consecutive nontrivial zeros of the Riemann zeta function
+        starting at index *n*.
+
+            >>> for r in acb.zeta_zeros(1000, 10):
+            ...     print(r.str(10, radius=False))
+            ...
+            0.5000000000 + 1419.422481j
+            0.5000000000 + 1420.416526j
+            0.5000000000 + 1421.850567j
+            0.5000000000 + 1422.461311j
+            0.5000000000 + 1424.463046j
+            0.5000000000 + 1425.873469j
+            0.5000000000 + 1426.645980j
+            0.5000000000 + 1427.365671j
+            0.5000000000 + 1428.592306j
+            0.5000000000 + 1429.650477j
+        """
+        cdef long i
+        cdef acb_ptr w
+        cdef list v
+        n = fmpz(n)
+        if n < 1 or num < 0:
+            raise ValueError("require n >= 1 and num >= 0")
+        v = [acb() for i in range(num)]
+        w = <acb_ptr>libc.stdlib.malloc(num * cython.sizeof(acb_struct))
+        for i in range(num):
+            w[i] = (<acb>(v[i])).val[0]
+        acb_dirichlet_zeta_zeros(w, (<fmpz>n).val, num, getprec())
+        for i in range(num):
+            (<acb>(v[i])).val[0] = w[i]
+        libc.stdlib.free(w)
+        return v
+
+    @staticmethod
     def integral(func, a, b, params=None,
             rel_tol=None, abs_tol=None,
             deg_limit=None, eval_limit=None, depth_limit=None,
@@ -2376,3 +2433,55 @@ cdef class acb(flint_scalar):
             raise ictx.exn_type, ictx.exn_obj, ictx.exn_tb
 
         return res
+
+    def coulomb(self, l, eta):
+        r"""
+        Computes the Coulomb wave functions `F_{\ell}(\eta,z)`,
+        `G_{\ell}(\eta,z)`, `H^{+}_{\ell}(\eta,z)`, `H^{-}_{\ell}(\eta,z)`
+        where *z* is given by *self*.
+        All function values are computed simultaneously and a tuple
+        is returned.
+
+            >>> showgood(lambda: acb(1).coulomb(0.5, 0.25), dps=10)
+            (0.4283180781, 1.218454487, 1.218454487 + 0.4283180781j, 1.218454487 - 0.4283180781j)
+        """
+        l = any_as_acb(l)
+        eta = any_as_acb(eta)
+        F = acb.__new__(acb)
+        G = acb.__new__(acb)
+        Hpos = acb.__new__(acb)
+        Hneg = acb.__new__(acb)
+        acb_hypgeom_coulomb((<acb>F).val, (<acb>G).val, (<acb>Hpos).val, (<acb>Hneg).val,
+                        (<acb>l).val, (<acb>eta).val, (<acb>self).val, getprec())
+        return F, G, Hpos, Hneg
+
+    def coulomb_f(self, l, eta):
+        r"""
+        Regular Coulomb wave function `F_{\ell}(\eta,z)` where
+        *z* is given by *self*.
+
+            >>> showgood(lambda: acb(1+1j).coulomb_f(0.5, 0.25), dps=25)
+            0.3710338871231483199425544 + 0.7267604204004146050054782j
+        """
+        l = any_as_acb(l)
+        eta = any_as_acb(eta)
+        F = acb.__new__(acb)
+        acb_hypgeom_coulomb((<acb>F).val, NULL, NULL, NULL,
+                        (<acb>l).val, (<acb>eta).val, (<acb>self).val, getprec())
+        return F
+
+    def coulomb_g(self, l, eta):
+        r"""
+        Irregular Coulomb wave function `G_{\ell}(\eta,z)` where
+        *z* is given by *self*.
+
+            >>> showgood(lambda: acb(1+1j).coulomb_g(0.5, 0.25), dps=25)
+            1.293346292234270672155324 - 0.3516893313311703662702556j
+        """
+        l = any_as_acb(l)
+        eta = any_as_acb(eta)
+        G = acb.__new__(acb)
+        acb_hypgeom_coulomb(NULL, (<acb>G).val, NULL, NULL,
+                        (<acb>l).val, (<acb>eta).val, (<acb>self).val, getprec())
+        return G
+

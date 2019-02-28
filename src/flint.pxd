@@ -1970,6 +1970,9 @@ cdef extern from "acb_hypgeom.h":
     void _acb_hypgeom_airy_series(acb_ptr ai, acb_ptr ai_prime, acb_ptr bi, acb_ptr bi_prime, acb_srcptr z, long zlen, long len, long prec)
     void acb_hypgeom_airy_series(acb_poly_t ai, acb_poly_t ai_prime, acb_poly_t bi, acb_poly_t bi_prime, const acb_poly_t z, long len, long prec)
 
+    void acb_hypgeom_coulomb(acb_t F, acb_t G, acb_t Hpos, acb_t Hneg, const acb_t l, const acb_t eta, const acb_t z, long prec)
+    void acb_hypgeom_coulomb_series(acb_poly_t F, acb_poly_t G, acb_poly_t Hpos, acb_poly_t Hneg, const acb_t l, const acb_t eta, const acb_poly_t z, long len, long prec)
+
     void acb_hypgeom_erf_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
     void acb_hypgeom_erfc_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
     void acb_hypgeom_erfi_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
@@ -2034,6 +2037,9 @@ cdef extern from "arb_hypgeom.h":
     void arb_hypgeom_airy(arb_t ai, arb_t aip, arb_t bi, arb_t bip, const arb_t z, long prec)
     void arb_hypgeom_airy_series(arb_poly_t ai, arb_poly_t ai_prime, arb_poly_t bi, arb_poly_t bi_prime, const arb_poly_t z, long len, long prec)
     void arb_hypgeom_airy_zero(arb_t ai, arb_t aip, arb_t bi, arb_t bip, const fmpz_t n, long prec)
+
+    void arb_hypgeom_coulomb(arb_t F, arb_t G, const arb_t l, const arb_t eta, const arb_t z, long prec)
+    void arb_hypgeom_coulomb_series(arb_poly_t F, arb_poly_t G, const arb_t l, const arb_t eta, const arb_poly_t z, long len, long prec)
 
     void arb_hypgeom_expint(arb_t res, const arb_t s, const arb_t z, long prec)
     void arb_hypgeom_gamma_upper(arb_t res, const arb_t s, const arb_t z, int modified, long prec)
@@ -2123,6 +2129,12 @@ cdef extern from "acb_dirichlet.h":
 
     void acb_dirichlet_stieltjes(acb_t res, const fmpz_t n, const acb_t a, long prec);
 
+    void acb_dirichlet_gram_point(arb_t res, const fmpz_t n, const dirichlet_group_t G, const dirichlet_char_t chi, long prec)
+    void acb_dirichlet_zeta_zeros(acb_ptr res, const fmpz_t n, long len, long prec)
+    void acb_dirichlet_zeta_nzeros(arb_t res, const arb_t t, long prec)
+    void acb_dirichlet_backlund_s(arb_t res, const arb_t t, long prec)
+    void acb_dirichlet_zeta_zero(acb_t res, const fmpz_t n, long prec)
+
 cdef extern from "acb_elliptic.h":
     void acb_elliptic_rf(acb_t res, const acb_t x, const acb_t y, const acb_t z, int flags, long prec)
     void acb_elliptic_rj(acb_t res, const acb_t x, const acb_t y, const acb_t z, const acb_t p, int flags, long prec)
@@ -2166,3 +2178,4 @@ cdef extern from "arb_fmpz_poly.h":
 cdef extern from "acb_dft.h":
     void acb_dft(acb_ptr w, acb_srcptr v, long n, long prec)
     void acb_dft_inverse(acb_ptr w, acb_srcptr v, long n, long prec)
+
