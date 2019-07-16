@@ -1,3 +1,5 @@
+cdef dict _dirichlet_group_cache = {}
+
 cdef class dirichlet_group(object):
     """
     Represents the group of Dirichlet characters modulo a given q.
@@ -43,7 +45,7 @@ cdef class dirichlet_char(object):
     Calling the character evaluates the character at the
     given integer, returning an acb.
 
-        >>> chi = dirichlet_char(dirichlet_group(7), 0)
+        >>> chi = dirichlet_char(7, 1)
         >>> for n in range(7):
         ...     print(chi(n))
         ... 
@@ -54,7 +56,7 @@ cdef class dirichlet_char(object):
         1.00000000000000
         1.00000000000000
         1.00000000000000
-        >>> chi = dirichlet_char(dirichlet_group(7), 1)
+        >>> chi = dirichlet_char(7, 3)
         >>> for n in range(7):
         ...     print(chi(n))
         ... 
@@ -76,29 +78,62 @@ cdef class dirichlet_char(object):
     def __dealloc__(self):
         dirichlet_char_clear(self.val)
 
-    def __init__(self, dirichlet_group G, ulong index=0):
+    def __init__(self, ulong q, ulong l=1):
         """
-        Creates the Dirichlet character of given index belonging
-        to the group G.
+        Creates the Dirichlet character with Conrey number (q, l).
 
-            >>> G = dirichlet_group(5)
-            >>> chi = dirichlet_char(G, 0)
+            >>> chi = dirichlet_char(5, 1)
 
         """
+        if q in _dirichlet_group_cache:
+            G = _dirichlet_group_cache[q]
+        else:
+            G = dirichlet_group(q)
+            _dirichlet_group_cache[q] = G
         self.G = G
         dirichlet_char_init(self.val, self.G.val)
-        assert index < dirichlet_group_size(self.G.val)
-        dirichlet_char_index(self.val, self.G.val, index)
+        assert 1 <= l <= max(q,2)-1 and n_gcd(q, l) == 1
+        dirichlet_char_log(self.val, self.G.val, l)
 
-    @property
     def index(self):
         return dirichlet_index_char(self.G.val, self.val)
 
+    def modulus(self):
+        return self.G.q
+
+    def number(self):
+        return dirichlet_char_exp(self.G.val, self.val)
+
+    def order(self):
+        return dirichlet_order_char(self.G.val, self.val)
+
+    def is_real(self):
+        return bool(dirichlet_char_is_real(self.G.val, self.val))
+
+    def is_primitive(self):
+        return bool(dirichlet_char_is_primitive(self.G.val, self.val))
+
+    def conductor(self):
+        return dirichlet_conductor_char(self.G.val, self.val)
+
+    def is_principal(self):
+        return bool(dirichlet_char_is_principal(self.G.val, self.val))
+
+    def parity(self):
+        return dirichlet_parity_char(self.G.val, self.val)
+
     def __repr__(self):
-        return "Dirichlet character index %s in group mod q = %s" % (self.index, self.G.q)
+        return "dirichlet_char(%i, %i)" % (self.modulus(), self.number())
 
     def __str__(self):
         return repr(self)
+
+    def __mul__(dirichlet_char self, dirichlet_char other):
+        cdef dirichlet_char res
+        assert self.G.q == other.G.q
+        res = dirichlet_char(self.G.q, 1)
+        dirichlet_char_mul(res.val, self.G.val, self.val, other.val)
+        return res
 
     def __call__(self, n):
         cdef acb v
@@ -113,10 +148,10 @@ cdef class dirichlet_char(object):
         Evaluates the Dirichlet L-function of this character at the given
         complex number s.
 
-            >>> chi = dirichlet_char(dirichlet_group(1), 0)
+            >>> chi = dirichlet_char(1, 1)
             >>> showgood(lambda: chi.l(2), dps=25)
             1.644934066848226436472415
-            >>> chi = dirichlet_char(dirichlet_group(7), 1)
+            >>> chi = dirichlet_char(7, 3)
             >>> showgood(lambda: chi.l(2+3j), dps=25)
             1.273313649440490751755284 - 0.07432329442559421607102118j
 
@@ -132,7 +167,7 @@ cdef class dirichlet_char(object):
         Evaluates the Hardy Z-function of this character at the given
         complex number s.
 
-            >>> chi = dirichlet_char(dirichlet_group(1), 0)
+            >>> chi = dirichlet_char(1, 1)
             >>> showgood(lambda: chi.hardy_z(1), dps=25)
             -0.7363054628673177346778998
 
@@ -142,3 +177,4 @@ cdef class dirichlet_char(object):
         v = acb.__new__(acb)
         acb_dirichlet_hardy_z((<acb>v).val, (<acb>s).val, self.G.val, self.val, 1, getprec())
         return v
+

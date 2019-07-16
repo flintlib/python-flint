@@ -178,6 +178,9 @@ cdef extern from "flint/nmod_mat.h":
     long nmod_mat_rref(nmod_mat_t A)
     long nmod_mat_nullspace(nmod_mat_t X, nmod_mat_t A)
 
+cdef extern from "flint/ulong_extras.h":
+    ulong n_gcd(ulong n, ulong k)
+
 cdef extern from "flint/fmpz.h":
     ctypedef fmpz_struct fmpz_t[1]
     int COEFF_IS_MPZ(fmpz_struct v)
