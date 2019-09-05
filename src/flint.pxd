@@ -1909,6 +1909,7 @@ cdef extern from "acb_mat.h":
 
 cdef extern from "acb_modular.h":
     void acb_modular_theta(acb_t theta1, acb_t theta2, acb_t theta3, acb_t theta4, const acb_t z, const acb_t tau, long prec)
+    void acb_modular_theta_jet(acb_ptr theta1, acb_ptr theta2, acb_ptr theta3, acb_ptr theta4, const acb_t z, const acb_t tau, long len, long prec)
     void acb_modular_eta(acb_t r, const acb_t tau, long prec)
     void acb_modular_j(acb_t r, const acb_t tau, long prec)
     void acb_modular_lambda(acb_t r, const acb_t tau, long prec)

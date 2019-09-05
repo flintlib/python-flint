@@ -130,6 +130,15 @@ cdef class acb(flint_scalar):
             if not arb_set_python(acb_imagref(self.val), imag, 1):
                 raise TypeError("cannot create arb from type %s" % type(imag))
 
+    cpdef bint is_zero(self):
+        return acb_is_zero(self.val)
+
+    cpdef bint is_finite(self):
+        return acb_is_finite(self.val)
+
+    cpdef bint is_exact(self):
+        return acb_is_exact(self.val)
+
     @property
     def real(self):
         cdef arb re = arb()
@@ -377,8 +386,9 @@ cdef class acb(flint_scalar):
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 
+    # important: must not be cdef because of cython magic
     @staticmethod
-    cdef _div_(s, t):
+    def _div_(s, t):
         cdef acb_struct sval[1]
         cdef acb_struct tval[1]
         cdef int stype, ttype
@@ -994,7 +1004,7 @@ cdef class acb(flint_scalar):
         acb_hypgeom_erf((<acb>u).val, (<acb>s).val, getprec())
         return u
 
-    def modular_theta(z, tau):
+    def modular_theta(z, tau, ulong r=0):
         r"""
         Computes the Jacobi theta functions `\theta_1(z,\tau)`,
         `\theta_2(z,\tau)`, `\theta_3(z,\tau)`, `\theta_4(z,\tau)`,
@@ -1011,14 +1021,37 @@ cdef class acb(flint_scalar):
             0.9694430387796704100046143 - 0.03055696120816803328582847j
             1.030556961196006476576271 + 0.03055696120816803328582847j
         """
+        cdef acb_ptr T1, T2, T3, T4
+        assert r <= 1000000
         tau = any_as_acb(tau)
         t1 = acb.__new__(acb)
         t2 = acb.__new__(acb)
         t3 = acb.__new__(acb)
         t4 = acb.__new__(acb)
-        acb_modular_theta((<acb>t1).val, (<acb>t2).val,
-                          (<acb>t3).val, (<acb>t4).val,
-                          (<acb>z).val, (<acb>tau).val, getprec())
+        if r == 0:
+            acb_modular_theta((<acb>t1).val, (<acb>t2).val,
+                              (<acb>t3).val, (<acb>t4).val,
+                              (<acb>z).val, (<acb>tau).val, getprec())
+        else:
+            T1 = _acb_vec_init(r + 1)
+            T2 = _acb_vec_init(r + 2)
+            T3 = _acb_vec_init(r + 3)
+            T4 = _acb_vec_init(r + 4)
+            acb_modular_theta_jet(T1, T2, T3, T4,
+                              (<acb>z).val, (<acb>tau).val, r + 1, getprec())
+            acb_set((<acb>t1).val, T1 + r)
+            acb_set((<acb>t2).val, T2 + r)
+            acb_set((<acb>t3).val, T3 + r)
+            acb_set((<acb>t4).val, T4 + r)
+            c = arb.fac_ui(r)
+            t1 *= c
+            t2 *= c
+            t3 *= c
+            t4 *= c
+            _acb_vec_clear(T1, r + 1)
+            _acb_vec_clear(T2, r + 1)
+            _acb_vec_clear(T3, r + 1)
+            _acb_vec_clear(T4, r + 1)
         return (t1, t2, t3, t4)
 
     def modular_eta(tau):
