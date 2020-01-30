@@ -476,6 +476,9 @@ cdef class arb(flint_scalar):
         other = any_as_arb(other)
         return bool(arb_overlaps((<arb>self).val, (<arb>other).val))
 
+    def contains_integer(self):
+        return bool(arb_contains_int(self.val))
+
     def __pos__(self):
         res = arb.__new__(arb)
         arb_set_round((<arb>res).val, (<arb>self).val, getprec())

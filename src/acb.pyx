@@ -188,6 +188,9 @@ cdef class acb(flint_scalar):
         other = any_as_acb(other)
         return bool(acb_overlaps((<acb>self).val, (<acb>other).val))
 
+    def contains_integer(self):
+        return bool(acb_contains_int(self.val))
+
     def mid(self):
         """
         Returns an exact *acb* representing the midpoint of *self*:
@@ -629,6 +632,16 @@ cdef class acb(flint_scalar):
             u = acb.__new__(acb)
             acb_hurwitz_zeta((<acb>u).val, (<acb>s).val, (<acb>a).val, getprec())
             return u
+
+    def dirichlet_l(s, chi):
+        cdef dirichlet_char cchar
+        if isinstance(chi, dirichlet_char):
+            cchar = chi
+        else:
+            cchar = dirichlet_char(chi[0], chi[1])
+        u = acb.__new__(acb)
+        acb_dirichlet_l((<acb>u).val, (<acb>s).val, cchar.G.val, cchar.val, getprec())
+        return u
 
     @staticmethod
     def pi():

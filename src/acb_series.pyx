@@ -447,6 +447,20 @@ cdef class acb_series(flint_series):
         (<acb_series>u).prec = cap
         return u
 
+    def dirichlet_l(s, chi, bint deflate=0):
+        cdef long cap
+        cdef dirichlet_char cchar
+        if isinstance(chi, dirichlet_char):
+            cchar = chi
+        else:
+            cchar = dirichlet_char(chi[0], chi[1])
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        u = acb_series.__new__(acb_series)
+        acb_dirichlet_l_series((<acb_series>u).val, (<acb_series>s).val, cchar.G.val, cchar.val, deflate, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
     @classmethod
     def polylog(cls, s, z):
         cdef long cap
@@ -639,6 +653,22 @@ cdef class acb_series(flint_series):
         (<acb_series>w).prec = cap
         (<acb_series>z).prec = cap
         return u, v, w, z
+
+    def modular_theta(self, tau):
+        cdef long cap
+        tau = acb(tau)
+        cap = getcap()
+        cap = min(cap, (<acb_series>self).prec)
+        t1 = acb_series.__new__(acb_series)
+        t2 = acb_series.__new__(acb_series)
+        t3 = acb_series.__new__(acb_series)
+        t4 = acb_series.__new__(acb_series)
+        acb_modular_theta_series((<acb_series>t1).val, (<acb_series>t2).val, (<acb_series>t3).val, (<acb_series>t4).val, (<acb_series>self).val, (<acb>tau).val, cap, getprec())
+        (<acb_series>t1).prec = cap
+        (<acb_series>t2).prec = cap
+        (<acb_series>t3).prec = cap
+        (<acb_series>t4).prec = cap
+        return t1, t2, t3, t4
 
     def coulomb(self, l, eta):
         cdef long cap

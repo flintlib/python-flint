@@ -903,6 +903,7 @@ cdef extern from "arb.h":
     int arb_contains_nonpositive(const arb_t x)
     int arb_contains_positive(const arb_t x)
     int arb_contains_nonnegative(const arb_t x)
+    int arb_contains_int(const arb_t x)
     void arb_get_mag_lower(mag_t z, const arb_t x)
     void arb_get_mag_lower_nonnegative(mag_t z, const arb_t x)
     void arb_get_mag(mag_t z, const arb_t x)
@@ -1168,6 +1169,7 @@ cdef extern from "acb.h":
     int acb_contains_fmpz(const acb_t x, const fmpz_t y)
     int acb_contains(const acb_t x, const acb_t y)
     int acb_get_unique_fmpz(fmpz_t z, const acb_t x)
+    int acb_contains_int(const acb_t x)
     void acb_set_ui(acb_t z, ulong c)
     void acb_set_si(acb_t z, long c)
     void acb_set_fmpz(acb_t z, const fmpz_t c)
@@ -1910,6 +1912,7 @@ cdef extern from "acb_mat.h":
 cdef extern from "acb_modular.h":
     void acb_modular_theta(acb_t theta1, acb_t theta2, acb_t theta3, acb_t theta4, const acb_t z, const acb_t tau, long prec)
     void acb_modular_theta_jet(acb_ptr theta1, acb_ptr theta2, acb_ptr theta3, acb_ptr theta4, const acb_t z, const acb_t tau, long len, long prec)
+    void acb_modular_theta_series(acb_poly_t theta1, acb_poly_t theta2, acb_poly_t theta3, acb_poly_t theta4, const acb_poly_t z, const acb_t tau, long len, long prec)
     void acb_modular_eta(acb_t r, const acb_t tau, long prec)
     void acb_modular_j(acb_t r, const acb_t tau, long prec)
     void acb_modular_lambda(acb_t r, const acb_t tau, long prec)
@@ -2130,6 +2133,7 @@ cdef extern from "acb_dirichlet.h":
 
     void acb_dirichlet_l(acb_t res, const acb_t s, const dirichlet_group_t G, const dirichlet_char_t chi, long prec)
     void acb_dirichlet_hardy_z(acb_ptr res, const acb_t t, const dirichlet_group_t G, const dirichlet_char_t chi, long len, long prec)
+    void acb_dirichlet_l_series(acb_poly_t res, const acb_poly_t s, const dirichlet_group_t G, const dirichlet_char_t chi, int deflate, long len, long prec)
 
     void acb_dirichlet_stieltjes(acb_t res, const fmpz_t n, const acb_t a, long prec);
 
@@ -2138,6 +2142,7 @@ cdef extern from "acb_dirichlet.h":
     void acb_dirichlet_zeta_nzeros(arb_t res, const arb_t t, long prec)
     void acb_dirichlet_backlund_s(arb_t res, const arb_t t, long prec)
     void acb_dirichlet_zeta_zero(acb_t res, const fmpz_t n, long prec)
+    void acb_dirichlet_zeta_zeros(acb_ptr res, const fmpz_t n, long len, long prec)
 
 cdef extern from "acb_elliptic.h":
     void acb_elliptic_rf(acb_t res, const acb_t x, const acb_t y, const acb_t z, int flags, long prec)
