@@ -74,7 +74,13 @@ cdef class fmpq(flint_scalar):
                 res = not res
             return res
         else:
-            raise NotImplementedError("fmpq comparisons")
+            # todo: use fmpq_cmp when available
+            if op == 0: res = (s-t).p < 0
+            elif op == 1: res = (s-t).p <= 0
+            elif op == 4: res = (s-t).p > 0
+            elif op == 5: res = (s-t).p >= 0
+            else: raise ValueError
+            return res
 
     def numer(self):
         """
@@ -272,3 +278,27 @@ cdef class fmpq(flint_scalar):
         cdef fmpq v = fmpq()
         fmpq_harmonic_ui(v.val, n)
         return v
+
+    def floor(self):
+        cdef fmpz r = fmpz.__new__(fmpz)
+        fmpz_fdiv_q(r.val, fmpq_numref(self.val), fmpq_denref(self.val))
+        return r
+
+    def ceil(self):
+        cdef fmpz r = fmpz.__new__(fmpz)
+        fmpz_cdiv_q(r.val, fmpq_numref(self.val), fmpq_denref(self.val))
+        return r
+
+    def __hash__(self):
+        from fractions import Fraction
+        return hash(Fraction(int(self.p), int(self.q), _normalize=False))
+
+    def height_bits(self, bint signed=False):
+        cdef long b1, b2
+        b1 = fmpz_bits(fmpq_numref(self.val))
+        b2 = fmpz_bits(fmpq_denref(self.val))
+        if signed and fmpz_sgn(fmpq_numref(self.val)) < 0:
+            return -max(b1, b2)
+        else:
+            return max(b1, b2)
+

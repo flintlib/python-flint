@@ -508,3 +508,40 @@ cdef class fmpz(flint_scalar):
         cdef fmpz v = fmpz()
         arith_euler_phi(v.val, n.val)
         return v
+
+    def __hash__(self):
+        return hash(int(self))
+
+    def height_bits(self, bint signed=False):
+        if signed and fmpz_sgn(self.val) < 0:
+            return -self.bit_length()
+        else:
+            return self.bit_length()
+
+    def isqrt(self):
+        cdef fmpz v
+        if fmpz_sgn(self.val) < 0:
+            raise ValueError("integer square root of a negative number")
+        v = fmpz()
+        fmpz_sqrt(v.val, self.val)
+        return v
+
+    def sqrtrem(self):
+        cdef fmpz u, v
+        if fmpz_sgn(self.val) < 0:
+            raise ValueError("integer square root of a negative number")
+        u = fmpz()
+        v = fmpz()
+        fmpz_sqrtrem(u.val, v.val, self.val)
+        return u, v
+
+    def root(self, long n):
+        cdef fmpz v
+        if fmpz_sgn(self.val) < 0:
+            raise ValueError("integer root of a negative number")
+        if n <= 0:
+            raise ValueError("n >= 1 is required")
+        v = fmpz()
+        fmpz_root(v.val, self.val, n)
+        return v
+

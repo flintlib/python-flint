@@ -230,6 +230,25 @@ cdef class arb(flint_scalar):
         arf_get_fmpz_2exp(man.val, exp.val, arb_midref(self.val))
         return man, exp
 
+    def fmpq(self):
+        cdef fmpq res
+        if not self.is_finite() or not self.is_exact():
+            raise ValueError("fmpq requires an exact, finite value")
+        res = fmpq()
+        arf_get_fmpq(res.val, arb_midref(self.val))
+        return res
+
+    def fmpz(self):
+        cdef fmpz res
+        if not self.is_integer():
+            raise ValueError("fmpz requires an exact, integer value")
+        res = fmpz()
+        arf_get_fmpz(res.val, arb_midref(self.val), ARF_RND_DOWN)
+        return res
+
+    cpdef bint is_integer(self):
+        return arb_is_int(self.val)
+
     def mid(self):
         """
         Returns the midpoint of *self* as an exact *arb*:
@@ -479,6 +498,14 @@ cdef class arb(flint_scalar):
     def contains_integer(self):
         return bool(arb_contains_int(self.val))
 
+    @property
+    def real(self):
+        return self
+
+    @property
+    def imag(self):
+        return arb()
+
     def __pos__(self):
         res = arb.__new__(arb)
         arb_set_round((<arb>res).val, (<arb>self).val, getprec())
@@ -487,6 +514,14 @@ cdef class arb(flint_scalar):
     def __neg__(self):
         res = arb.__new__(arb)
         arb_neg_round((<arb>res).val, (<arb>self).val, getprec())
+        return res
+
+    def neg(self, bint exact=False):
+        res = arb.__new__(arb)
+        if exact:
+            arb_set((<arb>res).val, (<arb>self).val)
+        else:
+            arb_set_round((<arb>res).val, (<arb>self).val, getprec())
         return res
 
     def __abs__(self):

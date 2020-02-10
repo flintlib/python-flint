@@ -266,6 +266,23 @@ cdef class acb(flint_scalar):
         acb_neg_round((<acb>res).val, (<acb>self).val, getprec())
         return res
 
+    def neg(self, bint exact=False):
+        res = acb.__new__(acb)
+        if exact:
+            acb_set((<acb>res).val, (<acb>self).val)
+        else:
+            acb_set_round((<acb>res).val, (<acb>self).val, getprec())
+        return res
+
+    def conjugate(self, bint exact=False):
+        res = acb.__new__(acb)
+        if exact:
+            acb_conj((<acb>res).val, (<acb>self).val)
+        else:
+            acb_set_round((<acb>res).val, (<acb>self).val, getprec())
+            acb_conj((<acb>res).val, (<acb>res).val)
+        return res
+
     def __abs__(self):
         res = arb.__new__(arb)
         acb_abs((<arb>res).val, (<acb>self).val, getprec())
@@ -430,6 +447,12 @@ cdef class acb(flint_scalar):
         if stype == FMPZ_TMP: acb_clear(sval)
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
+
+    def union(s, t):
+        v = acb.__new__(acb)
+        t = any_as_acb(t)
+        acb_union((<acb>v).val, (<acb>s).val, (<acb>t).val, getprec())
+        return v
 
     def pow(s, t, bint analytic=False):
         """

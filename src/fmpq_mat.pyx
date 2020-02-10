@@ -417,3 +417,18 @@ cdef class fmpq_mat(flint_mat):
         den = fmpz()
         fmpq_mat_get_fmpz_mat_matwise(num.val, den.val, self.val)
         return num, den
+
+    def charpoly(self):
+        cdef fmpq_poly u
+        u = fmpq_poly.__new__(fmpq_poly)
+        fmpq_poly_init(u.val)
+        fmpq_mat_charpoly(u.val, self.val)
+        return u
+
+    def minpoly(self):
+        cdef fmpq_poly u
+        u = fmpq_poly.__new__(fmpq_poly)
+        fmpq_poly_init(u.val)
+        fmpq_mat_minpoly(u.val, self.val)
+        return u
+

@@ -180,6 +180,7 @@ cdef extern from "flint/nmod_mat.h":
 
 cdef extern from "flint/ulong_extras.h":
     ulong n_gcd(ulong n, ulong k)
+    int n_is_prime(ulong n)
 
 cdef extern from "flint/fmpz.h":
     ctypedef fmpz_struct fmpz_t[1]
@@ -210,6 +211,7 @@ cdef extern from "flint/fmpz.h":
     int fmpz_cmp_ui( fmpz_t f, ulong g)
     int fmpz_cmp_si( fmpz_t f, long g)
     int fmpz_cmpabs( fmpz_t f,  fmpz_t g)
+    int fmpz_equal_si(const fmpz_t f, long g)
     int fmpz_is_even(fmpz_t f)
     int fmpz_is_odd(fmpz_t f)
     mp_size_t fmpz_size(fmpz_t f)
@@ -235,6 +237,7 @@ cdef extern from "flint/fmpz.h":
     int fmpz_sqrtmod(fmpz_t b,  fmpz_t a,  fmpz_t p)
     void fmpz_sqrt(fmpz_t f,  fmpz_t g)
     void fmpz_sqrtrem(fmpz_t f, fmpz_t r,  fmpz_t g)
+    void fmpz_root(fmpz_t r, const fmpz_t f, long n)
     ulong fmpz_fdiv_ui(fmpz_t g, ulong h)
     ulong fmpz_mod_ui(fmpz_t f,  fmpz_t g, ulong h)
     void fmpz_mod(fmpz_t f,  fmpz_t g,  fmpz_t h)
@@ -393,6 +396,8 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_cos_minpoly(fmpz_poly_t, ulong)
     void fmpz_poly_swinnerton_dyer(fmpz_poly_t, ulong)
 
+    int fmpz_poly_sqrt(fmpz_poly_t b, const fmpz_poly_t a)
+
 cdef extern from "flint/fmpz_poly_factor.h":
     void fmpz_poly_factor_init(fmpz_poly_factor_t fac)
     void fmpz_poly_factor_clear(fmpz_poly_factor_t fac)
@@ -450,6 +455,9 @@ cdef extern from "flint/fmpz_mat.h":
     int fmpz_mat_is_in_hnf(const fmpz_mat_t A)
     void fmpz_mat_snf(fmpz_mat_t S, const fmpz_mat_t A)
     int fmpz_mat_is_in_snf(const fmpz_mat_t A)
+
+    void fmpz_mat_charpoly(fmpz_poly_t cp, const fmpz_mat_t mat)
+    void fmpz_mat_minpoly(fmpz_poly_t cp, const fmpz_mat_t mat)
 
 cdef extern from "flint/fmpz_lll.h":
     ctypedef struct fmpz_lll_struct:
@@ -675,6 +683,9 @@ cdef extern from "flint/fmpq_mat.h":
     long fmpq_mat_rref(fmpq_mat_t B, fmpq_mat_t A)
     void fmpq_mat_transpose(fmpq_mat_t B, fmpq_mat_t A)
 
+    void fmpq_mat_charpoly(fmpq_poly_t cp, const fmpq_mat_t mat)
+    void fmpq_mat_minpoly(fmpq_poly_t cp, const fmpq_mat_t mat)
+
 cdef extern from "flint/arith.h":
     void arith_number_of_partitions(fmpz_t res, ulong n)
     int arith_moebius_mu(fmpz_t n)
@@ -722,6 +733,9 @@ cdef extern from "arf.h":
     ctypedef int arf_rnd_t
     cdef arf_rnd_t ARF_RND_DOWN
     cdef arf_rnd_t ARF_RND_NEAR
+    cdef arf_rnd_t ARF_RND_FLOOR
+    cdef arf_rnd_t ARF_RND_CEIL
+    cdef arf_rnd_t ARF_RND_UP
 
     void arf_init(arf_t x)
     void arf_clear(arf_t x)
@@ -1170,6 +1184,7 @@ cdef extern from "acb.h":
     int acb_contains(const acb_t x, const acb_t y)
     int acb_get_unique_fmpz(fmpz_t z, const acb_t x)
     int acb_contains_int(const acb_t x)
+    void acb_union(acb_t z, const acb_t x, const acb_t y, long prec)
     void acb_set_ui(acb_t z, ulong c)
     void acb_set_si(acb_t z, long c)
     void acb_set_fmpz(acb_t z, const fmpz_t c)
@@ -2183,6 +2198,8 @@ cdef extern from "arb_fmpz_poly.h":
     void arb_fmpz_poly_evaluate_arb(arb_t res, const fmpz_poly_t poly, const arb_t x, long prec)
     void arb_fmpz_poly_evaluate_acb(acb_t res, const fmpz_poly_t poly, const acb_t x, long prec)
     void arb_fmpz_poly_complex_roots(acb_ptr roots, const fmpz_poly_t poly, int flags, long prec)
+    ulong arb_fmpz_poly_deflation(const fmpz_poly_t poly)
+    void arb_fmpz_poly_deflate(fmpz_poly_t res, const fmpz_poly_t poly, ulong deflation)
 
 cdef extern from "acb_dft.h":
     void acb_dft(acb_ptr w, acb_srcptr v, long n, long prec)
