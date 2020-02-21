@@ -184,6 +184,10 @@ cdef class acb(flint_scalar):
         other = any_as_acb(other)
         return bool(acb_contains(self.val, (<acb>other).val))
 
+    def contains_interior(self, other):
+        other = any_as_acb(other)
+        return bool(acb_contains_interior(self.val, (<acb>other).val))
+
     def overlaps(self, other):
         other = any_as_acb(other)
         return bool(acb_overlaps((<acb>self).val, (<acb>other).val))

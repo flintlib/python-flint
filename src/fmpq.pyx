@@ -302,3 +302,21 @@ cdef class fmpq(flint_scalar):
         else:
             return max(b1, b2)
 
+    def __pow__(self, n, z):
+        cdef fmpq v
+        cdef long e
+        assert z is None
+        e = n
+        if type(self) is fmpq:
+            v = fmpq.__new__(fmpq)
+            if e >= 0:
+                fmpz_pow_ui(fmpq_numref(v.val), fmpq_numref((<fmpq>self).val), e)
+                fmpz_pow_ui(fmpq_denref(v.val), fmpq_denref((<fmpq>self).val), e)
+            else:
+                if fmpq_is_zero((<fmpq>self).val):
+                    raise ZeroDivisionError
+                fmpz_pow_ui(fmpq_denref(v.val), fmpq_numref((<fmpq>self).val), -e)
+                fmpz_pow_ui(fmpq_numref(v.val), fmpq_denref((<fmpq>self).val), -e)
+            return v
+        return NotImplemented
+

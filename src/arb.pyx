@@ -491,6 +491,10 @@ cdef class arb(flint_scalar):
         other = any_as_arb(other)
         return bool(arb_contains(self.val, (<arb>other).val))
 
+    def contains_interior(self, other):
+        other = any_as_arb(other)
+        return bool(arb_contains_interior(self.val, (<arb>other).val))
+
     def overlaps(self, other):
         other = any_as_arb(other)
         return bool(arb_overlaps((<arb>self).val, (<arb>other).val))

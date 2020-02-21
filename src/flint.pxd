@@ -273,6 +273,7 @@ cdef extern from "flint/fmpz.h":
     void fmpz_rfac_ui(fmpz_t r, const fmpz_t x, ulong n)
     void fmpz_rfac_uiui(fmpz_t r, ulong x, ulong n)
     void fmpz_primorial(fmpz_t res, ulong n)
+    int fmpz_is_perfect_power(fmpz_t root, const fmpz_t f)
 
 cdef extern from "flint/fmpz_factor.h":
     ctypedef struct fmpz_factor_struct:
@@ -285,6 +286,10 @@ cdef extern from "flint/fmpz_factor.h":
     void fmpz_factor_init(fmpz_factor_t factor)
     void fmpz_factor_clear(fmpz_factor_t factor)
     void fmpz_factor(fmpz_factor_t factor, fmpz_t n)
+    int fmpz_factor_trial_range(fmpz_factor_t factor, const fmpz_t n, ulong start, ulong num_primes)
+    void fmpz_factor_expand(fmpz_t n, const fmpz_factor_t factor)
+    void _fmpz_factor_append(fmpz_factor_t factor, const fmpz_t p, ulong exp)
+
 
 cdef extern from "flint/fmpz_poly.h":
     ctypedef struct fmpz_poly_struct:
@@ -945,6 +950,7 @@ cdef extern from "arb.h":
     int arb_contains_si(const arb_t x, long y)
     int arb_overlaps(const arb_t x, const arb_t y)
     int arb_contains(const arb_t x, const arb_t y)
+    int arb_contains_interior(const arb_t x, const arb_t y)
     void arb_get_interval_fmpz_2exp(fmpz_t a, fmpz_t b, fmpz_t exp, const arb_t x)
     int arb_get_unique_fmpz(fmpz_t z, const arb_t x)
     void arb_get_fmpz_mid_rad_10exp(fmpz_t mid, fmpz_t rad, fmpz_t exp, const arb_t x, long n)
@@ -1182,6 +1188,7 @@ cdef extern from "acb.h":
     int acb_contains_fmpq(const acb_t x, const fmpq_t y)
     int acb_contains_fmpz(const acb_t x, const fmpz_t y)
     int acb_contains(const acb_t x, const acb_t y)
+    int acb_contains_interior(const acb_t x, const acb_t y)
     int acb_get_unique_fmpz(fmpz_t z, const acb_t x)
     int acb_contains_int(const acb_t x)
     void acb_union(acb_t z, const acb_t x, const acb_t y, long prec)

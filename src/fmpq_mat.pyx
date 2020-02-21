@@ -432,3 +432,26 @@ cdef class fmpq_mat(flint_mat):
         fmpq_mat_minpoly(u.val, self.val)
         return u
 
+    def __pow__(self, n, z):
+        cdef fmpq_mat v
+        assert z is None
+        n = int(n)
+        if n == 0:
+            r, c = self.nrows(), self.ncols()
+            assert r == c
+            v = fmpq_mat(r, c)
+            fmpq_mat_one(v.val)
+            return v
+        if n == 1:
+            return self
+        if n == 2:
+            return self * self
+        if n < 0:
+            return self.inv() ** (-n)
+        v = self ** (n // 2)
+        v = v * v
+        if n % 2:
+            v *= self
+        return v
+
+

@@ -316,9 +316,9 @@ cdef class fmpz(flint_scalar):
             fmpz_clear(tval)
         return u
 
-    def factor(self):
+    def factor(self, trial_limit=None):
         """
-        Factors self into pseudoprimes, returning a list of
+        Factors self into prime numbers, returning a list of
         (prime, exp) pairs. The sign is ignored.
 
             >>> fmpz(5040).factor()
@@ -330,11 +330,33 @@ cdef class fmpz(flint_scalar):
 
         Warning: factoring large integers can be slow unless all
         prime factors are small.
+
+        If *trial_limit* is set, perform trial division with at most
+        this many primes, returning an incomplete factorization in which
+        the largest factor may be composite. Factors largers than the trial
+        division limit may still be found if it is cheap to do so, but no
+        expensive algorithms will be run.
+
+            >>> fmpz(2**128+10).factor()
+            [(2, 1), (7, 1), (23, 1), (677, 1), (2957, 1), (1042733, 1), (506256324715258822390969, 1)]
+            >>> fmpz(2**128+10).factor(trial_limit=200)
+            [(2, 1), (7, 1), (23, 1), (677, 1), (1560971251139657345905734136865089, 1)]
         """
         cdef fmpz_factor_t fac
+        cdef fmpz_t tmp
         cdef int i
         fmpz_factor_init(fac)
-        fmpz_factor(fac, self.val)
+        if trial_limit is not None:
+            fmpz_factor_trial_range(fac, self.val, 0, trial_limit)
+            fmpz_init(tmp)
+            fmpz_factor_expand(tmp, fac)
+            fmpz_divexact(tmp, self.val, tmp)
+            fmpz_abs(tmp, tmp)
+            if not fmpz_is_one(tmp):
+                _fmpz_factor_append(fac, tmp, 1)
+            fmpz_clear(tmp)
+        else:
+            fmpz_factor(fac, self.val)
         res = [0] * fac.num
         for 0 <= i < fac.num:
             u = fmpz.__new__(fmpz)
@@ -343,6 +365,12 @@ cdef class fmpz(flint_scalar):
             res[i] = (u, exp)
         fmpz_factor_clear(fac)
         return res
+
+    def is_perfect_power(self):
+        cdef int k
+        cdef fmpz v = fmpz()
+        k = fmpz_is_perfect_power(v.val, self.val)
+        return k != 0
 
     def partitions_p(n):
         r"""

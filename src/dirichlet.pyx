@@ -31,6 +31,9 @@ cdef class dirichlet_group(object):
     def q(self):
         return fmpz(self.val.q)
 
+    def exponent(self):
+        return fmpz(self.val.expo)
+
     def __repr__(self):
         return "Dirichlet group mod q = %s" % self.q
 
@@ -95,6 +98,9 @@ cdef class dirichlet_char(object):
         assert 1 <= l <= max(q,2)-1 and n_gcd(q, l) == 1
         dirichlet_char_log(self.val, self.G.val, l)
 
+    def group(self):
+        return self.G
+
     def index(self):
         return dirichlet_index_char(self.G.val, self.val)
 
@@ -142,6 +148,17 @@ cdef class dirichlet_char(object):
         v = acb.__new__(acb)
         acb_dirichlet_chi((<acb>v).val, self.G.val, self.val, fmpz_get_ui(m.val), getprec())
         return v
+
+    def chi_exponent(self, n):
+        cdef fmpz m
+        cdef ulong v
+        m = fmpz(n) % self.G.q
+        expo = self.G.exponent()
+        v = dirichlet_chi(self.G.val, self.val, fmpz_get_ui(m.val))
+        if v == DIRICHLET_CHI_NULL:
+            return None
+        else:
+            return fmpz(v)
 
     def l(self, s):
         """
