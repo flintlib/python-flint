@@ -585,7 +585,10 @@ cdef class acb(flint_scalar):
             acb_agm1((<acb>u).val, (<acb>s).val, getprec())
             return u
         else:
-            return (s / t).agm() * t
+            t = acb(t)
+            u = acb.__new__(acb)
+            acb_agm((<acb>u).val, (<acb>s).val, (<acb>t).val, getprec())
+            return u
 
     def gamma(s):
         """

@@ -1,3 +1,6 @@
+# fixme!
+DEF FLINT_BITS = 64
+
 cdef extern from "Python.h":
     ctypedef void PyObject
     ctypedef void PyTypeObject
@@ -26,6 +29,8 @@ cdef extern from "gmp.h":
     ctypedef unsigned long mp_bitcnt_t
 
 ctypedef long fmpz_struct
+ctypedef long slong
+ctypedef ulong flint_bitcnt_t
 
 cdef extern from "flint/flint.h":
     ctypedef void * flint_rand_t
@@ -274,6 +279,9 @@ cdef extern from "flint/fmpz.h":
     void fmpz_rfac_uiui(fmpz_t r, ulong x, ulong n)
     void fmpz_primorial(fmpz_t res, ulong n)
     int fmpz_is_perfect_power(fmpz_t root, const fmpz_t f)
+    int fmpz_jacobi(const fmpz_t a, const fmpz_t p)
+    int fmpz_is_prime(const fmpz_t n)
+    int fmpz_is_probabprime(const fmpz_t n)
 
 cdef extern from "flint/fmpz_factor.h":
     ctypedef struct fmpz_factor_struct:
@@ -289,6 +297,7 @@ cdef extern from "flint/fmpz_factor.h":
     int fmpz_factor_trial_range(fmpz_factor_t factor, const fmpz_t n, ulong start, ulong num_primes)
     void fmpz_factor_expand(fmpz_t n, const fmpz_factor_t factor)
     void _fmpz_factor_append(fmpz_factor_t factor, const fmpz_t p, ulong exp)
+    void fmpz_factor_smooth(fmpz_factor_t factor, fmpz_t n, long bits, int proved)
 
 
 cdef extern from "flint/fmpz_poly.h":
@@ -521,6 +530,7 @@ cdef extern from "flint/fmpq.h":
     void fmpq_next_minimal(fmpq_t res, fmpq_t x)
     void fmpq_next_signed_minimal(fmpq_t res, fmpq_t x)
     void fmpq_harmonic_ui(fmpq_t res, ulong n)
+    void fmpq_dedekind_sum(fmpq_t s, const fmpz_t h, const fmpz_t k)
 
 cdef extern from "flint/fmpq_poly.h":
     ctypedef struct fmpq_poly_struct:
@@ -597,6 +607,7 @@ cdef extern from "flint/fmpq_poly.h":
     void fmpq_poly_divrem(fmpq_poly_t Q, fmpq_poly_t R, fmpq_poly_t poly1, fmpq_poly_t poly2)
     void fmpq_poly_div(fmpq_poly_t Q, fmpq_poly_t poly1, fmpq_poly_t poly2)
     void fmpq_poly_gcd(fmpq_poly_t g, fmpq_poly_t a, fmpq_poly_t b)
+    void fmpq_poly_xgcd(fmpq_poly_t G, fmpq_poly_t S, fmpq_poly_t T, const fmpq_poly_t A, const fmpq_poly_t B)
     void fmpq_poly_rem(fmpq_poly_t R, fmpq_poly_t poly1, fmpq_poly_t poly2)
     void fmpq_poly_inv_series(fmpq_poly_t Qinv, fmpq_poly_t Q, long n)
     void fmpq_poly_div_series(fmpq_poly_t Q, fmpq_poly_t A, fmpq_poly_t B, long n)
@@ -1315,6 +1326,7 @@ cdef extern from "acb.h":
     void acb_polylog_si(acb_t w, long s, const acb_t z, long prec)
     void acb_agm1(acb_t m, const acb_t z, long prec)
     void acb_agm1_cpx(acb_ptr m, const acb_t z, long len, long prec)
+    void acb_agm(acb_t res, const acb_t a, const acb_t b, long prec)
     void acb_expm1(acb_t r, const acb_t z, long prec)
     void acb_log1p(acb_t r, const acb_t z, long prec)
     void acb_asin(acb_t r, const acb_t z, long prec)
@@ -2088,7 +2100,7 @@ cdef extern from "arb_hypgeom.h":
     void arb_hypgeom_legendre_p(arb_t res, const arb_t n, const arb_t m, const arb_t z, int type, long prec)
     void arb_hypgeom_legendre_q(arb_t res, const arb_t n, const arb_t m, const arb_t z, int type, long prec)
 
-    void arb_hypgeom_legendre_p_ui_root(arb_t res, arb_t weight, ulong n, ulong k, long prec);
+    void arb_hypgeom_legendre_p_ui_root(arb_t res, arb_t weight, ulong n, ulong k, long prec)
 
 cdef extern from "dirichlet.h":
     ctypedef struct dirichlet_group_struct:
@@ -2157,7 +2169,7 @@ cdef extern from "acb_dirichlet.h":
     void acb_dirichlet_hardy_z(acb_ptr res, const acb_t t, const dirichlet_group_t G, const dirichlet_char_t chi, long len, long prec)
     void acb_dirichlet_l_series(acb_poly_t res, const acb_poly_t s, const dirichlet_group_t G, const dirichlet_char_t chi, int deflate, long len, long prec)
 
-    void acb_dirichlet_stieltjes(acb_t res, const fmpz_t n, const acb_t a, long prec);
+    void acb_dirichlet_stieltjes(acb_t res, const fmpz_t n, const acb_t a, long prec)
 
     void acb_dirichlet_gram_point(arb_t res, const fmpz_t n, const dirichlet_group_t G, const dirichlet_char_t chi, long prec)
     void acb_dirichlet_zeta_zeros(acb_ptr res, const fmpz_t n, long len, long prec)
@@ -2211,4 +2223,210 @@ cdef extern from "arb_fmpz_poly.h":
 cdef extern from "acb_dft.h":
     void acb_dft(acb_ptr w, acb_srcptr v, long n, long prec)
     void acb_dft_inverse(acb_ptr w, acb_srcptr v, long n, long prec)
+
+cdef extern from "flint/mpoly.h":
+    ctypedef enum ordering_t:
+        ORD_LEX
+        ORD_DEGLEX
+        ORD_DEGREVLEX
+
+    ctypedef struct mpoly_ctx_struct:
+        slong nvars
+        slong nfields
+        ordering_t ord
+        int deg
+        int rev
+        slong lut_words_per_exp[FLINT_BITS]
+        unsigned char lut_fix_bits[FLINT_BITS]
+
+    ctypedef mpoly_ctx_struct mpoly_ctx_t[1]
+
+    void mpoly_ctx_init(mpoly_ctx_t ctx, slong nvars, const ordering_t ord)
+    void mpoly_ctx_clear(mpoly_ctx_t mctx)
+
+
+cdef extern from "flint/fmpz_mpoly.h":
+    ctypedef struct fmpz_mpoly_ctx_struct:
+        mpoly_ctx_t minfo
+
+    ctypedef fmpz_mpoly_ctx_struct fmpz_mpoly_ctx_t[1]
+
+    ctypedef struct fmpz_mpoly_struct:
+        fmpz_struct * coeffs
+        ulong * exps
+        slong alloc
+        slong length
+        flint_bitcnt_t bits
+
+    ctypedef fmpz_mpoly_struct fmpz_mpoly_t[1]
+
+    void fmpz_mpoly_ctx_init(fmpz_mpoly_ctx_t ctx, slong nvars, const ordering_t ord)
+    void fmpz_mpoly_ctx_init_rand(fmpz_mpoly_ctx_t mctx, flint_rand_t state, slong max_nvars)
+    void fmpz_mpoly_ctx_clear(fmpz_mpoly_ctx_t ctx)
+    slong fmpz_mpoly_ctx_nvars(const fmpz_mpoly_ctx_t ctx)
+    ordering_t fmpz_mpoly_ctx_ord(const fmpz_mpoly_ctx_t ctx)
+
+    void fmpz_mpoly_init(fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_clear(fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+
+    int fmpz_mpoly_set_str_pretty(fmpz_mpoly_t A, const char * str, const char ** x, const fmpz_mpoly_ctx_t ctx)
+    char * fmpz_mpoly_get_str_pretty(const fmpz_mpoly_t A, const char ** x, const fmpz_mpoly_ctx_t ctx)
+
+    void fmpz_mpoly_gen(fmpz_mpoly_t poly, slong i, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_is_gen(const fmpz_mpoly_t poly, slong k, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_set(fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_equal(const fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_swap(fmpz_mpoly_t A, fmpz_mpoly_t B, const fmpz_mpoly_ctx_t ctx)
+
+    slong fmpz_mpoly_max_bits(const fmpz_mpoly_t A)
+
+    int fmpz_mpoly_is_fmpz(const fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_get_fmpz(fmpz_t c, const fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_set_fmpz(fmpz_mpoly_t A, const fmpz_t c, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_set_ui(fmpz_mpoly_t A, ulong c, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_set_si(fmpz_mpoly_t A, slong c, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_zero(fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_one(fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_equal_fmpz(const fmpz_mpoly_t A, const fmpz_t c, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_equal_ui(const fmpz_mpoly_t A, ulong c, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_equal_si(const fmpz_mpoly_t A, slong c, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_is_zero(const fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_is_one(const fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+
+    int fmpz_mpoly_degrees_fit_si(const fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_degrees_fmpz(fmpz_struct ** degs, const fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_degrees_si(slong * degs, const fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_degree_fmpz(fmpz_t deg, const fmpz_mpoly_t A, slong var, const fmpz_mpoly_ctx_t ctx)
+    slong fmpz_mpoly_degree_si(const fmpz_mpoly_t A, slong var, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_total_degree_fits_si(const fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_total_degree_fmpz(fmpz_t td, const fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+    slong fmpz_mpoly_total_degree_si(const fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+
+    void fmpz_mpoly_get_coeff_fmpz_monomial(fmpz_t c, const fmpz_mpoly_t A, const fmpz_mpoly_t M, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_set_coeff_fmpz_monomial(fmpz_mpoly_t A, const fmpz_t c, const fmpz_mpoly_t M, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_get_coeff_fmpz_fmpz(fmpz_t c, const fmpz_mpoly_t A, fmpz_struct * const * exp, const fmpz_mpoly_ctx_t ctx)
+    ulong fmpz_mpoly_get_coeff_ui_fmpz(const fmpz_mpoly_t A, fmpz_struct * const * exp, const fmpz_mpoly_ctx_t ctx)
+    slong fmpz_mpoly_get_coeff_si_fmpz(const fmpz_mpoly_t A, fmpz_struct * const * exp, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_get_coeff_fmpz_ui(fmpz_t c, const fmpz_mpoly_t A, const ulong * exp, const fmpz_mpoly_ctx_t ctx)
+    ulong fmpz_mpoly_get_coeff_ui_ui(const fmpz_mpoly_t A, const ulong * exp, const fmpz_mpoly_ctx_t ctx)
+    slong fmpz_mpoly_get_coeff_si_ui(const fmpz_mpoly_t A,
+                                const ulong * exp, const fmpz_mpoly_ctx_t ctx)
+    void _fmpz_mpoly_set_coeff_fmpz_fmpz(fmpz_mpoly_t A,
+                 const fmpz_t c, const fmpz_struct * exp, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_set_coeff_fmpz_fmpz(fmpz_mpoly_t A,
+               const fmpz_t c, fmpz_struct * const * exp, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_set_coeff_ui_fmpz(fmpz_mpoly_t A,
+                const ulong c, fmpz_struct * const * exp, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_set_coeff_si_fmpz(fmpz_mpoly_t A,
+                const slong c, fmpz_struct * const * exp, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_set_coeff_fmpz_ui(fmpz_mpoly_t A,
+                const fmpz_t c, const ulong * exp, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_set_coeff_ui_ui(fmpz_mpoly_t A,
+                 const ulong c, const ulong * exp, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_set_coeff_si_ui(fmpz_mpoly_t A,
+                 const slong c, const ulong * exp, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_get_coeff_vars_ui(fmpz_mpoly_t C,
+             const fmpz_mpoly_t A,  slong * vars, ulong * exps, slong length,
+                                                   const fmpz_mpoly_ctx_t ctx)
+
+    int fmpz_mpoly_cmp(const fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_ctx_t ctx)
+
+    slong fmpz_mpoly_length(const fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+
+    void fmpz_mpoly_get_term_coeff_fmpz(fmpz_t c, const fmpz_mpoly_t A, slong i, const fmpz_mpoly_ctx_t ctx)
+
+    void fmpz_mpoly_get_term_exp_fmpz(fmpz_struct ** exp, const fmpz_mpoly_t A,
+                                              slong i, const fmpz_mpoly_ctx_t ctx)
+
+    void fmpz_mpoly_get_term_exp_ui(ulong * exp, const fmpz_mpoly_t A,
+                                              slong i, const fmpz_mpoly_ctx_t ctx)
+
+    void fmpz_mpoly_get_term_exp_si(slong * exp, const fmpz_mpoly_t A,
+                                              slong i, const fmpz_mpoly_ctx_t ctx)
+
+    ulong fmpz_mpoly_get_term_var_exp_ui(const fmpz_mpoly_t A, slong i,
+                                            slong var, const fmpz_mpoly_ctx_t ctx)
+
+    slong fmpz_mpoly_get_term_var_exp_si(const fmpz_mpoly_t A, slong i,
+                                            slong var, const fmpz_mpoly_ctx_t ctx)
+
+    void fmpz_mpoly_set_term_exp_fmpz(fmpz_mpoly_t A,
+                          slong i, fmpz_struct * const * exp, const fmpz_mpoly_ctx_t ctx)
+
+    void fmpz_mpoly_set_term_exp_ui(fmpz_mpoly_t A,
+                           slong i, const ulong * exp, const fmpz_mpoly_ctx_t ctx)
+
+    void fmpz_mpoly_get_term(fmpz_mpoly_t M, const fmpz_mpoly_t A,
+                                              slong i, const fmpz_mpoly_ctx_t ctx)
+
+    void fmpz_mpoly_get_term_monomial(fmpz_mpoly_t M, const fmpz_mpoly_t A,
+                                              slong i, const fmpz_mpoly_ctx_t ctx)
+
+    # Addition/Subtraction
+    void fmpz_mpoly_add_fmpz(fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_t c, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_add_si(fmpz_mpoly_t A, const fmpz_mpoly_t B, slong c, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_sub_fmpz(fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_t c, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_sub_si(fmpz_mpoly_t A, const fmpz_mpoly_t B, slong c, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_add(fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_t C, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_sub(fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_t C, const fmpz_mpoly_ctx_t ctx)
+
+    # Scalar operations
+    void fmpz_mpoly_neg(fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_scalar_mul_fmpz(fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_t c, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_scalar_mul_si(fmpz_mpoly_t A, const fmpz_mpoly_t B, slong c, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_scalar_mul_ui(fmpz_mpoly_t A, const fmpz_mpoly_t B, ulong c, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_scalar_divexact_fmpz(fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_t c, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_scalar_divexact_si(fmpz_mpoly_t A, const fmpz_mpoly_t B, slong c, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_scalar_divexact_ui(fmpz_mpoly_t A, const fmpz_mpoly_t B, ulong c, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_scalar_divides_fmpz(fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_t c, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_scalar_divides_si(fmpz_mpoly_t A, const fmpz_mpoly_t B, slong c, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_scalar_divides_ui(fmpz_mpoly_t A, const fmpz_mpoly_t B, ulong c, const fmpz_mpoly_ctx_t ctx)
+
+    # Differentiation/Integration
+    void fmpz_mpoly_derivative(fmpz_mpoly_t A, const fmpz_mpoly_t B, slong var, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_integral(fmpz_mpoly_t A, fmpz_t scale, const fmpz_mpoly_t B, slong var, const fmpz_mpoly_ctx_t ctx)
+
+    # Evaluation
+    int fmpz_mpoly_evaluate_all_fmpz(fmpz_t ev, const fmpz_mpoly_t A, fmpz_struct * const * vals, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_evaluate_one_fmpz(fmpz_mpoly_t A, const fmpz_mpoly_t B, slong var, const fmpz_t val, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_compose_fmpz_poly(fmpz_poly_t A, const fmpz_mpoly_t B, fmpz_poly_struct * const * C, const fmpz_mpoly_ctx_t ctxB)
+    int fmpz_mpoly_compose_fmpz_mpoly(fmpz_mpoly_t A, const fmpz_mpoly_t B, fmpz_mpoly_struct * const * C, const fmpz_mpoly_ctx_t ctxB, const fmpz_mpoly_ctx_t ctxAC)
+    void fmpz_mpoly_compose_fmpz_mpoly_gen(fmpz_mpoly_t A, const fmpz_mpoly_t B, const slong * c, const fmpz_mpoly_ctx_t ctxB, const fmpz_mpoly_ctx_t ctxAC)
+
+    # Multiplication
+    void fmpz_mpoly_mul(fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_t C, const fmpz_mpoly_ctx_t ctx)
+
+    # Powering
+    int fmpz_mpoly_pow_fmpz(fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_t k, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_pow_ui(fmpz_mpoly_t A, const fmpz_mpoly_t B, ulong k, const fmpz_mpoly_ctx_t ctx)
+
+    # Division
+    int fmpz_mpoly_divides(fmpz_mpoly_t Q, const fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_divrem(fmpz_mpoly_t Q, fmpz_mpoly_t R, const fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_quasidivrem(fmpz_t scale, fmpz_mpoly_t Q, fmpz_mpoly_t R, const fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_div(fmpz_mpoly_t Q, const fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_quasidiv(fmpz_t scale, fmpz_mpoly_t Q, const fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_divrem_ideal(fmpz_mpoly_struct ** Q, fmpz_mpoly_t R, const fmpz_mpoly_t A, fmpz_mpoly_struct * const * B, slong len, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_term_content(fmpz_mpoly_t M, const fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
+    int fmpz_mpoly_gcd(fmpz_mpoly_t G, const fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_ctx_t ctx)
+
+"""
+cdef extern from "flint/fmpz_mpoly_factor.h":
+
+    ctypedef struct fmpz_mpoly_factor_struct:
+        fmpz_t content
+        fmpz_mpoly_struct * poly
+        fmpz_struct * exp
+        slong length
+        slong alloc
+
+    ctypedef fmpz_mpoly_factor_struct fmpz_mpoly_factor_t[1]
+
+
+    void fmpz_mpoly_factor_init(fmpz_mpoly_factor_t fac, const fmpz_mpoly_ctx_t ctx)
+
+    void fmpz_mpoly_factor_clear(fmpz_mpoly_factor_t fac, const fmpz_mpoly_ctx_t ctx)
+
+    int fmpz_mpoly_factor(fmpz_mpoly_factor_t fac, const fmpz_mpoly_t A, int full, const fmpz_mpoly_ctx_t ctx)
+"""
 

@@ -316,6 +316,24 @@ cdef class fmpz(flint_scalar):
             fmpz_clear(tval)
         return u
 
+    def lcm(self, other):
+        """
+        Returns the greatest common divisor of self and other.
+
+            >>> fmpz(30).gcd(45)
+            15
+        """
+        cdef fmpz_struct tval[1]
+        cdef int ttype = FMPZ_UNKNOWN
+        ttype = fmpz_set_any_ref(tval, other)
+        if ttype == FMPZ_UNKNOWN:
+            raise TypeError("input must be an integer")
+        u = fmpz.__new__(fmpz)
+        fmpz_lcm((<fmpz>u).val, self.val, tval)
+        if ttype == FMPZ_TMP:
+            fmpz_clear(tval)
+        return u
+
     def factor(self, trial_limit=None):
         """
         Factors self into prime numbers, returning a list of
@@ -365,6 +383,26 @@ cdef class fmpz(flint_scalar):
             res[i] = (u, exp)
         fmpz_factor_clear(fac)
         return res
+
+    def factor_smooth(self, bits=15, int proved=-1):
+        cdef fmpz_factor_t fac
+        cdef int i
+        fmpz_factor_init(fac)
+        fmpz_factor_smooth(fac, self.val, bits, proved)
+        res = [0] * fac.num
+        for 0 <= i < fac.num:
+            u = fmpz.__new__(fmpz)
+            fmpz_set((<fmpz>u).val, &fac.p[i])
+            exp = <long> fac.exp[i]
+            res[i] = (u, exp)
+        fmpz_factor_clear(fac)
+        return res
+
+    def is_prime(self):
+        return fmpz_is_prime(self.val)
+
+    def is_probable_prime(self):
+        return fmpz_is_probabprime(self.val)
 
     def is_perfect_power(self):
         cdef int k
@@ -563,6 +601,15 @@ cdef class fmpz(flint_scalar):
         fmpz_sqrtrem(u.val, v.val, self.val)
         return u, v
 
+    # warning: m should be prime!
+    def sqrtmod(self, m):
+        cdef fmpz v
+        v = fmpz()
+        m = fmpz(m)
+        if not fmpz_sqrtmod(v.val, self.val, (<fmpz>m).val):
+            raise ValueError("unable to compute modular square root")
+        return v
+
     def root(self, long n):
         cdef fmpz v
         if fmpz_sgn(self.val) < 0:
@@ -572,4 +619,16 @@ cdef class fmpz(flint_scalar):
         v = fmpz()
         fmpz_root(v.val, self.val, n)
         return v
+
+    def jacobi(self, other):
+        cdef fmpz_struct tval[1]
+        cdef int ttype = FMPZ_UNKNOWN
+        ttype = fmpz_set_any_ref(tval, other)
+        if ttype == FMPZ_UNKNOWN:
+            raise TypeError("input must be an integer")
+        u = fmpz.__new__(fmpz)
+        v = fmpz_jacobi(self.val, tval)
+        if ttype == FMPZ_TMP:
+            fmpz_clear(tval)
+        return fmpz(v)
 

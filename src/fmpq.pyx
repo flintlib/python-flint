@@ -279,6 +279,16 @@ cdef class fmpq(flint_scalar):
         fmpq_harmonic_ui(v.val, n)
         return v
 
+    @staticmethod
+    def dedekind_sum(n, k):
+        cdef fmpz nv, kv
+        cdef fmpq v
+        nv = fmpz(n)
+        kv = fmpz(k)
+        v = fmpq()
+        fmpq_dedekind_sum(v.val, nv.val, kv.val)
+        return v
+
     def floor(self):
         cdef fmpz r = fmpz.__new__(fmpz)
         fmpz_fdiv_q(r.val, fmpq_numref(self.val), fmpq_denref(self.val))
