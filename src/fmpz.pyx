@@ -316,9 +316,27 @@ cdef class fmpz(flint_scalar):
             fmpz_clear(tval)
         return u
 
-    def factor(self):
+    def lcm(self, other):
         """
-        Factors self into pseudoprimes, returning a list of
+        Returns the greatest common divisor of self and other.
+
+            >>> fmpz(30).gcd(45)
+            15
+        """
+        cdef fmpz_struct tval[1]
+        cdef int ttype = FMPZ_UNKNOWN
+        ttype = fmpz_set_any_ref(tval, other)
+        if ttype == FMPZ_UNKNOWN:
+            raise TypeError("input must be an integer")
+        u = fmpz.__new__(fmpz)
+        fmpz_lcm((<fmpz>u).val, self.val, tval)
+        if ttype == FMPZ_TMP:
+            fmpz_clear(tval)
+        return u
+
+    def factor(self, trial_limit=None):
+        """
+        Factors self into prime numbers, returning a list of
         (prime, exp) pairs. The sign is ignored.
 
             >>> fmpz(5040).factor()
@@ -330,11 +348,33 @@ cdef class fmpz(flint_scalar):
 
         Warning: factoring large integers can be slow unless all
         prime factors are small.
+
+        If *trial_limit* is set, perform trial division with at most
+        this many primes, returning an incomplete factorization in which
+        the largest factor may be composite. Factors largers than the trial
+        division limit may still be found if it is cheap to do so, but no
+        expensive algorithms will be run.
+
+            >>> fmpz(2**128+10).factor()
+            [(2, 1), (7, 1), (23, 1), (677, 1), (2957, 1), (1042733, 1), (506256324715258822390969, 1)]
+            >>> fmpz(2**128+10).factor(trial_limit=200)
+            [(2, 1), (7, 1), (23, 1), (677, 1), (1560971251139657345905734136865089, 1)]
         """
         cdef fmpz_factor_t fac
+        cdef fmpz_t tmp
         cdef int i
         fmpz_factor_init(fac)
-        fmpz_factor(fac, self.val)
+        if trial_limit is not None:
+            fmpz_factor_trial_range(fac, self.val, 0, trial_limit)
+            fmpz_init(tmp)
+            fmpz_factor_expand(tmp, fac)
+            fmpz_divexact(tmp, self.val, tmp)
+            fmpz_abs(tmp, tmp)
+            if not fmpz_is_one(tmp):
+                _fmpz_factor_append(fac, tmp, 1)
+            fmpz_clear(tmp)
+        else:
+            fmpz_factor(fac, self.val)
         res = [0] * fac.num
         for 0 <= i < fac.num:
             u = fmpz.__new__(fmpz)
@@ -343,6 +383,32 @@ cdef class fmpz(flint_scalar):
             res[i] = (u, exp)
         fmpz_factor_clear(fac)
         return res
+
+    def factor_smooth(self, bits=15, int proved=-1):
+        cdef fmpz_factor_t fac
+        cdef int i
+        fmpz_factor_init(fac)
+        fmpz_factor_smooth(fac, self.val, bits, proved)
+        res = [0] * fac.num
+        for 0 <= i < fac.num:
+            u = fmpz.__new__(fmpz)
+            fmpz_set((<fmpz>u).val, &fac.p[i])
+            exp = <long> fac.exp[i]
+            res[i] = (u, exp)
+        fmpz_factor_clear(fac)
+        return res
+
+    def is_prime(self):
+        return fmpz_is_prime(self.val)
+
+    def is_probable_prime(self):
+        return fmpz_is_probabprime(self.val)
+
+    def is_perfect_power(self):
+        cdef int k
+        cdef fmpz v = fmpz()
+        k = fmpz_is_perfect_power(v.val, self.val)
+        return k != 0
 
     def partitions_p(n):
         r"""
@@ -508,3 +574,61 @@ cdef class fmpz(flint_scalar):
         cdef fmpz v = fmpz()
         arith_euler_phi(v.val, n.val)
         return v
+
+    def __hash__(self):
+        return hash(int(self))
+
+    def height_bits(self, bint signed=False):
+        if signed and fmpz_sgn(self.val) < 0:
+            return -self.bit_length()
+        else:
+            return self.bit_length()
+
+    def isqrt(self):
+        cdef fmpz v
+        if fmpz_sgn(self.val) < 0:
+            raise ValueError("integer square root of a negative number")
+        v = fmpz()
+        fmpz_sqrt(v.val, self.val)
+        return v
+
+    def sqrtrem(self):
+        cdef fmpz u, v
+        if fmpz_sgn(self.val) < 0:
+            raise ValueError("integer square root of a negative number")
+        u = fmpz()
+        v = fmpz()
+        fmpz_sqrtrem(u.val, v.val, self.val)
+        return u, v
+
+    # warning: m should be prime!
+    def sqrtmod(self, m):
+        cdef fmpz v
+        v = fmpz()
+        m = fmpz(m)
+        if not fmpz_sqrtmod(v.val, self.val, (<fmpz>m).val):
+            raise ValueError("unable to compute modular square root")
+        return v
+
+    def root(self, long n):
+        cdef fmpz v
+        if fmpz_sgn(self.val) < 0:
+            raise ValueError("integer root of a negative number")
+        if n <= 0:
+            raise ValueError("n >= 1 is required")
+        v = fmpz()
+        fmpz_root(v.val, self.val, n)
+        return v
+
+    def jacobi(self, other):
+        cdef fmpz_struct tval[1]
+        cdef int ttype = FMPZ_UNKNOWN
+        ttype = fmpz_set_any_ref(tval, other)
+        if ttype == FMPZ_UNKNOWN:
+            raise TypeError("input must be an integer")
+        u = fmpz.__new__(fmpz)
+        v = fmpz_jacobi(self.val, tval)
+        if ttype == FMPZ_TMP:
+            fmpz_clear(tval)
+        return fmpz(v)
+

@@ -690,3 +690,18 @@ cdef class fmpz_mat(flint_mat):
             True
         """
         return bool(fmpz_mat_is_in_snf(self.val))
+
+    def charpoly(self):
+        cdef fmpz_poly u
+        u = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_init(u.val)
+        fmpz_mat_charpoly(u.val, self.val)
+        return u
+
+    def minpoly(self):
+        cdef fmpz_poly u
+        u = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_init(u.val)
+        fmpz_mat_minpoly(u.val, self.val)
+        return u
+

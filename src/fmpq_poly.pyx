@@ -158,6 +158,16 @@ cdef class fmpq_poly(flint_poly):
             return v
         raise TypeError("cannot call fmpq_poly with input of type %s", type(other))
 
+    def derivative(self):
+        cdef fmpq_poly res = fmpq_poly.__new__(fmpq_poly)
+        fmpq_poly_derivative(res.val, self.val)
+        return res
+
+    def integral(self):
+        cdef fmpq_poly res = fmpq_poly.__new__(fmpq_poly)
+        fmpq_poly_integral(res.val, self.val)
+        return res
+
     def __pos__(self):
         return self
 
@@ -287,6 +297,17 @@ cdef class fmpq_poly(flint_poly):
         res = fmpq_poly.__new__(fmpq_poly)
         fmpq_poly_gcd(res.val, self.val, (<fmpq_poly>other).val)
         return res
+
+    def xgcd(self, other):
+        cdef fmpq_poly res1, res2, res3
+        other = any_as_fmpq_poly(other)
+        if other is NotImplemented:
+            raise TypeError("cannot convert input to fmpq_poly")
+        res1 = fmpq_poly.__new__(fmpq_poly)
+        res2 = fmpq_poly.__new__(fmpq_poly)
+        res3 = fmpq_poly.__new__(fmpq_poly)
+        fmpq_poly_xgcd(res1.val, res2.val, res3.val, self.val, (<fmpq_poly>other).val)
+        return (res1, res2, res3)
 
     def factor(self):
         """

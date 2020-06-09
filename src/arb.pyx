@@ -230,6 +230,25 @@ cdef class arb(flint_scalar):
         arf_get_fmpz_2exp(man.val, exp.val, arb_midref(self.val))
         return man, exp
 
+    def fmpq(self):
+        cdef fmpq res
+        if not self.is_finite() or not self.is_exact():
+            raise ValueError("fmpq requires an exact, finite value")
+        res = fmpq()
+        arf_get_fmpq(res.val, arb_midref(self.val))
+        return res
+
+    def fmpz(self):
+        cdef fmpz res
+        if not self.is_integer():
+            raise ValueError("fmpz requires an exact, integer value")
+        res = fmpz()
+        arf_get_fmpz(res.val, arb_midref(self.val), ARF_RND_DOWN)
+        return res
+
+    cpdef bint is_integer(self):
+        return arb_is_int(self.val)
+
     def mid(self):
         """
         Returns the midpoint of *self* as an exact *arb*:
@@ -472,9 +491,24 @@ cdef class arb(flint_scalar):
         other = any_as_arb(other)
         return bool(arb_contains(self.val, (<arb>other).val))
 
+    def contains_interior(self, other):
+        other = any_as_arb(other)
+        return bool(arb_contains_interior(self.val, (<arb>other).val))
+
     def overlaps(self, other):
         other = any_as_arb(other)
         return bool(arb_overlaps((<arb>self).val, (<arb>other).val))
+
+    def contains_integer(self):
+        return bool(arb_contains_int(self.val))
+
+    @property
+    def real(self):
+        return self
+
+    @property
+    def imag(self):
+        return arb()
 
     def __pos__(self):
         res = arb.__new__(arb)
@@ -484,6 +518,14 @@ cdef class arb(flint_scalar):
     def __neg__(self):
         res = arb.__new__(arb)
         arb_neg_round((<arb>res).val, (<arb>self).val, getprec())
+        return res
+
+    def neg(self, bint exact=False):
+        res = arb.__new__(arb)
+        if exact:
+            arb_set((<arb>res).val, (<arb>self).val)
+        else:
+            arb_set_round((<arb>res).val, (<arb>self).val, getprec())
         return res
 
     def __abs__(self):
@@ -2280,3 +2322,103 @@ cdef class arb(flint_scalar):
         v = arb.__new__(arb)
         arb_root_ui((<arb>v).val, (<arb>s).val, n, getprec())
         return v
+
+    @staticmethod
+    def gram_point(n):
+        """
+        Returns the *n*-th Gram point.
+
+            >>> showgood(lambda: arb.gram_point(-1), dps=25)
+            9.666908056130192141261536
+            >>> showgood(lambda: arb.gram_point(0), dps=25)
+            17.84559954041086081682634
+            >>> showgood(lambda: arb.gram_point(10**30), dps=25)
+            9.829776286927442475869051e+28
+        """
+        n = fmpz(n)
+        v = arb.__new__(arb)
+        acb_dirichlet_gram_point((<arb>v).val, (<fmpz>n).val, NULL, NULL, getprec())
+        return v
+
+    def zeta_nzeros(x):
+        """
+        Number of zeros of the Riemann zeta function with positive
+        imaginary part between 0 and *x*.
+
+            >>> arb("-5").zeta_nzeros()
+            0
+            >>> arb("14").zeta_nzeros()
+            0
+            >>> arb("15").zeta_nzeros()
+            1.00000000000000
+            >>> arb("14.1 +/- 0.1").zeta_nzeros()
+            [+/- 1.01]
+            >>> arb("100").zeta_nzeros()
+            29.0000000000000
+            >>> arb("1e6").zeta_nzeros()
+            1747146.00000000
+
+        """
+        v = arb.__new__(arb)
+        acb_dirichlet_zeta_nzeros((<arb>v).val, (<arb>x).val, getprec())
+        return v
+
+    def backlund_s(x):
+        """
+        Backlund *S* function related to the Riemann zeta function.
+
+            >>> showgood(lambda: arb(123).backlund_s(), dps=25)
+            0.4757920863536796196115749
+        """
+        v = arb.__new__(arb)
+        acb_dirichlet_backlund_s((<arb>v).val, (<arb>x).val, getprec())
+        return v
+
+    def coulomb(self, l, eta):
+        r"""
+        Computes the Coulomb wave functions `F_{\ell}(\eta,z)`,
+        `G_{\ell}(\eta,z)`, where *z* is given by *self*.
+        Both function values are computed simultaneously and a tuple
+        is returned.
+
+            >>> showgood(lambda: arb(1).coulomb(0.5, 0.25), dps=10)
+            (0.4283180781, 1.218454487)
+        """
+        l = any_as_arb(l)
+        eta = any_as_arb(eta)
+        F = arb.__new__(arb)
+        G = arb.__new__(arb)
+        arb_hypgeom_coulomb((<arb>F).val, (<arb>G).val,
+                        (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
+        return F, G
+
+    def coulomb_f(self, l, eta):
+        r"""
+        Regular Coulomb wave function `F_{\ell}(\eta,z)` where
+        *z* is given by *self*.
+
+            >>> showgood(lambda: arb(1).coulomb_f(0.5, 0.25), dps=25)
+            0.4283180781043541845555944
+        """
+        l = any_as_arb(l)
+        eta = any_as_arb(eta)
+        F = arb.__new__(arb)
+        arb_hypgeom_coulomb((<arb>F).val, NULL,
+                        (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
+        return F
+
+    def coulomb_g(self, l, eta):
+        r"""
+        Irregular Coulomb wave function `G_{\ell}(\eta,z)` where
+        *z* is given by *self*.
+
+            >>> showgood(lambda: arb(1).coulomb_g(0.5, 0.25), dps=25)
+            1.218454487206367973745641
+        """
+        l = any_as_arb(l)
+        eta = any_as_arb(eta)
+        G = arb.__new__(arb)
+        arb_hypgeom_coulomb(NULL, (<arb>G).val,
+                        (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
+        return G
+

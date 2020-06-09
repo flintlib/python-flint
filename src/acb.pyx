@@ -130,6 +130,15 @@ cdef class acb(flint_scalar):
             if not arb_set_python(acb_imagref(self.val), imag, 1):
                 raise TypeError("cannot create arb from type %s" % type(imag))
 
+    cpdef bint is_zero(self):
+        return acb_is_zero(self.val)
+
+    cpdef bint is_finite(self):
+        return acb_is_finite(self.val)
+
+    cpdef bint is_exact(self):
+        return acb_is_exact(self.val)
+
     @property
     def real(self):
         cdef arb re = arb()
@@ -175,9 +184,16 @@ cdef class acb(flint_scalar):
         other = any_as_acb(other)
         return bool(acb_contains(self.val, (<acb>other).val))
 
+    def contains_interior(self, other):
+        other = any_as_acb(other)
+        return bool(acb_contains_interior(self.val, (<acb>other).val))
+
     def overlaps(self, other):
         other = any_as_acb(other)
         return bool(acb_overlaps((<acb>self).val, (<acb>other).val))
+
+    def contains_integer(self):
+        return bool(acb_contains_int(self.val))
 
     def mid(self):
         """
@@ -252,6 +268,23 @@ cdef class acb(flint_scalar):
     def __neg__(self):
         res = acb.__new__(acb)
         acb_neg_round((<acb>res).val, (<acb>self).val, getprec())
+        return res
+
+    def neg(self, bint exact=False):
+        res = acb.__new__(acb)
+        if exact:
+            acb_set((<acb>res).val, (<acb>self).val)
+        else:
+            acb_set_round((<acb>res).val, (<acb>self).val, getprec())
+        return res
+
+    def conjugate(self, bint exact=False):
+        res = acb.__new__(acb)
+        if exact:
+            acb_conj((<acb>res).val, (<acb>self).val)
+        else:
+            acb_set_round((<acb>res).val, (<acb>self).val, getprec())
+            acb_conj((<acb>res).val, (<acb>res).val)
         return res
 
     def __abs__(self):
@@ -377,8 +410,9 @@ cdef class acb(flint_scalar):
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 
+    # important: must not be cdef because of cython magic
     @staticmethod
-    cdef _div_(s, t):
+    def _div_(s, t):
         cdef acb_struct sval[1]
         cdef acb_struct tval[1]
         cdef int stype, ttype
@@ -417,6 +451,12 @@ cdef class acb(flint_scalar):
         if stype == FMPZ_TMP: acb_clear(sval)
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
+
+    def union(s, t):
+        v = acb.__new__(acb)
+        t = any_as_acb(t)
+        acb_union((<acb>v).val, (<acb>s).val, (<acb>t).val, getprec())
+        return v
 
     def pow(s, t, bint analytic=False):
         """
@@ -545,7 +585,10 @@ cdef class acb(flint_scalar):
             acb_agm1((<acb>u).val, (<acb>s).val, getprec())
             return u
         else:
-            return (s / t).agm() * t
+            t = acb(t)
+            u = acb.__new__(acb)
+            acb_agm((<acb>u).val, (<acb>s).val, (<acb>t).val, getprec())
+            return u
 
     def gamma(s):
         """
@@ -619,6 +662,16 @@ cdef class acb(flint_scalar):
             u = acb.__new__(acb)
             acb_hurwitz_zeta((<acb>u).val, (<acb>s).val, (<acb>a).val, getprec())
             return u
+
+    def dirichlet_l(s, chi):
+        cdef dirichlet_char cchar
+        if isinstance(chi, dirichlet_char):
+            cchar = chi
+        else:
+            cchar = dirichlet_char(chi[0], chi[1])
+        u = acb.__new__(acb)
+        acb_dirichlet_l((<acb>u).val, (<acb>s).val, cchar.G.val, cchar.val, getprec())
+        return u
 
     @staticmethod
     def pi():
@@ -994,7 +1047,7 @@ cdef class acb(flint_scalar):
         acb_hypgeom_erf((<acb>u).val, (<acb>s).val, getprec())
         return u
 
-    def modular_theta(z, tau):
+    def modular_theta(z, tau, ulong r=0):
         r"""
         Computes the Jacobi theta functions `\theta_1(z,\tau)`,
         `\theta_2(z,\tau)`, `\theta_3(z,\tau)`, `\theta_4(z,\tau)`,
@@ -1011,14 +1064,37 @@ cdef class acb(flint_scalar):
             0.9694430387796704100046143 - 0.03055696120816803328582847j
             1.030556961196006476576271 + 0.03055696120816803328582847j
         """
+        cdef acb_ptr T1, T2, T3, T4
+        assert r <= 1000000
         tau = any_as_acb(tau)
         t1 = acb.__new__(acb)
         t2 = acb.__new__(acb)
         t3 = acb.__new__(acb)
         t4 = acb.__new__(acb)
-        acb_modular_theta((<acb>t1).val, (<acb>t2).val,
-                          (<acb>t3).val, (<acb>t4).val,
-                          (<acb>z).val, (<acb>tau).val, getprec())
+        if r == 0:
+            acb_modular_theta((<acb>t1).val, (<acb>t2).val,
+                              (<acb>t3).val, (<acb>t4).val,
+                              (<acb>z).val, (<acb>tau).val, getprec())
+        else:
+            T1 = _acb_vec_init(r + 1)
+            T2 = _acb_vec_init(r + 2)
+            T3 = _acb_vec_init(r + 3)
+            T4 = _acb_vec_init(r + 4)
+            acb_modular_theta_jet(T1, T2, T3, T4,
+                              (<acb>z).val, (<acb>tau).val, r + 1, getprec())
+            acb_set((<acb>t1).val, T1 + r)
+            acb_set((<acb>t2).val, T2 + r)
+            acb_set((<acb>t3).val, T3 + r)
+            acb_set((<acb>t4).val, T4 + r)
+            c = arb.fac_ui(r)
+            t1 *= c
+            t2 *= c
+            t3 *= c
+            t4 *= c
+            _acb_vec_clear(T1, r + 1)
+            _acb_vec_clear(T2, r + 1)
+            _acb_vec_clear(T3, r + 1)
+            _acb_vec_clear(T4, r + 1)
         return (t1, t2, t3, t4)
 
     def modular_eta(tau):
@@ -2268,6 +2344,63 @@ cdef class acb(flint_scalar):
         return v
 
     @staticmethod
+    def zeta_zero(n):
+        """
+        Returns the *n*-th nontrivial zero of the Riemann zeta function.
+
+            >>> showgood(lambda: acb.zeta_zero(1), dps=25)
+            0.5000000000000000000000000 + 14.13472514173469379045725j
+            >>> showgood(lambda: acb.zeta_zero(2), dps=25)
+            0.5000000000000000000000000 + 21.02203963877155499262848j
+            >>> showgood(lambda: acb.zeta_zero(100), dps=25)
+            0.5000000000000000000000000 + 236.5242296658162058024755j
+            >>> showgood(lambda: acb.zeta_zero(10**6), dps=25)
+            0.5000000000000000000000000 + 600269.6770124449555212339j
+        """
+        n = fmpz(n)
+        if n < 1:
+            raise ValueError("require n >= 1")
+        v = acb.__new__(acb)
+        acb_dirichlet_zeta_zero((<acb>v).val, (<fmpz>n).val, getprec())
+        return v
+
+    @staticmethod
+    def zeta_zeros(n, long num):
+        """
+        Returns *num* consecutive nontrivial zeros of the Riemann zeta function
+        starting at index *n*.
+
+            >>> for r in acb.zeta_zeros(1000, 10):
+            ...     print(r.str(10, radius=False))
+            ...
+            0.5000000000 + 1419.422481j
+            0.5000000000 + 1420.416526j
+            0.5000000000 + 1421.850567j
+            0.5000000000 + 1422.461311j
+            0.5000000000 + 1424.463046j
+            0.5000000000 + 1425.873469j
+            0.5000000000 + 1426.645980j
+            0.5000000000 + 1427.365671j
+            0.5000000000 + 1428.592306j
+            0.5000000000 + 1429.650477j
+        """
+        cdef long i
+        cdef acb_ptr w
+        cdef list v
+        n = fmpz(n)
+        if n < 1 or num < 0:
+            raise ValueError("require n >= 1 and num >= 0")
+        v = [acb() for i in range(num)]
+        w = <acb_ptr>libc.stdlib.malloc(num * cython.sizeof(acb_struct))
+        for i in range(num):
+            w[i] = (<acb>(v[i])).val[0]
+        acb_dirichlet_zeta_zeros(w, (<fmpz>n).val, num, getprec())
+        for i in range(num):
+            (<acb>(v[i])).val[0] = w[i]
+        libc.stdlib.free(w)
+        return v
+
+    @staticmethod
     def integral(func, a, b, params=None,
             rel_tol=None, abs_tol=None,
             deg_limit=None, eval_limit=None, depth_limit=None,
@@ -2376,3 +2509,55 @@ cdef class acb(flint_scalar):
             raise ictx.exn_type, ictx.exn_obj, ictx.exn_tb
 
         return res
+
+    def coulomb(self, l, eta):
+        r"""
+        Computes the Coulomb wave functions `F_{\ell}(\eta,z)`,
+        `G_{\ell}(\eta,z)`, `H^{+}_{\ell}(\eta,z)`, `H^{-}_{\ell}(\eta,z)`
+        where *z* is given by *self*.
+        All function values are computed simultaneously and a tuple
+        is returned.
+
+            >>> showgood(lambda: acb(1).coulomb(0.5, 0.25), dps=10)
+            (0.4283180781, 1.218454487, 1.218454487 + 0.4283180781j, 1.218454487 - 0.4283180781j)
+        """
+        l = any_as_acb(l)
+        eta = any_as_acb(eta)
+        F = acb.__new__(acb)
+        G = acb.__new__(acb)
+        Hpos = acb.__new__(acb)
+        Hneg = acb.__new__(acb)
+        acb_hypgeom_coulomb((<acb>F).val, (<acb>G).val, (<acb>Hpos).val, (<acb>Hneg).val,
+                        (<acb>l).val, (<acb>eta).val, (<acb>self).val, getprec())
+        return F, G, Hpos, Hneg
+
+    def coulomb_f(self, l, eta):
+        r"""
+        Regular Coulomb wave function `F_{\ell}(\eta,z)` where
+        *z* is given by *self*.
+
+            >>> showgood(lambda: acb(1+1j).coulomb_f(0.5, 0.25), dps=25)
+            0.3710338871231483199425544 + 0.7267604204004146050054782j
+        """
+        l = any_as_acb(l)
+        eta = any_as_acb(eta)
+        F = acb.__new__(acb)
+        acb_hypgeom_coulomb((<acb>F).val, NULL, NULL, NULL,
+                        (<acb>l).val, (<acb>eta).val, (<acb>self).val, getprec())
+        return F
+
+    def coulomb_g(self, l, eta):
+        r"""
+        Irregular Coulomb wave function `G_{\ell}(\eta,z)` where
+        *z* is given by *self*.
+
+            >>> showgood(lambda: acb(1+1j).coulomb_g(0.5, 0.25), dps=25)
+            1.293346292234270672155324 - 0.3516893313311703662702556j
+        """
+        l = any_as_acb(l)
+        eta = any_as_acb(eta)
+        G = acb.__new__(acb)
+        acb_hypgeom_coulomb(NULL, (<acb>G).val, NULL, NULL,
+                        (<acb>l).val, (<acb>eta).val, (<acb>self).val, getprec())
+        return G
+

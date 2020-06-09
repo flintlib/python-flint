@@ -134,6 +134,11 @@ cdef class fmpz_poly(flint_poly):
             return v
         raise TypeError("cannot call fmpz_poly with input of type %s", type(other))
 
+    def derivative(self):
+        cdef fmpz_poly res = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_derivative(res.val, self.val)
+        return res
+
     def __pos__(self):
         return self
 
@@ -266,7 +271,7 @@ cdef class fmpz_poly(flint_poly):
         cdef int i
         fmpz_poly_factor_init(fac)
         # should use fmpz_poly_factor, but not available in 2.5.2
-        fmpz_poly_factor_zassenhaus(fac, self.val)
+        fmpz_poly_factor(fac, self.val)
         res = [0] * fac.num
         for 0 <= i < fac.num:
             u = fmpz_poly.__new__(fmpz_poly)
@@ -431,3 +436,71 @@ cdef class fmpz_poly(flint_poly):
         if fmpz_poly_length(v.val) == 0:
             raise ValueError("D must be an imaginary quadratic discriminant")
         return v
+
+    def height_bits(self, bint signed=False):
+        if signed:
+            return fmpz_poly_max_bits(self.val)
+        else:
+            return abs(fmpz_poly_max_bits(self.val))
+
+    def sqrt(self):
+        cdef fmpz_poly v = fmpz_poly()
+        if fmpz_poly_sqrt(v.val, self.val):
+            return v
+        else:
+            return None
+
+    def deflation(self):
+        cdef fmpz_poly v
+        cdef ulong n
+        n = arb_fmpz_poly_deflation(self.val)
+        if n == 1:
+            return self, int(n)
+        else:
+            v = fmpz_poly()
+            arb_fmpz_poly_deflate(v.val, self.val, n)
+            return v, int(n)
+
+    def is_cyclotomic(self):
+        cdef long * phi
+        cdef long i, p, q, d, N1, N2
+        cdef double U
+        d = self.degree()
+        if d < 1:
+            return 0
+        if d == 1:
+            if fmpz_is_one(fmpz_poly_get_coeff_ptr(self.val, 1)) and fmpz_equal_si(fmpz_poly_get_coeff_ptr(self.val, 0), -1):
+                return 1
+            if fmpz_is_one(fmpz_poly_get_coeff_ptr(self.val, 1)) and fmpz_equal_si(fmpz_poly_get_coeff_ptr(self.val, 0), 1):
+                return 2
+            return 0
+        if d % 2 != 0:
+            return 0
+        if not fmpz_is_one(fmpz_poly_get_coeff_ptr(self.val, 0)):
+            return 0
+        for i in range(d//2):
+            if not fmpz_equal(fmpz_poly_get_coeff_ptr(self.val, i), fmpz_poly_get_coeff_ptr(self.val, d-i)):
+                return 0
+        U = d
+        for p in range(2, d+1):
+            if d % (p-1) == 0:
+                if n_is_prime(p):
+                    U = (U * p) / (p - 1)
+        N1 = d + 1
+        N2 = int(U + 3)   # +3 as safety for possible float roundoff
+        phi = <long *> libc.stdlib.malloc(N2 * sizeof(long))
+        for i in range(N2):
+            phi[i] = i
+        for p in range(2, N2):
+            if phi[p] == p:
+                phi[p] = p - 1
+                for q in range(2*p, N2, p):
+                    phi[q] = (phi[q] // p) * (p-1)
+        for i in range(N1, N2):
+            if phi[i] == d:
+                v = fmpz_poly.cyclotomic(i)
+                if self == v:
+                    return int(i)
+        libc.stdlib.free(phi)
+        return 0
+

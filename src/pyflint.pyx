@@ -222,6 +222,12 @@ cdef class flint_poly(flint_elem):
         """
         return acb_poly(self).roots(**kwargs)
 
+cdef class flint_mpoly(flint_elem):
+    """
+    Base class for multivariate polynomials.
+    """
+
+
 cdef class flint_mat(flint_elem):
     """
     Base class for matrices.
@@ -293,6 +299,7 @@ cdef class flint_series(flint_elem):
 
 include "fmpz.pyx"
 include "fmpz_poly.pyx"
+include "fmpz_mpoly.pyx"
 include "fmpz_mat.pyx"
 include "fmpz_series.pyx"
 

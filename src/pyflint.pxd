@@ -74,3 +74,10 @@ cdef class acb_series:
     cdef acb_poly_t val
     cdef long prec
 
+cdef class fmpz_mpoly_ctx:
+    cdef fmpz_mpoly_ctx_t val
+
+cdef class fmpz_mpoly:
+    cdef fmpz_mpoly_t val
+    cdef bint initialized
+
