@@ -9,9 +9,9 @@ from numpy.distutils.system_info import default_include_dirs, default_lib_dirs
 from distutils.sysconfig import get_config_vars
 
 if sys.platform == 'win32':
-    libraries = ["flint", "arb", "mpir", "mpfr", "pthreads"]
+    libraries = ["arb", "flint", "mpir", "mpfr", "pthreads"]
 else:
-    libraries = ["flint", "arb"]
+    libraries = ["arb", "flint"]
     (opt,) = get_config_vars('OPT')
     os.environ['OPT'] = " ".join(flag for flag in opt.split() if flag != '-Wstrict-prototypes')
 
