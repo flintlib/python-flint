@@ -1,4 +1,4 @@
-from flint cimport *
+from flint._flint cimport *
 
 cdef class Context:
     cpdef public bint pretty

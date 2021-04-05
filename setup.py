@@ -21,7 +21,7 @@ default_include_dirs += [
 
 ext_modules = [
     Extension(
-        "flint", ["src/pyflint.pyx"],
+        "flint._flint", ["src/flint/pyflint.pyx"],
         libraries=libraries,
         library_dirs=default_lib_dirs,
         include_dirs=default_include_dirs)
@@ -34,6 +34,8 @@ setup(
     name='python-flint',
     cmdclass={'build_ext': build_ext},
     ext_modules=ext_modules,
+    packages=['flint'],
+    package_dir={'': 'src'},
     description='Bindings for FLINT and Arb',
     version='0.3.0',
     url='https://github.com/python-flint/python-flint',
