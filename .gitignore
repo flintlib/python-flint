@@ -3,5 +3,7 @@ dist/*
 src/*.c
 doc/build/*
 fmake*
+*.whl
 MANIFEST
 .eggs
+.local
