@@ -666,7 +666,7 @@ cdef class acb_mat(flint_mat):
             >>> sum(acb_mat(arb_mat.hilbert(20,20)).eig(nonstop=True))
             nan + nanj
             >>> showgood(lambda: sum(acb_mat(arb_mat.hilbert(20,20)).eig(nonstop=True)), parts=False)
-            2.47967321036454 + [+/- 1.48e-56]j
+            2.47967321036454 + 0e-55j
 
         With default options, the method only succeeds if all eigenvalues can be
         isolated. Multiple (overlapping) eigenvalues can be handled by
