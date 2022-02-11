@@ -39,6 +39,7 @@ cdef fmpz_poly_set_list(fmpz_poly_t poly, list val):
 
 cdef dict _fmpz_mpoly_ctx_cache = {}
 
+@cython.auto_pickle(False)
 cdef class fmpz_mpoly_ctx:
     cdef fmpz_mpoly_ctx_t val
 
