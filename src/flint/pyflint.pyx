@@ -10,9 +10,6 @@ cdef flint_rand_t global_random_state
 flint_randinit(global_random_state)
 
 cdef extern from "Python.h":
-    ctypedef void PyObject
-    ctypedef void PyTypeObject
-    ctypedef long Py_ssize_t
     int PyObject_TypeCheck(object, PyTypeObject*)
     int PyInt_Check(PyObject *o)
     PyObject* PyInt_FromLong(long ival)
@@ -67,12 +64,12 @@ cdef long dps_to_prec(n):
     return max(1, int(round((int(n)+1)*3.3219280948873626)))
 
 cdef class FlintContext:
-    cpdef public bint pretty
-    cpdef public long _prec
-    cpdef public long _dps
-    cpdef arf_rnd_t rnd
-    cpdef public bint unicode
-    cpdef public long _cap
+    cdef public bint pretty
+    cdef public long _prec
+    cdef public long _dps
+    cdef arf_rnd_t rnd
+    cdef public bint unicode
+    cdef public long _cap
 
     def __init__(self):
         self.default()
@@ -294,7 +291,6 @@ cdef class flint_series(flint_elem):
 
     def coeffs(self):
         return list(self)
-
 
 
 include "fmpz.pyx"
