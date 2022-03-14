@@ -12,8 +12,8 @@ source bin/build_variables.sh
 python3 -m venv $PREFIX/venv
 source $PREFIX/venv/bin/activate
 pip install -U pip wheel delocate
-pip install numpy cython==0.27.3
-# N.B. bugs in both older and newer Cython versions...
+pip install numpy cython
+# Working as of cython==0.29.28
 
 C_INCLUDE_PATH=.local/include/ LIBRARY_PATH=.local/lib/ pip wheel .
 
