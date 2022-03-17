@@ -7,12 +7,13 @@ jobs:
     name: Build wheels for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         # os: [ubuntu-20.04, windows-2019, macOS-10.15]
         os: [ubuntu-20.04, macOS-10.15]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-python@v2
 
       - name: Build wheels
@@ -27,8 +28,32 @@ jobs:
             C_INCLUDE_PATH=$(pwd)/.local/include/
             LIBRARY_PATH=$(pwd)/.local/lib/
             LD_LIBRARY_PATH=$(pwd)/.local/lib:$LD_LIBRARY_PATH
-          CIBW_TEST_COMMAND: "python -c \'import flint; assert str(flint.fmpq(3, 2)**2) == \"9/4\"\'"
+          CIBW_TEST_COMMAND: python -c 'import flint; print(str(flint.fmpz(2)))'
 
       - uses: actions/upload-artifact@v2
         with:
           path: wheelhouse/*.whl
+
+  test_wheels:
+    needs: build_wheels
+    name: Test ${{ matrix.python-version }} wheel on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, macOS-10.15]
+        python-version: ['3.7', '3.8', '3.9', '3.10']
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/download-artifact@v3
+        with:
+          name: artifact
+          path: wheelhouse
+      - run: python -m venv venv
+      - run: venv/bin/pip install -U pip
+      - run: venv/bin/pip install --find-links wheelhouse python_flint
+      - run: venv/bin/python test/test.py
