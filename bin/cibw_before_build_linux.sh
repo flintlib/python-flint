@@ -2,5 +2,5 @@
 
 yum install -y xz
 bin/build_dependencies_unix.sh\
-  --gmp gmp\
+  --gmp mpir\
   --host x86_64-pc-linux-gnu
