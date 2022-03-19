@@ -74,6 +74,8 @@ if [ $USE_GMP = "gmp" ]; then
   curl -O https://gmplib.org/download/gmp/gmp-$GMPVER.tar.xz
   tar xf gmp-$GMPVER.tar.xz
   cd gmp-$GMPVER
+    ./configfsf.guess
+    exit 1
     ./configure --prefix=$PREFIX\
       --enable-fat\
       --enable-shared=yes\
