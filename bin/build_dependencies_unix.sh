@@ -132,7 +132,7 @@ fi
 #                                                                           #
 # ------------------------------------------------------------------------- #
 
-curl -O https://www.mpfr.org/mpfr-current/mpfr-$MPFRVER.tar.gz
+curl -O https://ftp.gnu.org/gnu/mpfr/mpfr-$MPFRVER.tar.gz
 tar xf mpfr-$MPFRVER.tar.gz
 cd mpfr-$MPFRVER
   ./configure --prefix=$PREFIX\
