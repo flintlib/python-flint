@@ -149,9 +149,9 @@ cd ..
 #                                                                           #
 # ------------------------------------------------------------------------- #
 
-curl -O https://www.flintlib.org/flint-$FLINTVER.tar.gz
-tar xf flint-$FLINTVER.tar.gz
-cd flint-$FLINTVER
+curl -O -L https://github.com/wbhart/flint2/archive/refs/tags/$FLINTVER.tar.gz
+tar xf $FLINTVER.tar.gz
+cd flint2-$FLINTVER
   ./configure --prefix=$PREFIX\
     $FLINTARB_WITHGMP\
     --with-mpfr=$PREFIX\
