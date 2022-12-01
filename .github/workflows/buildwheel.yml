@@ -14,10 +14,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.3.1
+        uses: pypa/cibuildwheel@v2.11.2
         env:
           CIBW_BUILD: cp39-* cp310-* cp311-*
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux_*"
@@ -31,7 +34,7 @@ jobs:
             LD_LIBRARY_PATH=$(pwd)/.local/lib:$LD_LIBRARY_PATH
           CIBW_TEST_COMMAND: python -c 'import flint; print(str(flint.fmpz(2)))'
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: wheelhouse/*.whl
 
