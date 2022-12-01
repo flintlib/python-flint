@@ -532,9 +532,9 @@ cdef extern from "flint/fmpq.h":
 cdef extern from "flint/fmpq_poly.h":
     ctypedef struct fmpq_poly_struct:
         fmpz_struct * coeffs
-        fmpz_t den
         long alloc
         long length
+        fmpz_t den
     ctypedef fmpq_poly_struct fmpq_poly_t[1]
     void fmpq_poly_init(fmpq_poly_t poly)
     void fmpq_poly_init2(fmpq_poly_t poly, long alloc)
@@ -703,7 +703,7 @@ cdef extern from "flint/fmpq_mat.h":
 cdef extern from "flint/arith.h":
     void arith_number_of_partitions(fmpz_t res, ulong n)
     int arith_moebius_mu(fmpz_t n)
-    void arith_divisor_sigma(fmpz_t v, fmpz_t n, ulong k)
+    void arith_divisor_sigma(fmpz_t v, ulong k, fmpz_t n)
     void arith_euler_phi(fmpz_t v, fmpz_t n)
     void arith_bell_number(fmpz_t v, ulong n)
     void arith_euler_number(fmpz_t v, ulong n)
