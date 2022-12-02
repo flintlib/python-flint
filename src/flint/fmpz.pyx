@@ -559,7 +559,7 @@ cdef class fmpz(flint_scalar):
             605263138639095300
         """
         cdef fmpz v = fmpz()
-        arith_divisor_sigma(v.val, n.val, k)
+        arith_divisor_sigma(v.val, k, n.val)
         return v
 
     def euler_phi(n):

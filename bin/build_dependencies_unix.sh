@@ -149,7 +149,7 @@ cd ..
 #                                                                           #
 # ------------------------------------------------------------------------- #
 
-curl -O https://www.flintlib.org/flint-$FLINTVER.tar.gz
+curl -O -L https://www.flintlib.org/flint-$FLINTVER.tar.gz
 tar xf flint-$FLINTVER.tar.gz
 cd flint-$FLINTVER
   ./configure --prefix=$PREFIX\
