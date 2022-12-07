@@ -1,7 +1,7 @@
 cdef inline int fmpz_set_pylong(fmpz_t x, obj):
     cdef int overflow
-    cdef long longval
-    longval = PyLong_AsLongAndOverflow(<PyObject*>obj, &overflow)
+    cdef slong longval
+    longval = pylong_as_slong(<PyObject*>obj, &overflow)
     if overflow:
         s = "%x" % obj
         fmpz_set_str(x, chars_from_str(s), 16)
@@ -28,7 +28,7 @@ cdef fmpz_get_intlong(fmpz_t x):
         libc.stdlib.free(s)
         return v
     else:
-        return <long>x[0]
+        return <slong>x[0]
 
 cdef int fmpz_set_any_ref(fmpz_t x, obj):
     if typecheck(obj, fmpz):

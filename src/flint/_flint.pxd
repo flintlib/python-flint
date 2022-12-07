@@ -1,5 +1,6 @@
-# fixme!
-DEF FLINT_BITS = 64
+# _flint.pxd
+#
+# Define the contents of the Python, GMP, Flint and Arb headers.
 
 cdef extern from "Python.h":
     ctypedef void PyObject
@@ -7,16 +8,26 @@ cdef extern from "Python.h":
     ctypedef long Py_ssize_t
     int PyObject_TypeCheck(object, PyTypeObject*)
     int PyInt_Check(PyObject *o)
-    PyObject* PyInt_FromLong(long ival)
     int PyLong_Check(PyObject *o)
     long PyInt_AS_LONG(PyObject *io)
     double PyFloat_AS_DOUBLE(PyObject *io)
     Py_ssize_t PyList_GET_SIZE(PyObject *list)
     long PyLong_AsLongAndOverflow(PyObject *pylong, int *overflow)
+    long long PyLong_AsLongLongAndOverflow(PyObject *pylong, int *overflow)
 
 DEF FMPZ_UNKNOWN = 0
 DEF FMPZ_REF = 1
 DEF FMPZ_TMP = 2
+
+#
+# Note: ulong and slong are used throughout Flint/Arb. They are expected to be
+# 32 bit unsigned and signed integer types on a 32 bit system and 64 bit on a
+# 64 bit system. We denote them as unsigned long and long here which would be
+# incorrect on 64 bit Windows but the definition here does not matter because
+# their actual sizes will be determined by the values from gmp.h and
+# flint/flint.h. Their size in bits (32 or 64) is recorded in the FLINT_BITS
+# macro which is defined in flint/flint.h.
+#
 
 cdef extern from "gmp.h":
     ctypedef unsigned long ulong
@@ -27,17 +38,35 @@ cdef extern from "gmp.h":
     ctypedef mp_limb_t* mp_srcptr
     ctypedef unsigned long mp_bitcnt_t
 
-ctypedef long fmpz_struct
-ctypedef long slong
-ctypedef ulong flint_bitcnt_t
+cdef extern from "flint/fmpz.h":
+    ctypedef long slong
+    ctypedef ulong flint_bitcnt_t
+
+ctypedef slong fmpz_struct
 
 cdef extern from "flint/flint.h":
+    const int FLINT_BITS
     ctypedef void * flint_rand_t
     void flint_randinit(flint_rand_t state)
     void flint_randclear(flint_rand_t state)
     void flint_set_num_threads(long)
     long flint_get_num_threads()
     void flint_cleanup()
+
+cdef extern from *:
+    """
+    /* FLINT_BITS is not known until C compile time. We need to check if long
+     * or long long matches FLINT_BITS to know which CPython function to call.
+     */
+    #if FLINT_BITS == 32 && LONG_MAX == 2147483647
+    #define pylong_as_slong PyLong_AsLongAndOverflow
+    #elif FLINT_BITS == 64 && LLONG_MAX == 9223372036854775807
+    #define pylong_as_slong PyLong_AsLongLongAndOverflow
+    #else
+    #error FLINT_BITS does not match width of long or long long.
+    #endif
+    """
+    slong pylong_as_slong(PyObject *pylong, int *overflow)
 
 cdef extern from "flint/nmod_vec.h":
     ctypedef struct nmod_t:
