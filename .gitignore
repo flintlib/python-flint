@@ -1,9 +1,13 @@
 build/*
 dist/*
-src/*.c
+src/flint/*.c
 doc/build/*
 fmake*
 *.whl
+*.pyc
+*.pyd
+*.so
+__pycache__
 MANIFEST
 .eggs
 .local
