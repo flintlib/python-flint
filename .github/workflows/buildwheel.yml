@@ -10,8 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [ubuntu-20.04, windows-2019, macos-12]
-        os: [ubuntu-20.04, macos-12]
+        os: [ubuntu-20.04, windows-2019, macos-12]
 
     steps:
       - uses: actions/checkout@v3
@@ -20,22 +19,38 @@ jobs:
         with:
           python-version: '3.10'
 
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: mingw64
+          # path-type inherit is used so that when cibuildwheel calls msys2 to
+          # run bin/cibw_prepare_python_windows.sh the virtual environment
+          # created by cibuildwheel will be available within msys2. The
+          # msys2/setup-msys2 README warns that using inherit here can be
+          # problematic in some situations. Maybe there is a better way to do
+          # this.
+          path-type: inherit
+        if: ${{ matrix.os == 'windows-2019' }}
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.11.2
         env:
           CIBW_BUILD: cp39-* cp310-* cp311-*
-          #CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux_*"
-          CIBW_SKIP: "*-win32 *-musllinux_*"
+          CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux_*"
+          #CIBW_SKIP: "*-win32 *-musllinux_*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
           CIBW_BEFORE_ALL_LINUX: bin/cibw_before_build_linux.sh
           CIBW_BEFORE_ALL_MACOS: bin/cibw_before_build_macosx.sh
-          CIBW_BEFORE_BUILD: pip install numpy cython
+          CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_build_windows.sh
+          CIBW_BEFORE_BUILD_WINDOWS: msys2 -c bin/cibw_prepare_python_windows.sh
+          CIBW_BEFORE_BUILD: pip install numpy cython delvewheel
           CIBW_ENVIRONMENT: >
             C_INCLUDE_PATH=$(pwd)/.local/include/
             LIBRARY_PATH=$(pwd)/.local/lib/
             LD_LIBRARY_PATH=$(pwd)/.local/lib:$LD_LIBRARY_PATH
-          CIBW_TEST_COMMAND: python -c 'import flint; print(str(flint.fmpz(2)))'
+            PYTHON_FLINT_MINGW64=true
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: bin\repair_mingw_wheel.bat {dest_dir} {wheel}
+          CIBW_TEST_COMMAND: python -c "import flint; print(str(flint.fmpz(2)))"
 
       - uses: actions/upload-artifact@v3
         with:
@@ -48,7 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-12]
+        os: [ubuntu-20.04, windows-2019, macos-12]
         python-version: ['3.9', '3.10', '3.11']
 
     steps:
@@ -60,7 +75,5 @@ jobs:
         with:
           name: artifact
           path: wheelhouse
-      - run: python -m venv venv
-      - run: venv/bin/pip install -U pip
-      - run: venv/bin/pip install --find-links wheelhouse python_flint
-      - run: venv/bin/python test/test.py
+      - run: pip install --find-links wheelhouse python_flint
+      - run: python test/test.py
