@@ -11,3 +11,4 @@ __pycache__
 MANIFEST
 .eggs
 .local
+*.egg-info
