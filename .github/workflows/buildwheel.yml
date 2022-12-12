@@ -23,7 +23,7 @@ jobs:
         with:
           msystem: mingw64
           # path-type inherit is used so that when cibuildwheel calls msys2 to
-          # run bin/cibw_prepare_python_windows.sh the virtual environment
+          # run bin/cibw_before_build_windows.sh the virtual environment
           # created by cibuildwheel will be available within msys2. The
           # msys2/setup-msys2 README warns that using inherit here can be
           # problematic in some situations. Maybe there is a better way to do
@@ -39,17 +39,18 @@ jobs:
           #CIBW_SKIP: "*-win32 *-musllinux_*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
-          CIBW_BEFORE_ALL_LINUX: bin/cibw_before_build_linux.sh
-          CIBW_BEFORE_ALL_MACOS: bin/cibw_before_build_macosx.sh
-          CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_build_windows.sh
-          CIBW_BEFORE_BUILD_WINDOWS: msys2 -c bin/cibw_prepare_python_windows.sh
+          CIBW_BEFORE_ALL_LINUX: bin/cibw_before_all_linux.sh
+          CIBW_BEFORE_ALL_MACOS: bin/cibw_before_all_macosx.sh
+          CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
+          CIBW_BEFORE_BUILD_WINDOWS: msys2 -c bin/cibw_before_build_windows.sh
           CIBW_BEFORE_BUILD: pip install numpy cython delvewheel
           CIBW_ENVIRONMENT: >
             C_INCLUDE_PATH=$(pwd)/.local/include/
             LIBRARY_PATH=$(pwd)/.local/lib/
             LD_LIBRARY_PATH=$(pwd)/.local/lib:$LD_LIBRARY_PATH
             PYTHON_FLINT_MINGW64=true
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: bin\repair_mingw_wheel.bat {dest_dir} {wheel}
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
+            bin\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}
           CIBW_TEST_COMMAND: python -c "import flint; print(str(flint.fmpz(2)))"
 
       - uses: actions/upload-artifact@v3
