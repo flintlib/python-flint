@@ -447,7 +447,7 @@ if __name__ == "__main__":
     sys.stdout.write("test_nmod_mat..."); test_nmod_mat(); print("OK")
     sys.stdout.write("test_arb.."); test_arb(); print("OK")
     sys.stdout.write("doctests...");
-    fail, total = doctest.testmod(flint);
+    fail, total = doctest.testmod(flint._flint);
     if fail == 0:
         print("OK")
     else:
