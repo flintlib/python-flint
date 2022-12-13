@@ -9,5 +9,5 @@ set tempfile=tmpfile.deleteme
 set WHEELHOUSE=%1
 set WHEELNAME=%2
 
-msys2 -c bin/repair_mingw_wheel.sh
-rem C:\msys64\usr\bin\bash bin/repair_mingw_wheel.sh
+msys2 -c bin/cibw_repair_wheel_command_windows.sh
+rem C:\msys64\usr\bin\bash bin/cibw_repair_wheel_command_windows.sh

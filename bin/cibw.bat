@@ -23,10 +23,10 @@ del /q wheelhouse\*
 
 set CIBW_BUILD=cp39-* cp310-* cp311-*
 set CIBW_SKIP=*-win32 *-manylinux_i686 *-musllinux_*
-set CIBW_BEFORE_ALL_WINDOWS=C:\msys64\usr\bin\bash bin/cibw_before_build_windows.sh
-set CIBW_BEFORE_BUILD_WINDOWS=C:\msys64\usr\bin\bash bin/cibw_prepare_python_windows.sh
+set CIBW_BEFORE_ALL_WINDOWS=C:\msys64\usr\bin\bash bin/cibw_before_all_windows.sh
+set CIBW_BEFORE_BUILD_WINDOWS=C:\msys64\usr\bin\bash bin/cibw_before_build_windows.sh
 set CIBW_ENVIRONMENT=PYTHON_FLINT_MINGW64=true
-set CIBW_REPAIR_WHEEL_COMMAND_WINDOWS=bin\repair_mingw_wheel.bat {dest_dir} {wheel}
+set CIBW_REPAIR_WHEEL_COMMAND_WINDOWS=bin\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}
 set CIBW_TEST_COMMAND=python -c "import flint; print(str(flint.fmpz(2)))"
 
 cibuildwheel --platform windows
