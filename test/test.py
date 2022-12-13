@@ -446,9 +446,14 @@ if __name__ == "__main__":
     sys.stdout.write("test_nmod_poly..."); test_nmod_poly(); print("OK")
     sys.stdout.write("test_nmod_mat..."); test_nmod_mat(); print("OK")
     sys.stdout.write("test_arb.."); test_arb(); print("OK")
-    sys.stdout.write("doctests...");
-    fail, total = doctest.testmod(flint._flint);
-    if fail == 0:
-        print("OK")
-    else:
-        raise AssertionError("%i of %i doctests failed" % (fail, total))
+    print("OK")
+    #
+    # The doctests currently fail on Windows so for now we separate them into a
+    # separate test/doctest.py.
+    #
+    #sys.stdout.write("doctests...");
+    #fail, total = doctest.testmod(flint._flint);
+    #if fail == 0:
+    #    print("OK")
+    #else:
+    #    raise AssertionError("%i of %i doctests failed" % (fail, total))
