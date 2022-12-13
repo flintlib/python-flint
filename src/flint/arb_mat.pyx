@@ -616,10 +616,10 @@ cdef class arb_mat(flint_mat):
         magnitude have been replaced by exact zeros.
 
             >>> print(arb_mat.stirling(4, 4).inv().str(5, radius=False))
-            [1.0000,       0,              0,              0]
-            [     0,  1.0000, [+/- 1.20e-15], [+/- 5.00e-16]]
-            [     0, -1.0000,         1.0000, [+/- 1.67e-16]]
-            [     0,  1.0000,        -3.0000,         1.0000]
+            [1.0000,       0,       0,      0]
+            [     0,  1.0000,   0e-14,  0e-15]
+            [     0, -1.0000,  1.0000,  0e-15]
+            [     0,  1.0000, -3.0000, 1.0000]
             >>> print(arb_mat.stirling(4, 4).inv().chop(1e-6).str(5, radius=False))
             [1.0000,       0,       0,      0]
             [     0,  1.0000,       0,      0]

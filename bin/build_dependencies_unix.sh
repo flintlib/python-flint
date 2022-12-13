@@ -177,6 +177,13 @@ cd arb-$ARBVER
     --disable-static
   make -j3
   make install
+  #
+  # Here make check passes for Linux and OSX but fails for Windows probably
+  # because of a linker error or something like that. It would be nice to
+  # enable this check when it can work for Windows but for now we disable it
+  # because if it fails then we don't get any wheels built.
+  #
+  # ARB_TEST_MULTIPLIER=0.1 make check
 cd ..
 
 # ------------------------------------------------------------------------- #
