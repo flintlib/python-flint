@@ -12,3 +12,4 @@ MANIFEST
 .eggs
 .local
 *.egg-info
+.coverage
