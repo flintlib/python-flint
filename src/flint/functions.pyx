@@ -24,8 +24,8 @@ cdef goodstr(x):
         return x.str(radius=False)
     raise TypeError("must have arb or acb")
 
-def good(func, long prec=0, long maxprec=0, long dps=0,
-        long maxdps=0, long padding=10, bint verbose=False, bint show=False, bint parts=True, metric=None):
+def good(func, slong prec=0, slong maxprec=0, slong dps=0,
+        slong maxdps=0, slong padding=10, bint verbose=False, bint show=False, bint parts=True, metric=None):
     """
     Evaluates *func*, automatically increasing the precision to get
     a result accurate to the current working precision (or the
@@ -53,7 +53,7 @@ def good(func, long prec=0, long maxprec=0, long dps=0,
 
 
     """
-    cdef long orig, morebits, acc
+    cdef slong orig, morebits, acc
 
     if dps > 0:
         prec = dps_to_prec(dps)
