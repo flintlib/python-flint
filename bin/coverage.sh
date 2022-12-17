@@ -34,7 +34,7 @@ export PYTHON_FLINT_COVERAGE=true
 python setup.py build_ext --inplace
 
 coverage run test/test.py
-coverage run --append test/dtest.py
+#coverage run --append test/dtest.py
 
 coverage report -m
 coverage html

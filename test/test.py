@@ -19,6 +19,13 @@ def test_fmpz():
     assert flint.fmpz() == flint.fmpz(0)
     L = [0, 1, 2, 3, 2**31-1, 2**31, 2**63-1, 2**63, 2**64-1, 2**64]
     L += [-x for x in L]
+    for i in L:
+        f = flint.fmpz(i)
+        assert int(f) == i
+        assert flint.fmpz(f) == f
+        assert flint.fmpz(str(i)) == f
+    raises(lambda: flint.fmpz("qwe"), ValueError)
+    raises(lambda: flint.fmpz([]), TypeError)
     for s in L:
         for t in L:
             for ltype in (flint.fmpz, int, long):
@@ -42,6 +49,7 @@ def test_fmpz():
                     assert (ltype(s) >= rtype(t)) == (s >= t)
                     if 0 <= t < 10:
                         assert (ltype(s) ** rtype(t)) == (s ** t)
+    assert flint.fmpz(2) != []
     assert +flint.fmpz(0) == 0
     assert +flint.fmpz(1) == 1
     assert +flint.fmpz(-1) == -1
@@ -55,6 +63,18 @@ def test_fmpz():
     assert isinstance(int(flint.fmpz(2)), int)
     assert long(flint.fmpz(2)) == 2
     assert isinstance(long(flint.fmpz(2)), long)
+    l = [1, 2, 3]
+    l[flint.fmpz(1)] = -2
+    assert l == [1, -2, 3]
+    d = {flint.fmpz(2): 3}
+    d[flint.fmpz(2)] = -1
+    assert d == {flint.fmpz(2): -1}
+    assert flint.fmpz(2).bit_length() == 2
+    assert flint.fmpz(-2).bit_length() == 2
+    assert flint.fmpz(2).height_bits() == 2
+    assert flint.fmpz(-2).height_bits() == 2
+    assert flint.fmpz(2).height_bits(signed=True) == 2
+    assert flint.fmpz(-2).height_bits(signed=True) == -2
     ctx.pretty = False
     assert repr(flint.fmpz(0)) == "fmpz(0)"
     assert repr(flint.fmpz(-27)) == "fmpz(-27)"
@@ -63,6 +83,97 @@ def test_fmpz():
     assert repr(flint.fmpz(-27)) == "-27"
     assert bool(flint.fmpz(0)) == False
     assert bool(flint.fmpz(1)) == True
+    bigstr = '1' * 100
+    big = flint.fmpz(bigstr)
+    assert big.str() == bigstr
+    assert big.str(condense=10) == '1111111111{...80 digits...}1111111111'
+    raises(lambda: pow(flint.fmpz(2), 2, 3), NotImplementedError)
+    assert flint.fmpz(6).gcd(flint.fmpz(9)) == 3
+    assert flint.fmpz(6).gcd(9) == 3
+    raises(lambda: flint.fmpz(2).gcd('asd'), TypeError)
+    assert flint.fmpz(6).lcm(flint.fmpz(9)) == 18
+    assert flint.fmpz(6).lcm(9) == 18
+    raises(lambda: flint.fmpz(2).lcm('asd'), TypeError)
+    assert flint.fmpz(25).factor() == [(5, 2)]
+    n = flint.fmpz(10**100 + 1)
+    assert n.factor() == [
+        (73, 1), (137, 1), (401, 1), (1201, 1), (1601, 1), (1676321, 1), (5964848081, 1),
+        (129694419029057750551385771184564274499075700947656757821537291527196801, 1)]
+
+    assert n.factor(trial_limit=100) == [
+        (73, 1), (137, 1), (401, 1),
+        (2493516234411471571047384039650897753117456334167082044912715710972543643391271845384040149601, 1)]
+    assert n.factor_smooth() == [
+        (73, 1), (137, 1), (401, 1), (1201, 1), (1601, 1),
+        (1296814508839693536173209832765271992846610925502473758289451540212712414540699659186801, 1)]
+    T, F, VE, OE = True, False, ValueError, OverflowError
+    cases = [
+        # (f, [f(-1), f(0), f(1), f(2), ... f(10)]),
+        (lambda n: flint.fmpz(n).is_prime(),
+            [0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0]),
+        (lambda n: flint.fmpz(n).is_probable_prime(),
+            [0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0]),
+        (lambda n: flint.fmpz(n).is_perfect_power(),
+            [T, T, T, F, F, T, F, F, F, T, T, F]),
+        (lambda n: flint.fmpz(n).partitions_p(),
+            [0, 1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42]),
+        (lambda n: flint.fmpz(n).moebius_mu(),
+            [1, 0, 1, -1, -1, 0, -1, 1, -1, 0, 0, 1]),
+        (lambda n: flint.fmpz.fac_ui(n),
+            [OE, 1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800]),
+        (lambda n: flint.fmpz.primorial_ui(n),
+            [OE, 1, 1, 2, 6, 6, 30, 30, 210, 210, 210, 210, 2310, 2310]),
+        (lambda n: flint.fmpz.fib_ui(n),
+            [OE, 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55]),
+        (lambda n: flint.fmpz(n).rising(0),
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
+        (lambda n: flint.fmpz(n).rising(1),
+            [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+        (lambda n: flint.fmpz(n).rising(2),
+            [0, 0, 2, 6, 12, 20, 30, 42, 56, 72, 90, 110]),
+        (lambda n: flint.fmpz.bin_uiui(n, 0),
+            [OE, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
+        (lambda n: flint.fmpz.bin_uiui(n, 1),
+            [OE, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+        (lambda n: flint.fmpz.bin_uiui(n, 2),
+            [OE, 0, 0, 1, 3, 6, 10, 15, 21, 28, 36, 45]),
+        (lambda n: flint.fmpz.bell_number(n),
+            [OE, 1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147, 115975]),
+        (lambda n: flint.fmpz.euler_number(n),
+            [OE, 1, 0, -1, 0, 5, 0, -61, 0, 1385, 0, -50521]),
+        (lambda n: flint.fmpz.stirling_s1(n, 1),
+            [OE, 0, 1, -1, 2, -6, 24, -120, 720, -5040, 40320, -362880]),
+        (lambda n: flint.fmpz.stirling_s2(n, 2),
+            [OE, 0, 0, 1, 3, 7, 15, 31, 63, 127, 255, 511]),
+        (lambda n: flint.fmpz(n).divisor_sigma(2),
+            [1, 0, 1, 5, 10, 21, 26, 50, 50, 85, 91, 130]),
+        (lambda n: flint.fmpz(n).euler_phi(),
+            [0, 0, 1, 1, 2, 2, 4, 2, 6, 4, 6, 4]),
+        (lambda n: flint.fmpz(n).isqrt(),
+            [VE, 0, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3]),
+        (lambda n: flint.fmpz(n).sqrtrem(),
+            [VE, (0, 0), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (3, 0), (3, 1)]),
+        (lambda n: flint.fmpz(n).sqrtmod(11),
+            [VE, 0, 1, VE, 5, 2, 4, VE, VE, VE, 3, VE]),
+        (lambda n: flint.fmpz(n).root(3),
+            [VE, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2]),
+        (lambda n: flint.fmpz(n).jacobi(3),
+            [-1, 0, 1, -1, 0, 1, -1, 0, 1, -1, 0, 1]),
+        (lambda n: flint.fmpz(2).jacobi(n),
+            [1, 1, 1, -1, -1, -1, -1, 1, 1, 1, 1, -1]),
+    ]
+    is_exception = lambda v: isinstance(v, type) and issubclass(v, Exception)
+
+    for func, values in cases:
+        for n, val in enumerate(values, -1):
+            if is_exception(val):
+                raises(lambda: func(n), val)
+            else:
+                assert func(n) == val
+
+    raises(lambda: flint.fmpz(1).root(-1), ValueError)
+    raises(lambda: flint.fmpz(1).jacobi('bad'), TypeError)
+
 
 def test_fmpz_poly():
     Z = flint.fmpz_poly

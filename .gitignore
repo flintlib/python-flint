@@ -1,6 +1,7 @@
 build/*
 dist/*
 src/flint/*.c
+src/flint/*.html
 doc/build/*
 fmake*
 *.whl
