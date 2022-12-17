@@ -88,6 +88,8 @@ def test_fmpz():
     assert big.str() == bigstr
     assert big.str(condense=10) == '1111111111{...80 digits...}1111111111'
     raises(lambda: pow(flint.fmpz(2), 2, 3), NotImplementedError)
+
+def test_fmpz_factor():
     assert flint.fmpz(6).gcd(flint.fmpz(9)) == 3
     assert flint.fmpz(6).gcd(9) == 3
     raises(lambda: flint.fmpz(2).gcd('asd'), TypeError)
@@ -99,13 +101,14 @@ def test_fmpz():
     assert n.factor() == [
         (73, 1), (137, 1), (401, 1), (1201, 1), (1601, 1), (1676321, 1), (5964848081, 1),
         (129694419029057750551385771184564274499075700947656757821537291527196801, 1)]
-
     assert n.factor(trial_limit=100) == [
         (73, 1), (137, 1), (401, 1),
         (2493516234411471571047384039650897753117456334167082044912715710972543643391271845384040149601, 1)]
     assert n.factor_smooth() == [
         (73, 1), (137, 1), (401, 1), (1201, 1), (1601, 1),
         (1296814508839693536173209832765271992846610925502473758289451540212712414540699659186801, 1)]
+
+def test_fmpz_functions():
     T, F, VE, OE = True, False, ValueError, OverflowError
     cases = [
         # (f, [f(-1), f(0), f(1), f(2), ... f(10)]),
@@ -173,7 +176,6 @@ def test_fmpz():
 
     raises(lambda: flint.fmpz(1).root(-1), ValueError)
     raises(lambda: flint.fmpz(1).jacobi('bad'), TypeError)
-
 
 def test_fmpz_poly():
     Z = flint.fmpz_poly
@@ -304,6 +306,14 @@ def test_fmpq():
     assert Q(1,2) != 1
     assert Q(2,3) == Q(flint.fmpz(2),long(3))
     assert Q(-2,-4) == Q(1,2)
+    assert Q("1") == Q(1)
+    assert Q("1/2") == Q(1,2)
+    raises(lambda: Q("1.0"), ValueError)
+    raises(lambda: Q("1.5"), ValueError)
+    raises(lambda: Q("1/2/3"), ValueError)
+    raises(lambda: Q([]), ValueError)
+    raises(lambda: Q(1, []), ValueError)
+    raises(lambda: Q([], 1), ValueError)
     assert bool(Q(0)) == False
     assert bool(Q(1)) == True
     assert Q(1,3) + Q(2,3) == 1
@@ -320,11 +330,50 @@ def test_fmpq():
     assert Q(2,3) / flint.fmpz(5) == Q(2,15)
     assert 5 / Q(2,3) == Q(15,2)
     assert flint.fmpz(5) / Q(2,3) == Q(15,2)
-    assert operator.truediv(Q(2,3), 5) == Q(2,15)
+    assert Q(2,3)/5 == Q(2,15)
+    assert Q(1,2) ** 2 == Q(1,4)
+    assert Q(1,2) ** -2 == Q(4)
+    raises(lambda: Q(0) ** -1, ZeroDivisionError)
+    raises(lambda: Q(1,2) ** Q(1,2), TypeError)
+    raises(lambda: Q(1,2) ** [], TypeError)
+    raises(lambda: [] ** Q(1,2), TypeError)
+    # XXX: This should NotImplementedError or something.
+    raises(lambda: pow(Q(1,2),2,3), AssertionError)
+
+    raises(lambda: Q(1,2) + [], TypeError)
+    raises(lambda: Q(1,2) - [], TypeError)
+    raises(lambda: Q(1,2) * [], TypeError)
+    raises(lambda: Q(1,2) / [], TypeError)
+    raises(lambda: [] + Q(1,2), TypeError)
+    raises(lambda: [] - Q(1,2), TypeError)
+    raises(lambda: [] * Q(1,2), TypeError)
+    raises(lambda: [] / Q(1,2), TypeError)
+    assert (Q(1,2) == 1) is False
+    assert (Q(1,2) != 1) is True
+    assert (Q(1,2) <  1) is True
+    assert (Q(1,2) <= 1) is True
+    assert (Q(1,2) >  1) is False
+    assert (Q(1,2) >= 1) is False
+    assert (Q(1,2) == Q(3,4)) is False
+    assert (Q(1,2) != Q(3,4)) is True
+    assert (Q(1,2) <  Q(3,4)) is True
+    assert (Q(1,2) <= Q(3,4)) is True
+    assert (Q(1,2) >  Q(3,4)) is False
+    assert (Q(1,2) >= Q(3,4)) is False
+    assert (Q(1,2) == Q(1,2)) is True
+    assert (Q(1,2) != Q(1,2)) is False
+    assert (Q(1,2) <  Q(1,2)) is False
+    assert (Q(1,2) <= Q(1,2)) is True
+    assert (Q(1,2) >  Q(1,2)) is False
+    assert (Q(1,2) >= Q(1,2)) is True
+    raises(lambda: Q(1,2) > [], TypeError)
+    raises(lambda: [] < Q(1,2), TypeError)
     ctx.pretty = False
     assert repr(Q(-2,3)) == "fmpq(-2,3)"
+    assert repr(Q(3)) == "fmpq(3)"
     ctx.pretty = True
     assert str(Q(-2,3)) == "-2/3"
+    assert str(Q(3)) == "3"
     assert Q(2,3).p == Q(2,3).numer() == 2
     assert Q(2,3).q == Q(2,3).denom() == 3
     assert +Q(5,7) == Q(5,7)
@@ -335,6 +384,62 @@ def test_fmpq():
     assert raises(lambda: Q(1,0), ZeroDivisionError)
     assert raises(lambda: Q(1,2) / Q(0), ZeroDivisionError)
     assert raises(lambda: Q(1,2) / 0, ZeroDivisionError)
+
+    assert Q(5,3).floor() == flint.fmpz(1)
+    assert Q(-5,3).floor() == flint.fmpz(-2)
+    assert Q(5,3).ceil() == flint.fmpz(2)
+    assert Q(-5,3).ceil() == flint.fmpz(-1)
+    # XXX: Need __floor__ etc.
+    #
+    # assert math.floor(Q(5,3)) == flint.fmpz(1)
+    # assert math.ceil(Q(5,3)) == flint.fmpz(2)
+    # assert math.trunc(Q(5,3)) == flint.fmpz(2)
+    # assert round(Q(5,3)) == 2
+
+    d = {}
+    d[Q(1,2)] = 3
+    d[Q(1,2)] = 4
+    assert d == {Q(1,2):4}
+
+    assert Q(-5,3).height_bits() == 3
+    assert Q(-5,3).height_bits(signed=True) == -3
+
+    cases = [
+        (lambda q: q.next(),
+            [Q(0), Q(1), Q(-1), Q(1,2), Q(-1,2), Q(2), Q(-2), Q(1,3), Q(-1,3), Q(3)]),
+        (lambda q: q.next(signed=False),
+            [Q(0), Q(1), Q(1,2), Q(2), Q(1,3), Q(3), Q(2,3), Q(3,2), Q(1,4), Q(4)]),
+        (lambda q: q.next(minimal=False),
+            [Q(0), Q(1), Q(-1), Q(1,2), Q(-1,2), Q(2), Q(-2), Q(1,3), Q(-1,3), Q(3,2)]),
+        (lambda q: q.next(signed=False, minimal=False),
+            [Q(0), Q(1), Q(1,2), Q(2), Q(1,3), Q(3,2), Q(2,3), Q(3), Q(1,4), Q(4,3)]),
+    ]
+    for func, values in cases:
+        for val1, val2 in zip(values[:-1], values[1:]):
+            assert func(val1) == val2
+    raises(lambda: Q(-1).next(signed=False), ValueError)
+
+    OE = OverflowError
+    cases = [
+        (flint.fmpq.bernoulli,
+            [OE, Q(1), Q(-1,2), Q(1,6), Q(0), Q(-1,30)]),
+        (lambda n: flint.fmpq.bernoulli(n, cache=True),
+            [OE, Q(1), Q(-1,2), Q(1,6), Q(0), Q(-1,30)]),
+        (flint.fmpq.harmonic,
+            [OE, Q(0), Q(1), Q(3,2), Q(11, 6), Q(25, 12)]),
+        (lambda n: flint.fmpq.dedekind_sum(n, 3),
+            [-Q(1,18), 0, Q(1,18), -Q(1,18), 0, Q(1,18), -Q(1,18)]),
+    ]
+    is_exception = lambda v: isinstance(v, type) and issubclass(v, Exception)
+
+    for func, values in cases:
+        for n, val in enumerate(values, -1):
+            if is_exception(val):
+                raises(lambda: func(n), val)
+            else:
+                assert func(n) == val
+
+
 
 def test_fmpq_poly():
     Q = flint.fmpq_poly
