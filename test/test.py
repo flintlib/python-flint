@@ -507,10 +507,10 @@ def test_fmpq_poly():
     assert Q() != Q([1])
     assert Q([1]) == Q([1])
     assert Q([1], 2) == Q([flint.fmpq(1,2)])
-    raises(lambda: Q([1,[]]), TypeError)
-    raises(lambda: Q({}), TypeError)
-    raises(lambda: Q([1], []), TypeError)
-    raises(lambda: Q([1], 0), ZeroDivisionError)
+    assert raises(lambda: Q([1,[]]), TypeError)
+    assert raises(lambda: Q({}), TypeError)
+    assert raises(lambda: Q([1], []), TypeError)
+    assert raises(lambda: Q([1], 0), ZeroDivisionError)
     assert bool(Q()) == False
     assert bool(Q([1])) == True
     assert Q(Q([1,2])) == Q([1,2])
@@ -578,7 +578,7 @@ def test_fmpq_poly():
     a[2] = 4
     def set_bad():
         a[-1] = 2
-    raises(set_bad, ValueError)
+    assert raises(set_bad, ValueError)
     assert a == Q([1,1,8],2)
     p = Q([3,4,5],7)
     assert p(2) == flint.fmpq(31,7)
