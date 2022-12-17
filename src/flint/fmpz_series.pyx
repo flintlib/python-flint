@@ -24,6 +24,20 @@ cdef fmpz_series_coerce_operands(x, y):
     return NotImplemented, NotImplemented
 
 cdef class fmpz_series(flint_series):
+    """
+    Power series with integer coefficients.
+
+        >>> fmpz_series([1,2,3])
+        1 + 2*x + 3*x^2 + O(x^10)
+        >>> fmpz_series([1,2,3], prec=2)
+        1 + 2*x + O(x^2)
+        >>> fmpz_series([1,2,3], prec=2) + fmpz_series([1,2,3,4,5])
+        2 + 4*x + O(x^2)
+        >>> a = fmpz_series([1,2,3])
+        >>> (a+1)*(a-1) - a**2 + 1
+        0 + O(x^10)
+
+    """
 
     cdef fmpz_poly_t val
     cdef long prec
@@ -151,6 +165,17 @@ cdef class fmpz_series(flint_series):
         return s * t
 
     cpdef valuation(self):
+        """
+        Returns the valuation of this power series.
+        If there are no known nonzero coefficients, returns -1.
+
+            >>> fmpz_series([1,2,3]).valuation()
+            0
+            >>> fmpz_series([0,0,0,1,2,3]).valuation()
+            3
+            >>> fmpz_series([]).valuation()
+            -1
+        """
         cdef long i
         if fmpz_poly_is_zero(self.val):
             return -1
@@ -159,7 +184,26 @@ cdef class fmpz_series(flint_series):
             i += 1
         return i
 
-    def __div__(s, t):
+    def _div_(s, t):
+        """
+        Power series division.
+
+            >>> fmpz_series([1]) / fmpz_series([1,-1,-1])
+            1 + x + 2*x^2 + 3*x^3 + 5*x^4 + 8*x^5 + 13*x^6 + 21*x^7 + 34*x^8 + 55*x^9 + O(x^10)
+            >>> fmpz_series([0,1,2]) / fmpz_series([0,1,2])
+            1 + O(x^9)
+            >>> fmpz_series([1,2]) / fmpz_series([0,1,2])
+            Traceback (most recent call last):
+              ...
+            ValueError: quotient would not be a power series
+            >>> fmpz_series([1,2]) / fmpz_series([2,3])
+            Traceback (most recent call last):
+              ...
+            ValueError: leading term in denominator is not a unit
+            >>> fmpz_series([]) / fmpz_series([1,2,3], prec=5)
+            0 + O(x^5)
+
+        """
         cdef long cap, sval, tval
         cdef fmpz_poly_t stmp, ttmp
         if type(s) is type(t):
@@ -173,7 +217,7 @@ cdef class fmpz_series(flint_series):
             u = fmpz_series.__new__(fmpz_series)
 
             if fmpz_poly_is_zero((<fmpz_series>s).val):
-                u.cap = cap
+                (<fmpz_series>u).prec = cap
                 return u
 
             sval = (<fmpz_series>s).valuation()
@@ -205,10 +249,19 @@ cdef class fmpz_series(flint_series):
             return s
         return s / t
 
+    def __div__(s, t):
+        return fmpz_series._div_(s, t)
+
     def __truediv__(s, t):
-        return fmpz_series.__div__(s, t)
+        return fmpz_series._div_(s, t)
 
     def __pow__(fmpz_series s, ulong exp, mod):
+        """
+        Power series exponentiation.
+
+            >>> fmpz_series([3,4,5], prec=4) ** 5
+            243 + 1620*x + 6345*x^2 + 16560*x^3 + O(x^4)
+        """
         cdef long cap
         if mod is not None:
             raise NotImplementedError("fmpz_series modular exponentiation")
@@ -220,6 +273,17 @@ cdef class fmpz_series(flint_series):
         return u
 
     def __call__(s, t):
+        """
+        Power series composition.
+
+            >>> fmpz_series([1,2,3])(fmpz_series([0,1,2]))
+            1 + 2*x + 7*x^2 + 12*x^3 + 12*x^4 + O(x^10)
+            >>> fmpz_series([1,2,3])(fmpz_series([1,1,2]))
+            Traceback (most recent call last):
+              ...
+            ValueError: power series composition with nonzero constant term
+
+        """
         cdef long cap
         if typecheck(t, fmpz_series):
             u = fmpz_series.__new__(fmpz_series)
@@ -234,6 +298,19 @@ cdef class fmpz_series(flint_series):
         raise TypeError("cannot call fmpz_series with input of type %s", type(t))
 
     def reversion(s):
+        """
+        Power series reversion.
+
+            >>> fmpz_series([0,1,-2,-3]).reversion()
+            x + 2*x^2 + 11*x^3 + 70*x^4 + 503*x^5 + 3864*x^6 + 31092*x^7 + 258654*x^8 + 2206655*x^9 + O(x^10)
+            >>> fmpz_series([0,1,-2,-3]).reversion()(fmpz_series([0,1,-2,-3]))
+            x + O(x^10)
+            >>> fmpz_series([1,2,3]).reversion()
+            Traceback (most recent call last):
+              ...
+            ValueError: power series reversion must have valuation 1
+
+        """
         cdef long cap
         cap = getcap()
         cap = min(cap, (<fmpz_series>s).prec)
