@@ -281,6 +281,12 @@ cdef class fmpq(flint_scalar):
 
     @staticmethod
     def dedekind_sum(n, k):
+        """
+        Dedekind sum.
+
+            >>> fmpq.dedekind_sum(10, 3)
+            1/18
+        """
         cdef fmpz nv, kv
         cdef fmpq v
         nv = fmpz(n)
@@ -290,11 +296,23 @@ cdef class fmpq(flint_scalar):
         return v
 
     def floor(self):
+        """
+        Floor function.
+
+            >>> fmpq(3,2).floor()
+            1
+        """
         cdef fmpz r = fmpz.__new__(fmpz)
         fmpz_fdiv_q(r.val, fmpq_numref(self.val), fmpq_denref(self.val))
         return r
 
     def ceil(self):
+        """
+        Ceiling function.
+
+            >>> fmpq(3,2).ceil()
+            2
+        """
         cdef fmpz r = fmpz.__new__(fmpz)
         fmpz_cdiv_q(r.val, fmpq_numref(self.val), fmpq_denref(self.val))
         return r
@@ -304,6 +322,16 @@ cdef class fmpq(flint_scalar):
         return hash(Fraction(int(self.p), int(self.q), _normalize=False))
 
     def height_bits(self, bint signed=False):
+        """
+        Returns the bit length of the maximum of the numerator and denominator.
+        With signed=True, returns the negative value if the number is
+        negative.
+
+            >>> fmpq(1001,5).height_bits()
+            10
+            >>> fmpq(-5,1001).height_bits(signed=True)
+            -10
+        """
         cdef long b1, b2
         b1 = fmpz_bits(fmpq_numref(self.val))
         b2 = fmpz_bits(fmpq_denref(self.val))
