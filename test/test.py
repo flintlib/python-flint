@@ -639,11 +639,15 @@ def test_nmod():
     assert G(1,2) != G(0,2)
     assert G(0,2) != G(0,3)
     assert G(3,5) == G(8,5)
+    assert raises(lambda: G([], 3), TypeError)
     #assert G(3,5) == 8        # do we want this?
     #assert 8 == G(3,5)
     assert G(3,5) != 7
     assert 7 != G(3,5)
-    assert G(-3,5) == -G(3,5) == G(2,5)
+    assert raises(lambda: G(3,5) < G(2,5), TypeError)
+    assert bool(G(0,5)) is False
+    assert bool(G(2,5)) is True
+    assert G(-3,5) == -G(3,5) == G(2,5) == +G(2,5)
     assert G(2,5) + G(1,5) == G(3,5)
     assert G(2,5) + 1 == G(3,5)
     assert 1 + G(2,5) == G(3,5)
@@ -658,13 +662,25 @@ def test_nmod():
     assert 3 / G(2,17) == G(10,17)
     assert G(3,17) * flint.fmpq(11,5) == G(10,17)
     assert G(3,17) / flint.fmpq(11,5) == G(6,17)
+    assert G(flint.fmpq(2, 3), 5) == G(4,5)
+    assert raises(lambda: G(flint.fmpq(2, 3), 3), ZeroDivisionError)
     assert raises(lambda: G(2,5) / G(0,5), ZeroDivisionError)
     assert raises(lambda: G(2,5) / 0, ZeroDivisionError)
     assert raises(lambda: G(2,5) + G(2,7), ValueError)
     assert raises(lambda: G(2,5) - G(2,7), ValueError)
     assert raises(lambda: G(2,5) * G(2,7), ValueError)
     assert raises(lambda: G(2,5) / G(2,7), ValueError)
+    assert raises(lambda: G(2,5) + [], TypeError)
+    assert raises(lambda: G(2,5) - [], TypeError)
+    assert raises(lambda: G(2,5) * [], TypeError)
+    assert raises(lambda: G(2,5) / [], TypeError)
+    assert raises(lambda: [] + G(2,5), TypeError)
+    assert raises(lambda: [] - G(2,5), TypeError)
+    assert raises(lambda: [] * G(2,5), TypeError)
+    assert raises(lambda: [] / G(2,5), TypeError)
     assert G(3,17).modulus() == 17
+    assert str(G(3,5)) == "3"
+    assert G(3,5).repr() == "nmod(3, 5)"
 
 def test_nmod_poly():
     P = flint.nmod_poly
