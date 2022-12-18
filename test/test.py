@@ -358,6 +358,13 @@ def test_fmpz_mat():
     assert a.entries() == [1,2,3,4,5,6]
     assert a.table() == [[1,2,3],[4,5,6]]
     assert (a + b).entries() == [5,7,9,11,13,15]
+    assert (a - b).entries() == [-3,-3,-3,-3,-3,-3]
+    assert a.transpose() == M(3,2,[1,4,2,5,3,6])
+    assert raises(lambda: a + 1, TypeError)
+    assert raises(lambda: 1 + a, TypeError)
+    assert raises(lambda: a - 1, TypeError)
+    assert raises(lambda: 1 - a, TypeError)
+    # XXX: Maybe there should be a ShapeError or something?
     assert raises(a.det, ValueError)
     assert +a == a
     assert -a == M(2,3,[-1,-2,-3,-4,-5,-6])
@@ -374,7 +381,11 @@ def test_fmpz_mat():
     A = M.randbits(5,3,2)
     B = M.randtest(3,7,3)
     C = M.randtest(7,2,4)
+    assert (A.nrows(),A.ncols()) == (5,3)
+    assert (B.nrows(),B.ncols()) == (3,7)
+    assert (C.nrows(),C.ncols()) == (7,2)
     assert A*(B*C) == (A*B)*C
+    assert raises(lambda: A*C, ValueError)
     assert bool(M(2,2,[0,0,0,0])) == False
     assert bool(M(2,2,[0,0,0,1])) == True
     ctx.pretty = False
@@ -389,12 +400,57 @@ def test_fmpz_mat():
     assert raises(lambda: M.randrank(4,3,4,1), ValueError)
     assert raises(lambda: M.randrank(3,4,4,1), ValueError)
     assert M(1,1,[3]) ** 5 == M(1,1,[3**5])
+    assert raises(lambda: pow(M([[1]]), 2, 3), NotImplementedError)
     assert raises(lambda: M(1,2) ** 3, ValueError)
     assert raises(lambda: M(1,1) ** M(1,1), TypeError)
     assert raises(lambda: 1 ** M(1,1), TypeError)
     assert raises(lambda: M([1]), TypeError)
     assert raises(lambda: M([[1],[2,3]]), ValueError)
+    assert raises(lambda: M(None), TypeError)
+    assert raises(lambda: M(2,2,[1,2,3]), ValueError)
+    assert raises(lambda: M(2,2,2,2), ValueError)
     assert M([[1,2,3],[4,5,6]]) == M(2,3,[1,2,3,4,5,6])
+    assert raises(lambda: M([[1]]) < M([[2]]), TypeError)
+    assert (M([[1]]) == 1) is False
+    assert (1 == M([[1]])) is False
+    assert (M([[1]]) != 1) is True
+    assert (1 != M([[1]])) is True
+    D = M([[1,2],[3,4]])
+    assert (D[0,0],D[0,1],D[1,0],D[1,1]) == (1,2,3,4)
+    D[0,0] = 3
+    assert D == M([[3,2],[3,4]])
+    def set_bad(i,j):
+        D[i,j] = -1
+    # XXX: Should be IndexError
+    raises(lambda: set_bad(2,0), ValueError)
+    raises(lambda: set_bad(0,2), ValueError)
+    raises(lambda: D[0,2], ValueError)
+    raises(lambda: D[0,2], ValueError)
+    # XXX: Negative indices?
+    raises(lambda: set_bad(-1,0), ValueError)
+    raises(lambda: set_bad(0,-1), ValueError)
+    raises(lambda: D[-1,0], ValueError)
+    raises(lambda: D[0,-1], ValueError)
+    assert M.hadamard(2) == M([[1,1],[1,-1]])
+    assert raises(lambda: M.hadamard(3), ValueError)
+    assert M.hadamard(2).is_hadamard() is True
+    assert M([[1,2],[3,4]]).is_hadamard() is False
+    M1 = M([[1,0],[1,1]])
+    M2 = M([[1,0],[-1,1]])
+    x = M([[3],[4]])
+    b = M([[3],[7]])
+    assert M1.inv() == M2
+    assert M2.inv() == M1
+    assert M1.inv(integer=True) == M2
+    assert M2.inv(integer=True) == M1
+    assert M1*x == b
+    assert M1.solve(b) == x
+    assert M1.solve(b, integer=True) == x
+    assert raises(lambda: M([[1,2,3],[4,5,6]]).inv(), ValueError)
+    assert raises(lambda: M([[1,1],[1,1]]).inv(), ZeroDivisionError)
+    assert raises(lambda: M([[1,0],[1,2]]).inv(integer=True), ValueError)
+    half = flint.fmpq(1,2)
+    assert M([[1,0],[1,2]]).inv() == flint.fmpq_mat([[1, 0], [-half, half]])
 
 def test_fmpq():
     Q = flint.fmpq
