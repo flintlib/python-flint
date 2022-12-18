@@ -683,23 +683,35 @@ def test_nmod():
     assert G(3,5).repr() == "nmod(3, 5)"
 
 def test_nmod_poly():
+    N = flint.nmod
     P = flint.nmod_poly
     Z = flint.fmpz_poly
     assert P([],17) == P([0],17)
     assert P([1,2,3],17) == P([1,2,3],17)
     assert P([1,2,3],17) != P([1,2,3],15)
     assert P([1,2,3],17) != P([1,2,4],15)
+    assert P([1,2,3],17) != 1
+    assert P([1,2,3],17) != Z([1,2,3])
+    assert raises(lambda: P([1,2],3) < P([1,2],3), TypeError)
     assert P(Z([1,2,3]),17) == P([1,2,3],17)
-    assert P([1,2,flint.nmod(3,17)],17) == P([1,2,3],17)
+    assert P([1,2,N(3,17)],17) == P([1,2,3],17)
+    assert P(P([1,2],17),17) == P([1,2],17)
+    assert raises(lambda: P(P([1,2],17),13), ValueError)
+    assert raises(lambda: P([1,2,[]],17), TypeError)
     assert raises(lambda: P([1,2,flint.nmod(3,15)],17), ValueError)
+    assert raises(lambda: P([1,2],0), ValueError)
+    assert raises(lambda: P({},3), TypeError)
     assert P([1,2,3],17).degree() == 2
     assert P([1,2,3],17).length() == 3
+    assert len(P([1,2,3],17)) == 3
+    assert P([1,2,3],5).coeffs() == [N(1,5),N(2,5),N(3,5)]
     assert P([1,2,3],17) + 2 == P([3,2,3],17)
     assert 2 + P([1,2,3],17) == P([3,2,3],17)
     assert P([1,2,3],17) + P([3,4,5],17) == P([4,6,8],17)
     assert P([1,2,3],17) + P([3,4,5],17) == P([4,6,8],17)
     assert P([1,2,3],17) - 2 == P([16,2,3],17)
     assert 2 - P([1,2,3],17) == -P([16,2,3],17)
+    assert +P([1,2,3],17) == P([1,2,3],17)
     assert P([1,2,3],17) - P([3,4,6],17) == P([15,15,14],17)
     assert P([1,2,3],17) * 2 == P([2,4,6],17)
     assert 2 * P([1,2,3],17) == P([2,4,6],17)
@@ -708,12 +720,65 @@ def test_nmod_poly():
     assert Z([1,2,3]) * P([1,2,3],17) == P([1,4,10,12,9], 17)
     assert P([1,2,3,4,5],17) % P([2,3,4],17) == P([12,12],17)
     assert P([1,2,3,4,5],17) // P([2,3,4],17) == P([3,16,14],17)
+    assert raises(lambda: P([1,2],5) // P([],5), ZeroDivisionError)
+    assert raises(lambda: P([1,2],5) % P([],5), ZeroDivisionError)
+    assert raises(lambda: divmod(P([1,2],5), P([],5)), ZeroDivisionError)
     assert P([1,2,3,4,5],17) ** 2 == P([1,2,3,4,5],17) * P([1,2,3,4,5],17)
-    assert P([1,2,3],17) * flint.nmod(3,17) == P([3,6,9],17)
+    assert P([1,2,3],17) * N(3,17) == P([3,6,9],17)
+    s = P([1,2,3],17)
+    s2 = P([1,2,3],5)
+    assert raises(lambda: s + s2, ValueError)
+    assert raises(lambda: s - s2, ValueError)
+    assert raises(lambda: s * s2, ValueError)
+    assert raises(lambda: s // s2, ValueError)
+    assert raises(lambda: s % s2, ValueError)
+    assert raises(lambda: s2 + s, ValueError)
+    assert raises(lambda: s2 - s, ValueError)
+    assert raises(lambda: s2 * s, ValueError)
+    assert raises(lambda: s2 // s, ValueError)
+    assert raises(lambda: s2 % s, ValueError)
+    assert raises(lambda: s + [], TypeError)
+    assert raises(lambda: s - [], TypeError)
+    assert raises(lambda: s * [], TypeError)
+    assert raises(lambda: s // [], TypeError)
+    assert raises(lambda: s % [], TypeError)
+    assert raises(lambda: [] + s, TypeError)
+    assert raises(lambda: [] - s, TypeError)
+    assert raises(lambda: [] * s, TypeError)
+    assert raises(lambda: [] // s, TypeError)
+    assert raises(lambda: [] % s, TypeError)
+    assert raises(lambda: pow(P([1,2],3), 3, 4), NotImplementedError)
     assert str(P([1,2,3],17)) == "3*x^2 + 2*x + 1"
+    assert P([1,2,3],17).repr() == "nmod_poly([1, 2, 3], 17)"
     p = P([3,4,5],17)
-    assert p(14) == flint.nmod(2,17)
+    assert p(14) == N(2,17)
     assert p(P([1,2,3],17)) == P([12,11,11,9,11],17)
+    assert raises(lambda: p({}), TypeError)
+    p2 = P([3,4,5],17)
+    assert p2[1] == N(4,17)
+    assert p2[-1] == N(0,17)
+    p2[1] = N(2,17)
+    assert p2 == P([3,2,5],17)
+    p2[1] = 6
+    assert p2 == P([3,6,5],17)
+    def set_bad1():
+        p2[-1] = 3
+    def set_bad2():
+        p2[2] = []
+    assert raises(set_bad1, ValueError)
+    assert raises(set_bad2, TypeError)
+    assert bool(P([], 5)) is False
+    assert bool(P([1], 5)) is True
+    assert P([1,2,1],3).gcd(P([1,1],3)) == P([1,1],3)
+    raises(lambda: P([1,2],3).gcd([]), TypeError)
+    raises(lambda: P([1,2],3).gcd(P([1,2],5)), ValueError)
+    p3 = P([1,2,3,4,5,6],7)
+    f3 = (N(6,7), [(P([6, 1],7), 5)])
+    assert p3.factor() == f3
+    # XXX: factor ignores an invalid algorithm string
+    for alg in [None, 'berlekamp', 'cantor-zassenhaus']:
+        assert p3.factor(alg) == f3
+        assert p3.factor(algorithm=alg) == f3
 
 def test_nmod_mat():
     M = flint.nmod_mat
