@@ -15,6 +15,44 @@ def raises(f, exception):
         return True
     return False
 
+
+_default_ctx_string = """\
+pretty = True      # pretty-print repr() output
+unicode = False    # use unicode characters in output
+prec = 53          # real/complex precision (in bits)
+dps = 15           # real/complex precision (in digits)
+cap = 10           # power series precision
+threads = 1        # max number of threads used internally
+"""
+
+def test_pyflint():
+    ctx = flint.ctx
+    assert str(ctx) == repr(ctx) == _default_ctx_string
+    assert ctx.prec == 53
+    oldprec = ctx.prec
+    try:
+        f1 = flint.arb(2).sqrt()
+        ctx.prec = 10
+        f2 = flint.arb(2).sqrt()
+        assert f1.rad() < f2.rad()
+        assert 1e-17 < f1.rad() < 1e-15
+        assert 1e-3 < f2.rad() < 1e-2
+    finally:
+        ctx.prec = oldprec
+
+    assert ctx.dps == 15
+    olddps = ctx.dps
+    try:
+        f1 = flint.arb(2).sqrt()
+        ctx.dps = 3
+        f2 = flint.arb(2).sqrt()
+        assert f1.rad() < f2.rad()
+        assert 1e-17 < f1.rad() < 1e-15
+        assert 1e-4 < f2.rad() < 1e-3
+    finally:
+        ctx.prec = oldprec
+
+
 def test_fmpz():
     assert flint.fmpz() == flint.fmpz(0)
     L = [0, 1, 2, 3, 2**31-1, 2**31, 2**63-1, 2**63, 2**64-1, 2**64]
@@ -260,6 +298,10 @@ def test_fmpz_poly():
     assert repr(Z([1,2])) == "fmpz_poly([1, 2])"
     ctx.pretty = True
     assert str(Z([1,2])) == "2*x + 1"
+    assert str(Z([])) == "0"
+    assert str(Z([1,0,2])) == "2*x^2 + 1"
+    assert str(Z([-1,0,2])) == "2*x^2 + (-1)"
+    assert str(Z([-1,0,1])) == "x^2 + (-1)"
     p = Z([3,4,5])
     assert p(2) == 31
     assert p(flint.fmpq(2,3)) == flint.fmpq(71,9)
