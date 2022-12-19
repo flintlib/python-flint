@@ -1029,6 +1029,7 @@ def test_nmod_mat():
     assert (a * flint.fmpz(3)).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
     assert (flint.fmpz(3) * a).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
     assert M(2,2,[1,1,2,2],17).rank() == 1
+    assert M(Z(2,2,[1,2,3,4]),17) == M(2,2,[1,2,3,4],17)
     A = M(5,3,Z.randbits(5,3,5).entries(),17)
     B = M(3,7,Z.randtest(3,7,5).entries(),17)
     C = M(7,2,Z.randtest(7,2,5).entries(),17)
@@ -1039,13 +1040,88 @@ def test_nmod_mat():
     assert repr(M(2,2,[1,2,3,4],17)) == 'nmod_mat(2, 2, [1, 2, 3, 4], 17)'
     ctx.pretty = True
     assert str(M(2,2,[1,2,3,4],17)) == '[1, 2]\n[3, 4]'
+    assert repr(M(2,2,[1,2,3,4],17)) == '[1, 2]\n[3, 4]'
     assert M(1,2,[3,4],17) / 3 == M(1,2,[3,4],17) * (~G(3,17))
     assert M(2,2,[1,2,3,4], 17).inv().det() == ~(M(2,2,[1,2,3,4], 17).det())
     assert M(2,2,[1,2,3,4], 17).inv().inv() == M(2,2,[1,2,3,4], 17)
     assert M(2,2,[0,1,2,3],17) * M(2, 2, [2,3,4,5], 17) == M(2,2,[4,5,16,4],17)
     assert raises(lambda: M([1], 5), TypeError)
     assert raises(lambda: M([[1],[2,3]], 5), ValueError)
+    assert raises(lambda: M([[1],[2]], 0), ValueError)
+    assert raises(lambda: M(None), TypeError)
+    assert raises(lambda: M(None,17), TypeError)
+    assert M(2,3,17) == M(2,3,[0,0,0,0,0,0],17)
+    assert raises(lambda: M(2,3,[0,0,0,0,0],17), ValueError)
+    assert raises(lambda: M(2,3,[0,1],[1,2],17), ValueError)
     assert M([[1,2,3],[4,5,6]], 5) == M(2,3,[1,2,3,4,5,6], 5)
+    assert raises(lambda: M([[0]],13) < M([[1]],13), TypeError)
+    assert (M([[1]],17) == M([[1]],13)) is False
+    assert (M([[1]],17) != M([[1]],13)) is True
+    assert (M([[1]],17) == None) is False
+    assert (M([[1]],17) != None) is True
+    M2 = M.randtest(3,4,5)
+    assert all(0 <= int(x) < 5 for x in M2.entries())
+    assert (M2.nrows(), M2.ncols()) == (3, 4)
+    M3 = M(2,2,[1,2,3,4],17)
+    assert M3[0,1] == G(2,17)
+    M3_copy = M(M3)
+    M3[0,1] = -1
+    assert M3[0,1] == G(-1,17)
+    def set_bad(i,j):
+        M3[i,j] = 2
+    # XXX: negative indices should be allowed
+    assert raises(lambda: M3[-1,0], ValueError)
+    assert raises(lambda: M3[0,-1], ValueError)
+    assert raises(lambda: set_bad(-1,0), ValueError)
+    assert raises(lambda: set_bad(0,-1), ValueError)
+    # XXX: Should be IndexError
+    assert raises(lambda: M3[2,0], ValueError)
+    assert raises(lambda: M3[0,2], ValueError)
+    assert raises(lambda: set_bad(2,0), ValueError)
+    assert raises(lambda: set_bad(0,2), ValueError)
+    def set_bad2():
+        M3[0,0] = 1.5
+    assert raises(set_bad2, ValueError)
+    assert raises(lambda: M3 + [], TypeError)
+    assert raises(lambda: M3 - [], TypeError)
+    assert raises(lambda: M3 * [], TypeError)
+    assert raises(lambda: M3 / [], TypeError)
+    assert raises(lambda: [] + M3, TypeError)
+    assert raises(lambda: [] - M3, TypeError)
+    assert raises(lambda: [] * M3, TypeError)
+    assert raises(lambda: [] / M3, TypeError)
+    assert raises(lambda: M([[1]],3) + M([[1]],5), ValueError)
+    assert raises(lambda: M([[1]],3) - M([[1]],5), ValueError)
+    assert raises(lambda: M([[1]],3) * M([[1]],5), ValueError)
+    assert Z([[1]]) + M([[1]],3) == M([[2]],3)
+    assert M([[1]],3) + Z([[1]]) == M([[2]],3)
+    assert Z([[1]]) - M([[1]],3) == M([[0]],3)
+    assert M([[1]],3) - Z([[1]]) == M([[0]],3)
+    assert Z([[1]]) * M([[1]],3) == M([[1]],3)
+    assert M([[1]],3) * Z([[1]]) == M([[1]],3)
+    assert raises(lambda: M([[1]],3) - M([[1,2]],3), ValueError)
+    assert raises(lambda: M([[1,2]],3) * M([[1,2]],3), ValueError)
+    M4 = M([[1,2],[3,4]],17)
+    assert M4.inv() == M([[15,1],[10,8]],17)
+    assert raises(lambda: M([[1,2]],17).inv(), ValueError)
+    assert raises(lambda: M([[1,2],[2,4]],17).inv(), ZeroDivisionError)
+    assert M([[1,2,3],[4,5,6]],17).transpose() == M([[1,4],[2,5],[3,6]],17)
+    M5 = M([[1,2],[3,4]],17)
+    X = M([[1],[2]],17)
+    b = M5*X
+    assert M5.solve(b) == X
+    assert raises(lambda: M5.solve([]), TypeError)
+    assert raises(lambda: b.solve(M5), ValueError)
+    assert raises(lambda: M([[1,2],[2,4]],17).solve(b), ZeroDivisionError)
+    M6 = M([[1,2,3],[4,5,6]],17)
+    M6_rref = M([[1,0,16],[0,1,2]],17)
+    M6_copy = M(M6)
+    assert M6.rref() == (M6_rref, 2)
+    assert M6 == M6_copy
+    assert M6.rref(inplace=True) == (M6_rref, 2)
+    assert M6 == M6_rref
+    M6 = M6_copy
+    assert M6.nullspace() == (M([[1,15,1],[0,0,0],[0,0,0]],17).transpose(), 1)
 
 def test_arb():
     A = flint.arb
