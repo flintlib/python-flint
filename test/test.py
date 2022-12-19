@@ -317,6 +317,11 @@ def test_fmpz_poly():
     assert Z([1,2,2]).sqrt() is None
     assert Z([1,0,2,0,3]).deflation() == (Z([1,2,3]), 2)
     assert Z([1,1]).deflation() == (Z([1,1]), 1)
+    [(r,m)] = Z([1,1]).roots()
+    assert m == 1
+    assert r.overlaps(-1)
+    assert Z([]).roots() == []
+    assert Z([1]).roots() == []
 
 def test_fmpz_poly_factor():
     Z = flint.fmpz_poly
@@ -498,6 +503,11 @@ def test_fmpz_mat():
     M6 = M([[2,0,0],[0,2,1],[0,0,2]])
     assert M6.charpoly() == flint.fmpz_poly([-8,12,-6,1])
     assert M6.minpoly() == flint.fmpz_poly([4,-4,1])
+    assert list(M6) == [2,0,0,0,2,1,0,0,2]
+
+def test_fmpz_series():
+    Z = flint.fmpz_series
+    Z([1,2])
 
 def test_fmpq():
     Q = flint.fmpq
@@ -643,8 +653,6 @@ def test_fmpq():
             else:
                 assert func(n) == val
 
-
-
 def test_fmpq_poly():
     Q = flint.fmpq_poly
     Z = flint.fmpz_poly
@@ -741,6 +749,11 @@ def test_fmpq_poly():
     assert Q.bernoulli_poly(3) == Q([0,1,-3,2],2)
     assert Q.euler_poly(3) == Q([1,0,-6,4],4)
     assert Q.legendre_p(3) == Q([0,-3,0,5],2)
+    assert Q([]).roots() == []
+    assert Q([1]).roots() == []
+    [(r,m)] = Q([1,1]).roots()
+    assert m == 1
+    assert r.overlaps(-1)
 
 def test_fmpq_mat():
     Q = flint.fmpq_mat
@@ -854,6 +867,10 @@ def test_fmpq_mat():
     M3 = Q([[half,0,0],[0,half,1],[0,0,half]])
     assert M3.charpoly() == flint.fmpq_poly([-1,6,-12,8]) / 8
     assert M3.minpoly() == flint.fmpq_poly([1,-4,4]) / 4
+
+def test_fmpq_series():
+    Z = flint.fmpq_series
+    Z([1,2])
 
 def test_nmod():
     G = flint.nmod
@@ -1123,6 +1140,10 @@ def test_nmod_mat():
     M6 = M6_copy
     assert M6.nullspace() == (M([[1,15,1],[0,0,0],[0,0,0]],17).transpose(), 1)
 
+def test_nmod_series():
+    # XXX: currently no code in nmod_series.pyx
+    pass
+
 def test_arb():
     A = flint.arb
     assert A(3) > A(2.5)
@@ -1142,9 +1163,11 @@ if __name__ == "__main__":
     sys.stdout.write("test_fmpz_poly_factor..."); test_fmpz_poly_factor(); print("OK")
     sys.stdout.write("test_fmpz_poly_functions..."); test_fmpz_poly_functions(); print("OK")
     sys.stdout.write("test_fmpz_mat..."); test_fmpz_mat(); print("OK")
+    sys.stdout.write("test_fmpz_series..."); test_fmpz_series(); print("OK")
     sys.stdout.write("test_fmpq..."); test_fmpq(); print("OK")
     sys.stdout.write("test_fmpq_poly..."); test_fmpq_poly(); print("OK")
     sys.stdout.write("test_fmpq_mat..."); test_fmpq_mat(); print("OK")
+    sys.stdout.write("test_fmpq_series..."); test_fmpq_series(); print("OK")
     sys.stdout.write("test_nmod..."); test_nmod(); print("OK")
     sys.stdout.write("test_nmod_poly..."); test_nmod_poly(); print("OK")
     sys.stdout.write("test_nmod_mat..."); test_nmod_mat(); print("OK")
