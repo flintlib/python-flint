@@ -446,11 +446,58 @@ def test_fmpz_mat():
     assert M1*x == b
     assert M1.solve(b) == x
     assert M1.solve(b, integer=True) == x
+    assert raises(lambda: M1.solve([]), TypeError)
+    assert raises(lambda: M1.solve(M([[1]])), ValueError)
+    assert raises(lambda: M([[1,1],[1,1]]).solve(b), ZeroDivisionError)
+    assert raises(lambda: M([[1,2],[3,4],[5,6]]).solve(b), ValueError)
+    assert M([[1,0],[1,2]]).solve(b) == flint.fmpq_mat([[3],[2]])
+    assert raises(lambda: M([[1,0],[1,2]]).solve(b, integer=True), ValueError)
     assert raises(lambda: M([[1,2,3],[4,5,6]]).inv(), ValueError)
     assert raises(lambda: M([[1,1],[1,1]]).inv(), ZeroDivisionError)
     assert raises(lambda: M([[1,0],[1,2]]).inv(integer=True), ValueError)
     half = flint.fmpq(1,2)
     assert M([[1,0],[1,2]]).inv() == flint.fmpq_mat([[1, 0], [-half, half]])
+    M3 = M([[1,2,3],[4,5,6],[7,8,9]])
+    M3_copy = M(M3)
+    M3r = M([[-3,0,3],[0,-3,-6],[0,0,0]])
+    assert M3.rref() == (M3r, -3, 2)
+    assert M3 != M3r
+    assert M3.rref(inplace=True) == (M3r, -3, 2)
+    assert M3 == M3r
+    M3 = M3_copy
+    M3n = M([[3,0,0],[-6,0,0],[3,0,0]])
+    assert M3.nullspace() == (M3n, 1)
+    assert M3 * M3.nullspace()[0] == M(3,3,[0]*9)
+    # XXX: lll core dumps on a singular matrix
+    M4 = M([[1,2,3],[4,5,6],[7,8,10]])
+    L4 = M([[0,0,1],[-1,1,0],[2,1,0]])
+    T4 = M([[1,-2,1],[0,5,-3],[-2,1,0]])
+    assert L4 == T4 * M4
+    assert M4.lll() == L4
+    assert M4.lll(transform=True) == (L4, T4)
+    # XXX: rep="gram" consumes all memory in the system and core dumps
+    #for rep in "zbasis", "gram":
+    rep = "zbasis"
+    for gram in "approx", "exact":
+        assert M4.lll(rep=rep, gram=gram) == L4
+        assert M4.lll(rep=rep, gram=gram, transform=True) == (L4, T4)
+    assert raises(lambda: M4.lll(rep="bad"), ValueError)
+    assert raises(lambda: M4.lll(gram="bad"), ValueError)
+    M5 = M([[1,2,3],[4,5,6]])
+    H5 = M([[1,2,3],[0,3,6]])
+    T5 = M([[1,0],[4,-1]])
+    assert H5 == T5 * M5
+    assert M5.hnf() == H5
+    assert M5.hnf(transform=True) == (H5, T5)
+    assert M5.is_hnf() is False
+    assert H5.is_hnf() is True
+    S5 = M([[1,0,0],[0,3,0]])
+    assert M5.snf() == S5
+    assert M5.is_snf() is False
+    assert S5.is_snf() is True
+    M6 = M([[2,0,0],[0,2,1],[0,0,2]])
+    assert M6.charpoly() == flint.fmpz_poly([-8,12,-6,1])
+    assert M6.minpoly() == flint.fmpz_poly([4,-4,1])
 
 def test_fmpq():
     Q = flint.fmpq
