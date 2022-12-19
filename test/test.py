@@ -757,11 +757,23 @@ def test_fmpq_mat():
     assert Z(2,3,[1,2,3,4,5,6]) * Q(3,2,[4,5,6,7,8,9]) == Q(2,2,[40,46,94,109])
     assert -Q(2,1,[2,5]) == Q(2,1,[-2,-5])
     assert +Q(1,1,[3]) == Z(1,1,[3])
+    assert (Q(1,1,[1]) == 1) is False
+    assert (Q(1,1,[1]) != 1) is True
+    assert (1 == Q(1,1,[1])) is False
+    assert (1 != Q(1,1,[1])) is True
     assert Q(1,2,[3,4]) * 2 == Q(1,2,[6,8])
     assert Q(1,2,[3,4]) * flint.fmpq(1,3) == Q(1,2,[1,flint.fmpq(4,3)])
     assert Q(1,2,[3,4]) * flint.fmpq(5,3) == Q(1,2,[5,flint.fmpq(20,3)])
     assert 2 * Q(1,2,[3,4]) == Q(1,2,[6,8])
     assert flint.fmpq(1,3) * Q(1,2,[3,4]) == Q(1,2,[1,flint.fmpq(4,3)])
+    M = Q([[1,2],[3,4]])
+    assert M ** -1 == Q([[-4,2],[3,-1]]) / 2
+    assert M ** 0 == Q([[1,0],[0,1]])
+    assert M ** 1 == M
+    assert M ** 2 == Q([[7,10],[15,22]])
+    assert M ** 12 == Q([[138067399, 201223170],[301834755, 439902154]])
+    M = Q([[1,2],[2,4]])
+    assert raises(lambda: M ** -1, ZeroDivisionError)
     assert Q(1,2,[3,4]) / 2 == Q(1,2,[flint.fmpq(3,2),2])
     assert Q(1,2,[3,4]) / flint.fmpq(2,3) == Q(1,2,[flint.fmpq(9,2),6])
     assert Q(3,2,range(6)).table() == Z(3,2,range(6)).table()
@@ -776,7 +788,72 @@ def test_fmpq_mat():
     assert raises(lambda: Q(2,1,[1,1]).inv(), ValueError)
     assert raises(lambda: Q([1]), TypeError)
     assert raises(lambda: Q([[1],[2,3]]), ValueError)
+    assert raises(lambda: Q(None), TypeError)
     assert Q([[1,2,3],[4,5,6]]) == Q(2,3,[1,2,3,4,5,6])
+    assert raises(lambda: Q(2,3,[1,2,3,4,5]), ValueError)
+    # XXX: Should be TypeError not ValueError:
+    assert raises(lambda: Q([[1,2,3],[4,[],6]]), ValueError)
+    assert raises(lambda: Q(2,3,[1,2,3,4,[],6]), ValueError)
+    assert raises(lambda: Q(2,3,[1,2],[3,4]), ValueError)
+    assert bool(Q([[1]])) is True
+    assert bool(Q([[0]])) is False
+    assert raises(lambda: Q([[1]]) < Q([[0]]), TypeError)
+    M = Q([[1,2],[3,4]])
+    assert M[0,1] == 2
+    M[0,1] = -1
+    assert M[0,1] == -1
+    # XXX: Negative indices should probably be allowed
+    def set_bad(i):
+        M[i,0] = -1
+    raises(lambda: M[-1,0], ValueError)
+    raises(lambda: M[0,-1], ValueError)
+    raises(lambda: set_bad(-1), ValueError)
+    # XXX: Should be IndexError
+    raises(lambda: M[2,0], ValueError)
+    raises(lambda: M[0,2], ValueError)
+    raises(lambda: set_bad(2), ValueError)
+    assert Q([[1,2,3],[4,5,6]]).transpose() == Q([[1,4],[2,5],[3,6]])
+    raises(lambda: M + [], TypeError)
+    raises(lambda: M - [], TypeError)
+    raises(lambda: M * [], TypeError)
+    raises(lambda: M / [], TypeError)
+    raises(lambda: [] / M, TypeError)
+    raises(lambda: [] + M, TypeError)
+    raises(lambda: [] - M, TypeError)
+    raises(lambda: [] * M, TypeError)
+    # XXX: Maybe a ShapeError?
+    raises(lambda: Q(1,2,[3,4]) + Q(1,3,[5,6,7]), ValueError)
+    raises(lambda: Q(1,2,[3,4]) - Q(1,3,[5,6,7]), ValueError)
+    raises(lambda: Q(1,2,[3,4]) * Q(1,3,[5,6,7]), ValueError)
+    raises(lambda: Q(1,2,[3,4]) * Z(1,3,[5,6,7]), ValueError)
+    raises(lambda: Z(1,2,[3,4]) * Q(1,3,[5,6,7]), ValueError)
+    A = Q([[3,4],[5,7]]) / 11
+    X = Q([[1,2],[3,4]])
+    B = A*X
+    assert A.solve(B) == X
+    for algorithm in None, "fflu", "dixon":
+        assert A.solve(B, algorithm=algorithm) == X
+    assert raises(lambda: A.solve(B, algorithm="invalid"), ValueError)
+    assert raises(lambda: A.solve(None), TypeError)
+    assert raises(lambda: A.solve([1,2]), TypeError)
+    assert raises(lambda: A.solve(Q([[1,2]])), ValueError)
+    assert raises(lambda: Q([[1,2],[2,4]]).solve(Q([[1],[2]])), ZeroDivisionError)
+    M = Q([[1,2,3],[flint.fmpq(1,2),5,6]])
+    Mcopy = Q(M)
+    Mrref = Q([[1,0,flint.fmpq(3,4)],[0,1,flint.fmpq(9,8)]])
+    assert M.rref() == (Mrref, 2)
+    assert M != Mrref
+    assert M == Mcopy
+    assert M.rref(inplace=True) == (Mrref, 2)
+    assert M == Mrref
+    assert M != Mcopy
+    assert Q.hilbert(1, 2) == Q([[1,flint.fmpq(1,2)]])
+    M2 = Q([[2, 4, 6], [8, 10, 12]]) / 4
+    assert M2.numer_denom() == (Q([[1,2,3],[4,5,6]]), 2)
+    half = flint.fmpq(1,2)
+    M3 = Q([[half,0,0],[0,half,1],[0,0,half]])
+    assert M3.charpoly() == flint.fmpq_poly([-1,6,-12,8]) / 8
+    assert M3.minpoly() == flint.fmpq_poly([1,-4,4]) / 4
 
 def test_nmod():
     G = flint.nmod
