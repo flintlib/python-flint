@@ -506,8 +506,108 @@ def test_fmpz_mat():
     assert list(M6) == [2,0,0,0,2,1,0,0,2]
 
 def test_fmpz_series():
+    Zp = flint.fmpz_poly
     Z = flint.fmpz_series
-    Z([1,2])
+    ctx = flint.ctx
+    assert ctx.cap == 10
+    s1 = Z([1,2])
+    s2 = Z([1,2])
+    s3 = Z([1,1])
+    s4 = Z([1,2],11)
+    p1 = Zp([1,2])
+    assert (s1 == s2) is True
+    assert (s1 != s2) is False
+    assert (s1 == s3) is False
+    assert (s1 != s3) is True
+    assert (s1 == s4) is False
+    assert (s1 != s4) is True
+    assert (s1 == p1) is False
+    assert (s1 != p1) is True
+    assert (Z([1]) == flint.fmpz(1)) is False
+    assert (Z([1]) != flint.fmpz(1)) is True
+    assert (Z([1]) == 1) is False
+    assert (Z([1]) != 1) is True
+    # XXX: These are invalid power series. Should they compare "equal"?
+    assert (Z([],-1) == Z([],-1)) is True
+    assert (Z([],-1) != Z([],-1)) is False
+    assert (Z([],-2) == Z([],-1)) is True
+    assert (Z([],-2) != Z([],-1)) is False
+    assert (Z([],-1) == Z([],-2)) is True
+    assert (Z([],-1) != Z([],-2)) is False
+    # XXX: this gives a core dump:
+    # s = Z([1,2])
+    # s[10**10] = 1
+    assert Z([]) == Z([0])
+    assert Z([1]) != Z([0])
+    assert Z(Z([1])) == Z([1])
+    assert Z(Zp([1])) == Z([1])
+    assert Z(1) == Z([1])
+    assert raises(lambda: Z([1]) < Z([1]), TypeError)
+    assert len(Z([1,2])) == 2
+    assert Z([1,2]).length() == 2
+    s5 = Z([1,2])
+    assert s5[1] == 2
+    assert s5[2] == 0
+    assert s5[-1] == 0
+    # XXX: This goes beyond cap. Should it give an error?
+    assert s5[100] == 0
+    s5[2] = -1
+    assert s5[2] == -1
+    assert s5 == Z([1,2,-1])
+    def set_bad():
+        s5[-1] = 3
+    assert raises(set_bad, ValueError)
+    assert Z([1,2,0,4]).str() == "1 + 2*x + 4*x^3 + O(x^10)"
+    assert Z([1,2,0,4]).repr() == "fmpz_series([1, 2, 0, 4], prec=10)"
+    assert Z([],0).str() == "O(x^0)"
+    assert Z([],-1).str() == "(invalid power series)"
+    assert +Z([1,2]) == Z([1,2])
+    assert -Z([1,2]) == Z([-1,-2])
+    assert Z([1,2]) + Z([3,4,5]) == Z([4,6,5])
+    assert Z([1,2]) + 1 == Z([2,2])
+    assert Z([1,2]) + Zp([3,4,5]) == Z([4,6,5])
+    assert 1 + Z([1,2]) == Z([2,2])
+    assert Zp([1,2]) + Z([3,4,5]) == Z([4,6,5])
+    assert raises(lambda: Z([1,2]) + [], TypeError)
+    assert raises(lambda: [] + Z([1,2]), TypeError)
+    assert Z([1,2]) - Z([3,5]) == Z([-2,-3])
+    assert Z([1,2]) - 1 == Z([0,2])
+    assert 1 - Z([1,2]) == Z([0,-2])
+    assert raises(lambda: [] - Z([1,2]), TypeError)
+    assert raises(lambda: Z([1,2]) - [], TypeError)
+    assert Z([1,2]) * Z([1,2]) == Z([1,4,4])
+    assert 2 * Z([1,2]) == Z([2,4])
+    assert Z([1,2]) * 2 == Z([2,4])
+    assert raises(lambda: [] * Z([1,2]), TypeError)
+    assert raises(lambda: Z([1,2]) * [], TypeError)
+    assert Z([1,2]).valuation() == 0
+    assert Z([0,2]).valuation() == 1
+    assert Z([0,0]).valuation() == -1
+    assert Z([1,1]) / Z([1,-1]) == Z([1,2,2,2,2,2,2,2,2,2])
+    assert raises(lambda: Z([1,1]) / Z([]), ZeroDivisionError)
+    assert Z([]) / Z([1,-1]) == Z([])
+    # quotient would not be a power series
+    assert raises(lambda: Z([1,1]) / Z([0,1]), ValueError)
+    # leading term in denominator is not a unit
+    assert raises(lambda: Z([1,1]) / Z([2,1]), ValueError)
+    assert Z([0,1,1]) / Z([0,1,-1]) == Z([1,2,2,2,2,2,2,2,2],9)
+    # XXX: This gives leading term not a unit:
+    # assert Z([2,4]) / 2 == Z([1,2])
+    assert Z([1,1]) / -1 == Z([-1,-1])
+    assert raises(lambda: Z([1,1]) / [], TypeError)
+    assert raises(lambda: [] / Z([1,1]), TypeError)
+    assert Z([1,2]) ** 2 == Z([1,4,4])
+    assert raises(lambda: pow(Z([1,2]), 3, 5), NotImplementedError)
+    assert Z([1,2])(Z([0,1,2])) == Z([1,2,4])
+    assert raises(lambda: Z([1,2])(Z([1,2])), ValueError)
+    assert raises(lambda: Z([1,2])([]), TypeError)
+    coeffs = [0, 1, -2, 8, -40, 224, -1344, 8448, -54912, 366080]
+    assert Z([0,1,2]).reversion() == Z(coeffs)
+    # power series reversion must have valuation 1
+    assert raises(lambda: Z([1,1]).reversion(), ValueError)
+    # leading term is not a unit
+    assert raises(lambda: Z([0,2,1]).reversion(), ValueError)
+
 
 def test_fmpq():
     Q = flint.fmpq
