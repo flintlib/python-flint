@@ -52,6 +52,22 @@ def test_pyflint():
     finally:
         ctx.prec = oldprec
 
+    assert ctx.cap == 10
+    oldcap = ctx.cap
+    try:
+        f1 = flint.fmpz_series([1,1])
+        ctx.cap = 5
+        f2 = flint.fmpz_series([1,1])
+        assert f1 == flint.fmpz_series([1,1],10)
+        assert f2 == flint.fmpz_series([1,1],5)
+        assert f1 != flint.fmpz_series([1,1],5)
+        assert f2 != flint.fmpz_series([1,1],10)
+    finally:
+        ctx.cap = oldcap
+
+    assert raises(lambda: setattr(ctx, "cap", -1), ValueError)
+    assert raises(lambda: setattr(ctx, "prec", -1), ValueError)
+    assert raises(lambda: setattr(ctx, "dps", -1), ValueError)
 
 def test_fmpz():
     assert flint.fmpz() == flint.fmpz(0)
@@ -1039,6 +1055,8 @@ def test_fmpq_series():
     def set_bad():
         s5[-1] = 3
     assert raises(set_bad, ValueError)
+    assert Q([1,2,1]).coeffs() == list(Q([1,2,1])) == [1,2,1]
+    assert Q([1,2,1],2).coeffs() == [flint.fmpq(1,2),1,flint.fmpq(1,2)]
     assert Q([1,2,0,4]).str() == "1 + 2*x + 4*x^3 + O(x^10)"
     assert Q([1,2,0,4]).repr() == "fmpq_series([1, 2, 0, 4], 1, prec=10)"
     assert Q([],1,0).str() == "O(x^0)"
