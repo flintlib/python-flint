@@ -46,5 +46,6 @@ popd
 # --no-mangle if strip has not been applied to all mingw64-created .dll and
 # .pyd files that are needed for the wheel.
 delvewheel repair $WHEELNAME 	\
-	-w $WHEELHOUSE		\
-	--add-path .local/bin:.local/lib/
+    -vv               \
+    -w $WHEELHOUSE    \
+    --add-path .local/bin:.local/lib/
