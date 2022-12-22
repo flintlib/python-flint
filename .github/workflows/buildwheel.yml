@@ -29,11 +29,11 @@ jobs:
           # problematic in some situations. Maybe there is a better way to do
           # this.
           path-type: inherit
-        install: >-
-          m4
-          make
-          mingw-w64-ucrt-x86_64-gcc
-          mingw-w64-ucrt-x86_64-tools-git
+          install: >-
+            m4
+            make
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-tools-git
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Build wheels
