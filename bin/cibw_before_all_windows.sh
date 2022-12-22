@@ -16,6 +16,8 @@ cat setup.cfg
 echo "NEED UCRT64 gcc:"
 which gcc
 
+echo $PATH
+
 # Install the mingw-w64 toolchain
 # pacman -S --noconfirm mingw-w64-x86_64-gcc m4 make mingw-w64-x86_64-tools-git
 
