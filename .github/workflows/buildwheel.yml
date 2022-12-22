@@ -46,7 +46,7 @@ jobs:
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
           CIBW_BEFORE_ALL_LINUX: bin/cibw_before_all_linux.sh
           CIBW_BEFORE_ALL_MACOS: bin/cibw_before_all_macosx.sh
-          CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
+          CIBW_BEFORE_ALL_WINDOWS: bash bin/cibw_before_all_windows.sh
           CIBW_BEFORE_BUILD_WINDOWS: msys2 -c bin/cibw_before_build_windows.sh
           CIBW_BEFORE_BUILD: pip install numpy cython delvewheel
           CIBW_ENVIRONMENT: >
