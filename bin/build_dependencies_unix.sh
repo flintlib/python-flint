@@ -80,7 +80,7 @@ if [ $USE_GMP = "gmp" ]; then
       --enable-fat\
       --enable-shared=yes\
       --enable-static=no\
-      --host=$HOSTARG\
+      --host=$HOSTARG
     make -j3
     make install
   cd ..
