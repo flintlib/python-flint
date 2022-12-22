@@ -9,6 +9,11 @@ set -o errexit
 # Uncomment this to run cibuildwheel locally on Windows:
 # export PATH=$PATH:/c/msys64/usr/bin:/c/msys64/mingw64/bin
 
+# msys2 will not inherit the PATH for the virtual environment in CI
+export PATH=$PATH:$VIRTUAL_ENV_BIN
+echo PATH=$PATH
+
+
 # We cannot use ordinary command line arguments in CI because msys2 -c mangles
 # them. Instead we have a batch file to receive the arguments and convert them
 # into environment variables before calling this script. When running locally
@@ -41,10 +46,6 @@ pushd $wheeldir
   strip python_flint-*/flint/*.pyd
   wheel pack python_flint-*
 popd
-
-# msys2 will not inherit the PATH for the virtual environment in CI
-export PATH=$PATH:$VIRTUAL_ENV/Scripts
-echo PATH=$PATH
 
 # Make the wheel relocatable. This will fail with an error message about
 # --no-mangle if strip has not been applied to all mingw64-created .dll and

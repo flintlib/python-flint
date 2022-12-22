@@ -5,8 +5,8 @@ set -o errexit
 # Uncomment this to run cibuildwheel locally on Windows:
 # export PATH=$PATH:/c/msys64/usr/bin:/c/msys64/mingw64/bin
 
-# msys2 will not inherit the PATH for the virtual environment in CI
-export PATH=$PATH:$VIRTUAL_ENV/Scripts
+# msys2 will not inherit the PATH for the virtual environment
+export PATH=$PATH:$VIRTUAL_ENV_BIN
 echo PATH=$PATH
 
 # VER should be set be e.g. 310 for Python 3.10
@@ -18,7 +18,8 @@ echo VER=${VER}
 ###################################################
 
 which python
-PYTHONBIN=`dirname $(which python)`
+PYTHONBIN=$VIRTUAL_ENV_BIN
+echo PYTHONBIN=$PYTHONBIN
 PYTHONDIR=`dirname $PYTHONBIN`
 cfgfile=$PYTHONDIR/pyvenv.cfg
 homeline=`grep home $cfgfile`
@@ -44,4 +45,4 @@ mv libpython${VER}.a libs
 #  Install build dependencies                     #
 ###################################################
 
-pip install Cython numpy delvewheel
+pip install Cython numpy delvewheel wheel
