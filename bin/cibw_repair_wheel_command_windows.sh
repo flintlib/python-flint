@@ -42,6 +42,10 @@ pushd $wheeldir
   wheel pack python_flint-*
 popd
 
+# msys2 will not inherit the PATH for the virtual environment in CI
+export PATH=$PATH:$VIRTUAL_ENV/Scripts
+echo PATH=$PATH
+
 # Make the wheel relocatable. This will fail with an error message about
 # --no-mangle if strip has not been applied to all mingw64-created .dll and
 # .pyd files that are needed for the wheel.
