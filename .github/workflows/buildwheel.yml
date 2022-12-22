@@ -54,7 +54,7 @@ jobs:
             LIBRARY_PATH=$(pwd)/.local/lib/
             LD_LIBRARY_PATH=$(pwd)/.local/lib:$LD_LIBRARY_PATH
             PYTHON_FLINT_MINGW64=true
-            PATH=/ucrt64/bin:${PATH}
+            MSYSTEM=UCRT64
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
             bin\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}
           CIBW_TEST_COMMAND: python -c "import flint; print(str(flint.fmpz(2)))"
