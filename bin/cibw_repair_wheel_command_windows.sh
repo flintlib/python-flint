@@ -13,6 +13,13 @@ set -o errexit
 export PATH=$PATH:$VIRTUAL_ENV_BIN
 echo PATH=$PATH
 
+echo of VIRTUAL_ENV_BIN=$VIRTUAL_ENV_BIN
+echo Contents of VIRTUAL_ENV_BIN:
+ls $VIRTUAL_ENV_BIN
+
+which pip
+which wheel
+pip list
 
 # We cannot use ordinary command line arguments in CI because msys2 -c mangles
 # them. Instead we have a batch file to receive the arguments and convert them
@@ -53,4 +60,4 @@ popd
 delvewheel repair $WHEELNAME 	\
     -vv               \
     -w $WHEELHOUSE    \
-    --add-path .local/bin:.local/lib/
+    --add-path .local/bin:.local/lib/:/c/msys64/ucrt64/bin
