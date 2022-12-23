@@ -10,7 +10,7 @@ set -o errexit
 # export PATH=$PATH:/c/msys64/usr/bin:/c/msys64/mingw64/bin
 
 # msys2 will not inherit the PATH for the virtual environment in CI
-export PATH=$PATH:$VIRTUAL_ENV_BIN
+export PATH=$PATH:$(cygpath ${VIRTUAL_ENV_BIN})
 echo PATH=$PATH
 
 echo of VIRTUAL_ENV_BIN=$VIRTUAL_ENV_BIN
