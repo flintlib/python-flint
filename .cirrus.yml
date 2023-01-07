@@ -1,0 +1,22 @@
+#########################################################
+# Build arm64 wheels for OSX on Cirrus CI
+#########################################################
+
+cirrus_wheels_macos_arm64_task:
+  name: Build macOS arm64 wheels.
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-monterey-xcode:13.3.1
+  env:
+    PATH: /opt/homebrew/opt/python@3.10/bin:$PATH
+    CIBW_ARCHS_MACOS: arm64
+  install_pre_requirements_script:
+    - brew install python@3.10
+    - ln -s python3 /opt/homebrew/opt/python@3.10/bin/python
+    - which python
+    - python --version
+  install_cibuildwheel_script:
+    - python -m pip install cibuildwheel==2.11.4
+  run_cibuildwheel_script:
+    - bin/cibw.sh
+  wheels_artifacts:
+    path: "wheelhouse/*"
