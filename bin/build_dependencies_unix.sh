@@ -9,12 +9,15 @@ set -o errexit
 #                                                                           #
 # Supported options:                                                        #
 #                                                                           #
-# --gmp gmp   - build based on GMP (default)                                #
-# --gmp mpir  - build based on MPIR (instead of GMP)                        #
+# --gmp gmp         - build based on GMP (default)                          #
+# --gmp mpir        - build based on MPIR (no longer works)                 #
+# --host <HOST>     - set the host (target) for GMP build                   #
+# --patch-gmp-arm64 - apply patch to GMP for OSX arm64                      #
 #                                                                           #
 # ------------------------------------------------------------------------- #
 
 USE_GMP=gmp
+PATCH_GMP_ARM64=no
 
 while [[ $# -gt 0 ]]
 do
@@ -40,6 +43,14 @@ do
       HOST_ARG="$2"
       shift
       shift
+    ;;
+    --patch-gmp-arm64)
+      PATCH_GMP_ARM64=yes
+      shift
+    ;;
+  *)
+    2>&1 echo "unrecognised argument:" $key
+    exit 1
     ;;
   esac
 done
@@ -74,6 +85,23 @@ if [ $USE_GMP = "gmp" ]; then
   curl -O https://gmplib.org/download/gmp/gmp-$GMPVER.tar.xz
   tar xf gmp-$GMPVER.tar.xz
   cd gmp-$GMPVER
+
+    #
+    # See https://github.com/aleaxit/gmpy/issues/350
+    #
+    # We need to patch GMP for OSX arm64 (Apple M1) hardware. This patch is
+    # from the GMP repo but was applied after the release of GMP 6.2.1.
+    # Hopefully when a newer version of GMP is released we will not need to
+    # apply this patch any more.
+    #
+    if [ $PATCH_GMP_ARM64 = "yes" ]; then
+      echo
+      echo --------------------------------------------
+      echo "           patching GMP"
+      echo --------------------------------------------
+      patch -N -Z -p0 < ../../../bin/patch-arm64.diff
+    fi
+
     # Show the output of configfsf.guess
     ./configfsf.guess
     ./configure --prefix=$PREFIX\
@@ -108,6 +136,18 @@ else
   #                            MPIR                                         #
   #                                                                         #
   # ----------------------------------------------------------------------- #
+
+  #
+  # The mpir.org domain has expired and no longer hosts the source code so the
+  # call to curl below will fail.
+  # We could try to download from https://github.com/wbhart/mpir/releases.
+  #
+  # Ultimately it seems that MPIR is no longer maintained though so for now
+  # this remains unfixed.
+  #
+
+  >&2 echo "MPIR build of python_flint is no longer supported"
+  exit 1
 
   curl -O http://mpir.org/mpir-$MPIRVER.tar.bz2
   tar xf mpir-$MPIRVER.tar.bz2
