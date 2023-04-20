@@ -85,8 +85,6 @@ cdef class nmod(flint_scalar):
     def __add__(s, t):
         cdef nmod r
         cdef mp_limb_t val
-        if not typecheck(s, nmod):
-            s, t = t, s
         if any_as_nmod(&val, t, (<nmod>s).mod):
             r = nmod.__new__(nmod)
             r.mod = (<nmod>s).mod
@@ -94,32 +92,53 @@ cdef class nmod(flint_scalar):
             return r
         return NotImplemented
 
+    def __radd__(s, t):
+        cdef nmod r
+        cdef mp_limb_t val
+        if any_as_nmod(&val, t, (<nmod>s).mod):
+            r = nmod.__new__(nmod)
+            r.mod = (<nmod>s).mod
+            r.val = nmod_add((<nmod>s).val, val, r.mod)
+            return r
+        return NotImplemented
+
     def __sub__(s, t):
         cdef nmod r
         cdef mp_limb_t val
-        if typecheck(s, nmod):
-            if any_as_nmod(&val, t, (<nmod>s).mod):
-                r = nmod.__new__(nmod)
-                r.mod = (<nmod>s).mod
-                r.val = nmod_sub((<nmod>s).val, val, r.mod)
-                return r
-        else:
-            if any_as_nmod(&val, s, (<nmod>t).mod):
-                r = nmod.__new__(nmod)
-                r.mod = (<nmod>t).mod
-                r.val = nmod_sub(val, (<nmod>t).val, r.mod)
-                return r
+        if any_as_nmod(&val, t, (<nmod>s).mod):
+            r = nmod.__new__(nmod)
+            r.mod = (<nmod>s).mod
+            r.val = nmod_sub((<nmod>s).val, val, r.mod)
+            return r
+        return NotImplemented
+
+    def __rsub__(s, t):
+        cdef nmod r
+        cdef mp_limb_t val
+        if any_as_nmod(&val, t, (<nmod>s).mod):
+            r = nmod.__new__(nmod)
+            r.mod = (<nmod>s).mod
+            r.val = nmod_sub(val, (<nmod>s).val, r.mod)
+            return r
         return NotImplemented
 
     def __mul__(s, t):
         cdef nmod r
         cdef mp_limb_t val
-        if not typecheck(s, nmod):
-            s, t = t, s
         if any_as_nmod(&val, t, (<nmod>s).mod):
             r = nmod.__new__(nmod)
             r.mod = (<nmod>s).mod
             r.val = nmod_mul(val, (<nmod>s).val, r.mod)
+            return r
+        return NotImplemented
+
+    def __rmul__(s, t):
+        cdef nmod r
+        cdef mp_limb_t val
+        if any_as_nmod(&val, t, (<nmod>s).mod):
+            r = nmod.__new__(nmod)
+            r.mod = (<nmod>s).mod
+            r.val = nmod_mul((<nmod>s).val, val, r.mod)
             return r
         return NotImplemented
 
@@ -152,9 +171,8 @@ cdef class nmod(flint_scalar):
     def __truediv__(s, t):
         return nmod._div_(s, t)
 
-    def __div__(s, t):
-        return nmod._div_(s, t)
+    def __rtruediv__(s, t):
+        return nmod._div_(t, s)
 
     def __invert__(self):
         return (1 / self)   # XXX: speed up
-
