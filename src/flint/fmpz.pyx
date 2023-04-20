@@ -174,18 +174,13 @@ cdef class fmpz(flint_scalar):
         return -self
 
     def __add__(s, t):
-        cdef fmpz_struct sval[1]
         cdef fmpz_struct tval[1]
-        cdef int stype = FMPZ_UNKNOWN
         cdef int ttype = FMPZ_UNKNOWN
         u = NotImplemented
-        stype = fmpz_set_any_ref(sval, s)
-        if stype != FMPZ_UNKNOWN:
-            ttype = fmpz_set_any_ref(tval, t)
-            if ttype != FMPZ_UNKNOWN:
-                u = fmpz.__new__(fmpz)
-                fmpz_add((<fmpz>u).val, sval, tval)
-        if stype == FMPZ_TMP: fmpz_clear(sval)
+        ttype = fmpz_set_any_ref(tval, t)
+        if ttype != FMPZ_UNKNOWN:
+            u = fmpz.__new__(fmpz)
+            fmpz_add((<fmpz>u).val, s.val, tval)
         if ttype == FMPZ_TMP: fmpz_clear(tval)
         return u
 
@@ -201,18 +196,13 @@ cdef class fmpz(flint_scalar):
         return u
 
     def __sub__(s, t):
-        cdef fmpz_struct sval[1]
         cdef fmpz_struct tval[1]
-        cdef int stype = FMPZ_UNKNOWN
         cdef int ttype = FMPZ_UNKNOWN
         u = NotImplemented
-        stype = fmpz_set_any_ref(sval, s)
-        if stype != FMPZ_UNKNOWN:
-            ttype = fmpz_set_any_ref(tval, t)
-            if ttype != FMPZ_UNKNOWN:
-                u = fmpz.__new__(fmpz)
-                fmpz_sub((<fmpz>u).val, sval, tval)
-        if stype == FMPZ_TMP: fmpz_clear(sval)
+        ttype = fmpz_set_any_ref(tval, t)
+        if ttype != FMPZ_UNKNOWN:
+            u = fmpz.__new__(fmpz)
+            fmpz_sub((<fmpz>u).val, s.val, tval)
         if ttype == FMPZ_TMP: fmpz_clear(tval)
         return u
 
@@ -228,18 +218,13 @@ cdef class fmpz(flint_scalar):
         return u
 
     def __mul__(s, t):
-        cdef fmpz_struct sval[1]
         cdef fmpz_struct tval[1]
-        cdef int stype = FMPZ_UNKNOWN
         cdef int ttype = FMPZ_UNKNOWN
         u = NotImplemented
-        stype = fmpz_set_any_ref(sval, s)
-        if stype != FMPZ_UNKNOWN:
-            ttype = fmpz_set_any_ref(tval, t)
-            if ttype != FMPZ_UNKNOWN:
-                u = fmpz.__new__(fmpz)
-                fmpz_mul((<fmpz>u).val, sval, tval)
-        if stype == FMPZ_TMP: fmpz_clear(sval)
+        ttype = fmpz_set_any_ref(tval, t)
+        if ttype != FMPZ_UNKNOWN:
+            u = fmpz.__new__(fmpz)
+            fmpz_mul((<fmpz>u).val, s.val, tval)
         if ttype == FMPZ_TMP: fmpz_clear(tval)
         return u
 
@@ -255,9 +240,7 @@ cdef class fmpz(flint_scalar):
         return u
 
     def __floordiv__(s, t):
-        cdef fmpz_struct sval[1]
         cdef fmpz_struct tval[1]
-        cdef int stype = FMPZ_UNKNOWN
         cdef int ttype = FMPZ_UNKNOWN
         u = NotImplemented
         ttype = fmpz_set_any_ref(tval, t)
@@ -266,11 +249,8 @@ cdef class fmpz(flint_scalar):
                 if ttype == FMPZ_TMP:
                     fmpz_clear(tval)
                 raise ZeroDivisionError("fmpz division by zero")
-            stype = fmpz_set_any_ref(sval, s)
-            if stype != FMPZ_UNKNOWN:
-                u = fmpz.__new__(fmpz)
-                fmpz_fdiv_q((<fmpz>u).val, sval, tval)
-        if stype == FMPZ_TMP: fmpz_clear(sval)
+            u = fmpz.__new__(fmpz)
+            fmpz_fdiv_q((<fmpz>u).val, s.val, tval)
         if ttype == FMPZ_TMP: fmpz_clear(tval)
         return u
 
@@ -290,9 +270,7 @@ cdef class fmpz(flint_scalar):
         return u
 
     def __mod__(s, t):
-        cdef fmpz_struct sval[1]
         cdef fmpz_struct tval[1]
-        cdef int stype = FMPZ_UNKNOWN
         cdef int ttype = FMPZ_UNKNOWN
         u = NotImplemented
         ttype = fmpz_set_any_ref(tval, t)
@@ -301,11 +279,8 @@ cdef class fmpz(flint_scalar):
                 if ttype == FMPZ_TMP:
                     fmpz_clear(tval)
                 raise ZeroDivisionError("fmpz division by zero")
-            stype = fmpz_set_any_ref(sval, s)
-            if stype != FMPZ_UNKNOWN:
-                u = fmpz.__new__(fmpz)
-                fmpz_fdiv_r((<fmpz>u).val, sval, tval)
-        if stype == FMPZ_TMP: fmpz_clear(sval)
+            u = fmpz.__new__(fmpz)
+            fmpz_fdiv_r((<fmpz>u).val, s.val, tval)
         if ttype == FMPZ_TMP: fmpz_clear(tval)
         return u
 
@@ -325,9 +300,7 @@ cdef class fmpz(flint_scalar):
         return u
 
     def __divmod__(s, t):
-        cdef fmpz_struct sval[1]
         cdef fmpz_struct tval[1]
-        cdef int stype = FMPZ_UNKNOWN
         cdef int ttype = FMPZ_UNKNOWN
         u = NotImplemented
         ttype = fmpz_set_any_ref(tval, t)
@@ -336,13 +309,10 @@ cdef class fmpz(flint_scalar):
                 if ttype == FMPZ_TMP:
                     fmpz_clear(tval)
                 raise ZeroDivisionError("fmpz division by zero")
-            stype = fmpz_set_any_ref(sval, s)
-            if stype != FMPZ_UNKNOWN:
-                u1 = fmpz.__new__(fmpz)
-                u2 = fmpz.__new__(fmpz)
-                fmpz_fdiv_qr((<fmpz>u1).val, (<fmpz>u2).val, sval, tval)
-                u = u1, u2
-        if stype == FMPZ_TMP: fmpz_clear(sval)
+            u1 = fmpz.__new__(fmpz)
+            u2 = fmpz.__new__(fmpz)
+            fmpz_fdiv_qr((<fmpz>u1).val, (<fmpz>u2).val, s.val, tval)
+            u = u1, u2
         if ttype == FMPZ_TMP: fmpz_clear(tval)
         return u
 
@@ -364,18 +334,13 @@ cdef class fmpz(flint_scalar):
         return u
 
     def __pow__(s, t, m):
-        cdef fmpz_struct sval[1]
-        cdef int stype = FMPZ_UNKNOWN
         cdef ulong exp
         u = NotImplemented
         if m is not None:
             raise NotImplementedError("modular exponentiation")
-        stype = fmpz_set_any_ref(sval, s)
-        if stype != FMPZ_UNKNOWN:
-            c = t
-            u = fmpz.__new__(fmpz)
-            fmpz_pow_ui((<fmpz>u).val, sval, c)
-        if stype == FMPZ_TMP: fmpz_clear(sval)
+        c = t
+        u = fmpz.__new__(fmpz)
+        fmpz_pow_ui((<fmpz>u).val, s.val, c)
         return u
 
     def __rpow__(s, t, m):
