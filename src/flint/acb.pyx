@@ -458,9 +458,11 @@ cdef class acb(flint_scalar):
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 
-    def __rpow__(s, t):
+    def __rpow__(s, t, u):
         cdef acb_struct tval[1]
         cdef int ttype
+        if u is not None:
+            raise ValueError("modular exponentiation of complex number")
         ttype = acb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
