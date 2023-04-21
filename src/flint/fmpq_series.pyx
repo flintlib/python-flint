@@ -19,13 +19,6 @@ cdef fmpq_series_coerce_operands(x, y):
             return acb_series(x), acb_series(y)
     return NotImplemented, NotImplemented
 
-cdef any_as_fmpq_series(obj):
-    if typecheck(obj, fmpq_series):
-        return obj
-    if typecheck(obj, fmpz_series):
-        return fmpq_series(obj)
-    return NotImplemented
-
 cdef class fmpq_series(flint_series):
 
     cdef fmpq_poly_t val
@@ -69,21 +62,13 @@ cdef class fmpq_series(flint_series):
                 raise ZeroDivisionError("cannot create fmpq_series with zero denominator")
             fmpq_poly_scalar_div_fmpz(self.val, self.val, (<fmpz>den).val)
 
-    def __richcmp__(s, t, int op):
+    def _equal_repr(s, t):
         cdef bint r
-        if op != 2 and op != 3:
-            raise TypeError("series cannot be ordered")
-        s = any_as_fmpq_series(s)
-        if t is NotImplemented:
-            return s
-        t = any_as_fmpq_series(t)
-        if t is NotImplemented:
-            return t
+        if not typecheck(t, fmpq_series):
+            return False
         r = fmpq_poly_equal((<fmpq_series>s).val, (<fmpq_series>t).val)
         if r:
             r = (<fmpq_series>s).prec == (<fmpq_series>t).prec
-        if op == 3:
-            r = not r
         return r
 
     def __len__(self):

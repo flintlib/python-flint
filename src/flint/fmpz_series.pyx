@@ -68,17 +68,13 @@ cdef class fmpz_series(flint_series):
                 fmpz_poly_set_list(self.val, [val])
         fmpz_poly_truncate(self.val, max(0, self.prec))
 
-    def __richcmp__(self, other, int op):
+    def _equal_repr(self, other):
         cdef bint r
-        if op != 2 and op != 3:
-            raise TypeError("series cannot be ordered")
-        if not (typecheck(self, fmpz_series) and typecheck(other, fmpz_series)):
-            return NotImplemented
+        if not typecheck(other, fmpz_series):
+            return False
         r = fmpz_poly_equal((<fmpz_series>self).val, (<fmpz_series>other).val)
         if r:
             r = (<fmpz_series>self).prec == (<fmpz_series>other).prec
-        if op == 3:
-            r = not r
         return r
 
     def __len__(self):

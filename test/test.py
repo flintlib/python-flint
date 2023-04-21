@@ -58,10 +58,8 @@ def test_pyflint():
         f1 = flint.fmpz_series([1,1])
         ctx.cap = 5
         f2 = flint.fmpz_series([1,1])
-        assert f1 == flint.fmpz_series([1,1],10)
-        assert f2 == flint.fmpz_series([1,1],5)
-        assert f1 != flint.fmpz_series([1,1],5)
-        assert f2 != flint.fmpz_series([1,1],10)
+        assert f1._equal_repr(flint.fmpz_series([1,1],10))
+        assert f2._equal_repr(flint.fmpz_series([1,1],5))
     finally:
         ctx.cap = oldcap
 
@@ -531,33 +529,21 @@ def test_fmpz_series():
     s3 = Z([1,1])
     s4 = Z([1,2],11)
     p1 = Zp([1,2])
-    assert (s1 == s2) is True
-    assert (s1 != s2) is False
-    assert (s1 == s3) is False
-    assert (s1 != s3) is True
-    assert (s1 == s4) is False
-    assert (s1 != s4) is True
-    assert (s1 == p1) is False
-    assert (s1 != p1) is True
-    assert (Z([1]) == flint.fmpz(1)) is False
-    assert (Z([1]) != flint.fmpz(1)) is True
-    assert (Z([1]) == 1) is False
-    assert (Z([1]) != 1) is True
-    # XXX: These are invalid power series. Should they compare "equal"?
-    assert (Z([],-1) == Z([],-1)) is True
-    assert (Z([],-1) != Z([],-1)) is False
-    assert (Z([],-2) == Z([],-1)) is True
-    assert (Z([],-2) != Z([],-1)) is False
-    assert (Z([],-1) == Z([],-2)) is True
-    assert (Z([],-1) != Z([],-2)) is False
+    assert s1._equal_repr(s1) is True
+    assert s1._equal_repr(s2) is True
+    assert s1._equal_repr(s3) is False
+    assert s1._equal_repr(s4) is False
+    assert s1._equal_repr(p1) is False
+    assert s1._equal_repr(flint.fmpz(1)) is False
+    assert s1._equal_repr(1) is False
+    assert Z([])._equal_repr(Z([0])) is True
+    assert Z([1])._equal_repr(Z([0])) is False
     # XXX: this gives a core dump:
     # s = Z([1,2])
     # s[10**10] = 1
-    assert Z([]) == Z([0])
-    assert Z([1]) != Z([0])
-    assert Z(Z([1])) == Z([1])
-    assert Z(Zp([1])) == Z([1])
-    assert Z(1) == Z([1])
+    assert Z(Z([1]))._equal_repr(Z([1]))
+    assert Z(Zp([1]))._equal_repr(Z([1]))
+    assert Z(1)._equal_repr(Z([1]))
     assert raises(lambda: Z([1]) < Z([1]), TypeError)
     assert len(Z([1,2])) == 2
     assert Z([1,2]).length() == 2
@@ -569,7 +555,7 @@ def test_fmpz_series():
     assert s5[100] == 0
     s5[2] = -1
     assert s5[2] == -1
-    assert s5 == Z([1,2,-1])
+    assert s5._equal_repr(Z([1,2,-1]))
     def set_bad():
         s5[-1] = 3
     assert raises(set_bad, ValueError)
@@ -577,48 +563,48 @@ def test_fmpz_series():
     assert Z([1,2,0,4]).repr() == "fmpz_series([1, 2, 0, 4], prec=10)"
     assert Z([],0).str() == "O(x^0)"
     assert Z([],-1).str() == "(invalid power series)"
-    assert +Z([1,2]) == Z([1,2])
-    assert -Z([1,2]) == Z([-1,-2])
-    assert Z([1,2]) + Z([3,4,5]) == Z([4,6,5])
-    assert Z([1,2]) + 1 == Z([2,2])
-    assert Z([1,2]) + Zp([3,4,5]) == Z([4,6,5])
-    assert 1 + Z([1,2]) == Z([2,2])
-    assert Zp([1,2]) + Z([3,4,5]) == Z([4,6,5])
+    assert (+Z([1,2]))._equal_repr(Z([1,2]))
+    assert (-Z([1,2]))._equal_repr(Z([-1,-2]))
+    assert (Z([1,2]) + Z([3,4,5]))._equal_repr(Z([4,6,5]))
+    assert (Z([1,2]) + 1)._equal_repr(Z([2,2]))
+    assert (Z([1,2]) + Zp([3,4,5]))._equal_repr(Z([4,6,5]))
+    assert (1 + Z([1,2]))._equal_repr(Z([2,2]))
+    assert (Zp([1,2]) + Z([3,4,5]))._equal_repr(Z([4,6,5]))
     assert raises(lambda: Z([1,2]) + [], TypeError)
     assert raises(lambda: [] + Z([1,2]), TypeError)
-    assert Z([1,2]) - Z([3,5]) == Z([-2,-3])
-    assert Z([1,2]) - 1 == Z([0,2])
-    assert 1 - Z([1,2]) == Z([0,-2])
+    assert (Z([1,2]) - Z([3,5]))._equal_repr(Z([-2,-3]))
+    assert (Z([1,2]) - 1)._equal_repr(Z([0,2]))
+    assert (1 - Z([1,2]))._equal_repr(Z([0,-2]))
     assert raises(lambda: [] - Z([1,2]), TypeError)
     assert raises(lambda: Z([1,2]) - [], TypeError)
-    assert Z([1,2]) * Z([1,2]) == Z([1,4,4])
-    assert 2 * Z([1,2]) == Z([2,4])
-    assert Z([1,2]) * 2 == Z([2,4])
+    assert (Z([1,2]) * Z([1,2]))._equal_repr(Z([1,4,4]))
+    assert (2 * Z([1,2]))._equal_repr(Z([2,4]))
+    assert (Z([1,2]) * 2)._equal_repr(Z([2,4]))
     assert raises(lambda: [] * Z([1,2]), TypeError)
     assert raises(lambda: Z([1,2]) * [], TypeError)
     assert Z([1,2]).valuation() == 0
     assert Z([0,2]).valuation() == 1
     assert Z([0,0]).valuation() == -1
-    assert Z([1,1]) / Z([1,-1]) == Z([1,2,2,2,2,2,2,2,2,2])
+    assert (Z([1,1]) / Z([1,-1]))._equal_repr(Z([1,2,2,2,2,2,2,2,2,2]))
     assert raises(lambda: Z([1,1]) / Z([]), ZeroDivisionError)
-    assert Z([]) / Z([1,-1]) == Z([])
+    assert (Z([]) / Z([1,-1]))._equal_repr(Z([]))
     # quotient would not be a power series
     assert raises(lambda: Z([1,1]) / Z([0,1]), ValueError)
     # leading term in denominator is not a unit
     assert raises(lambda: Z([1,1]) / Z([2,1]), ValueError)
-    assert Z([0,1,1]) / Z([0,1,-1]) == Z([1,2,2,2,2,2,2,2,2],9)
+    assert (Z([0,1,1]) / Z([0,1,-1]))._equal_repr(Z([1,2,2,2,2,2,2,2,2],9))
     # XXX: This gives leading term not a unit:
     # assert Z([2,4]) / 2 == Z([1,2])
-    assert Z([1,1]) / -1 == Z([-1,-1])
+    assert (Z([1,1]) / -1)._equal_repr(Z([-1,-1]))
     assert raises(lambda: Z([1,1]) / [], TypeError)
     assert raises(lambda: [] / Z([1,1]), TypeError)
-    assert Z([1,2]) ** 2 == Z([1,4,4])
+    assert (Z([1,2]) ** 2)._equal_repr(Z([1,4,4]))
     assert raises(lambda: pow(Z([1,2]), 3, 5), NotImplementedError)
-    assert Z([1,2])(Z([0,1,2])) == Z([1,2,4])
+    assert (Z([1,2])(Z([0,1,2])))._equal_repr(Z([1,2,4]))
     assert raises(lambda: Z([1,2])(Z([1,2])), ValueError)
     assert raises(lambda: Z([1,2])([]), TypeError)
     coeffs = [0, 1, -2, 8, -40, 224, -1344, 8448, -54912, 366080]
-    assert Z([0,1,2]).reversion() == Z(coeffs)
+    assert Z([0,1,2]).reversion()._equal_repr(Z(coeffs))
     # power series reversion must have valuation 1
     assert raises(lambda: Z([1,1]).reversion(), ValueError)
     # leading term is not a unit
@@ -999,45 +985,30 @@ def test_fmpq_series():
     sz1 = Z([1,2])
     sz2 = Z([1,1])
     sz3 = Z([1,1],11)
-    assert (s1 == s2) is True
-    assert (s1 != s2) is False
-    assert (s1 == s3) is False
-    assert (s1 != s3) is True
-    assert (s1 == s4) is False
-    assert (s1 != s4) is True
-    assert (s1 == p1) is False
-    assert (s1 != p1) is True
-    assert (s1 == sz1) is True
-    assert (s1 != sz1) is False
-    assert (s1 == sz2) is False
-    assert (s1 != sz2) is True
-    assert (s1 == sz3) is False
-    assert (s1 != sz3) is True
-    assert (Q([1]) == flint.fmpq(1)) is False
-    assert (Q([1]) != flint.fmpq(1)) is True
-    assert (Q([1]) == 1) is False
-    assert (Q([1]) != 1) is True
-    # XXX: These are invalid power series. Should they compare "equal"?
-    assert (Q([],-1) == Q([],-1)) is True
-    assert (Q([],-1) != Q([],-1)) is False
-    assert (Q([],-2) == Q([],-1)) is True
-    assert (Q([],-2) != Q([],-1)) is False
-    assert (Q([],-1) == Q([],-2)) is True
-    assert (Q([],-1) != Q([],-2)) is False
+    assert s1._equal_repr(s1) is True
+    assert s1._equal_repr(s2) is True
+    assert s1._equal_repr(s3) is False
+    assert s1._equal_repr(s4) is False
+    assert s1._equal_repr(p1) is False
+    assert s1._equal_repr(sz1) is False
+    assert s1._equal_repr(sz2) is False
+    assert s1._equal_repr(sz3) is False
+    assert Q([1])._equal_repr(flint.fmpq(1)) is False
+    assert Q([1])._equal_repr(1) is False
     # XXX: this gives a core dump:
     # s = Q([1,2])
     # s[10**10] = 1
-    assert Q([]) == Q([0])
-    assert Q([1]) != Q([0])
-    assert Q(Q([1])) == Q([1])
-    assert Q(Qp([1])) == Q([1])
-    assert Q(Zp([1])) == Q([1])
-    assert Q(Z([1])) == Q([1])
-    assert Q(1) == Q([1])
-    assert Q([1],1) == Q([1])
-    assert Q([1],2) == Q([flint.fmpq(1,2)])
-    assert Q([1],1,10) != Q([1],1,11)
-    assert Q([1,2],3) == Q([flint.fmpq(1,3), flint.fmpq(2,3)])
+    assert Q([])._equal_repr(Q([0]))
+    assert not Q([1])._equal_repr(Q([0]))
+    assert Q(Q([1]))._equal_repr(Q([1]))
+    assert Q(Qp([1]))._equal_repr(Q([1]))
+    assert Q(Zp([1]))._equal_repr(Q([1]))
+    assert Q(Z([1]))._equal_repr(Q([1]))
+    assert Q(1)._equal_repr(Q([1]))
+    assert Q([1],1)._equal_repr(Q([1]))
+    assert Q([1],2)._equal_repr(Q([flint.fmpq(1,2)]))
+    assert not Q([1],1,10)._equal_repr(Q([1],1,11))
+    assert Q([1,2],3)._equal_repr(Q([flint.fmpq(1,3), flint.fmpq(2,3)]))
     assert raises(lambda: Q([1],[]), TypeError)
     assert raises(lambda: Q([1],0), ZeroDivisionError)
     assert raises(lambda: Q([1]) < Q([1]), TypeError)
@@ -1051,7 +1022,7 @@ def test_fmpq_series():
     assert s5[100] == 0
     s5[2] = -1
     assert s5[2] == -1
-    assert s5 == Q([1,2,-1])
+    assert s5._equal_repr(Q([1,2,-1]))
     def set_bad():
         s5[-1] = 3
     assert raises(set_bad, ValueError)
@@ -1061,83 +1032,83 @@ def test_fmpq_series():
     assert Q([1,2,0,4]).repr() == "fmpq_series([1, 2, 0, 4], 1, prec=10)"
     assert Q([],1,0).str() == "O(x^0)"
     assert Q([],1,-1).str() == "(invalid power series)"
-    assert +Q([1,2]) == Q([1,2])
-    assert -Q([1,2]) == Q([-1,-2])
-    assert Q([1,2]) + Q([3,4,5]) == Q([4,6,5])
-    assert Q([1,2]) + 1 == Q([2,2])
-    assert Q([1,2]) + Qp([3,4,5]) == Q([4,6,5])
-    assert 1 + Q([1,2]) == Q([2,2])
-    assert Qp([1,2]) + Q([3,4,5]) == Q([4,6,5])
+    assert (+Q([1,2]))._equal_repr(Q([1,2]))
+    assert (-Q([1,2]))._equal_repr(Q([-1,-2]))
+    assert (Q([1,2]) + Q([3,4,5]))._equal_repr(Q([4,6,5]))
+    assert (Q([1,2]) + 1)._equal_repr(Q([2,2]))
+    assert (Q([1,2]) + Qp([3,4,5]))._equal_repr(Q([4,6,5]))
+    assert (1 + Q([1,2]))._equal_repr(Q([2,2]))
+    assert (Qp([1,2]) + Q([3,4,5]))._equal_repr(Q([4,6,5]))
     assert raises(lambda: Q([1,2]) + [], TypeError)
     assert raises(lambda: [] + Q([1,2]), TypeError)
-    assert Q([1,2]) - Q([3,5]) == Q([-2,-3])
-    assert Q([1,2]) - 1 == Q([0,2])
-    assert 1 - Q([1,2]) == Q([0,-2])
+    assert (Q([1,2]) - Q([3,5]))._equal_repr(Q([-2,-3]))
+    assert (Q([1,2]) - 1)._equal_repr(Q([0,2]))
+    assert (1 - Q([1,2]))._equal_repr(Q([0,-2]))
     assert raises(lambda: [] - Q([1,2]), TypeError)
     assert raises(lambda: Q([1,2]) - [], TypeError)
-    assert Q([1,2]) * Q([1,2]) == Q([1,4,4])
-    assert 2 * Q([1,2]) == Q([2,4])
-    assert Q([1,2]) * 2 == Q([2,4])
+    assert (Q([1,2]) * Q([1,2]))._equal_repr(Q([1,4,4]))
+    assert (2 * Q([1,2]))._equal_repr(Q([2,4]))
+    assert (Q([1,2]) * 2)._equal_repr(Q([2,4]))
     assert raises(lambda: [] * Q([1,2]), TypeError)
     assert raises(lambda: Q([1,2]) * [], TypeError)
     assert Q([1,2]).valuation() == 0
     assert Q([0,2]).valuation() == 1
     assert Q([0,0]).valuation() == -1
-    assert Q([1,1]) / Q([1,-1]) == Q([1,2,2,2,2,2,2,2,2,2])
+    assert (Q([1,1]) / Q([1,-1]))._equal_repr(Q([1,2,2,2,2,2,2,2,2,2]))
     assert raises(lambda: Q([1,1]) / Q([]), ZeroDivisionError)
-    assert Q([],1) / Q([1,-1]) == Q([],1)
+    assert (Q([],1) / Q([1,-1]))._equal_repr(Q([],1))
     # quotient would not be a power series
     assert raises(lambda: Q([1,1]) / Q([0,1]), ValueError)
-    assert Q([1,1]) / Q([2,1]) == Q([512, 256, -128, 64, -32, 16, -8, 4, -2, 1], 1024)
-    assert Q([0,1,1]) / Q([0,1,-1]) == Q([1,2,2,2,2,2,2,2,2],1,9)
-    assert Q([2,4]) / 2 == Q([1,2])
-    assert Q([1,4]) / 2 == Q([1,4],2)
-    assert Q([1,1]) / -1 == Q([-1,-1])
+    assert (Q([1,1]) / Q([2,1]))._equal_repr(Q([512, 256, -128, 64, -32, 16, -8, 4, -2, 1], 1024))
+    assert (Q([0,1,1]) / Q([0,1,-1]))._equal_repr(Q([1,2,2,2,2,2,2,2,2],1,9))
+    assert (Q([2,4]) / 2)._equal_repr(Q([1,2]))
+    assert (Q([1,4]) / 2)._equal_repr(Q([1,4],2))
+    assert (Q([1,1]) / -1)._equal_repr(Q([-1,-1]))
     assert raises(lambda: Q([1,1]) / [], TypeError)
     assert raises(lambda: [] / Q([1,1]), TypeError)
     q = Q([1,2],3)
-    assert q ** 0 == Q([1])
-    assert q ** 1 == q
-    assert q ** 2 == Q([1,4,4],9)
-    assert q ** 3 == Q([1,6,12,8],27)
-    assert q ** 4 == Q([1, 8, 24, 32, 16], 81)
-    assert Q([1,2]) ** 2 == Q([1,4,4])
-    assert Q([1,2]) ** 2 == Q([1,4,4])
+    assert (q ** 0)._equal_repr(Q([1]))
+    assert (q ** 1)._equal_repr(q)
+    assert (q ** 2)._equal_repr(Q([1,4,4],9))
+    assert (q ** 3)._equal_repr(Q([1,6,12,8],27))
+    assert (q ** 4)._equal_repr(Q([1, 8, 24, 32, 16], 81))
+    assert (Q([1,2]) ** 2)._equal_repr(Q([1,4,4]))
+    assert (Q([1,2]) ** 2)._equal_repr(Q([1,4,4]))
     assert raises(lambda: pow(Q([1,2]), 3, 5), NotImplementedError)
-    assert Q([1,2])(Q([0,1,2])) == Q([1,2,4])
+    assert (Q([1,2])(Q([0,1,2])))._equal_repr(Q([1,2,4]))
     assert raises(lambda: Q([1,2])(Q([1,2])), ValueError)
     assert raises(lambda: Q([1,2])([]), TypeError)
     coeffs = [0, 1, -2, 8, -40, 224, -1344, 8448, -54912, 366080]
-    assert Q([0,1,2]).reversion() == Q(coeffs)
+    assert Q([0,1,2]).reversion()._equal_repr(Q(coeffs))
     # power series reversion must have valuation 1
     assert raises(lambda: Q([1,1]).reversion(), ValueError)
-    assert Q([0,2,1]).reversion() == \
-        Q([0,32768,-8192,4096,-2560,1792,-1344,1056,-858,715],65536,10)
+    assert Q([0,2,1]).reversion()._equal_repr( \
+        Q([0,32768,-8192,4096,-2560,1792,-1344,1056,-858,715],65536,10))
     x = Q([0,1])
     expx = x.exp()
-    assert expx == Q([362880,362880,181440,60480,15120,3024,504,72,9,1],362880)
-    assert expx.inv() == Q([362880,-362880,181440,-60480,15120,-3024,504,-72,9,-1], 362880)
-    assert expx.derivative() == Q([40320,40320,20160,6720,1680,336,56,8,1],40320,prec=9)
-    assert Q([1,1]).integral() == Q([0,2,1],2)
-    assert expx.sqrt() == \
-        Q([185794560,92897280,23224320,3870720,483840,48384,4032,288,18,1],185794560)
-    assert expx.rsqrt() == \
-        Q([185794560,-92897280,23224320,-3870720,483840,-48384,4032,-288,18,-1],185794560)
-    assert expx.log() == x
+    assert (expx)._equal_repr(Q([362880,362880,181440,60480,15120,3024,504,72,9,1],362880))
+    assert (expx.inv())._equal_repr(Q([362880,-362880,181440,-60480,15120,-3024,504,-72,9,-1], 362880))
+    assert (expx.derivative())._equal_repr(Q([40320,40320,20160,6720,1680,336,56,8,1],40320,prec=9))
+    assert (Q([1,1]).integral())._equal_repr(Q([0,2,1],2))
+    assert (expx.sqrt())._equal_repr(\
+        Q([185794560,92897280,23224320,3870720,483840,48384,4032,288,18,1],185794560))
+    assert (expx.rsqrt())._equal_repr(\
+        Q([185794560,-92897280,23224320,-3870720,483840,-48384,4032,-288,18,-1],185794560))
+    assert (expx.log())._equal_repr(x)
     zero = Q()
     one = Q([1])
-    assert zero.exp() == one
-    assert one.log() == zero
-    assert x.atan() == Q([0,315,0,-105,0,63,0,-45,0,35],315)
-    assert x.atanh() == Q([0,315,0,105,0,63,0,45,0,35],315)
-    assert x.asin() == Q([0,40320,0,6720,0,3024,0,1800,0,1225],40320)
-    assert x.asinh() == Q([0,40320,0,-6720,0,3024,0,-1800,0,1225],40320)
-    assert x.sin() == Q([0,362880,0,-60480,0,3024,0,-72,0,1],362880)
-    assert x.cos() == Q([40320,0,-20160,0,1680,0,-56,0,1],40320)
-    assert x.tan() == Q([0,2835,0,945,0,378,0,153,0,62],2835)
-    assert x.sinh() == Q([0,362880,0,60480,0,3024,0,72,0,1],362880)
-    assert x.cosh() == Q([40320,0,20160,0,1680,0,56,0,1],40320)
-    assert x.tanh() == Q([0,2835,0,-945,0,378,0,-153,0,62],2835)
+    assert (zero.exp())._equal_repr(one)
+    assert (one.log())._equal_repr(zero)
+    assert (x.atan())._equal_repr(Q([0,315,0,-105,0,63,0,-45,0,35],315))
+    assert (x.atanh())._equal_repr(Q([0,315,0,105,0,63,0,45,0,35],315))
+    assert (x.asin())._equal_repr(Q([0,40320,0,6720,0,3024,0,1800,0,1225],40320))
+    assert (x.asinh())._equal_repr(Q([0,40320,0,-6720,0,3024,0,-1800,0,1225],40320))
+    assert (x.sin())._equal_repr(Q([0,362880,0,-60480,0,3024,0,-72,0,1],362880))
+    assert (x.cos())._equal_repr(Q([40320,0,-20160,0,1680,0,-56,0,1],40320))
+    assert (x.tan())._equal_repr(Q([0,2835,0,945,0,378,0,153,0,62],2835))
+    assert (x.sinh())._equal_repr(Q([0,362880,0,60480,0,3024,0,72,0,1],362880))
+    assert (x.cosh())._equal_repr(Q([40320,0,20160,0,1680,0,56,0,1],40320))
+    assert (x.tanh())._equal_repr(Q([0,2835,0,-945,0,378,0,-153,0,62],2835))
     # Constant term must be nonzero
     assert raises(lambda: Q([0,1]).inv(), ValueError)
     # Constant term must be 1
