@@ -41,7 +41,7 @@ cdef class fmpq_series(flint_series):
         if val is not None:
             if typecheck(val, fmpq_series):
                 fmpq_poly_set(self.val, (<fmpq_series>val).val)
-                self.prec = min((<fmpz_series>val).prec, getcap())
+                self.prec = min((<fmpq_series>val).prec, getcap())
             elif typecheck(val, fmpz_series):
                 fmpq_poly_set_fmpz_poly(self.val, (<fmpz_series>val).val)
                 self.prec = min((<fmpz_series>val).prec, getcap())
@@ -61,6 +61,15 @@ cdef class fmpq_series(flint_series):
             if fmpz_is_zero((<fmpz>den).val):
                 raise ZeroDivisionError("cannot create fmpq_series with zero denominator")
             fmpq_poly_scalar_div_fmpz(self.val, self.val, (<fmpz>den).val)
+
+    def _equal_repr(s, t):
+        cdef bint r
+        if not typecheck(t, fmpq_series):
+            return False
+        r = fmpq_poly_equal((<fmpq_series>s).val, (<fmpq_series>t).val)
+        if r:
+            r = (<fmpq_series>s).prec == (<fmpq_series>t).prec
+        return r
 
     def __len__(self):
         return fmpq_poly_length(self.val)
@@ -197,7 +206,7 @@ cdef class fmpq_series(flint_series):
             u = fmpq_series.__new__(fmpq_series)
 
             if fmpq_poly_is_zero((<fmpq_series>s).val):
-                u.cap = cap
+                (<fmpq_series>u).prec = cap
                 return u
 
             sval = (<fmpq_series>s).valuation()
@@ -236,6 +245,7 @@ cdef class fmpq_series(flint_series):
         return fmpq_series._div_(s, t)
 
     # generic exponentiation (fallback code)
+    # XXX: use fmpq_poly_pow_trunc instead?
     def __pow__(s, ulong exp, mod):
         if mod is not None:
             raise NotImplementedError("modular exponentiation")
@@ -308,7 +318,7 @@ cdef class fmpq_series(flint_series):
     cdef bint one_constant_term(s):
         if fmpq_poly_is_zero((<fmpq_series>s).val):
             return False
-        if fmpz_is_one(&((<fmpq_series>s).val.coeffs[0])):
+        if fmpz_equal(&((<fmpq_series>s).val.coeffs[0]), (<fmpq_series>s).val.den):
             return True
         return False
 

@@ -68,6 +68,15 @@ cdef class fmpz_series(flint_series):
                 fmpz_poly_set_list(self.val, [val])
         fmpz_poly_truncate(self.val, max(0, self.prec))
 
+    def _equal_repr(self, other):
+        cdef bint r
+        if not typecheck(other, fmpz_series):
+            return False
+        r = fmpz_poly_equal((<fmpz_series>self).val, (<fmpz_series>other).val)
+        if r:
+            r = (<fmpz_series>self).prec == (<fmpz_series>other).prec
+        return r
+
     def __len__(self):
         return fmpz_poly_length(self.val)
 
