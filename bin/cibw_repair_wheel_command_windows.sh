@@ -9,6 +9,18 @@ set -o errexit
 # Uncomment this to run cibuildwheel locally on Windows:
 # export PATH=$PATH:/c/msys64/usr/bin:/c/msys64/mingw64/bin
 
+# msys2 will not inherit the PATH for the virtual environment in CI
+export PATH=$PATH:$(cygpath ${VIRTUAL_ENV_BIN})
+echo PATH=$PATH
+
+echo of VIRTUAL_ENV_BIN=$VIRTUAL_ENV_BIN
+echo Contents of VIRTUAL_ENV_BIN:
+ls $VIRTUAL_ENV_BIN
+
+which pip
+which wheel
+pip list
+
 # We cannot use ordinary command line arguments in CI because msys2 -c mangles
 # them. Instead we have a batch file to receive the arguments and convert them
 # into environment variables before calling this script. When running locally
@@ -46,5 +58,6 @@ popd
 # --no-mangle if strip has not been applied to all mingw64-created .dll and
 # .pyd files that are needed for the wheel.
 delvewheel repair $WHEELNAME 	\
-	-w $WHEELHOUSE		\
-	--add-path .local/bin:.local/lib/
+    -vv               \
+    -w $WHEELHOUSE    \
+    --add-path .local/bin:.local/lib/:/c/msys64/ucrt64/bin
