@@ -1,10 +1,6 @@
 cdef acb_poly_coerce_operands(x, y):
-    if typecheck(x, acb_poly):
-        if isinstance(y, (int, long, float, complex, fmpz, fmpq, arb, acb, fmpz_poly, fmpq_poly, arb_poly)):
-            return x, acb_poly(y)
-    else:
-        if isinstance(x, (int, long, float, complex, fmpz, fmpq, arb, acb, fmpz_poly, fmpq_poly, arb_poly)):
-            return acb_poly(x), y
+    if isinstance(y, (int, long, float, complex, fmpz, fmpq, arb, acb, fmpz_poly, fmpq_poly, arb_poly)):
+        return x, acb_poly(y)
     return NotImplemented, NotImplemented
 
 cdef acb_poly_set_list(acb_poly_t poly, list val, long prec):
@@ -188,76 +184,112 @@ cdef class acb_poly(flint_poly):
         return u
 
     def __add__(s, t):
-        if type(s) is type(t):
-            u = acb_poly.__new__(acb_poly)
-            acb_poly_add((<acb_poly>u).val, (<acb_poly>s).val, (<acb_poly>t).val, getprec())
-            return u
+        if not isinstance(t, acb_poly):
+            s, t = acb_poly_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s + t
+        u = acb_poly.__new__(acb_poly)
+        acb_poly_add((<acb_poly>u).val, (<acb_poly>s).val, (<acb_poly>t).val, getprec())
+        return u
+
+    def __radd__(s, t):
         s, t = acb_poly_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s + t
+        return t + s
 
     def __sub__(s, t):
-        if type(s) is type(t):
-            u = acb_poly.__new__(acb_poly)
-            acb_poly_sub((<acb_poly>u).val, (<acb_poly>s).val, (<acb_poly>t).val, getprec())
-            return u
+        if not isinstance(t, acb_poly):
+            s, t = acb_poly_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s - t
+        u = acb_poly.__new__(acb_poly)
+        acb_poly_sub((<acb_poly>u).val, (<acb_poly>s).val, (<acb_poly>t).val, getprec())
+        return u
+
+    def __rsub__(s, t):
         s, t = acb_poly_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s - t
+        return t - s
 
     def __mul__(s, t):
-        if type(s) is type(t):
-            u = acb_poly.__new__(acb_poly)
-            acb_poly_mul((<acb_poly>u).val, (<acb_poly>s).val, (<acb_poly>t).val, getprec())
-            return u
+        if not isinstance(t, acb_poly):
+            s, t = acb_poly_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s * t
+        u = acb_poly.__new__(acb_poly)
+        acb_poly_mul((<acb_poly>u).val, (<acb_poly>s).val, (<acb_poly>t).val, getprec())
+        return u
+
+    def __rmul__(s, t):
         s, t = acb_poly_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s * t
+        return t * s
 
     def __floordiv__(s, t):
-        if type(s) is type(t):
-            q = acb_poly.__new__(acb_poly)
-            r = acb_poly.__new__(acb_poly)
-            if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
-                    (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
-                return q
-            else:
-                raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")
+        if not isinstance(t, acb_poly):
+            s, t = acb_poly_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s // t
+        q = acb_poly.__new__(acb_poly)
+        r = acb_poly.__new__(acb_poly)
+        if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
+                (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
+            return q
+        else:
+            raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")
+
+    def __rfloordiv__(s, t):
         s, t = acb_poly_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s // t
+        return t // s
 
     def __mod__(s, t):
-        if type(s) is type(t):
-            q = acb_poly.__new__(acb_poly)
-            r = acb_poly.__new__(acb_poly)
-            if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
-                    (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
-                return r
-            else:
-                raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")
+        if not isinstance(t, acb_poly):
+            s, t = acb_poly_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s % t
+        q = acb_poly.__new__(acb_poly)
+        r = acb_poly.__new__(acb_poly)
+        if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
+                (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
+            return r
+        else:
+            raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")
+
+    def __rmod__(s, t):
         s, t = acb_poly_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s % t
+        return t % s
 
     def __divmod__(s, t):
-        if type(s) is type(t):
-            q = acb_poly.__new__(acb_poly)
-            r = acb_poly.__new__(acb_poly)
-            if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
-                    (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
-                return q, r
-            else:
-                raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")
+        if not isinstance(t, acb_poly):
+            s, t = acb_poly_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return divmod(s, t)
+        q = acb_poly.__new__(acb_poly)
+        r = acb_poly.__new__(acb_poly)
+        if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
+                (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
+            return q, r
+        else:
+            raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")
+
+    def __rdivmod__(s, t):
         s, t = acb_poly_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return divmod(s, t)
+        return divmod(t, s)
 
     def __pow__(acb_poly s, ulong exp, mod):
         if mod is not None:
