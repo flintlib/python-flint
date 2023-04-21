@@ -73,19 +73,19 @@ def good(func, slong prec=0, slong maxprec=0, slong dps=0,
         dps = ctx.dps
 
     orig = ctx.prec
-    morebits = max(20, prec / 5)
+    morebits = max(20, prec // 5)
 
     if verbose:
-        print "prec = %i, maxprec = %i" % (prec, maxprec)
+        print("prec = %i, maxprec = %i" % (prec, maxprec))
     try:
         ctx.prec = prec * 1.01 + 2 * padding
         while ctx.prec < maxprec:
             if verbose:
-                print "eval prec = %i" % ctx.prec
+                print("eval prec = %i" % ctx.prec)
             v = func()
             acc = __goodness(v, parts, metric)
             if verbose:
-                print "good bits = %i" % acc
+                print("good bits = %i" % acc)
             if acc > prec + padding:
                 if show:
                     ctx.dps = dps
