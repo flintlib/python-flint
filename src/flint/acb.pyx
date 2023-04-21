@@ -364,7 +364,7 @@ cdef class acb(flint_scalar):
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = acb.__new__(acb)
-        acb_add((<acb>u).val, s.val, tval, getprec())
+        acb_add((<acb>u).val, (<acb>s).val, tval, getprec())
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 
@@ -386,7 +386,7 @@ cdef class acb(flint_scalar):
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = acb.__new__(acb)
-        acb_sub((<acb>u).val, s.val, tval, getprec())
+        acb_sub((<acb>u).val, (<acb>s).val, tval, getprec())
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 
@@ -408,7 +408,7 @@ cdef class acb(flint_scalar):
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = acb.__new__(acb)
-        acb_mul((<acb>u).val, s.val, tval, getprec())
+        acb_mul((<acb>u).val, (<acb>s).val, tval, getprec())
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 
@@ -430,7 +430,7 @@ cdef class acb(flint_scalar):
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = acb.__new__(acb)
-        acb_div((<acb>u).val, s.val, tval, getprec())
+        acb_div((<acb>u).val, (<acb>s).val, tval, getprec())
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 
@@ -454,7 +454,7 @@ cdef class acb(flint_scalar):
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = acb.__new__(acb)
-        acb_pow((<acb>u).val, s.val, tval, getprec())
+        acb_pow((<acb>u).val, (<acb>s).val, tval, getprec())
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 

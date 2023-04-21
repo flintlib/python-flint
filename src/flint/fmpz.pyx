@@ -180,7 +180,7 @@ cdef class fmpz(flint_scalar):
         ttype = fmpz_set_any_ref(tval, t)
         if ttype != FMPZ_UNKNOWN:
             u = fmpz.__new__(fmpz)
-            fmpz_add((<fmpz>u).val, s.val, tval)
+            fmpz_add((<fmpz>u).val, (<fmpz>s).val, tval)
         if ttype == FMPZ_TMP: fmpz_clear(tval)
         return u
 
@@ -202,7 +202,7 @@ cdef class fmpz(flint_scalar):
         ttype = fmpz_set_any_ref(tval, t)
         if ttype != FMPZ_UNKNOWN:
             u = fmpz.__new__(fmpz)
-            fmpz_sub((<fmpz>u).val, s.val, tval)
+            fmpz_sub((<fmpz>u).val, (<fmpz>s).val, tval)
         if ttype == FMPZ_TMP: fmpz_clear(tval)
         return u
 
@@ -224,7 +224,7 @@ cdef class fmpz(flint_scalar):
         ttype = fmpz_set_any_ref(tval, t)
         if ttype != FMPZ_UNKNOWN:
             u = fmpz.__new__(fmpz)
-            fmpz_mul((<fmpz>u).val, s.val, tval)
+            fmpz_mul((<fmpz>u).val, (<fmpz>s).val, tval)
         if ttype == FMPZ_TMP: fmpz_clear(tval)
         return u
 
@@ -250,7 +250,7 @@ cdef class fmpz(flint_scalar):
                     fmpz_clear(tval)
                 raise ZeroDivisionError("fmpz division by zero")
             u = fmpz.__new__(fmpz)
-            fmpz_fdiv_q((<fmpz>u).val, s.val, tval)
+            fmpz_fdiv_q((<fmpz>u).val, (<fmpz>s).val, tval)
         if ttype == FMPZ_TMP: fmpz_clear(tval)
         return u
 
@@ -280,7 +280,7 @@ cdef class fmpz(flint_scalar):
                     fmpz_clear(tval)
                 raise ZeroDivisionError("fmpz division by zero")
             u = fmpz.__new__(fmpz)
-            fmpz_fdiv_r((<fmpz>u).val, s.val, tval)
+            fmpz_fdiv_r((<fmpz>u).val, (<fmpz>s).val, tval)
         if ttype == FMPZ_TMP: fmpz_clear(tval)
         return u
 
@@ -311,7 +311,7 @@ cdef class fmpz(flint_scalar):
                 raise ZeroDivisionError("fmpz division by zero")
             u1 = fmpz.__new__(fmpz)
             u2 = fmpz.__new__(fmpz)
-            fmpz_fdiv_qr((<fmpz>u1).val, (<fmpz>u2).val, s.val, tval)
+            fmpz_fdiv_qr((<fmpz>u1).val, (<fmpz>u2).val, (<fmpz>s).val, tval)
             u = u1, u2
         if ttype == FMPZ_TMP: fmpz_clear(tval)
         return u
@@ -340,7 +340,7 @@ cdef class fmpz(flint_scalar):
             raise NotImplementedError("modular exponentiation")
         c = t
         u = fmpz.__new__(fmpz)
-        fmpz_pow_ui((<fmpz>u).val, s.val, c)
+        fmpz_pow_ui((<fmpz>u).val, (<fmpz>s).val, c)
         return u
 
     def __rpow__(s, t, m):

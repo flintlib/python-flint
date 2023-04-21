@@ -540,7 +540,7 @@ cdef class arb(flint_scalar):
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = arb.__new__(arb)
-        arb_add((<arb>u).val, s.val, tval, getprec())
+        arb_add((<arb>u).val, (<arb>s).val, tval, getprec())
         if ttype == FMPZ_TMP: arb_clear(tval)
         return u
 
@@ -562,7 +562,7 @@ cdef class arb(flint_scalar):
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = arb.__new__(arb)
-        arb_sub((<arb>u).val, s.val, tval, getprec())
+        arb_sub((<arb>u).val, (<arb>s).val, tval, getprec())
         if ttype == FMPZ_TMP: arb_clear(tval)
         return u
 
@@ -584,7 +584,7 @@ cdef class arb(flint_scalar):
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = arb.__new__(arb)
-        arb_mul((<arb>u).val, s.val, tval, getprec())
+        arb_mul((<arb>u).val, (<arb>s).val, tval, getprec())
         if ttype == FMPZ_TMP: arb_clear(tval)
         return u
 
@@ -606,7 +606,7 @@ cdef class arb(flint_scalar):
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = arb.__new__(arb)
-        arb_div((<arb>u).val, s.val, tval, getprec())
+        arb_div((<arb>u).val, (<arb>s).val, tval, getprec())
         if ttype == FMPZ_TMP: arb_clear(tval)
         return u
 
@@ -630,7 +630,7 @@ cdef class arb(flint_scalar):
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = arb.__new__(arb)
-        arb_pow((<arb>u).val, s.val, tval, getprec())
+        arb_pow((<arb>u).val, (<arb>s).val, tval, getprec())
         if ttype == FMPZ_TMP: arb_clear(tval)
         return u
 
