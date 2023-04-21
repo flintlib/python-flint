@@ -176,11 +176,8 @@ cdef class fmpq_poly(flint_poly):
         fmpq_poly_neg(res.val, self.val)
         return res
 
-    def __add__(s, t):
+    def _add_(s, t):
         cdef fmpq_poly r
-        s = any_as_fmpq_poly(s)
-        if s is NotImplemented:
-            return s
         t = any_as_fmpq_poly(t)
         if t is NotImplemented:
             return t
@@ -188,23 +185,32 @@ cdef class fmpq_poly(flint_poly):
         fmpq_poly_add(r.val, (<fmpq_poly>s).val, (<fmpq_poly>t).val)
         return r
 
-    def __sub__(s, t):
+    def __add__(s, t):
+        return s._add_(t)
+
+    def __radd__(s, t):
+        return s._add_(t)
+
+    def _sub_(s, t):
         cdef fmpq_poly r
-        s = any_as_fmpq_poly(s)
-        if s is NotImplemented:
-            return s
-        t = any_as_fmpq_poly(t)
-        if t is NotImplemented:
-            return t
         r = fmpq_poly.__new__(fmpq_poly)
         fmpq_poly_sub(r.val, (<fmpq_poly>s).val, (<fmpq_poly>t).val)
         return r
 
-    def __mul__(s, t):
+    def __sub__(s, t):
+        t = any_as_fmpq_poly(t)
+        if t is NotImplemented:
+            return t
+        return s._sub_(t)
+
+    def __rsub__(s, t):
+        t = any_as_fmpq_poly(t)
+        if t is NotImplemented:
+            return t
+        return t._sub_(s)
+
+    def _mul_(s, t):
         cdef fmpq_poly r
-        s = any_as_fmpq_poly(s)
-        if s is NotImplemented:
-            return s
         t = any_as_fmpq_poly(t)
         if t is NotImplemented:
             return t
@@ -212,33 +218,55 @@ cdef class fmpq_poly(flint_poly):
         fmpq_poly_mul(r.val, (<fmpq_poly>s).val, (<fmpq_poly>t).val)
         return r
 
-    def __floordiv__(s, t):
+    def __mul__(s, t):
+        return s._mul_(t)
+
+    def __rmul__(s, t):
+        return s._mul_(t)
+
+    def _floordiv_(s, t):
         cdef fmpq_poly r
-        s = any_as_fmpq_poly(s)
-        if s is NotImplemented:
-            return s
-        t = any_as_fmpq_poly(t)
-        if t is NotImplemented:
-            return t
         if fmpq_poly_is_zero((<fmpq_poly>t).val):
             raise ZeroDivisionError("fmpq_poly division by 0")
         r = fmpq_poly.__new__(fmpq_poly)
         fmpq_poly_div(r.val, (<fmpq_poly>s).val, (<fmpq_poly>t).val)
         return r
 
-    def __mod__(s, t):
+    def __floordiv__(s, t):
         cdef fmpq_poly r
-        s = any_as_fmpq_poly(s)
-        if s is NotImplemented:
-            return s
         t = any_as_fmpq_poly(t)
         if t is NotImplemented:
             return t
+        return s._floordiv_(t)
+
+    def __rfloordiv__(s, t):
+        cdef fmpq_poly r
+        t = any_as_fmpq_poly(t)
+        if t is NotImplemented:
+            return t
+        return t._floordiv_(s)
+
+    def _mod_(s, t):
+        cdef fmpq_poly r
         if fmpq_poly_is_zero((<fmpq_poly>t).val):
             raise ZeroDivisionError("fmpq_poly division by 0")
         r = fmpq_poly.__new__(fmpq_poly)
         fmpq_poly_rem(r.val, (<fmpq_poly>s).val, (<fmpq_poly>t).val)
         return r
+
+    def __mod__(s, t):
+        cdef fmpq_poly r
+        t = any_as_fmpq_poly(t)
+        if t is NotImplemented:
+            return t
+        return s._mod_(t)
+
+    def __rmod__(s, t):
+        cdef fmpq_poly r
+        t = any_as_fmpq_poly(t)
+        if t is NotImplemented:
+            return t
+        return t._mod_(s)
 
     @staticmethod
     def _div_(fmpq_poly s, t):
@@ -258,20 +286,26 @@ cdef class fmpq_poly(flint_poly):
     def __truediv__(s, t):
         return fmpq_poly._div_(s, t)
 
-    def __divmod__(s, t):
+    def _divmod_(s, t):
         cdef fmpq_poly P, Q
-        s = any_as_fmpq_poly(s)
-        if s is NotImplemented:
-            return s
-        t = any_as_fmpq_poly(t)
-        if t is NotImplemented:
-            return t
         if fmpq_poly_is_zero((<fmpq_poly>t).val):
             raise ZeroDivisionError("fmpq_poly divmod by 0")
         P = fmpq_poly.__new__(fmpq_poly)
         Q = fmpq_poly.__new__(fmpq_poly)
         fmpq_poly_divrem(P.val, Q.val, (<fmpq_poly>s).val, (<fmpq_poly>t).val)
         return P, Q
+
+    def __divmod__(s, t):
+        t = any_as_fmpq_poly(t)
+        if t is NotImplemented:
+            return t
+        return s._divmod_(t)
+
+    def __rdivmod__(s, t):
+        t = any_as_fmpq_poly(t)
+        if t is NotImplemented:
+            return t
+        return t._divmod_(s)
 
     def __pow__(fmpq_poly self, ulong exp, mod):
         cdef fmpq_poly res
