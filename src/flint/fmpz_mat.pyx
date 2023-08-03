@@ -190,9 +190,6 @@ cdef class fmpz_mat(flint_mat):
         cdef fmpz_mat u
         cdef fmpz_mat_struct *sval
         cdef fmpz_mat_struct *tval
-        sm = any_as_fmpz_mat(s)
-        if sm is NotImplemented:
-            return sm
         tm = any_as_fmpz_mat(t)
         if tm is NotImplemented:
             return tm
@@ -210,9 +207,6 @@ cdef class fmpz_mat(flint_mat):
         cdef fmpz_mat u
         cdef fmpz_mat_struct *sval
         cdef fmpz_mat_struct *tval
-        sm = any_as_fmpz_mat(s)
-        if sm is NotImplemented:
-            return sm
         tm = any_as_fmpz_mat(t)
         if tm is NotImplemented:
             return tm
@@ -238,7 +232,7 @@ cdef class fmpz_mat(flint_mat):
         cdef fmpz_mat_struct *sval
         cdef fmpz_mat_struct *tval
         cdef int ttype
-        if typecheck(s, fmpz_mat) and typecheck(t, fmpz_mat):
+        if typecheck(t, fmpz_mat):
             sval = &(<fmpz_mat>s).val[0]
             tval = &(<fmpz_mat>t).val[0]
             if fmpz_mat_ncols(sval) != fmpz_mat_nrows(tval):
@@ -248,8 +242,6 @@ cdef class fmpz_mat(flint_mat):
             fmpz_mat_mul(u.val, sval, tval)
             return u
         else:
-            if typecheck(t, fmpz_mat):
-                s, t = t, s
             c = any_as_fmpz(t)
             if c is not NotImplemented:
                 return (<fmpz_mat>s).__mul_fmpz(c)
@@ -257,6 +249,16 @@ cdef class fmpz_mat(flint_mat):
             if c is not NotImplemented:
                 # XXX: improve this
                 return fmpq_mat(s) * t
+        return NotImplemented
+
+    def __rmul__(s, t):
+        c = any_as_fmpz(t)
+        if c is not NotImplemented:
+            return (<fmpz_mat>s).__mul_fmpz(c)
+        c = any_as_fmpq(t)
+        if c is not NotImplemented:
+            # XXX: improve this
+            return fmpq_mat(s) * t
         return NotImplemented
 
     @staticmethod
