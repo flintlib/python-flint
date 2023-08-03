@@ -291,7 +291,10 @@ cdef class nmod_mat:
         sv = &(<nmod_mat>s).val[0]
         if any_as_nmod(&c, t, sv.mod):
             return (<nmod_mat>s).__mul_nmod(c)
-        return NotImplemented
+        u = any_as_nmod_mat(t, sv.mod)
+        if u is NotImplemented:
+            return u
+        return u * s
 
     @staticmethod
     def _div_(nmod_mat s, t):
