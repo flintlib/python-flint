@@ -21,6 +21,7 @@ pacman -S --noconfirm \
     make\
     base-devel\
     autoconf-wrapper\
+    automake-wrapper\
     #
 
 # This takes ~30mins
