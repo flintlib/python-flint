@@ -48,6 +48,10 @@ do
       PATCH_GMP_ARM64=yes
       shift
     ;;
+    --use-gmp-github-mirror)
+      USE_GMP_GITHUB_MIRROR=yes
+      shift
+    ;;
   *)
     2>&1 echo "unrecognised argument:" $key
     exit 1
@@ -82,7 +86,14 @@ if [ $USE_GMP = "gmp" ]; then
   #                                                                         #
   # ----------------------------------------------------------------------- #
 
-  curl -O https://gmplib.org/download/gmp/gmp-$GMPVER.tar.xz
+  if [ $USE_GMP_GITHUB_MIRROR = "yes" ]; then
+    # Needed in GitHub Actions because it is blocked from gmplib.org
+    git clone https://github.com/oscarbenjamin/gmp_mirror.git
+    cp gmp_mirror/gmp-$GMPVER.tar.xz .
+  else
+    curl -O https://gmplib.org/download/gmp/gmp-$GMPVER.tar.xz
+  fi
+
   tar xf gmp-$GMPVER.tar.xz
   cd gmp-$GMPVER
 

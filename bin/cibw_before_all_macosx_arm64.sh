@@ -6,4 +6,5 @@ export LDFLAGS=" -arch arm64"
 bin/build_dependencies_unix.sh\
   --gmp gmp\
   --host aarch64-apple-darwin\
-  --patch-gmp-arm64
+  --patch-gmp-arm64\
+  --use-gmp-github-mirror
