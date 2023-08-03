@@ -16,7 +16,7 @@ if sys.platform == 'win32':
     # This is used in CI to build wheels with mingw64
     #
     if os.getenv('PYTHON_FLINT_MINGW64'):
-        libraries = ["arb", "flint", "mpfr", "gmp"]
+        libraries = ["flint", "mpfr", "gmp"]
         includedir = os.path.join(os.path.dirname(__file__), '.local', 'include')
         librarydir1 = os.path.join(os.path.dirname(__file__), '.local', 'bin')
         librarydir2 = os.path.join(os.path.dirname(__file__), '.local', 'lib')
@@ -29,18 +29,12 @@ if sys.platform == 'win32':
     elif os.getenv('PYTHON_FLINT_MINGW64_TMP'):
         # This would be used to build under Windows against these libraries if
         # they have been installed somewhere other than .local
-        libraries = ["arb", "flint", "mpfr", "gmp"]
+        libraries = ["flint", "mpfr", "gmp"]
     else:
         # For the MSVC toolchain link with mpir instead of gmp
-        libraries = ["arb", "flint", "mpir", "mpfr", "pthreads"]
+        libraries = ["flint", "mpir", "mpfr", "pthreads"]
 else:
-    # On Ubuntu libarb.so is called libflint-arb.so
-    if os.getenv('PYTHON_FLINT_LIBFLINT_ARB'):
-        arb = 'flint-arb'
-    else:
-        arb = 'arb'
-
-    libraries = [arb, "flint"]
+    libraries = ["flint"]
     (opt,) = get_config_vars('OPT')
     os.environ['OPT'] = " ".join(flag for flag in opt.split() if flag != '-Wstrict-prototypes')
 
