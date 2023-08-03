@@ -22,6 +22,7 @@ pacman -S --noconfirm \
     base-devel\
     autoconf-wrapper\
     automake-wrapper\
+    libtool\
     #
 
 # This takes ~30mins
