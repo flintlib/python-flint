@@ -100,10 +100,8 @@ if [ $USE_GMP = "gmp" ]; then
     #
     # See https://github.com/aleaxit/gmpy/issues/350
     #
-    # We need to patch GMP for OSX arm64 (Apple M1) hardware. This patch is
-    # from the GMP repo but was applied after the release of GMP 6.2.1.
-    # Hopefully when a newer version of GMP is released we will not need to
-    # apply this patch any more.
+    # We need to patch GMP for OSX arm64 (Apple M1) hardware for GMP 6.2.1.
+    # Now with GMP 6.3.0 this should not be needed any more.
     #
     if [ $PATCH_GMP_ARM64 = "yes" ]; then
       echo
