@@ -13,8 +13,14 @@ echo '[build]' > setup.cfg
 echo 'compiler = mingw32' >> setup.cfg
 cat setup.cfg
 
-# Install the mingw-w64 toolchain
-pacman -S --noconfirm mingw-w64-x86_64-gcc m4 make mingw-w64-x86_64-tools-git
+# Install the mingw-w64 toolchain and build tools
+pacman -S --noconfirm \
+    mingw-w64-x86_64-gcc\
+    mingw-w64-x86_64-tools-git\
+    m4\
+    make\
+    base-devel\
+    #
 
 # This takes ~30mins
 bin/build_dependencies_unix.sh --use-gmp-github-mirror
