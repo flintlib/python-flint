@@ -1,10 +1,6 @@
 cdef acb_series_coerce_operands(x, y):
-    if typecheck(x, acb_series):
-        if isinstance(y, (int, long, float, complex, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly, fmpq_series, arb, arb_poly, arb_series, acb, acb_poly)):
-            return x, acb_series(y)
-    else:
-        if isinstance(x, (int, long, float, complex, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly, fmpq_series, arb, arb_poly, arb_series, acb, acb_poly)):
-            return acb_series(x), y
+    if isinstance(y, (int, long, float, complex, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly, fmpq_series, arb, arb_poly, arb_series, acb, acb_poly)):
+        return x, acb_series(y)
     return NotImplemented, NotImplemented
 
 cdef class acb_series(flint_series):
@@ -95,53 +91,74 @@ cdef class acb_series(flint_series):
 
     def __add__(s, t):
         cdef long cap
-        if type(s) is type(t):
-            u = acb_series.__new__(acb_series)
-            cap = getcap()
-            cap = min(cap, (<acb_series>s).prec)
-            cap = min(cap, (<acb_series>t).prec)
-            if cap > 0:
-                acb_poly_add((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, getprec())
-                acb_poly_truncate((<acb_series>u).val, cap)
-            (<acb_series>u).prec = cap
-            return u
+        if not isinstance(t, acb_series):
+            s, t = acb_series_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s + t
+
+        u = acb_series.__new__(acb_series)
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>t).prec)
+        if cap > 0:
+            acb_poly_add((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, getprec())
+            acb_poly_truncate((<acb_series>u).val, cap)
+        (<acb_series>u).prec = cap
+        return u
+
+    def __radd__(s, t):
         s, t = acb_series_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s + t
+        return t + s
 
     def __sub__(s, t):
         cdef long cap
-        if type(s) is type(t):
-            u = acb_series.__new__(acb_series)
-            cap = getcap()
-            cap = min(cap, (<acb_series>s).prec)
-            cap = min(cap, (<acb_series>t).prec)
-            if cap > 0:
-                acb_poly_sub((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, getprec())
-                acb_poly_truncate((<acb_series>u).val, cap)
-            (<acb_series>u).prec = cap
-            return u
+        if not isinstance(t, acb_series):
+            s, t = acb_series_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s - t
+
+        u = acb_series.__new__(acb_series)
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>t).prec)
+        if cap > 0:
+            acb_poly_sub((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, getprec())
+            acb_poly_truncate((<acb_series>u).val, cap)
+        (<acb_series>u).prec = cap
+        return u
+
+    def __rsub__(s, t):
         s, t = acb_series_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s - t
+        return t - s
 
     def __mul__(s, t):
         cdef long cap
-        if type(s) is type(t):
-            u = acb_series.__new__(acb_series)
-            cap = getcap()
-            cap = min(cap, (<acb_series>s).prec)
-            cap = min(cap, (<acb_series>t).prec)
-            if cap > 0:
-                acb_poly_mullow((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, cap, getprec())
-            (<acb_series>u).prec = cap
-            return u
+        if not isinstance(t, acb_series):
+            s, t = acb_series_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s * t
+
+        u = acb_series.__new__(acb_series)
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>t).prec)
+        if cap > 0:
+            acb_poly_mullow((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def __rmul__(s, t):
         s, t = acb_series_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s * t
+        return t * s
 
     cpdef valuation(self):
         cdef long i
@@ -152,76 +169,83 @@ cdef class acb_series(flint_series):
             i += 1
         return i
 
-    @staticmethod
-    def _truediv_(s, t):
+    def __truediv__(s, t):
         cdef long cap, sval, tval
         cdef acb_poly_t stmp, ttmp
-        if type(s) is type(t):
-            cap = getcap()
-            cap = min(cap, (<acb_series>s).prec)
-            cap = min(cap, (<acb_series>t).prec)
 
-            if (<acb_series>t).length() == 0:
-                raise ZeroDivisionError("power series division")
+        if not isinstance(t, acb_series):
+            s, t = acb_series_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s / t
 
-            u = acb_series.__new__(acb_series)
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>t).prec)
 
-            if (<acb_series>s).length() == 0:
-                u.cap = cap
-                return u
+        if (<acb_series>t).length() == 0:
+            raise ZeroDivisionError("power series division")
 
-            sval = (<acb_series>s).valuation()
-            tval = (<acb_series>t).valuation()
+        u = acb_series.__new__(acb_series)
 
-            if sval < tval:
-                raise ValueError("quotient would not be a power series")
-
-            if acb_contains_zero(&((<acb_series>t).val.coeffs[tval])):
-                raise ValueError("leading term in denominator is not nonzero")
-
-            if tval == 0:
-                acb_poly_div_series((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, cap, getprec())
-            else:
-                acb_poly_init(stmp)
-                acb_poly_init(ttmp)
-                acb_poly_shift_right(stmp, (<acb_series>s).val, tval)
-                acb_poly_shift_right(ttmp, (<acb_series>t).val, tval)
-                cap -= tval
-                acb_poly_div_series((<acb_series>u).val, stmp, ttmp, cap, getprec())
-                acb_poly_clear(stmp)
-                acb_poly_clear(ttmp)
-
-            (<acb_series>u).prec = cap
+        if (<acb_series>s).length() == 0:
+            u.cap = cap
             return u
 
+        sval = (<acb_series>s).valuation()
+        tval = (<acb_series>t).valuation()
+
+        if sval < tval:
+            raise ValueError("quotient would not be a power series")
+
+        if acb_contains_zero(&((<acb_series>t).val.coeffs[tval])):
+            raise ValueError("leading term in denominator is not nonzero")
+
+        if tval == 0:
+            acb_poly_div_series((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, cap, getprec())
+        else:
+            acb_poly_init(stmp)
+            acb_poly_init(ttmp)
+            acb_poly_shift_right(stmp, (<acb_series>s).val, tval)
+            acb_poly_shift_right(ttmp, (<acb_series>t).val, tval)
+            cap -= tval
+            acb_poly_div_series((<acb_series>u).val, stmp, ttmp, cap, getprec())
+            acb_poly_clear(stmp)
+            acb_poly_clear(ttmp)
+
+        (<acb_series>u).prec = cap
+        return u
+
+    def __rtruediv__(s, t):
         s, t = acb_series_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s / t
-
-    def __truediv__(s, t):
-        return acb_series._div_(s, t)
-
-    def __div__(s, t):
-        return acb_series._div_(s, t)
+        return t / s
 
     def __pow__(s, t, mod):
         cdef long cap
         if mod is not None:
             raise NotImplementedError("modular exponentiation")
-        if type(s) is type(t):
-            u = acb_series.__new__(acb_series)
-            cap = getcap()
-            cap = min(cap, (<acb_series>s).prec)
-            cap = min(cap, (<acb_series>t).prec)
-            if cap > 0:
-                acb_poly_pow_series((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, cap, getprec())
-            (<acb_series>u).prec = cap
-            return u
+        if not isinstance(t, acb_series):
+            s, t = acb_series_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s ** t
+
+        u = acb_series.__new__(acb_series)
+        cap = getcap()
+        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>t).prec)
+        if cap > 0:
+            acb_poly_pow_series((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, cap, getprec())
+        (<acb_series>u).prec = cap
+        return u
+
+    def __rpow__(s, t):
         s, t = acb_series_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s ** t
+        return t ** s
 
     def __call__(s, t):
         cdef long cap

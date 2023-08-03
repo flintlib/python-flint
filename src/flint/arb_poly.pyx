@@ -1,14 +1,8 @@
 cdef arb_poly_coerce_operands(x, y):
-    if typecheck(x, arb_poly):
-        if isinstance(y, (int, long, float, fmpz, fmpq, arb, fmpz_poly, fmpq_poly)):
-            return x, arb_poly(y)
-        if isinstance(y, (complex, acb)):
-            return acb_poly(x), acb_poly(y)
-    else:
-        if isinstance(x, (int, long, float, fmpz, fmpq, arb, fmpz_poly, fmpq_poly)):
-            return arb_poly(x), y
-        if isinstance(x, (complex, acb)):
-            return acb_poly(x), acb_poly(y)
+    if isinstance(y, (int, long, float, fmpz, fmpq, arb, fmpz_poly, fmpq_poly)):
+        return x, arb_poly(y)
+    if isinstance(y, (complex, acb)):
+        return acb_poly(x), acb_poly(y)
     return NotImplemented, NotImplemented
 
 cdef arb_poly_set_list(arb_poly_t poly, list val, long prec):
@@ -183,76 +177,112 @@ cdef class arb_poly(flint_poly):
         return u
 
     def __add__(s, t):
-        if type(s) is type(t):
-            u = arb_poly.__new__(arb_poly)
-            arb_poly_add((<arb_poly>u).val, (<arb_poly>s).val, (<arb_poly>t).val, getprec())
-            return u
+        if not isinstance(t, arb_poly):
+            s, t = arb_poly_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s + t
+        u = arb_poly.__new__(arb_poly)
+        arb_poly_add((<arb_poly>u).val, (<arb_poly>s).val, (<arb_poly>t).val, getprec())
+        return u
+
+    def __radd__(s, t):
         s, t = arb_poly_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s + t
+        return t + s
 
     def __sub__(s, t):
-        if type(s) is type(t):
-            u = arb_poly.__new__(arb_poly)
-            arb_poly_sub((<arb_poly>u).val, (<arb_poly>s).val, (<arb_poly>t).val, getprec())
-            return u
+        if not isinstance(t, arb_poly):
+            s, t = arb_poly_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s - t
+        u = arb_poly.__new__(arb_poly)
+        arb_poly_sub((<arb_poly>u).val, (<arb_poly>s).val, (<arb_poly>t).val, getprec())
+        return u
+
+    def __rsub__(s, t):
         s, t = arb_poly_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s - t
+        return t - s
 
     def __mul__(s, t):
-        if type(s) is type(t):
-            u = arb_poly.__new__(arb_poly)
-            arb_poly_mul((<arb_poly>u).val, (<arb_poly>s).val, (<arb_poly>t).val, getprec())
-            return u
+        if not isinstance(t, arb_poly):
+            s, t = arb_poly_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s * t
+        u = arb_poly.__new__(arb_poly)
+        arb_poly_mul((<arb_poly>u).val, (<arb_poly>s).val, (<arb_poly>t).val, getprec())
+        return u
+
+    def __rmul__(s, t):
         s, t = arb_poly_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s * t
+        return t * s
 
     def __floordiv__(s, t):
-        if type(s) is type(t):
-            q = arb_poly.__new__(arb_poly)
-            r = arb_poly.__new__(arb_poly)
-            if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
-                    (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
-                return q
-            else:
-                raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")
+        if not isinstance(t, arb_poly):
+            s, t = arb_poly_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s // t
+        q = arb_poly.__new__(arb_poly)
+        r = arb_poly.__new__(arb_poly)
+        if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
+                (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
+            return q
+        else:
+            raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")
+
+    def __rfloordiv__(s, t):
         s, t = arb_poly_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s // t
+        return t // s
 
     def __mod__(s, t):
-        if type(s) is type(t):
-            q = arb_poly.__new__(arb_poly)
-            r = arb_poly.__new__(arb_poly)
-            if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
-                    (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
-                return r
-            else:
-                raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")
+        if not isinstance(t, arb_poly):
+            s, t = arb_poly_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s % t
+        q = arb_poly.__new__(arb_poly)
+        r = arb_poly.__new__(arb_poly)
+        if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
+                (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
+            return r
+        else:
+            raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")
+
+    def __rmod__(s, t):
         s, t = arb_poly_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s % t
+        return t % s
 
     def __divmod__(s, t):
-        if type(s) is type(t):
-            q = arb_poly.__new__(arb_poly)
-            r = arb_poly.__new__(arb_poly)
-            if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
-                    (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
-                return q, r
-            else:
-                raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")
+        if not isinstance(t, arb_poly):
+            s, t = arb_poly_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return divmod(s, t)
+        q = arb_poly.__new__(arb_poly)
+        r = arb_poly.__new__(arb_poly)
+        if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
+                (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
+            return q, r
+        else:
+            raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")
+
+    def __rdivmod__(s, t):
         s, t = arb_poly_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return divmod(s, t)
+        return divmod(t, s)
 
     def __pow__(arb_poly s, ulong exp, mod):
         if mod is not None:
@@ -288,4 +318,3 @@ cdef class arb_poly(flint_poly):
             return u
         else:
             return None
-

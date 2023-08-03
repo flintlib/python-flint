@@ -139,34 +139,29 @@ cdef class arf:
         return res
 
     def __add__(s, t):
-        if typecheck(s, arf):
-            if typecheck(t, arf):
-                u = arf.__new__(arf)
-                arf_add((<arf>u).val, (<arf>s).val, (<arf>t).val, getprec(), thectx.rnd)
-                return u
-        return NotImplemented
+        if not typecheck(t, arf):
+            return NotImplemented
+        u = arf.__new__(arf)
+        arf_add((<arf>u).val, (<arf>s).val, (<arf>t).val, getprec(), thectx.rnd)
+        return u
 
     def __sub__(s, t):
-        if typecheck(s, arf):
-            if typecheck(t, arf):
-                u = arf.__new__(arf)
-                arf_sub((<arf>u).val, (<arf>s).val, (<arf>t).val, getprec(), thectx.rnd)
-                return u
-        return NotImplemented
+        if not typecheck(t, arf):
+            return NotImplemented
+        u = arf.__new__(arf)
+        arf_sub((<arf>u).val, (<arf>s).val, (<arf>t).val, getprec(), thectx.rnd)
+        return u
 
     def __mul__(s, t):
-        if typecheck(s, arf):
-            if typecheck(t, arf):
-                u = arf.__new__(arf)
-                arf_mul((<arf>u).val, (<arf>s).val, (<arf>t).val, getprec(), thectx.rnd)
-                return u
-        return NotImplemented
+        if not typecheck(t, arf):
+            return NotImplemented
+        u = arf.__new__(arf)
+        arf_mul((<arf>u).val, (<arf>s).val, (<arf>t).val, getprec(), thectx.rnd)
+        return u
 
     def __div__(s, t):
-        if typecheck(s, arf):
-            if typecheck(t, arf):
-                u = arf.__new__(arf)
-                arf_div((<arf>u).val, (<arf>s).val, (<arf>t).val, getprec(), thectx.rnd)
-                return u
-        return NotImplemented
-
+        if not typecheck(t, arf):
+            return NotImplemented
+        u = arf.__new__(arf)
+        arf_div((<arf>u).val, (<arf>s).val, (<arf>t).val, getprec(), thectx.rnd)
+        return u

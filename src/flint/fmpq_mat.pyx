@@ -145,9 +145,6 @@ cdef class fmpq_mat(flint_mat):
         cdef fmpq_mat u
         cdef fmpq_mat_struct *sval
         cdef fmpq_mat_struct *tval
-        s = any_as_fmpq_mat(s)
-        if s is NotImplemented:
-            return s
         t = any_as_fmpq_mat(t)
         if t is NotImplemented:
             return t
@@ -165,9 +162,6 @@ cdef class fmpq_mat(flint_mat):
         cdef fmpq_mat u
         cdef fmpq_mat_struct *sval
         cdef fmpq_mat_struct *tval
-        s = any_as_fmpq_mat(s)
-        if s is NotImplemented:
-            return s
         t = any_as_fmpq_mat(t)
         if t is NotImplemented:
             return t
@@ -225,30 +219,31 @@ cdef class fmpq_mat(flint_mat):
 
     def __mul__(s, t):
         cdef fmpz_mat u
-        if typecheck(s, fmpq_mat):
-            if typecheck(t, fmpq_mat):
-                return (<fmpq_mat>s).__mul_fmpq_mat(t)
-            elif typecheck(t, fmpz_mat):
-                return (<fmpq_mat>s).__mul_fmpz_mat(t)
-            else:
-                c = any_as_fmpz(t)
-                if c is not NotImplemented:
-                    return (<fmpq_mat>s).__mul_fmpz(c)
-                c = any_as_fmpq(t)
-                if c is not NotImplemented:
-                    return (<fmpq_mat>s).__mul_fmpq(c)
-                return NotImplemented
+        if typecheck(t, fmpq_mat):
+            return (<fmpq_mat>s).__mul_fmpq_mat(t)
+        elif typecheck(t, fmpz_mat):
+            return (<fmpq_mat>s).__mul_fmpz_mat(t)
         else:
-            if typecheck(s, fmpz_mat):
-                return (<fmpq_mat>t).__mul_r_fmpz_mat(s)
-            else:
-                c = any_as_fmpz(s)
-                if c is not NotImplemented:
-                    return (<fmpq_mat>t).__mul_fmpz(c)
-                c = any_as_fmpq(s)
-                if c is not NotImplemented:
-                    return (<fmpq_mat>t).__mul_fmpq(c)
-                return NotImplemented
+            c = any_as_fmpz(t)
+            if c is not NotImplemented:
+                return (<fmpq_mat>s).__mul_fmpz(c)
+            c = any_as_fmpq(t)
+            if c is not NotImplemented:
+                return (<fmpq_mat>s).__mul_fmpq(c)
+            return NotImplemented
+
+    def __rmul__(s, t):
+        cdef fmpz_mat u
+        if typecheck(t, fmpz_mat):
+            return (<fmpq_mat>s).__mul_r_fmpz_mat(t)
+        else:
+            c = any_as_fmpz(t)
+            if c is not NotImplemented:
+                return (<fmpq_mat>s).__mul_fmpz(c)
+            c = any_as_fmpq(t)
+            if c is not NotImplemented:
+                return (<fmpq_mat>s).__mul_fmpq(c)
+            return NotImplemented
 
     @staticmethod
     def _div_(fmpq_mat s, t):

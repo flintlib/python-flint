@@ -156,23 +156,18 @@ cdef class acb(flint_scalar):
         return (self.real._mpf_, self.imag._mpf_)
 
     def __richcmp__(s, t, int op):
-        cdef acb_struct sval[1]
         cdef acb_struct tval[1]
         cdef bint res
-        cdef int stype, ttype
+        cdef int ttype
         if not (op == 2 or op == 3):
             raise ValueError("comparing complex numbers")
-        stype = acb_set_any_ref(sval, s)
-        if stype == FMPZ_UNKNOWN:
-            return NotImplemented
         ttype = acb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         if op == 2:
-            res = acb_eq(sval, tval)
+            res = acb_eq(s.val, tval)
         else:
-            res = acb_ne(sval, tval)
-        if stype == FMPZ_TMP: acb_clear(sval)
+            res = acb_ne(s.val, tval)
         if ttype == FMPZ_TMP: acb_clear(tval)
         return res
 
@@ -363,92 +358,116 @@ cdef class acb(flint_scalar):
         return res
 
     def __add__(s, t):
-        cdef acb_struct sval[1]
         cdef acb_struct tval[1]
-        cdef int stype, ttype
-        stype = acb_set_any_ref(sval, s)
-        if stype == FMPZ_UNKNOWN:
-            return NotImplemented
+        cdef int ttype
         ttype = acb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = acb.__new__(acb)
-        acb_add((<acb>u).val, sval, tval, getprec())
-        if stype == FMPZ_TMP: acb_clear(sval)
+        acb_add((<acb>u).val, (<acb>s).val, tval, getprec())
+        if ttype == FMPZ_TMP: acb_clear(tval)
+        return u
+
+    def __radd__(s, t):
+        cdef acb_struct tval[1]
+        cdef int ttype
+        ttype = acb_set_any_ref(tval, t)
+        if ttype == FMPZ_UNKNOWN:
+            return NotImplemented
+        u = acb.__new__(acb)
+        acb_add((<acb>u).val, tval, s.val, getprec())
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 
     def __sub__(s, t):
-        cdef acb_struct sval[1]
         cdef acb_struct tval[1]
-        cdef int stype, ttype
-        stype = acb_set_any_ref(sval, s)
-        if stype == FMPZ_UNKNOWN:
-            return NotImplemented
+        cdef int ttype
         ttype = acb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = acb.__new__(acb)
-        acb_sub((<acb>u).val, sval, tval, getprec())
-        if stype == FMPZ_TMP: acb_clear(sval)
+        acb_sub((<acb>u).val, (<acb>s).val, tval, getprec())
+        if ttype == FMPZ_TMP: acb_clear(tval)
+        return u
+
+    def __rsub__(s, t):
+        cdef acb_struct tval[1]
+        cdef int ttype
+        ttype = acb_set_any_ref(tval, t)
+        if ttype == FMPZ_UNKNOWN:
+            return NotImplemented
+        u = acb.__new__(acb)
+        acb_sub((<acb>u).val, tval, s.val, getprec())
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 
     def __mul__(s, t):
-        cdef acb_struct sval[1]
         cdef acb_struct tval[1]
-        cdef int stype, ttype
-        stype = acb_set_any_ref(sval, s)
-        if stype == FMPZ_UNKNOWN:
-            return NotImplemented
+        cdef int ttype
         ttype = acb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = acb.__new__(acb)
-        acb_mul((<acb>u).val, sval, tval, getprec())
-        if stype == FMPZ_TMP: acb_clear(sval)
+        acb_mul((<acb>u).val, (<acb>s).val, tval, getprec())
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 
-    # important: must not be cdef because of cython magic
-    @staticmethod
-    def _div_(s, t):
-        cdef acb_struct sval[1]
+    def __rmul__(s, t):
         cdef acb_struct tval[1]
-        cdef int stype, ttype
-        stype = acb_set_any_ref(sval, s)
-        if stype == FMPZ_UNKNOWN:
-            return NotImplemented
+        cdef int ttype
         ttype = acb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = acb.__new__(acb)
-        acb_div((<acb>u).val, sval, tval, getprec())
-        if stype == FMPZ_TMP: acb_clear(sval)
+        acb_mul((<acb>u).val, tval, s.val, getprec())
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 
     def __truediv__(s, t):
-        return acb._div_(s, t)
-
-    def __div__(s, t):
-        return acb._div_(s, t)
-
-    def __pow__(s, t, u):
-        cdef acb_struct sval[1]
         cdef acb_struct tval[1]
-        cdef int stype, ttype
-        if u is not None:
-            raise ValueError("modular exponentiation of complex number")
-        stype = acb_set_any_ref(sval, s)
-        if stype == FMPZ_UNKNOWN:
-            return NotImplemented
+        cdef int ttype
         ttype = acb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = acb.__new__(acb)
-        acb_pow((<acb>u).val, sval, tval, getprec())
-        if stype == FMPZ_TMP: acb_clear(sval)
+        acb_div((<acb>u).val, (<acb>s).val, tval, getprec())
+        if ttype == FMPZ_TMP: acb_clear(tval)
+        return u
+
+    def __rtruediv__(s, t):
+        cdef acb_struct tval[1]
+        cdef int ttype
+        ttype = acb_set_any_ref(tval, t)
+        if ttype == FMPZ_UNKNOWN:
+            return NotImplemented
+        u = acb.__new__(acb)
+        acb_div((<acb>u).val, tval, s.val, getprec())
+        if ttype == FMPZ_TMP: acb_clear(tval)
+        return u
+
+    def __pow__(s, t, u):
+        cdef acb_struct tval[1]
+        cdef int ttype
+        if u is not None:
+            raise ValueError("modular exponentiation of complex number")
+        ttype = acb_set_any_ref(tval, t)
+        if ttype == FMPZ_UNKNOWN:
+            return NotImplemented
+        u = acb.__new__(acb)
+        acb_pow((<acb>u).val, (<acb>s).val, tval, getprec())
+        if ttype == FMPZ_TMP: acb_clear(tval)
+        return u
+
+    def __rpow__(s, t, u):
+        cdef acb_struct tval[1]
+        cdef int ttype
+        if u is not None:
+            raise ValueError("modular exponentiation of complex number")
+        ttype = acb_set_any_ref(tval, t)
+        if ttype == FMPZ_UNKNOWN:
+            return NotImplemented
+        u = acb.__new__(acb)
+        acb_pow((<acb>u).val, tval, s.val, getprec())
         if ttype == FMPZ_TMP: acb_clear(tval)
         return u
 
@@ -2560,4 +2579,3 @@ cdef class acb(flint_scalar):
         acb_hypgeom_coulomb(NULL, (<acb>G).val, NULL, NULL,
                         (<acb>l).val, (<acb>eta).val, (<acb>self).val, getprec())
         return G
-

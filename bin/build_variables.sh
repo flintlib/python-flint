@@ -13,7 +13,7 @@
 PREFIX=$(pwd)/.local
 mkdir -p $PREFIX
 
-GMPVER=6.2.1
+GMPVER=6.3.0
 YASMVER=1.3.0
 MPIRVER=3.0.0
 MPFRVER=4.1.0

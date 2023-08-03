@@ -45,7 +45,10 @@ default_include_dirs += [
 
 
 define_macros = []
-compiler_directives = {'language_level':3}
+compiler_directives = {
+    'language_level': 3,
+    'binding': False,
+}
 
 
 # Enable coverage tracing

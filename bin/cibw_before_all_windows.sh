@@ -17,4 +17,4 @@ cat setup.cfg
 pacman -S --noconfirm mingw-w64-x86_64-gcc m4 make mingw-w64-x86_64-tools-git
 
 # This takes ~30mins
-bin/build_dependencies_unix.sh
+bin/build_dependencies_unix.sh --use-gmp-github-mirror

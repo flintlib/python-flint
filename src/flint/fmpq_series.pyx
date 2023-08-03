@@ -1,22 +1,12 @@
 cdef fmpq_series_coerce_operands(x, y):
-    if typecheck(x, fmpq_series):
-        if isinstance(y, (int, long, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly)):
-            return x, fmpq_series(y)
-        #if isinstance(y, (nmod, nmod_poly, nmod_series)):
-        #    return nmod_series(x), nmod_series(y)
-        if isinstance(y, (float, arb, arb_poly, arb_series)):
-            return arb_series(x), arb_series(y)
-        if isinstance(y, (complex, acb, acb_poly, acb_series)):
-            return acb_series(x), acb_series(y)
-    else:
-        if isinstance(x,(int, long, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly)):
-            return fmpq_series(x), y
-        #if isinstance(x, (nmod, nmod_poly, nmod_series)):
-        #    return nmod_series(x), nmod_series(y)
-        if isinstance(x, (float, arb, arb_poly, arb_series)):
-            return arb_series(x), arb_series(y)
-        if isinstance(x, (complex, acb, acb_poly, acb_series)):
-            return acb_series(x), acb_series(y)
+    if isinstance(y, (int, long, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly)):
+        return x, fmpq_series(y)
+    #if isinstance(y, (nmod, nmod_poly, nmod_series)):
+    #    return nmod_series(x), nmod_series(y)
+    if isinstance(y, (float, arb, arb_poly, arb_series)):
+        return arb_series(x), arb_series(y)
+    if isinstance(y, (complex, acb, acb_poly, acb_series)):
+        return acb_series(x), acb_series(y)
     return NotImplemented, NotImplemented
 
 cdef class fmpq_series(flint_series):
@@ -133,54 +123,72 @@ cdef class fmpq_series(flint_series):
         return u
 
     def __add__(s, t):
+        if not isinstance(t, fmpq_series):
+            s, t = fmpq_series_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s + t
         cdef long cap
-        if type(s) is type(t):
-            u = fmpq_series.__new__(fmpq_series)
-            cap = getcap()
-            cap = min(cap, (<fmpq_series>s).prec)
-            cap = min(cap, (<fmpq_series>t).prec)
-            if cap > 0:
-                fmpq_poly_add((<fmpq_series>u).val, (<fmpq_series>s).val, (<fmpq_series>t).val)
-                fmpq_poly_truncate((<fmpq_series>u).val, cap)
-            (<fmpq_series>u).prec = cap
-            return u
+        u = fmpq_series.__new__(fmpq_series)
+        cap = getcap()
+        cap = min(cap, (<fmpq_series>s).prec)
+        cap = min(cap, (<fmpq_series>t).prec)
+        if cap > 0:
+            fmpq_poly_add((<fmpq_series>u).val, (<fmpq_series>s).val, (<fmpq_series>t).val)
+            fmpq_poly_truncate((<fmpq_series>u).val, cap)
+        (<fmpq_series>u).prec = cap
+        return u
+
+    def __radd__(s, t):
         s, t = fmpq_series_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s + t
+        return t + s
 
     def __sub__(s, t):
+        if not isinstance(t, fmpq_series):
+            s, t = fmpq_series_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s - t
         cdef long cap
-        if type(s) is type(t):
-            u = fmpq_series.__new__(fmpq_series)
-            cap = getcap()
-            cap = min(cap, (<fmpq_series>s).prec)
-            cap = min(cap, (<fmpq_series>t).prec)
-            if cap > 0:
-                fmpq_poly_sub((<fmpq_series>u).val, (<fmpq_series>s).val, (<fmpq_series>t).val)
-                fmpq_poly_truncate((<fmpq_series>u).val, cap)
-            (<fmpq_series>u).prec = cap
-            return u
+        u = fmpq_series.__new__(fmpq_series)
+        cap = getcap()
+        cap = min(cap, (<fmpq_series>s).prec)
+        cap = min(cap, (<fmpq_series>t).prec)
+        if cap > 0:
+            fmpq_poly_sub((<fmpq_series>u).val, (<fmpq_series>s).val, (<fmpq_series>t).val)
+            fmpq_poly_truncate((<fmpq_series>u).val, cap)
+        (<fmpq_series>u).prec = cap
+        return u
+
+    def __rsub__(s, t):
         s, t = fmpq_series_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s - t
+        return t - s
 
     def __mul__(s, t):
+        if not isinstance(t, fmpq_series):
+            s, t = fmpq_series_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s * t
         cdef long cap
-        if type(s) is type(t):
-            u = fmpq_series.__new__(fmpq_series)
-            cap = getcap()
-            cap = min(cap, (<fmpq_series>s).prec)
-            cap = min(cap, (<fmpq_series>t).prec)
-            if cap > 0:
-                fmpq_poly_mullow((<fmpq_series>u).val, (<fmpq_series>s).val, (<fmpq_series>t).val, cap)
-            (<fmpq_series>u).prec = cap
-            return u
+        u = fmpq_series.__new__(fmpq_series)
+        cap = getcap()
+        cap = min(cap, (<fmpq_series>s).prec)
+        cap = min(cap, (<fmpq_series>t).prec)
+        if cap > 0:
+            fmpq_poly_mullow((<fmpq_series>u).val, (<fmpq_series>s).val, (<fmpq_series>t).val, cap)
+        (<fmpq_series>u).prec = cap
+        return u
+
+    def __rmul__(s, t):
         s, t = fmpq_series_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s * t
+        return t * s
 
     cpdef valuation(self):
         cdef long i
@@ -195,54 +203,56 @@ cdef class fmpq_series(flint_series):
     def _div_(s, t):
         cdef long cap, sval, tval
         cdef fmpq_poly_t stmp, ttmp
-        if type(s) is type(t):
-            cap = getcap()
-            cap = min(cap, (<fmpq_series>s).prec)
-            cap = min(cap, (<fmpq_series>t).prec)
+        cap = getcap()
+        cap = min(cap, (<fmpq_series>s).prec)
+        cap = min(cap, (<fmpq_series>t).prec)
 
-            if fmpq_poly_is_zero((<fmpq_series>t).val):
-                raise ZeroDivisionError("power series division")
+        if fmpq_poly_is_zero((<fmpq_series>t).val):
+            raise ZeroDivisionError("power series division")
 
-            u = fmpq_series.__new__(fmpq_series)
+        u = fmpq_series.__new__(fmpq_series)
 
-            if fmpq_poly_is_zero((<fmpq_series>s).val):
-                (<fmpq_series>u).prec = cap
-                return u
-
-            sval = (<fmpq_series>s).valuation()
-            tval = (<fmpq_series>t).valuation()
-
-            if sval < tval:
-                raise ValueError("quotient would not be a power series")
-
-            if fmpz_is_zero(&((<fmpq_series>t).val.coeffs[tval])):
-                raise ValueError("leading term in denominator is not a unit")
-
-            if tval == 0:
-                fmpq_poly_div_series((<fmpq_series>u).val, (<fmpq_series>s).val, (<fmpq_series>t).val, cap)
-            else:
-                fmpq_poly_init(stmp)
-                fmpq_poly_init(ttmp)
-                fmpq_poly_shift_right(stmp, (<fmpq_series>s).val, tval)
-                fmpq_poly_shift_right(ttmp, (<fmpq_series>t).val, tval)
-                cap -= tval
-                fmpq_poly_div_series((<fmpq_series>u).val, stmp, ttmp, cap)
-                fmpq_poly_clear(stmp)
-                fmpq_poly_clear(ttmp)
-
+        if fmpq_poly_is_zero((<fmpq_series>s).val):
             (<fmpq_series>u).prec = cap
             return u
 
+        sval = (<fmpq_series>s).valuation()
+        tval = (<fmpq_series>t).valuation()
+
+        if sval < tval:
+            raise ValueError("quotient would not be a power series")
+
+        if fmpz_is_zero(&((<fmpq_series>t).val.coeffs[tval])):
+            raise ValueError("leading term in denominator is not a unit")
+
+        if tval == 0:
+            fmpq_poly_div_series((<fmpq_series>u).val, (<fmpq_series>s).val, (<fmpq_series>t).val, cap)
+        else:
+            fmpq_poly_init(stmp)
+            fmpq_poly_init(ttmp)
+            fmpq_poly_shift_right(stmp, (<fmpq_series>s).val, tval)
+            fmpq_poly_shift_right(ttmp, (<fmpq_series>t).val, tval)
+            cap -= tval
+            fmpq_poly_div_series((<fmpq_series>u).val, stmp, ttmp, cap)
+            fmpq_poly_clear(stmp)
+            fmpq_poly_clear(ttmp)
+
+        (<fmpq_series>u).prec = cap
+        return u
+
+    def __truediv__(s, t):
+        if not isinstance(t, fmpq_series):
+            s, t = fmpq_series_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s / t
+        return fmpq_series._div_(s, t)
+
+    def __rtruediv__(s, t):
         s, t = fmpq_series_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s / t
-
-    def __truediv__(s, t):
-        return fmpq_series._div_(s, t)
-
-    def __div__(s, t):
-        return fmpq_series._div_(s, t)
+        return t / s
 
     # generic exponentiation (fallback code)
     # XXX: use fmpq_poly_pow_trunc instead?

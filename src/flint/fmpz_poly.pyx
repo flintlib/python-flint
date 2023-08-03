@@ -147,11 +147,8 @@ cdef class fmpz_poly(flint_poly):
         fmpz_poly_neg(res.val, self.val)
         return res
 
-    def __add__(self, other):
+    def _add_(self, other):
         cdef fmpz_poly res
-        self = any_as_fmpz_poly(self)
-        if self is NotImplemented:
-            return self
         other = any_as_fmpz_poly(other)
         if other is NotImplemented:
             return other
@@ -159,11 +156,14 @@ cdef class fmpz_poly(flint_poly):
         fmpz_poly_add(res.val, (<fmpz_poly>self).val, (<fmpz_poly>other).val)
         return res
 
+    def __add__(self, other):
+        return self._add_(other)
+
+    def __radd__(self, other):
+        return self._add_(other)
+
     def __sub__(self, other):
         cdef fmpz_poly res
-        self = any_as_fmpz_poly(self)
-        if self is NotImplemented:
-            return self
         other = any_as_fmpz_poly(other)
         if other is NotImplemented:
             return other
@@ -171,11 +171,17 @@ cdef class fmpz_poly(flint_poly):
         fmpz_poly_sub(res.val, (<fmpz_poly>self).val, (<fmpz_poly>other).val)
         return res
 
-    def __mul__(self, other):
+    def __rsub__(self, other):
         cdef fmpz_poly res
-        self = any_as_fmpz_poly(self)
-        if self is NotImplemented:
-            return self
+        other = any_as_fmpz_poly(other)
+        if other is NotImplemented:
+            return other
+        res = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_sub(res.val, (<fmpz_poly>other).val, (<fmpz_poly>self).val)
+        return res
+
+    def _mul_(self, other):
+        cdef fmpz_poly res
         other = any_as_fmpz_poly(other)
         if other is NotImplemented:
             return other
@@ -183,48 +189,72 @@ cdef class fmpz_poly(flint_poly):
         fmpz_poly_mul(res.val, (<fmpz_poly>self).val, (<fmpz_poly>other).val)
         return res
 
-    def __floordiv__(self, other):
+    def __mul__(self, other):
+        return self._mul_(other)
+
+    def __rmul__(self, other):
+        return self._mul_(other)
+
+    def _floordiv_(self, other):
         cdef fmpz_poly res
-        self = any_as_fmpz_poly(self)
-        if self is NotImplemented:
-            return self
-        other = any_as_fmpz_poly(other)
-        if other is NotImplemented:
-            return other
         if fmpz_poly_is_zero((<fmpz_poly>other).val):
             raise ZeroDivisionError("fmpz_poly division by 0")
         res = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_div(res.val, (<fmpz_poly>self).val, (<fmpz_poly>other).val)
         return res
 
-    def __mod__(self, other):
-        cdef fmpz_poly res
-        self = any_as_fmpz_poly(self)
-        if self is NotImplemented:
-            return self
+    def __floordiv__(self, other):
         other = any_as_fmpz_poly(other)
         if other is NotImplemented:
             return other
+        return self._floordiv_(other)
+
+    def __rfloordiv__(self, other):
+        other = any_as_fmpz_poly(other)
+        if other is NotImplemented:
+            return other
+        return other._floordiv_(self)
+
+    def _mod_(self, other):
+        cdef fmpz_poly res
         if fmpz_poly_is_zero((<fmpz_poly>other).val):
             raise ZeroDivisionError("fmpz_poly division by 0")
         res = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_rem(res.val, (<fmpz_poly>self).val, (<fmpz_poly>other).val)
         return res
 
-    def __divmod__(self, other):
-        cdef fmpz_poly P, Q
-        self = any_as_fmpz_poly(self)
-        if self is NotImplemented:
-            return self
+    def __mod__(self, other):
         other = any_as_fmpz_poly(other)
         if other is NotImplemented:
             return other
+        return self._mod_(other)
+
+    def __rmod__(self, other):
+        other = any_as_fmpz_poly(other)
+        if other is NotImplemented:
+            return other
+        return other._mod_(self)
+
+    def _divmod_(self, other):
+        cdef fmpz_poly P, Q
         if fmpz_poly_is_zero((<fmpz_poly>other).val):
             raise ZeroDivisionError("fmpz_poly divmod by 0")
         P = fmpz_poly.__new__(fmpz_poly)
         Q = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_divrem(P.val, Q.val, (<fmpz_poly>self).val, (<fmpz_poly>other).val)
         return P, Q
+
+    def __divmod__(self, other):
+        other = any_as_fmpz_poly(other)
+        if other is NotImplemented:
+            return other
+        return self._divmod_(other)
+
+    def __rdivmod__(self, other):
+        other = any_as_fmpz_poly(other)
+        if other is NotImplemented:
+            return other
+        return other._divmod_(self)
 
     def __pow__(fmpz_poly self, ulong exp, mod):
         cdef fmpz_poly res

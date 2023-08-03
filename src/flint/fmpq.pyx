@@ -143,9 +143,6 @@ cdef class fmpq(flint_scalar):
 
     def __add__(s, t):
         cdef fmpq r
-        s = any_as_fmpq(s)
-        if s is NotImplemented:
-            return s
         t = any_as_fmpq(t)
         if t is NotImplemented:
             return t
@@ -153,11 +150,17 @@ cdef class fmpq(flint_scalar):
         fmpq_add(r.val, (<fmpq>s).val, (<fmpq>t).val)
         return r
 
+    def __radd__(s, t):
+        cdef fmpq r
+        t = any_as_fmpq(t)
+        if t is NotImplemented:
+            return t
+        r = fmpq.__new__(fmpq)
+        fmpq_add(r.val, (<fmpq>t).val, (<fmpq>s).val)
+        return r
+
     def __sub__(s, t):
         cdef fmpq r
-        s = any_as_fmpq(s)
-        if s is NotImplemented:
-            return s
         t = any_as_fmpq(t)
         if t is NotImplemented:
             return t
@@ -165,16 +168,31 @@ cdef class fmpq(flint_scalar):
         fmpq_sub(r.val, (<fmpq>s).val, (<fmpq>t).val)
         return r
 
+    def __rsub__(s, t):
+        cdef fmpq r
+        t = any_as_fmpq(t)
+        if t is NotImplemented:
+            return t
+        r = fmpq.__new__(fmpq)
+        fmpq_sub(r.val, (<fmpq>t).val, (<fmpq>s).val)
+        return r
+
     def __mul__(s, t):
         cdef fmpq r
-        s = any_as_fmpq(s)
-        if s is NotImplemented:
-            return s
         t = any_as_fmpq(t)
         if t is NotImplemented:
             return t
         r = fmpq.__new__(fmpq)
         fmpq_mul(r.val, (<fmpq>s).val, (<fmpq>t).val)
+        return r
+
+    def __rmul__(s, t):
+        cdef fmpq r
+        t = any_as_fmpq(t)
+        if t is NotImplemented:
+            return t
+        r = fmpq.__new__(fmpq)
+        fmpq_mul(r.val, (<fmpq>t).val, (<fmpq>s).val)
         return r
 
     @staticmethod
@@ -195,8 +213,8 @@ cdef class fmpq(flint_scalar):
     def __truediv__(s, t):
         return fmpq._div_(s, t)
 
-    def __div__(s, t):
-        return fmpq._div_(s, t)
+    def __rtruediv__(s, t):
+        return fmpq._div_(t, s)
 
     def next(s, bint signed=True, bint minimal=True):
         """

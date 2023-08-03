@@ -169,16 +169,11 @@ cdef class nmod_poly(flint_poly):
         nmod_poly_neg(r.val, self.val)
         return r
 
-    def __add__(s, t):
+    def _add_(s, t):
         cdef nmod_poly r
-        if typecheck(s, nmod_poly):
-            t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
-            if t is NotImplemented:
-                return t
-        else:
-            s = any_as_nmod_poly(s, (<nmod_poly>t).val.mod)
-            if s is NotImplemented:
-                return s
+        t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+        if t is NotImplemented:
+            return t
         if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
             raise ValueError("cannot add nmod_polys with different moduli")
         r = nmod_poly.__new__(nmod_poly)
@@ -186,16 +181,14 @@ cdef class nmod_poly(flint_poly):
         nmod_poly_add(r.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
         return r
 
-    def __sub__(s, t):
+    def __add__(s, t):
+        return s._add_(t)
+
+    def __radd__(s, t):
+        return s._add_(t)
+
+    def _sub_(s, t):
         cdef nmod_poly r
-        if typecheck(s, nmod_poly):
-            t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
-            if t is NotImplemented:
-                return t
-        else:
-            s = any_as_nmod_poly(s, (<nmod_poly>t).val.mod)
-            if s is NotImplemented:
-                return s
         if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
             raise ValueError("cannot subtract nmod_polys with different moduli")
         r = nmod_poly.__new__(nmod_poly)
@@ -203,16 +196,23 @@ cdef class nmod_poly(flint_poly):
         nmod_poly_sub(r.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
         return r
 
-    def __mul__(s, t):
+    def __sub__(s, t):
+        t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+        if t is NotImplemented:
+            return t
+        return s._sub_(t)
+
+    def __rsub__(s, t):
+        t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+        if t is NotImplemented:
+            return t
+        return t._sub_(s)
+
+    def _mul_(s, t):
         cdef nmod_poly r
-        if typecheck(s, nmod_poly):
-            t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
-            if t is NotImplemented:
-                return t
-        else:
-            s = any_as_nmod_poly(s, (<nmod_poly>t).val.mod)
-            if s is NotImplemented:
-                return s
+        t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+        if t is NotImplemented:
+            return t
         if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
             raise ValueError("cannot multiply nmod_polys with different moduli")
         r = nmod_poly.__new__(nmod_poly)
@@ -220,18 +220,16 @@ cdef class nmod_poly(flint_poly):
         nmod_poly_mul(r.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
         return r
 
+    def __mul__(s, t):
+        return s._mul_(t)
+
+    def __rmul__(s, t):
+        return s._mul_(t)
+
     # TODO: __div__, __truediv__
 
-    def __floordiv__(s, t):
+    def _floordiv_(s, t):
         cdef nmod_poly r
-        if typecheck(s, nmod_poly):
-            t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
-            if t is NotImplemented:
-                return t
-        else:
-            s = any_as_nmod_poly(s, (<nmod_poly>t).val.mod)
-            if s is NotImplemented:
-                return s
         if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
             raise ValueError("cannot divide nmod_polys with different moduli")
         if nmod_poly_is_zero((<nmod_poly>t).val):
@@ -241,16 +239,20 @@ cdef class nmod_poly(flint_poly):
         nmod_poly_div(r.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
         return r
 
-    def __divmod__(s, t):
+    def __floordiv__(s, t):
+        t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+        if t is NotImplemented:
+            return t
+        return s._floordiv_(t)
+
+    def __rfloordiv__(s, t):
+        t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+        if t is NotImplemented:
+            return t
+        return t._floordiv_(s)
+
+    def _divmod_(s, t):
         cdef nmod_poly P, Q
-        if typecheck(s, nmod_poly):
-            t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
-            if t is NotImplemented:
-                return t
-        else:
-            s = any_as_nmod_poly(s, (<nmod_poly>t).val.mod)
-            if s is NotImplemented:
-                return s
         if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
             raise ValueError("cannot divide nmod_polys with different moduli")
         if nmod_poly_is_zero((<nmod_poly>t).val):
@@ -262,8 +264,23 @@ cdef class nmod_poly(flint_poly):
         nmod_poly_divrem(P.val, Q.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
         return P, Q
 
+    def __divmod__(s, t):
+        t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+        if t is NotImplemented:
+            return t
+        return s._divmod_(t)
+
+    def __rdivmod__(s, t):
+        t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+        if t is NotImplemented:
+            return t
+        return t._divmod_(s)
+
     def __mod__(s, t):
         return divmod(s, t)[1]      # XXX
+
+    def __rmod__(s, t):
+        return divmod(t, s)[1]      # XXX
 
     def __pow__(nmod_poly self, ulong exp, mod):
         cdef nmod_poly res

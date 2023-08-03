@@ -1,18 +1,10 @@
 cdef arb_mat_coerce_operands(x, y):
-    if typecheck(x, arb_mat):
-        if isinstance(y, (fmpz_mat, fmpq_mat)):
-            return x, arb_mat(y)
-        if isinstance(y, (int, long, float, fmpz, fmpq, arb)):
-            return x, arb_mat(x.nrows(), x.ncols(), y)
-        if isinstance(y, (complex, acb)):
-            return acb_mat(x), acb_mat(x.nrows(), x.ncols(), y)
-    elif typecheck(y, arb_mat):
-        if isinstance(x, (fmpz_mat, fmpq_mat)):
-            return arb_mat(x), y
-        if isinstance(y, (int, long, float, fmpz, fmpq, arb)):
-            return arb_mat(y.nrows(), y.ncols(), x), y
-        if isinstance(y, (complex, acb)):
-            return acb_mat(y.nrows(), y.ncols(), x), acb_mat(y)
+    if isinstance(y, (fmpz_mat, fmpq_mat)):
+        return x, arb_mat(y)
+    if isinstance(y, (int, long, float, fmpz, fmpq, arb)):
+        return x, arb_mat(x.nrows(), x.ncols(), y)
+    if isinstance(y, (complex, acb)):
+        return acb_mat(x), acb_mat(x.nrows(), x.ncols(), y)
     return NotImplemented, NotImplemented
 
 cdef arb_mat_coerce_scalar(x, y):
@@ -216,35 +208,49 @@ cdef class arb_mat(flint_mat):
 
     def __add__(s, t):
         cdef long m, n
-        if type(s) is type(t):
-            m = (<arb_mat>s).nrows()
-            n = (<arb_mat>s).ncols()
-            if m != (<arb_mat>t).nrows() or n != (<arb_mat>t).ncols():
-                raise ValueError("incompatible shapes for matrix addition")
-            u = arb_mat.__new__(arb_mat)
-            arb_mat_init((<arb_mat>u).val, m, n)
-            arb_mat_add((<arb_mat>u).val, (<arb_mat>s).val, (<arb_mat>t).val, getprec())
-            return u
+        if not isinstance(t, arb_mat):
+            s, t = arb_mat_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s + t
+
+        m = (<arb_mat>s).nrows()
+        n = (<arb_mat>s).ncols()
+        if m != (<arb_mat>t).nrows() or n != (<arb_mat>t).ncols():
+            raise ValueError("incompatible shapes for matrix addition")
+        u = arb_mat.__new__(arb_mat)
+        arb_mat_init((<arb_mat>u).val, m, n)
+        arb_mat_add((<arb_mat>u).val, (<arb_mat>s).val, (<arb_mat>t).val, getprec())
+        return u
+
+    def __radd__(s, t):
         s, t = arb_mat_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s + t
+        return t + s
 
     def __sub__(s, t):
         cdef long m, n
-        if type(s) is type(t):
-            m = (<arb_mat>s).nrows()
-            n = (<arb_mat>s).ncols()
-            if m != (<arb_mat>t).nrows() or n != (<arb_mat>t).ncols():
-                raise ValueError("incompatible shapes for matrix addition")
-            u = arb_mat.__new__(arb_mat)
-            arb_mat_init((<arb_mat>u).val, m, n)
-            arb_mat_sub((<arb_mat>u).val, (<arb_mat>s).val, (<arb_mat>t).val, getprec())
-            return u
+        if not isinstance(t, arb_mat):
+            s, t = arb_mat_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s - t
+
+        m = (<arb_mat>s).nrows()
+        n = (<arb_mat>s).ncols()
+        if m != (<arb_mat>t).nrows() or n != (<arb_mat>t).ncols():
+            raise ValueError("incompatible shapes for matrix addition")
+        u = arb_mat.__new__(arb_mat)
+        arb_mat_init((<arb_mat>u).val, m, n)
+        arb_mat_sub((<arb_mat>u).val, (<arb_mat>s).val, (<arb_mat>t).val, getprec())
+        return u
+
+    def __rsub__(s, t):
         s, t = arb_mat_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s - t
+        return t - s
 
     def _scalar_mul_(s, arb t):
         cdef arb_mat u
@@ -255,25 +261,31 @@ cdef class arb_mat(flint_mat):
 
     def __mul__(s, t):
         cdef arb_mat u
-        if type(s) is type(t):
-            if arb_mat_ncols((<arb_mat>s).val) != arb_mat_nrows((<arb_mat>t).val):
-                raise ValueError("incompatible shapes for matrix multiplication")
-            u = arb_mat.__new__(arb_mat)
-            arb_mat_init(u.val, arb_mat_nrows((<arb_mat>s).val), arb_mat_ncols((<arb_mat>t).val))
-            arb_mat_mul(u.val, (<arb_mat>s).val, (<arb_mat>t).val, getprec())
-            return u
-        if typecheck(s, arb_mat):
+        if not isinstance(t, arb_mat):
             c, d = arb_mat_coerce_scalar(s, t)
             if c is not NotImplemented:
                 return c._scalar_mul_(d)
-        else:
-            d, c = arb_mat_coerce_scalar(t, s)
-            if d is not NotImplemented:
-                return d._scalar_mul_(c)
+            s, t = arb_mat_coerce_operands(s, t)
+            if s is NotImplemented:
+                return s
+            return s * t
+
+        if arb_mat_ncols((<arb_mat>s).val) != arb_mat_nrows((<arb_mat>t).val):
+            raise ValueError("incompatible shapes for matrix multiplication")
+        u = arb_mat.__new__(arb_mat)
+        arb_mat_init(u.val, arb_mat_nrows((<arb_mat>s).val), arb_mat_ncols((<arb_mat>t).val))
+        arb_mat_mul(u.val, (<arb_mat>s).val, (<arb_mat>t).val, getprec())
+        return u
+
+    def __rmul__(s, t):
+        cdef arb_mat u
+        c, d = arb_mat_coerce_scalar(s, t)
+        if c is not NotImplemented:
+            return c._scalar_mul_(d)
         s, t = arb_mat_coerce_operands(s, t)
         if s is NotImplemented:
             return s
-        return s * t
+        return t * s
 
     def _scalar_div_(s, arb t):
         cdef arb_mat u
@@ -282,28 +294,17 @@ cdef class arb_mat(flint_mat):
         arb_mat_scalar_div_arb(u.val, s.val, t.val, getprec())
         return u
 
-    @staticmethod
-    def _div_(s, t):
-        cdef arb_mat u
-        if typecheck(s, arb_mat):
-            s, t = arb_mat_coerce_scalar(s, t)
-            if s is NotImplemented:
-                return s
-            return s._scalar_div_(t)
-        return NotImplemented
-
     def __truediv__(s, t):
-        return arb_mat._div_(s, t)
-
-    def __div__(s, t):
-        return arb_mat._div_(s, t)
+        cdef arb_mat u
+        s, t = arb_mat_coerce_scalar(s, t)
+        if s is NotImplemented:
+            return s
+        return s._scalar_div_(t)
 
     def __pow__(s, e, m):
         cdef arb_mat u
         cdef ulong exp
         cdef long n
-        if not typecheck(s, arb_mat):
-            return NotImplemented
         exp = e
         n = arb_mat_nrows((<arb_mat>s).val)
         if n != arb_mat_ncols((<arb_mat>s).val):

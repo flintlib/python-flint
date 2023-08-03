@@ -15,3 +15,4 @@ MANIFEST
 *.egg-info
 .coverage
 *.swp
+.python-version

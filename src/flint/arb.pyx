@@ -116,22 +116,6 @@ cdef any_as_arb_or_notimplemented(x):
         return NotImplemented
     return t
 
-cdef _arb_div_(s, t):
-    cdef arb_struct sval[1]
-    cdef arb_struct tval[1]
-    cdef int stype, ttype
-    stype = arb_set_any_ref(sval, s)
-    if stype == FMPZ_UNKNOWN:
-        return NotImplemented
-    ttype = arb_set_any_ref(tval, t)
-    if ttype == FMPZ_UNKNOWN:
-        return NotImplemented
-    u = arb.__new__(arb)
-    arb_div((<arb>u).val, sval, tval, getprec())
-    if stype == FMPZ_TMP: arb_clear(sval)
-    if ttype == FMPZ_TMP: arb_clear(tval)
-    return u
-
 cdef class arb(flint_scalar):
     ur"""
     Represents a real number `x` by a midpoint `m` and a radius `r`
@@ -550,74 +534,116 @@ cdef class arb(flint_scalar):
         return res
 
     def __add__(s, t):
-        cdef arb_struct sval[1]
         cdef arb_struct tval[1]
-        cdef int stype, ttype
-        stype = arb_set_any_ref(sval, s)
-        if stype == FMPZ_UNKNOWN:
-            return NotImplemented
+        cdef int ttype
         ttype = arb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = arb.__new__(arb)
-        arb_add((<arb>u).val, sval, tval, getprec())
-        if stype == FMPZ_TMP: arb_clear(sval)
+        arb_add((<arb>u).val, (<arb>s).val, tval, getprec())
+        if ttype == FMPZ_TMP: arb_clear(tval)
+        return u
+
+    def __radd__(s, t):
+        cdef arb_struct tval[1]
+        cdef int ttype
+        ttype = arb_set_any_ref(tval, t)
+        if ttype == FMPZ_UNKNOWN:
+            return NotImplemented
+        u = arb.__new__(arb)
+        arb_add((<arb>u).val, tval, s.val, getprec())
         if ttype == FMPZ_TMP: arb_clear(tval)
         return u
 
     def __sub__(s, t):
-        cdef arb_struct sval[1]
         cdef arb_struct tval[1]
-        cdef int stype, ttype
-        stype = arb_set_any_ref(sval, s)
-        if stype == FMPZ_UNKNOWN:
-            return NotImplemented
+        cdef int ttype
         ttype = arb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = arb.__new__(arb)
-        arb_sub((<arb>u).val, sval, tval, getprec())
-        if stype == FMPZ_TMP: arb_clear(sval)
+        arb_sub((<arb>u).val, (<arb>s).val, tval, getprec())
+        if ttype == FMPZ_TMP: arb_clear(tval)
+        return u
+
+    def __rsub__(s, t):
+        cdef arb_struct tval[1]
+        cdef int ttype
+        ttype = arb_set_any_ref(tval, t)
+        if ttype == FMPZ_UNKNOWN:
+            return NotImplemented
+        u = arb.__new__(arb)
+        arb_sub((<arb>u).val, tval, s.val, getprec())
         if ttype == FMPZ_TMP: arb_clear(tval)
         return u
 
     def __mul__(s, t):
-        cdef arb_struct sval[1]
         cdef arb_struct tval[1]
-        cdef int stype, ttype
-        stype = arb_set_any_ref(sval, s)
-        if stype == FMPZ_UNKNOWN:
-            return NotImplemented
+        cdef int ttype
         ttype = arb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = arb.__new__(arb)
-        arb_mul((<arb>u).val, sval, tval, getprec())
-        if stype == FMPZ_TMP: arb_clear(sval)
+        arb_mul((<arb>u).val, (<arb>s).val, tval, getprec())
+        if ttype == FMPZ_TMP: arb_clear(tval)
+        return u
+
+    def __rmul__(s, t):
+        cdef arb_struct tval[1]
+        cdef int ttype
+        ttype = arb_set_any_ref(tval, t)
+        if ttype == FMPZ_UNKNOWN:
+            return NotImplemented
+        u = arb.__new__(arb)
+        arb_mul((<arb>u).val, tval, s.val, getprec())
         if ttype == FMPZ_TMP: arb_clear(tval)
         return u
 
     def __truediv__(s, t):
-        return _arb_div_(s, t)
-
-    def __div__(s, t):
-        return _arb_div_(s, t)
-
-    def __pow__(s, t, modulus):
-        cdef arb_struct sval[1]
         cdef arb_struct tval[1]
-        cdef int stype, ttype
-        if modulus is not None:
-            raise TypeError("three-argument pow() not supported by arb type")
-        stype = arb_set_any_ref(sval, s)
-        if stype == FMPZ_UNKNOWN:
-            return NotImplemented
+        cdef int ttype
         ttype = arb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         u = arb.__new__(arb)
-        arb_pow((<arb>u).val, sval, tval, getprec())
-        if stype == FMPZ_TMP: arb_clear(sval)
+        arb_div((<arb>u).val, (<arb>s).val, tval, getprec())
+        if ttype == FMPZ_TMP: arb_clear(tval)
+        return u
+
+    def __rtruediv__(s, t):
+        cdef arb_struct tval[1]
+        cdef int ttype
+        ttype = arb_set_any_ref(tval, t)
+        if ttype == FMPZ_UNKNOWN:
+            return NotImplemented
+        u = arb.__new__(arb)
+        arb_div((<arb>u).val, tval, s.val, getprec())
+        if ttype == FMPZ_TMP: arb_clear(tval)
+        return u
+
+    def __pow__(s, t, modulus):
+        cdef arb_struct tval[1]
+        cdef int ttype
+        if modulus is not None:
+            raise TypeError("three-argument pow() not supported by arb type")
+        ttype = arb_set_any_ref(tval, t)
+        if ttype == FMPZ_UNKNOWN:
+            return NotImplemented
+        u = arb.__new__(arb)
+        arb_pow((<arb>u).val, (<arb>s).val, tval, getprec())
+        if ttype == FMPZ_TMP: arb_clear(tval)
+        return u
+
+    def __rpow__(s, t, modulus):
+        cdef arb_struct tval[1]
+        cdef int ttype
+        if modulus is not None:
+            raise TypeError("three-argument pow() not supported by arb type")
+        ttype = arb_set_any_ref(tval, t)
+        if ttype == FMPZ_UNKNOWN:
+            return NotImplemented
+        u = arb.__new__(arb)
+        arb_pow((<arb>u).val, tval, s.val, getprec())
         if ttype == FMPZ_TMP: arb_clear(tval)
         return u
 
@@ -2421,4 +2447,3 @@ cdef class arb(flint_scalar):
         arb_hypgeom_coulomb(NULL, (<arb>G).val,
                         (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
         return G
-

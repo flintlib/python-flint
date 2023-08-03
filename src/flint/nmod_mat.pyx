@@ -190,18 +190,29 @@ cdef class nmod_mat:
         cdef nmod_mat r
         cdef nmod_mat_struct *sv
         cdef nmod_mat_struct *tv
-        if typecheck(s, nmod_mat):
-            sv = &(<nmod_mat>s).val[0]
-            t = any_as_nmod_mat(t, sv.mod)
-            if t is NotImplemented:
-                return t
-            tv = &(<nmod_mat>t).val[0]
-        else:
-            tv = &(<nmod_mat>t).val[0]
-            s = any_as_nmod_mat(s, tv.mod)
-            if s is NotImplemented:
-                return s
-            sv = &(<nmod_mat>s).val[0]
+        sv = &(<nmod_mat>s).val[0]
+        t = any_as_nmod_mat(t, sv.mod)
+        if t is NotImplemented:
+            return t
+        tv = &(<nmod_mat>t).val[0]
+        if sv.mod.n != tv.mod.n:
+            raise ValueError("cannot add nmod_mats with different moduli")
+        if sv.r != tv.r or sv.c != tv.c:
+            raise ValueError("incompatible shapes for matrix addition")
+        r = nmod_mat.__new__(nmod_mat)
+        nmod_mat_init(r.val, sv.r, sv.c, sv.mod.n)
+        nmod_mat_add(r.val, sv, tv)
+        return r
+
+    def __radd__(s, t):
+        cdef nmod_mat r
+        cdef nmod_mat_struct *sv
+        cdef nmod_mat_struct *tv
+        sv = &(<nmod_mat>s).val[0]
+        t = any_as_nmod_mat(t, sv.mod)
+        if t is NotImplemented:
+            return t
+        tv = &(<nmod_mat>t).val[0]
         if sv.mod.n != tv.mod.n:
             raise ValueError("cannot add nmod_mats with different moduli")
         if sv.r != tv.r or sv.c != tv.c:
@@ -215,18 +226,11 @@ cdef class nmod_mat:
         cdef nmod_mat r
         cdef nmod_mat_struct *sv
         cdef nmod_mat_struct *tv
-        if typecheck(s, nmod_mat):
-            sv = &(<nmod_mat>s).val[0]
-            t = any_as_nmod_mat(t, sv.mod)
-            if t is NotImplemented:
-                return t
-            tv = &(<nmod_mat>t).val[0]
-        else:
-            tv = &(<nmod_mat>t).val[0]
-            s = any_as_nmod_mat(s, tv.mod)
-            if s is NotImplemented:
-                return s
-            sv = &(<nmod_mat>s).val[0]
+        sv = &(<nmod_mat>s).val[0]
+        t = any_as_nmod_mat(t, sv.mod)
+        if t is NotImplemented:
+            return t
+        tv = &(<nmod_mat>t).val[0]
         if sv.mod.n != tv.mod.n:
             raise ValueError("cannot subtract nmod_mats with different moduli")
         if sv.r != tv.r or sv.c != tv.c:
@@ -234,6 +238,24 @@ cdef class nmod_mat:
         r = nmod_mat.__new__(nmod_mat)
         nmod_mat_init(r.val, sv.r, sv.c, sv.mod.n)
         nmod_mat_sub(r.val, sv, tv)
+        return r
+
+    def __rsub__(s, t):
+        cdef nmod_mat r
+        cdef nmod_mat_struct *sv
+        cdef nmod_mat_struct *tv
+        sv = &(<nmod_mat>s).val[0]
+        t = any_as_nmod_mat(t, sv.mod)
+        if t is NotImplemented:
+            return t
+        tv = &(<nmod_mat>t).val[0]
+        if sv.mod.n != tv.mod.n:
+            raise ValueError("cannot subtract nmod_mats with different moduli")
+        if sv.r != tv.r or sv.c != tv.c:
+            raise ValueError("incompatible shapes for matrix subtraction")
+        r = nmod_mat.__new__(nmod_mat)
+        nmod_mat_init(r.val, sv.r, sv.c, sv.mod.n)
+        nmod_mat_sub(r.val, tv, sv)
         return r
 
     cdef __mul_nmod(self, mp_limb_t c):
@@ -247,22 +269,13 @@ cdef class nmod_mat:
         cdef nmod_mat_struct *sv
         cdef nmod_mat_struct *tv
         cdef mp_limb_t c
-        if typecheck(s, nmod_mat):
-            sv = &(<nmod_mat>s).val[0]
-            u = any_as_nmod_mat(t, sv.mod)
-            if u is NotImplemented:
-                if any_as_nmod(&c, t, sv.mod):
-                    return (<nmod_mat>s).__mul_nmod(c)
-                return NotImplemented
-            tv = &(<nmod_mat>u).val[0]
-        else:
-            tv = &(<nmod_mat>t).val[0]
-            u = any_as_nmod_mat(s, tv.mod)
-            if u is NotImplemented:
-                if any_as_nmod(&c, s, tv.mod):
-                    return (<nmod_mat>t).__mul_nmod(c)
-                return NotImplemented
-            sv = &(<nmod_mat>u).val[0]
+        sv = &(<nmod_mat>s).val[0]
+        u = any_as_nmod_mat(t, sv.mod)
+        if u is NotImplemented:
+            if any_as_nmod(&c, t, sv.mod):
+                return (<nmod_mat>s).__mul_nmod(c)
+            return NotImplemented
+        tv = &(<nmod_mat>u).val[0]
         if sv.mod.n != tv.mod.n:
             raise ValueError("cannot multiply nmod_mats with different moduli")
         if sv.c != tv.r:
@@ -271,6 +284,17 @@ cdef class nmod_mat:
         nmod_mat_init(r.val, sv.r, tv.c, sv.mod.n)
         nmod_mat_mul(r.val, sv, tv)
         return r
+
+    def __rmul__(s, t):
+        cdef nmod_mat_struct *sv
+        cdef mp_limb_t c
+        sv = &(<nmod_mat>s).val[0]
+        if any_as_nmod(&c, t, sv.mod):
+            return (<nmod_mat>s).__mul_nmod(c)
+        u = any_as_nmod_mat(t, sv.mod)
+        if u is NotImplemented:
+            return u
+        return u * s
 
     @staticmethod
     def _div_(nmod_mat s, t):
