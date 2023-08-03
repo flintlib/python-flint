@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-brew install automake
+brew install automake libtool
 
 bin/build_dependencies_unix.sh\
   --gmp gmp\
