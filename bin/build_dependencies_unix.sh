@@ -166,7 +166,9 @@ if [ $USE_GMP = "gmp" ]; then
       fi
 
       # Show the output of configfsf.guess
+      chmod +x configfsf.guess
       ./configfsf.guess
+
       ./configure --prefix=$PREFIX\
         --enable-fat\
         --enable-shared=yes\
@@ -174,6 +176,7 @@ if [ $USE_GMP = "gmp" ]; then
         --host=$HOST_ARG
       make -j3
       make install
+
     cd ..
 
   fi
