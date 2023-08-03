@@ -20,6 +20,7 @@ pacman -S --noconfirm \
     m4\
     make\
     base-devel\
+    autoconf-wrapper\
     #
 
 # This takes ~30mins
