@@ -40,4 +40,4 @@ mv libpython${VER}.a libs
 #  Install build dependencies                     #
 ###################################################
 
-pip install cython==3.0.0b2 numpy delvewheel
+pip install 'cython>=3' numpy delvewheel
