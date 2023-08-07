@@ -101,6 +101,23 @@ def test_fmpz():
                     assert (ltype(s) >= rtype(t)) == (s >= t)
                     if 0 <= t < 10:
                         assert (ltype(s) ** rtype(t)) == (s ** t)
+
+    pow_mod_examples = [
+        (2, 2, 3, 1),
+        (2, -1, 5, 3),
+        (2, 0, 5, 1),
+    ]
+    for a, b, c, ab_mod_c in pow_mod_examples:
+        assert pow(a, b, c) == ab_mod_c
+        assert pow(flint.fmpz(a), b, c) == ab_mod_c
+        assert pow(a, flint.fmpz(b), c) == ab_mod_c
+        assert pow(flint.fmpz(a), flint.fmpz(b), c) == ab_mod_c
+        assert pow(flint.fmpz(a), flint.fmpz(b), flint.fmpz(c)) == ab_mod_c
+
+    assert raises(lambda: pow(flint.fmpz(2), 2, 0), ValueError)
+    # XXX: Handle negative modulus like int?
+    assert raises(lambda: pow(flint.fmpz(2), 2, -1), ValueError)
+
     assert flint.fmpz(2) != []
     assert +flint.fmpz(0) == 0
     assert +flint.fmpz(1) == 1
@@ -139,7 +156,6 @@ def test_fmpz():
     big = flint.fmpz(bigstr)
     assert big.str() == bigstr
     assert big.str(condense=10) == '1111111111{...80 digits...}1111111111'
-    assert raises(lambda: pow(flint.fmpz(2), 2, 3), NotImplementedError)
 
 def test_fmpz_factor():
     assert flint.fmpz(6).gcd(flint.fmpz(9)) == 3

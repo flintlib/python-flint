@@ -101,6 +101,10 @@ cdef class fmpq(flint_scalar):
     p = property(numer)
     q = property(denom)
 
+    # These are the property names in the numeric tower.
+    numerator = property(numer)
+    denominator = property(denom)
+
     def repr(self):
         if self.q == 1:
             return "fmpq(%s)" % self.p
@@ -121,6 +125,15 @@ cdef class fmpq(flint_scalar):
             return self.p.str(**kwargs)
         else:
             return "%s/%s" % (self.p.str(**kwargs), self.q.str(**kwargs))
+
+    def __int__(self):
+        if self.p >= 0:
+            return int(self.p // self.q)
+        else:
+            return - int((-self.p) // self.q)
+
+    def __floor__(self):
+        return int(self.p // self.q)
 
     def __nonzero__(self):
         return not fmpq_is_zero(self.val)
@@ -359,20 +372,28 @@ cdef class fmpq(flint_scalar):
             return max(b1, b2)
 
     def __pow__(self, n, z):
+        cdef fmpz_struct nval[1]
+        cdef int ntype = FMPZ_UNKNOWN
         cdef fmpq v
+        cdef int success
         cdef long e
-        assert z is None
-        e = n
-        if type(self) is fmpq:
-            v = fmpq.__new__(fmpq)
-            if e >= 0:
-                fmpz_pow_ui(fmpq_numref(v.val), fmpq_numref((<fmpq>self).val), e)
-                fmpz_pow_ui(fmpq_denref(v.val), fmpq_denref((<fmpq>self).val), e)
-            else:
-                if fmpq_is_zero((<fmpq>self).val):
-                    raise ZeroDivisionError
-                fmpz_pow_ui(fmpq_denref(v.val), fmpq_numref((<fmpq>self).val), -e)
-                fmpz_pow_ui(fmpq_numref(v.val), fmpq_denref((<fmpq>self).val), -e)
-            return v
-        return NotImplemented
 
+        assert z is None
+
+        ntype = fmpz_set_any_ref(nval, n)
+        if ntype == FMPZ_UNKNOWN:
+            return NotImplemented
+
+        if fmpq_is_zero((<fmpq>self).val) and fmpz_sgn(nval) == -1:
+            if ntype == FMPZ_TMP: fmpz_clear(nval)
+            raise ZeroDivisionError
+
+        v = fmpq.__new__(fmpq)
+        success = fmpq_pow_fmpz(v.val, (<fmpq>self).val, nval)
+
+        if ntype == FMPZ_TMP: fmpz_clear(nval)
+
+        if success:
+            return v
+        else:
+            raise OverflowError("fmpq_pow_fmpz(): exponent too large")
