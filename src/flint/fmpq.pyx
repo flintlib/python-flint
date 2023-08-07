@@ -105,6 +105,9 @@ cdef class fmpq(flint_scalar):
     numerator = property(numer)
     denominator = property(denom)
 
+    def __reduce__(self):
+        return (fmpq, (int(self.p), int(self.q)))
+
     def repr(self):
         if self.q == 1:
             return "fmpq(%s)" % self.p

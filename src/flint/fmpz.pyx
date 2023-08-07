@@ -99,6 +99,9 @@ cdef class fmpz(flint_scalar):
     def denominator(self):
         return fmpz(1)
 
+    def __reduce__(self):
+        return (fmpz, (int(self),))
+
     # XXX: improve!
     def __int__(self):
         return fmpz_get_intlong(self.val)
