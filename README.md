@@ -34,7 +34,9 @@ as follows:
     pip install .
 
 See the documentation for further notes on building and installing
-Python-FLINT.
+Python-FLINT:
+
+    https://fredrikj.net/python-flint/setup.html
 
 Examples
 -------------------------------------

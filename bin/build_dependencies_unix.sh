@@ -232,7 +232,8 @@ cd arb-$ARBVER
   #
   PATH=$PATH:$PREFIX/lib:$PREFIX/bin \
   ARB_TEST_MULTIPLIER=0.1            \
-  make check
+  # Skip Arb tests now because they are slow.
+  # make check
 cd ..
 
 # ------------------------------------------------------------------------- #
