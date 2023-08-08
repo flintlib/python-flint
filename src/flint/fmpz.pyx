@@ -369,7 +369,7 @@ cdef class fmpz(flint_scalar):
 
             if not success:
                 if ttype == FMPZ_TMP: fmpz_clear(tval)
-                raise ValueError("fmpz_pow_fmpz: exponent too large")
+                raise OverflowError("fmpz_pow_fmpz: exponent too large")
         else:
             # Modular exponentiation
             mtype = fmpz_set_any_ref(mval, m)
@@ -406,6 +406,8 @@ cdef class fmpz(flint_scalar):
         if typecheck(other, fmpz):
             other = int(other)
         if typecheck(other, int):
+            if other < 0:
+                raise ValueError("negative shift count")
             u = fmpz.__new__(fmpz)
             fmpz_mul_2exp((<fmpz>u).val, self.val, other)
             return u
@@ -413,9 +415,12 @@ cdef class fmpz(flint_scalar):
             return NotImplemented
 
     def __rlshift__(self, other):
+        iself = int(self)
+        if iself < 0:
+            raise ValueError("negative shift count")
         if typecheck(other, int):
             u = fmpz.__new__(fmpz)
-            fmpz_mul_2exp((<fmpz>u).val, fmpz(other).val, int(self))
+            fmpz_mul_2exp((<fmpz>u).val, fmpz(other).val, iself)
             return u
         else:
             return NotImplemented
@@ -424,6 +429,8 @@ cdef class fmpz(flint_scalar):
         if typecheck(other, fmpz):
             other = int(other)
         if typecheck(other, int):
+            if other < 0:
+                raise ValueError("negative shift count")
             u = fmpz.__new__(fmpz)
             fmpz_fdiv_q_2exp((<fmpz>u).val, self.val, other)
             return u
@@ -431,9 +438,12 @@ cdef class fmpz(flint_scalar):
             return NotImplemented
 
     def __rrshift__(self, other):
+        iself = int(self)
+        if iself < 0:
+            raise ValueError("negative shift count")
         if typecheck(other, int):
             u = fmpz.__new__(fmpz)
-            fmpz_fdiv_q_2exp((<fmpz>u).val, fmpz(other).val, int(self))
+            fmpz_fdiv_q_2exp((<fmpz>u).val, fmpz(other).val, iself)
             return u
         else:
             return NotImplemented

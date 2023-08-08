@@ -136,10 +136,19 @@ cdef class fmpq(flint_scalar):
             return - int((-self.p) // self.q)
 
     def __floor__(self):
-        return int(self.p // self.q)
+        return self.floor()
+
+    def __ceil__(self):
+        return self.ceil()
+
+    def __trunc__(self):
+        return self.trunc()
 
     def __nonzero__(self):
         return not fmpq_is_zero(self.val)
+
+    def __round__(self, ndigits=None):
+        return self.round(ndigits)
 
     def __pos__(self):
         return self
@@ -350,6 +359,37 @@ cdef class fmpq(flint_scalar):
         cdef fmpz r = fmpz.__new__(fmpz)
         fmpz_cdiv_q(r.val, fmpq_numref(self.val), fmpq_denref(self.val))
         return r
+
+    def trunc(self):
+        """
+        Truncation function.
+
+            >>> fmpq(3,2).trunc()
+            1
+            >>> fmpq(-3,2).trunc()
+            -1
+        """
+        cdef fmpz r = fmpz.__new__(fmpz)
+        fmpz_tdiv_q(r.val, fmpq_numref(self.val), fmpq_denref(self.val))
+        return r
+
+    def round(self, ndigits=None):
+        """
+        Rounding function.
+
+            >>> fmpq(3,2).round()
+            2
+            >>> fmpq(-3,2).round()
+            -2
+        """
+        from fractions import Fraction
+        fself = Fraction(int(self.p), int(self.q))
+        if ndigits is not None:
+            fround = round(fself, ndigits)
+            return fmpq(fround.numerator, fround.denominator)
+        else:
+            fround = round(fself)
+            return fmpz(fround)
 
     def __hash__(self):
         from fractions import Fraction
