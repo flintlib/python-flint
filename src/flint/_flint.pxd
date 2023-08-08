@@ -267,6 +267,7 @@ cdef extern from "flint/fmpz.h":
     void fmpz_pow_ui(fmpz_t f,  fmpz_t g, ulong exp)
     void fmpz_powm_ui(fmpz_t f,  fmpz_t g, ulong exp,  fmpz_t m)
     void fmpz_powm(fmpz_t f,  fmpz_t g,  fmpz_t e,  fmpz_t m)
+    int fmpz_pow_fmpz(fmpz_t f, const fmpz_t g, const fmpz_t x)
     int fmpz_sqrtmod(fmpz_t b,  fmpz_t a,  fmpz_t p)
     void fmpz_sqrt(fmpz_t f,  fmpz_t g)
     void fmpz_sqrtrem(fmpz_t f, fmpz_t r,  fmpz_t g)
@@ -310,6 +311,10 @@ cdef extern from "flint/fmpz.h":
     int fmpz_jacobi(const fmpz_t a, const fmpz_t p)
     int fmpz_is_prime(const fmpz_t n)
     int fmpz_is_probabprime(const fmpz_t n)
+    void fmpz_complement(fmpz_t r, const fmpz_t f)
+    void fmpz_and(fmpz_t r, const fmpz_t a, const fmpz_t b)
+    void fmpz_or(fmpz_t r, const fmpz_t a, const fmpz_t b)
+    void fmpz_xor(fmpz_t r, const fmpz_t a, const fmpz_t b)
 
 cdef extern from "flint/fmpz_factor.h":
     ctypedef struct fmpz_factor_struct:
@@ -547,6 +552,7 @@ cdef extern from "flint/fmpq.h":
     void fmpq_div(fmpq_t res, fmpq_t op1, fmpq_t op2)
     void fmpq_div_fmpz(fmpq_t res, fmpq_t op, fmpz_t x)
     int fmpq_mod_fmpz(fmpz_t res, fmpq_t x, fmpz_t mod)
+    int fmpq_pow_fmpz(fmpq_t a, const fmpq_t b, const fmpz_t e)
     int fmpq_reconstruct_fmpz(fmpq_t res, fmpz_t a, fmpz_t m)
     int fmpq_reconstruct_fmpz_2(fmpq_t res, fmpz_t a, fmpz_t m, fmpz_t N, fmpz_t D)
     mp_bitcnt_t fmpq_height_bits(fmpq_t x)

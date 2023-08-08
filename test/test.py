@@ -1,7 +1,10 @@
 import sys
-import flint
+import math
 import operator
+import pickle
 import doctest
+
+import flint
 
 if sys.version_info[0] >= 3:
     long = int
@@ -82,9 +85,22 @@ def test_fmpz():
         for t in L:
             for ltype in (flint.fmpz, int, long):
                 for rtype in (flint.fmpz, int, long):
+
+                    assert (ltype(s) == rtype(t)) == (s == t)
+                    assert (ltype(s) != rtype(t)) == (s != t)
+                    assert (ltype(s) < rtype(t)) == (s < t)
+                    assert (ltype(s) <= rtype(t)) == (s <= t)
+                    assert (ltype(s) > rtype(t)) == (s > t)
+                    assert (ltype(s) >= rtype(t)) == (s >= t)
+
                     assert ltype(s) + rtype(t) == s + t
                     assert ltype(s) - rtype(t) == s - t
                     assert ltype(s) * rtype(t) == s * t
+                    assert ltype(s) & rtype(t) == s & t
+                    assert ltype(s) | rtype(t) == s | t
+                    assert ltype(s) ^ rtype(t) == s ^ t
+                    assert ~ltype(s) == ~s
+
                     if t == 0:
                         assert raises(lambda: ltype(s) // rtype(t), ZeroDivisionError)
                         assert raises(lambda: ltype(s) % rtype(t), ZeroDivisionError)
@@ -93,14 +109,65 @@ def test_fmpz():
                         assert ltype(s) // rtype(t) == s // t
                         assert ltype(s) % rtype(t) == s % t
                         assert divmod(ltype(s), rtype(t)) == divmod(s, t)
-                    assert (ltype(s) == rtype(t)) == (s == t)
-                    assert (ltype(s) != rtype(t)) == (s != t)
-                    assert (ltype(s) < rtype(t)) == (s < t)
-                    assert (ltype(s) <= rtype(t)) == (s <= t)
-                    assert (ltype(s) > rtype(t)) == (s > t)
-                    assert (ltype(s) >= rtype(t)) == (s >= t)
+
                     if 0 <= t < 10:
                         assert (ltype(s) ** rtype(t)) == (s ** t)
+                        assert ltype(s) << rtype(t) == s << t
+                        assert ltype(s) >> rtype(t) == s >> t
+                    elif -10 <= t < 0:
+                        assert raises(lambda: ltype(s) << rtype(t), ValueError)
+                        assert raises(lambda: ltype(s) >> rtype(t), ValueError)
+
+    assert 2 ** flint.fmpz(2) == 4
+    assert type(2 ** flint.fmpz(2)) == flint.fmpz
+    assert raises(lambda: () ** flint.fmpz(1), TypeError)
+    assert raises(lambda: flint.fmpz(1) ** (), TypeError)
+    assert raises(lambda: flint.fmpz(1) ** -1, ValueError)
+
+    mega = flint.fmpz(2) ** 8000000
+    assert raises(lambda: mega ** mega, OverflowError)
+
+    pow_mod_examples = [
+        (2, 2, 3, 1),
+        (2, -1, 5, 3),
+        (2, 0, 5, 1),
+    ]
+    for a, b, c, ab_mod_c in pow_mod_examples:
+        assert pow(a, b, c) == ab_mod_c
+        assert pow(flint.fmpz(a), b, c) == ab_mod_c
+        assert pow(a, flint.fmpz(b), c) == ab_mod_c
+        assert pow(flint.fmpz(a), flint.fmpz(b), c) == ab_mod_c
+        assert pow(flint.fmpz(a), flint.fmpz(b), flint.fmpz(c)) == ab_mod_c
+
+    assert raises(lambda: pow(flint.fmpz(2), 2, 0), ValueError)
+    # XXX: Handle negative modulus like int?
+    assert raises(lambda: pow(flint.fmpz(2), 2, -1), ValueError)
+
+    f = flint.fmpz(2)
+    assert f.numerator == f
+    assert type(f.numerator) is flint.fmpz
+    assert f.denominator == 1
+    assert type(f.denominator) is flint.fmpz
+
+    assert int(f) == 2
+    assert type(int(f)) is int
+    assert operator.index(f) == 2
+    assert type(operator.index(f)) is int
+    assert float(f) == 2.0
+    assert type(float(f)) is float
+    assert round(f) == 2
+    assert type(round(f)) is flint.fmpz
+    assert round(f, 1) == 2
+    assert type(round(f, 1)) is flint.fmpz
+    assert round(f, -1) == 0
+    assert type(round(f, -1)) is flint.fmpz
+    assert math.trunc(f) == 2
+    assert type(math.trunc(f)) is flint.fmpz
+    assert math.floor(f) == 2
+    assert type(math.floor(f)) is flint.fmpz
+    assert math.ceil(f) == 2
+    assert type(math.ceil(f)) is flint.fmpz
+
     assert flint.fmpz(2) != []
     assert +flint.fmpz(0) == 0
     assert +flint.fmpz(1) == 1
@@ -111,35 +178,72 @@ def test_fmpz():
     assert abs(flint.fmpz(0)) == 0
     assert abs(flint.fmpz(1)) == 1
     assert abs(flint.fmpz(-1)) == 1
-    assert int(flint.fmpz(2)) == 2
-    assert isinstance(int(flint.fmpz(2)), int)
-    assert long(flint.fmpz(2)) == 2
-    assert isinstance(long(flint.fmpz(2)), long)
-    l = [1, 2, 3]
-    l[flint.fmpz(1)] = -2
-    assert l == [1, -2, 3]
-    d = {flint.fmpz(2): 3}
-    d[flint.fmpz(2)] = -1
-    assert d == {flint.fmpz(2): -1}
+
+    assert bool(flint.fmpz(0)) == False
+    assert bool(flint.fmpz(1)) == True
+
     assert flint.fmpz(2).bit_length() == 2
     assert flint.fmpz(-2).bit_length() == 2
     assert flint.fmpz(2).height_bits() == 2
     assert flint.fmpz(-2).height_bits() == 2
     assert flint.fmpz(2).height_bits(signed=True) == 2
     assert flint.fmpz(-2).height_bits(signed=True) == -2
+
+    f1 = flint.fmpz(1)
+    f2 = flint.fmpz(2)
+    f3 = flint.fmpz(3)
+    f8 = flint.fmpz(8)
+
+    assert f2 << 2 == 8
+    assert f2 << f2 == 8
+    assert 2 << f2 == 8
+    assert raises(lambda: f2 << -1, ValueError)
+    assert raises(lambda: 2 << -f1, ValueError)
+
+    assert f8 >> 2 == f2
+    assert f8 >> f2 == f2
+    assert 8 >> f2 == f2
+    assert raises(lambda: f2 >> -1, ValueError)
+    assert raises(lambda: 2 >> -f1, ValueError)
+
+    assert f2 & 3 == 2
+    assert f2 & f3 == 2
+    assert 2 & f3 == 2
+    assert f2 | 3 == 3
+    assert f2 | f3 == 3
+    assert 2 | f3 == 3
+    assert f2 ^ 3 == 1
+    assert f2 ^ f3 == 1
+    assert 2 ^ f3 == 1
+
+    assert raises(lambda: f2 << (), TypeError)
+    assert raises(lambda: () << f2, TypeError)
+    assert raises(lambda: f2 >> (), TypeError)
+    assert raises(lambda: () >> f2, TypeError)
+    assert raises(lambda: f2 & (), TypeError)
+    assert raises(lambda: () & f2, TypeError)
+    assert raises(lambda: f2 | (), TypeError)
+    assert raises(lambda: () | f2, TypeError)
+    assert raises(lambda: f2 ^ (), TypeError)
+    assert raises(lambda: () ^ f2, TypeError)
+
+    l = [1, 2, 3]
+    l[flint.fmpz(1)] = -2
+    assert l == [1, -2, 3]
+    d = {flint.fmpz(2): 3}
+    d[flint.fmpz(2)] = -1
+
+    assert d == {flint.fmpz(2): -1}
     ctx.pretty = False
     assert repr(flint.fmpz(0)) == "fmpz(0)"
     assert repr(flint.fmpz(-27)) == "fmpz(-27)"
     ctx.pretty = True
     assert repr(flint.fmpz(0)) == "0"
     assert repr(flint.fmpz(-27)) == "-27"
-    assert bool(flint.fmpz(0)) == False
-    assert bool(flint.fmpz(1)) == True
     bigstr = '1' * 100
     big = flint.fmpz(bigstr)
     assert big.str() == bigstr
     assert big.str(condense=10) == '1111111111{...80 digits...}1111111111'
-    assert raises(lambda: pow(flint.fmpz(2), 2, 3), NotImplementedError)
 
 def test_fmpz_factor():
     assert flint.fmpz(6).gcd(flint.fmpz(9)) == 3
@@ -619,6 +723,7 @@ def test_fmpq():
     assert 0 == Q(0)
     assert Q(2) != 1
     assert 1 != Q(2)
+    assert Q(1) != ()
     assert Q(1,2) != 1
     assert Q(2,3) == Q(flint.fmpz(2),long(3))
     assert Q(-2,-4) == Q(1,2)
@@ -656,6 +761,10 @@ def test_fmpq():
     # XXX: This should NotImplementedError or something.
     assert raises(lambda: pow(Q(1,2),2,3), AssertionError)
 
+    megaz = flint.fmpz(2) ** 8000000
+    megaq = Q(megaz)
+    assert raises(lambda: megaq ** megaz, OverflowError)
+
     assert raises(lambda: Q(1,2) + [], TypeError)
     assert raises(lambda: Q(1,2) - [], TypeError)
     assert raises(lambda: Q(1,2) * [], TypeError)
@@ -684,14 +793,16 @@ def test_fmpq():
     assert (Q(1,2) >= Q(1,2)) is True
     assert raises(lambda: Q(1,2) > [], TypeError)
     assert raises(lambda: [] < Q(1,2), TypeError)
+
     ctx.pretty = False
     assert repr(Q(-2,3)) == "fmpq(-2,3)"
     assert repr(Q(3)) == "fmpq(3)"
     ctx.pretty = True
     assert str(Q(-2,3)) == "-2/3"
     assert str(Q(3)) == "3"
-    assert Q(2,3).p == Q(2,3).numer() == 2
-    assert Q(2,3).q == Q(2,3).denom() == 3
+
+    assert Q(2,3).p == Q(2,3).numer() == Q(2,3).numerator == 2
+    assert Q(2,3).q == Q(2,3).denom() == Q(2,3).denominator == 3
     assert +Q(5,7) == Q(5,7)
     assert -Q(5,7) == Q(-5,7)
     assert -Q(-5,7) == Q(5,7)
@@ -705,12 +816,32 @@ def test_fmpq():
     assert Q(-5,3).floor() == flint.fmpz(-2)
     assert Q(5,3).ceil() == flint.fmpz(2)
     assert Q(-5,3).ceil() == flint.fmpz(-1)
-    # XXX: Need __floor__ etc.
-    #
-    # assert math.floor(Q(5,3)) == flint.fmpz(1)
-    # assert math.ceil(Q(5,3)) == flint.fmpz(2)
-    # assert math.trunc(Q(5,3)) == flint.fmpz(2)
-    # assert round(Q(5,3)) == 2
+
+    assert type(int(Q(5,3))) is int
+    assert type(math.floor(Q(5,3))) is flint.fmpz
+    assert type(math.ceil(Q(5,3))) is flint.fmpz
+    assert type(math.trunc(Q(5,3))) is flint.fmpz
+    assert type(round(Q(5,3))) is flint.fmpz
+    assert type(round(Q(5,3))) is flint.fmpz
+    assert type(round(Q(5,3), 0)) is flint.fmpq
+    assert type(round(Q(5,3), 1)) is flint.fmpq
+
+    assert int(Q(5,3)) == 1
+    assert math.floor(Q(5,3)) == flint.fmpz(1)
+    assert math.ceil(Q(5,3)) == flint.fmpz(2)
+    assert math.trunc(Q(5,3)) == flint.fmpz(1)
+    assert round(Q(5,3)) == flint.fmpz(2)
+
+    assert int(Q(-5,3)) == flint.fmpz(-1)
+    assert math.floor(Q(-5,3)) == flint.fmpz(-2)
+    assert math.ceil(Q(-5,3)) == flint.fmpz(-1)
+    assert math.trunc(Q(-5,3)) == flint.fmpz(-1)
+    assert round(Q(-5,3)) == -2
+
+    assert round(Q(100,3), 2) == Q(3333,100)
+    assert round(Q(100,3), 0) == Q(33,1)
+    assert round(Q(100,3), -1) == Q(30,1)
+    assert round(Q(100,3), -2) == Q(0)
 
     d = {}
     d[Q(1,2)] = 3
@@ -1412,6 +1543,17 @@ def test_arb():
     assert A(3) == A(3)
     assert A(3) != A(2)
     assert not (A("1.1") == A("1.1"))
+
+def test_pickling():
+    objects = [
+        flint.fmpz(1),
+        flint.fmpq(1,2),
+        # XXX: Add pickling for everything else
+    ]
+    for obj in objects:
+        s = pickle.dumps(obj)
+        obj2 = pickle.loads(s)
+        assert obj == obj2
 
 if __name__ == "__main__":
     sys.stdout.write("test_pyflint..."); test_pyflint(); print("OK")

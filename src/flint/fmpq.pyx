@@ -101,6 +101,13 @@ cdef class fmpq(flint_scalar):
     p = property(numer)
     q = property(denom)
 
+    # These are the property names in the numeric tower.
+    numerator = property(numer)
+    denominator = property(denom)
+
+    def __reduce__(self):
+        return (fmpq, (int(self.p), int(self.q)))
+
     def repr(self):
         if self.q == 1:
             return "fmpq(%s)" % self.p
@@ -122,8 +129,23 @@ cdef class fmpq(flint_scalar):
         else:
             return "%s/%s" % (self.p.str(**kwargs), self.q.str(**kwargs))
 
+    def __int__(self):
+        return int(self.trunc())
+
+    def __floor__(self):
+        return self.floor()
+
+    def __ceil__(self):
+        return self.ceil()
+
+    def __trunc__(self):
+        return self.trunc()
+
     def __nonzero__(self):
         return not fmpq_is_zero(self.val)
+
+    def __round__(self, ndigits=None):
+        return self.round(ndigits)
 
     def __pos__(self):
         return self
@@ -335,6 +357,37 @@ cdef class fmpq(flint_scalar):
         fmpz_cdiv_q(r.val, fmpq_numref(self.val), fmpq_denref(self.val))
         return r
 
+    def trunc(self):
+        """
+        Truncation function.
+
+            >>> fmpq(3,2).trunc()
+            1
+            >>> fmpq(-3,2).trunc()
+            -1
+        """
+        cdef fmpz r = fmpz.__new__(fmpz)
+        fmpz_tdiv_q(r.val, fmpq_numref(self.val), fmpq_denref(self.val))
+        return r
+
+    def round(self, ndigits=None):
+        """
+        Rounding function.
+
+            >>> fmpq(3,2).round()
+            2
+            >>> fmpq(-3,2).round()
+            -2
+        """
+        from fractions import Fraction
+        fself = Fraction(int(self.p), int(self.q))
+        if ndigits is not None:
+            fround = round(fself, ndigits)
+            return fmpq(fround.numerator, fround.denominator)
+        else:
+            fround = round(fself)
+            return fmpz(fround)
+
     def __hash__(self):
         from fractions import Fraction
         return hash(Fraction(int(self.p), int(self.q), _normalize=False))
@@ -359,20 +412,28 @@ cdef class fmpq(flint_scalar):
             return max(b1, b2)
 
     def __pow__(self, n, z):
+        cdef fmpz_struct nval[1]
+        cdef int ntype = FMPZ_UNKNOWN
         cdef fmpq v
+        cdef int success
         cdef long e
-        assert z is None
-        e = n
-        if type(self) is fmpq:
-            v = fmpq.__new__(fmpq)
-            if e >= 0:
-                fmpz_pow_ui(fmpq_numref(v.val), fmpq_numref((<fmpq>self).val), e)
-                fmpz_pow_ui(fmpq_denref(v.val), fmpq_denref((<fmpq>self).val), e)
-            else:
-                if fmpq_is_zero((<fmpq>self).val):
-                    raise ZeroDivisionError
-                fmpz_pow_ui(fmpq_denref(v.val), fmpq_numref((<fmpq>self).val), -e)
-                fmpz_pow_ui(fmpq_numref(v.val), fmpq_denref((<fmpq>self).val), -e)
-            return v
-        return NotImplemented
 
+        assert z is None
+
+        ntype = fmpz_set_any_ref(nval, n)
+        if ntype == FMPZ_UNKNOWN:
+            return NotImplemented
+
+        if fmpq_is_zero((<fmpq>self).val) and fmpz_sgn(nval) == -1:
+            if ntype == FMPZ_TMP: fmpz_clear(nval)
+            raise ZeroDivisionError
+
+        v = fmpq.__new__(fmpq)
+        success = fmpq_pow_fmpz(v.val, (<fmpq>self).val, nval)
+
+        if ntype == FMPZ_TMP: fmpz_clear(nval)
+
+        if success:
+            return v
+        else:
+            raise OverflowError("fmpq_pow_fmpz(): exponent too large")
