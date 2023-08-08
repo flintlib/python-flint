@@ -78,7 +78,7 @@ setup(
     packages=['flint'],
     package_dir={'': 'src'},
     description='Bindings for FLINT and Arb',
-    version='0.3.0',
+    version='0.4.0',
     url='https://github.com/python-flint/python-flint',
     author='Fredrik Johansson',
     author_email='fredrik.johansson@gmail.com',
