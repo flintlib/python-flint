@@ -85,23 +85,22 @@ def test_fmpz():
         for t in L:
             for ltype in (flint.fmpz, int, long):
                 for rtype in (flint.fmpz, int, long):
+
+                    assert (ltype(s) == rtype(t)) == (s == t)
+                    assert (ltype(s) != rtype(t)) == (s != t)
+                    assert (ltype(s) < rtype(t)) == (s < t)
+                    assert (ltype(s) <= rtype(t)) == (s <= t)
+                    assert (ltype(s) > rtype(t)) == (s > t)
+                    assert (ltype(s) >= rtype(t)) == (s >= t)
+
                     assert ltype(s) + rtype(t) == s + t
                     assert ltype(s) - rtype(t) == s - t
                     assert ltype(s) * rtype(t) == s * t
                     assert ltype(s) & rtype(t) == s & t
+                    assert ltype(s) | rtype(t) == s | t
+                    assert ltype(s) ^ rtype(t) == s ^ t
                     assert ~ltype(s) == ~s
 
-                    # XXX: Some sort of bug here means that the following fails
-                    # for values of s and t bigger than the word size.
-                    if abs(s) < 2**62 and abs(t) < 2**62:
-                        assert ltype(s) | rtype(t) == s | t
-                    else:
-                        # This still works so somehow the internal representation
-                        # of the fmpz made by fmpz_or is such that fmpz_equal
-                        # returns false even though the values look the same.
-                        assert str(ltype(s) | rtype(t)) == str(s | t)
-
-                    assert ltype(s) ^ rtype(t) == s ^ t
                     if t == 0:
                         assert raises(lambda: ltype(s) // rtype(t), ZeroDivisionError)
                         assert raises(lambda: ltype(s) % rtype(t), ZeroDivisionError)
@@ -110,12 +109,7 @@ def test_fmpz():
                         assert ltype(s) // rtype(t) == s // t
                         assert ltype(s) % rtype(t) == s % t
                         assert divmod(ltype(s), rtype(t)) == divmod(s, t)
-                    assert (ltype(s) == rtype(t)) == (s == t)
-                    assert (ltype(s) != rtype(t)) == (s != t)
-                    assert (ltype(s) < rtype(t)) == (s < t)
-                    assert (ltype(s) <= rtype(t)) == (s <= t)
-                    assert (ltype(s) > rtype(t)) == (s > t)
-                    assert (ltype(s) >= rtype(t)) == (s >= t)
+
                     if 0 <= t < 10:
                         assert (ltype(s) ** rtype(t)) == (s ** t)
                         assert ltype(s) << rtype(t) == s << t
