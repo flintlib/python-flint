@@ -115,6 +115,21 @@ cdef class fmpz(flint_scalar):
     def __float__(self):
         return float(fmpz_get_intlong(self.val))
 
+    def __floor__(self):
+        return self
+
+    def __ceil__(self):
+        return self
+
+    def __trunc__(self):
+        return self
+
+    def __round__(self, ndigits=None):
+        if ndigits is None:
+            return self
+        else:
+            return fmpz(round(int(self), ndigits))
+
     def __richcmp__(s, t, int op):
         cdef bint res = 0
         cdef long tl

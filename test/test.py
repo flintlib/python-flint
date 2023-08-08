@@ -161,6 +161,18 @@ def test_fmpz():
     assert type(operator.index(f)) is int
     assert float(f) == 2.0
     assert type(float(f)) is float
+    assert round(f) == 2
+    assert type(round(f)) is flint.fmpz
+    assert round(f, 1) == 2
+    assert type(round(f, 1)) is flint.fmpz
+    assert round(f, -1) == 0
+    assert type(round(f, -1)) is flint.fmpz
+    assert math.trunc(f) == 2
+    assert type(math.trunc(f)) is flint.fmpz
+    assert math.floor(f) == 2
+    assert type(math.floor(f)) is flint.fmpz
+    assert math.ceil(f) == 2
+    assert type(math.ceil(f)) is flint.fmpz
 
     assert flint.fmpz(2) != []
     assert +flint.fmpz(0) == 0
@@ -811,11 +823,20 @@ def test_fmpq():
     assert Q(5,3).ceil() == flint.fmpz(2)
     assert Q(-5,3).ceil() == flint.fmpz(-1)
 
-    assert int(Q(5,3)) == flint.fmpz(1)
+    assert type(int(Q(5,3))) is int
+    assert type(math.floor(Q(5,3))) is flint.fmpz
+    assert type(math.ceil(Q(5,3))) is flint.fmpz
+    assert type(math.trunc(Q(5,3))) is flint.fmpz
+    assert type(round(Q(5,3))) is flint.fmpz
+    assert type(round(Q(5,3))) is flint.fmpz
+    assert type(round(Q(5,3), 0)) is flint.fmpq
+    assert type(round(Q(5,3), 1)) is flint.fmpq
+
+    assert int(Q(5,3)) == 1
     assert math.floor(Q(5,3)) == flint.fmpz(1)
     assert math.ceil(Q(5,3)) == flint.fmpz(2)
     assert math.trunc(Q(5,3)) == flint.fmpz(1)
-    assert round(Q(5,3)) == 2
+    assert round(Q(5,3)) == flint.fmpz(2)
 
     assert int(Q(-5,3)) == flint.fmpz(-1)
     assert math.floor(Q(-5,3)) == flint.fmpz(-2)
@@ -823,9 +844,6 @@ def test_fmpq():
     assert math.trunc(Q(-5,3)) == flint.fmpz(-1)
     assert round(Q(-5,3)) == -2
 
-    assert type(round(Q(5,3))) is flint.fmpz
-    assert type(round(Q(5,3), 0)) is flint.fmpq
-    assert type(round(Q(5,3), 1)) is flint.fmpq
     assert round(Q(100,3), 2) == Q(3333,100)
     assert round(Q(100,3), 0) == Q(33,1)
     assert round(Q(100,3), -1) == Q(30,1)

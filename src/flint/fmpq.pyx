@@ -130,10 +130,7 @@ cdef class fmpq(flint_scalar):
             return "%s/%s" % (self.p.str(**kwargs), self.q.str(**kwargs))
 
     def __int__(self):
-        if self.p >= 0:
-            return int(self.p // self.q)
-        else:
-            return - int((-self.p) // self.q)
+        return int(self.trunc())
 
     def __floor__(self):
         return self.floor()
