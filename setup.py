@@ -81,7 +81,7 @@ setup(
     cmdclass={'build_ext': build_ext},
     ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives),
     #ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives, annotate=True),
-    packages=['flint'],
+    packages=['flint', 'flint.test'],
     package_dir={'': 'src'},
     description='Bindings for FLINT and Arb',
     long_description=open('README.md').read(),
