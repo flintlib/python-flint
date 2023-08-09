@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
+set -xe
+
 #yum install -y xz
-apt-get update
-apt-get install -y xz-utils
+sudo apt-get update
+sudo apt-get install -y xz-utils
 
 bin/build_dependencies_unix.sh\
   --gmp gmp\
