@@ -19,13 +19,13 @@ Installation
 ------------
 
 On Windows (x86-64) or OSX (x86-64 or arm64) there are prebuilt wheels for
-python-flint 0.4.0 that can be installed from PyPI using pip
+python-flint 0.4.1 that can be installed from PyPI using pip
 
     pip install python-flint
 
 There is currently a problem with the Linux wheels and so for now Linux wheels
 are not available on PyPI. Instead for Linux first install both FLINT 2.9.0 and
-Arb 2.23. Note that as of python-flint 0.4.0 only these *exact* versions of
+Arb 2.23. Note that as of python-flint 0.4.1 only these *exact* versions of
 FLINT and Arb will work. While some Linux distributions may provide FLINT and
 Arb it is unlikely that they will provide the exact versions required (e.g.
 for Ubuntu only Ubuntu 23.04 provides these versions at the time of writing).

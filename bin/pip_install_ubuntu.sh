@@ -18,12 +18,12 @@ set -o errexit
 # system installation of Flint and Arb in Ubuntu.
 #
 # Ubuntu 23.04 has Flint 2.9.0 and Arb 2.23.0, so this script might work there
-# (for python-flint 0.4.0). That is untested though (23.04 not available in CI).
+# (for python-flint 0.4.1). That is untested though (23.04 not available in CI).
 #
 # With Ubuntu 22.04, this will build but then crashes when running the tests.
 # most likely this is because the versions of flint and flint-arb are too old.
 # At the time of writing in Ubuntu 22.04 there is Flint 2.8.4 and Arb 2.22. The
-# main CI tests and wheels for python-flint 0.4.0 are built with Flint 2.9.0
+# main CI tests and wheels for python-flint 0.4.1 are built with Flint 2.9.0
 # and Arb 2.23.0.
 #
 # Link against libflint-arb instead of libarb on Ubuntu
