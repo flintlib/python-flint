@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 #yum install -y xz
+apt-get update
 apt-get install -y xz-utils
 
 bin/build_dependencies_unix.sh\
