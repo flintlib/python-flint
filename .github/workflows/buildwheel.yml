@@ -98,5 +98,4 @@ jobs:
         with:
           python-version: 3.11
       - run: bin/pip_install_ubuntu.sh python-flint # Install from PyPI sdist
-      - run: python test/test.py
       - run: python -m flint.test --verbose
