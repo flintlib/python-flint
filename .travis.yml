@@ -28,4 +28,4 @@ install:
   - pip install .
 
 script:
-  - python test/test.py
+  - python -m flint.test

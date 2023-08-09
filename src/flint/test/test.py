@@ -1558,22 +1558,23 @@ def test_pickling():
         obj2 = pickle.loads(s)
         assert obj == obj2
 
-if __name__ == "__main__":
-    sys.stdout.write("test_pyflint..."); test_pyflint(); print("OK")
-    sys.stdout.write("test_fmpz..."); test_fmpz(); print("OK")
-    sys.stdout.write("test_fmpz_factor..."); test_fmpz_factor(); print("OK")
-    sys.stdout.write("test_fmpz_functions..."); test_fmpz_functions(); print("OK")
-    sys.stdout.write("test_fmpz_poly..."); test_fmpz_poly(); print("OK")
-    sys.stdout.write("test_fmpz_poly_factor..."); test_fmpz_poly_factor(); print("OK")
-    sys.stdout.write("test_fmpz_poly_functions..."); test_fmpz_poly_functions(); print("OK")
-    sys.stdout.write("test_fmpz_mat..."); test_fmpz_mat(); print("OK")
-    sys.stdout.write("test_fmpz_series..."); test_fmpz_series(); print("OK")
-    sys.stdout.write("test_fmpq..."); test_fmpq(); print("OK")
-    sys.stdout.write("test_fmpq_poly..."); test_fmpq_poly(); print("OK")
-    sys.stdout.write("test_fmpq_mat..."); test_fmpq_mat(); print("OK")
-    sys.stdout.write("test_fmpq_series..."); test_fmpq_series(); print("OK")
-    sys.stdout.write("test_nmod..."); test_nmod(); print("OK")
-    sys.stdout.write("test_nmod_poly..."); test_nmod_poly(); print("OK")
-    sys.stdout.write("test_nmod_mat..."); test_nmod_mat(); print("OK")
-    sys.stdout.write("test_arb.."); test_arb(); print("OK")
-    print("OK")
+
+all_tests = [
+    test_pyflint,
+    test_fmpz,
+    test_fmpz_factor,
+    test_fmpz_functions,
+    test_fmpz_poly,
+    test_fmpz_poly_factor,
+    test_fmpz_poly_functions,
+    test_fmpz_mat,
+    test_fmpz_series,
+    test_fmpq,
+    test_fmpq_poly,
+    test_fmpq_mat,
+    test_fmpq_series,
+    test_nmod,
+    test_nmod_poly,
+    test_nmod_mat,
+    test_arb,
+]

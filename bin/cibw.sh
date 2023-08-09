@@ -29,7 +29,7 @@ export CIBW_BEFORE_BUILD_WINDOWS='C:\\msys64\\usr\\bin\\bash bin/cibw_before_bui
 export CIBW_REPAIR_WHEEL_COMMAND_WINDOWS='bin\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}'
 
 # export CIBW_TEST_COMMAND="python -c 'import flint; print(str(flint.fmpz(2)))'"
-export CIBW_TEST_COMMAND="python {project}/test/test.py && python {project}/test/dtest.py"
+export CIBW_TEST_COMMAND="python -m flint.test"
 
 # cibuildwheel --platform linux
 # cibuildwheel --platform windows

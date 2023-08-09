@@ -68,7 +68,6 @@ jobs:
         python-version: ['3.9', '3.10', '3.11']
 
     steps:
-      - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
@@ -77,29 +76,7 @@ jobs:
           name: artifact
           path: wheelhouse
       - run: pip install --find-links wheelhouse python_flint
-      - run: python test/test.py
-
-  doctest_wheels:
-    needs: build_wheels
-    name: Doctests for ${{ matrix.python-version }} wheel on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-20.04, windows-2019, macos-12]
-        python-version: ['3.9', '3.10', '3.11']
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-      - uses: actions/download-artifact@v3
-        with:
-          name: artifact
-          path: wheelhouse
-      - run: pip install --find-links wheelhouse python_flint
-      - run: python test/dtest.py
+      - run: python -m flint.test --verbose
 
   test_pip_linux_vcs:
     name: Install from git checkout on Ubuntu
@@ -110,8 +87,7 @@ jobs:
         with:
           python-version: 3.11
       - run: bin/pip_install_ubuntu.sh . # Install from checkout
-      - run: python test/test.py
-      - run: python test/dtest.py
+      - run: python -m flint.test --verbose
 
   test_pip_linux_pypi:
     name: Install from PyPI sdist on Ubuntu
@@ -123,4 +99,4 @@ jobs:
           python-version: 3.11
       - run: bin/pip_install_ubuntu.sh python-flint # Install from PyPI sdist
       - run: python test/test.py
-      - run: python test/dtest.py
+      - run: python -m flint.test --verbose
