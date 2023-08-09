@@ -100,3 +100,27 @@ jobs:
           path: wheelhouse
       - run: pip install --find-links wheelhouse python_flint
       - run: python test/dtest.py
+
+  test_pip_linux_vcs:
+    name: Install from git checkout on Ubuntu
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - run: bin/pip_install_ubuntu.sh . # Install from checkout
+      - run: python test/test.py
+      - run: python test/dtest.py
+
+  test_pip_linux_pypi:
+    name: Install from PyPI sdist on Ubuntu
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - run: bin/pip_install_ubuntu.sh python-flint # Install from PyPI sdist
+      - run: python test/test.py
+      - run: python test/dtest.py

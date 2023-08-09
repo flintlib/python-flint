@@ -34,7 +34,13 @@ if sys.platform == 'win32':
         # For the MSVC toolchain link with mpir instead of gmp
         libraries = ["arb", "flint", "mpir", "mpfr", "pthreads"]
 else:
-    libraries = ["arb", "flint"]
+    # On Ubuntu libarb.so is called libflint-arb.so
+    if os.getenv('PYTHON_FLINT_LIBFLINT_ARB'):
+        arb = 'flint-arb'
+    else:
+        arb = 'arb'
+
+    libraries = [arb, "flint"]
     (opt,) = get_config_vars('OPT')
     os.environ['OPT'] = " ".join(flag for flag in opt.split() if flag != '-Wstrict-prototypes')
 
