@@ -3,8 +3,8 @@
 set -xe
 
 #yum install -y xz
-sudo apt-get update
-sudo apt-get install -y xz-utils
+apt-get update
+apt-get install -y xz-utils
 
 bin/build_dependencies_unix.sh\
   --gmp gmp\
