@@ -18,25 +18,43 @@ Author: Fredrik Johansson <fredrik.johansson@gmail.com>
 Installation
 ------------
 
-First install both FLINT (version 2.5 or later) and Arb (version 2.15 or later).
-See:
+On Windows (x86-64) or OSX (x86-64 or arm64) there are prebuilt wheels for
+python-flint 0.4.1 that can be installed from PyPI using pip
+
+    pip install python-flint
+
+There is currently a problem with the Linux wheels and so for now Linux wheels
+are not available on PyPI. Instead for Linux first install both FLINT 2.9.0 and
+Arb 2.23. Note that as of python-flint 0.4.1 only these *exact* versions of
+FLINT and Arb will work. While some Linux distributions may provide FLINT and
+Arb it is unlikely that they will provide the exact versions required (e.g.
+for Ubuntu only Ubuntu 23.04 provides these versions at the time of writing).
+
+See here for instructions on building FLINT and Arb:
 
 * http://flintlib.org/
 * http://arblib.org/
 
-The latest release of Python-FLINT can then be installed using:
+The latest release of Python-FLINT can then be built and installed using:
 
-    pip install python-flint
+    pip install 'cython>=3' numpy wheel
+    pip install --no-build-isolation python-flint
 
-Python-FLINT can also be installed git checkout or a source archive
+Python-FLINT can also be installed from a git checkout or a source archive
 as follows:
 
-    pip install .
+    pip install 'cython>=3' numpy wheel
+    pip install --no-build-isolation .
+
+A script that builds and installs FLINT, Arb and Python-FLINT that is tested on
+Ubuntu can be found in the git repo here:
+
+* https://github.com/fredrik-johansson/python-flint/blob/master/bin/pip_install_ubuntu.sh
 
 See the documentation for further notes on building and installing
 Python-FLINT:
 
-    https://fredrikj.net/python-flint/setup.html
+* https://fredrikj.net/python-flint/setup.html
 
 Examples
 -------------------------------------
@@ -95,7 +113,6 @@ To do
 * Conversions to and from external types (numpy, sage, sympy, mpmath, gmpy)
 * Improved printing and string input/output
 * IPython hooks (TeX pretty-printing etc.)
-* Windows support
 
 License
 ------------

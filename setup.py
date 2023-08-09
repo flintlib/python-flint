@@ -34,7 +34,13 @@ if sys.platform == 'win32':
         # For the MSVC toolchain link with mpir instead of gmp
         libraries = ["arb", "flint", "mpir", "mpfr", "pthreads"]
 else:
-    libraries = ["arb", "flint"]
+    # On Ubuntu libarb.so is called libflint-arb.so
+    if os.getenv('PYTHON_FLINT_LIBFLINT_ARB'):
+        arb = 'flint-arb'
+    else:
+        arb = 'arb'
+
+    libraries = [arb, "flint"]
     (opt,) = get_config_vars('OPT')
     os.environ['OPT'] = " ".join(flag for flag in opt.split() if flag != '-Wstrict-prototypes')
 
@@ -75,10 +81,12 @@ setup(
     cmdclass={'build_ext': build_ext},
     ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives),
     #ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives, annotate=True),
-    packages=['flint'],
+    packages=['flint', 'flint.test'],
     package_dir={'': 'src'},
     description='Bindings for FLINT and Arb',
-    version='0.4.0',
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
+    version='0.4.1',
     url='https://github.com/python-flint/python-flint',
     author='Fredrik Johansson',
     author_email='fredrik.johansson@gmail.com',

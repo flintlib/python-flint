@@ -42,8 +42,7 @@ Then run::
 
 Run the test suite::
 
-    python test/test.py
-    python test/dtest.py
+    python -m flint.test
 
 Build the documentation::
 
@@ -86,8 +85,7 @@ you can then build Python-FLINT in place with::
 
 and run the test suite with::
 
-    python test/test.py
-    python test/dtest.py
+    python -m flint.test
 
 This way of building Python-FLINT depends on the ``bin/activate`` script to
 locate the shared libraries at runtime. The script will also set ``PYTHONPATH``

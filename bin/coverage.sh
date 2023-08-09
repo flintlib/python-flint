@@ -33,8 +33,7 @@ export PYTHON_FLINT_COVERAGE=true
 
 python setup.py build_ext --inplace
 
-pytest --cov flint test/test.py
-coverage run --append test/dtest.py
+coverage run -m flint.test $@
 
 #coverage report -m
 coverage html
