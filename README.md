@@ -49,12 +49,12 @@ as follows:
 A script that builds and installs FLINT, Arb and Python-FLINT that is tested on
 Ubuntu can be found in the git repo here:
 
-    https://github.com/fredrik-johansson/python-flint/blob/master/bin/pip_install_ubuntu.sh
+* https://github.com/fredrik-johansson/python-flint/blob/master/bin/pip_install_ubuntu.sh
 
 See the documentation for further notes on building and installing
 Python-FLINT:
 
-    https://fredrikj.net/python-flint/setup.html
+* https://fredrikj.net/python-flint/setup.html
 
 Examples
 -------------------------------------
