@@ -40,11 +40,11 @@ else:
     else:
         arb = 'arb'
 
-    libraries = [arb, "flint"]
+    libraries = ["flint"]
     (opt,) = get_config_vars('OPT')
     os.environ['OPT'] = " ".join(flag for flag in opt.split() if flag != '-Wstrict-prototypes')
 
-
+default_include_dirs += ["/Users/davideinstein/opt/flint/include"]
 default_include_dirs += [
     os.path.join(d, "flint") for d in default_include_dirs
 ]
@@ -67,7 +67,7 @@ ext_modules = [
     Extension(
         "flint._flint", ["src/flint/pyflint.pyx"],
         libraries=libraries,
-        library_dirs=default_lib_dirs,
+        library_dirs=default_lib_dirs + ["/Users/davideinstein/opt/flint/lib"],
         include_dirs=default_include_dirs,
         define_macros=define_macros,
         )
