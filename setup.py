@@ -2,9 +2,8 @@ import sys
 import os
 from subprocess import check_call
 
-from distutils.core import setup
-from distutils.extension import Extension
-from Cython.Distutils import build_ext
+from setuptools import setup
+from setuptools import Extension
 from Cython.Build import cythonize
 from numpy.distutils.system_info import default_include_dirs, default_lib_dirs
 
@@ -29,22 +28,15 @@ if sys.platform == 'win32':
     elif os.getenv('PYTHON_FLINT_MINGW64_TMP'):
         # This would be used to build under Windows against these libraries if
         # they have been installed somewhere other than .local
-        libraries = ["arb", "flint", "mpfr", "gmp"]
+        libraries = ["flint", "mpfr", "gmp"]
     else:
         # For the MSVC toolchain link with mpir instead of gmp
-        libraries = ["arb", "flint", "mpir", "mpfr", "pthreads"]
+        libraries = ["flint", "mpir", "mpfr", "pthreads"]
 else:
-    # On Ubuntu libarb.so is called libflint-arb.so
-    if os.getenv('PYTHON_FLINT_LIBFLINT_ARB'):
-        arb = 'flint-arb'
-    else:
-        arb = 'arb'
-
     libraries = ["flint"]
     (opt,) = get_config_vars('OPT')
     os.environ['OPT'] = " ".join(flag for flag in opt.split() if flag != '-Wstrict-prototypes')
 
-default_include_dirs += ["/Users/davideinstein/opt/flint/include"]
 default_include_dirs += [
     os.path.join(d, "flint") for d in default_include_dirs
 ]
@@ -67,7 +59,7 @@ ext_modules = [
     Extension(
         "flint._flint", ["src/flint/pyflint.pyx"],
         libraries=libraries,
-        library_dirs=default_lib_dirs + ["/Users/davideinstein/opt/flint/lib"],
+        library_dirs=default_lib_dirs,
         include_dirs=default_include_dirs,
         define_macros=define_macros,
         )
@@ -78,7 +70,6 @@ for e in ext_modules:
 
 setup(
     name='python-flint',
-    cmdclass={'build_ext': build_ext},
     ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives),
     #ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives, annotate=True),
     packages=['flint', 'flint.test'],
