@@ -20,7 +20,7 @@ and Arb_ (arbitrary-precision ball arithmetic). Features:
 
 Author: `Fredrik Johansson <http://fredrikj.net/>`_ <fredrik.johansson@gmail.com>
 
-Repository: https://github.com/fredrik-johansson/python-flint/
+Repository: https://github.com/flintlib/python-flint/
 
 Introduction
 ------------

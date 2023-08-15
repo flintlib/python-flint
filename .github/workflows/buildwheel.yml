@@ -57,6 +57,25 @@ jobs:
         with:
           path: wheelhouse/*.whl
 
+  build_sdist:
+    name: Build sdist
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - run: pip install --upgrade pip
+      - run: pip install cython numpy
+      - run: python setup.py sdist
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: dist/*.tar.gz
+
   test_wheels:
     needs: build_wheels
     name: Test ${{ matrix.python-version }} wheel on ${{ matrix.os }}
