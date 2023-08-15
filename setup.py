@@ -87,7 +87,7 @@ setup(
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     version='0.4.2',
-    url='https://github.com/python-flint/python-flint',
+    url='https://github.com/flintlib/python-flint',
     author='Fredrik Johansson',
     author_email='fredrik.johansson@gmail.com',
     license='MIT',
