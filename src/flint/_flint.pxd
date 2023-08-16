@@ -755,7 +755,7 @@ cdef extern from "flint/arith.h":
     void arith_chebyshev_u_polynomial(fmpz_poly_t v, ulong n)
     void arith_cyclotomic_polynomial(fmpz_poly_t v, ulong n)
 
-cdef extern from "mag.h":
+cdef extern from "flint/mag.h":
     ctypedef struct mag_struct:
         fmpz_struct exp
         mp_limb_t man
@@ -770,7 +770,7 @@ cdef extern from "mag.h":
     void mag_set_ui_2exp_si(mag_t x, ulong v, long e)
     void mag_hypot(mag_t x, const mag_t y, const mag_t z)
 
-cdef extern from "arf.h":
+cdef extern from "flint/arf.h":
     ctypedef struct arf_struct:
         fmpz_struct exp
         long size
@@ -904,7 +904,7 @@ cdef extern from "arf.h":
     double arf_get_d(const arf_t x, arf_rnd_t rnd)
     void arf_set_d(arf_t x, double v)
 
-cdef extern from "arb.h":
+cdef extern from "flint/arb.h":
     ctypedef struct arb_struct:
         arf_struct mid
         mag_struct rad
@@ -1195,7 +1195,7 @@ cdef extern from "arb.h":
     cdef ulong ARB_STR_CONDENSE
     char * arb_get_str(const arb_t x, long n, ulong flags)
 
-cdef extern from "acb.h":
+cdef extern from "flint/acb.h":
     ctypedef struct acb_struct:
         arb_struct real
         arb_struct imag
@@ -1386,15 +1386,15 @@ cdef extern from "acb.h":
 
     void acb_root_ui(acb_t z, const acb_t x, ulong k, long prec)
 
-cdef extern from "partitions.h":
+cdef extern from "flint/partitions.h":
     void partitions_fmpz_fmpz(fmpz_t, const fmpz_t, int)
 
-cdef extern from "bernoulli.h":
+cdef extern from "flint/bernoulli.h":
     void bernoulli_fmpq_ui(fmpq_t, ulong)
     void bernoulli_cache_compute(long n)
 
 
-cdef extern from "arb_poly.h":
+cdef extern from "flint/arb_poly.h":
     ctypedef struct arb_poly_struct:
         arb_ptr coeffs
         long length
@@ -1602,7 +1602,7 @@ cdef extern from "arb_poly.h":
 
     void arb_poly_lambertw_series(arb_poly_t res, const arb_poly_t z, int flags, long len, long prec)
 
-cdef extern from "arb_mat.h":
+cdef extern from "flint/arb_mat.h":
     ctypedef struct arb_mat_struct:
         arb_ptr entries
         long r
@@ -1683,7 +1683,7 @@ cdef extern from "arb_mat.h":
 
     int arb_mat_approx_solve(arb_mat_t X, const arb_mat_t A, const arb_mat_t B, long prec)
 
-cdef extern from "acb_poly.h":
+cdef extern from "flint/acb_poly.h":
     ctypedef struct acb_poly_struct:
         acb_ptr coeffs
         long length
@@ -1888,7 +1888,7 @@ cdef extern from "acb_poly.h":
 
     void acb_poly_lambertw_series(acb_poly_t res, const acb_poly_t z, const fmpz_t k, int flags, long len, long prec)
 
-cdef extern from "acb_mat.h":
+cdef extern from "flint/acb_mat.h":
     ctypedef struct acb_mat_struct:
         acb_ptr entries
         long r
@@ -1978,7 +1978,7 @@ cdef extern from "acb_mat.h":
     int acb_mat_eig_multiple(acb_ptr E, const acb_mat_t A, acb_srcptr E_approx, const acb_mat_t R_approx, long prec)
 
 
-cdef extern from "acb_modular.h":
+cdef extern from "flint/acb_modular.h":
     void acb_modular_theta(acb_t theta1, acb_t theta2, acb_t theta3, acb_t theta4, const acb_t z, const acb_t tau, long prec)
     void acb_modular_theta_jet(acb_ptr theta1, acb_ptr theta2, acb_ptr theta3, acb_ptr theta4, const acb_t z, const acb_t tau, long len, long prec)
     void acb_modular_theta_series(acb_poly_t theta1, acb_poly_t theta2, acb_poly_t theta3, acb_poly_t theta4, const acb_poly_t z, const acb_t tau, long len, long prec)
@@ -1994,7 +1994,7 @@ cdef extern from "acb_modular.h":
     void acb_modular_elliptic_e(acb_t w, const acb_t m, long prec)
     void acb_modular_hilbert_class_poly(fmpz_poly_t res, long D)
 
-cdef extern from "acb_hypgeom.h":
+cdef extern from "flint/acb_hypgeom.h":
     void acb_hypgeom_bessel_j(acb_t res, const acb_t nu, const acb_t z, long prec)
     void acb_hypgeom_bessel_k(acb_t res, const acb_t nu, const acb_t z, long prec)
     void acb_hypgeom_bessel_i(acb_t res, const acb_t nu, const acb_t z, long prec)
@@ -2072,7 +2072,7 @@ cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_chi_series(acb_poly_t res, const acb_poly_t h, long n, long prec)
     void acb_hypgeom_li_series(acb_poly_t res, const acb_poly_t h, int offset, long n, long prec)
 
-cdef extern from "arb_hypgeom.h":
+cdef extern from "flint/arb_hypgeom.h":
     void arb_hypgeom_pfq(arb_t res, arb_srcptr a, long p, arb_srcptr b, long q, const arb_t z, int regularized, long prec)
     void arb_hypgeom_0f1(arb_t res, const arb_t a, const arb_t z, int regularized, long prec)
     void arb_hypgeom_m(arb_t res, const arb_t a, const arb_t b, const arb_t z, int regularized, long prec)
@@ -2137,7 +2137,7 @@ cdef extern from "arb_hypgeom.h":
 
     void arb_hypgeom_legendre_p_ui_root(arb_t res, arb_t weight, ulong n, ulong k, long prec)
 
-cdef extern from "dirichlet.h":
+cdef extern from "flint/dirichlet.h":
     ctypedef struct dirichlet_group_struct:
         ulong q
         ulong q_even
@@ -2196,7 +2196,7 @@ cdef extern from "dirichlet.h":
     int dirichlet_char_is_primitive(const dirichlet_group_t G, const dirichlet_char_t chi)
     ulong dirichlet_chi(const dirichlet_group_t G, const dirichlet_char_t chi, ulong n)
 
-cdef extern from "acb_dirichlet.h":
+cdef extern from "flint/acb_dirichlet.h":
     void acb_dirichlet_eta(acb_t res, const acb_t s, long prec)
     void acb_dirichlet_chi(acb_t res, const dirichlet_group_t G, const dirichlet_char_t chi, ulong n, long prec)
 
@@ -2213,7 +2213,7 @@ cdef extern from "acb_dirichlet.h":
     void acb_dirichlet_zeta_zero(acb_t res, const fmpz_t n, long prec)
     void acb_dirichlet_zeta_zeros(acb_ptr res, const fmpz_t n, long len, long prec)
 
-cdef extern from "acb_elliptic.h":
+cdef extern from "flint/acb_elliptic.h":
     void acb_elliptic_rf(acb_t res, const acb_t x, const acb_t y, const acb_t z, int flags, long prec)
     void acb_elliptic_rj(acb_t res, const acb_t x, const acb_t y, const acb_t z, const acb_t p, int flags, long prec)
     void acb_elliptic_rg(acb_t res, const acb_t x, const acb_t y, const acb_t z, int flags, long prec)
@@ -2228,7 +2228,7 @@ cdef extern from "acb_elliptic.h":
     void acb_elliptic_invariants(acb_t g2, acb_t g3, const acb_t tau, long prec)
     void acb_elliptic_inv_p(acb_t res, const acb_t z, const acb_t tau, long prec)
 
-cdef extern from "acb_calc.h":
+cdef extern from "flint/acb_calc.h":
     ctypedef int (*acb_calc_func_t)(acb_ptr out, const acb_t inp, void * param, long order, long prec)
 
     ctypedef struct acb_calc_integrate_opt_struct:
@@ -2248,14 +2248,14 @@ cdef extern from "acb_calc.h":
         const acb_calc_integrate_opt_t options,
         long prec)
 
-cdef extern from "arb_fmpz_poly.h":
+cdef extern from "flint/arb_fmpz_poly.h":
     void arb_fmpz_poly_evaluate_arb(arb_t res, const fmpz_poly_t poly, const arb_t x, long prec)
     void arb_fmpz_poly_evaluate_acb(acb_t res, const fmpz_poly_t poly, const acb_t x, long prec)
     void arb_fmpz_poly_complex_roots(acb_ptr roots, const fmpz_poly_t poly, int flags, long prec)
     ulong arb_fmpz_poly_deflation(const fmpz_poly_t poly)
     void arb_fmpz_poly_deflate(fmpz_poly_t res, const fmpz_poly_t poly, ulong deflation)
 
-cdef extern from "acb_dft.h":
+cdef extern from "flint/acb_dft.h":
     void acb_dft(acb_ptr w, acb_srcptr v, long n, long prec)
     void acb_dft_inverse(acb_ptr w, acb_srcptr v, long n, long prec)
 
