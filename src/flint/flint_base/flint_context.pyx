@@ -1,11 +1,11 @@
-from ._flint cimport (
+from flint._flint cimport (
     ARF_RND_DOWN,
     arf_rnd_t,
     flint_cleanup,
     flint_get_num_threads,
     flint_set_num_threads
 )
-from .utils.conversion cimport prec_to_dps, dps_to_prec
+from flint.utils.conversion cimport prec_to_dps, dps_to_prec
 
 cdef class FlintContext:
     cdef public bint pretty
