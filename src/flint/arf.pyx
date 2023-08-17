@@ -1,3 +1,5 @@
+from .utils.conversion cimport prec_to_dps
+
 cdef class arf:
 
     cdef arf_t val
