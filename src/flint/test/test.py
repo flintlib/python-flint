@@ -628,7 +628,7 @@ def test_fmpz_mat():
 
 def test_fmpz_mpoly():
     Zp = flint.fmpz_mpoly
-    getctx = flint.get_fmpz_mpoly_ctx
+    getctx = flint.get_fmpz_mpoly_context
     ctx = getctx(4)
     assert ctx.nvars() == 4
     assert ctx.ordering() == "lex"
@@ -637,6 +637,8 @@ def test_fmpz_mpoly():
         ctx1 = getctx(4, order)
         assert ctx1.ordering() == order
     ctx = getctx(4, "lex", 'w,x,y,z')
+    p1 = ctx.gen(0) + ctx.gen(1) - ctx.gen(2) * ctx.gen(3)
+    assert p1 == Zp("w + x - y * z", ctx)
 
 
 def test_fmpz_series():
@@ -1581,6 +1583,7 @@ all_tests = [
     test_fmpz_poly_factor,
     test_fmpz_poly_functions,
     test_fmpz_mat,
+    test_fmpz_mpoly,
     test_fmpz_series,
     test_fmpq,
     test_fmpq_poly,
