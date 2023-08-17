@@ -11,24 +11,32 @@ and Arb (arbitrary-precision ball arithmetic). Features:
 
 Documentation: http://fredrikj.net/python-flint/
 
-Repository: https://github.com/fredrik-johansson/python-flint/
+Repository: https://github.com/flintlib/python-flint/
 
 Author: Fredrik Johansson <fredrik.johansson@gmail.com>
 
 Installation
 ------------
 
-On Windows (x86-64) or OSX (x86-64 or arm64) there are prebuilt wheels for
-python-flint 0.4.1 that can be installed from PyPI using pip
+For Windows (x86-64) or OSX (x86-64 or arm64) or Linux (x86-64
+`manylinux_2_17`) there are binary wheels for python-flint on PyPI. For these
+platforms python-flint can be installed simply with `pip`
 
     pip install python-flint
 
-There is currently a problem with the Linux wheels and so for now Linux wheels
-are not available on PyPI. Instead for Linux first install both FLINT 2.9.0 and
-Arb 2.23. Note that as of python-flint 0.4.1 only these *exact* versions of
-FLINT and Arb will work. While some Linux distributions may provide FLINT and
-Arb it is unlikely that they will provide the exact versions required (e.g.
-for Ubuntu only Ubuntu 23.04 provides these versions at the time of writing).
+Alternatively python-flint can be installed using `conda`
+
+    conda install -c conda-forge python-flint
+
+Build from source
+-----------------
+
+For other platforms or architectures installation needs to build from source.
+First install both FLINT 2.9.0 and Arb 2.23. Note that for python-flint 0.4
+only these *exact* versions of FLINT and Arb will work. While some Linux
+distributions may provide FLINT and Arb it is unlikely that they will provide
+the exact versions required (e.g. for Ubuntu only Ubuntu 23.04 provides these
+versions at the time of writing).
 
 See here for instructions on building FLINT and Arb:
 
@@ -49,7 +57,7 @@ as follows:
 A script that builds and installs FLINT, Arb and Python-FLINT that is tested on
 Ubuntu can be found in the git repo here:
 
-* https://github.com/fredrik-johansson/python-flint/blob/master/bin/pip_install_ubuntu.sh
+* https://github.com/flintlib/python-flint/blob/master/bin/pip_install_ubuntu.sh
 
 See the documentation for further notes on building and installing
 Python-FLINT:
