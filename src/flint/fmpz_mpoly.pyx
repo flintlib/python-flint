@@ -198,7 +198,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_mpoly_init(self.val, self.ctx.val)
             self._init = True
             fmpz_mpoly_set_str_pretty(self.val, val, self.ctx.c_names, self.ctx.val)
-            fmpz_mpoly_sort_terms(self.val, self.ctx.val)
+#            fmpz_mpoly_sort_terms(self.val, self.ctx.val)
         else:
             v = any_as_fmpz(val)
             if v is NotImplemented:

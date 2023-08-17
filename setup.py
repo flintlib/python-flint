@@ -2,8 +2,9 @@ import sys
 import os
 from subprocess import check_call
 
-from setuptools import setup
-from setuptools import Extension
+from distutils.core import setup
+from distutils.extension import Extension
+from Cython.Distutils import build_ext
 from Cython.Build import cythonize
 from numpy.distutils.system_info import default_include_dirs, default_lib_dirs
 
@@ -28,14 +29,21 @@ if sys.platform == 'win32':
     elif os.getenv('PYTHON_FLINT_MINGW64_TMP'):
         # This would be used to build under Windows against these libraries if
         # they have been installed somewhere other than .local
-        libraries = ["flint", "mpfr", "gmp"]
+        libraries = ["arb", "flint", "mpfr", "gmp"]
     else:
         # For the MSVC toolchain link with mpir instead of gmp
-        libraries = ["flint", "mpir", "mpfr", "pthreads"]
+        libraries = ["arb", "flint", "mpir", "mpfr", "pthreads"]
 else:
-    libraries = ["flint"]
+    # On Ubuntu libarb.so is called libflint-arb.so
+    if os.getenv('PYTHON_FLINT_LIBFLINT_ARB'):
+        arb = 'flint-arb'
+    else:
+        arb = 'arb'
+
+    libraries = [arb, "flint"]
     (opt,) = get_config_vars('OPT')
     os.environ['OPT'] = " ".join(flag for flag in opt.split() if flag != '-Wstrict-prototypes')
+
 
 default_include_dirs += [
     os.path.join(d, "flint") for d in default_include_dirs
@@ -70,6 +78,7 @@ for e in ext_modules:
 
 setup(
     name='python-flint',
+    cmdclass={'build_ext': build_ext},
     ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives),
     #ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives, annotate=True),
     packages=['flint', 'flint.test'],
