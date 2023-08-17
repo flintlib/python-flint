@@ -16,3 +16,4 @@ MANIFEST
 .coverage
 *.swp
 .python-version
+*.DS_Store
