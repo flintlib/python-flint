@@ -41,27 +41,79 @@ cdef dict _fmpz_mpoly_ctx_cache = {}
 
 @cython.auto_pickle(False)
 cdef class fmpz_mpoly_ctx:
-    cdef fmpz_mpoly_ctx_t val
+    """
+    A class for storing the polynomial context
 
-    def __init__(self, slong nvars, ordering="lex"):
+    :param nvars: The number of variables in the ring
+    :param ordering:  The term order for the ring
+    :param names:  A tuple containing the names of the variables of the ring.
+
+    Do not construct one of these directly, use `get_fmpz_mpoly_context`.
+    """
+    cdef fmpz_mpoly_ctx_t val
+    cdef public object py_names
+    cdef char ** c_names
+    cdef bint _init
+
+    def __cinit__(self):
+        self._init = False
+
+    def __init__(self, slong nvars, ordering, names):
         assert nvars >= 1
-        fmpz_mpoly_ctx_init(self.val, nvars, ordering_t.ORD_LEX)
+        assert len(names) == nvars
+        if ordering == "lex":
+            fmpz_mpoly_ctx_init(self.val, nvars, ordering_t.ORD_LEX)
+        elif ordering == "deglex":
+            fmpz_mpoly_ctx_init(self.val, nvars, ordering_t.ORD_DEGLEX)
+        elif ordering == "degrevlex":
+            fmpz_mpoly_ctx_init(self.val, nvars, ordering_t.ORD_DEGREVLEX)
+        else:
+            raise ValueError("Unimplemented term order %s" % ordering)
+        self.py_names = tuple(bytes(name, 'utf-8') for name in names)
+        self.c_names = <char**>libc.stdlib.malloc(nvars * sizeof(char *))
+        for i in range(nvars):
+            self.c_names[i] = self.py_names[i]
 
     cpdef slong nvars(self):
         return self.val.minfo.nvars
 
     cpdef ordering(self):
-        return "lex"
+        if self.val.minfo.ord == ordering_t.ORD_LEX:
+            return "lex"
+        if self.val.minfo.ord == ordering_t.ORD_DEGLEX:
+            return "deglex"
+        if self.val.minfo.ord == ordering_t.ORD_DEGREVLEX:
+            return "degrevlex"
 
-cdef get_fmpz_mpoly_context(slong nvars=1, ordering=None):
+    cpdef name(self, slong i):
+        assert i >= 0 and i < self.val.minfo.nvars
+        return self.py_names[i]
+
+    cpdef gen(self, slong i):
+        cdef fmpz_mpoly res
+        assert i >= 0 and i < self.val.minfo.nvars
+        res = fmpz_mpoly.__new__(fmpz_mpoly)
+        res.ctx = self
+        fmpz_mpoly_init(res.val, res.ctx.val)
+        res._init = True
+        fmpz_mpoly_gen(res.val, i, res.ctx.val)
+        return res
+
+    def gens(self):
+        return tuple(self.gen(i) for i in range(self.nvars()))
+
+def get_fmpz_mpoly_context(slong nvars=1, ordering="lex", names='x'):
     if nvars <= 0:
         nvars = 1
-    if ordering is None:
-        ordering = "lex"
-    key = (nvars, ordering)
+    nametup = tuple(name.strip() for name in names.split(','))
+    if len(nametup) != nvars:
+        if len(nametup) != 1:
+            raise ValueError("Number of variables does not equal number of names")
+        nametup = tuple(nametup[0] + str(i) for i in range(nvars))
+    key = (nvars, ordering, nametup)
     ctx = _fmpz_mpoly_ctx_cache.get(key)
     if ctx is None:
-        ctx = fmpz_mpoly_ctx(nvars, ordering)
+        ctx = fmpz_mpoly_ctx(nvars, ordering, nametup)
         _fmpz_mpoly_ctx_cache[key] = ctx
     return ctx
 
@@ -123,28 +175,39 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_mpoly_clear(self.val, self.ctx.val)
             self._init = False
 
-    def __init__(self, val=0, slong nvars=-1, ordering=None):
+    def __init__(self, val=0, ctx=None):
         if typecheck(val, fmpz_mpoly):
-            if nvars == -1 and ordering is None:
+            if ctx is None or ctx == (<fmpz_mpoly>val).ctx:
                 self.ctx = (<fmpz_mpoly>val).ctx
                 fmpz_mpoly_init(self.val, self.ctx.val)
                 self._init = True
                 fmpz_mpoly_set(self.val, (<fmpz_mpoly>val).val, self.ctx.val)
             else:
-                self.ctx = get_fmpz_mpoly_context(nvars, ordering)
-                fmpz_mpoly_init(self.val, self.ctx.val)
-                self._init = True
-                _fmpz_mpoly_set2(self.val, self.ctx.val, (<fmpz_mpoly>val).val, (<fmpz_mpoly>val).ctx.val)
+                raise ValueError("Cannot automatically coerce contexts")
+        elif isinstance(val, str):
+            if ctx is None:
+                raise ValueError("Cannot parse a polynomial without context")
+            val = bytes(val, 'utf-8')
+            self.ctx = ctx
+            fmpz_mpoly_init(self.val, self.ctx.val)
+            self._init = True
+            fmpz_mpoly_set_str_pretty(self.val, val, self.ctx.c_names, self.ctx.val)
+            fmpz_mpoly_sort_terms(self.val, self.ctx.val)
         else:
             v = any_as_fmpz(val)
             if v is NotImplemented:
                 raise TypeError("cannot create fmpz_mpoly from type %s" % type(val))
-            self.ctx = get_fmpz_mpoly_context(nvars, ordering)
+            if ctx is None:
+                raise ValueError("Need context to convert  fmpz to fmpz_mpoly")
+            self.ctx = ctx
             fmpz_mpoly_init(self.val, self.ctx.val)
             self._init = True
             fmpz_mpoly_set_fmpz(self.val, (<fmpz>v).val, self.ctx.val)
 
     def __nonzero__(self):
+        return not fmpz_mpoly_is_zero(self.val, self.ctx.val)
+
+    def __bool__(self):
         return not fmpz_mpoly_is_zero(self.val, self.ctx.val)
 
     def is_one(self):
@@ -159,6 +222,11 @@ cdef class fmpz_mpoly(flint_mpoly):
                     return bool(fmpz_mpoly_equal((<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, (<fmpz_mpoly>self).ctx.val))
                 else:
                     return not bool(fmpz_mpoly_equal((<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, (<fmpz_mpoly>self).ctx.val))
+            else:
+                if op == 2:
+                    return False
+                else:
+                    return True
         if op == 2:
             return not bool(self - other)
         else:
@@ -169,8 +237,8 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def __hash__(self):
         s = str(self)
-        i = s.index("(nvars")
-        s = s[:i]
+#        i = s.index("(nvars")
+#        s = s[:i]
         return hash(s)
 
     def coefficient(self, slong i):
@@ -201,27 +269,30 @@ cdef class fmpz_mpoly(flint_mpoly):
             libc.stdlib.free(tmp)
         return res
 
-    @staticmethod
-    def gen(slong i, slong nvars=-1, ordering=None):
-        cdef fmpz_mpoly res
-        assert i >= 0
-        if nvars <= 0:
-            nvars = i + 1
-        assert i < nvars
-        res = fmpz_mpoly.__new__(fmpz_mpoly)
-        res.ctx = get_fmpz_mpoly_context(nvars, ordering)
-        fmpz_mpoly_init(res.val, res.ctx.val)
-        res._init = True
-        fmpz_mpoly_gen(res.val, i, res.ctx.val)
-        return res
+    # @staticmethod
+    # def gen(slong i, slong nvars=-1, ordering=None):
+    #     cdef fmpz_mpoly res
+    #     assert i >= 0
+    #     if nvars <= 0:
+    #         nvars = i + 1
+    #     assert i < nvars
+    #     res = fmpz_mpoly.__new__(fmpz_mpoly)
+    #     res.ctx = get_fmpz_mpoly_context(nvars, ordering)
+    #     fmpz_mpoly_init(res.val, res.ctx.val)
+    #     res._init = True
+    #     fmpz_mpoly_gen(res.val, i, res.ctx.val)
+    #     return res
 
-    @staticmethod
-    def gens(slong n, ordering=None):
-        # todo: (i, n)? or just (i)?
-        return tuple(fmpz_mpoly.gen(i, n) for i in range(n))
+    # @staticmethod
+    # def gens(slong n, ordering=None):
+    #     # todo: (i, n)? or just (i)?
+    #     return tuple(fmpz_mpoly.gen(i, n) for i in range(n))
 
     def repr(self):
-        cdef char * s = fmpz_mpoly_get_str_pretty(self.val, NULL, self.ctx.val)
+        return self.str() + "  (nvars=%s, ordering=%s names=%s)" % (self.ctx.nvars(), self.ctx.ordering(), self.ctx.py_names)
+
+    def str(self):
+        cdef char * s = fmpz_mpoly_get_str_pretty(self.val, self.ctx.c_names, self.ctx.val)
         try:
             res = str_from_chars(s)
         finally:
@@ -230,9 +301,8 @@ cdef class fmpz_mpoly(flint_mpoly):
         res = res.replace("-", " - ")
         if res.startswith(" - "):
             res = "-" + res[3:]
-        return res + "  (nvars=%s, ordering=%s)" % (self.ctx.nvars(), self.ctx.ordering())
+        return res
 
-    def str(self):
         return self.repr()
 
     def __neg__(self):
@@ -246,150 +316,216 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def __add__(self, other):
         cdef fmpz_mpoly res
-        if typecheck(self, fmpz_mpoly):
-            if typecheck(other, fmpz_mpoly):
-                if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                    ctx, (self, other) = coerce_fmpz_mpolys(self, other)
+        if typecheck(other, fmpz_mpoly):
+            if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
+                return NotImplemented
+            res = fmpz_mpoly.__new__(fmpz_mpoly)
+            res.ctx =(<fmpz_mpoly>self).ctx
+            fmpz_mpoly_init(res.val, res.ctx.val)
+            res._init = True
+            fmpz_mpoly_add(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
+            return res
+        else:
+            other = any_as_fmpz(other)
+            if other is not NotImplemented:
                 res = fmpz_mpoly.__new__(fmpz_mpoly)
                 res.ctx = (<fmpz_mpoly>self).ctx
                 fmpz_mpoly_init(res.val, res.ctx.val)
                 res._init = True
-                fmpz_mpoly_add(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
+                fmpz_mpoly_add_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val)
                 return res
-            else:
-                other = any_as_fmpz(other)
-                if other is not NotImplemented:
-                    res = fmpz_mpoly.__new__(fmpz_mpoly)
-                    res.ctx = (<fmpz_mpoly>self).ctx
-                    fmpz_mpoly_init(res.val, res.ctx.val)
-                    res._init = True
-                    fmpz_mpoly_add_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val)
-                    return res
-        else:
-            self = any_as_fmpz(self)
-            if self is not NotImplemented:
-                res = fmpz_mpoly.__new__(fmpz_mpoly)
-                res.ctx = (<fmpz_mpoly>other).ctx
-                fmpz_mpoly_init(res.val, res.ctx.val)
-                res._init = True
-                fmpz_mpoly_add_fmpz(res.val, (<fmpz_mpoly>other).val, (<fmpz>self).val, res.ctx.val)
-                return res
+        return NotImplemented
+
+    def __radd__(self, other):
+        cdef fmpz_mpoly res
+        other = any_as_fmpz(other)
+        if other is not NotImplemented:
+            res = fmpz_mpoly.__new__(fmpz_mpoly)
+            res.ctx = (<fmpz_mpoly>self).ctx
+            fmpz_mpoly_init(res.val, res.ctx.val)
+            res._init = True
+            fmpz_mpoly_add_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val)
+            return res
         return NotImplemented
 
     def __sub__(self, other):
         cdef fmpz_mpoly res
-        if typecheck(self, fmpz_mpoly):
-            if typecheck(other, fmpz_mpoly):
-                if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                    ctx, (self, other) = coerce_fmpz_mpolys(self, other)
+        if typecheck(other, fmpz_mpoly):
+            if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
+                return NotImplemented
+            res = fmpz_mpoly.__new__(fmpz_mpoly)
+            res.ctx =(<fmpz_mpoly>self).ctx
+            fmpz_mpoly_init(res.val, res.ctx.val)
+            res._init = True
+            fmpz_mpoly_sub(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
+            return res
+        else:
+            other = any_as_fmpz(other)
+            if other is not NotImplemented:
                 res = fmpz_mpoly.__new__(fmpz_mpoly)
                 res.ctx = (<fmpz_mpoly>self).ctx
                 fmpz_mpoly_init(res.val, res.ctx.val)
                 res._init = True
-                fmpz_mpoly_sub(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
-                return res
-            else:
-                other = any_as_fmpz(other)
-                if other is not NotImplemented:
-                    res = fmpz_mpoly.__new__(fmpz_mpoly)
-                    res.ctx = (<fmpz_mpoly>self).ctx
-                    fmpz_mpoly_init(res.val, res.ctx.val)
-                    res._init = True
-                    fmpz_mpoly_sub_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val)
-                    return res
-        else:
-            self = any_as_fmpz(self)
-            if self is not NotImplemented:
-                res = fmpz_mpoly.__new__(fmpz_mpoly)
-                res.ctx = (<fmpz_mpoly>other).ctx
-                fmpz_mpoly_init(res.val, res.ctx.val)
-                res._init = True
-                fmpz_mpoly_sub_fmpz(res.val, (<fmpz_mpoly>other).val, (<fmpz>self).val, res.ctx.val)
-                fmpz_mpoly_neg(res.val, res.val, res.ctx.val)
+                fmpz_mpoly_sub_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val)
                 return res
         return NotImplemented
 
+    def __rsub__(self, other):
+        cdef fmpz_mpoly res
+        other = any_as_fmpz(other)
+        if other is not NotImplemented:
+            res = fmpz_mpoly.__new__(fmpz_mpoly)
+            res.ctx = (<fmpz_mpoly>self).ctx
+            fmpz_mpoly_init(res.val, res.ctx.val)
+            res._init = True
+            fmpz_mpoly_sub_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val)
+            return -res
+        return NotImplemented
+
+    # def __sub__(self, other):
+    #     cdef fmpz_mpoly res
+    #     if typecheck(self, fmpz_mpoly):
+    #         if typecheck(other, fmpz_mpoly):
+    #             if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
+    #                 ctx, (self, other) = coerce_fmpz_mpolys(self, other)
+    #             res = fmpz_mpoly.__new__(fmpz_mpoly)
+    #             res.ctx = (<fmpz_mpoly>self).ctx
+    #             fmpz_mpoly_init(res.val, res.ctx.val)
+    #             res._init = True
+    #             fmpz_mpoly_sub(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
+    #             return res
+    #         else:
+    #             other = any_as_fmpz(other)
+    #             if other is not NotImplemented:
+    #                 res = fmpz_mpoly.__new__(fmpz_mpoly)
+    #                 res.ctx = (<fmpz_mpoly>self).ctx
+    #                 fmpz_mpoly_init(res.val, res.ctx.val)
+    #                 res._init = True
+    #                 fmpz_mpoly_sub_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val)
+    #                 return res
+    #     else:
+    #         self = any_as_fmpz(self)
+    #         if self is not NotImplemented:
+    #             res = fmpz_mpoly.__new__(fmpz_mpoly)
+    #             res.ctx = (<fmpz_mpoly>other).ctx
+    #             fmpz_mpoly_init(res.val, res.ctx.val)
+    #             res._init = True
+    #             fmpz_mpoly_sub_fmpz(res.val, (<fmpz_mpoly>other).val, (<fmpz>self).val, res.ctx.val)
+    #             fmpz_mpoly_neg(res.val, res.val, res.ctx.val)
+    #             return res
+    #     return NotImplemented
+
     def __mul__(self, other):
         cdef fmpz_mpoly res
-        if typecheck(self, fmpz_mpoly):
-            if typecheck(other, fmpz_mpoly):
-                if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                    ctx, (self, other) = coerce_fmpz_mpolys(self, other)
+        if typecheck(other, fmpz_mpoly):
+            if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
+                return NotImplemented
+            res = fmpz_mpoly.__new__(fmpz_mpoly)
+            res.ctx =(<fmpz_mpoly>self).ctx
+            fmpz_mpoly_init(res.val, res.ctx.val)
+            res._init = True
+            fmpz_mpoly_mul(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
+            return res
+        else:
+            other = any_as_fmpz(other)
+            if other is not NotImplemented:
                 res = fmpz_mpoly.__new__(fmpz_mpoly)
                 res.ctx = (<fmpz_mpoly>self).ctx
                 fmpz_mpoly_init(res.val, res.ctx.val)
                 res._init = True
-                fmpz_mpoly_mul(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
-                return res
-            else:
-                other = any_as_fmpz(other)
-                if other is not NotImplemented:
-                    res = fmpz_mpoly.__new__(fmpz_mpoly)
-                    res.ctx = (<fmpz_mpoly>self).ctx
-                    fmpz_mpoly_init(res.val, res.ctx.val)
-                    res._init = True
-                    fmpz_mpoly_scalar_mul_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val)
-                    return res
-        else:
-            self = any_as_fmpz(self)
-            if self is not NotImplemented:
-                res = fmpz_mpoly.__new__(fmpz_mpoly)
-                res.ctx = (<fmpz_mpoly>other).ctx
-                fmpz_mpoly_init(res.val, res.ctx.val)
-                res._init = True
-                fmpz_mpoly_scalar_mul_fmpz(res.val, (<fmpz_mpoly>other).val, (<fmpz>self).val, res.ctx.val)
+                fmpz_mpoly_scalar_mul_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val)
                 return res
         return NotImplemented
+
+    def __rmul__(self, other):
+        cdef fmpz_mpoly res
+        other = any_as_fmpz(other)
+        if other is not NotImplemented:
+            res = fmpz_mpoly.__new__(fmpz_mpoly)
+            res.ctx = (<fmpz_mpoly>self).ctx
+            fmpz_mpoly_init(res.val, res.ctx.val)
+            res._init = True
+            fmpz_mpoly_scalar_mul_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val)
+            return res
+        return NotImplemented
+
+    # def __mul__(self, other):
+    #     cdef fmpz_mpoly res
+    #     if typecheck(self, fmpz_mpoly):
+    #         if typecheck(other, fmpz_mpoly):
+    #             if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
+    #                 ctx, (self, other) = coerce_fmpz_mpolys(self, other)
+    #             res = fmpz_mpoly.__new__(fmpz_mpoly)
+    #             res.ctx = (<fmpz_mpoly>self).ctx
+    #             fmpz_mpoly_init(res.val, res.ctx.val)
+    #             res._init = True
+    #             fmpz_mpoly_mul(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
+    #             return res
+    #         else:
+    #             other = any_as_fmpz(other)
+    #             if other is not NotImplemented:
+    #                 res = fmpz_mpoly.__new__(fmpz_mpoly)
+    #                 res.ctx = (<fmpz_mpoly>self).ctx
+    #                 fmpz_mpoly_init(res.val, res.ctx.val)
+    #                 res._init = True
+    #                 fmpz_mpoly_scalar_mul_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val)
+    #                 return res
+    #     else:
+    #         self = any_as_fmpz(self)
+    #         if self is not NotImplemented:
+    #             res = fmpz_mpoly.__new__(fmpz_mpoly)
+    #             res.ctx = (<fmpz_mpoly>other).ctx
+    #             fmpz_mpoly_init(res.val, res.ctx.val)
+    #             res._init = True
+    #             fmpz_mpoly_scalar_mul_fmpz(res.val, (<fmpz_mpoly>other).val, (<fmpz>self).val, res.ctx.val)
+    #             return res
+    #     return NotImplemented
 
     def __pow__(self, other, modulus):
         cdef fmpz_mpoly res
         if modulus is not None:
             raise NotImplementedError
-        if typecheck(self, fmpz_mpoly):
-            other = any_as_fmpz(other)
-            if other is NotImplemented:
-                return other
-            if other < 0:
-                raise ValueError("cannot raise fmpz_mpoly to negative power")
+        other = any_as_fmpz(other)
+        if other is NotImplemented:
+            return other
+        if other < 0:
+            raise ValueError("cannot raise fmpz_mpoly to negative power")
+        res = fmpz_mpoly.__new__(fmpz_mpoly)
+        res.ctx = (<fmpz_mpoly>self).ctx
+        fmpz_mpoly_init(res.val, res.ctx.val)
+        res._init = True
+        if fmpz_mpoly_pow_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val) == 0:
+            raise ValueError("unreasonably large polynomial")
+        return res
+
+    def __divmod__(self, other):
+        cdef fmpz_mpoly res, res2
+        if typecheck(other, fmpz_mpoly):
+            if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
+                return NotImplemented
             res = fmpz_mpoly.__new__(fmpz_mpoly)
             res.ctx = (<fmpz_mpoly>self).ctx
             fmpz_mpoly_init(res.val, res.ctx.val)
             res._init = True
-            if fmpz_mpoly_pow_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val) == 0:
-                raise ValueError("unreasonably large polynomial")
-            return res
-        return NotImplemented
-
-    def __divmod__(self, other):
-        cdef fmpz_mpoly res, res2
-        if typecheck(self, fmpz_mpoly):
-            if typecheck(other, fmpz_mpoly):
-                if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                    ctx, (self, other) = coerce_fmpz_mpolys(self, other)
-                res = fmpz_mpoly.__new__(fmpz_mpoly)
-                res.ctx = (<fmpz_mpoly>self).ctx
-                fmpz_mpoly_init(res.val, res.ctx.val)
-                res._init = True
-                res2 = fmpz_mpoly.__new__(fmpz_mpoly)
-                res2.ctx = (<fmpz_mpoly>self).ctx
-                fmpz_mpoly_init(res2.val, res2.ctx.val)
-                res2._init = True
-                fmpz_mpoly_divrem(res.val, res2.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
-                return (res, res2)
+            res2 = fmpz_mpoly.__new__(fmpz_mpoly)
+            res2.ctx = (<fmpz_mpoly>self).ctx
+            fmpz_mpoly_init(res2.val, res2.ctx.val)
+            res2._init = True
+            fmpz_mpoly_divrem(res.val, res2.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
+            return (res, res2)
         return NotImplemented
 
     def __floordiv__(self, other):
         cdef fmpz_mpoly res
-        if typecheck(self, fmpz_mpoly):
-            if typecheck(other, fmpz_mpoly):
-                if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                    ctx, (self, other) = coerce_fmpz_mpolys(self, other)
-                res = fmpz_mpoly.__new__(fmpz_mpoly)
-                res.ctx = (<fmpz_mpoly>self).ctx
-                fmpz_mpoly_init(res.val, res.ctx.val)
-                res._init = True
-                fmpz_mpoly_div(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
-                return res
+        if typecheck(other, fmpz_mpoly):
+            if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
+                return NotImplemented
+            res = fmpz_mpoly.__new__(fmpz_mpoly)
+            res.ctx = (<fmpz_mpoly>self).ctx
+            fmpz_mpoly_init(res.val, res.ctx.val)
+            res._init = True
+            fmpz_mpoly_div(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
+            return res
         return NotImplemented
 
     def __mod__(self, other):
@@ -399,7 +535,7 @@ cdef class fmpz_mpoly(flint_mpoly):
         cdef fmpz_mpoly res
         assert isinstance(other, fmpz_mpoly)
         if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-            ctx, (self, other) = coerce_fmpz_mpolys(self, other)
+            return NotImplemented
         res = fmpz_mpoly.__new__(fmpz_mpoly)
         res.ctx = (<fmpz_mpoly>self).ctx
         fmpz_mpoly_init(res.val, res.ctx.val)

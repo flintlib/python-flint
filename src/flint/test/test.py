@@ -626,6 +626,19 @@ def test_fmpz_mat():
     assert M6.minpoly() == flint.fmpz_poly([4,-4,1])
     assert list(M6) == [2,0,0,0,2,1,0,0,2]
 
+def test_fmpz_mpoly():
+    Zp = flint.fmpz_mpoly
+    getctx = flint.get_fmpz_mpoly_ctx
+    ctx = getctx(4)
+    assert ctx.nvars() == 4
+    assert ctx.ordering() == "lex"
+    assert [ctx.name(i) for i in range(4)] == ['x0', 'x1', 'x2', 'x3']
+    for order in ['lex', 'deglex', 'degrevlex']:
+        ctx1 = getctx(4, order)
+        assert ctx1.ordering() == order
+    ctx = getctx(4, "lex", 'w,x,y,z')
+
+
 def test_fmpz_series():
     Zp = flint.fmpz_poly
     Z = flint.fmpz_series
