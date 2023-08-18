@@ -1,3 +1,5 @@
+from flint.flint_base.flint_base cimport flint_scalar
+
 cdef any_as_fmpq(obj):
     if typecheck(obj, fmpq):
         return obj

@@ -1,3 +1,8 @@
+from flint.flint_base.flint_context cimport getprec
+# TODO: waiting for fix on the roots method, currently 
+# globally defined.
+# from flint.flint_base.flint_base cimport flint_poly
+
 cdef acb_poly_coerce_operands(x, y):
     if isinstance(y, (int, long, float, complex, fmpz, fmpq, arb, acb, fmpz_poly, fmpq_poly, arb_poly)):
         return x, acb_poly(y)

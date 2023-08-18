@@ -1,3 +1,7 @@
+# TODO: waiting for fix on the roots method, currently 
+# globally defined.
+# from flint.flint_base.flint_base cimport flint_poly
+
 cdef any_as_fmpq_poly(obj):
     if typecheck(obj, fmpq_poly):
         return obj
