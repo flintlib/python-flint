@@ -1,4 +1,4 @@
-from flint._global_context cimport getprec, getcap
+from flint.flint_base.flint_context cimport getprec, getcap
 from flint.flint_base.flint_base cimport flint_series
 
 cdef arb_series_coerce_operands(x, y):

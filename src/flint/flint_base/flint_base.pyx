@@ -1,4 +1,4 @@
-from flint._global_context cimport thectx
+from flint.flint_base.flint_context cimport thectx
 
 cdef class flint_elem:
     def __repr__(self):

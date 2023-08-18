@@ -1,4 +1,4 @@
-from flint._global_context cimport getprec, getcap
+from flint.flint_base.flint_context cimport getprec
 from flint.utils.conversion cimport prec_to_dps
 
 cdef class arf:
