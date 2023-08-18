@@ -1,6 +1,7 @@
 from cpython.version cimport PY_MAJOR_VERSION
 
 from flint.utils.conversion cimport str_from_chars
+from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_mpoly
 
 cdef any_as_fmpz_mpoly(x):

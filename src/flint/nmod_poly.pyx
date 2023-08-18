@@ -1,6 +1,5 @@
-# TODO: waiting for fix on the roots method, currently 
-# globally defined.
-# from flint.flint_base.flint_base cimport flint_poly
+from flint.flint_base.flint_base cimport flint_poly
+from flint.utils.typecheck cimport typecheck
 
 cdef any_as_nmod_poly(obj, nmod_t mod):
     cdef nmod_poly r

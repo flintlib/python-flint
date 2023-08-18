@@ -1,4 +1,5 @@
 from flint.flint_base.flint_context cimport getprec
+from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport prec_to_dps
 
 cdef class arf:
