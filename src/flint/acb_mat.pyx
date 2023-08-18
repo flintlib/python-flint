@@ -1,3 +1,5 @@
+from flint._global_context cimport getprec, getcap
+
 cdef acb_mat_coerce_operands(x, y):
     if isinstance(y, (fmpz_mat, fmpq_mat, arb_mat)):
         return x, acb_mat(y)

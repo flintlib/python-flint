@@ -1,4 +1,5 @@
 from cpython.version cimport PY_MAJOR_VERSION
+from flint._global_context cimport getprec, getcap
 
 cdef any_as_fmpz_poly(x):
     cdef fmpz_poly res

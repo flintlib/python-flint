@@ -1,3 +1,5 @@
+from flint._global_context cimport getprec, getcap
+
 cdef acb_series_coerce_operands(x, y):
     if isinstance(y, (int, long, float, complex, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly, fmpq_series, arb, arb_poly, arb_series, acb, acb_poly)):
         return x, acb_series(y)

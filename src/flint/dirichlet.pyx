@@ -1,3 +1,5 @@
+from flint._global_context cimport getprec, getcap
+
 cdef dict _dirichlet_group_cache = {}
 
 cdef class dirichlet_group(object):
