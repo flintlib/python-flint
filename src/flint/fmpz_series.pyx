@@ -1,3 +1,5 @@
+from flint.flint_base.flint_base cimport flint_series
+
 cdef fmpz_series_coerce_operands(x, y):
     if isinstance(y, (int, long, fmpz, fmpz_poly)):
         return x, fmpz_series(y)

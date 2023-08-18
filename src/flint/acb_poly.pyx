@@ -1,4 +1,5 @@
 from flint._global_context cimport getprec, getcap
+from flint.flint_base.flint_base cimport flint_poly
 
 cdef acb_poly_coerce_operands(x, y):
     if isinstance(y, (int, long, float, complex, fmpz, fmpq, arb, acb, fmpz_poly, fmpq_poly, arb_poly)):

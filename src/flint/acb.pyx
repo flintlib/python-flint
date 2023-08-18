@@ -1,3 +1,4 @@
+from flint.flint_base.flint_base cimport flint_scalar
 from flint._global_context cimport getprec, getcap
 
 cdef int acb_set_python(acb_t x, obj, bint allow_conversion):

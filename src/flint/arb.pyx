@@ -1,5 +1,7 @@
 from cpython.version cimport PY_MAJOR_VERSION
+
 from flint._global_context cimport getprec, getcap
+from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.conversion cimport chars_from_str, str_from_chars
 
 cdef _str_trunc(s, trunc=0):
