@@ -68,7 +68,7 @@ cdef class flint_poly(flint_elem):
 
     def roots(self):
         """
-        Depreciated function.
+        Deprecated function.
         
         To recover roots of a polynomial, first convert to acb:
 
