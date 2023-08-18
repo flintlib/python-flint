@@ -1,7 +1,9 @@
 from cpython.version cimport PY_MAJOR_VERSION
 
-from flint._global_context cimport getprec, getcap
-from flint.flint_base.flint_base cimport flint_poly
+from flint._global_context cimport getprec
+# TODO: waiting for fix on the roots method, currently 
+# globally defined.
+# from flint.flint_base.flint_base cimport flint_poly
 
 cdef any_as_fmpz_poly(x):
     cdef fmpz_poly res
