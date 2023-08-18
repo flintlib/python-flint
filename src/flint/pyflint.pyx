@@ -33,6 +33,69 @@ DEF FMPZ_TMP = 2
 
 ctx = thectx
 
+# TODO:
+# This should be factored out into flint_base
+# but we cannot do this until we can import 
+# acb_poly to allow the roots() method to remain
+
+from flint.flint_base.flint_base cimport flint_elem
+
+cdef class flint_poly(flint_elem):
+    """
+    Base class for polynomials.
+    """
+
+    def __iter__(self):
+        cdef long i, n
+        n = self.length()
+        for i in range(n):
+            yield self[i]
+
+    def coeffs(self):
+        return list(self)
+
+    def str(self, bint ascending=False):
+        """
+        Convert to a human-readable string (generic implementation for
+        all polynomial types).
+
+        If *ascending* is *True*, the monomials are output from low degree to
+        high, otherwise from high to low.
+        """
+        coeffs = [str(c) for c in self]
+        if not coeffs:
+            return "0"
+        s = []
+        coeffs = enumerate(coeffs)
+        if not ascending:
+            coeffs = reversed(list(coeffs))
+        for i, c in coeffs:
+            if c == "0":
+                continue
+            else:
+                if c.startswith("-") or (" " in c):
+                    c = "(" + c + ")"
+                if i == 0:
+                    s.append("%s" % c)
+                elif i == 1:
+                    if c == "1":
+                        s.append("x")
+                    else:
+                        s.append("%s*x" % c)
+                else:
+                    if c == "1":
+                        s.append("x^%s" % i)
+                    else:
+                        s.append("%s*x^%s" % (c, i))
+        return " + ".join(s)
+
+    def roots(self, **kwargs):
+        """
+        Isolates the complex roots of *self*. See :meth:`.acb_poly.roots`
+        for details.
+        """
+        return acb_poly(self).roots(**kwargs)
+
 include "fmpz.pyx"
 include "fmpz_poly.pyx"
 include "fmpz_mpoly.pyx"
