@@ -9,5 +9,3 @@ cdef class FlintContext:
     cdef arf_rnd_t rnd
     cdef public bint unicode
     cdef public long _cap
-
-    pass

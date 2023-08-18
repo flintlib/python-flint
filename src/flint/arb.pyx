@@ -1,3 +1,6 @@
+from cpython.version cimport PY_MAJOR_VERSION
+from flint.utils.conversion cimport chars_from_str, str_from_chars
+
 cdef _str_trunc(s, trunc=0):
     if trunc > 0 and len(s) > 3 * trunc:
         left = right = trunc

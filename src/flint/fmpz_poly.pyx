@@ -1,3 +1,5 @@
+from cpython.version cimport PY_MAJOR_VERSION
+
 cdef any_as_fmpz_poly(x):
     cdef fmpz_poly res
     if typecheck(x, fmpz_poly):

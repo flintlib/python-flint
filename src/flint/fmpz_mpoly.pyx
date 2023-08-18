@@ -1,3 +1,6 @@
+from cpython.version cimport PY_MAJOR_VERSION
+from flint.utils.conversion cimport str_from_chars
+
 cdef any_as_fmpz_mpoly(x):
     cdef fmpz_mpoly res
     """
