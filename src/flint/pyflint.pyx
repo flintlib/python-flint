@@ -6,8 +6,6 @@ cimport flint
 cimport libc.stdlib
 cimport cython
 
-from flint.flint_base.flint_context cimport FlintContext
-
 cdef flint_rand_t global_random_state
 flint_randinit(global_random_state)
 
@@ -31,24 +29,10 @@ DEF FMPZ_UNKNOWN = 0
 DEF FMPZ_REF = 1
 DEF FMPZ_TMP = 2
 
-cdef FlintContext thectx = FlintContext()
-
+from flint._global_context cimport thectx
 ctx = thectx
 
-cdef inline long getprec(long prec=0):
-    if prec > 1:
-        return prec
-    else:
-        return thectx._prec
-
-cdef inline long getcap(long cap=-1):
-    if cap >= 0:
-        return cap
-    else:
-        return thectx._cap
-
 cdef class flint_elem:
-
     def __repr__(self):
         if ctx.pretty:
             return self.str()
