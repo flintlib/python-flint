@@ -72,7 +72,7 @@ cdef class flint_poly(flint_elem):
 
         acb_poly(input_poly).roots()
         """
-        raise NotImplementedError('This method has been deprecated. Please instead use acb_poly(input_poly).roots()')
+        raise NotImplementedError('This method is no longer supported. To recover the complex roots first convert to acb_poly')
         
 
 
