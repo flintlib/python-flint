@@ -74,7 +74,7 @@ cdef class flint_poly(flint_elem):
 
         acb_poly(input_poly).roots()
         """
-        warn('This method is deprecated.', DeprecationWarning)
+        warn('This method is deprecated. Please instead use acb_poly(input_poly).roots()', DeprecationWarning)
         
 
 
