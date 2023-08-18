@@ -18,44 +18,44 @@ cdef class FlintContext:
         self.threads = 1
         self.cap = 10
 
-    property prec:
+    @property 
+    def prec(self):
+        return self._prec
 
-        def __set__(self, prec):
-            cdef long cprec = prec
-            if cprec < 2:
-                raise ValueError("prec must be >= 2")
-            self._prec = cprec
-            self._dps = prec_to_dps(cprec)
+    @prec.setter
+    def prec(self, prec):
+        cdef long cprec = prec
+        if cprec < 2:
+            raise ValueError("prec must be >= 2")
+        self._prec = cprec
+        self._dps = prec_to_dps(cprec)
 
-        def __get__(self):
-            return self._prec
+    @property
+    def dps(self):
+        return self._dps
 
-    property dps:
+    @dps.setter
+    def dps(self, prec):
+        self.prec = dps_to_prec(prec)
 
-        def __set__(self, prec):
-            self.prec = dps_to_prec(prec)
+    @property
+    def cap(self):
+        return self._cap
 
-        def __get__(self):
-            return self._dps
+    @cap.setter
+    def cap(self, long cap):
+        if cap < 0:
+            raise ValueError("cap must be >= 0")
+        self._cap = cap
 
-    property cap:
-
-        def __set__(self, long cap):
-            if cap < 0:
-                raise ValueError("cap must be >= 0")
-            self._cap = cap
-
-        def __get__(self):
-            return self._cap
-
-    property threads:
-
-        def __set__(self, long num):
-            assert num >= 1 and num <= 64
-            flint_set_num_threads(num)
-
-        def __get__(self):
-            return flint_get_num_threads()
+    @property
+    def threads(self):
+        return flint_get_num_threads()
+    
+    @threads.setter
+    def threads(self, long num):
+        assert num >= 1 and num <= 64
+        flint_set_num_threads(num)
 
     def __repr__(self):
         return "pretty = %-8s  # pretty-print repr() output\n" \
