@@ -1,5 +1,3 @@
-from warnings import warn
-
 from flint.flint_base.flint_context cimport thectx
 
 cdef class flint_elem:
@@ -74,7 +72,7 @@ cdef class flint_poly(flint_elem):
 
         acb_poly(input_poly).roots()
         """
-        warn('This method is deprecated. Please instead use acb_poly(input_poly).roots()', DeprecationWarning)
+        raise NotImplementedError('This method has been deprecated. Please instead use acb_poly(input_poly).roots()')
         
 
 
