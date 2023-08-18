@@ -68,3 +68,5 @@ cdef class FlintContext:
 
     def cleanup(self):
         flint_cleanup()
+
+cdef FlintContext thectx = FlintContext()
