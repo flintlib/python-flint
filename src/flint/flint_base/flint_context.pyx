@@ -1,6 +1,5 @@
 from flint._flint cimport (
     ARF_RND_DOWN,
-    arf_rnd_t,
     flint_cleanup,
     flint_get_num_threads,
     flint_set_num_threads
@@ -8,13 +7,6 @@ from flint._flint cimport (
 from flint.utils.conversion cimport prec_to_dps, dps_to_prec
 
 cdef class FlintContext:
-    cdef public bint pretty
-    cdef public long _prec
-    cdef public long _dps
-    cdef arf_rnd_t rnd
-    cdef public bint unicode
-    cdef public long _cap
-
     def __init__(self):
         self.default()
 

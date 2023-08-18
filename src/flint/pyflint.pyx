@@ -6,7 +6,7 @@ cimport flint
 cimport libc.stdlib
 cimport cython
 
-from .flint_base.flint_context cimport FlintContext
+from flint.flint_base.flint_context cimport FlintContext
 
 cdef flint_rand_t global_random_state
 flint_randinit(global_random_state)
