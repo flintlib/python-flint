@@ -40,7 +40,7 @@ cdef fmpz_poly_set_list(fmpz_poly_t poly, list val):
 cdef dict _fmpz_mpoly_ctx_cache = {}
 
 @cython.auto_pickle(False)
-cdef class fmpz_mpoly_ctx:
+cdef class fmpz_mpoly_ctx(flint_mpoly_context):
     """
     A class for storing the polynomial context
 
@@ -51,16 +51,8 @@ cdef class fmpz_mpoly_ctx:
     Do not construct one of these directly, use `get_fmpz_mpoly_context`.
     """
     cdef fmpz_mpoly_ctx_t val
-    cdef public object py_names
-    cdef char ** c_names
-    cdef bint _init
-
-    def __cinit__(self):
-        self._init = False
 
     def __init__(self, slong nvars, ordering, names):
-        assert nvars >= 1
-        assert len(names) == nvars
         if ordering == "lex":
             fmpz_mpoly_ctx_init(self.val, nvars, ordering_t.ORD_LEX)
         elif ordering == "deglex":
@@ -69,16 +61,8 @@ cdef class fmpz_mpoly_ctx:
             fmpz_mpoly_ctx_init(self.val, nvars, ordering_t.ORD_DEGREVLEX)
         else:
             raise ValueError("Unimplemented term order %s" % ordering)
-        self.py_names = tuple(bytes(name, 'utf-8') for name in names)
-        self.c_names = <char**>libc.stdlib.malloc(nvars * sizeof(char *))
-        self._init = True
-        for i in range(nvars):
-            self.c_names[i] = self.py_names[i]
 
-    def __dealloc__(self):
-        if self._init:
-            libc.stdlib.free(self.c_names)
-        self._init = False
+        super().__init__(nvars, names)
 
     cpdef slong nvars(self):
         return self.val.minfo.nvars
@@ -91,10 +75,6 @@ cdef class fmpz_mpoly_ctx:
         if self.val.minfo.ord == ordering_t.ORD_DEGREVLEX:
             return "degrevlex"
 
-    cpdef name(self, slong i):
-        assert i >= 0 and i < self.val.minfo.nvars
-        return self.py_names[i].decode('utf-8')
-
     cpdef gen(self, slong i):
         cdef fmpz_mpoly res
         assert i >= 0 and i < self.val.minfo.nvars
@@ -104,9 +84,6 @@ cdef class fmpz_mpoly_ctx:
         res._init = True
         fmpz_mpoly_gen(res.val, i, res.ctx.val)
         return res
-
-    def gens(self):
-        return tuple(self.gen(i) for i in range(self.nvars()))
 
 def get_fmpz_mpoly_context(slong nvars=1, ordering="lex", names='x'):
     if nvars <= 0:
@@ -198,7 +175,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_mpoly_init(self.val, self.ctx.val)
             self._init = True
             fmpz_mpoly_set_str_pretty(self.val, val, self.ctx.c_names, self.ctx.val)
-#            fmpz_mpoly_sort_terms(self.val, self.ctx.val)
+            fmpz_mpoly_sort_terms(self.val, self.ctx.val)
         else:
             v = any_as_fmpz(val)
             if v is NotImplemented:
@@ -241,10 +218,6 @@ cdef class fmpz_mpoly(flint_mpoly):
     def __len__(self):
         return fmpz_mpoly_length(self.val, self.ctx.val)
 
-    def __hash__(self):
-        s = str(self)
-        return hash(s)
-
     def coefficient(self, slong i):
         cdef fmpz v
         if i < 0 or i >= fmpz_mpoly_length(self.val, self.ctx.val):
@@ -253,9 +226,6 @@ cdef class fmpz_mpoly(flint_mpoly):
             v = fmpz.__new__(fmpz)
             fmpz_mpoly_get_term_coeff_fmpz(v.val, self.val, i, self.ctx.val)
             return v
-
-    def leading_coefficient(self):
-        return self.coefficient(0)
 
     def exponent_tuple(self, slong i):
         cdef slong j, nvars

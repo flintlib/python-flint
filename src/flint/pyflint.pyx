@@ -219,10 +219,50 @@ cdef class flint_poly(flint_elem):
         """
         return acb_poly(self).roots(**kwargs)
 
+cdef class flint_mpoly_context(flint_elem):
+    """
+    Base class for sparse multivariate ring contexts.
+    """
+    cdef public object py_names
+    cdef char ** c_names
+    cdef bint _init
+
+    def __cinit__(self):
+        self._init = False
+
+    def __init__(self, slong nvars, names):
+        assert nvars >= 1
+        assert len(names) == nvars
+        self.py_names = tuple(bytes(name, 'utf-8') for name in names)
+        self.c_names = <char**>libc.stdlib.malloc(nvars * sizeof(char *))
+        self._init = True
+        for i in range(nvars):
+            self.c_names[i] = self.py_names[i]
+
+    def __dealloc__(self):
+        if self._init:
+            libc.stdlib.free(self.c_names)
+        self._init = False
+
+    cpdef name(self, slong i):
+        assert i >= 0 and i < len(self.py_names)
+        return self.py_names[i].decode('utf-8')
+
+    def gens(self):
+        return tuple(self.gen(i) for i in range(self.nvars()))
+
+
 cdef class flint_mpoly(flint_elem):
     """
     Base class for multivariate polynomials.
     """
+
+    def leading_coefficient(self):
+        return self.coefficient(0)
+
+    def __hash__(self):
+        s = repr(self)
+        return hash(s)
 
 
 cdef class flint_mat(flint_elem):
