@@ -65,9 +65,23 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         super().__init__(nvars, names)
 
     cpdef slong nvars(self):
+        """
+        Return the number of variables in the context
+
+            >>> ctx = get_fmpz_mpoly_context(4, "lex", 'x')
+            >>> ctx.nvars()
+            4
+        """
         return self.val.minfo.nvars
 
     cpdef ordering(self):
+        """
+        Return the term order of the context object.
+
+            >>> ctx = get_fmpz_mpoly_context(4, "deglex", 'w')
+            >>> ctx.ordering()
+            'deglex'
+        """
         if self.val.minfo.ord == ordering_t.ORD_LEX:
             return "lex"
         if self.val.minfo.ord == ordering_t.ORD_DEGLEX:
@@ -76,6 +90,13 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
             return "degrevlex"
 
     cpdef gen(self, slong i):
+        """
+        Return the `i`'th generator of the polynomial ring
+
+            >>> ctx = get_fmpz_mpoly_context(3, 'degrevlex', 'z')
+            >>> ctx.gen(1)
+            z1
+        """
         cdef fmpz_mpoly res
         assert i >= 0 and i < self.val.minfo.nvars
         res = fmpz_mpoly.__new__(fmpz_mpoly)
@@ -84,6 +105,16 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         res._init = True
         fmpz_mpoly_gen(res.val, i, res.ctx.val)
         return res
+
+    # cpdef from_dict(self, d):
+    #     cdef fmpz_mpoly res
+    #     res = fmpz_mpoly.__new__(fmpz_mpoly)
+    #     res.ctx = self
+    #     fmpz_mpoly_init(res.val, res.ctx.val)
+    #     res._init = True
+    #     for k, v in d.items():
+
+
 
 def get_fmpz_mpoly_context(slong nvars=1, ordering="lex", names='x'):
     if nvars <= 0:
