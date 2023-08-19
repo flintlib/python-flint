@@ -2,6 +2,7 @@ from cpython.version cimport PY_MAJOR_VERSION
 
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_scalar
+from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport chars_from_str, str_from_chars
 
 cdef _str_trunc(s, trunc=0):
