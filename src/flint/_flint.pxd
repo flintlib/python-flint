@@ -2,6 +2,9 @@
 #
 # Define the contents of the Python, GMP, Flint and Arb headers.
 
+from libc.stdint cimport uint32_t
+from libc.stdint cimport int32_t
+
 cdef extern from "Python.h":
     ctypedef void PyObject
     ctypedef void PyTypeObject
@@ -14,6 +17,14 @@ cdef extern from "Python.h":
     Py_ssize_t PyList_GET_SIZE(PyObject *list)
     long PyLong_AsLongAndOverflow(PyObject *pylong, int *overflow)
     long long PyLong_AsLongLongAndOverflow(PyObject *pylong, int *overflow)
+    int PyLong_SHIFT
+    int PYLONG_BITS_IN_DIGIT
+    Py_ssize_t Py_SIZE(PyObject *io)
+    ctypedef uint32_t digit
+    ctypedef int32_t sdigit
+    ctypedef struct PyLongObject:
+        digit *ob_digit
+
 
 DEF FMPZ_UNKNOWN = 0
 DEF FMPZ_REF = 1
@@ -37,6 +48,12 @@ cdef extern from "gmp.h":
     ctypedef mp_limb_t* mp_ptr
     ctypedef mp_limb_t* mp_srcptr
     ctypedef unsigned long mp_bitcnt_t
+    ctypedef struct mpz_t:
+        pass
+    void mpz_init(mpz_t)
+    void mpz_import(mpz_t val, size_t count, int order, size_t size, int endian, size_t nails, const void * op)
+    void mpz_clear(mpz_t val)
+    void mpz_neg(mpz_t rop, mpz_t op)
 
 cdef extern from "flint/fmpz.h":
     ctypedef long slong
@@ -225,7 +242,7 @@ cdef extern from "flint/fmpz.h":
     void fmpz_set_si(fmpz_t f, long val)
     void fmpz_set_ui(fmpz_t f, ulong val)
     #void fmpz_get_mpz(mpz_t x,  fmpz_t f)
-    #void fmpz_set_mpz(fmpz_t f,  mpz_t x)
+    void fmpz_set_mpz(fmpz_t f,  mpz_t x)
     int fmpz_set_str(fmpz_t f, char * str, int b)
     int fmpz_abs_fits_ui( fmpz_t f)
     void fmpz_zero(fmpz_t f)

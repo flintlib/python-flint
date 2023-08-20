@@ -1,12 +1,37 @@
 cdef inline int fmpz_set_pylong(fmpz_t x, obj):
-    cdef int overflow
-    cdef slong longval
-    longval = pylong_as_slong(<PyObject*>obj, &overflow)
-    if overflow:
-        s = "%x" % obj
-        fmpz_set_str(x, chars_from_str(s), 16)
+    cdef Py_ssize_t length
+    cdef mpz_t mpz_val
+    cdef bint negative
+    # cdef int overflow
+    # cdef slong longval
+    length = Py_SIZE(<PyLongObject*>obj)
+    if length == -1:
+        fmpz_set_si(x,  -(<sdigit>((<PyLongObject *>obj).ob_digit[0])))
+    elif length == 0:
+        fmpz_zero(x)
+    elif length == 1:
+        fmpz_set_si(x,  (<PyLongObject *>obj).ob_digit[0])
     else:
-        fmpz_set_si(x, longval)
+        # We probably want to use _fmpz_promote here to avoid the copy
+        mpz_init(mpz_val)
+        negative = False
+        if length < 0:
+            negative = True
+            length = -length
+        mpz_import(mpz_val, length, -1, sizeof((<PyLongObject *>obj).ob_digit[0]),0,
+                   sizeof((<PyLongObject*>obj).ob_digit[0])*8 - PyLong_SHIFT, (<PyLongObject*>obj).ob_digit)
+        if negative:
+            mpz_neg(mpz_val, mpz_val)
+        fmpz_set_mpz(x, mpz_val)
+        mpz_clear(mpz_val)
+
+
+    # longval = pylong_as_slong(<PyObject*>obj, &overflow)
+    # if overflow:
+    #     s = "%x" % obj
+    #     fmpz_set_str(x, chars_from_str(s), 16)
+    # else:
+    #     fmpz_set_si(x, longval)
 
 cdef inline int fmpz_set_python(fmpz_t x, obj):
     if PY_MAJOR_VERSION < 3 and PyInt_Check(<PyObject*>obj):
