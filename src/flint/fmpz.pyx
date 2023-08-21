@@ -1,8 +1,27 @@
+from cpython.object cimport Py_SIZE
+from cpython.int cimport PyInt_FromLong
+from cpython.long cimport PyLong_FromLong
+from cpython.longintrepr cimport _PyLong_New, py_long, digit, PyLong_SHIFT
+
+cdef extern from *:
+    """
+    /* Compatibility for python 3.8, can be removed later */
+    #if PY_VERSION_HEX < 0x030900A4 && !defined(Py_SET_SIZE)
+    static inline void _Py_SET_SIZE(PyVarObject *ob, Py_ssize_t size)
+    { ob->ob_size = size; }
+    #define Py_SET_SIZE(ob, size) _Py_SET_SIZE((PyVarObject*)(ob), size)
+    #endif
+    """
+    void Py_SET_SIZE(object, Py_ssize_t)
+
+# Unused bits in every PyLong digit
+cdef size_t PyLong_nails = 8*sizeof(digit) - PyLong_SHIFT
+
 cdef inline int fmpz_set_pylong(fmpz_t x, obj):
     cdef Py_ssize_t length
     cdef __mpz_struct* mpz_val
     cdef bint negative
-    length = Py_SIZE(<PyLongObject*>obj)
+    length = Py_SIZE(obj)
     if length == -1:
         fmpz_set_si(x,  -(<sdigit>((<PyLongObject *>obj).ob_digit[0])))
     elif length == 0:
@@ -15,8 +34,8 @@ cdef inline int fmpz_set_pylong(fmpz_t x, obj):
         if length < 0:
             negative = True
             length = -length
-        mpz_import(mpz_val, length, -1, sizeof((<PyLongObject *>obj).ob_digit[0]),0,
-                   sizeof((<PyLongObject*>obj).ob_digit[0])*8 - PyLong_SHIFT, (<PyLongObject*>obj).ob_digit)
+        mpz_import(mpz_val, length, -1, sizeof(digit),0,
+                   PyLong_nails, (<PyLongObject*>obj).ob_digit)
         if negative:
             mpz_neg(mpz_val, mpz_val)
         _fmpz_demote_val(x)
@@ -34,11 +53,18 @@ cdef fmpz_get_intlong(fmpz_t x):
     """
     Convert fmpz_t to a Python int or long.
     """
-    cdef char * s
+    cdef size_t nbits
+    cdef size_t pylong_size
+    cdef __mpz_struct * z
     if COEFF_IS_MPZ(x[0]):
-        s = fmpz_get_str(NULL, 16, x)
-        v = int(str_from_chars(s), 16)
-        libc.stdlib.free(s)
+        z = _fmpz_promote_val(x)
+        nbits = mpz_sizeinbase(z, 2)
+        pylong_size = (nbits + PyLong_SHIFT -1) // PyLong_SHIFT
+        v = _PyLong_New(pylong_size)
+        mpz_export(v.ob_digit, NULL, -1, sizeof(digit), 0, PyLong_nails, z)
+        _fmpz_demote_val(x)
+        if fmpz_sgn(x) < 0:
+            Py_SET_SIZE(v, -pylong_size)
         return v
     else:
         return <slong>x[0]

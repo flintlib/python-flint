@@ -55,6 +55,8 @@ cdef extern from "gmp.h":
     void mpz_import(mpz_t val, size_t count, int order, size_t size, int endian, size_t nails, const void * op)
     void mpz_clear(mpz_t val)
     void mpz_neg(mpz_t rop, mpz_t op)
+    size_t mpz_sizeinbase (const mpz_t op, int base)
+    void * mpz_export (void *rop, size_t *countp, int order, size_t size, int endian, size_t nails, const mpz_t op)
 
 cdef extern from "flint/fmpz.h":
     ctypedef long slong
@@ -334,6 +336,7 @@ cdef extern from "flint/fmpz.h":
     void fmpz_or(fmpz_t r, const fmpz_t a, const fmpz_t b)
     void fmpz_xor(fmpz_t r, const fmpz_t a, const fmpz_t b)
     __mpz_struct *_fmpz_promote(fmpz_t f)
+    __mpz_struct *_fmpz_promote_val(fmpz_t f)
     void _fmpz_demote_val(fmpz_t f)
 
 cdef extern from "flint/fmpz_factor.h":
