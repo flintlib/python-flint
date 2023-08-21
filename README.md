@@ -122,6 +122,13 @@ To do
 * Improved printing and string input/output
 * IPython hooks (TeX pretty-printing etc.)
 
+CHANGELOG
+-------------
+
+0.5.0
+
+- gh-63: The `roots` method of `arb_poly`, and `nmod_poly` is no longer supported. Use `acb_roots(p).roots()` to get the old behaviour of returning the roots as `acb`. Note that the `roots` method of `fmpz_poly` and `fmpq_poly` currently returns the complex roots of the polynomial.
+
 License
 ------------
 

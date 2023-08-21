@@ -1,3 +1,5 @@
+from .utils.conversion cimport dps_to_prec
+
 # xxx: this doesn't work when changed to a cdef function. why?
 def __goodness(x, bint parts=True, metric=None):
     if metric is not None:

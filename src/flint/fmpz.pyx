@@ -1,3 +1,9 @@
+from cpython.version cimport PY_MAJOR_VERSION
+
+from flint.flint_base.flint_base cimport flint_scalar
+from flint.utils.typecheck cimport typecheck
+from flint.utils.conversion cimport chars_from_str
+
 cdef inline int fmpz_set_pylong(fmpz_t x, obj):
     cdef int overflow
     cdef slong longval
