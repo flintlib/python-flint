@@ -1,3 +1,9 @@
+from cpython.version cimport PY_MAJOR_VERSION
+
+from flint.flint_base.flint_base cimport flint_scalar
+from flint.utils.typecheck cimport typecheck
+from flint.utils.conversion cimport chars_from_str
+
 from cpython.object cimport Py_SIZE
 from cpython.int cimport PyInt_FromLong
 from cpython.long cimport PyLong_FromLong
@@ -16,7 +22,6 @@ cdef extern from *:
 
 # Unused bits in every PyLong digit
 cdef size_t PyLong_nails = 8*sizeof(digit) - PyLong_SHIFT
-
 cdef inline int fmpz_set_pylong(fmpz_t x, obj):
     cdef Py_ssize_t length
     cdef __mpz_struct* mpz_val

@@ -1,3 +1,6 @@
+from flint.flint_base.flint_base cimport flint_scalar
+from flint.utils.typecheck cimport typecheck
+
 cdef int any_as_nmod(mp_limb_t * val, obj, nmod_t mod) except -1:
     cdef int success
     cdef fmpz_t t

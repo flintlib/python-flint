@@ -1,3 +1,7 @@
+from flint.utils.typecheck cimport typecheck
+from flint.flint_base.flint_context cimport getprec
+from flint.flint_base.flint_base cimport flint_mat
+
 cdef acb_mat_coerce_operands(x, y):
     if isinstance(y, (fmpz_mat, fmpq_mat, arb_mat)):
         return x, acb_mat(y)

@@ -1,3 +1,7 @@
+from flint.utils.typecheck cimport typecheck
+from flint.flint_base.flint_base cimport flint_scalar
+from flint.flint_base.flint_context cimport getprec
+
 cdef int acb_set_python(acb_t x, obj, bint allow_conversion):
     cdef double re, im
 
