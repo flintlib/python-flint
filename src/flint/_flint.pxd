@@ -2276,7 +2276,7 @@ cdef extern from "flint/mpoly.h":
 
     void mpoly_ctx_init(mpoly_ctx_t ctx, slong nvars, const ordering_t ord)
     void mpoly_ctx_clear(mpoly_ctx_t mctx)
-
+    flint_bitcnt_t mpoly_exp_bits_required_ffmpz(const fmpz_struct *user_exp, const mpoly_ctx_t mctx)
 
 cdef extern from "flint/fmpz_mpoly.h":
     ctypedef struct fmpz_mpoly_ctx_struct:
@@ -2394,7 +2394,9 @@ cdef extern from "flint/fmpz_mpoly.h":
 
     void fmpz_mpoly_get_term_monomial(fmpz_mpoly_t M, const fmpz_mpoly_t A,
                                               slong i, const fmpz_mpoly_ctx_t ctx)
-
+    void fmpz_mpoly_push_term_fmpz_fmpz(fmpz_mpoly_t A, const fmpz_t c, fmpz_struct *const *exp, const fmpz_mpoly_ctx_t ctx)
+    void _fmpz_mpoly_push_exp_ffmpz(fmpz_mpoly_t A, const fmpz_struct * exp, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_set_term_coeff_fmpz(fmpz_mpoly_t A, slong i, const fmpz_t c, const fmpz_mpoly_ctx_t ctx)
     void fmpz_mpoly_sort_terms(fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
 
     # Addition/Subtraction

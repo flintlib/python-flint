@@ -639,6 +639,23 @@ def test_fmpz_mpoly():
     ctx = getctx(4, "lex", 'w,x,y,z')
     p1 = ctx.gen(0) + ctx.gen(1) - ctx.gen(2) * ctx.gen(3)
     assert p1 == Zp("w + x - y * z", ctx)
+    ctx = getctx(2, "lex", "x,y")
+    assert ctx.from_dict({(1,0):1, (0,1):2}) == Zp("x + 2*y", ctx)
+    assert raises(lambda: ctx.from_dict("b"), ValueError)
+    assert raises(lambda: ctx.from_dict({(1,2):"b"}), TypeError)
+    assert raises(lambda: ctx.from_dict({"b":1}), TypeError)
+    assert raises(lambda: ctx.from_dict({(1,2,3):1}), TypeError)
+    assert raises(lambda: ctx.from_dict({(1,"a"):1}), TypeError)
+    ctx = getctx(2, "lex", 'x,y')
+    p1 = ctx.from_dict({(1,0):4,(0,3):4,(2,4):9})
+    for ztype in [int, long, flint.fmpz]:
+        assert p1 + ztype(3) == ctx.from_dict({(1,0):4,(0,3):4,(2,4):9,(0,0):3})
+        assert ztype(3) + p1 == ctx.from_dict({(1,0):4,(0,3):4,(2,4):9,(0,0):3})
+        assert p1 - ztype(3) == ctx.from_dict({(1,0):4,(0,3):4,(2,4):9,(0,0):-3})
+        assert ztype(3) - p1 == ctx.from_dict({(1,0):-4,(0,3):-4,(2,4):-9,(0,0):3})
+        assert p1 * ztype(3) == ctx.from_dict({(1,0):12,(0,3):12,(2,4):27})
+        assert ztype(3) * p1 == ctx.from_dict({(1,0):12,(0,3):12,(2,4):27})
+        assert p1 // ztype(3) == ctx.from_dict({(1,0):1,(0.3):1,(2,4):3})
 
 
 def test_fmpz_series():
