@@ -1,4 +1,5 @@
 from flint.flint_base.flint_context cimport thectx
+cimport libc.stdlib
 
 cdef class flint_elem:
     def __repr__(self):
@@ -67,19 +68,55 @@ cdef class flint_poly(flint_elem):
     def roots(self):
         """
         Deprecated function.
-        
+
         To recover roots of a polynomial, first convert to acb:
 
         acb_poly(input_poly).roots()
         """
         raise NotImplementedError('This method is no longer supported. To recover the complex roots first convert to acb_poly')
-        
+
+cdef class flint_mpoly_context(flint_elem):
+    """
+    Base class for multivariate ring contexts
+    """
+
+    def __cinit__(self):
+       self._init = False
+
+    def __init__(self, long nvars, names):
+        assert nvars >= 1
+        assert len(names) == nvars
+        self.py_names = tuple(bytes(name, 'utf-8') for name in names)
+        self.c_names = <char**>libc.stdlib.malloc(nvars * sizeof(char *))
+        self._init = True
+        for i in range(nvars):
+            self.c_names[i] = self.py_names[i]
+
+    def __dealloc__(self):
+        if self._init:
+            libc.stdlib.free(self.c_names)
+        self._init = False
+
+    def name(self, long i):
+        assert i >= 0 and i < len(self.py_names)
+        return self.py_names[i].decode('utf-8')
+
+    def gens(self):
+        return tuple(self.gen(i) for i in range(self.nvars()))
+
 
 
 cdef class flint_mpoly(flint_elem):
     """
     Base class for multivariate polynomials.
     """
+
+    def leading_coefficient(self):
+        return self.coefficient(0)
+
+    def __hash__(self):
+        s = repr(self)
+        return hash(s)
 
 
 cdef class flint_series(flint_elem):
