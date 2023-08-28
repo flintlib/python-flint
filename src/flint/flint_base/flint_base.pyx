@@ -118,6 +118,12 @@ cdef class flint_mpoly(flint_elem):
         s = repr(self)
         return hash(s)
 
+    def to_dict(self):
+        d = {}
+        for i in range(len(self)):
+            d[self.exponent_tuple(i)] = self.coefficient(i)
+        return d
+
 
 cdef class flint_series(flint_elem):
     """

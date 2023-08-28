@@ -81,3 +81,9 @@ cdef class fmpz_mpoly:
     cdef fmpz_mpoly_t val
     cdef bint initialized
 
+cdef class fmpq_mpoly_ctx:
+    cdef fmpq_mpoly_ctx_t val
+
+cdef class fmpq_mpoly:
+    cdef fmpq_mpoly_t val
+    cdef bint initialized

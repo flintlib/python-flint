@@ -116,10 +116,13 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         return res
 
     def constant(self, z):
+        """
+        Create a constant polynomial in this context
+        """
         cdef fmpz_mpoly res
         z = any_as_fmpz(z)
         if z is NotImplemented:
-            raise ValueError()
+            raise ValueError("A constant fmpz_mpoly is a fmpz")
         res = fmpz_mpoly.__new__(fmpz_mpoly)
         res.ctx = self
         fmpz_mpoly_init(res.val, res.ctx.val)
@@ -205,43 +208,43 @@ def get_fmpz_mpoly_context(slong nvars=1, ordering="lex", names='x'):
         _fmpz_mpoly_ctx_cache[key] = ctx
     return ctx
 
-cdef _fmpz_mpoly_set2(fmpz_mpoly_t out, fmpz_mpoly_ctx_t outctx, fmpz_mpoly_t inp, fmpz_mpoly_ctx_t inpctx):
-    cdef slong * C
-    cdef slong i
-    cdef slong inpvars, outvars
-    if outctx == inpctx:
-        fmpz_mpoly_set(out, inp, inpctx)
-    else:
-        inpvars = inpctx.minfo.nvars
-        outvars = inpctx.minfo.nvars
-        C = <slong *> libc.stdlib.malloc(inpvars * sizeof(slong *))
-        for i in range(min(outvars, inpvars)):
-            C[i] = i
-        for i in range(outvars, inpvars):
-            C[i] = -1
-        fmpz_mpoly_compose_fmpz_mpoly_gen(out, inp, C, inpctx, outctx)
-        libc.stdlib.free(C)
+# cdef _fmpz_mpoly_set2(fmpz_mpoly_t out, fmpz_mpoly_ctx_t outctx, fmpz_mpoly_t inp, fmpz_mpoly_ctx_t inpctx):
+#     cdef slong * C
+#     cdef slong i
+#     cdef slong inpvars, outvars
+#     if outctx == inpctx:
+#         fmpz_mpoly_set(out, inp, inpctx)
+#     else:
+#         inpvars = inpctx.minfo.nvars
+#         outvars = inpctx.minfo.nvars
+#         C = <slong *> libc.stdlib.malloc(inpvars * sizeof(slong *))
+#         for i in range(min(outvars, inpvars)):
+#             C[i] = i
+#         for i in range(outvars, inpvars):
+#             C[i] = -1
+#         fmpz_mpoly_compose_fmpz_mpoly_gen(out, inp, C, inpctx, outctx)
+#         libc.stdlib.free(C)
 
-def coerce_fmpz_mpolys(*args):
-    cdef fmpz_mpoly_ctx ctx
-    ctx = get_fmpz_mpoly_context()
-    if not args:
-        return ctx, []
-    args = list(args)
-    if typecheck(args[0], fmpz_mpoly):
-        ctx = (<fmpz_mpoly> args[0]).ctx
-        if all(typecheck(args[i], fmpz_mpoly) and (<fmpz_mpoly> args[i]).ctx is ctx for i in range(1, len(args))):
-            return ctx, args
-    for i in range(len(args)):
-        if not typecheck(args[i], fmpz_mpoly):
-            args[i] = fmpz_mpoly(args[i])
-    nvars = max((<fmpz_mpoly>pol).ctx.nvars() for pol in args)
-    ctx = get_fmpz_mpoly_context(nvars)
-    args2 = [fmpz_mpoly() for i in range(len(args))]
-    for i in range(len(args)):
-        (<fmpz_mpoly> args2[i]).ctx = ctx
-        _fmpz_mpoly_set2((<fmpz_mpoly> args2[i]).val, ctx.val, (<fmpz_mpoly> args[i]).val, (<fmpz_mpoly> args[i]).ctx.val)
-    return ctx, args2
+# def coerce_fmpz_mpolys(*args):
+#     cdef fmpz_mpoly_ctx ctx
+#     ctx = get_fmpz_mpoly_context()
+#     if not args:
+#         return ctx, []
+#     args = list(args)
+#     if typecheck(args[0], fmpz_mpoly):
+#         ctx = (<fmpz_mpoly> args[0]).ctx
+#         if all(typecheck(args[i], fmpz_mpoly) and (<fmpz_mpoly> args[i]).ctx is ctx for i in range(1, len(args))):
+#             return ctx, args
+#     for i in range(len(args)):
+#         if not typecheck(args[i], fmpz_mpoly):
+#             args[i] = fmpz_mpoly(args[i])
+#     nvars = max((<fmpz_mpoly>pol).ctx.nvars() for pol in args)
+#     ctx = get_fmpz_mpoly_context(nvars)
+#     args2 = [fmpz_mpoly() for i in range(len(args))]
+#     for i in range(len(args)):
+#         (<fmpz_mpoly> args2[i]).ctx = ctx
+#         _fmpz_mpoly_set2((<fmpz_mpoly> args2[i]).val, ctx.val, (<fmpz_mpoly> args[i]).val, (<fmpz_mpoly> args[i]).ctx.val)
+#     return ctx, args2
 
 cdef inline init_fmpz_mpoly(fmpz_mpoly var, fmpz_mpoly_ctx ctx):
     var.ctx = ctx
@@ -587,50 +590,50 @@ cdef class fmpz_mpoly(flint_mpoly):
         fmpz_mpoly_gcd(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
         return res
 
-    def __call__(self, *args):
-        cdef fmpz_mpoly res
-        cdef fmpz_mpoly_ctx res_ctx
-        cdef fmpz_struct ** V
-        cdef fmpz vres
-        cdef fmpz_mpoly_struct ** C
-        cdef slong i, nvars, nargs
-        other = tuple(args)
-        nargs = len(args)
-        nvars = self.ctx.nvars()
-        # todo: should extend with generators instead?
-        if nargs < nvars:
-            args = args + (0,) * (nvars - nargs)
-        if nargs > nvars:
-            args = args[:nvars]
-        args_fmpz = [any_as_fmpz(v) for v in args]
-        # todo: for combination, compose
-        # todo: if fewer than number of variables, evaluate partially?
-        if NotImplemented not in args_fmpz:
-            V = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
-            try:
-                for i in range(nvars):
-                    V[i] = &((<fmpz> args_fmpz[i]).val[0])
-                vres = fmpz.__new__(fmpz)
-                if fmpz_mpoly_evaluate_all_fmpz(vres.val, self.val, V, self.ctx.val) == 0:
-                    raise ValueError("unreasonably large polynomial")
-                return vres
-            finally:
-                libc.stdlib.free(V)
-        else:
-            res_ctx, args = coerce_fmpz_mpolys(*args)
-            C = <fmpz_mpoly_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_mpoly_struct *))
-            try:
-                for i in range(nvars):
-                    C[i] = &((<fmpz_mpoly> args[i]).val[0])
-                res = fmpz_mpoly.__new__(fmpz_mpoly)
-                res.ctx = res_ctx
-                fmpz_mpoly_init(res.val, res.ctx.val)
-                res._init = True
-                if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C, self.ctx.val, res_ctx.val) == 0:
-                    raise ValueError("unreasonably large polynomial")
-                return res
-            finally:
-                libc.stdlib.free(C)
+    # def __call__(self, *args):
+    #     cdef fmpz_mpoly res
+    #     cdef fmpz_mpoly_ctx res_ctx
+    #     cdef fmpz_struct ** V
+    #     cdef fmpz vres
+    #     cdef fmpz_mpoly_struct ** C
+    #     cdef slong i, nvars, nargs
+    #     other = tuple(args)
+    #     nargs = len(args)
+    #     nvars = self.ctx.nvars()
+    #     # todo: should extend with generators instead?
+    #     if nargs < nvars:
+    #         args = args + (0,) * (nvars - nargs)
+    #     if nargs > nvars:
+    #         args = args[:nvars]
+    #     args_fmpz = [any_as_fmpz(v) for v in args]
+    #     # todo: for combination, compose
+    #     # todo: if fewer than number of variables, evaluate partially?
+    #     if NotImplemented not in args_fmpz:
+    #         V = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
+    #         try:
+    #             for i in range(nvars):
+    #                 V[i] = &((<fmpz> args_fmpz[i]).val[0])
+    #             vres = fmpz.__new__(fmpz)
+    #             if fmpz_mpoly_evaluate_all_fmpz(vres.val, self.val, V, self.ctx.val) == 0:
+    #                 raise ValueError("unreasonably large polynomial")
+    #             return vres
+    #         finally:
+    #             libc.stdlib.free(V)
+    #     else:
+    #         res_ctx, args = coerce_fmpz_mpolys(*args)
+    #         C = <fmpz_mpoly_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_mpoly_struct *))
+    #         try:
+    #             for i in range(nvars):
+    #                 C[i] = &((<fmpz_mpoly> args[i]).val[0])
+    #             res = fmpz_mpoly.__new__(fmpz_mpoly)
+    #             res.ctx = res_ctx
+    #             fmpz_mpoly_init(res.val, res.ctx.val)
+    #             res._init = True
+    #             if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C, self.ctx.val, res_ctx.val) == 0:
+    #                 raise ValueError("unreasonably large polynomial")
+    #             return res
+    #         finally:
+    #             libc.stdlib.free(C)
 
     '''
     def factor(self):
