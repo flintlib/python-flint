@@ -1,5 +1,6 @@
 from flint.flint_base.flint_base cimport flint_mat
 from flint.utils.typecheck cimport typecheck
+from flint.fmpz cimport fmpz
 
 cdef any_as_fmpz_mat(obj):
     if typecheck(obj, fmpz_mat):

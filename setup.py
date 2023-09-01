@@ -66,6 +66,7 @@ if os.getenv('PYTHON_FLINT_COVERAGE'):
 ext_files = [
     ("flint._flint", ["src/flint/pyflint.pyx"]), # Main Module
     # Submodules
+    ("flint.fmpz", ["src/flint/fmpz.pyx"]), # Main Module
     ("flint.flint_base.flint_base", ["src/flint/flint_base/flint_base.pyx"]),
     ("flint.flint_base.flint_context", ["src/flint/flint_base/flint_context.pyx"]),
 

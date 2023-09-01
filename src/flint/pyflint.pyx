@@ -24,13 +24,13 @@ cdef extern from "Python.h":
     double PyComplex_RealAsDouble(PyObject *op)
     double PyComplex_ImagAsDouble(PyObject *op)
 
-DEF FMPZ_UNKNOWN = 0
-DEF FMPZ_REF = 1
-DEF FMPZ_TMP = 2
+#DEF FMPZ_UNKNOWN = 0
+#DEF FMPZ_REF = 1
+#DEF FMPZ_TMP = 2
 
 ctx = thectx
 
-include "fmpz.pyx"
+#include "fmpz.pyx"
 include "fmpz_poly.pyx"
 include "fmpz_mpoly.pyx"
 include "fmpz_mat.pyx"

@@ -3,14 +3,15 @@ from cpython.version cimport PY_MAJOR_VERSION
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
-from flint.utils.conversion cimport chars_from_str, str_from_chars
+from flint.utils.conversion cimport chars_from_str, str_from_chars, _str_trunc
+from flint.fmpz cimport fmpz_set_pylong
 
-cdef _str_trunc(s, trunc=0):
-    if trunc > 0 and len(s) > 3 * trunc:
-        left = right = trunc
-        omitted = len(s) - left - right
-        return s[:left] + ("{...%s digits...}" % omitted) + s[-right:]
-    return s
+# cdef _str_trunc(s, trunc=0):
+#     if trunc > 0 and len(s) > 3 * trunc:
+#         left = right = trunc
+#         omitted = len(s) - left - right
+#         return s[:left] + ("{...%s digits...}" % omitted) + s[-right:]
+#     return s
 
 cdef arb_from_str(str s):
     s = s.strip()

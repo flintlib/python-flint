@@ -3,6 +3,8 @@ from cpython.version cimport PY_MAJOR_VERSION
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
+from flint.fmpz cimport fmpz_set_python
+from flint.fmpz cimport any_as_fmpz
 
 cdef any_as_fmpz_poly(x):
     cdef fmpz_poly res

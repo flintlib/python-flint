@@ -3,25 +3,37 @@ from cpython.version cimport PY_MAJOR_VERSION
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport chars_from_str
+from flint.utils.conversion cimport str_from_chars, _str_trunc
+cimport libc.stdlib
 
-cdef inline int fmpz_set_pylong(fmpz_t x, obj):
-    cdef int overflow
-    cdef slong longval
-    longval = pylong_as_slong(<PyObject*>obj, &overflow)
-    if overflow:
-        s = "%x" % obj
-        fmpz_set_str(x, chars_from_str(s), 16)
-    else:
-        fmpz_set_si(x, longval)
+from flint.fmpz cimport fmpz
+from flint._flint cimport *
 
-cdef inline int fmpz_set_python(fmpz_t x, obj):
-    if PY_MAJOR_VERSION < 3 and PyInt_Check(<PyObject*>obj):
-        fmpz_set_si(x, PyInt_AS_LONG(<PyObject*>obj))
-        return 1
-    if PyLong_Check(<PyObject*>obj):
-        fmpz_set_pylong(x, obj)
-        return 1
-    return 0
+cdef FMPZ_UNKNOWN = 0
+cdef FMPZ_REF = 1
+cdef FMPZ_TMP = 2
+
+from flint._flint cimport *
+
+
+# cdef inline int fmpz_set_pylong(fmpz_t x, obj):
+#     cdef int overflow
+#     cdef slong longval
+#     longval = pylong_as_slong(<PyObject*>obj, &overflow)
+#     if overflow:
+#         s = "%x" % obj
+#         fmpz_set_str(x, chars_from_str(s), 16)
+#     else:
+#         fmpz_set_si(x, longval)
+
+# cdef inline int fmpz_set_python(fmpz_t x, obj):
+#     if PY_MAJOR_VERSION < 3 and PyInt_Check(<PyObject*>obj):
+#         fmpz_set_si(x, PyInt_AS_LONG(<PyObject*>obj))
+#         return 1
+#     if PyLong_Check(<PyObject*>obj):
+#         fmpz_set_pylong(x, obj)
+#         return 1
+#     return 0
 
 cdef fmpz_get_intlong(fmpz_t x):
     """
@@ -75,8 +87,6 @@ cdef class fmpz(flint_scalar):
         847288609443
 
     """
-
-    cdef fmpz_t val
 
     def __cinit__(self):
         fmpz_init(self.val)

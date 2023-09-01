@@ -1,5 +1,9 @@
 from flint._flint cimport *
 
+cdef FMPZ_UNKNOWN = 0
+cdef FMPZ_REF = 1
+cdef FMPZ_TMP = 2
+
 cdef class Context:
     cpdef public bint pretty
     cpdef public long prec

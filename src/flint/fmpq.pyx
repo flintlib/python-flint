@@ -1,12 +1,20 @@
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
+from flint.fmpz cimport fmpz_set_any_ref
+
+
+cdef FMPZ_UNKNOWN = 0
+cdef FMPZ_REF = 1
+cdef FMPZ_TMP = 2
+
+
 
 cdef any_as_fmpq(obj):
     if typecheck(obj, fmpq):
         return obj
     z = any_as_fmpz(obj)
     if z is NotImplemented:
-        return z
+        return z 
     q = fmpq.__new__(fmpq)
     fmpz_set(fmpq_numref((<fmpq>q).val), (<fmpz>z).val)
     fmpz_one(fmpq_denref((<fmpq>q).val))
