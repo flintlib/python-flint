@@ -24,7 +24,7 @@ cdef class acb_mat(flint_mat):
         [           3.0000, 4.4000 + 0.60000j]
 
     """
-    cdef acb_mat_t val
+    # cdef acb_mat_t val
 
     def __cinit__(self):
         acb_mat_init(self.val, 0, 0)

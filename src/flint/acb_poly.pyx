@@ -35,7 +35,7 @@ cdef int acb_vec_check_tol(acb_srcptr vec, long n, tol) except -1:
 
 cdef class acb_poly(flint_poly):
 
-    cdef acb_poly_t val
+    # cdef acb_poly_t val
 
     def __cinit__(self):
         acb_poly_init(self.val)

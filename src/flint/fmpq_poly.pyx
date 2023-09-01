@@ -1,5 +1,6 @@
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_poly
+from flint.fmpz_poly cimport any_as_fmpz_poly
 
 cdef any_as_fmpq_poly(obj):
     if typecheck(obj, fmpq_poly):
@@ -54,7 +55,7 @@ cdef class fmpq_poly(flint_poly):
 
     """
 
-    cdef fmpq_poly_t val
+    # cdef fmpq_poly_t val
 
     def __cinit__(self):
         fmpq_poly_init(self.val)

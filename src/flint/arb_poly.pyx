@@ -27,7 +27,7 @@ cdef arb_poly_set_list(arb_poly_t poly, list val, long prec):
 
 cdef class arb_poly(flint_poly):
 
-    cdef arb_poly_t val
+    # cdef arb_poly_t val
 
     def __cinit__(self):
         arb_poly_init(self.val)

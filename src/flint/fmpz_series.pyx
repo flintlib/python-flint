@@ -1,5 +1,6 @@
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_series
+from flint.fmpz_poly cimport fmpz_poly_set_list
 
 cdef fmpz_series_coerce_operands(x, y):
     if isinstance(y, (int, long, fmpz, fmpz_poly)):
@@ -30,8 +31,8 @@ cdef class fmpz_series(flint_series):
 
     """
 
-    cdef fmpz_poly_t val
-    cdef long prec
+    # cdef fmpz_poly_t val
+    # cdef long prec
 
     def __cinit__(self):
         fmpz_poly_init(self.val)

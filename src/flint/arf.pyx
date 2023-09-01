@@ -4,7 +4,7 @@ from flint.utils.conversion cimport prec_to_dps
 
 cdef class arf:
 
-    cdef arf_t val
+    # cdef arf_t val
 
     def __cinit__(self):
         arf_init(self.val)

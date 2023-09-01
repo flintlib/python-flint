@@ -11,8 +11,8 @@ cdef arb_series_coerce_operands(x, y):
 
 cdef class arb_series(flint_series):
 
-    cdef arb_poly_t val
-    cdef long prec
+    # cdef arb_poly_t val
+    # cdef long prec
 
     def __cinit__(self):
         arb_poly_init(self.val)

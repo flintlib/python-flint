@@ -14,8 +14,8 @@ cdef fmpq_series_coerce_operands(x, y):
 
 cdef class fmpq_series(flint_series):
 
-    cdef fmpq_poly_t val
-    cdef long prec
+    # cdef fmpq_poly_t val
+    # cdef long prec
 
     def __cinit__(self):
         fmpq_poly_init(self.val)

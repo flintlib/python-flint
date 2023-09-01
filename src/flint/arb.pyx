@@ -163,7 +163,7 @@ cdef class arb(flint_scalar):
     See :meth:`.arb.str` for details.
     """
 
-    cdef arb_t val
+    # cdef arb_t val
 
     def __cinit__(self):
         arb_init(self.val)

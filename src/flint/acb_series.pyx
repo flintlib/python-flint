@@ -9,8 +9,8 @@ cdef acb_series_coerce_operands(x, y):
 
 cdef class acb_series(flint_series):
 
-    cdef acb_poly_t val
-    cdef long prec
+    # cdef acb_poly_t val
+    # cdef long prec
 
     def __cinit__(self):
         acb_poly_init(self.val)

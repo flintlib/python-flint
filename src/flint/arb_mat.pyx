@@ -32,7 +32,7 @@ cdef class arb_mat(flint_mat):
 
     """
 
-    cdef arb_mat_t val
+    # cdef arb_mat_t val
 
     def __cinit__(self):
         arb_mat_init(self.val, 0, 0)

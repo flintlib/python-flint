@@ -55,7 +55,7 @@ cdef class nmod_poly(flint_poly):
 
     """
 
-    cdef nmod_poly_t val
+    # cdef nmod_poly_t val
 
     #def __cinit__(self):
 

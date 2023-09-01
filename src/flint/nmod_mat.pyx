@@ -21,7 +21,7 @@ cdef class nmod_mat:
     word-size n. Some operations may assume that n is a prime.
     """
 
-    cdef nmod_mat_t val
+#    cdef nmod_mat_t val
 
     def __dealloc__(self):
         nmod_mat_clear(self.val)

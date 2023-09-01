@@ -5,6 +5,18 @@ from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
 from flint.fmpz cimport fmpz_set_python
 from flint.fmpz cimport any_as_fmpz
+from flint.fmpz cimport fmpz
+from flint.pyflint cimport any_as_fmpq
+from flint.pyflint cimport fmpq
+from flint.pyflint cimport fmpq_poly
+from flint.pyflint cimport any_as_fmpq_poly
+from flint.pyflint cimport acb
+from flint.pyflint cimport any_as_arb_or_notimplemented
+from flint.pyflint cimport arb
+from flint.pyflint cimport any_as_acb_or_notimplemented
+cimport libc.stdlib
+
+from flint._flint cimport *
 
 cdef any_as_fmpz_poly(x):
     cdef fmpz_poly res
@@ -51,8 +63,6 @@ cdef class fmpz_poly(flint_poly):
         >>> divmod(fmpz_poly([2,0,1,1,6]), fmpz_poly([3,5,7]))
         (0, 6*x^4 + x^3 + x^2 + 2)
     """
-
-    cdef fmpz_poly_t val
 
     def __cinit__(self):
         fmpz_poly_init(self.val)

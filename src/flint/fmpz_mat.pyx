@@ -1,6 +1,7 @@
 from flint.flint_base.flint_base cimport flint_mat
 from flint.utils.typecheck cimport typecheck
 from flint.fmpz cimport fmpz
+from flint.fmpz_poly cimport fmpz_poly
 
 cdef any_as_fmpz_mat(obj):
     if typecheck(obj, fmpz_mat):
@@ -61,7 +62,7 @@ cdef class fmpz_mat(flint_mat):
 
     """
 
-    cdef fmpz_mat_t val
+ #   cdef fmpz_mat_t val
 
     def __cinit__(self):
         fmpz_mat_init(self.val, 0, 0)

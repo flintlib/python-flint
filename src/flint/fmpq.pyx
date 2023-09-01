@@ -29,7 +29,7 @@ cdef class fmpq(flint_scalar):
 
     """
 
-    cdef fmpq_t val
+#    cdef fmpq_t val
 
     def __cinit__(self):
         fmpq_init(self.val)

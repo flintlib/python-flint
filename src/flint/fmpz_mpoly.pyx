@@ -3,6 +3,7 @@ from cpython.version cimport PY_MAJOR_VERSION
 from flint.utils.conversion cimport str_from_chars
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_mpoly
+from flint.fmpz cimport any_as_fmpz
 
 cdef any_as_fmpz_mpoly(x):
     cdef fmpz_mpoly res
@@ -47,7 +48,7 @@ cdef dict _fmpz_mpoly_ctx_cache = {}
 
 @cython.auto_pickle(False)
 cdef class fmpz_mpoly_ctx:
-    cdef fmpz_mpoly_ctx_t val
+#    cdef fmpz_mpoly_ctx_t val
 
     def __init__(self, slong nvars, ordering="lex"):
         assert nvars >= 1
@@ -117,9 +118,9 @@ cdef class fmpz_mpoly(flint_mpoly):
     the integers.
     """
 
-    cdef fmpz_mpoly_t val
-    cdef fmpz_mpoly_ctx ctx
-    cdef bint _init
+    # cdef fmpz_mpoly_t val
+    # cdef fmpz_mpoly_ctx ctx
+    # cdef bint _init
 
     def __cinit__(self):
         self._init = False

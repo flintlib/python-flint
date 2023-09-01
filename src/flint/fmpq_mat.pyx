@@ -24,7 +24,7 @@ cdef class fmpq_mat(flint_mat):
 
     """
 
-    cdef fmpq_mat_t val
+    # cdef fmpq_mat_t val
 
     def __cinit__(self):
         fmpq_mat_init(self.val, 0, 0)

@@ -116,7 +116,7 @@ cdef class acb(flint_scalar):
         [0.707106781186547 +/- 6.14e-16] + [0.707106781186547 +/- 6.15e-16]j
     """
 
-    cdef acb_t val
+#    cdef acb_t val
 
     def __cinit__(self):
         acb_init(self.val)
