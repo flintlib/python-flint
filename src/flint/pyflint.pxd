@@ -34,11 +34,11 @@ cdef class Context:
 #     cpdef long ncols(self)
 #     cdef __mul_fmpz(self, fmpz c)
 
-cdef class fmpz_series(flint_series):
-    cdef fmpz_poly_t val
-    cdef long prec
-    cpdef long length(self)
-    cpdef valuation(self)
+# cdef class fmpz_series(flint_series):
+#     cdef fmpz_poly_t val
+#     cdef long prec
+#     cpdef long length(self)
+#     cpdef valuation(self)
 
 cdef any_as_fmpq(obj)
 cdef class fmpq(flint_scalar):

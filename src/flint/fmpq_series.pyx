@@ -1,5 +1,6 @@
 from flint.flint_base.flint_base cimport flint_series
 from flint.utils.typecheck cimport typecheck
+from flint.fmpz_series cimport fmpz_series
 
 cdef fmpq_series_coerce_operands(x, y):
     if isinstance(y, (int, long, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly)):
