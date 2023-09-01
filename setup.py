@@ -69,6 +69,7 @@ ext_files = [
     # Submodules
     ("flint.fmpz", ["src/flint/fmpz.pyx"]),
     ("flint.fmpz_poly", ["src/flint/fmpz_poly.pyx"]),
+    ("flint.fmpz_mat", ["src/flint/fmpz_mat.pyx"]),
     ("flint.flint_base.flint_base", ["src/flint/flint_base/flint_base.pyx"]),
     ("flint.flint_base.flint_context", ["src/flint/flint_base/flint_context.pyx"]),
 

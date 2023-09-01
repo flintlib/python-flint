@@ -1,5 +1,6 @@
 from flint.utils.conversion cimport matrix_to_str
 from flint.utils.typecheck cimport typecheck
+from flint.fmpz_mat cimport any_as_fmpz_mat
 
 cdef any_as_nmod_mat(obj, nmod_t mod):
     cdef nmod_mat r

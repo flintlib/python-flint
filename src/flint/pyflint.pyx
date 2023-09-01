@@ -33,7 +33,7 @@ ctx = thectx
 #include "fmpz.pyx"
 #include "fmpz_poly.pyx"
 include "fmpz_mpoly.pyx"
-include "fmpz_mat.pyx"
+#include "fmpz_mat.pyx"
 include "fmpz_series.pyx"
 
 include "fmpq.pyx"

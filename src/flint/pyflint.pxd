@@ -11,6 +11,9 @@ cdef FMPZ_UNKNOWN = 0
 cdef FMPZ_REF = 1
 cdef FMPZ_TMP = 2
 
+
+cdef flint_rand_t global_random_state
+
 cdef class Context:
     cdef public bint pretty
     cdef public long prec
@@ -25,11 +28,11 @@ cdef class Context:
 #cdef class fmpz_poly:
 #    cdef fmpz_poly_t val
 
-cdef class fmpz_mat(flint_mat):
-    cdef fmpz_mat_t val
-    cpdef long nrows(self)
-    cpdef long ncols(self)
-    cdef __mul_fmpz(self, fmpz c)
+# cdef class fmpz_mat(flint_mat):
+#     cdef fmpz_mat_t val
+#     cpdef long nrows(self)
+#     cpdef long ncols(self)
+#     cdef __mul_fmpz(self, fmpz c)
 
 cdef class fmpz_series(flint_series):
     cdef fmpz_poly_t val
@@ -47,6 +50,7 @@ cdef class fmpq_poly(flint_poly):
     cpdef long length(self)
     cpdef long degree(self)
 
+from flint.fmpz_mat cimport fmpz_mat
 cdef class fmpq_mat(flint_mat):
     cdef fmpq_mat_t val
     cpdef long nrows(self)

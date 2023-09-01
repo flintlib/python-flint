@@ -51,6 +51,7 @@ def run_tests(verbose=None):
 def run_doctests(verbose=None):
     """Run the python-flint doctests"""
     # Here verbose=True shows a lot of output.
+#    ffmpz, tfmpz = doctest.testmod(flint.fmpz, verbose=verbose)
     failed, total = doctest.testmod(flint.pyflint, verbose=verbose)
     return failed, total
 

@@ -2,6 +2,14 @@ from flint.flint_base.flint_base cimport flint_mat
 from flint.utils.typecheck cimport typecheck
 from flint.fmpz cimport fmpz
 from flint.fmpz_poly cimport fmpz_poly
+from flint.pyflint cimport fmpq_mat
+from flint.fmpz cimport any_as_fmpz
+from flint.pyflint cimport fmpq
+from flint.pyflint cimport global_random_state
+from flint.pyflint cimport any_as_fmpq
+cimport cython
+
+from flint._flint cimport *
 
 cdef any_as_fmpz_mat(obj):
     if typecheck(obj, fmpz_mat):

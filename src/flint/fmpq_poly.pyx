@@ -1,6 +1,7 @@
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_poly
 from flint.fmpz_poly cimport any_as_fmpz_poly
+from flint.fmpz_poly cimport fmpz_poly
 
 cdef any_as_fmpq_poly(obj):
     if typecheck(obj, fmpq_poly):
