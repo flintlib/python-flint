@@ -518,6 +518,8 @@ cdef class acb_mat(flint_mat):
         """
         Returns whether *t* is contained in *s* (in the sense of balls).
 
+            >>> from flint import fmpz_mat
+            >>> from flint import fmpq_mat
             >>> A = acb_mat([[1,2],[3,4]])
             >>> ((A / 3) * 3).contains(A)
             True
