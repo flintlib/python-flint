@@ -8,4 +8,5 @@ from .fmpq_poly import *
 from .fmpq_mat import *
 from .fmpq_series import *
 from .nmod import *
+from .nmod_poly import *
 __version__ = '0.4.2'

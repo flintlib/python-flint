@@ -75,11 +75,11 @@ from flint.fmpq cimport fmpq
 #     cdef mp_limb_t val
 #     cdef nmod_t mod
 
-cdef class nmod_poly(flint_poly):
-    cdef nmod_poly_t val
-    cpdef long length(self)
-    cpdef long degree(self)
-    cpdef mp_limb_t modulus(self)
+# cdef class nmod_poly(flint_poly):
+#     cdef nmod_poly_t val
+#     cpdef long length(self)
+#     cpdef long degree(self)
+#     cpdef mp_limb_t modulus(self)
 
 cdef class nmod_mat:
     cdef nmod_mat_t val

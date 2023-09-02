@@ -5,6 +5,8 @@ from flint.fmpz_poly cimport fmpz_poly
 from flint.nmod cimport any_as_nmod
 from flint.nmod cimport nmod
 
+from flint._flint cimport *
+
 cdef any_as_nmod_poly(obj, nmod_t mod):
     cdef nmod_poly r
     cdef mp_limb_t v

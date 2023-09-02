@@ -30,19 +30,19 @@ cdef extern from "Python.h":
 
 ctx = thectx
 
-#include "fmpz.pyx"
-#include "fmpz_poly.pyx"
+# include "fmpz.pyx"
+# include "fmpz_poly.pyx"
 include "fmpz_mpoly.pyx"
-#include "fmpz_mat.pyx"
-#include "fmpz_series.pyx"
+# include "fmpz_mat.pyx"
+# include "fmpz_series.pyx"
 
 # include "fmpq.pyx"
 # include "fmpq_poly.pyx"
 # include "fmpq_mat.pyx"
 # include "fmpq_series.pyx"
 
-#include "nmod.pyx"
-include "nmod_poly.pyx"
+# include "nmod.pyx"
+# include "nmod_poly.pyx"
 include "nmod_mat.pyx"
 include "nmod_series.pyx"
 
