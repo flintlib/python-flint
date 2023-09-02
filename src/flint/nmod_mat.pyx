@@ -4,6 +4,14 @@ from flint.fmpz_mat cimport any_as_fmpz_mat
 from flint.fmpz_mat cimport fmpz_mat
 from flint.nmod cimport nmod
 from flint.nmod cimport any_as_nmod
+from flint.pyflint cimport global_random_state
+from flint.flint_base.flint_context cimport thectx
+
+cimport cython
+
+from flint._flint cimport *
+
+ctx = thectx
 
 cdef any_as_nmod_mat(obj, nmod_t mod):
     cdef nmod_mat r

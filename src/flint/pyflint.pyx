@@ -43,8 +43,8 @@ include "fmpz_mpoly.pyx"
 
 # include "nmod.pyx"
 # include "nmod_poly.pyx"
-include "nmod_mat.pyx"
-include "nmod_series.pyx"
+# include "nmod_mat.pyx"
+# include "nmod_series.pyx"
 
 include "arf.pyx"
 include "arb.pyx"

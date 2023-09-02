@@ -77,6 +77,8 @@ ext_files = [
     ("flint.fmpq_series", ["src/flint/fmpq_series.pyx"]),
     ("flint.nmod", ["src/flint/nmod.pyx"]),
     ("flint.nmod_poly", ["src/flint/nmod_poly.pyx"]),
+    ("flint.nmod_mat", ["src/flint/nmod_mat.pyx"]),
+    ("flint.nmod_series", ["src/flint/nmod_series.pyx"]),
     ("flint.flint_base.flint_base", ["src/flint/flint_base/flint_base.pyx"]),
     ("flint.flint_base.flint_context", ["src/flint/flint_base/flint_context.pyx"]),
 

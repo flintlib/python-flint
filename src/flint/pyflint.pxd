@@ -81,15 +81,15 @@ from flint.fmpq cimport fmpq
 #     cpdef long degree(self)
 #     cpdef mp_limb_t modulus(self)
 
-cdef class nmod_mat:
-    cdef nmod_mat_t val
-    cpdef long nrows(self)
-    cpdef long ncols(self)
-    cpdef mp_limb_t modulus(self)
-    cdef __mul_nmod(self, mp_limb_t c)
+# cdef class nmod_mat:
+#     cdef nmod_mat_t val
+#     cpdef long nrows(self)
+#     cpdef long ncols(self)
+#     cpdef mp_limb_t modulus(self)
+#     cdef __mul_nmod(self, mp_limb_t c)
 
-cdef class nmod_series(flint_series):
-    pass
+# cdef class nmod_series(flint_series):
+#     pass
     # cdef nmod_poly_t val
     # cdef long prec
 
