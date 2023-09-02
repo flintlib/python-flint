@@ -2,9 +2,9 @@ from flint.flint_base.flint_base cimport flint_mat
 from flint.utils.typecheck cimport typecheck
 from flint.fmpz cimport fmpz
 from flint.fmpz_poly cimport fmpz_poly
-from flint.pyflint cimport fmpq_mat
+from flint.fmpq_mat cimport fmpq_mat
 from flint.fmpz cimport any_as_fmpz
-from flint.pyflint cimport fmpq
+from flint.fmpq cimport fmpq
 from flint.pyflint cimport global_random_state
 from flint.fmpq cimport any_as_fmpq
 cimport cython
