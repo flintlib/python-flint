@@ -8,8 +8,8 @@ from flint.fmpz cimport any_as_fmpz
 from flint.fmpz cimport fmpz
 from flint.fmpq cimport any_as_fmpq
 from flint.fmpq cimport fmpq
-from flint.pyflint cimport fmpq_poly
-from flint.pyflint cimport any_as_fmpq_poly
+from flint.fmpq_poly cimport fmpq_poly
+from flint.fmpq_poly cimport any_as_fmpq_poly
 from flint.pyflint cimport acb
 from flint.pyflint cimport any_as_arb_or_notimplemented
 from flint.pyflint cimport arb

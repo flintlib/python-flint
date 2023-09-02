@@ -4,6 +4,10 @@ from flint.fmpz_poly cimport any_as_fmpz_poly
 from flint.fmpz_poly cimport fmpz_poly
 from flint.fmpq cimport fmpq
 from flint.fmpq cimport any_as_fmpq
+from flint.fmpz cimport fmpz
+from flint.fmpz cimport any_as_fmpz
+
+from flint._flint cimport *
 
 cdef any_as_fmpq_poly(obj):
     if typecheck(obj, fmpq_poly):

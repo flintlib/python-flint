@@ -45,11 +45,11 @@ cdef class Context:
 #     cdef fmpq_t val
 from flint.fmpq cimport fmpq
 
-cdef any_as_fmpq_poly(obj)
-cdef class fmpq_poly(flint_poly):
-    cdef fmpq_poly_t val
-    cpdef long length(self)
-    cpdef long degree(self)
+# cdef any_as_fmpq_poly(obj)
+# cdef class fmpq_poly(flint_poly):
+#     cdef fmpq_poly_t val
+#     cpdef long length(self)
+#     cpdef long degree(self)
 
 from flint.fmpz_mat cimport fmpz_mat
 cdef class fmpq_mat(flint_mat):

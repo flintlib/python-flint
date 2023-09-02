@@ -5,8 +5,8 @@ from flint.fmpz cimport fmpz
 from flint.fmpz_poly cimport fmpz_poly
 from flint.flint_base.flint_context cimport getcap
 
-from flint.pyflint cimport fmpq
-from flint.pyflint cimport fmpq_poly
+from flint.fmpq cimport fmpq
+from flint.fmpq_poly cimport fmpq_poly
 from flint.pyflint cimport fmpq_series
 from flint.pyflint cimport arb
 from flint.pyflint cimport arb_poly
