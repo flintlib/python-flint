@@ -41,7 +41,7 @@ include "fmpz_mpoly.pyx"
 # include "fmpq_mat.pyx"
 # include "fmpq_series.pyx"
 
-include "nmod.pyx"
+#include "nmod.pyx"
 include "nmod_poly.pyx"
 include "nmod_mat.pyx"
 include "nmod_series.pyx"

@@ -1,6 +1,11 @@
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
 from flint.fmpq cimport any_as_fmpq
+from flint.fmpz cimport any_as_fmpz
+from flint.fmpz cimport fmpz
+from flint.fmpq cimport fmpq
+
+from flint._flint cimport *
 
 cdef int any_as_nmod(mp_limb_t * val, obj, nmod_t mod) except -1:
     cdef int success

@@ -71,9 +71,9 @@ from flint.fmpq cimport fmpq
 #     cdef bint zero_constant_term(s)
 #     cdef bint one_constant_term(s)
 
-cdef class nmod(flint_scalar):
-    cdef mp_limb_t val
-    cdef nmod_t mod
+# cdef class nmod(flint_scalar):
+#     cdef mp_limb_t val
+#     cdef nmod_t mod
 
 cdef class nmod_poly(flint_poly):
     cdef nmod_poly_t val

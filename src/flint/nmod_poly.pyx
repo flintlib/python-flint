@@ -2,6 +2,8 @@ from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
 from flint.fmpz_poly cimport any_as_fmpz_poly
 from flint.fmpz_poly cimport fmpz_poly
+from flint.nmod cimport any_as_nmod
+from flint.nmod cimport nmod
 
 cdef any_as_nmod_poly(obj, nmod_t mod):
     cdef nmod_poly r
