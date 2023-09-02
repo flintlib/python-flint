@@ -63,13 +63,13 @@ from flint.fmpq cimport fmpq
 #     cdef __mul_fmpz_mat(self, fmpz_mat other)
 #     cdef __mul_r_fmpz_mat(self, fmpz_mat other)
 
-cdef class fmpq_series(flint_series):
-    cdef fmpq_poly_t val
-    cdef long prec
-    cpdef long length(self)
-    cpdef valuation(self)
-    cdef bint zero_constant_term(s)
-    cdef bint one_constant_term(s)
+# cdef class fmpq_series(flint_series):
+#     cdef fmpq_poly_t val
+#     cdef long prec
+#     cpdef long length(self)
+#     cpdef valuation(self)
+#     cdef bint zero_constant_term(s)
+#     cdef bint one_constant_term(s)
 
 cdef class nmod(flint_scalar):
     cdef mp_limb_t val

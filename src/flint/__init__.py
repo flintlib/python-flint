@@ -6,4 +6,5 @@ from .fmpz_series import *
 from .fmpq import *
 from .fmpq_poly import *
 from .fmpq_mat import *
+from .fmpq_series import *
 __version__ = '0.4.2'
