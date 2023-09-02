@@ -1,6 +1,11 @@
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.flint_base.flint_context cimport getprec
+from flint.arb cimport arb_set_mpmath_mpf
+
+cdef FMPZ_UNKNOWN = 0
+cdef FMPZ_REF = 1
+cdef FMPZ_TMP = 2
 
 cdef int acb_set_python(acb_t x, obj, bint allow_conversion):
     cdef double re, im
@@ -647,6 +652,7 @@ cdef class acb(flint_scalar):
         The function is defined to be continuous away from the
         negative half-axis and thus differs from `\log(\Gamma(s))` in general.
 
+            >>> from flint import arb
             >>> showgood(lambda: acb(1,2).lgamma(), dps=25)
             -1.876078786430929341229996 + 0.1296463163097883113837075j
             >>> showgood(lambda: (acb(0,10).lgamma() - acb(0,10).gamma().log()).imag / arb.pi(), dps=25)
@@ -1395,6 +1401,7 @@ cdef class acb(flint_scalar):
         exact integers, even if the input intervals are inexact.
         If the parameters are exact, these flags are not needed.
 
+            >>> from flint import arb
             >>> showgood(lambda: acb("11/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5, abc=True), dps=25)
             1.801782659480054173351004 - 0.3114019850045849100659641j
             >>> showgood(lambda: acb("11/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5), dps=25)
@@ -2434,6 +2441,7 @@ cdef class acb(flint_scalar):
         Computes the integral `\int_a^b f(x) dx` where the integrand
         *f* is defined by *func*.
 
+            >>> from flint import arb
             >>> showgood(lambda: acb.integral(lambda x, _: x.sin(), 0, arb.pi()), dps=25)
             2.000000000000000000000000
             >>> showgood(lambda: acb.integral(lambda x, _: (x + x.sin()).gamma(), 1, 1+1j), dps=25)

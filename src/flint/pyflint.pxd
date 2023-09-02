@@ -101,15 +101,15 @@ from flint.fmpq cimport fmpq
 #     cpdef bint is_nan(self)
 #     cpdef bint is_zero(self)
 
-cdef any_as_arb_or_notimplemented(x)
-cdef class arb(flint_scalar):
-    cdef arb_t val
+# cdef any_as_arb_or_notimplemented(x)
+# cdef class arb(flint_scalar):
+#     cdef arb_t val
 
-    cpdef bint is_zero(self)
-    cpdef bint is_finite(self)
-    cpdef bint is_nan(self)
-    cpdef bint is_exact(self)
-    cpdef bint is_integer(self)
+#     cpdef bint is_zero(self)
+#     cpdef bint is_finite(self)
+#     cpdef bint is_nan(self)
+#     cpdef bint is_exact(self)
+#     cpdef bint is_integer(self)
 
 
 cdef any_as_acb_or_notimplemented(x)

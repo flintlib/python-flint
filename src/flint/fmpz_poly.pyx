@@ -11,8 +11,8 @@ from flint.fmpq cimport fmpq
 from flint.fmpq_poly cimport fmpq_poly
 from flint.fmpq_poly cimport any_as_fmpq_poly
 from flint.pyflint cimport acb
-from flint.pyflint cimport any_as_arb_or_notimplemented
-from flint.pyflint cimport arb
+from flint.arb cimport any_as_arb_or_notimplemented
+from flint.arb cimport arb
 from flint.pyflint cimport any_as_acb_or_notimplemented
 cimport libc.stdlib
 

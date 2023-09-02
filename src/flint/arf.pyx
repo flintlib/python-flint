@@ -4,7 +4,7 @@ from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport prec_to_dps
 from flint.fmpz cimport fmpz
 from flint.fmpz cimport any_as_fmpz
-from flint.pyflint cimport arb
+from flint.arb cimport arb
 
 from flint._flint cimport *
 

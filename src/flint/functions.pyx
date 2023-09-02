@@ -33,6 +33,7 @@ def good(func, slong prec=0, slong maxprec=0, slong dps=0,
     a result accurate to the current working precision (or the
     precision specified by *prec* or *dps*).
 
+        >>> from flint import arb
         >>> good(lambda: (arb.pi() + arb("1e-100")).sin())
         Traceback (most recent call last):
           ...
@@ -107,6 +108,7 @@ def showgood(func, **kwargs):
     value of the result (without an explicit radius) instead
     of returning it.
 
+        >>> from flint import arb
         >>> showgood(lambda: arb.pi())
         3.14159265358979
         >>> showgood(lambda: arb.pi(), dps=50)

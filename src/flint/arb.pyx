@@ -1,11 +1,20 @@
 from cpython.version cimport PY_MAJOR_VERSION
 
 from flint.flint_base.flint_context cimport getprec
+from flint.flint_base.flint_context cimport thectx
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport chars_from_str, str_from_chars, _str_trunc
 from flint.fmpz cimport fmpz_set_pylong
 from flint.arf cimport arf
+from flint.fmpq cimport fmpq
+from flint.fmpz cimport fmpz
+
+from flint._flint cimport  *
+cimport libc.stdlib
+cimport cython
+
+ctx = thectx
 
 cdef FMPZ_UNKNOWN = 0
 cdef FMPZ_REF = 1
@@ -129,7 +138,7 @@ cdef any_as_arb_or_notimplemented(x):
     return t
 
 cdef class arb(flint_scalar):
-    ur"""
+    r"""
     Represents a real number `x` by a midpoint `m` and a radius `r`
     such that `x \in [m \pm r] = [m-r, m+r]`.
     The midpoint and radius are both floating-point numbers. The radius
@@ -2464,3 +2473,4 @@ cdef class arb(flint_scalar):
         arb_hypgeom_coulomb(NULL, (<arb>G).val,
                         (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
         return G
+

@@ -80,6 +80,7 @@ ext_files = [
     ("flint.nmod_mat", ["src/flint/nmod_mat.pyx"]),
     ("flint.nmod_series", ["src/flint/nmod_series.pyx"]),
     ("flint.arf", ["src/flint/arf.pyx"]),
+    ("flint.arb", ["src/flint/arb.pyx"]),
     ("flint.flint_base.flint_base", ["src/flint/flint_base/flint_base.pyx"]),
     ("flint.flint_base.flint_context", ["src/flint/flint_base/flint_context.pyx"]),
 
