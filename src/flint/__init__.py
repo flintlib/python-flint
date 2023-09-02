@@ -11,4 +11,5 @@ from .nmod import *
 from .nmod_poly import *
 from .nmod_mat import *
 from .nmod_series import *
+from .arf import *
 __version__ = '0.4.2'

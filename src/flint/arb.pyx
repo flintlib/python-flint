@@ -5,6 +5,7 @@ from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport chars_from_str, str_from_chars, _str_trunc
 from flint.fmpz cimport fmpz_set_pylong
+from flint.arf cimport arf
 
 cdef FMPZ_UNKNOWN = 0
 cdef FMPZ_REF = 1

@@ -46,7 +46,7 @@ include "fmpz_mpoly.pyx"
 # include "nmod_mat.pyx"
 # include "nmod_series.pyx"
 
-include "arf.pyx"
+# include "arf.pyx"
 include "arb.pyx"
 include "arb_poly.pyx"
 include "arb_mat.pyx"

@@ -93,13 +93,13 @@ from flint.fmpq cimport fmpq
     # cdef nmod_poly_t val
     # cdef long prec
 
-cdef class arf:
-    cdef arf_t val
-    cpdef bint is_finite(self)
-    cpdef bint is_pos_inf(self)
-    cpdef bint is_neg_inf(self)
-    cpdef bint is_nan(self)
-    cpdef bint is_zero(self)
+# cdef class arf:
+#     cdef arf_t val
+#     cpdef bint is_finite(self)
+#     cpdef bint is_pos_inf(self)
+#     cpdef bint is_neg_inf(self)
+#     cpdef bint is_nan(self)
+#     cpdef bint is_zero(self)
 
 cdef any_as_arb_or_notimplemented(x)
 cdef class arb(flint_scalar):
