@@ -6,8 +6,8 @@ from flint.utils.typecheck cimport typecheck
 from flint.fmpz cimport fmpz_set_python
 from flint.fmpz cimport any_as_fmpz
 from flint.fmpz cimport fmpz
-from flint.pyflint cimport any_as_fmpq
-from flint.pyflint cimport fmpq
+from flint.fmpq cimport any_as_fmpq
+from flint.fmpq cimport fmpq
 from flint.pyflint cimport fmpq_poly
 from flint.pyflint cimport any_as_fmpq_poly
 from flint.pyflint cimport acb

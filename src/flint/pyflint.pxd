@@ -40,9 +40,10 @@ cdef class Context:
 #     cpdef long length(self)
 #     cpdef valuation(self)
 
-cdef any_as_fmpq(obj)
-cdef class fmpq(flint_scalar):
-    cdef fmpq_t val
+# cdef any_as_fmpq(obj)
+# cdef class fmpq(flint_scalar):
+#     cdef fmpq_t val
+from flint.fmpq cimport fmpq
 
 cdef any_as_fmpq_poly(obj)
 cdef class fmpq_poly(flint_poly):

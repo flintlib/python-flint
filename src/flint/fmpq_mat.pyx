@@ -11,7 +11,7 @@ cdef any_as_fmpq_mat(obj):
 cdef class fmpq_mat(flint_mat):
     """
     Represents a dense matrix over the rational numbers.
-
+        >>> from flint import fmpq
         >>> A = fmpq_mat(3,3,[1,3,5,2,4,6,fmpq(2,3),2,4])
         >>> A.inv()
         [-3,  3/2, 3/2]

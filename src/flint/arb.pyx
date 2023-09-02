@@ -6,6 +6,9 @@ from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport chars_from_str, str_from_chars, _str_trunc
 from flint.fmpz cimport fmpz_set_pylong
 
+cdef FMPZ_UNKNOWN = 0
+cdef FMPZ_REF = 1
+cdef FMPZ_TMP = 2
 # cdef _str_trunc(s, trunc=0):
 #     if trunc > 0 and len(s) > 3 * trunc:
 #         left = right = trunc
@@ -906,6 +909,7 @@ cdef class arb(flint_scalar):
         r"""
         Returns the algebraic sine value `\sin(\pi s)`.
 
+            >>> from flint import fmpq
             >>> showgood(lambda: arb.sin_pi_fmpq(fmpq(3,4)), dps=25)
             0.7071067811865475244008444
         """
@@ -918,6 +922,7 @@ cdef class arb(flint_scalar):
         r"""
         Returns the algebraic cosine value `\cos(\pi s)`.
 
+            >>> from flint import fmpq
             >>> showgood(lambda: arb.cos_pi_fmpq(fmpq(3,4)), dps=25)
             -0.7071067811865475244008444
         """
@@ -930,6 +935,7 @@ cdef class arb(flint_scalar):
         r"""
         Computes `\sin(\pi s)` and `\cos(\pi s)` simultaneously.
 
+            >>> from flint import fmpq
             >>> showgood(lambda: arb.sin_cos_pi_fmpq(fmpq(3,4)), dps=25)
             (0.7071067811865475244008444, -0.7071067811865475244008444)
         """
@@ -1168,6 +1174,7 @@ cdef class arb(flint_scalar):
         exploiting the fact that *s* is an exact rational number to
         improve performance.
 
+            >>> from flint import fmpq
             >>> showgood(lambda: arb.gamma_fmpq(fmpq(1,4)), dps=25)
             3.625609908221908311930685
         """
@@ -1241,6 +1248,7 @@ cdef class arb(flint_scalar):
         number and *n* is an unsigned integer. The current implementation
         does not use the gamma function, so *n* should be moderate.
 
+            >>> from flint import fmpq
             >>> showgood(lambda: arb.rising_fmpq_ui(fmpq(-1,3), 100), dps=25)
             -4.960517984074284420131903e+154
         """

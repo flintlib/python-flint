@@ -6,7 +6,7 @@ from flint.pyflint cimport fmpq_mat
 from flint.fmpz cimport any_as_fmpz
 from flint.pyflint cimport fmpq
 from flint.pyflint cimport global_random_state
-from flint.pyflint cimport any_as_fmpq
+from flint.fmpq cimport any_as_fmpq
 cimport cython
 
 from flint._flint cimport *

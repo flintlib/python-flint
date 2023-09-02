@@ -36,7 +36,7 @@ include "fmpz_mpoly.pyx"
 #include "fmpz_mat.pyx"
 #include "fmpz_series.pyx"
 
-include "fmpq.pyx"
+# include "fmpq.pyx"
 include "fmpq_poly.pyx"
 include "fmpq_mat.pyx"
 include "fmpq_series.pyx"

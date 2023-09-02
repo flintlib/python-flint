@@ -2,6 +2,8 @@ from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_poly
 from flint.fmpz_poly cimport any_as_fmpz_poly
 from flint.fmpz_poly cimport fmpz_poly
+from flint.fmpq cimport fmpq
+from flint.fmpq cimport any_as_fmpq
 
 cdef any_as_fmpq_poly(obj):
     if typecheck(obj, fmpq_poly):
@@ -375,6 +377,7 @@ cdef class fmpq_poly(flint_poly):
         Computes the complex roots of this polynomial. See
         :meth:`.fmpz_poly.roots`.
 
+            >>> from flint import fmpq
             >>> fmpq_poly([fmpq(2,3),1]).roots()
             [([-0.666666666666667 +/- 3.34e-16], 1)]
         """

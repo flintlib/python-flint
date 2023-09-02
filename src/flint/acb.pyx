@@ -106,6 +106,7 @@ cdef class acb(flint_scalar):
     An *acb* represents a complex number by a rectangular enclosure
     consisting of *arb* balls for the real and imaginary parts.
 
+        >>> from flint import fmpq
         >>> acb(2)
         2.00000000000000
         >>> acb(2+3j)
@@ -2189,6 +2190,7 @@ cdef class acb(flint_scalar):
         Optionally the regularized hypergeometric function can be
         computed.
 
+            >>> from flint import fmpq
             >>> showgood(lambda: acb.pi().hypgeom([1+1j, 2-2j], [3, fmpq(1,3)]), dps=25)  # 2F2
             144.9760711583421645394627 - 51.06535684838559608699106j
             >>> showgood(lambda: acb.pi().hypgeom([1+1j, 2-2j], [3, fmpq(1,3)], regularized=True), dps=25)
