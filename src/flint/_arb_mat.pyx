@@ -8,9 +8,9 @@ from flint._arb_poly cimport arb_poly
 from flint._arb cimport any_as_arb
 from flint._fmpz cimport fmpz
 from flint._fmpq cimport fmpq
-from flint.pyflint cimport acb
+from flint._acb cimport acb
 from flint.pyflint cimport acb_mat
-from flint.pyflint cimport any_as_acb
+from flint._acb cimport any_as_acb
 
 from flint._flint cimport *
 cimport cython

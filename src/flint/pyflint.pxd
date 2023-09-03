@@ -112,13 +112,13 @@ from flint._fmpq cimport fmpq
 #     cpdef bint is_integer(self)
 
 
-cdef any_as_acb(x)
-cdef any_as_acb_or_notimplemented(x)
-cdef class acb(flint_scalar):
-    cdef acb_t val
-    cpdef bint is_zero(self)
-    cpdef bint is_finite(self)
-    cpdef bint is_exact(self)
+# cdef any_as_acb(x)
+# cdef any_as_acb_or_notimplemented(x)
+# cdef class acb(flint_scalar):
+#     cdef acb_t val
+#     cpdef bint is_zero(self)
+#     cpdef bint is_finite(self)
+#     cpdef bint is_exact(self)
 
 # cdef class arb_poly(flint_poly):
 #     cdef arb_poly_t val
@@ -164,3 +164,13 @@ cdef class fmpz_mpoly(flint_mpoly):
     cdef fmpz_mpoly_ctx ctx
     cdef bint _init
 
+cdef class dirichlet_group(object):
+    cdef dirichlet_group_t val
+    cdef int _init
+
+    cpdef long size(self)
+
+cdef class dirichlet_char(object):
+
+    cdef dirichlet_char_t val
+    cdef dirichlet_group G

@@ -9,7 +9,7 @@ from flint._fmpq cimport fmpq
 from flint._arb cimport arb
 from flint._arb_poly cimport arb_poly
 from flint._arb_series cimport arb_series
-from flint.pyflint cimport acb
+from flint._acb cimport acb
 from flint.pyflint cimport acb_poly
 from flint.pyflint cimport acb_series
 from flint.flint_base.flint_context cimport getcap

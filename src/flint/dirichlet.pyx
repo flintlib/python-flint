@@ -11,8 +11,8 @@ cdef class dirichlet_group(object):
         Dirichlet group mod q = 5
     """
 
-    cdef dirichlet_group_t val
-    cdef int _init
+    # cdef dirichlet_group_t val
+    # cdef int _init
 
     def __cinit__(self):
         self._init = 0
@@ -74,8 +74,8 @@ cdef class dirichlet_char(object):
         -1.00000000000000
     """
 
-    cdef dirichlet_char_t val
-    cdef dirichlet_group G
+    # cdef dirichlet_char_t val
+    # cdef dirichlet_group G
 
     def __cinit__(self):
         pass

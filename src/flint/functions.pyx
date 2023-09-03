@@ -47,6 +47,7 @@ def good(func, slong prec=0, slong maxprec=0, slong dps=0,
     that convergence is not possible in case of inexact zeros.
     This behavior can be overridden by setting *parts* to *False*.
 
+        >>> from flint import acb
         >>> good(lambda: (acb(0,-1) ** 0.5) ** 2)
         Traceback (most recent call last):
           ...
