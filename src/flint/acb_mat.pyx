@@ -1,6 +1,9 @@
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_mat
+from flint._arb_mat cimport arb_mat
+from flint._fmpz_mat cimport fmpz_mat
+from flint._fmpq_mat cimport fmpq_mat
 
 cdef acb_mat_coerce_operands(x, y):
     if isinstance(y, (fmpz_mat, fmpq_mat, arb_mat)):
@@ -190,6 +193,7 @@ cdef class acb_mat(flint_mat):
         """
         Returns the determinant of the square matrix *s* as an *acb*.
 
+            >>> from flint import showgood
             >>> A = acb_mat(3, 3, range(9))
             >>> showgood(lambda: A.det(), dps=25)    # singular
             0
@@ -520,6 +524,7 @@ cdef class acb_mat(flint_mat):
 
             >>> from flint import fmpz_mat
             >>> from flint import fmpq_mat
+            >>> from flint import arb_mat
             >>> A = acb_mat([[1,2],[3,4]])
             >>> ((A / 3) * 3).contains(A)
             True
@@ -671,6 +676,8 @@ cdef class acb_mat(flint_mat):
         Ill-conditioned or large matrices may require high precision
         to isolate the eigenvalues::
 
+            >>> from flint import showgood
+            >>> from flint import arb_mat
             >>> sum(acb_mat(arb_mat.hilbert(20,20)).eig())
             Traceback (most recent call last):
               ...

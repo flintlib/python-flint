@@ -6,6 +6,14 @@ from flint._fmpz_mat cimport fmpz_mat
 from flint._arb cimport arb
 from flint._arb_poly cimport arb_poly
 from flint._arb cimport any_as_arb
+from flint._fmpz cimport fmpz
+from flint._fmpq cimport fmpq
+from flint.pyflint cimport acb
+from flint.pyflint cimport acb_mat
+from flint.pyflint cimport any_as_acb
+
+from flint._flint cimport *
+cimport cython
 
 cdef arb_mat_coerce_operands(x, y):
     if isinstance(y, (fmpz_mat, fmpq_mat)):
@@ -183,6 +191,7 @@ cdef class arb_mat(flint_mat):
         """
         Returns the determinant of the square matrix *s* as an *arb*.
 
+            >>> from flint import showgood
             >>> A = arb_mat(3, 3, range(9))
             >>> showgood(lambda: A.det(), dps=25)    # exact singular
             0

@@ -49,7 +49,7 @@ include "fmpz_mpoly.pyx"
 # include "arf.pyx"
 # include "arb.pyx"
 # include "arb_poly.pyx"
-include "arb_mat.pyx"
+#include "arb_mat.pyx"
 include "arb_series.pyx"
 
 include "acb.pyx"

@@ -112,6 +112,7 @@ from flint._fmpq cimport fmpq
 #     cpdef bint is_integer(self)
 
 
+cdef any_as_acb(x)
 cdef any_as_acb_or_notimplemented(x)
 cdef class acb(flint_scalar):
     cdef acb_t val
@@ -130,10 +131,10 @@ cdef class acb_poly(flint_poly):
     cpdef long degree(self)
 
 
-cdef class arb_mat(flint_mat):
-    cdef arb_mat_t val
-    cpdef long nrows(self)
-    cpdef long ncols(self)
+# cdef class arb_mat(flint_mat):
+#     cdef arb_mat_t val
+#     cpdef long nrows(self)
+#     cpdef long ncols(self)
 
 cdef class acb_mat(flint_mat):
     cdef acb_mat_t val

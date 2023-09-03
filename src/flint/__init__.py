@@ -13,4 +13,6 @@ from ._nmod_mat import *
 from ._nmod_series import *
 from ._arf import *
 from ._arb import *
+from ._arb_poly import *
+from ._arb_mat import *
 __version__ = '0.4.2'
