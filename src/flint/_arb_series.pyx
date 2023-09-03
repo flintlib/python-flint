@@ -13,7 +13,7 @@ from flint._fmpz cimport fmpz
 from flint._fmpq cimport fmpq
 from flint._acb cimport acb
 from flint._acb_poly cimport acb_poly
-from flint.pyflint cimport acb_series
+from flint._acb_series cimport acb_series
 
 from flint._flint cimport *
 

@@ -13,7 +13,7 @@ from flint._arb_poly cimport arb_poly
 from flint._arb_series cimport arb_series
 from flint._acb cimport acb
 from flint._acb_poly cimport acb_poly
-from flint.pyflint cimport acb_series
+from flint._acb_series cimport acb_series
 
 from flint._flint cimport *
 

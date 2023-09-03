@@ -54,8 +54,8 @@ include "fmpz_mpoly.pyx"
 
 # include "acb.pyx"
 # include "acb_poly.pyx"
-# tinclude "acb_mat.pyx"
-include "acb_series.pyx"
+# include "acb_mat.pyx"
+# include "acb_series.pyx"
 
 include "functions.pyx"
 

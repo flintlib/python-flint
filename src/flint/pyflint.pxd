@@ -147,11 +147,11 @@ from flint._fmpq cimport fmpq
 #     cpdef long length(self)
 #     cpdef valuation(self)
 
-cdef class acb_series(flint_series):
-    cdef acb_poly_t val
-    cdef long prec
-    cpdef long length(self)
-    cpdef valuation(self)
+# cdef class acb_series(flint_series):
+#     cdef acb_poly_t val
+#     cdef long prec
+#     cpdef long length(self)
+#     cpdef valuation(self)
 
 cdef class fmpz_mpoly_ctx:
     cdef fmpz_mpoly_ctx_t val

@@ -12,6 +12,14 @@ from flint._arb_poly cimport arb_poly_set_list
 from flint._acb_poly cimport acb_poly_set_list
 from flint._arb cimport arb
 from flint._acb_poly cimport acb_poly
+from flint.pyflint cimport dirichlet_char
+from flint._fmpz cimport fmpz
+from flint._fmpq cimport fmpq
+from flint._fmpz cimport any_as_fmpz
+
+from flint._flint cimport *
+cimport cython
+cimport libc.stdlib
 
 cdef acb_series_coerce_operands(x, y):
     if isinstance(y, (int, long, float, complex, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly, fmpq_series, arb, arb_poly, arb_series, acb, acb_poly)):

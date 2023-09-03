@@ -71,7 +71,8 @@ def run_doctests(verbose=None):
                flint._arb_series,
                flint._acb,
                flint._acb_poly,
-               flint._acb_mat]
+               flint._acb_mat,
+               flint._acb_series]
     results = [doctest.testmod(x) for x in modules]
 #    ffmpz, tfmpz = doctest.testmod(flint._fmpz, verbose=verbose)
  #   failed, total = doctest.testmod(flint.pyflint, verbose=verbose)
