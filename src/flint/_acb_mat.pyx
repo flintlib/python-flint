@@ -8,6 +8,11 @@ from flint._arb cimport arb
 from flint._acb cimport acb
 from flint._acb_poly cimport acb_poly
 from flint._acb cimport any_as_acb
+from flint._fmpz cimport fmpz
+from flint._fmpq cimport fmpq
+
+from flint._flint cimport  *
+cimport cython
 
 cdef acb_mat_coerce_operands(x, y):
     if isinstance(y, (fmpz_mat, fmpq_mat, arb_mat)):

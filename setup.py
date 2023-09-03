@@ -86,6 +86,7 @@ ext_files = [
     ("flint._arb_series", ["src/flint/_arb_series.pyx"]),
     ("flint._acb", ["src/flint/_acb.pyx"]),
     ("flint._acb_poly", ["src/flint/_acb_poly.pyx"]),
+    ("flint._acb_mat", ["src/flint/_acb_mat.pyx"]),
     ("flint.flint_base.flint_base", ["src/flint/flint_base/flint_base.pyx"]),
     ("flint.flint_base.flint_context", ["src/flint/flint_base/flint_context.pyx"]),
 

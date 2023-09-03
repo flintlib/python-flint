@@ -136,10 +136,10 @@ from flint._fmpq cimport fmpq
 #     cpdef long nrows(self)
 #     cpdef long ncols(self)
 
-cdef class acb_mat(flint_mat):
-    cdef acb_mat_t val
-    cpdef long nrows(self)
-    cpdef long ncols(self)
+# cdef class acb_mat(flint_mat):
+#     cdef acb_mat_t val
+#     cpdef long nrows(self)
+#     cpdef long ncols(self)
 
 # cdef class arb_series(flint_series):
 #     cdef arb_poly_t val

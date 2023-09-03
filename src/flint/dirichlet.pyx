@@ -1,4 +1,5 @@
 from flint.flint_base.flint_context cimport getprec
+from flint._acb cimport any_as_acb
 
 cdef dict _dirichlet_group_cache = {}
 

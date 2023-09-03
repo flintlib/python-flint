@@ -10,6 +10,8 @@ from flint._fmpq_poly cimport fmpq_poly
 from flint._arb_poly cimport arb_poly
 from flint._arb_poly cimport arb_poly_set_list
 from flint._acb_poly cimport acb_poly_set_list
+from flint._arb cimport arb
+from flint._acb_poly cimport acb_poly
 
 cdef acb_series_coerce_operands(x, y):
     if isinstance(y, (int, long, float, complex, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly, fmpq_series, arb, arb_poly, arb_series, acb, acb_poly)):

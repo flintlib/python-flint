@@ -1,4 +1,8 @@
 from .utils.conversion cimport dps_to_prec
+from flint._arb_mat cimport arb_mat
+from flint._acb_mat cimport acb_mat
+from flint._arb_poly cimport arb_poly
+from flint._acb_poly cimport acb_poly
 
 # xxx: this doesn't work when changed to a cdef function. why?
 def __goodness(x, bint parts=True, metric=None):
