@@ -2,6 +2,7 @@ from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.flint_base.flint_context cimport getprec
 from flint._arb cimport arb_set_mpmath_mpf
+from flint._arb cimport arb_set_python
 
 cdef FMPZ_UNKNOWN = 0
 cdef FMPZ_REF = 1

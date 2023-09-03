@@ -5,6 +5,15 @@ from flint._fmpq_poly cimport fmpq_poly
 from flint._fmpz_poly cimport fmpz_poly
 from flint._arb cimport arb_set_python
 from flint._arb cimport any_as_arb
+from flint._arb cimport arb
+from flint._fmpz cimport fmpz
+from flint._fmpq cimport fmpq
+from flint.pyflint cimport acb
+from flint.pyflint cimport acb_poly
+
+from flint._flint cimport *
+cimport cython
+cimport libc.stdlib
 
 cdef arb_poly_coerce_operands(x, y):
     if isinstance(y, (int, long, float, fmpz, fmpq, arb, fmpz_poly, fmpq_poly)):

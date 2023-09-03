@@ -119,10 +119,10 @@ cdef class acb(flint_scalar):
     cpdef bint is_finite(self)
     cpdef bint is_exact(self)
 
-cdef class arb_poly(flint_poly):
-    cdef arb_poly_t val
-    cpdef long length(self)
-    cpdef long degree(self)
+# cdef class arb_poly(flint_poly):
+#     cdef arb_poly_t val
+#     cpdef long length(self)
+#     cpdef long degree(self)
 
 cdef class acb_poly(flint_poly):
     cdef acb_poly_t val
