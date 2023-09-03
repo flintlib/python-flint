@@ -1,10 +1,10 @@
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_poly
-from flint.fmpq_poly cimport fmpq_poly
-from flint.fmpz_poly cimport fmpz_poly
-from flint.arb cimport arb_set_python
-from flint.arb cimport any_as_arb
+from flint._fmpq_poly cimport fmpq_poly
+from flint._fmpz_poly cimport fmpz_poly
+from flint._arb cimport arb_set_python
+from flint._arb cimport any_as_arb
 
 cdef arb_poly_coerce_operands(x, y):
     if isinstance(y, (int, long, float, fmpz, fmpq, arb, fmpz_poly, fmpq_poly)):

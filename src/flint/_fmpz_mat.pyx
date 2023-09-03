@@ -1,12 +1,12 @@
 from flint.flint_base.flint_base cimport flint_mat
 from flint.utils.typecheck cimport typecheck
-from flint.fmpz cimport fmpz
-from flint.fmpz_poly cimport fmpz_poly
-from flint.fmpq_mat cimport fmpq_mat
-from flint.fmpz cimport any_as_fmpz
-from flint.fmpq cimport fmpq
+from flint._fmpz cimport fmpz
+from flint._fmpz_poly cimport fmpz_poly
+from flint._fmpq_mat cimport fmpq_mat
+from flint._fmpz cimport any_as_fmpz
+from flint._fmpq cimport fmpq
 from flint.pyflint cimport global_random_state
-from flint.fmpq cimport any_as_fmpq
+from flint._fmpq cimport any_as_fmpq
 cimport cython
 
 from flint._flint cimport *
@@ -63,6 +63,7 @@ cdef class fmpz_mat(flint_mat):
 
     Disabling pretty-printing::
 
+        >>> from flint import ctx
         >>> ctx.pretty = False
         >>> fmpz_mat([[1,2,3],[4,5,6]])
         fmpz_mat(2, 3, [1, 2, 3, 4, 5, 6])
@@ -551,6 +552,7 @@ cdef class fmpz_mat(flint_mat):
         either returning a new copy or modifying self in-place.
         Returns (*rref*, *denominator*, *rank*).
 
+            >>> from flint import ctx
             >>> ctx.pretty = False
             >>> A = fmpz_mat(3,3,range(9))
             >>> A.rref()

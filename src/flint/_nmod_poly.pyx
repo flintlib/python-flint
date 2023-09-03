@@ -1,9 +1,9 @@
 from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
-from flint.fmpz_poly cimport any_as_fmpz_poly
-from flint.fmpz_poly cimport fmpz_poly
-from flint.nmod cimport any_as_nmod
-from flint.nmod cimport nmod
+from flint._fmpz_poly cimport any_as_fmpz_poly
+from flint._fmpz_poly cimport fmpz_poly
+from flint._nmod cimport any_as_nmod
+from flint._nmod cimport nmod
 
 from flint._flint cimport *
 
@@ -45,6 +45,7 @@ cdef class nmod_poly(flint_poly):
     The nmod_poly type represents dense univariate polynomials
     over Z/nZ for word-size n.
 
+        >>> from flint import ctx
         >>> a = nmod_poly([5,1,10,14,8], 7)
         >>> a
         x^4 + 3*x^2 + x + 5

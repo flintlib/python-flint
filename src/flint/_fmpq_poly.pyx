@@ -1,11 +1,11 @@
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_poly
-from flint.fmpz_poly cimport any_as_fmpz_poly
-from flint.fmpz_poly cimport fmpz_poly
-from flint.fmpq cimport fmpq
-from flint.fmpq cimport any_as_fmpq
-from flint.fmpz cimport fmpz
-from flint.fmpz cimport any_as_fmpz
+from flint._fmpz_poly cimport any_as_fmpz_poly
+from flint._fmpz_poly cimport fmpz_poly
+from flint._fmpq cimport fmpq
+from flint._fmpq cimport any_as_fmpq
+from flint._fmpz cimport fmpz
+from flint._fmpz cimport any_as_fmpz
 
 from flint._flint cimport *
 
@@ -51,6 +51,7 @@ cdef class fmpq_poly(flint_poly):
     over the rational numbers. For efficiency reasons, an *fmpq_poly* is
     structurally an integer polynomial with a single common denominator.
 
+        >>> from flint import ctx
         >>> fmpq_poly([1,2,3],5) ** 3
         27/125*x^6 + 54/125*x^5 + 63/125*x^4 + 44/125*x^3 + 21/125*x^2 + 6/125*x + 1/125
         >>> ctx.pretty = False

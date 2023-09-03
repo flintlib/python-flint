@@ -1,9 +1,9 @@
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
-from flint.fmpq cimport any_as_fmpq
-from flint.fmpz cimport any_as_fmpz
-from flint.fmpz cimport fmpz
-from flint.fmpq cimport fmpq
+from flint._fmpq cimport any_as_fmpq
+from flint._fmpz cimport any_as_fmpz
+from flint._fmpz cimport fmpz
+from flint._fmpq cimport fmpq
 
 from flint._flint cimport *
 

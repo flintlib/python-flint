@@ -1,10 +1,10 @@
 from flint.flint_base.flint_base cimport flint_mat
 from flint.utils.typecheck cimport typecheck
-from flint.fmpq_poly cimport fmpq_poly
-from flint.fmpq cimport any_as_fmpq
-from flint.fmpz_poly cimport fmpz_poly
-from flint.fmpq_poly cimport fmpq_poly_set_list
-from flint.fmpz cimport any_as_fmpz
+from flint._fmpq_poly cimport fmpq_poly
+from flint._fmpq cimport any_as_fmpq
+from flint._fmpz_poly cimport fmpz_poly
+from flint._fmpq_poly cimport fmpq_poly_set_list
+from flint._fmpz cimport any_as_fmpz
 
 from flint._flint cimport *
 cimport cython

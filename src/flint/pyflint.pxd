@@ -5,7 +5,7 @@ from flint.flint_base.flint_base cimport flint_series
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.flint_base.flint_base cimport flint_poly
 
-from flint.fmpz cimport fmpz
+from flint._fmpz cimport fmpz
 from flint._flint cimport *
 
 cdef FMPZ_UNKNOWN = 0
@@ -44,7 +44,7 @@ cdef class Context:
 # cdef any_as_fmpq(obj)
 # cdef class fmpq(flint_scalar):
 #     cdef fmpq_t val
-from flint.fmpq cimport fmpq
+from flint._fmpq cimport fmpq
 
 # cdef any_as_fmpq_poly(obj)
 # cdef class fmpq_poly(flint_poly):

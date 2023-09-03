@@ -1,9 +1,9 @@
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_mat
-from flint.fmpq_mat cimport fmpq_mat
-from flint.fmpz_mat cimport fmpz_mat
-from flint.arb cimport arb
+from flint._fmpq_mat cimport fmpq_mat
+from flint._fmpz_mat cimport fmpz_mat
+from flint._arb cimport arb
 
 cdef arb_mat_coerce_operands(x, y):
     if isinstance(y, (fmpz_mat, fmpq_mat)):

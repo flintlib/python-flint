@@ -6,7 +6,7 @@ from flint.utils.conversion cimport chars_from_str
 from flint.utils.conversion cimport str_from_chars, _str_trunc
 cimport libc.stdlib
 
-from flint.fmpz cimport fmpz
+#from flint.fmpz cimport fmpz
 from flint._flint cimport *
 
 cdef FMPZ_UNKNOWN = 0

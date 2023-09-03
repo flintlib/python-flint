@@ -1,8 +1,8 @@
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_context cimport getprec, getcap
 from flint.flint_base.flint_base cimport flint_series
-from flint.fmpz_series cimport fmpz_series
-from flint.fmpq_series cimport fmpq_series
+from flint._fmpz_series cimport fmpz_series
+from flint._fmpq_series cimport fmpq_series
 
 cdef arb_series_coerce_operands(x, y):
     if isinstance(y, (int, long, float, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly, fmpq_series, arb, arb_poly)):

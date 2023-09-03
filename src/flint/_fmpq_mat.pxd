@@ -1,9 +1,9 @@
 from flint.flint_base.flint_base cimport flint_mat
 
 from flint._flint cimport fmpq_mat_t
-from flint.fmpz cimport fmpz
-from flint.fmpq cimport fmpq
-from flint.fmpz_mat cimport fmpz_mat
+from flint._fmpz cimport fmpz
+from flint._fmpq cimport fmpq
+from flint._fmpz_mat cimport fmpz_mat
 
 cdef class fmpq_mat(flint_mat):
     cdef fmpq_mat_t val
