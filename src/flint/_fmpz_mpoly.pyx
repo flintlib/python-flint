@@ -4,6 +4,11 @@ from flint.utils.conversion cimport str_from_chars
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_mpoly
 from flint._fmpz cimport any_as_fmpz
+from flint._fmpz cimport fmpz
+
+from flint._flint cimport *
+cimport cython
+cimport libc.stdlib
 
 cdef any_as_fmpz_mpoly(x):
     cdef fmpz_mpoly res

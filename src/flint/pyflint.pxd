@@ -153,16 +153,16 @@ from flint._fmpq cimport fmpq
 #     cpdef long length(self)
 #     cpdef valuation(self)
 
-cdef class fmpz_mpoly_ctx:
-    cdef fmpz_mpoly_ctx_t val
-    cpdef slong nvars(self)
+# cdef class fmpz_mpoly_ctx:
+#     cdef fmpz_mpoly_ctx_t val
+#     cpdef slong nvars(self)
 
-    cpdef ordering(self)
+#     cpdef ordering(self)
 
-cdef class fmpz_mpoly(flint_mpoly):
-    cdef fmpz_mpoly_t val
-    cdef fmpz_mpoly_ctx ctx
-    cdef bint _init
+# cdef class fmpz_mpoly(flint_mpoly):
+#     cdef fmpz_mpoly_t val
+#     cdef fmpz_mpoly_ctx ctx
+#     cdef bint _init
 
 cdef class dirichlet_group(object):
     cdef dirichlet_group_t val
