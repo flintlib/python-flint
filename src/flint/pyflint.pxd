@@ -141,11 +141,11 @@ cdef class acb_mat(flint_mat):
     cpdef long nrows(self)
     cpdef long ncols(self)
 
-cdef class arb_series(flint_series):
-    cdef arb_poly_t val
-    cdef long prec
-    cpdef long length(self)
-    cpdef valuation(self)
+# cdef class arb_series(flint_series):
+#     cdef arb_poly_t val
+#     cdef long prec
+#     cpdef long length(self)
+#     cpdef valuation(self)
 
 cdef class acb_series(flint_series):
     cdef acb_poly_t val

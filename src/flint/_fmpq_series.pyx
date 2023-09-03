@@ -8,7 +8,7 @@ from flint._fmpz_poly cimport fmpz_poly
 from flint._fmpq cimport fmpq
 from flint._arb cimport arb
 from flint._arb_poly cimport arb_poly
-from flint.pyflint cimport arb_series
+from flint._arb_series cimport arb_series
 from flint.pyflint cimport acb
 from flint.pyflint cimport acb_poly
 from flint.pyflint cimport acb_series

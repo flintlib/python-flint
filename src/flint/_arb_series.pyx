@@ -1,5 +1,6 @@
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_context cimport getprec, getcap
+from flint.flint_base.flint_context cimport thectx
 from flint.flint_base.flint_base cimport flint_series
 from flint._fmpz_series cimport fmpz_series
 from flint._fmpz_poly cimport fmpz_poly
@@ -8,6 +9,15 @@ from flint._fmpq_poly cimport fmpq_poly
 from flint._arb_poly cimport arb_poly_set_list
 from flint._arb cimport arb
 from flint._arb_poly cimport arb_poly
+from flint._fmpz cimport fmpz
+from flint._fmpq cimport fmpq
+from flint.pyflint cimport acb
+from flint.pyflint cimport acb_poly
+from flint.pyflint cimport acb_series
+
+from flint._flint cimport *
+
+ctx = thectx
 
 cdef arb_series_coerce_operands(x, y):
     if isinstance(y, (int, long, float, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly, fmpq_series, arb, arb_poly)):

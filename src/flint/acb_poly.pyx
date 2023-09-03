@@ -1,6 +1,9 @@
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_poly
+from flint._fmpz_poly cimport fmpz_poly
+from flint._fmpq_poly cimport fmpq_poly
+from flint._arb_poly cimport arb_poly
 
 cdef acb_poly_coerce_operands(x, y):
     if isinstance(y, (int, long, float, complex, fmpz, fmpq, arb, acb, fmpz_poly, fmpq_poly, arb_poly)):

@@ -4,6 +4,7 @@ from flint.flint_base.flint_context cimport getprec
 from flint._arb cimport arb_set_mpmath_mpf
 from flint._arb cimport arb_set_python
 from flint._arb cimport any_as_arb
+from flint._arb cimport arb
 
 cdef FMPZ_UNKNOWN = 0
 cdef FMPZ_REF = 1
