@@ -53,7 +53,7 @@ include "fmpz_mpoly.pyx"
 # include "arb_series.pyx"
 
 # include "acb.pyx"
-include "acb_poly.pyx"
+# include "acb_poly.pyx"
 include "acb_mat.pyx"
 include "acb_series.pyx"
 

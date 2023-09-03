@@ -125,10 +125,10 @@ from flint._fmpq cimport fmpq
 #     cpdef long length(self)
 #     cpdef long degree(self)
 
-cdef class acb_poly(flint_poly):
-    cdef acb_poly_t val
-    cpdef long length(self)
-    cpdef long degree(self)
+# cdef class acb_poly(flint_poly):
+#     cdef acb_poly_t val
+#     cpdef long length(self)
+#     cpdef long degree(self)
 
 
 # cdef class arb_mat(flint_mat):

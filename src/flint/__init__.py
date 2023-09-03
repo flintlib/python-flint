@@ -17,4 +17,5 @@ from ._arb_poly import *
 from ._arb_mat import *
 from ._arb_series import *
 from ._acb import *
+from ._acb_poly import *
 __version__ = '0.4.2'

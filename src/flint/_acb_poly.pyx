@@ -6,6 +6,13 @@ from flint._fmpq_poly cimport fmpq_poly
 from flint._arb_poly cimport arb_poly
 from flint._acb cimport acb_set_python
 from flint._acb cimport any_as_acb
+from flint._acb cimport acb
+from flint._fmpz cimport fmpz
+from flint._fmpq cimport fmpq
+from flint._arb cimport arb
+
+from flint._flint cimport *
+cimport libc.stdlib
 
 cdef acb_poly_coerce_operands(x, y):
     if isinstance(y, (int, long, float, complex, fmpz, fmpq, arb, acb, fmpz_poly, fmpq_poly, arb_poly)):
