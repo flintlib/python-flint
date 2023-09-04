@@ -9,7 +9,7 @@ from flint._acb_series cimport acb_series
 
 
 # xxx: this doesn't work when changed to a cdef function. why?
-def __goodness(x, bint parts=True, metric=None):
+cdef __goodness(x, bint parts=True, metric=None):
     if metric is not None:
         x = metric(x)
     if isinstance(x, arb):
