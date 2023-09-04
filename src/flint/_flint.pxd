@@ -15,9 +15,11 @@ cdef extern from "Python.h":
     long PyLong_AsLongAndOverflow(PyObject *pylong, int *overflow)
     long long PyLong_AsLongLongAndOverflow(PyObject *pylong, int *overflow)
 
-DEF FMPZ_UNKNOWN = 0
-DEF FMPZ_REF = 1
-DEF FMPZ_TMP = 2
+cdef enum:
+    FMPZ_UNKNOWN = 0
+    FMPZ_REF = 1
+    FMPZ_TMP = 2
+
 
 #
 # Note: ulong and slong are used throughout Flint/Arb. They are expected to be

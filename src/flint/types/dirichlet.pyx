@@ -1,6 +1,9 @@
 from flint.flint_base.flint_context cimport getprec
 from flint.types.acb cimport any_as_acb
 from flint.types.acb cimport acb
+from flint.types.fmpz cimport fmpz
+
+from flint._flint cimport *
 
 cdef dict _dirichlet_group_cache = {}
 
@@ -169,6 +172,7 @@ cdef class dirichlet_char(object):
         Evaluates the Dirichlet L-function of this character at the given
         complex number s.
 
+            >>> from flint import showgood
             >>> chi = dirichlet_char(1, 1)
             >>> showgood(lambda: chi.l(2), dps=25)
             1.644934066848226436472415
@@ -189,6 +193,7 @@ cdef class dirichlet_char(object):
         complex number s.
 
             >>> chi = dirichlet_char(1, 1)
+            >>> from flint import showgood
             >>> showgood(lambda: chi.hardy_z(1), dps=25)
             -0.7363054628673177346778998
 

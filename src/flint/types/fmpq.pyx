@@ -4,10 +4,6 @@ from flint.types.fmpz cimport fmpz_set_any_ref
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 
-cdef FMPZ_UNKNOWN = 0
-cdef FMPZ_REF = 1
-cdef FMPZ_TMP = 2
-
 from flint._flint cimport *
 
 cdef any_as_fmpq(obj):

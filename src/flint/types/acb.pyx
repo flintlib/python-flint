@@ -11,15 +11,11 @@ from flint.types.arb cimport any_as_arb
 from flint.types.arb cimport arb
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
-from flint.pyflint cimport dirichlet_char
+from flint.types.dirichlet cimport dirichlet_char
 
 from flint._flint cimport *
 cimport libc.stdlib
 cimport cython
-
-cdef FMPZ_UNKNOWN = 0
-cdef FMPZ_REF = 1
-cdef FMPZ_TMP = 2
 
 ctx = thectx
 

@@ -12,7 +12,7 @@ from flint.types.arb_poly cimport arb_poly_set_list
 from flint.types.acb_poly cimport acb_poly_set_list
 from flint.types.arb cimport arb
 from flint.types.acb_poly cimport acb_poly
-from flint.pyflint cimport dirichlet_char
+from flint.types.dirichlet cimport dirichlet_char
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 from flint.types.fmpz cimport any_as_fmpz

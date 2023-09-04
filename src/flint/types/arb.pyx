@@ -16,9 +16,6 @@ cimport cython
 
 ctx = thectx
 
-cdef FMPZ_UNKNOWN = 0
-cdef FMPZ_REF = 1
-cdef FMPZ_TMP = 2
 # cdef _str_trunc(s, trunc=0):
 #     if trunc > 0 and len(s) > 3 * trunc:
 #         left = right = trunc
