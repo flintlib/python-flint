@@ -1,11 +1,11 @@
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_poly
-from flint._fmpz_poly cimport any_as_fmpz_poly
-from flint._fmpz_poly cimport fmpz_poly
-from flint._fmpq cimport fmpq
-from flint._fmpq cimport any_as_fmpq
-from flint._fmpz cimport fmpz
-from flint._fmpz cimport any_as_fmpz
+from flint.types.fmpz_poly cimport any_as_fmpz_poly
+from flint.types.fmpz_poly cimport fmpz_poly
+from flint.types.fmpq cimport fmpq
+from flint.types.fmpq cimport any_as_fmpq
+from flint.types.fmpz cimport fmpz
+from flint.types.fmpz cimport any_as_fmpz
 
 from flint._flint cimport *
 

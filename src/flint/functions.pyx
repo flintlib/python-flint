@@ -1,15 +1,15 @@
 from .utils.conversion cimport dps_to_prec
-from flint._arb_mat cimport arb_mat
-from flint._acb_mat cimport acb_mat
-from flint._arb_poly cimport arb_poly
-from flint._acb_poly cimport acb_poly
-from flint._arb cimport arb
-from flint._arb_series cimport arb_series
-from flint._acb_series cimport acb_series
+from flint.types.arb_mat cimport arb_mat
+from flint.types.acb_mat cimport acb_mat
+from flint.types.arb_poly cimport arb_poly
+from flint.types.acb_poly cimport acb_poly
+from flint.types.arb cimport arb
+from flint.types.arb_series cimport arb_series
+from flint.types.acb_series cimport acb_series
 
 
 # xxx: this doesn't work when changed to a cdef function. why?
-cdef __goodness(x, bint parts=True, metric=None):
+def __goodness(x, bint parts=True, metric=None):
     if metric is not None:
         x = metric(x)
     if isinstance(x, arb):

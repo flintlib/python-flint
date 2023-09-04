@@ -3,17 +3,17 @@ from cpython.version cimport PY_MAJOR_VERSION
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
-from flint._fmpz cimport fmpz_set_python
-from flint._fmpz cimport any_as_fmpz
-from flint._fmpz cimport fmpz
-from flint._fmpq cimport any_as_fmpq
-from flint._fmpq cimport fmpq
-from flint._fmpq_poly cimport fmpq_poly
-from flint._fmpq_poly cimport any_as_fmpq_poly
-from flint._acb cimport acb
-from flint._arb cimport any_as_arb_or_notimplemented
-from flint._arb cimport arb
-from flint._acb cimport any_as_acb_or_notimplemented
+from flint.types.fmpz cimport fmpz_set_python
+from flint.types.fmpz cimport any_as_fmpz
+from flint.types.fmpz cimport fmpz
+from flint.types.fmpq cimport any_as_fmpq
+from flint.types.fmpq cimport fmpq
+from flint.types.fmpq_poly cimport fmpq_poly
+from flint.types.fmpq_poly cimport any_as_fmpq_poly
+from flint.types.acb cimport acb
+from flint.types.arb cimport any_as_arb_or_notimplemented
+from flint.types.arb cimport arb
+from flint.types.acb cimport any_as_acb_or_notimplemented
 cimport libc.stdlib
 
 from flint._flint cimport *

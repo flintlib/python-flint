@@ -2,9 +2,9 @@ from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_context cimport thectx
 from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport prec_to_dps
-from flint._fmpz cimport fmpz
-from flint._fmpz cimport any_as_fmpz
-from flint._arb cimport arb
+from flint.types.fmpz cimport fmpz
+from flint.types.fmpz cimport any_as_fmpz
+from flint.types.arb cimport arb
 
 from flint._flint cimport *
 

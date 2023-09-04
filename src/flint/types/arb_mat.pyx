@@ -1,16 +1,16 @@
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_mat
-from flint._fmpq_mat cimport fmpq_mat
-from flint._fmpz_mat cimport fmpz_mat
-from flint._arb cimport arb
-from flint._arb_poly cimport arb_poly
-from flint._arb cimport any_as_arb
-from flint._fmpz cimport fmpz
-from flint._fmpq cimport fmpq
-from flint._acb cimport acb
-from flint._acb_mat cimport acb_mat
-from flint._acb cimport any_as_acb
+from flint.types.fmpq_mat cimport fmpq_mat
+from flint.types.fmpz_mat cimport fmpz_mat
+from flint.types.arb cimport arb
+from flint.types.arb_poly cimport arb_poly
+from flint.types.arb cimport any_as_arb
+from flint.types.fmpz cimport fmpz
+from flint.types.fmpq cimport fmpq
+from flint.types.acb cimport acb
+from flint.types.acb_mat cimport acb_mat
+from flint.types.acb cimport any_as_acb
 
 from flint._flint cimport *
 cimport cython

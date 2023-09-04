@@ -1,8 +1,8 @@
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
-from flint._fmpz cimport fmpz_set_any_ref
-from flint._fmpz cimport fmpz
-from flint._fmpz cimport any_as_fmpz
+from flint.types.fmpz cimport fmpz_set_any_ref
+from flint.types.fmpz cimport fmpz
+from flint.types.fmpz cimport any_as_fmpz
 
 cdef FMPZ_UNKNOWN = 0
 cdef FMPZ_REF = 1

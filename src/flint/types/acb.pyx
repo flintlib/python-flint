@@ -5,12 +5,12 @@ from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_context cimport thectx
-from flint._arb cimport arb_set_mpmath_mpf
-from flint._arb cimport arb_set_python
-from flint._arb cimport any_as_arb
-from flint._arb cimport arb
-from flint._fmpz cimport fmpz
-from flint._fmpz cimport any_as_fmpz
+from flint.types.arb cimport arb_set_mpmath_mpf
+from flint.types.arb cimport arb_set_python
+from flint.types.arb cimport any_as_arb
+from flint.types.arb cimport arb
+from flint.types.fmpz cimport fmpz
+from flint.types.fmpz cimport any_as_fmpz
 from flint.pyflint cimport dirichlet_char
 
 from flint._flint cimport *

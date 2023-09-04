@@ -1,9 +1,9 @@
 from flint.utils.conversion cimport matrix_to_str
 from flint.utils.typecheck cimport typecheck
-from flint._fmpz_mat cimport any_as_fmpz_mat
-from flint._fmpz_mat cimport fmpz_mat
-from flint._nmod cimport nmod
-from flint._nmod cimport any_as_nmod
+from flint.types.fmpz_mat cimport any_as_fmpz_mat
+from flint.types.fmpz_mat cimport fmpz_mat
+from flint.types.nmod cimport nmod
+from flint.types.nmod cimport any_as_nmod
 from flint.pyflint cimport global_random_state
 from flint.flint_base.flint_context cimport thectx
 

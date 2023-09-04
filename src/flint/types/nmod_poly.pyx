@@ -1,9 +1,9 @@
 from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
-from flint._fmpz_poly cimport any_as_fmpz_poly
-from flint._fmpz_poly cimport fmpz_poly
-from flint._nmod cimport any_as_nmod
-from flint._nmod cimport nmod
+from flint.types.fmpz_poly cimport any_as_fmpz_poly
+from flint.types.fmpz_poly cimport fmpz_poly
+from flint.types.nmod cimport any_as_nmod
+from flint.types.nmod cimport nmod
 
 from flint._flint cimport *
 
