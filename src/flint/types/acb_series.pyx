@@ -16,6 +16,7 @@ from flint.types.dirichlet cimport dirichlet_char
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 from flint.types.fmpz cimport any_as_fmpz
+from flint.flintlib.acb cimport *
 
 from flint._flint cimport *
 cimport cython

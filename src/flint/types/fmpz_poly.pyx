@@ -27,6 +27,7 @@ from flint.flintlib.ulong_extras cimport n_is_prime
 from flint.flintlib.fmpz_poly cimport *
 from flint.flintlib.fmpz_poly_factor cimport *
 from flint.flintlib.arith cimport *
+from flint.flintlib.acb cimport *
 
 cdef any_as_fmpz_poly(x):
     cdef fmpz_poly res

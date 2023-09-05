@@ -17,6 +17,8 @@ from flint._flint cimport  *
 from flint.flintlib.mag cimport *
 from flint.flintlib.arb cimport *
 from flint.flintlib.arf cimport *
+from flint.flintlib.acb cimport *
+
 cimport cython
 
 cdef acb_mat_coerce_operands(x, y):
