@@ -17,6 +17,7 @@ from flint.flintlib.fmpq_mat cimport fmpq_mat_nrows, fmpq_mat_ncols
 from flint._flint cimport *
 from flint.flintlib.arf cimport *
 from flint.flintlib.arb cimport *
+from flint.flintlib.arb_mat cimport *
 cimport cython
 
 cdef arb_mat_coerce_operands(x, y):
