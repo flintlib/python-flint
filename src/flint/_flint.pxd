@@ -763,20 +763,22 @@ from flint.flintlib.fmpq_mat cimport fmpq_mat_t
 #     void arith_chebyshev_u_polynomial(fmpz_poly_t v, ulong n)
 #     void arith_cyclotomic_polynomial(fmpz_poly_t v, ulong n)
 
-cdef extern from "mag.h":
-    ctypedef struct mag_struct:
-        fmpz_struct exp
-        mp_limb_t man
-    ctypedef mag_struct mag_t[1]
-    ctypedef mag_struct * mag_ptr
-    ctypedef const mag_struct * mag_srcptr
+# cdef extern from "mag.h":
+#     ctypedef struct mag_struct:
+#         fmpz_struct exp
+#         mp_limb_t man
+#     ctypedef mag_struct mag_t[1]
+#     ctypedef mag_struct * mag_ptr
+#     ctypedef const mag_struct * mag_srcptr
 
-    void mag_init(mag_t x)
-    void mag_clear(mag_t x)
-    void mag_zero(mag_t x)
-    void mag_set(mag_t x, const mag_t y)
-    void mag_set_ui_2exp_si(mag_t x, ulong v, long e)
-    void mag_hypot(mag_t x, const mag_t y, const mag_t z)
+#     void mag_init(mag_t x)
+#     void mag_clear(mag_t x)
+#     void mag_zero(mag_t x)
+#     void mag_set(mag_t x, const mag_t y)
+#     void mag_set_ui_2exp_si(mag_t x, ulong v, long e)
+#     void mag_hypot(mag_t x, const mag_t y, const mag_t z)
+
+from flint.flintlib.mag cimport mag_struct, mag_t, mag_ptr, mag_srcptr
 
 cdef extern from "arf.h":
     ctypedef struct arf_struct:

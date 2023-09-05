@@ -13,6 +13,7 @@ from flint.types.fmpq cimport fmpq
 from flint.types.arb cimport arb
 
 from flint._flint cimport *
+from flint.flintlib.mag cimport *
 cimport libc.stdlib
 
 cdef acb_poly_coerce_operands(x, y):
