@@ -1,3 +1,4 @@
+from cpython.list cimport PyList_GET_SIZE
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_poly
@@ -22,7 +23,7 @@ cdef acb_poly_coerce_operands(x, y):
 cdef acb_poly_set_list(acb_poly_t poly, list val, long prec):
     cdef long i, n
     cdef acb_t x
-    n = PyList_GET_SIZE(<PyObject*>val)
+    n = PyList_GET_SIZE(val)
     acb_poly_fit_length(poly, n)
     acb_init(x)
     for i in range(n):

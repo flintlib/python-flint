@@ -10,6 +10,14 @@ from flint.types.fmpq cimport any_as_fmpq
 cimport cython
 
 from flint._flint cimport *
+from flint.flintlib.fmpz cimport fmpz_set, fmpz_init, fmpz_clear
+from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_is_pm1
+from flint.flintlib.fmpz_poly cimport fmpz_poly_init
+from flint.flintlib.fmpz_mat cimport *
+from flint.flintlib.fmpz_lll cimport *
+from flint.flintlib.fmpq_mat cimport fmpq_mat_init
+from flint.flintlib.fmpq_mat cimport fmpq_mat_set_fmpz_mat_div_fmpz
+from flint.flintlib.fmpq_mat cimport fmpq_mat_solve_fmpz_mat
 
 cdef any_as_fmpz_mat(obj):
     if typecheck(obj, fmpz_mat):

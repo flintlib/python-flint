@@ -7,6 +7,9 @@ from flint.utils.conversion cimport str_from_chars, _str_trunc
 cimport libc.stdlib
 
 from flint._flint cimport *
+from flint.flintlib.fmpz cimport *
+from flint.flintlib.fmpz_factor cimport *
+from flint.flintlib.arith cimport *
 
 cdef fmpz_get_intlong(fmpz_t x):
     """
@@ -25,11 +28,11 @@ cdef int fmpz_set_any_ref(fmpz_t x, obj):
     if typecheck(obj, fmpz):
         x[0] = (<fmpz>obj).val[0]
         return FMPZ_REF
-    if PY_MAJOR_VERSION < 3 and PyInt_Check(<PyObject*>obj):
+    if PY_MAJOR_VERSION < 3 and PyInt_Check(obj):
         fmpz_init(x)
-        fmpz_set_si(x, PyInt_AS_LONG(<PyObject*>obj))
+        fmpz_set_si(x, PyInt_AS_LONG(obj))
         return FMPZ_TMP
-    if PyLong_Check(<PyObject*>obj):
+    if PyLong_Check(obj):
         fmpz_init(x)
         fmpz_set_pylong(x, obj)
         return FMPZ_TMP
@@ -126,8 +129,8 @@ cdef class fmpz(flint_scalar):
         cdef fmpz_struct * sval
         cdef int ttype
         sval = &((<fmpz>s).val[0])
-        if PY_MAJOR_VERSION < 3 and PyInt_Check(<PyObject*>t):
-            tl = PyInt_AS_LONG(<PyObject*>t)
+        if PY_MAJOR_VERSION < 3 and PyInt_Check(t):
+            tl = PyInt_AS_LONG(t)
             if   op == 2: res = fmpz_cmp_si(sval, tl) == 0
             elif op == 3: res = fmpz_cmp_si(sval, tl) != 0
             elif op == 0: res = fmpz_cmp_si(sval, tl) < 0

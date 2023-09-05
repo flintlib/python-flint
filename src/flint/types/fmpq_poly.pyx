@@ -1,3 +1,4 @@
+from cpython.list cimport PyList_GET_SIZE
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_poly
 from flint.types.fmpz_poly cimport any_as_fmpz_poly
@@ -8,6 +9,13 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 
 from flint._flint cimport *
+from flint.flintlib.fmpz cimport fmpz_is_zero
+from flint.flintlib.fmpz cimport fmpz_set
+from flint.flintlib.fmpq cimport fmpq_is_zero
+from flint.flintlib.fmpq_poly cimport *
+from flint.flintlib.arith cimport arith_bernoulli_polynomial
+from flint.flintlib.arith cimport arith_euler_polynomial
+from flint.flintlib.arith cimport arith_legendre_polynomial
 
 cdef any_as_fmpq_poly(obj):
     if typecheck(obj, fmpq_poly):
@@ -31,7 +39,7 @@ cdef any_as_fmpq_poly(obj):
 
 cdef fmpq_poly_set_list(fmpq_poly_t poly, list val):
     cdef long i, n
-    n = PyList_GET_SIZE(<PyObject*>val)
+    n = PyList_GET_SIZE(val)
     fmpq_poly_fit_length(poly, n)
     for i from 0 <= i < n:
         c = val[i]

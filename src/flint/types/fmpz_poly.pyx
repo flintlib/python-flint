@@ -1,4 +1,8 @@
 from cpython.version cimport PY_MAJOR_VERSION
+from cpython.int cimport PyInt_AS_LONG
+from cpython.list cimport PyList_GET_SIZE
+from cpython.long cimport PyLong_Check
+from cpython.int cimport PyInt_Check
 
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_poly
@@ -15,8 +19,14 @@ from flint.types.arb cimport any_as_arb_or_notimplemented
 from flint.types.arb cimport arb
 from flint.types.acb cimport any_as_acb_or_notimplemented
 cimport libc.stdlib
+from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear, fmpz_set
+from flint.flintlib.fmpz cimport fmpz_is_one, fmpz_equal_si, fmpz_equal
 
 from flint._flint cimport *
+from flint.flintlib.ulong_extras cimport n_is_prime
+from flint.flintlib.fmpz_poly cimport *
+from flint.flintlib.fmpz_poly_factor cimport *
+from flint.flintlib.arith cimport *
 
 cdef any_as_fmpz_poly(x):
     cdef fmpz_poly res
@@ -26,11 +36,11 @@ cdef any_as_fmpz_poly(x):
         res = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_set_fmpz(res.val, (<fmpz>x).val)
         return res
-    elif PY_MAJOR_VERSION < 3 and PyInt_Check(<PyObject*>x):
+    elif PY_MAJOR_VERSION < 3 and PyInt_Check(x):
         res = fmpz_poly.__new__(fmpz_poly)
-        fmpz_poly_set_si(res.val, PyInt_AS_LONG(<PyObject*>x))
+        fmpz_poly_set_si(res.val, PyInt_AS_LONG(x))
         return res
-    elif PyLong_Check(<PyObject*>x):
+    elif PyLong_Check(x):
         res = fmpz_poly.__new__(fmpz_poly)
         t = fmpz(x)
         fmpz_poly_set_fmpz(res.val, (<fmpz>t).val)
@@ -40,7 +50,7 @@ cdef any_as_fmpz_poly(x):
 cdef fmpz_poly_set_list(fmpz_poly_t poly, list val):
     cdef long i, n
     cdef fmpz_t x
-    n = PyList_GET_SIZE(<PyObject*>val)
+    n = PyList_GET_SIZE(val)
     fmpz_poly_fit_length(poly, n)
     fmpz_init(x)
     for i from 0 <= i < n:

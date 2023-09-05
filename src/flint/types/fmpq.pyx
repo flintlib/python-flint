@@ -5,6 +5,13 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 
 from flint._flint cimport *
+from flint.flintlib.fmpz cimport fmpz_set, fmpz_one
+from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_sgn
+from flint.flintlib.fmpz cimport fmpz_fdiv_q, fmpz_bits
+from flint.flintlib.fmpz cimport fmpz_cdiv_q
+from flint.flintlib.fmpz cimport fmpz_tdiv_q
+from flint.flintlib.fmpz cimport fmpz_clear
+from flint.flintlib.fmpq cimport *
 
 cdef any_as_fmpq(obj):
     if typecheck(obj, fmpq):

@@ -1,9 +1,11 @@
+from cpython.int cimport PyInt_Check, PyInt_AS_LONG
+from cpython.long cimport PyLong_Check
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.conversion cimport chars_from_str
 
 from flint._flint cimport fmpz_t, slong, pylong_as_slong
-from flint._flint cimport PyObject, fmpz_set_str, fmpz_set_si
-from flint._flint cimport PyInt_Check, PyInt_AS_LONG, PyLong_Check
+from flint._flint cimport PyObject
+from flint.flintlib.fmpz cimport fmpz_set_str, fmpz_set_si
 
 from cpython.version cimport PY_MAJOR_VERSION
 
@@ -20,10 +22,10 @@ cdef inline int fmpz_set_pylong(fmpz_t x, obj):
         fmpz_set_si(x, longval)
 
 cdef inline int fmpz_set_python(fmpz_t x, obj):
-    if PY_MAJOR_VERSION < 3 and PyInt_Check(<PyObject*>obj):
-        fmpz_set_si(x, PyInt_AS_LONG(<PyObject*>obj))
+    if PY_MAJOR_VERSION < 3 and PyInt_Check(obj):
+        fmpz_set_si(x, PyInt_AS_LONG(obj))
         return 1
-    if PyLong_Check(<PyObject*>obj):
+    if PyLong_Check(obj):
         fmpz_set_pylong(x, obj)
         return 1
     return 0

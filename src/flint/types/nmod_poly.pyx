@@ -1,3 +1,4 @@
+from cpython.list cimport PyList_GET_SIZE
 from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
 from flint.types.fmpz_poly cimport any_as_fmpz_poly
@@ -6,6 +7,9 @@ from flint.types.nmod cimport any_as_nmod
 from flint.types.nmod cimport nmod
 
 from flint._flint cimport *
+from flint.flintlib.nmod_vec cimport *
+from flint.flintlib.nmod_poly cimport *
+from flint.flintlib.fmpz_poly cimport fmpz_poly_get_nmod_poly
 
 cdef any_as_nmod_poly(obj, nmod_t mod):
     cdef nmod_poly r
@@ -31,7 +35,7 @@ cdef nmod_poly_set_list(nmod_poly_t poly, list val):
     cdef nmod_t mod
     cdef mp_limb_t v
     nmod_init(&mod, nmod_poly_modulus(poly)) # XXX
-    n = PyList_GET_SIZE(<PyObject*>val)
+    n = PyList_GET_SIZE(val)
     nmod_poly_fit_length(poly, n)
     for i from 0 <= i < n:
         c = val[i]

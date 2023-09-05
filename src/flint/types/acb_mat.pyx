@@ -11,6 +11,8 @@ from flint.types.acb cimport any_as_acb
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 
+from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
+from flint.flintlib.fmpq_mat cimport fmpq_mat_nrows, fmpq_mat_ncols
 from flint._flint cimport  *
 cimport cython
 
