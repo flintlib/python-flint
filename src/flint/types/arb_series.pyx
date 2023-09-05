@@ -18,6 +18,7 @@ from flint.types.acb_series cimport acb_series
 from flint._flint cimport *
 from flint.flintlib.arb cimport *
 from flint.flintlib.arb_poly cimport *
+from flint.flintlib.arb_hypgeom cimport *
 
 ctx = thectx
 

@@ -18,6 +18,8 @@ from flint.types.fmpq cimport fmpq
 from flint.types.fmpz cimport any_as_fmpz
 from flint.flintlib.acb cimport *
 from flint.flintlib.acb_poly cimport *
+from flint.flintlib.acb_modular cimport *
+from flint.flintlib.acb_hypgeom cimport *
 
 from flint._flint cimport *
 cimport cython

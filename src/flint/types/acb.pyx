@@ -18,6 +18,8 @@ from flint.flintlib.mag cimport *
 from flint.flintlib.arb cimport *
 from flint.flintlib.arf cimport *
 from flint.flintlib.acb cimport *
+from flint.flintlib.acb_modular cimport *
+from flint.flintlib.acb_hypgeom cimport *
 
 cimport libc.stdlib
 cimport cython
