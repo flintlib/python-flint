@@ -10,6 +10,7 @@ from flint._flint cimport *
 from flint.flintlib.fmpz cimport *
 from flint.flintlib.fmpz_factor cimport *
 from flint.flintlib.arith cimport *
+from flint.flintlib.partitions cimport *
 
 cdef fmpz_get_intlong(fmpz_t x):
     """

@@ -12,6 +12,7 @@ from flint.flintlib.fmpz cimport fmpz_cdiv_q
 from flint.flintlib.fmpz cimport fmpz_tdiv_q
 from flint.flintlib.fmpz cimport fmpz_clear
 from flint.flintlib.fmpq cimport *
+from flint.flintlib.bernoulli cimport *
 
 cdef any_as_fmpq(obj):
     if typecheck(obj, fmpq):

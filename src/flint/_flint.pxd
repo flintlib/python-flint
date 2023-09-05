@@ -88,12 +88,12 @@ from flint.flintlib.acb cimport acb_struct, acb_ptr, acb_srcptr, acb_t
 from flint.flintlib.acb cimport acb_realref, acb_imagref
 
 
-cdef extern from "partitions.h":
-    void partitions_fmpz_fmpz(fmpz_t, const fmpz_t, int)
+# cdef extern from "partitions.h":
+#     void partitions_fmpz_fmpz(fmpz_t, const fmpz_t, int)
 
-cdef extern from "bernoulli.h":
-    void bernoulli_fmpq_ui(fmpq_t, ulong)
-    void bernoulli_cache_compute(long n)
+# cdef extern from "bernoulli.h":
+#     void bernoulli_fmpq_ui(fmpq_t, ulong)
+#     void bernoulli_cache_compute(long n)
 
 
 cdef extern from "arb_poly.h":
