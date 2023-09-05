@@ -15,6 +15,8 @@ from flint.types.dirichlet cimport dirichlet_char
 
 from flint._flint cimport *
 from flint.flintlib.mag cimport *
+from flint.flintlib.arb cimport *
+from flint.flintlib.arf cimport *
 
 cimport libc.stdlib
 cimport cython

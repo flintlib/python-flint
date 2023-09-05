@@ -14,6 +14,7 @@ from flint.types.arb cimport arb
 
 from flint._flint cimport *
 from flint.flintlib.mag cimport *
+from flint.flintlib.arf cimport *
 cimport libc.stdlib
 
 cdef acb_poly_coerce_operands(x, y):

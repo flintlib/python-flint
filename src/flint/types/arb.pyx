@@ -17,6 +17,8 @@ from flint.types.fmpz cimport fmpz
 from flint._flint cimport  *
 from flint.flintlib.mag cimport *
 from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear
+from flint.flintlib.arf cimport *
+from flint.flintlib.arb cimport *
 
 cimport libc.stdlib
 cimport cython
