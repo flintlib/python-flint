@@ -28,6 +28,7 @@ from flint.flintlib.fmpz_poly cimport *
 from flint.flintlib.fmpz_poly_factor cimport *
 from flint.flintlib.arith cimport *
 from flint.flintlib.acb cimport *
+from flint.flintlib.arb_poly cimport *
 
 cdef any_as_fmpz_poly(x):
     cdef fmpz_poly res

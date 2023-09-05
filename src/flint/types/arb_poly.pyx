@@ -14,6 +14,7 @@ from flint.types.acb_poly cimport acb_poly
 
 from flint._flint cimport *
 from flint.flintlib.arb cimport *
+from flint.flintlib.arb_poly cimport *
 cimport cython
 cimport libc.stdlib
 
