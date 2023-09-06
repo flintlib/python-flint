@@ -1,7 +1,7 @@
 from flint.flintlib.acb cimport acb_t, acb_ptr
 from flint.flintlib.mag cimport mag_t
 
-cdef extern from "acb_calc.h":
+cdef extern from "flint/acb_calc.h":
     ctypedef int (*acb_calc_func_t)(acb_ptr out, const acb_t inp, void * param, long order, long prec)
 
     ctypedef struct acb_calc_integrate_opt_struct:

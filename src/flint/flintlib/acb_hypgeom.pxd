@@ -2,7 +2,7 @@ from flint.flintlib.acb cimport acb_t, acb_srcptr, acb_ptr
 from flint.flintlib.acb_poly cimport acb_poly_t, acb_poly_struct
 from flint.flintlib.mag cimport mag_t
 
-cdef extern from "acb_hypgeom.h":
+cdef extern from "flint/acb_hypgeom.h":
     void acb_hypgeom_bessel_j(acb_t res, const acb_t nu, const acb_t z, long prec)
     void acb_hypgeom_bessel_k(acb_t res, const acb_t nu, const acb_t z, long prec)
     void acb_hypgeom_bessel_i(acb_t res, const acb_t nu, const acb_t z, long prec)

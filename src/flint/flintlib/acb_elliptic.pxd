@@ -1,6 +1,6 @@
 from flint.flintlib.acb cimport acb_t
 
-cdef extern from "acb_elliptic.h":
+cdef extern from "flint/acb_elliptic.h":
     void acb_elliptic_rf(acb_t res, const acb_t x, const acb_t y, const acb_t z, int flags, long prec)
     void acb_elliptic_rj(acb_t res, const acb_t x, const acb_t y, const acb_t z, const acb_t p, int flags, long prec)
     void acb_elliptic_rg(acb_t res, const acb_t x, const acb_t y, const acb_t z, int flags, long prec)

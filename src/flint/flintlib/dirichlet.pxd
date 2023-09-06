@@ -1,7 +1,7 @@
 from flint._flint cimport ulong
 from flint.flintlib.nmod_vec cimport nmod_t
 
-cdef extern from "dirichlet.h":
+cdef extern from "flint/dirichlet.h":
     ctypedef struct dirichlet_group_struct:
         ulong q
         ulong q_even

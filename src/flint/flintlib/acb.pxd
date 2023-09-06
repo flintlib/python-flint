@@ -5,7 +5,7 @@ from flint.flintlib.fmpz cimport fmpz_t
 from flint.flintlib.arf cimport arf_t
 from flint.flintlib.mag cimport mag_t
 
-cdef extern from "acb.h":
+cdef extern from "flint/acb.h":
     ctypedef struct acb_struct:
         arb_struct real
         arb_struct imag

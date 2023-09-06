@@ -6,7 +6,7 @@ from flint.flintlib.fmpz_poly cimport fmpz_poly_t
 from flint.flintlib.mag cimport mag_t
 from flint.flintlib.fmpz cimport fmpz_t
 
-cdef extern from "acb_poly.h":
+cdef extern from "flint/acb_poly.h":
     ctypedef struct acb_poly_struct:
         acb_ptr coeffs
         long length

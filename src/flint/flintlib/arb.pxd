@@ -4,7 +4,7 @@ from flint.flintlib.fmpq cimport fmpq_t
 from flint.flintlib.arf cimport arf_struct, arf_ptr, arf_t
 from flint.flintlib.mag cimport mag_struct, mag_ptr, mag_t
 
-cdef extern from "arb.h":
+cdef extern from "flint/arb.h":
     ctypedef struct arb_struct:
         arf_struct mid
         mag_struct rad

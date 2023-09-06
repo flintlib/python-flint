@@ -6,7 +6,7 @@ from flint.flintlib.fmpz cimport fmpz_t
 from flint.flintlib.arb cimport arb_t
 
 
-cdef extern from "acb_dirichlet.h":
+cdef extern from "flint/acb_dirichlet.h":
     void acb_dirichlet_eta(acb_t res, const acb_t s, long prec)
     void acb_dirichlet_chi(acb_t res, const dirichlet_group_t G, const dirichlet_char_t chi, ulong n, long prec)
 
