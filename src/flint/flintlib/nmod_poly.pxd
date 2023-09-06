@@ -10,13 +10,6 @@ cdef extern from "flint/nmod_poly.h":
         nmod_t mod
     ctypedef nmod_poly_struct nmod_poly_t[1]
 
-    ctypedef struct nmod_poly_factor_struct:
-        nmod_poly_struct *p
-        long *exp
-        long num
-        long alloc
-    ctypedef nmod_poly_factor_struct nmod_poly_factor_t[1]
-
     void nmod_poly_init(nmod_poly_t poly, mp_limb_t n)
     void nmod_poly_init_preinv(nmod_poly_t poly, mp_limb_t n, mp_limb_t ninv)
     void nmod_poly_init2(nmod_poly_t poly, mp_limb_t n, long alloc)
@@ -76,10 +69,3 @@ cdef extern from "flint/nmod_poly.h":
     void nmod_poly_tanh_series(nmod_poly_t g, nmod_poly_t h, long n)
     void nmod_poly_log_series(nmod_poly_t res, nmod_poly_t f, long n)
     void nmod_poly_exp_series(nmod_poly_t f, nmod_poly_t h, long n)
-
-    int nmod_poly_is_irreducible(nmod_poly_t f)
-    mp_limb_t nmod_poly_factor_with_berlekamp(nmod_poly_factor_t result, nmod_poly_t poly)
-    mp_limb_t nmod_poly_factor_with_cantor_zassenhaus(nmod_poly_factor_t result, nmod_poly_t poly)
-    mp_limb_t nmod_poly_factor(nmod_poly_factor_t result, nmod_poly_t input)
-    void nmod_poly_factor_init(nmod_poly_factor_t fac)
-    void nmod_poly_factor_clear(nmod_poly_factor_t fac)
