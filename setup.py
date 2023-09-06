@@ -64,8 +64,32 @@ if os.getenv('PYTHON_FLINT_COVERAGE'):
 
 
 ext_files = [
-    ("flint._flint", ["src/flint/pyflint.pyx"]), # Main Module
+    # ("flint._flint", ["src/flint/_flint.pxd"]), # Main Module
+    ("flint.pyflint", ["src/flint/pyflint.pyx"]), # Main Module
     # Submodules
+    ("flint.types.fmpz", ["src/flint/types/fmpz.pyx"]),
+    ("flint.types.fmpz_poly", ["src/flint/types/fmpz_poly.pyx"]),
+    ("flint.types.fmpz_mat", ["src/flint/types/fmpz_mat.pyx"]),
+    ("flint.types.fmpz_series", ["src/flint/types/fmpz_series.pyx"]),
+    ("flint.types.fmpq", ["src/flint/types/fmpq.pyx"]),
+    ("flint.types.fmpq_poly", ["src/flint/types/fmpq_poly.pyx"]),
+    ("flint.types.fmpq_mat", ["src/flint/types/fmpq_mat.pyx"]),
+    ("flint.types.fmpq_series", ["src/flint/types/fmpq_series.pyx"]),
+    ("flint.types.nmod", ["src/flint/types/nmod.pyx"]),
+    ("flint.types.nmod_poly", ["src/flint/types/nmod_poly.pyx"]),
+    ("flint.types.nmod_mat", ["src/flint/types/nmod_mat.pyx"]),
+    ("flint.types.nmod_series", ["src/flint/types/nmod_series.pyx"]),
+    ("flint.types.arf", ["src/flint/types/arf.pyx"]),
+    ("flint.types.arb", ["src/flint/types/arb.pyx"]),
+    ("flint.types.arb_poly", ["src/flint/types/arb_poly.pyx"]),
+    ("flint.types.arb_mat", ["src/flint/types/arb_mat.pyx"]),
+    ("flint.types.arb_series", ["src/flint/types/arb_series.pyx"]),
+    ("flint.types.acb", ["src/flint/types/acb.pyx"]),
+    ("flint.types.acb_poly", ["src/flint/types/acb_poly.pyx"]),
+    ("flint.types.acb_mat", ["src/flint/types/acb_mat.pyx"]),
+    ("flint.types.acb_series", ["src/flint/types/acb_series.pyx"]),
+    ("flint.types.fmpz_mpoly", ["src/flint/types/fmpz_mpoly.pyx"]),
+    ("flint.types.dirichlet", ["src/flint/types/dirichlet.pyx"]),
     ("flint.flint_base.flint_base", ["src/flint/flint_base/flint_base.pyx"]),
     ("flint.flint_base.flint_context", ["src/flint/flint_base/flint_context.pyx"]),
 
