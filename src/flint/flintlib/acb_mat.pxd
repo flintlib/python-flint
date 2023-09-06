@@ -1,11 +1,11 @@
-from flint.flintlib.acb cimport  acb_ptr, acb_struct, acb_t, acb_srcptr
+from flint._flint cimport ulong, flint_rand_t
 from flint.flintlib.fmpz_mat cimport fmpz_mat_t
 from flint.flintlib.fmpq_mat cimport fmpq_mat_t
 from flint.flintlib.mag cimport mag_t
-from flint._flint cimport ulong, flint_rand_t
 from flint.flintlib.fmpz cimport fmpz_t
 from flint.flintlib.acb_poly cimport acb_poly_t
 from flint.flintlib.arb cimport arb_t
+from flint.flintlib.acb cimport  acb_ptr, acb_struct, acb_t, acb_srcptr
 
 cdef extern from "acb_mat.h":
     ctypedef struct acb_mat_struct:

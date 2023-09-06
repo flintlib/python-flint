@@ -1,6 +1,6 @@
 from flint.flint_base.flint_base cimport flint_poly
 
-from flint._flint cimport acb_poly_t
+from flint.flintlib.acb_poly cimport acb_poly_t
 
 cdef acb_poly_set_list(acb_poly_t poly, list val, long prec)
 cdef class acb_poly(flint_poly):

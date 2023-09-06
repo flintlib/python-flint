@@ -6,6 +6,8 @@ from flint.types.fmpz cimport fmpz
 from flint._flint cimport *
 from flint.flintlib.ulong_extras cimport n_gcd
 from flint.flintlib.fmpz cimport fmpz_get_ui
+from flint.flintlib.dirichlet cimport *
+from flint.flintlib.acb_dirichlet cimport *
 
 cdef dict _dirichlet_group_cache = {}
 

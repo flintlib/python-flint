@@ -9,6 +9,7 @@ from flint.types.fmpz cimport fmpz
 from flint._flint cimport *
 cimport cython
 cimport libc.stdlib
+from flint.flintlib.fmpz_mpoly cimport *
 
 cdef any_as_fmpz_mpoly(x):
     cdef fmpz_mpoly res

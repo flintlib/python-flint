@@ -20,6 +20,10 @@ from flint.flintlib.arf cimport *
 from flint.flintlib.acb cimport *
 from flint.flintlib.acb_modular cimport *
 from flint.flintlib.acb_hypgeom cimport *
+from flint.flintlib.acb_dirichlet cimport *
+from flint.flintlib.acb_elliptic cimport *
+from flint.flintlib.acb_calc cimport *
+from flint.flintlib.acb_dft cimport *
 
 cimport libc.stdlib
 cimport cython
