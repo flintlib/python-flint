@@ -2,7 +2,7 @@ from flint.flint_base.flint_base cimport flint_mpoly
 
 from flint.flintlib.fmpz_mpoly cimport fmpz_mpoly_ctx_t
 from flint.flintlib.fmpz_mpoly cimport fmpz_mpoly_t
-from flint._flint cimport slong
+from flint.flintlib.flint cimport slong
 
 cdef class fmpz_mpoly_ctx:
     cdef fmpz_mpoly_ctx_t val

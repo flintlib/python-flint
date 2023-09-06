@@ -1,4 +1,4 @@
-from flint._flint cimport ulong
+from flint.flintlib.flint cimport ulong
 
 cdef extern from "flint/ulong_extras.h":
     ulong n_gcd(ulong n, ulong k)

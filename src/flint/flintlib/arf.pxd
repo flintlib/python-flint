@@ -1,5 +1,5 @@
 from flint.flintlib.fmpz cimport fmpz_t, fmpz_struct
-from flint._flint cimport mp_limb_t, ulong, flint_rand_t
+from flint.flintlib.flint cimport mp_limb_t, ulong, flint_rand_t
 from flint.flintlib.fmpq cimport fmpq_t
 from flint.flintlib.mag cimport mag_t
 

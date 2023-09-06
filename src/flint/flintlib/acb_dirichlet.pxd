@@ -1,6 +1,6 @@
 from flint.flintlib.acb cimport acb_t, acb_ptr
 from flint.flintlib.dirichlet cimport dirichlet_group_t, dirichlet_char_t
-from flint._flint cimport ulong
+from flint.flintlib.flint cimport ulong
 from flint.flintlib.acb_poly cimport acb_poly_t
 from flint.flintlib.fmpz cimport fmpz_t
 from flint.flintlib.arb cimport arb_t

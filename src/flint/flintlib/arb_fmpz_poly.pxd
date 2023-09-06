@@ -1,7 +1,7 @@
 from flint.flintlib.arb cimport arb_t
 from flint.flintlib.acb cimport acb_t, acb_ptr
 from flint.flintlib.fmpz_poly cimport fmpz_poly_t
-from flint._flint cimport ulong
+from flint.flintlib.flint cimport ulong
 
 cdef extern from "arb_fmpz_poly.h":
     void arb_fmpz_poly_evaluate_arb(arb_t res, const fmpz_poly_t poly, const arb_t x, long prec)

@@ -1,4 +1,4 @@
-from flint._flint cimport ulong
+from flint.flintlib.flint cimport ulong
 from flint.flintlib.fmpq cimport fmpq_t
 
 cdef extern from "bernoulli.h":

@@ -1,4 +1,4 @@
-from flint._flint cimport ulong, flint_rand_t
+from flint.flintlib.flint cimport ulong, flint_rand_t
 from flint.flintlib.fmpz_mat cimport fmpz_mat_t
 from flint.flintlib.fmpq_mat cimport fmpq_mat_t
 from flint.flintlib.mag cimport mag_t

@@ -1,5 +1,5 @@
-from flint._flint cimport fmpz_struct, ulong, mp_limb_t
-from flint._flint cimport mp_size_t, mp_bitcnt_t
+from flint.flintlib.flint cimport fmpz_struct, ulong, mp_limb_t
+from flint.flintlib.flint cimport mp_size_t, mp_bitcnt_t
 
 cdef extern from "flint/fmpz.h":
     ctypedef fmpz_struct fmpz_t[1]

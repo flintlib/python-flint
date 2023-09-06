@@ -2,7 +2,7 @@ from flint.flintlib.arb cimport arb_ptr, arb_struct
 from flint.flintlib.fmpz_mat cimport fmpz_mat_t
 from flint.flintlib.fmpq_mat cimport fmpq_mat_t
 from flint.flintlib.mag cimport mag_t
-from flint._flint cimport ulong
+from flint.flintlib.flint cimport ulong
 from flint.flintlib.fmpz cimport fmpz_t
 from flint.flintlib.arb cimport arb_t
 from flint.flintlib.arb_poly cimport arb_poly_t

@@ -1,7 +1,7 @@
 from flint.flintlib.arb cimport arb_t, arb_srcptr
 from flint.flintlib.arb_poly cimport arb_poly_t
 from flint.flintlib.fmpz cimport fmpz_t
-from flint._flint cimport ulong
+from flint.flintlib.flint cimport ulong
 
 cdef extern from "arb_hypgeom.h":
     void arb_hypgeom_pfq(arb_t res, arb_srcptr a, long p, arb_srcptr b, long q, const arb_t z, int regularized, long prec)

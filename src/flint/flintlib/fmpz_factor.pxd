@@ -1,4 +1,4 @@
-from flint._flint cimport fmpz_struct, ulong
+from flint.flintlib.flint cimport fmpz_struct, ulong
 from flint.flintlib.fmpz cimport fmpz_t
 
 cdef extern from "flint/fmpz_factor.h":

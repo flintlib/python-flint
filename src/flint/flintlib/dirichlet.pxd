@@ -1,4 +1,4 @@
-from flint._flint cimport ulong
+from flint.flintlib.flint cimport ulong
 from flint.flintlib.nmod_vec cimport nmod_t
 
 cdef extern from "dirichlet.h":

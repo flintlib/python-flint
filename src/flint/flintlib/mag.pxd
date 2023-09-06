@@ -1,4 +1,4 @@
-from flint._flint cimport ulong, mp_limb_t
+from flint.flintlib.flint cimport ulong, mp_limb_t
 from flint.flintlib.fmpz cimport fmpz_struct
 
 cdef extern from "mag.h":

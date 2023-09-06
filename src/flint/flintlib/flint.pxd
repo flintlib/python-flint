@@ -1,19 +1,9 @@
 # _flint.pxd
 #
-# Define the contents of the Python, GMP, Flint and Arb headers.
+# Define fundamental types and constants
 
 cdef extern from "Python.h":
     ctypedef void PyObject
-#    ctypedef void PyTypeObject
-#     ctypedef long Py_ssize_t
-#     int PyObject_TypeCheck(object, PyTypeObject*)
-#     int PyInt_Check(PyObject *o)
-#     int PyLong_Check(PyObject *o)
-#     long PyInt_AS_LONG(PyObject *io)
-#     double PyFloat_AS_DOUBLE(PyObject *io)
-#     Py_ssize_t PyList_GET_SIZE(PyObject *list)
-#     long PyLong_AsLongAndOverflow(PyObject *pylong, int *overflow)
-#     long long PyLong_AsLongLongAndOverflow(PyObject *pylong, int *overflow)
 
 cdef enum:
     FMPZ_UNKNOWN = 0

@@ -1,4 +1,4 @@
-from flint._flint cimport flint_rand_t, mp_bitcnt_t, ulong
+from flint.flintlib.flint cimport flint_rand_t, mp_bitcnt_t, ulong
 from flint.flintlib.fmpz cimport fmpz_struct, fmpz_t
 from flint.flintlib.fmpz_poly cimport fmpz_poly_t
 from flint.flintlib.nmod_mat cimport nmod_mat_t

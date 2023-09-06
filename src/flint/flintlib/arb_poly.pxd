@@ -1,4 +1,4 @@
-from flint._flint cimport flint_rand_t, ulong
+from flint.flintlib.flint cimport flint_rand_t, ulong
 from flint.flintlib.arb cimport arb_ptr, arb_t, arb_srcptr
 from flint.flintlib.fmpz_poly cimport fmpz_poly_t
 from flint.flintlib.fmpq_poly cimport fmpq_poly_t

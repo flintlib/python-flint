@@ -9,7 +9,7 @@ from flint.flint_base.flint_context cimport thectx
 
 cimport cython
 
-from flint._flint cimport ulong
+from flint.flintlib.flint cimport ulong
 from flint.flintlib.nmod_mat cimport *
 from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
 from flint.flintlib.fmpz_mat cimport fmpz_mat_get_nmod_mat

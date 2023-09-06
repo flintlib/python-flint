@@ -1,4 +1,4 @@
-from flint._flint cimport slong, FLINT_BITS
+from flint.flintlib.flint cimport slong, FLINT_BITS
 
 cdef extern from "flint/mpoly.h":
     ctypedef enum ordering_t:

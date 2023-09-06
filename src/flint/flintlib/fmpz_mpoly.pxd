@@ -1,6 +1,6 @@
 from flint.flintlib.mpoly cimport mpoly_ctx_t, ordering_t
 from flint.flintlib.fmpz cimport fmpz_t, fmpz_struct
-from flint._flint cimport ulong, slong, flint_bitcnt_t, flint_rand_t
+from flint.flintlib.flint cimport ulong, slong, flint_bitcnt_t, flint_rand_t
 from flint.flintlib.fmpz_poly cimport fmpz_poly_t, fmpz_poly_struct
 
 cdef extern from "flint/fmpz_mpoly.h":

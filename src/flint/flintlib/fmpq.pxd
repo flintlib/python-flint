@@ -1,4 +1,4 @@
-from flint._flint cimport ulong, flint_rand_t, mp_bitcnt_t
+from flint.flintlib.flint cimport ulong, flint_rand_t, mp_bitcnt_t
 from flint.flintlib.fmpz cimport fmpz_struct, fmpz_t
 
 cdef extern from "flint/fmpq.h":
