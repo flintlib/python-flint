@@ -1,6 +1,6 @@
 from flint._flint cimport mp_limb_t, mp_bitcnt_t
 
-cdef extern from "flint/nmod_vec.h":
+cdef extern from "flint/nmod.h":
     ctypedef struct nmod_t:
        mp_limb_t n
        mp_limb_t ninv

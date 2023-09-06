@@ -1,6 +1,6 @@
 from flint.flint_base.flint_base cimport flint_scalar
 from flint._flint cimport mp_limb_t
-from flint.flintlib.nmod_vec cimport nmod_t
+from flint.flintlib.nmod cimport nmod_t
 
 cdef int any_as_nmod(mp_limb_t * val, obj, nmod_t mod) except -1
 
