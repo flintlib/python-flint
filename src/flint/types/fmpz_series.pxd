@@ -1,6 +1,6 @@
 from flint.flint_base.flint_base cimport flint_series
 
-from flint._flint cimport fmpz_poly_t
+from flint.flintlib.fmpz_poly cimport fmpz_poly_t
 
 cdef class fmpz_series(flint_series):
     cdef fmpz_poly_t val

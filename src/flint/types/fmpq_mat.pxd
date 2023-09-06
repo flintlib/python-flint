@@ -1,6 +1,6 @@
 from flint.flint_base.flint_base cimport flint_mat
 
-from flint._flint cimport fmpq_mat_t
+from flint.flintlib.fmpq_mat cimport fmpq_mat_t
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 from flint.types.fmpz_mat cimport fmpz_mat

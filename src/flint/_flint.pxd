@@ -70,30 +70,6 @@ cdef extern from *:
     """
     slong pylong_as_slong(PyObject *pylong, int *overflow)
 
-from flint.flintlib.nmod_poly cimport nmod_poly_t
-from flint.flintlib.nmod_mat cimport nmod_mat_t
-from flint.flintlib.fmpz cimport fmpz_t
-from flint.flintlib.fmpz_poly cimport fmpz_poly_t, fmpz_poly_struct
-from flint.flintlib.fmpz_mat cimport fmpz_mat_struct, fmpz_mat_t
-from flint.flintlib.fmpq cimport fmpq_t, fmpq_struct
-from flint.flintlib.fmpq_poly cimport fmpq_poly_struct, fmpq_poly_t
-from flint.flintlib.fmpq_mat cimport fmpq_mat_t
-from flint.flintlib.mag cimport mag_struct, mag_t, mag_ptr, mag_srcptr
-
-from flint.flintlib.arf cimport arf_struct, arf_t, arf_ptr, arf_srcptr, arf_rnd_t
-from flint.flintlib.arb cimport arb_struct, arb_ptr, arb_srcptr, arb_t
-from flint.flintlib.arb cimport arb_midref, arb_radref
-from flint.flintlib.acb cimport acb_struct, acb_ptr, acb_srcptr, acb_t
-from flint.flintlib.acb cimport acb_realref, acb_imagref
-from flint.flintlib.arb_poly cimport arb_poly_struct, arb_poly_t
-from flint.flintlib.arb_mat cimport arb_mat_struct, arb_mat_t
-# from flint.flintlib.acb_poly cimport acb_poly_struct, acb_poly_t
-# from flint.flintlib.acb_mat cimport acb_mat_struct, acb_mat_t
-# from flint.flintlib.dirichlet cimport dirichlet_group_struct, dirichlet_group_t
-# from flint.flintlib.dirichlet cimport dirichlet_char_struct, dirichlet_char_t
-# from flint.flintlib.mpoly cimport ordering_t, mpoly_ctx_struct, mpoly_ctx_t
-
-
 
 """
 cdef extern from "flint/fmpz_mpoly_factor.h":

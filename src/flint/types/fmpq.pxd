@@ -1,6 +1,6 @@
 from flint.flint_base.flint_base cimport flint_scalar
 
-from flint._flint cimport fmpq_t
+from flint.flintlib.fmpq cimport fmpq_t
 
 cdef any_as_fmpq(obj)
 cdef class fmpq(flint_scalar):

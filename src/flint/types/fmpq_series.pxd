@@ -1,5 +1,5 @@
 from flint.flint_base.flint_base cimport flint_series
-from flint._flint cimport fmpq_poly_t
+from flint.flintlib.fmpq_poly cimport fmpq_poly_t
 
 cdef class fmpq_series(flint_series):
     cdef fmpq_poly_t val

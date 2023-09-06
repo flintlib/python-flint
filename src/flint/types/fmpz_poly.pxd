@@ -1,7 +1,7 @@
 
 from flint.flint_base.flint_base cimport flint_poly
 
-from flint._flint cimport fmpz_poly_t
+from flint.flintlib.fmpz_poly cimport fmpz_poly_t
 
 cdef fmpz_poly_set_list(fmpz_poly_t poly, list val)
 

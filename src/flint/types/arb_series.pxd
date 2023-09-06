@@ -1,6 +1,6 @@
 from flint.flint_base.flint_base cimport flint_series
 
-from flint._flint cimport arb_poly_t
+from flint.flintlib.arb_poly cimport arb_poly_t
 
 cdef class arb_series(flint_series):
     cdef arb_poly_t val

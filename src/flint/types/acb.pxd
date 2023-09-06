@@ -1,5 +1,5 @@
 from flint.flint_base.flint_base cimport flint_scalar
-from flint._flint cimport acb_t
+from flint.flintlib.acb cimport acb_t
 
 cdef any_as_acb(x)
 cdef any_as_acb_or_notimplemented(x)

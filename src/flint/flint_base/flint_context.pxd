@@ -1,4 +1,4 @@
-from flint._flint cimport (
+from flint.flintlib.arf cimport (
     arf_rnd_t,
 )
 
