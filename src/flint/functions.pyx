@@ -1,16 +1,3 @@
-from .utils.conversion cimport dps_to_prec
-from flint.types.arb_mat cimport arb_mat
-from flint.types.acb_mat cimport acb_mat
-from flint.types.arb_poly cimport arb_poly
-from flint.types.acb_poly cimport acb_poly
-from flint.types.arb cimport arb
-from flint.types.acb cimport acb
-from flint.types.arb_series cimport arb_series
-from flint.types.acb_series cimport acb_series
-from flint.flintlib.arb cimport *
-from flint.flintlib.acb cimport *
-
-
 # xxx: this doesn't work when changed to a cdef function. why?
 def __goodness(x, bint parts=True, metric=None):
     if metric is not None:
@@ -44,7 +31,6 @@ def good(func, slong prec=0, slong maxprec=0, slong dps=0,
     a result accurate to the current working precision (or the
     precision specified by *prec* or *dps*).
 
-        >>> from flint import arb
         >>> good(lambda: (arb.pi() + arb("1e-100")).sin())
         Traceback (most recent call last):
           ...
@@ -58,7 +44,6 @@ def good(func, slong prec=0, slong maxprec=0, slong dps=0,
     that convergence is not possible in case of inexact zeros.
     This behavior can be overridden by setting *parts* to *False*.
 
-        >>> from flint import acb
         >>> good(lambda: (acb(0,-1) ** 0.5) ** 2)
         Traceback (most recent call last):
           ...
@@ -120,7 +105,6 @@ def showgood(func, **kwargs):
     value of the result (without an explicit radius) instead
     of returning it.
 
-        >>> from flint import arb
         >>> showgood(lambda: arb.pi())
         3.14159265358979
         >>> showgood(lambda: arb.pi(), dps=50)
