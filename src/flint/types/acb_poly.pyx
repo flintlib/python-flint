@@ -12,9 +12,9 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 from flint.types.arb cimport arb
 
-from flint._flint cimport *
 from flint.flintlib.mag cimport *
 from flint.flintlib.arf cimport *
+from flint.flintlib.arb cimport *
 from flint.flintlib.acb cimport *
 from flint.flintlib.acb_poly cimport *
 cimport libc.stdlib

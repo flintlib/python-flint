@@ -9,7 +9,6 @@ from flint.pyflint cimport global_random_state
 from flint.types.fmpq cimport any_as_fmpq
 cimport cython
 
-from flint._flint cimport *
 from flint.flintlib.fmpz cimport fmpz_set, fmpz_init, fmpz_clear
 from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_is_pm1
 from flint.flintlib.fmpz_poly cimport fmpz_poly_init

@@ -70,7 +70,6 @@ cdef extern from *:
     """
     slong pylong_as_slong(PyObject *pylong, int *overflow)
 
-from flint.flintlib.nmod_vec cimport nmod_t
 from flint.flintlib.nmod_poly cimport nmod_poly_t
 from flint.flintlib.nmod_mat cimport nmod_mat_t
 from flint.flintlib.fmpz cimport fmpz_t

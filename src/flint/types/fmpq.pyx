@@ -4,7 +4,7 @@ from flint.types.fmpz cimport fmpz_set_any_ref
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 
-from flint._flint cimport *
+from flint._flint cimport FMPZ_UNKNOWN, FMPZ_TMP
 from flint.flintlib.fmpz cimport fmpz_set, fmpz_one
 from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_sgn
 from flint.flintlib.fmpz cimport fmpz_fdiv_q, fmpz_bits

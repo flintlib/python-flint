@@ -6,7 +6,6 @@ from flint.flint_base.flint_base cimport flint_mpoly
 from flint.types.fmpz cimport any_as_fmpz
 from flint.types.fmpz cimport fmpz
 
-from flint._flint cimport *
 cimport cython
 cimport libc.stdlib
 from flint.flintlib.fmpz_mpoly cimport *

@@ -14,7 +14,6 @@ from flint.types.acb cimport acb
 from flint.types.acb_poly cimport acb_poly
 from flint.types.acb_series cimport acb_series
 
-from flint._flint cimport *
 from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_is_pm1
 from flint.flintlib.fmpz_poly cimport *
 

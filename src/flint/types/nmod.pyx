@@ -5,7 +5,7 @@ from flint.types.fmpz cimport any_as_fmpz
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 
-from flint._flint cimport *
+from flint.flintlib.fmpz cimport fmpz_t
 from flint.flintlib.nmod_vec cimport *
 from flint.flintlib.fmpz cimport fmpz_fdiv_ui, fmpz_init, fmpz_clear
 from flint.flintlib.fmpz cimport fmpz_set_ui, fmpz_get_ui

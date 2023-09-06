@@ -22,7 +22,6 @@ from flint.flintlib.acb_modular cimport *
 from flint.flintlib.acb_hypgeom cimport *
 from flint.flintlib.acb_dirichlet cimport *
 
-from flint._flint cimport *
 cimport cython
 cimport libc.stdlib
 

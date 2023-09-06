@@ -3,7 +3,6 @@ from flint.types.acb cimport any_as_acb
 from flint.types.acb cimport acb
 from flint.types.fmpz cimport fmpz
 
-from flint._flint cimport *
 from flint.flintlib.ulong_extras cimport n_gcd
 from flint.flintlib.fmpz cimport fmpz_get_ui
 from flint.flintlib.dirichlet cimport *

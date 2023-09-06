@@ -8,7 +8,6 @@ from flint.types.fmpq cimport any_as_fmpq
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 
-from flint._flint cimport *
 from flint.flintlib.fmpz cimport fmpz_is_zero
 from flint.flintlib.fmpz cimport fmpz_set
 from flint.flintlib.fmpq cimport fmpq_is_zero

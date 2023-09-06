@@ -22,7 +22,6 @@ cimport libc.stdlib
 from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear, fmpz_set
 from flint.flintlib.fmpz cimport fmpz_is_one, fmpz_equal_si, fmpz_equal
 from flint.flintlib.acb_modular cimport *
-from flint._flint cimport *
 from flint.flintlib.ulong_extras cimport n_is_prime
 from flint.flintlib.fmpz_poly cimport *
 from flint.flintlib.fmpz_poly_factor cimport *

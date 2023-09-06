@@ -7,7 +7,6 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 from flint.types.arb cimport arb
 
-from flint._flint cimport *
 from flint.flintlib.arf cimport *
 
 ctx = thectx

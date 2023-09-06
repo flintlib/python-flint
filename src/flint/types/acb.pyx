@@ -13,7 +13,7 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 from flint.types.dirichlet cimport dirichlet_char
 
-from flint._flint cimport *
+from flint._flint cimport FMPZ_TMP, FMPZ_REF, FMPZ_UNKNOWN
 from flint.flintlib.mag cimport *
 from flint.flintlib.arb cimport *
 from flint.flintlib.arf cimport *

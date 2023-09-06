@@ -14,7 +14,7 @@ from flint.types.arf cimport arf
 from flint.types.fmpq cimport fmpq
 from flint.types.fmpz cimport fmpz
 
-from flint._flint cimport  *
+from flint._flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
 from flint.flintlib.mag cimport *
 from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear
 from flint.flintlib.arf cimport *
