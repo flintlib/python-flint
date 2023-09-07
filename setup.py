@@ -93,7 +93,7 @@ ext_files = [
     ("flint.flint_base.flint_base", ["src/flint/flint_base/flint_base.pyx"]),
     ("flint.flint_base.flint_context", ["src/flint/flint_base/flint_context.pyx"]),
     # Helper for unittests
-    ("flint.types.eval_helper", ["src/flint/types/eval_helper.pyx"]),
+    ("flint.functions.showgood", ["src/flint/functions/showgood.pyx"]),
 
 ]
 
