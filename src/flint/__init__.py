@@ -22,4 +22,4 @@ from .types.acb_mat import *
 from .types.acb_series import *
 from .types.fmpz_mpoly import *
 
-__version__ = '0.4.3'
+__version__ = '0.4.4'
