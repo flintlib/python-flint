@@ -8,6 +8,7 @@ from flint.types.nmod cimport nmod
 
 from flint.flintlib.nmod_vec cimport *
 from flint.flintlib.nmod_poly cimport *
+from flint.flintlib.nmod_poly_factor cimport *
 from flint.flintlib.fmpz_poly cimport fmpz_poly_get_nmod_poly
 
 cdef any_as_nmod_poly(obj, nmod_t mod):

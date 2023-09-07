@@ -1,5 +1,5 @@
 from flint.flintlib.arf cimport ARF_RND_DOWN
-from flint._flint cimport (
+from flint.flintlib.flint cimport (
     flint_cleanup,
     flint_get_num_threads,
     flint_set_num_threads

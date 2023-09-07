@@ -1,4 +1,4 @@
-from flint._flint cimport ulong, slong, flint_rand_t
+from flint.flintlib.flint cimport ulong, slong, flint_rand_t
 from flint.flintlib.fmpz cimport fmpz_t
 from flint.flintlib.fmpq cimport fmpq_t
 from flint.flintlib.arf cimport arf_struct, arf_ptr, arf_t
