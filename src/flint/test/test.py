@@ -996,6 +996,8 @@ def test_fmpq_poly():
     [(r,m)] = Q([1,1]).complex_roots()
     assert m == 1
     assert r.overlaps(-1)
+    assert str(Q([1,2]).roots()) == "[(-1/2, 1)]"
+    assert Q([2,1]).roots() == [(-2, 1)]
 
 def test_fmpq_mat():
     Q = flint.fmpq_mat
@@ -1417,6 +1419,9 @@ def test_nmod_poly():
     for alg in [None, 'berlekamp', 'cantor-zassenhaus']:
         assert p3.factor(alg) == f3
         assert p3.factor(algorithm=alg) == f3
+    assert P([1], 11).roots() == []
+    assert P([1, 2, 3], 11).roots() == [(8, 1), (6, 1)]
+    assert P([1, 6, 1, 8], 11).roots() == [(5, 3)]
 
 def test_nmod_mat():
     M = flint.nmod_mat
