@@ -438,11 +438,17 @@ def test_fmpz_poly():
     assert Z([1,2,2]).sqrt() is None
     assert Z([1,0,2,0,3]).deflation() == (Z([1,2,3]), 2)
     assert Z([1,1]).deflation() == (Z([1,1]), 1)
-    [(r,m)] = Z([1,1]).roots()
+    [(r,m)] = Z([1,1]).complex_roots()
     assert m == 1
     assert r.overlaps(-1)
+    assert Z([]).complex_roots() == []
+    assert Z([1]).complex_roots() == []
+    [(r,m)] = Z([1,1]).roots()
+    assert m == 1
+    assert r == -1
     assert Z([]).roots() == []
     assert Z([1]).roots() == []
+    assert Z([1, 2]).roots() == []
 
 def test_fmpz_poly_factor():
     Z = flint.fmpz_poly
@@ -985,9 +991,9 @@ def test_fmpq_poly():
     assert Q.bernoulli_poly(3) == Q([0,1,-3,2],2)
     assert Q.euler_poly(3) == Q([1,0,-6,4],4)
     assert Q.legendre_p(3) == Q([0,-3,0,5],2)
-    assert Q([]).roots() == []
-    assert Q([1]).roots() == []
-    [(r,m)] = Q([1,1]).roots()
+    assert Q([]).complex_roots() == []
+    assert Q([1]).complex_roots() == []
+    [(r,m)] = Q([1,1]).complex_roots()
     assert m == 1
     assert r.overlaps(-1)
 
