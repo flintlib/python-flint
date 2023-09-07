@@ -68,6 +68,7 @@ packages=[
     'flint.flintlib',
     'flint.flint_base',
     'flint.types',
+    'flint.functions',
     'flint.utils',
     'flint.test',
 ]
