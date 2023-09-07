@@ -210,7 +210,7 @@ cdef class acb_mat(flint_mat):
         """
         Returns the determinant of the square matrix *s* as an *acb*.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> A = acb_mat(3, 3, range(9))
             >>> showgood(lambda: A.det(), dps=25)    # singular
             0
@@ -693,7 +693,7 @@ cdef class acb_mat(flint_mat):
         Ill-conditioned or large matrices may require high precision
         to isolate the eigenvalues::
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> from flint import arb_mat
             >>> sum(acb_mat(arb_mat.hilbert(20,20)).eig())
             Traceback (most recent call last):

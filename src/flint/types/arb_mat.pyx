@@ -195,7 +195,7 @@ cdef class arb_mat(flint_mat):
         """
         Returns the determinant of the square matrix *s* as an *arb*.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> A = arb_mat(3, 3, range(9))
             >>> showgood(lambda: A.det(), dps=25)    # exact singular
             0

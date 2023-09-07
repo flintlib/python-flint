@@ -706,7 +706,7 @@ cdef class arb(flint_scalar):
         r"""
         Square root `\sqrt{s}`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(3).sqrt(), dps=25)
             1.732050807568877293527446
             >>> showgood(lambda: arb(0).sqrt(), dps=25)
@@ -727,7 +727,7 @@ cdef class arb(flint_scalar):
         r"""
         Reciprocal square root `1/\sqrt{s}`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(3).rsqrt(), dps=25)
             0.5773502691896257645091488
             >>> showgood(lambda: arb(0).rsqrt(), dps=25)
@@ -750,7 +750,7 @@ cdef class arb(flint_scalar):
         r"""
         Exponential function `\exp(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).exp(), dps=25)
             2.718281828459045235360287
         """
@@ -762,7 +762,7 @@ cdef class arb(flint_scalar):
         r"""
         Exponential function `\exp(s) - 1`, computed accurately for small *s*.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: (arb(10) ** -8).expm1(), dps=25)
             1.000000005000000016666667e-8
         """
@@ -774,7 +774,7 @@ cdef class arb(flint_scalar):
         r"""
         Natural logarithm `\log(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(2).log(), dps=25)
             0.6931471805599453094172321
             >>> showgood(lambda: arb(100).exp().log(), dps=25)
@@ -795,7 +795,7 @@ cdef class arb(flint_scalar):
         r"""
         Natural logarithm `\log(1+s)`, computed accurately for small *s*.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> from flint import acb
             >>> showgood(lambda: acb(1).log1p(), dps=25)
             0.6931471805599453094172321
@@ -813,7 +813,7 @@ cdef class arb(flint_scalar):
         r"""
         Sine function `\sin(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).sin(), dps=25)
             0.8414709848078965066525023
         """
@@ -825,7 +825,7 @@ cdef class arb(flint_scalar):
         r"""
         Cosine function `\cos(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).cos(), dps=25)
             0.5403023058681397174009366
         """
@@ -837,7 +837,7 @@ cdef class arb(flint_scalar):
         r"""
         Computes `\sin(s)` and `\cos(s)` simultaneously.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).sin_cos(), dps=25)
             (0.8414709848078965066525023, 0.5403023058681397174009366)
         """
@@ -850,7 +850,7 @@ cdef class arb(flint_scalar):
         r"""
         Sine function `\sin(\pi s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(0.75).sin_pi(), dps=25)
             0.7071067811865475244008444
             >>> showgood(lambda: arb(1).sin_pi(), dps=25)
@@ -864,7 +864,7 @@ cdef class arb(flint_scalar):
         r"""
         Cosine function `\cos(\pi s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(0.75).cos_pi(), dps=25)
             -0.7071067811865475244008444
             >>> showgood(lambda: arb(0.5).cos_pi(), dps=25)
@@ -878,7 +878,7 @@ cdef class arb(flint_scalar):
         r"""
         Computes `\sin(\pi s)` and `\cos(\pi s)` simultaneously.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(0.75).sin_cos_pi(), dps=25)
             (0.7071067811865475244008444, -0.7071067811865475244008444)
         """
@@ -891,7 +891,7 @@ cdef class arb(flint_scalar):
         r"""
         Tangent function `\tan(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).tan(), dps=25)
             1.557407724654902230506975
         """
@@ -903,7 +903,7 @@ cdef class arb(flint_scalar):
         r"""
         Cotangent function `\cot(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).cot(), dps=25)
             0.6420926159343307030064200
         """
@@ -915,7 +915,7 @@ cdef class arb(flint_scalar):
         r"""
         Tangent function `\tan(\pi s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(0.125).tan_pi(), dps=25)
             0.4142135623730950488016887
             >>> showgood(lambda: arb(1).tan_pi(), dps=25)
@@ -929,7 +929,7 @@ cdef class arb(flint_scalar):
         r"""
         Cotangent function `\cot(\pi s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(0.125).cot_pi(), dps=25)
             2.414213562373095048801689
             >>> showgood(lambda: arb(0.5).cot_pi(), dps=25)
@@ -945,7 +945,7 @@ cdef class arb(flint_scalar):
         Returns the algebraic sine value `\sin(\pi s)`.
 
             >>> from flint import fmpq
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.sin_pi_fmpq(fmpq(3,4)), dps=25)
             0.7071067811865475244008444
         """
@@ -959,7 +959,7 @@ cdef class arb(flint_scalar):
         Returns the algebraic cosine value `\cos(\pi s)`.
 
             >>> from flint import fmpq
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.cos_pi_fmpq(fmpq(3,4)), dps=25)
             -0.7071067811865475244008444
         """
@@ -973,7 +973,7 @@ cdef class arb(flint_scalar):
         Computes `\sin(\pi s)` and `\cos(\pi s)` simultaneously.
 
             >>> from flint import fmpq
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.sin_cos_pi_fmpq(fmpq(3,4)), dps=25)
             (0.7071067811865475244008444, -0.7071067811865475244008444)
         """
@@ -986,7 +986,7 @@ cdef class arb(flint_scalar):
         """
         Secant function `\operatorname{sec}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).sec(), dps=25)
             1.850815717680925617911753
         """
@@ -998,7 +998,7 @@ cdef class arb(flint_scalar):
         """
         Cosecant function `\operatorname{csc}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).csc(), dps=25)
             1.188395105778121216261599
         """
@@ -1010,7 +1010,7 @@ cdef class arb(flint_scalar):
         r"""
         Sinc function, `\operatorname{sinc}(x) = \sin(x)/x`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(3).sinc(), dps=25)
             0.04704000268662240736691493
         """
@@ -1022,7 +1022,7 @@ cdef class arb(flint_scalar):
         r"""
         Normalized sinc function, `\operatorname{sinc}(\pi x) = \sin(\pi x)/(\pi x)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1.5).sinc_pi(), dps=25)
             -0.2122065907891937810251784
             >>> showgood(lambda: arb(2).sinc_pi(), dps=25)
@@ -1036,7 +1036,7 @@ cdef class arb(flint_scalar):
         r"""
         Inverse tangent `\operatorname{atan}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).atan(), dps=25)
             0.7853981633974483096156608
         """
@@ -1049,7 +1049,7 @@ cdef class arb(flint_scalar):
         r"""
         Two-argument inverse tangent `\operatorname{atan2}(s,t)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.atan2(-10,-5), dps=25)
             -2.034443935795702735445578
         """
@@ -1063,7 +1063,7 @@ cdef class arb(flint_scalar):
         r"""
         Inverse cosine `\operatorname{acos}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(0).acos(), dps=25)
             1.570796326794896619231322
         """
@@ -1075,7 +1075,7 @@ cdef class arb(flint_scalar):
         r"""
         Inverse sine `\operatorname{asin}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).asin(), dps=25)
             1.570796326794896619231322
         """
@@ -1087,7 +1087,7 @@ cdef class arb(flint_scalar):
         r"""
         Inverse hyperbolic tangent `\operatorname{atanh}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb("0.99").atanh(), dps=25)
             2.646652412362246197705061
         """
@@ -1099,7 +1099,7 @@ cdef class arb(flint_scalar):
         r"""
         Inverse hyperbolic sine `\operatorname{asinh}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1000).asinh(), dps=25)
             7.600902709541988611523290
         """
@@ -1111,7 +1111,7 @@ cdef class arb(flint_scalar):
         r"""
         Inverse hyperbolic cosine `\operatorname{acosh}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(2).acosh(), dps=25)
             1.316957896924816708625046
         """
@@ -1123,7 +1123,7 @@ cdef class arb(flint_scalar):
         r"""
         Hyperbolic sine `\sinh(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).sinh(), dps=25)
             1.175201193643801456882382
         """
@@ -1135,7 +1135,7 @@ cdef class arb(flint_scalar):
         r"""
         Hyperbolic cosine `\cosh(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).cosh(), dps=25)
             1.543080634815243778477906
         """
@@ -1147,7 +1147,7 @@ cdef class arb(flint_scalar):
         r"""
         Computes `\sinh(s)` and `\cosh(s)` simultaneously.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).sinh_cosh(), dps=25)
             (1.175201193643801456882382, 1.543080634815243778477906)
         """
@@ -1160,7 +1160,7 @@ cdef class arb(flint_scalar):
         r"""
         Hyperbolic tangent `\tanh(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).tanh(), dps=25)
             0.7615941559557648881194583
         """
@@ -1172,7 +1172,7 @@ cdef class arb(flint_scalar):
         r"""
         Hyperbolic cotangent `\coth(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).coth(), dps=25)
             1.313035285499331303636161
         """
@@ -1184,7 +1184,7 @@ cdef class arb(flint_scalar):
         r"""
         Hyperbolic secant `\operatorname{sech}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).sech(), dps=25)
             0.6480542736638853995749774
         """
@@ -1196,7 +1196,7 @@ cdef class arb(flint_scalar):
         r"""
         Hyperbolic cosecant `\operatorname{csch}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).csch(), dps=25)
             0.8509181282393215451338428
         """
@@ -1208,7 +1208,7 @@ cdef class arb(flint_scalar):
         """
         Gamma function `\Gamma(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(10).gamma(), dps=25)
             362880.0000000000000000000
             >>> showgood(lambda: arb(-2.5).gamma(), dps=25)
@@ -1232,7 +1232,7 @@ cdef class arb(flint_scalar):
         improve performance.
 
             >>> from flint import fmpq
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.gamma_fmpq(fmpq(1,4)), dps=25)
             3.625609908221908311930685
         """
@@ -1245,7 +1245,7 @@ cdef class arb(flint_scalar):
         Reciprocal gamma function `1/\Gamma(s)`, avoiding
         division by zero at the poles of the gamma function.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1.5).rgamma(), dps=25)
             1.128379167095512573896159
             >>> print(arb(0).rgamma())
@@ -1263,7 +1263,7 @@ cdef class arb(flint_scalar):
         """
         Logarithmic gamma function `\log \Gamma(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(100).lgamma(), dps=25)
             359.1342053695753987760440
 
@@ -1278,7 +1278,7 @@ cdef class arb(flint_scalar):
         """
         Digamma function `\psi(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).digamma(), dps=25)
             -0.5772156649015328606065121
         """
@@ -1290,7 +1290,7 @@ cdef class arb(flint_scalar):
         """
         Rising factorial `(s)_n`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.pi().rising(0), dps=25)
             1.000000000000000000000000
             >>> showgood(lambda: arb.pi().rising(10), dps=25)
@@ -1311,7 +1311,7 @@ cdef class arb(flint_scalar):
         does not use the gamma function, so *n* should be moderate.
 
             >>> from flint import fmpq
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.rising_fmpq_ui(fmpq(-1,3), 100), dps=25)
             -4.960517984074284420131903e+154
         """
@@ -1341,7 +1341,7 @@ cdef class arb(flint_scalar):
         Riemann zeta function `\zeta(s)` or the Hurwitz
         zeta function `\zeta(s,a)` if a second parameter is passed.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(4.25).zeta(), dps=25)
             1.066954190711214532450370
             >>> showgood(lambda: arb(4.25).zeta(2.75), dps=25)
@@ -1363,7 +1363,7 @@ cdef class arb(flint_scalar):
         The arithmetic-geometric mean `M(s,t)`, or `M(s) = M(s,1)`
         if no extra parameter is passed.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(2).sqrt().agm(), dps=25)
             1.198140234735592207439922
             >>> showgood(lambda: arb(2).agm(100), dps=25)
@@ -1391,7 +1391,7 @@ cdef class arb(flint_scalar):
         Computes the Bernoulli number `B_n` as an *arb*,
         where *n* is a given integer.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.bernoulli(1), dps=25)
             -0.5000000000000000000000000
             >>> showgood(lambda: arb.bernoulli(2), dps=25)
@@ -1411,7 +1411,7 @@ cdef class arb(flint_scalar):
         r"""
         Computes the Bell number `B_n` as an *arb*, where *n* is a given integer.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.bell_number(1), dps=25)
             1.000000000000000000000000
             >>> showgood(lambda: arb.bell_number(10), dps=25)
@@ -1429,7 +1429,7 @@ cdef class arb(flint_scalar):
         """
         Number of partitions of the integer *n*, evaluated as an *arb*.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.partitions_p(10), dps=25)
             42.00000000000000000000000
             >>> showgood(lambda: arb.partitions_p(100), dps=25)
@@ -1446,7 +1446,7 @@ cdef class arb(flint_scalar):
         """
         Returns the value of the Bernoulli polynomial `B_n(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb("3.141").bernoulli_poly(5), dps=25)
             113.5165117028492010000000
         """
@@ -1458,7 +1458,7 @@ cdef class arb(flint_scalar):
         r"""
         Factorial, equivalent to `s! = \Gamma(s+1)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(5).fac(), dps=25)
             120.0000000000000000000000
             >>> showgood(lambda: arb("0.1").fac(), dps=25)
@@ -1476,7 +1476,7 @@ cdef class arb(flint_scalar):
 
             >>> print(arb.fac_ui(10))
             3628800.00000000
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.fac_ui(10**9).log(), dps=25)
             19723265848.22698260792313
         """
@@ -1492,7 +1492,7 @@ cdef class arb(flint_scalar):
 
             >>> print(arb(10).bin(5))
             252.000000000000
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.pi().bin(100), dps=25)
             5.478392395095119521549286e-9
         """
@@ -1520,7 +1520,7 @@ cdef class arb(flint_scalar):
 
             >>> print(arb.fib(10))
             55.0000000000000
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.fib(10**100).log(), dps=25)
             4.812118250596034474977589e+99
         """
@@ -1535,7 +1535,7 @@ cdef class arb(flint_scalar):
         the argument *z* is given by *self* and the order *s* is given
         as an extra parameter.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(-1).polylog(2), dps=25)
             -0.8224670334241132182362076
             >>> showgood(lambda: arb(-3).polylog(1.75), dps=25)
@@ -1556,7 +1556,7 @@ cdef class arb(flint_scalar):
         Airy function `\operatorname{Ai}(s)`, or
         `\operatorname{Ai}'(s)` if *derivative* is 1.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(-1).airy_ai(), dps=25)
             0.5355608832923521187995166
             >>> showgood(lambda: arb(-1).airy_ai(derivative=1), dps=25)
@@ -1576,7 +1576,7 @@ cdef class arb(flint_scalar):
         Airy function `\operatorname{Bi}(s)`, or
         `\operatorname{Bi}'(s)` if *derivative* is 1.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(-1).airy_bi(), dps=25)
             0.1039973894969446118886900
             >>> showgood(lambda: arb(-1).airy_bi(derivative=1), dps=25)
@@ -1597,7 +1597,7 @@ cdef class arb(flint_scalar):
         `\operatorname{Ai}'(s)`, `\operatorname{Bi}(s)`,
         `\operatorname{Bi}'(s)` simultaneously, returning a tuple.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(-1).airy(), dps=10)
             (0.5355608833, -0.01016056712, 0.1039973895, 0.5923756264)
         """
@@ -1616,7 +1616,7 @@ cdef class arb(flint_scalar):
         Airy function `\operatorname{Ai}(s)`, or the corresponding
         zero `a'_n` of `\operatorname{Ai}'(s)` if *derivative* is 1.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.airy_ai_zero(1), dps=25)
             -2.338107410459767038489197
             >>> showgood(lambda: arb.airy_ai_zero(1000), dps=25)
@@ -1643,7 +1643,7 @@ cdef class arb(flint_scalar):
         Airy function `\operatorname{Bi}(s)`, or the corresponding
         zero `b'_n` of `\operatorname{Bi}'(s)` if *derivative* is 1.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.airy_bi_zero(1), dps=25)
             -1.173713222709127924919980
             >>> showgood(lambda: arb.airy_bi_zero(1000), dps=25)
@@ -1667,7 +1667,7 @@ cdef class arb(flint_scalar):
         r"""
         Chebyshev function of the first kind `T_n(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: (arb(1)/3).chebyshev_t(3), dps=25)
             -0.8518518518518518518518519
         """
@@ -1680,7 +1680,7 @@ cdef class arb(flint_scalar):
         r"""
         Chebyshev function of the second kind `U_n(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: (arb(1)/3).chebyshev_u(3), dps=25)
             -1.037037037037037037037037
         """
@@ -1693,7 +1693,7 @@ cdef class arb(flint_scalar):
         r"""
         Jacobi polynomial (or Jacobi function) `P_n^{a,b}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: (arb(1)/3).jacobi_p(5, 0.25, 0.5), dps=25)
             0.4131944444444444444444444
         """
@@ -1708,7 +1708,7 @@ cdef class arb(flint_scalar):
         r"""
         Gegenbauer function `C_n^{m}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: (arb(1)/3).gegenbauer_c(5, 0.25), dps=25)
             0.1321855709876543209876543
         """
@@ -1722,7 +1722,7 @@ cdef class arb(flint_scalar):
         r"""
         Laguerre function `L_n^{m}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: (arb(1)/3).laguerre_l(5, 0.25), dps=25)
             0.03871323490012002743484225
         """
@@ -1736,7 +1736,7 @@ cdef class arb(flint_scalar):
         r"""
         Hermite function `H_n(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: (arb(1)/3).hermite_h(5), dps=25)
             34.20576131687242798353909
         """
@@ -1749,7 +1749,7 @@ cdef class arb(flint_scalar):
         r"""
         Legendre function of the first kind `P_n^m(z)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: (arb(1)/3).legendre_p(5), dps=25)
             0.3333333333333333333333333
             >>> showgood(lambda: (arb(1)/3).legendre_p(5, 1.5), dps=25)
@@ -1773,7 +1773,7 @@ cdef class arb(flint_scalar):
         r"""
         Legendre function of the second kind `Q_n^m(z)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: (arb(1)/3).legendre_q(5), dps=25)
             0.1655245300933242182362054
             >>> showgood(lambda: (arb(1)/3).legendre_q(5, 1.5), dps=25)
@@ -1801,7 +1801,7 @@ cdef class arb(flint_scalar):
         the zero and *w* is the corresponding weight for Gauss-Legendre
         quadrature on `(-1,1)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> for k in range(5):
             ...     showgood(lambda: arb.legendre_p_root(5,k), dps=25)
             ...
@@ -1836,7 +1836,7 @@ cdef class arb(flint_scalar):
         r"""
         Error function `\operatorname{erf}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(3).erf(), dps=25)
             0.9999779095030014145586272
         """
@@ -1848,7 +1848,7 @@ cdef class arb(flint_scalar):
         r"""
         Complementary error function `\operatorname{erfc}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(3).erfc(), dps=25)
             2.209049699858544137277613e-5
         """
@@ -1860,7 +1860,7 @@ cdef class arb(flint_scalar):
         r"""
         Imaginary error function `\operatorname{erfi}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(3).erfi(), dps=25)
             1629.994622601565651061648
         """
@@ -1872,7 +1872,7 @@ cdef class arb(flint_scalar):
         r"""
         Fresnel sine integral `S(s)`, optionally not normalized.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(3).fresnel_s(), dps=25)
             0.4963129989673750360976123
             >>> showgood(lambda: arb(3).fresnel_s(normalized=False), dps=25)
@@ -1886,7 +1886,7 @@ cdef class arb(flint_scalar):
         r"""
         Fresnel cosine integral `C(s)`, optionally not normalized.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(3).fresnel_c(), dps=25)
             0.6057207892976856295561611
             >>> showgood(lambda: arb(3).fresnel_c(normalized=False), dps=25)
@@ -1900,7 +1900,7 @@ cdef class arb(flint_scalar):
         r"""
         Exponential integral `\operatorname{Ei}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(3).ei(), dps=25)
             9.933832570625416558008336
         """
@@ -1912,7 +1912,7 @@ cdef class arb(flint_scalar):
         r"""
         Sine integral `\operatorname{Si}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(3).si(), dps=25)
             1.848652527999468256397730
         """
@@ -1924,7 +1924,7 @@ cdef class arb(flint_scalar):
         r"""
         Cosine integral `\operatorname{Ci}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(3).ci(), dps=25)
             0.1196297860080003276264723
         """
@@ -1936,7 +1936,7 @@ cdef class arb(flint_scalar):
         r"""
         Hyperbolic sine integral `\operatorname{Shi}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(3).shi(), dps=25)
             4.973440475859806797710418
         """
@@ -1948,7 +1948,7 @@ cdef class arb(flint_scalar):
         r"""
         Hyperbolic cosine integral `\operatorname{Chi}(s)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(3).chi(), dps=25)
             4.960392094765609760297918
         """
@@ -1962,7 +1962,7 @@ cdef class arb(flint_scalar):
         the offset logarithmic integral
         `\operatorname{Li}(s) = \operatorname{li}(s) - \operatorname{li}(2)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(10).li(), dps=25)
             6.165599504787297937522982
             >>> showgood(lambda: arb(10).li(offset=True), dps=25)
@@ -1977,7 +1977,7 @@ cdef class arb(flint_scalar):
         Bessel function `J_n(z)`, where the argument *z* is given by
         *self* and the order *n* is passed as an extra parameter.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(5).bessel_j(1), dps=25)
             -0.3275791375914652220377343
         """
@@ -1991,7 +1991,7 @@ cdef class arb(flint_scalar):
         Bessel function `Y_n(z)`, where the argument *z* is given by
         *self* and the order *n* is passed as an extra parameter.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(5).bessel_y(1), dps=25)
             0.1478631433912268448010507
         """
@@ -2006,7 +2006,7 @@ cdef class arb(flint_scalar):
         *self* and the order *n* is passed as an extra parameter.
         Optionally a scaled Bessel function can be computed.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(5).bessel_k(1), dps=25)
             0.004044613445452164208365022
             >>> showgood(lambda: arb(5).bessel_k(1, scaled=True), dps=25)
@@ -2026,7 +2026,7 @@ cdef class arb(flint_scalar):
         *self* and the order *n* is passed as an extra parameter.
         Optionally a scaled Bessel function can be computed.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(5).bessel_i(1), dps=25)
             24.33564214245052719914305
             >>> showgood(lambda: arb(5).bessel_i(1, scaled=True), dps=25)
@@ -2046,7 +2046,7 @@ cdef class arb(flint_scalar):
         is given by *self* and the order *s* is passed as an extra parameter.
         Optionally the regularized version `Q(s,z)` can be computed.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(5).gamma_upper(2.5), dps=25)
             0.1000132513171574223384170
             >>> showgood(lambda: arb(5).gamma_upper(2.5, regularized=1), dps=25)
@@ -2064,7 +2064,7 @@ cdef class arb(flint_scalar):
         Optionally the regularized versions `P(s,z)` and
         `\gamma^{*}(s,z) = z^{-s} P(s,z)` can be computed.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(5).gamma_lower(2.5), dps=25)
             1.229327136861979598135209
             >>> showgood(lambda: arb(5).gamma_lower(2.5, regularized=1), dps=25)
@@ -2084,7 +2084,7 @@ cdef class arb(flint_scalar):
         as extra function arguments.
         Optionally the regularized version of this function can be computed.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb("0.9").beta_lower(1, 2.5), dps=25)
             0.3987350889359326482672004
             >>> showgood(lambda: arb("0.9").beta_lower(1, 2.5, regularized=True), dps=25)
@@ -2101,7 +2101,7 @@ cdef class arb(flint_scalar):
         Generalized exponential integral `E_s(z)`. The argument *z*
         is given by *self* and the order *s* is passed as an extra parameter.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(5).expint(2), dps=25)
             0.0009964690427088381099832386
         """
@@ -2118,7 +2118,7 @@ cdef class arb(flint_scalar):
         Optionally the regularized hypergeometric function can be
         computed.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(5).hypgeom([1,2,3],[5,4.5,6]), dps=25)
             1.301849229178968153998454
             >>> showgood(lambda: arb(5).hypgeom([1,2,3],[5,4.5,6],regularized=True), dps=25)
@@ -2147,7 +2147,7 @@ cdef class arb(flint_scalar):
         The hypergeometric function `U(a,b,z)` where the argument *z*
         is given by *self*
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(5).hypgeom_u(1, 2.5), dps=25)
             0.2184157028890778783289036
         """
@@ -2163,7 +2163,7 @@ cdef class arb(flint_scalar):
         is given by *self*
         Optionally the regularized version of this function can be computed.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(-5).hypgeom_1f1(1, 2.5), dps=25)
             0.2652884733179767675077230
             >>> showgood(lambda: arb(-5).hypgeom_1f1(1, 2.5, regularized=True), dps=25)
@@ -2181,7 +2181,7 @@ cdef class arb(flint_scalar):
         is given by *self*
         Optionally the regularized version of this function can be computed.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(-5).hypgeom_0f1(2.5), dps=25)
             0.003114611044402738470826907
             >>> showgood(lambda: arb(-5).hypgeom_0f1(2.5, regularized=True), dps=25)
@@ -2198,7 +2198,7 @@ cdef class arb(flint_scalar):
         is given by *self*
         Optionally the regularized version of this function can be computed.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(-5).hypgeom_2f1(1,2,3), dps=25)
             0.2566592424617555999350018
             >>> showgood(lambda: arb(-5).hypgeom_2f1(1,2,3,regularized=True), dps=25)
@@ -2209,7 +2209,7 @@ cdef class arb(flint_scalar):
         exact integers, even if the input intervals are inexact.
         If the parameters are exact, these flags are not needed.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb("9/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5, abc=True), dps=25)
             1.447530478120770807945697
             >>> showgood(lambda: arb("9/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5), dps=25)
@@ -2237,7 +2237,7 @@ cdef class arb(flint_scalar):
         """
         Returns the constant `\pi` as an *arb*.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(arb.pi, dps=25)
             3.141592653589793238462643
         """
@@ -2250,7 +2250,7 @@ cdef class arb(flint_scalar):
         """
         The constant `\sqrt{\pi}`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(arb.const_sqrt_pi, dps=25)
             1.772453850905516027298167
         """
@@ -2263,7 +2263,7 @@ cdef class arb(flint_scalar):
         """
         The constant `\log(2)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(arb.const_log2, dps=25)
             0.6931471805599453094172321
         """
@@ -2276,7 +2276,7 @@ cdef class arb(flint_scalar):
         """
         The constant `\log(10)`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(arb.const_log10, dps=25)
             2.302585092994045684017991
         """
@@ -2289,7 +2289,7 @@ cdef class arb(flint_scalar):
         """
         Euler's constant `\gamma`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(arb.const_euler, dps=25)
             0.5772156649015328606065121
         """
@@ -2302,7 +2302,7 @@ cdef class arb(flint_scalar):
         """
         Catalan's constant.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(arb.const_catalan, dps=25)
             0.9159655941772190150546035
         """
@@ -2315,7 +2315,7 @@ cdef class arb(flint_scalar):
         """
         The constant `e`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(arb.const_e, dps=25)
             2.718281828459045235360287
         """
@@ -2328,7 +2328,7 @@ cdef class arb(flint_scalar):
         """
         Khinchin's constant `K`.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(arb.const_khinchin, dps=25)
             2.685452001065306445309715
         """
@@ -2341,7 +2341,7 @@ cdef class arb(flint_scalar):
         """
         Glaisher's constant.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(arb.const_glaisher, dps=25)
             1.282427129100622636875343
         """
@@ -2395,7 +2395,7 @@ cdef class arb(flint_scalar):
         branch (`k = 0`) or the `k = -1` branch can be computed
         by specifying *branch*.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(10).lambertw(), dps=25)
             1.745528002740699383074301
             >>> showgood(lambda: arb("-0.1").lambertw(-1), dps=25)
@@ -2481,7 +2481,7 @@ cdef class arb(flint_scalar):
         """
         Principal *n*-th root of *s*.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(10).root(3), dps=25)
             2.154434690031883721759294
         """
@@ -2494,7 +2494,7 @@ cdef class arb(flint_scalar):
         """
         Returns the *n*-th Gram point.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb.gram_point(-1), dps=25)
             9.666908056130192141261536
             >>> showgood(lambda: arb.gram_point(0), dps=25)
@@ -2534,7 +2534,7 @@ cdef class arb(flint_scalar):
         """
         Backlund *S* function related to the Riemann zeta function.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(123).backlund_s(), dps=25)
             0.4757920863536796196115749
         """
@@ -2549,7 +2549,7 @@ cdef class arb(flint_scalar):
         Both function values are computed simultaneously and a tuple
         is returned.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).coulomb(0.5, 0.25), dps=10)
             (0.4283180781, 1.218454487)
         """
@@ -2566,7 +2566,7 @@ cdef class arb(flint_scalar):
         Regular Coulomb wave function `F_{\ell}(\eta,z)` where
         *z* is given by *self*.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).coulomb_f(0.5, 0.25), dps=25)
             0.4283180781043541845555944
         """
@@ -2582,7 +2582,7 @@ cdef class arb(flint_scalar):
         Irregular Coulomb wave function `G_{\ell}(\eta,z)` where
         *z* is given by *self*.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: arb(1).coulomb_g(0.5, 0.25), dps=25)
             1.218454487206367973745641
         """

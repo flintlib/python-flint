@@ -175,7 +175,7 @@ cdef class dirichlet_char(object):
         Evaluates the Dirichlet L-function of this character at the given
         complex number s.
 
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> chi = dirichlet_char(1, 1)
             >>> showgood(lambda: chi.l(2), dps=25)
             1.644934066848226436472415
@@ -196,7 +196,7 @@ cdef class dirichlet_char(object):
         complex number s.
 
             >>> chi = dirichlet_char(1, 1)
-            >>> from flint.types.eval_helper import showgood
+            >>> from flint import showgood
             >>> showgood(lambda: chi.hardy_z(1), dps=25)
             -0.7363054628673177346778998
 
