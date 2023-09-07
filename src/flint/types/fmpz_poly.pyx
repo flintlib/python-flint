@@ -345,17 +345,61 @@ cdef class fmpz_poly(flint_poly):
 
     def roots(self, bint verbose=False):
         """
-        Computes all the complex roots of this polynomial.
-        Returns a list of pairs (*c*, *m*) where *c* is the root
-        as an *acb* and *m* is the multiplicity of the root.
+        Computes all the integer roots of this polynomial.
+        Returns a list of all pairs (*v*, *m*) where *v* is the 
+        integer root and *m* is the multiplicity of the root
 
             >>> fmpz_poly([]).roots()
             []
             >>> fmpz_poly([1]).roots()
             []
-            >>> fmpz_poly([2,0,1]).roots()
+            >>> fmpz_poly([2, 1]).roots()
+            [(-2, 1)]
+            >>> fmpz_poly([1, 2]).roots()
+            []
+            >>> fmpz_poly([12, 7, 1]).roots()
+            [(-3, 1), (-4, 1)]
+            >>> (fmpz_poly([1, 2]) *  fmpz_poly([-3,1]) *  fmpz_poly([1, 2, 3]) *  fmpz_poly([12, 7, 1])).roots()
+            [(-3, 1), (-4, 1), (3, 1)]
+
+        """
+        cdef fmpz_poly_factor_t fac
+        cdef fmpz constant_coeff, linear_coeff
+        cdef long deg, i
+        cdef int exp
+
+        if not self:
+            return []
+
+        roots = []
+        constant_coeff = fmpz()        
+        linear_coeff = fmpz()
+
+        fmpz_poly_factor_init(fac)
+        fmpz_poly_factor(fac, self.val)
+        for 0 <= i < fac.num:
+            deg = fmpz_poly_degree(&fac.p[i])
+            fmpz_poly_get_coeff_fmpz(linear_coeff.val, &fac.p[i], 1)
+            if deg == 1 and linear_coeff == 1:
+                fmpz_poly_get_coeff_fmpz(constant_coeff.val, &fac.p[i], 0)
+                exp = fac.exp[i]
+                roots.append((-constant_coeff, exp))
+        fmpz_poly_factor_clear(fac)
+        return roots
+
+    def complex_roots(self, bint verbose=False):
+        """
+        Computes all the complex roots of this polynomial.
+        Returns a list of pairs (*c*, *m*) where *c* is the root
+        as an *acb* and *m* is the multiplicity of the root.
+
+            >>> fmpz_poly([]).complex_roots()
+            []
+            >>> fmpz_poly([1]).complex_roots()
+            []
+            >>> fmpz_poly([2,0,1]).complex_roots()
             [([1.41421356237310 +/- 4.96e-15]j, 1), ([-1.41421356237310 +/- 4.96e-15]j, 1)]
-            >>> for c, m in (fmpz_poly([2,3,4]) * fmpz_poly([5,6,7,11])**3).roots():
+            >>> for c, m in (fmpz_poly([2,3,4]) * fmpz_poly([5,6,7,11])**3).complex_roots():
             ...     print((c,m))
             ...
             ([-0.375000000000000 +/- 1.0e-19] + [0.599478940414090 +/- 5.75e-17]j, 1)
