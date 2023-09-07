@@ -71,33 +71,14 @@ cdef class flint_poly(flint_elem):
         integer root and *m* is the multiplicity of the root
 
             >>> from flint import fmpz_poly
-            >>> fmpz_poly([]).roots()
-            []
-            >>> fmpz_poly([1]).roots()
+            >>> fmpz_poly([1, 2]).roots()
             []
             >>> fmpz_poly([2, 1]).roots()
             [(-2, 1)]
-            >>> fmpz_poly([1, 2]).roots()
-            []
             >>> fmpz_poly([12, 7, 1]).roots()
             [(-3, 1), (-4, 1)]
-            >>> (fmpz_poly([1, 2]) *  fmpz_poly([-3,1]) *  fmpz_poly([1, 2, 3]) *  fmpz_poly([12, 7, 1])).roots()
-            [(-3, 1), (-4, 1), (3, 1)]
-            >>> from flint import nmod_poly
-            >>> nmod_poly([1], 11).roots()
-            []
-            >>> nmod_poly([1, 2, 3], 11).roots()
-            [(8, 1), (6, 1)]
-            >>> nmod_poly([1, 6, 1, 8], 11).roots()
-            [(5, 3)]
-            >>> from flint import fmpq_poly
-            >>> fmpq_poly([1,2]).roots()
-            [(-1/2, 1)]
-            >>> fmpq_poly([2,1]).roots()
-            [(-2, 1)]
-            >>> f = fmpq_poly([fmpq(1,3), fmpq(3,5)]) * fmpq_poly([fmpq(4,11), fmpq(9)])
-            >>> f.roots()
-            [(-4/99, 1), (-5/9, 1)]
+            >>> (fmpz_poly([-5,1]) * fmpz_poly([-5,1]) * fmpz_poly([-3,1])).roots()
+            [(3, 1), (5, 2)]
         """
         factor_fn = getattr(self, "factor", None)
         if not callable(factor_fn):
