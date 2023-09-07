@@ -71,7 +71,8 @@ cdef class flint_poly(flint_elem):
         integer root and *m* is the multiplicity of the root.
 
         To compute complex roots of a polynomial, instead use
-        the `.complex_roots()` method.
+        the `.complex_roots()` method, which is available on
+        certain polynomial rings.
 
             >>> from flint import fmpz_poly
             >>> fmpz_poly([1, 2]).roots()
@@ -94,6 +95,9 @@ cdef class flint_poly(flint_elem):
                 v = - fac[0]
                 roots.append((v, m))
         return roots
+    
+    def complex_roots(self):
+        raise AttributeError("Complex roots are not supported for this polynomial")
 
 
 cdef class flint_mpoly(flint_elem):
