@@ -68,6 +68,7 @@ packages=[
     'flint.flintlib',
     'flint.flint_base',
     'flint.types',
+    'flint.functions',
     'flint.utils',
     'flint.test',
 ]
@@ -102,6 +103,8 @@ ext_files = [
     ("flint.types.dirichlet", ["src/flint/types/dirichlet.pyx"]),
     ("flint.flint_base.flint_base", ["src/flint/flint_base/flint_base.pyx"]),
     ("flint.flint_base.flint_context", ["src/flint/flint_base/flint_context.pyx"]),
+    # Helper for unittests
+    ("flint.functions.showgood", ["src/flint/functions/showgood.pyx"]),
 
 ]
 
