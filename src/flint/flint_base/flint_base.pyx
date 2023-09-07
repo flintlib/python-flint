@@ -68,7 +68,10 @@ cdef class flint_poly(flint_elem):
         """
         Computes all the roots in the base ring of the polynomial.
         Returns a list of all pairs (*v*, *m*) where *v* is the 
-        integer root and *m* is the multiplicity of the root
+        integer root and *m* is the multiplicity of the root.
+
+        To compute complex roots of a polynomial, instead use
+        the `.complex_roots()` method.
 
             >>> from flint import fmpz_poly
             >>> fmpz_poly([1, 2]).roots()
