@@ -412,6 +412,8 @@ cdef class acb_poly(flint_poly):
 
         return pyroots
 
+    complex_roots = roots
+
     def root_bound(self):
         """Returns an upper bound for the absolute value of
         the roots of self."""

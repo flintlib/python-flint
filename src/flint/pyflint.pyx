@@ -12,5 +12,3 @@ cdef flint_rand_t global_random_state
 flint_randinit(global_random_state)
 
 ctx = thectx
-
-include "functions.pyx"

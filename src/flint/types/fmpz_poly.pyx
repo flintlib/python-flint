@@ -343,19 +343,19 @@ cdef class fmpz_poly(flint_poly):
         fmpz_poly_factor_clear(fac)
         return c, res
 
-    def roots(self, bint verbose=False):
+    def complex_roots(self, bint verbose=False):
         """
         Computes all the complex roots of this polynomial.
         Returns a list of pairs (*c*, *m*) where *c* is the root
         as an *acb* and *m* is the multiplicity of the root.
 
-            >>> fmpz_poly([]).roots()
+            >>> fmpz_poly([]).complex_roots()
             []
-            >>> fmpz_poly([1]).roots()
+            >>> fmpz_poly([1]).complex_roots()
             []
-            >>> fmpz_poly([2,0,1]).roots()
+            >>> fmpz_poly([2,0,1]).complex_roots()
             [([1.41421356237310 +/- 4.96e-15]j, 1), ([-1.41421356237310 +/- 4.96e-15]j, 1)]
-            >>> for c, m in (fmpz_poly([2,3,4]) * fmpz_poly([5,6,7,11])**3).roots():
+            >>> for c, m in (fmpz_poly([2,3,4]) * fmpz_poly([5,6,7,11])**3).complex_roots():
             ...     print((c,m))
             ...
             ([-0.375000000000000 +/- 1.0e-19] + [0.599478940414090 +/- 5.75e-17]j, 1)

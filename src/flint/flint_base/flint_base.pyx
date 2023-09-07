@@ -66,14 +66,38 @@ cdef class flint_poly(flint_elem):
 
     def roots(self):
         """
-        Deprecated function.
-        
-        To recover roots of a polynomial, first convert to acb:
+        Computes all the roots in the base ring of the polynomial.
+        Returns a list of all pairs (*v*, *m*) where *v* is the 
+        integer root and *m* is the multiplicity of the root.
 
-        acb_poly(input_poly).roots()
+        To compute complex roots of a polynomial, instead use
+        the `.complex_roots()` method, which is available on
+        certain polynomial rings.
+
+            >>> from flint import fmpz_poly
+            >>> fmpz_poly([1, 2]).roots()
+            []
+            >>> fmpz_poly([2, 1]).roots()
+            [(-2, 1)]
+            >>> fmpz_poly([12, 7, 1]).roots()
+            [(-3, 1), (-4, 1)]
+            >>> (fmpz_poly([-5,1]) * fmpz_poly([-5,1]) * fmpz_poly([-3,1])).roots()
+            [(3, 1), (5, 2)]
         """
-        raise NotImplementedError('This method is no longer supported. To recover the complex roots first convert to acb_poly')
-        
+        factor_fn = getattr(self, "factor", None)
+        if not callable(factor_fn):
+            raise NotImplementedError("Polynomial has no factor method, roots cannot be determined")
+
+        roots = []
+        factors = self.factor()
+        for fac, m in factors[1]:
+            if fac.degree() == fac[1] == 1:
+                v = - fac[0]
+                roots.append((v, m))
+        return roots
+    
+    def complex_roots(self):
+        raise AttributeError("Complex roots are not supported for this polynomial")
 
 
 cdef class flint_mpoly(flint_elem):

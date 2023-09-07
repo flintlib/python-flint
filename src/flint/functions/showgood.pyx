@@ -1,4 +1,5 @@
-from .utils.conversion cimport dps_to_prec
+from flint.flint_base.flint_context cimport thectx
+from flint.utils.conversion cimport dps_to_prec
 from flint.types.arb_mat cimport arb_mat
 from flint.types.acb_mat cimport acb_mat
 from flint.types.arb_poly cimport arb_poly
@@ -10,6 +11,7 @@ from flint.types.acb_series cimport acb_series
 from flint.flintlib.arb cimport *
 from flint.flintlib.acb cimport *
 
+ctx = thectx
 
 # xxx: this doesn't work when changed to a cdef function. why?
 def __goodness(x, bint parts=True, metric=None):

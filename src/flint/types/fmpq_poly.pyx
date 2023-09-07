@@ -384,16 +384,16 @@ cdef class fmpq_poly(flint_poly):
             fac[i] = (base, exp)
         return c / self.denom(), fac
 
-    def roots(self, **kwargs):
+    def complex_roots(self, **kwargs):
         """
         Computes the complex roots of this polynomial. See
         :meth:`.fmpz_poly.roots`.
 
             >>> from flint import fmpq
-            >>> fmpq_poly([fmpq(2,3),1]).roots()
+            >>> fmpq_poly([fmpq(2,3),1]).complex_roots()
             [([-0.666666666666667 +/- 3.34e-16], 1)]
         """
-        return self.numer().roots(**kwargs)
+        return self.numer().complex_roots(**kwargs)
 
     @staticmethod
     def bernoulli_poly(n):

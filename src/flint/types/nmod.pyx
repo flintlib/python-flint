@@ -81,6 +81,12 @@ cdef class nmod(flint_scalar):
                 return res
             else:
                 return not res
+        elif typecheck(s, nmod) and typecheck(t, int):
+            res = s.val == (t % s.mod.n)
+            if op == 2:
+                return res
+            else:
+                return not res
         return NotImplemented
 
     def __nonzero__(self):

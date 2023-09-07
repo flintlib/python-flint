@@ -1,10 +1,7 @@
 include LICENSE
 include CHANGES
-include README
-include src/flint/*.pxd
-include src/flint/*.pyx
-include src/flint/*.py
-include test/*.py
+include README.md
+recursive-include src/flint *.pxd *.pyx *.py
 include doc/source/*.py
 include doc/source/*.rst
 include doc/Makefile
