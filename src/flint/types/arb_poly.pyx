@@ -113,6 +113,13 @@ cdef class arb_poly(flint_poly):
         libc.stdlib.free(xs)
         return u
 
+    def complex_roots(self, **kwargs):
+        """
+        Compute the complex roots of the polynomial by converting 
+        from arb_poly to acb_poly
+        """
+        return acb_poly(self).roots(**kwargs)
+
     def evaluate(self, xs, algorithm='fast'):
         """
         Multipoint evaluation: evaluates *self* at the list of
