@@ -63,6 +63,16 @@ if os.getenv('PYTHON_FLINT_COVERAGE'):
     compiler_directives['linetrace'] = True
 
 
+packages=[
+    'flint',
+    'flint.flintlib',
+    'flint.flint_base',
+    'flint.types',
+    'flint.utils',
+    'flint.test',
+]
+
+
 ext_files = [
     # ("flint._flint", ["src/flint/_flint.pxd"]), # Main Module
     ("flint.pyflint", ["src/flint/pyflint.pyx"]), # Main Module
@@ -115,12 +125,12 @@ setup(
     cmdclass={'build_ext': build_ext},
     ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives),
     #ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives, annotate=True),
-    packages=['flint', 'flint.test'],
+    packages=packages,
     package_dir={'': 'src'},
     description='Bindings for FLINT and Arb',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    version='0.4.3',
+    version='0.4.4',
     url='https://github.com/flintlib/python-flint',
     author='Fredrik Johansson',
     author_email='fredrik.johansson@gmail.com',
