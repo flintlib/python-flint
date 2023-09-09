@@ -5,12 +5,14 @@ from flint.types.fmpz cimport any_as_fmpz
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 
+from flint.flintlib.flint cimport ulong
 from flint.flintlib.fmpz cimport fmpz_t
 from flint.flintlib.nmod cimport nmod_pow_fmpz, nmod_inv
 from flint.flintlib.nmod_vec cimport *
 from flint.flintlib.fmpz cimport fmpz_fdiv_ui, fmpz_init, fmpz_clear
 from flint.flintlib.fmpz cimport fmpz_set_ui, fmpz_get_ui
 from flint.flintlib.fmpq cimport fmpq_mod_fmpz
+from flint.flintlib.ulong_extras cimport n_gcdinv
 
 cdef int any_as_nmod(mp_limb_t * val, obj, nmod_t mod) except -1:
     cdef int success
@@ -63,9 +65,6 @@ cdef class nmod(flint_scalar):
 
     def __int__(self):
         return int(self.val)
-
-    def __long__(self):
-        return self.val
 
     def modulus(self):
         return self.mod.n
@@ -170,6 +169,8 @@ cdef class nmod(flint_scalar):
         cdef nmod r
         cdef mp_limb_t sval, tval, x
         cdef nmod_t mod
+        cdef ulong tinvval
+
         if typecheck(s, nmod):
             mod = (<nmod>s).mod
             sval = (<nmod>s).val
@@ -180,17 +181,19 @@ cdef class nmod(flint_scalar):
             tval = (<nmod>t).val
             if not any_as_nmod(&sval, s, mod):
                 return NotImplemented
+
         if tval == 0:
             raise ZeroDivisionError("%s is not invertible mod %s" % (tval, mod.n))
         if not s:
             return s
-        # XXX: check invertibility?
-        x = nmod_div(sval, tval, mod)
-        if x == 0:
+
+        g = n_gcdinv(&tinvval, <ulong>tval, <ulong>mod.n)
+        if g != 1:
             raise ZeroDivisionError("%s is not invertible mod %s" % (tval, mod.n))
+
         r = nmod.__new__(nmod)
         r.mod = mod
-        r.val = x
+        r.val = nmod_mul(sval, <mp_limb_t>tinvval, mod)
         return r
 
     def __truediv__(s, t):
@@ -200,18 +203,43 @@ cdef class nmod(flint_scalar):
         return nmod._div_(t, s)
 
     def __invert__(self):
-        return (1 / self)   # XXX: speed up
-
-    def __pow__(self, exp):
         cdef nmod r
+        cdef ulong g, inv, sval
+        sval = <ulong>(<nmod>self).val
+        g = n_gcdinv(&inv, sval, self.mod.n)
+        if g != 1:
+            raise ZeroDivisionError("%s is not invertible mod %s" % (sval, self.mod.n))
+        r = nmod.__new__(nmod)
+        r.mod = self.mod
+        r.val = <mp_limb_t>inv
+        return r
+
+    def __pow__(self, exp, modulus=None):
+        cdef nmod r
+        cdef mp_limb_t rval, mod
+        cdef ulong g, rinv
+
+        if modulus is not None:
+            raise TypeError("three-argument pow() not supported by nmod")
+
         e = any_as_fmpz(exp)
         if e is NotImplemented:
             return NotImplemented
+
+        rval = (<nmod>self).val
+        mod = (<nmod>self).mod.n
+
+        # XXX: It is not clear that it is necessary to special case negative
+        # exponents here. The nmod_pow_fmpz function seems to handle this fine
+        # but the Flint docs say that the exponent must be nonnegative.
+        if e < 0:
+            g = n_gcdinv(&rinv, <ulong>rval, <ulong>mod)
+            if g != 1:
+                raise ZeroDivisionError("%s is not invertible mod %s" % (rval, mod))
+            rval = <mp_limb_t>rinv
+            e = -e
+
         r = nmod.__new__(nmod)
         r.mod = self.mod
-        r.val = self.val
-        if e < 0:
-            r.val = nmod_inv(r.val, self.mod)
-            e = -e
-        r.val = nmod_pow_fmpz(r.val, (<fmpz>e).val, self.mod)
+        r.val = nmod_pow_fmpz(rval, (<fmpz>e).val, self.mod)
         return r
