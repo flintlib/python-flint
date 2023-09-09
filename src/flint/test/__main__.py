@@ -51,8 +51,33 @@ def run_tests(verbose=None):
 def run_doctests(verbose=None):
     """Run the python-flint doctests"""
     # Here verbose=True shows a lot of output.
-    failed, total = doctest.testmod(flint._flint, verbose=verbose)
-    return failed, total
+    modules = [flint.pyflint,
+               flint.types.fmpz,
+               flint.types.fmpz_poly,
+               flint.types.fmpz_mat,
+               flint.types.fmpz_series,
+               flint.types.fmpq,
+               flint.types.fmpq_poly,
+               flint.types.fmpq_mat,
+               flint.types.fmpq_series,
+               flint.types.nmod,
+               flint.types.nmod_poly,
+               flint.types.nmod_mat,
+               flint.types.nmod_series,
+               flint.types.arf,
+               flint.types.arb,
+               flint.types.arb_poly,
+               flint.types.arb_mat,
+               flint.types.arb_series,
+               flint.types.acb,
+               flint.types.acb_poly,
+               flint.types.acb_mat,
+               flint.types.acb_series,
+               flint.types.dirichlet]
+    results = [doctest.testmod(x) for x in modules]
+#    ffmpz, tfmpz = doctest.testmod(flint._fmpz, verbose=verbose)
+ #   failed, total = doctest.testmod(flint.pyflint, verbose=verbose)
+    return tuple(sum(res) for res in zip(*results))
 
 
 def run_all_tests(tests=True, doctests=True, verbose=None):

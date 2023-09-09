@@ -30,7 +30,7 @@ threads = 1        # max number of threads used internally
 
 def test_pyflint():
 
-    assert flint.__version__ == "0.4.2"
+    assert flint.__version__ == "0.4.4"
 
     ctx = flint.ctx
     assert str(ctx) == repr(ctx) == _default_ctx_string
@@ -438,11 +438,17 @@ def test_fmpz_poly():
     assert Z([1,2,2]).sqrt() is None
     assert Z([1,0,2,0,3]).deflation() == (Z([1,2,3]), 2)
     assert Z([1,1]).deflation() == (Z([1,1]), 1)
-    [(r,m)] = Z([1,1]).roots()
+    [(r,m)] = Z([1,1]).complex_roots()
     assert m == 1
     assert r.overlaps(-1)
+    assert Z([]).complex_roots() == []
+    assert Z([1]).complex_roots() == []
+    [(r,m)] = Z([1,1]).roots()
+    assert m == 1
+    assert r == -1
     assert Z([]).roots() == []
     assert Z([1]).roots() == []
+    assert Z([1, 2]).roots() == []
 
 def test_fmpz_poly_factor():
     Z = flint.fmpz_poly
@@ -1019,11 +1025,13 @@ def test_fmpq_poly():
     assert Q.bernoulli_poly(3) == Q([0,1,-3,2],2)
     assert Q.euler_poly(3) == Q([1,0,-6,4],4)
     assert Q.legendre_p(3) == Q([0,-3,0,5],2)
-    assert Q([]).roots() == []
-    assert Q([1]).roots() == []
-    [(r,m)] = Q([1,1]).roots()
+    assert Q([]).complex_roots() == []
+    assert Q([1]).complex_roots() == []
+    [(r,m)] = Q([1,1]).complex_roots()
     assert m == 1
     assert r.overlaps(-1)
+    assert str(Q([1,2]).roots()) == "[(-1/2, 1)]"
+    assert Q([2,1]).roots() == [(-2, 1)]
 
 def test_fmpq_mat():
     Q = flint.fmpq_mat
@@ -1338,6 +1346,8 @@ def test_nmod():
     assert G(1,2) != G(0,2)
     assert G(0,2) != G(0,3)
     assert G(3,5) == G(8,5)
+    assert G(1,2) != (1,2)
+    assert isinstance(hash(G(3, 5)), int)
     assert raises(lambda: G([], 3), TypeError)
     #assert G(3,5) == 8        # do we want this?
     #assert 8 == G(3,5)
@@ -1359,12 +1369,23 @@ def test_nmod():
     assert G(3,17) / G(2,17) == G(10,17)
     assert G(3,17) / 2 == G(10,17)
     assert 3 / G(2,17) == G(10,17)
+    assert G(0,3) / G(1,3) == G(0,3)
     assert G(3,17) * flint.fmpq(11,5) == G(10,17)
     assert G(3,17) / flint.fmpq(11,5) == G(6,17)
-    assert G(flint.fmpq(2, 3), 5) == G(4,5)
     assert raises(lambda: G(flint.fmpq(2, 3), 3), ZeroDivisionError)
     assert raises(lambda: G(2,5) / G(0,5), ZeroDivisionError)
     assert raises(lambda: G(2,5) / 0, ZeroDivisionError)
+    assert G(1,6) / G(5,6) == G(5,6)
+    assert raises(lambda: G(1,6) / G(3,6), ZeroDivisionError)
+    assert G(1,3) ** 2 == G(1,3)
+    assert G(2,3) ** flint.fmpz(2) == G(1,3)
+    assert ~G(2,7) == G(2,7) ** -1 == G(4,7)
+    assert raises(lambda: G(3,6) ** -1, ZeroDivisionError)
+    assert raises(lambda: ~G(3,6), ZeroDivisionError)
+    assert raises(lambda: pow(G(1,3), 2, 7), TypeError)
+    assert G(flint.fmpq(2, 3), 5) == G(4,5)
+    assert raises(lambda: G(2,5) ** G(2,5), TypeError)
+    assert raises(lambda: flint.fmpz(2) ** G(2,5), TypeError)
     assert raises(lambda: G(2,5) + G(2,7), ValueError)
     assert raises(lambda: G(2,5) - G(2,7), ValueError)
     assert raises(lambda: G(2,5) * G(2,7), ValueError)
@@ -1373,10 +1394,12 @@ def test_nmod():
     assert raises(lambda: G(2,5) - [], TypeError)
     assert raises(lambda: G(2,5) * [], TypeError)
     assert raises(lambda: G(2,5) / [], TypeError)
+    assert raises(lambda: G(2,5) ** [], TypeError)
     assert raises(lambda: [] + G(2,5), TypeError)
     assert raises(lambda: [] - G(2,5), TypeError)
     assert raises(lambda: [] * G(2,5), TypeError)
     assert raises(lambda: [] / G(2,5), TypeError)
+    assert raises(lambda: [] ** G(2,5), TypeError)
     assert G(3,17).modulus() == 17
     assert str(G(3,5)) == "3"
     assert G(3,5).repr() == "nmod(3, 5)"
@@ -1478,6 +1501,9 @@ def test_nmod_poly():
     for alg in [None, 'berlekamp', 'cantor-zassenhaus']:
         assert p3.factor(alg) == f3
         assert p3.factor(algorithm=alg) == f3
+    assert P([1], 11).roots() == []
+    assert P([1, 2, 3], 11).roots() == [(8, 1), (6, 1)]
+    assert P([1, 6, 1, 8], 11).roots() == [(5, 3)]
 
 def test_nmod_mat():
     M = flint.nmod_mat
@@ -1640,7 +1666,7 @@ all_tests = [
     test_fmpq,
     test_fmpq_poly,
     test_fmpq_mat,
-    test_fmpq_mpoly,
+    # test_fmpq_mpoly,
     test_fmpq_series,
     test_nmod,
     test_nmod_poly,

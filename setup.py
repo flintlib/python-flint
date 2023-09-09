@@ -63,18 +63,55 @@ if os.getenv('PYTHON_FLINT_COVERAGE'):
     compiler_directives['linetrace'] = True
 
 
+packages=[
+    'flint',
+    'flint.flintlib',
+    'flint.flint_base',
+    'flint.types',
+    'flint.functions',
+    'flint.utils',
+    'flint.test',
+]
+
+
 ext_files = [
-    ("flint._flint", ["src/flint/pyflint.pyx"]), # Main Module
+    # ("flint._flint", ["src/flint/_flint.pxd"]), # Main Module
+    ("flint.pyflint", ["src/flint/pyflint.pyx"]), # Main Module
     # Submodules
+    ("flint.types.fmpz", ["src/flint/types/fmpz.pyx"]),
+    ("flint.types.fmpz_poly", ["src/flint/types/fmpz_poly.pyx"]),
+    ("flint.types.fmpz_mat", ["src/flint/types/fmpz_mat.pyx"]),
+    ("flint.types.fmpz_series", ["src/flint/types/fmpz_series.pyx"]),
+    ("flint.types.fmpq", ["src/flint/types/fmpq.pyx"]),
+    ("flint.types.fmpq_poly", ["src/flint/types/fmpq_poly.pyx"]),
+    ("flint.types.fmpq_mat", ["src/flint/types/fmpq_mat.pyx"]),
+    ("flint.types.fmpq_series", ["src/flint/types/fmpq_series.pyx"]),
+    ("flint.types.nmod", ["src/flint/types/nmod.pyx"]),
+    ("flint.types.nmod_poly", ["src/flint/types/nmod_poly.pyx"]),
+    ("flint.types.nmod_mat", ["src/flint/types/nmod_mat.pyx"]),
+    ("flint.types.nmod_series", ["src/flint/types/nmod_series.pyx"]),
+    ("flint.types.arf", ["src/flint/types/arf.pyx"]),
+    ("flint.types.arb", ["src/flint/types/arb.pyx"]),
+    ("flint.types.arb_poly", ["src/flint/types/arb_poly.pyx"]),
+    ("flint.types.arb_mat", ["src/flint/types/arb_mat.pyx"]),
+    ("flint.types.arb_series", ["src/flint/types/arb_series.pyx"]),
+    ("flint.types.acb", ["src/flint/types/acb.pyx"]),
+    ("flint.types.acb_poly", ["src/flint/types/acb_poly.pyx"]),
+    ("flint.types.acb_mat", ["src/flint/types/acb_mat.pyx"]),
+    ("flint.types.acb_series", ["src/flint/types/acb_series.pyx"]),
+    ("flint.types.fmpz_mpoly", ["src/flint/types/fmpz_mpoly.pyx"]),
+    ("flint.types.dirichlet", ["src/flint/types/dirichlet.pyx"]),
     ("flint.flint_base.flint_base", ["src/flint/flint_base/flint_base.pyx"]),
     ("flint.flint_base.flint_context", ["src/flint/flint_base/flint_context.pyx"]),
+    # Helper for unittests
+    ("flint.functions.showgood", ["src/flint/functions/showgood.pyx"]),
 
 ]
 
 ext_options = {
     "libraries" : libraries,
-    "library_dirs" : default_lib_dirs,
-    "include_dirs" : default_include_dirs,
+    "library_dirs" : default_lib_dirs + ["/Users/davideinstein/opt/flint2.9/lib", "/Users/davideinstein/opt/arb/lib"],
+    "include_dirs" : default_include_dirs + ["/Users/davideinstein/opt/flint2.9/include", "/Users/davideinstein/opt/arb/include"],
     "define_macros" : define_macros,
 }
 
@@ -91,12 +128,12 @@ setup(
     cmdclass={'build_ext': build_ext},
     ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives),
     #ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives, annotate=True),
-    packages=['flint', 'flint.test'],
+    packages=packages,
     package_dir={'': 'src'},
     description='Bindings for FLINT and Arb',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    version='0.4.2',
+    version='0.4.4',
     url='https://github.com/flintlib/python-flint',
     author='Fredrik Johansson',
     author_email='fredrik.johansson@gmail.com',
