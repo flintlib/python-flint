@@ -135,7 +135,7 @@ def gen_imports(function_list):
             ret.add(t)
     for k,v in imports.items():
         types = ", ".join(v)
-        print("from " + k + " import " + types)
+        print("from flint.flintlib." + k + " cimport " + types)
     return ret
 
 def generate_pxd_file(h_name):
