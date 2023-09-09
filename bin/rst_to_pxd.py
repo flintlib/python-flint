@@ -1,8 +1,11 @@
+#!/usr/bin/env python3
+
 from collections import defaultdict
 import re
 import sys
 import os
 import fnmatch
+import argparse
 
 """
 This is relatively rudimentary, but works for the purpose intended
@@ -34,10 +37,6 @@ TODO: don't import self
 
 """
 
-pyflintlibdir = "/Users/davideinstein/projects/python-flint/src/flint/flintlib"
-arbdocdir = "/Users/davideinstein/projects/arb/doc/source"
-flintdocdir ="/Users/davideinstein/projects/flint2/doc/source"
-
 #  recognize a function definition in rst
 is_func = re.compile(r"\.\.( )+(c:)?function( )*::")
 # rename types to avoid python -- c name collisions
@@ -64,7 +63,7 @@ def get_cython_struct_types(file):
             ret.append(l.split()[-1])
     return ret
 
-def fill_import_dict():
+def fill_import_dict(pyflintlibdir):
     """
     Get a map from cython structs to the pxd that defines them
     """
@@ -138,13 +137,13 @@ def gen_imports(function_list):
         print("from flint.flintlib." + k + " cimport " + types)
     return ret
 
-def generate_pxd_file(h_name):
-    fill_import_dict()
+def generate_pxd_file(h_name, opts):
+    fill_import_dict(opts.flint_lib_dir)
     l=[]
-    docdir = arbdocdir
+    docdir = opts.arb_doc_dir
     name = h_name 
     if name[:6] == "flint/":
-        docdir = flintdocdir
+        docdir = opts.flint_doc_dir
         name = name[6:]
     with open(os.path.join(docdir, name + ".rst")) as f:
         l = get_functions(f)
@@ -159,7 +158,27 @@ def generate_pxd_file(h_name):
             else:
                 print("    " + f)
 
-if __name__ == "__main__":
 
-    name = sys.argv[1]
-    generate_pxd_file(name)
+def main(*args):
+    usage = """
+    $ cd /path/to/python-flint
+    $ bin/rst_to_pxd.py flint/fmpz --flint-doc-dir=/path/to/flint/doc/source
+    """
+    parser = argparse.ArgumentParser(description='Generate a pxd file from an rst file',
+                                     usage=usage)
+    parser.add_argument('--flint-lib-dir', help='location of the flintlib submodule',
+                        default="./src/flint/flintlib")
+    parser.add_argument('--arb-doc-dir', help='location of the arb doc source directory',
+                        default="/Users/davideinstein/projects/arb/doc/source")
+    parser.add_argument('--flint-doc-dir', help='location of the flint doc source directory',
+                        default="/Users/davideinstein/projects/flint2/doc/source")
+    parser.add_argument('name', help='name of the rst file to parse (e.g. flint/fmpz)')
+
+    args = parser.parse_args()
+
+    generate_pxd_file(args.name, args)
+
+
+if __name__ == "__main__":
+    main(*sys.argv[1:])
+
