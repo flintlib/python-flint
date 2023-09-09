@@ -6,6 +6,7 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 
 from flint.flintlib.fmpz cimport fmpz_t
+from flint.flintlib.nmod cimport nmod_pow_fmpz, nmod_inv
 from flint.flintlib.nmod_vec cimport *
 from flint.flintlib.fmpz cimport fmpz_fdiv_ui, fmpz_init, fmpz_clear
 from flint.flintlib.fmpz cimport fmpz_set_ui, fmpz_get_ui
@@ -88,6 +89,9 @@ cdef class nmod(flint_scalar):
             else:
                 return not res
         return NotImplemented
+
+    def __hash__(self):
+        return hash((int(self.val), self.modulus))
 
     def __nonzero__(self):
         return self.val != 0
@@ -178,6 +182,8 @@ cdef class nmod(flint_scalar):
                 return NotImplemented
         if tval == 0:
             raise ZeroDivisionError("%s is not invertible mod %s" % (tval, mod.n))
+        if not s:
+            return s
         # XXX: check invertibility?
         x = nmod_div(sval, tval, mod)
         if x == 0:
@@ -195,3 +201,17 @@ cdef class nmod(flint_scalar):
 
     def __invert__(self):
         return (1 / self)   # XXX: speed up
+
+    def __pow__(self, exp):
+        cdef nmod r
+        e = any_as_fmpz(exp)
+        if e is NotImplemented:
+            return NotImplemented
+        r = nmod.__new__(nmod)
+        r.mod = self.mod
+        r.val = self.val
+        if e < 0:
+            r.val = nmod_inv(r.val, self.mod)
+            e = -e
+        r.val = nmod_pow_fmpz(r.val, (<fmpz>e).val, self.mod)
+        return r
