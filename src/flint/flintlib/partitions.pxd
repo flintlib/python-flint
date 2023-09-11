@@ -3,7 +3,7 @@ from flint.flintlib.fmpz cimport fmpz_t
 from flint.flintlib.arf cimport arf_t
 from flint.flintlib.arb cimport arb_t
 
-cdef extern from "partitions.h":
+cdef extern from "flint/partitions.h":
 # from here on is parsed
     void partitions_rademacher_bound(arf_t b, const fmpz_t n, ulong N)
     void partitions_hrr_sum_arb(arb_t x, const fmpz_t n, slong N0, slong N, int use_doubles)
