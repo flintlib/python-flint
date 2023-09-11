@@ -8,7 +8,7 @@ from flint.flintlib.arb cimport arb_t
 from flint.flintlib.acb cimport  acb_ptr, acb_struct, acb_t, acb_srcptr
 from flint.flintlib.arb_mat cimport arb_mat_t
 
-cdef extern from "acb_mat.h":
+cdef extern from "flint/acb_mat.h":
     ctypedef struct acb_mat_struct:
         acb_ptr entries
         long r

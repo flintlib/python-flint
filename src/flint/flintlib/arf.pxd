@@ -3,7 +3,7 @@ from flint.flintlib.flint cimport mp_limb_t, ulong, flint_rand_t, slong
 from flint.flintlib.fmpq cimport fmpq_t
 from flint.flintlib.mag cimport mag_t
 
-cdef extern from "arf.h":
+cdef extern from "flint/arf.h":
     ctypedef struct arf_struct:
         fmpz_struct exp
         long size

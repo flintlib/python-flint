@@ -4,7 +4,7 @@ from flint.flintlib.flint cimport slong
 from flint.flintlib.arb cimport arb_t
 from flint.flintlib.arf cimport arf_t
 
-cdef extern from "acb_calc.h":
+cdef extern from "flint/acb_calc.h":
     ctypedef int (*acb_calc_func_t)(acb_ptr out, const acb_t inp, void * param, long order, long prec)
 
     ctypedef struct acb_calc_integrate_opt_struct:

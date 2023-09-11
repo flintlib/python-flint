@@ -2,7 +2,7 @@ from flint.flintlib.flint cimport ulong, slong
 from flint.flintlib.fmpq cimport fmpq_t, fmpq_struct
 from flint.flintlib.fmpz cimport fmpz_t
 
-cdef extern from "bernoulli.h":
+cdef extern from "flint/bernoulli.h":
 # from here on is parsed
     # void bernoulli_rev_init(bernoulli_rev_t iter, ulong n)
     # void bernoulli_rev_next(fmpz_t numer, fmpz_t denom, bernoulli_rev_t iter)

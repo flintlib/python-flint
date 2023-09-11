@@ -2,7 +2,7 @@ from flint.flintlib.flint cimport ulong, mp_limb_t, slong, flint_rand_t
 from flint.flintlib.fmpz cimport fmpz_struct, fmpz_t
 from flint.flintlib.fmpq cimport fmpq_struct, fmpq_t
 
-cdef extern from "mag.h":
+cdef extern from "flint/mag.h":
     ctypedef struct mag_struct:
         fmpz_struct exp
         mp_limb_t man

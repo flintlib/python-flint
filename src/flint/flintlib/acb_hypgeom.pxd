@@ -3,7 +3,7 @@ from flint.flintlib.acb_poly cimport acb_poly_t, acb_poly_struct
 from flint.flintlib.mag cimport mag_t
 from flint.flintlib.flint cimport ulong, slong
 
-cdef extern from "acb_hypgeom.h":
+cdef extern from "flint/acb_hypgeom.h":
 # from here on is parsed
     void acb_hypgeom_rising_ui_forward(acb_t res, const acb_t x, ulong n, slong prec)
     void acb_hypgeom_rising_ui_bs(acb_t res, const acb_t x, ulong n, slong prec)
