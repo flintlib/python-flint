@@ -10,7 +10,7 @@ from flint.flintlib.fmpq cimport fmpq_t
 from flint.flintlib.arf cimport arf_t
 from flint.flintlib.arb cimport arb_srcptr
 
-cdef extern from "acb_dirichlet.h":
+cdef extern from "flint/acb_dirichlet.h":
     ctypedef struct acb_dirichlet_roots_struct:
         ulong order
         ulong reduced_order

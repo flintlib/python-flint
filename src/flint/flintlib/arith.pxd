@@ -4,7 +4,7 @@ from flint.flintlib.fmpz_poly cimport fmpz_poly_t
 from flint.flintlib.fmpq_poly cimport fmpq_poly_t
 from flint.flintlib.fmpq cimport fmpq_t
 from flint.flintlib.fmpz_mat cimport fmpz_mat_t
-from flint.flintlib.nmod_vec cimport nmod_t
+from flint.flintlib.nmod cimport nmod_t
 from flint.flintlib.fmpq cimport fmpq_struct
 
 cdef extern from "flint/arith.h":

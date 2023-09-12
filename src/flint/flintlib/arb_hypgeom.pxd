@@ -5,7 +5,7 @@ from flint.flintlib.flint cimport ulong, slong
 from flint.flintlib.mag cimport mag_t
 from flint.flintlib.fmpq cimport fmpq_t, fmpq_struct
 
-cdef extern from "arb_hypgeom.h":
+cdef extern from "flint/arb_hypgeom.h":
 # from here on is parsed
     void _arb_hypgeom_rising_coeffs_1(ulong * c, ulong k, slong n)
     void _arb_hypgeom_rising_coeffs_2(ulong * c, ulong k, slong n)
