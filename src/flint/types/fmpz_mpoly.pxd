@@ -8,7 +8,6 @@ from flint.flintlib.flint cimport slong
 cdef class fmpz_mpoly_ctx(flint_mpoly_context):
     cdef fmpz_mpoly_ctx_t val
     cpdef slong nvars(self)
-
     cpdef ordering(self)
 
 cdef class fmpz_mpoly(flint_mpoly):
