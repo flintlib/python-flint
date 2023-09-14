@@ -1,11 +1,14 @@
-from flint.flintlib.flint cimport fmpz_struct, ulong, mp_limb_t
+from flint.flintlib.flint cimport fmpz_struct, ulong, mp_limb_t, mp_ptr
 from flint.flintlib.flint cimport mp_size_t, mp_bitcnt_t, slong, flint_rand_t, flint_bitcnt_t
-# from flint.flintlib.nmod cimport nmod_t
-# from flint.flintlib.fmpz_factor cimport fmpz_factor_t
 
 cdef extern from "flint/fmpz.h":
     ctypedef fmpz_struct fmpz_t[1]
 
+    ctypedef struct fmpz_preinvn_struct:
+        mp_ptr dinv
+        slong n
+        flint_bitcnt_t norm
+    ctypedef fmpz_preinvn_struct fmpz_preinvn_t[1]
 
 # from here on is parsed
     # fmpz_struct PTR_TO_COEFF(__mpz_struct * ptr)
