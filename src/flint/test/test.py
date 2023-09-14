@@ -1585,7 +1585,7 @@ def test_pickling():
         assert obj == obj2
 
 def test_fmpz_mod():
-    from flint import fmpz_mod_ctx
+    from flint import fmpz_mod_ctx, fmpz
 
     # Context tests
     F163 = fmpz_mod_ctx(163)
@@ -1634,8 +1634,19 @@ def test_fmpz_mod():
     # Addition
     assert F163(123) + F163(456) == F163(123 + 456)
     assert F163(123) + F163(456) == F163(456) + F163(123)
+    assert F163(123) + 456 == F163(123 + 456)
+    assert F163(123) + fmpz(456) == F163(456) + F163(123)
+
     test_inplace = F163(123) 
     test_inplace += F163(456) 
+    assert test_inplace == F163(123 + 456)
+
+    test_inplace = F163(123) 
+    test_inplace += 456
+    assert test_inplace == F163(123 + 456)
+
+    test_inplace = F163(123) 
+    test_inplace += fmpz(456)
     assert test_inplace == F163(123 + 456)
     
 
