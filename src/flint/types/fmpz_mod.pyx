@@ -92,7 +92,7 @@ cdef class fmpz_mod(flint_scalar):
 
         val_fmpz = any_as_fmpz(val)
         assert typecheck(val_fmpz, fmpz)
-        fmpz_mod_set_fmpz(self.val, (<fmpz>val_fmpz).val, (<fmpz_mod_ctx_t>self.ctx))
+        fmpz_mod_set_fmpz(self.val, (<fmpz>val_fmpz).val, (<fmpz_mod_ctx_t>self.ctx.val))
 
     def __repr__(self):
         return "fmpz_mod({}, {})".format(
