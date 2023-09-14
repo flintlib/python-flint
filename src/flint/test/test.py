@@ -1636,6 +1636,7 @@ def test_fmpz_mod():
     assert F163(123) + F163(456) == F163(456) + F163(123)
     assert F163(123) + 456 == F163(123 + 456)
     assert F163(123) + fmpz(456) == F163(456) + F163(123)
+    assert raises(lambda: F163(123) + Fbig(456), ValueError)
 
     test_inplace = F163(123) 
     test_inplace += F163(456) 
