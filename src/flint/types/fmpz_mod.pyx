@@ -71,6 +71,16 @@ cdef class fmpz_mod_ctx:
             self.modulus()
         )
 
+    def __call__(self, val):
+        if not typecheck(val, fmpz):
+            val = any_as_fmpz(val)
+            if val is NotImplemented:
+                raise NotImplementedError("TODO")
+
+        return fmpz_mod(val, self)
+
+    # TODO: should this be allowed, or should
+    #       we make a ctx immutatble?
     def set_modulus(self, n):
         """
         """
@@ -85,14 +95,17 @@ cdef class fmpz_mod_ctx:
 
         fmpz_mod_ctx_set_modulus(self.val, (<fmpz>mod).val)
 
-# This is buggy and broken
+
 cdef class fmpz_mod(flint_scalar):
     def __init__(self, val, ctx):
         self.ctx = ctx
 
-        val_fmpz = any_as_fmpz(val)
-        assert typecheck(val_fmpz, fmpz)
-        fmpz_mod_set_fmpz(self.val, (<fmpz>val_fmpz).val, (<fmpz_mod_ctx_t>self.ctx.val))
+        if not typecheck(val, fmpz):
+            val = any_as_fmpz(val)
+            if val is NotImplemented:
+                raise NotImplementedError("TODO")
+
+        fmpz_mod_set_fmpz(self.val, (<fmpz>val).val, (<fmpz_mod_ctx_t>self.ctx.val))
 
     def __repr__(self):
         return "fmpz_mod({}, {})".format(
