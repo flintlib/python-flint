@@ -1,6 +1,7 @@
 from flint.flintlib.flint cimport slong
 from flint.flintlib.fmpz cimport (
     fmpz_t,
+    fmpz_set,
     COEFF_IS_MPZ,
     fmpz_get_str
 )
@@ -51,15 +52,23 @@ cdef class fmpz_mod_ctx:
 
         # Init the context
         fmpz_mod_ctx_init(self.val, (<fmpz>mod).val)
+    
+    def modulus(self):
+        """
+        Return the modulus from the context as an fmpz
+        """
+        n = fmpz()
+        fmpz_set(n.val, (<fmpz_t>self.val.n))
+        return n
 
     def __repr__(self):
         return "Context for fmpz_mod with modulus: {}".format(
-            fmpz_get_intlong(self.val.n)
+            self.modulus()
         )
 
     def __str__(self):
         return "fmpz_mod_ctx({})".format(
-            fmpz_get_intlong(self.val.n)
+            self.modulus()
         )
 
     def set_modulus(self, n):
@@ -81,14 +90,17 @@ cdef class fmpz_mod(flint_scalar):
     def __init__(self, val, ctx):
         self.ctx = ctx
 
-        val = any_as_fmpz(val)
-        assert typecheck(val, fmpz)
-        fmpz_mod_set_fmpz(self.val, (<fmpz>val).val, (<fmpz_mod_ctx_t>self.ctx))
+        val_fmpz = any_as_fmpz(val)
+        assert typecheck(val_fmpz, fmpz)
+        fmpz_mod_set_fmpz(self.val, (<fmpz>val_fmpz).val, (<fmpz_mod_ctx_t>self.ctx))
 
-    def repr(self):
-        return "fmpz_mod(%s, %s)" % (self.val, self.mod.n)
+    def __repr__(self):
+        return "fmpz_mod({}, {})".format(
+            fmpz_get_intlong(self.val),
+            self.ctx.modulus()
+        )
 
-    def str(self):
+    def __str__(self):
         return str(fmpz_get_intlong(self.val))
 
     def __int__(self):
