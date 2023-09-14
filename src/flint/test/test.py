@@ -1584,6 +1584,52 @@ def test_pickling():
         obj2 = pickle.loads(s)
         assert obj == obj2
 
+def test_fmpz_mod():
+    from flint import fmpz_mod_ctx
+
+    # Context tests
+    F163 = fmpz_mod_ctx(163)
+    assert F163.modulus() == 163
+    big = 2**1024 - 1
+    Fbig = fmpz_mod_ctx(2**1024 - 1)
+    assert Fbig.modulus() == big
+
+    # Rich comparisons 
+    assert raises(lambda: F163(123) > 0, TypeError)
+    assert raises(lambda: F163(123) >= 0, TypeError)
+    assert raises(lambda: F163(123) < 0, TypeError)
+    assert raises(lambda: F163(123) <= 0, TypeError)
+
+    assert F163(123) == 123
+    assert F163(123) == 123 + 163
+    assert F163(123) != 1
+    assert F163(123) == F163(123)
+    assert F163(123) == F163(123 + 163)
+    assert F163(123) != F163(1)
+
+    # Is one, zero, canoncial
+    assert F163(0) == 0
+    assert F163(0).is_zero()
+    assert not F163(0)
+    assert not F163(163)
+    assert F163(1).is_one()
+    assert F163(164).is_one()
+    assert not F163(2).is_one()
+    assert F163(123).is_canonical()
+
+    # Arithmetic tests
+
+    # Negation
+    assert -F163(123) == F163(-123) == (-123 % 163)
+    assert -F163(1) == F163(-1) == F163(162)
+
+    # Addition
+    assert F163(123) + F163(456) == F163(123 + 456)
+    assert F163(123) + F163(456) == F163(456) + F163(123)
+    test_inplace = F163(123) 
+    test_inplace += F163(456) 
+    assert test_inplace == F163(123 + 456)
+    
 
 all_tests = [
     test_pyflint,
@@ -1603,4 +1649,5 @@ all_tests = [
     test_nmod_poly,
     test_nmod_mat,
     test_arb,
+    test_fmpz_mod,
 ]
