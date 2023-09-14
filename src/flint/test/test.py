@@ -1595,27 +1595,35 @@ def test_fmpz_mod():
     assert Fbig.modulus() == big
 
     # Rich comparisons 
-    assert raises(lambda: F163(123) > 0, TypeError)
-    assert raises(lambda: F163(123) >= 0, TypeError)
-    assert raises(lambda: F163(123) < 0, TypeError)
-    assert raises(lambda: F163(123) <= 0, TypeError)
+    assert (F163(123) == 123) is True
+    assert (F163(123) == 123 + 163) is True
+    assert (F163(123) == 1) is False
+    assert (F163(123) != 1) is True
 
-    assert F163(123) == 123
-    assert F163(123) == 123 + 163
-    assert F163(123) != 1
-    assert F163(123) == F163(123)
-    assert F163(123) == F163(123 + 163)
-    assert F163(123) != F163(1)
+    assert (F163(123) == F163(123)) is True
+    assert (F163(123) == F163(123 + 163)) is True
+    assert (F163(123) == F163(1)) is False
+    assert (F163(123) != F163(1)) is True
+
+    assert (Fbig(123) == 123) is True
+    assert (Fbig(123) == 123 + big) is True
+    assert (Fbig(123) == 1) is False
+    assert (Fbig(123) != 1) is True
+    assert (Fbig(123) == Fbig(123)) is True
+    assert (Fbig(123) == Fbig(123 + big)) is True
+    assert (Fbig(123) == Fbig(1)) is False
+    assert (Fbig(123) != Fbig(1)) is True
 
     # Is one, zero, canoncial
-    assert F163(0) == 0
-    assert F163(0).is_zero()
+    assert (F163(0) == 0) is True
+    assert F163(0).is_zero() is True
     assert not F163(0)
     assert not F163(163)
-    assert F163(1).is_one()
-    assert F163(164).is_one()
-    assert not F163(2).is_one()
-    assert F163(123).is_canonical()
+    assert F163(1).is_one() is True
+    assert F163(164).is_one() is True
+    assert F163(1).is_one() is True
+    assert F163(2).is_one() is False
+    assert F163(123).is_canonical() is True
 
     # Arithmetic tests
 
