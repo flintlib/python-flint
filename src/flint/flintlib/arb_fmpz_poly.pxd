@@ -4,7 +4,7 @@ from flint.flintlib.fmpz_poly cimport fmpz_poly_t
 from flint.flintlib.flint cimport ulong, slong
 from flint.flintlib.fmpz cimport fmpz_struct
 
-cdef extern from "arb_fmpz_poly.h":
+cdef extern from "flint/arb_fmpz_poly.h":
 # from here on is parsed
     void _arb_fmpz_poly_evaluate_arb_horner(arb_t res, const fmpz_struct * poly, slong len, const arb_t x, slong prec)
     void arb_fmpz_poly_evaluate_arb_horner(arb_t res, const fmpz_poly_t poly, const arb_t x, slong prec)

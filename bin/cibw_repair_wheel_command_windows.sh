@@ -29,8 +29,11 @@ wheeldir=$(dirname $WHEELNAME)
 echo $wheeldir
 
 # delvewheel requires DLLs created by mingw64 to be stripped. This strips the
-# DLLs for GMP etc that will have been build previously.
-strip .local/bin/*.dll .local/lib/*.dll
+# DLLs for GMP etc that will have been built in the CIBW_BEFORE_ALL step.
+#
+# Previously the Arb DLLs would have been placed in .local/lib, but as of
+# flint 3.0.0 all DLLs aRe in .local/bin.
+strip .local/bin/*.dll
 
 # Make sure to leave the wheel in the same directory
 wheeldir=$(dirname $WHEELNAME)
@@ -47,4 +50,4 @@ popd
 # .pyd files that are needed for the wheel.
 delvewheel repair $WHEELNAME 	\
 	-w $WHEELHOUSE		\
-	--add-path .local/bin:.local/lib/
+	--add-path .local/bin

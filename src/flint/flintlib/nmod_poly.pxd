@@ -1,6 +1,6 @@
 from flint.flintlib.flint cimport mp_ptr, mp_limb_t, mp_bitcnt_t, mp_srcptr, slong, flint_bitcnt_t
 from flint.flintlib.flint cimport flint_rand_t, ulong
-from flint.flintlib.nmod_vec cimport nmod_t
+from flint.flintlib.nmod cimport nmod_t
 from flint.flintlib.fmpz cimport fmpz_t
 
 cdef extern from "flint/nmod_poly.h":

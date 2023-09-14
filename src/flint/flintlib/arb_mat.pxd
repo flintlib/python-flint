@@ -7,7 +7,7 @@ from flint.flintlib.fmpz cimport fmpz_t
 from flint.flintlib.arb cimport arb_t, arb_srcptr
 from flint.flintlib.arb_poly cimport arb_poly_t
 
-cdef extern from "arb_mat.h":
+cdef extern from "flint/arb_mat.h":
     ctypedef struct arb_mat_struct:
         arb_ptr entries
         long r

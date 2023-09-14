@@ -13,19 +13,18 @@ from flint.flintlib.acb cimport *
 
 ctx = thectx
 
-# xxx: this doesn't work when changed to a cdef function. why?
-def __goodness(x, bint parts=True, metric=None):
+cdef slong __goodness(x, bint parts, metric):
     if metric is not None:
         x = metric(x)
     if isinstance(x, arb):
         return arb_rel_accuracy_bits((<arb>x).val)
     if isinstance(x, acb):
         if parts:
-            return min(__goodness(x.real), __goodness(x.imag))
+            return min(__goodness(x.real, parts, metric), __goodness(x.imag, parts, metric))
         else:
             return acb_rel_accuracy_bits((<acb>x).val)
     if isinstance(x, (tuple, list, arb_mat, acb_mat, arb_poly, acb_poly, arb_series, acb_series)):
-        return min(__goodness(y, parts) for y in x)
+        return min(__goodness(y, parts, metric) for y in x)
     raise TypeError("must have arb or acb")
 
 cdef goodstr(x):

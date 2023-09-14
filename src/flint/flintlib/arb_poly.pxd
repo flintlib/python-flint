@@ -6,7 +6,7 @@ from flint.flintlib.acb cimport acb_t, acb_srcptr
 from flint.flintlib.mag cimport mag_t
 from flint.flintlib.arf cimport arf_t
 
-cdef extern from "arb_poly.h":
+cdef extern from "flint/arb_poly.h":
     ctypedef struct arb_poly_struct:
         arb_ptr coeffs
         long length
