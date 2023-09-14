@@ -176,18 +176,52 @@ cdef class fmpz_mod(flint_scalar):
     # TODO: proper type handing for the other...
     def __add__(self, other):
         res = fmpz()
-        fmpz_mod_add(
-            res.val, self.val, (<fmpz_mod>other).val, 
+
+        # Add two fmpz_mod if moduli match
+        if typecheck(other, fmpz_mod):
+            if not (self).ctx.modulus() == (<fmpz_mod>other).ctx.modulus():
+                raise ValueError("moduli must match")
+
+            fmpz_mod_add(
+                res.val, self.val, (<fmpz_mod>other).val, 
+                (<fmpz_mod_ctx_t>self.ctx.val)
+            )
+            return self.ctx(res)
+
+        other = any_as_fmpz(other)
+        if other is NotImplemented:
+            raise NotImplementedError
+
+        # Add an fmpz to an fmpz_mod
+        fmpz_mod_add_fmpz(
+            res.val, self.val, (<fmpz>other).val, 
             (<fmpz_mod_ctx_t>self.ctx.val)
         )
+
         return self.ctx(res)
 
     def __radd__(self, other):
         return other + self
 
     def __iadd__(self, other):
-        fmpz_mod_add(
-            self.val, self.val, (<fmpz_mod>other).val, 
+        # Add two fmpz_mod if moduli match
+        if typecheck(other, fmpz_mod):
+            if not (self).ctx.modulus() == (<fmpz_mod>other).ctx.modulus():
+                raise ValueError("moduli must match")
+
+            fmpz_mod_add(
+                self.val, self.val, (<fmpz_mod>other).val, 
+                (<fmpz_mod_ctx_t>self.ctx.val)
+            )
+            return self
+
+        # Add an fmpz to an fmpz_mod
+        other = any_as_fmpz(other)
+        if other is NotImplemented:
+            raise NotImplementedError
+
+        fmpz_mod_add_fmpz(
+            self.val, self.val, (<fmpz>other).val, 
             (<fmpz_mod_ctx_t>self.ctx.val)
         )
         return self
