@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env fish
 #
 # Note: cython's Cython/Coverage.py fails for pyx files that are included in
 # other pyx files. This gives the following error:
@@ -25,15 +25,13 @@
 #
 #
 
-set -o errexit
+source bin/activate.fish
 
-source bin/activate.sh
-
-export PYTHON_FLINT_COVERAGE=true
+set PYTHON_FLINT_COVERAGE true
 
 python setup.py build_ext --inplace
 
-coverage run -m flint.test $@
+coverage run -m flint.test $argv
 
 #coverage report -m
 coverage html
