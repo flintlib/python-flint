@@ -1585,10 +1585,12 @@ def test_pickling():
         assert obj == obj2
 
 def test_fmpz_mod():
-    from flint import fmpz_mod_ctx, fmpz
+    from flint import fmpz_mod_ctx, fmpz, fmpz_mod
     
     # Context tests
     F163 = fmpz_mod_ctx(163)
+    assert raises(lambda: fmpz_mod_ctx("AAA"), NotImplementedError)
+    assert raises(lambda: fmpz_mod_ctx(-1), ValueError)
     assert F163.modulus() == 163
 
     big = 2**1024 - 1
@@ -1597,11 +1599,19 @@ def test_fmpz_mod():
 
     F163_copy = fmpz_mod_ctx(163)
     assert F163_copy == F163
+    assert Fbig != F163
+    assert hash(F163_copy) == hash(F163)
+    assert hash(Fbig) != hash(F163), f"{hash(Fbig)}, {hash(F163)}"
     assert F163_copy != Fbig
+    assert F163_copy != "A"
+
     assert str(F163) == "fmpz_mod_ctx(163)"
     assert repr(F163) == "Context for fmpz_mod with modulus: 163"
 
     # Type tests
+
+    assert raises(lambda: fmpz_mod(1, "AAA"), ValueError)
+
 
     # Rich comparisons 
     assert raises(lambda: F163(123) > 0, TypeError)
@@ -1639,7 +1649,7 @@ def test_fmpz_mod():
 
     # int, str, repr
     assert str(F163(11)) == "11"
-    assert repr(F163(-1)) == "162"
+    assert str(F163(-1)) == "162"
     assert repr(F163(11)) == "fmpz_mod(11, 163)"
     assert repr(F163(-1)) == "fmpz_mod(162, 163)"
 
@@ -1653,6 +1663,8 @@ def test_fmpz_mod():
 
     # Addition
     assert F163(123) + F163(456) == F163(123 + 456)
+    assert F163(123) + F163_copy(456) == F163(123 + 456)
+    assert F163(123) + F163(456) == F163_copy(123 + 456)
     assert raises(lambda: F163(123) + "AAA", TypeError)
 
     assert F163(123) + F163(456) == F163(456) + F163(123)
@@ -1680,9 +1692,11 @@ def test_fmpz_mod():
     assert F163(123) - 456 == F163(123) - F163(456)
     assert F163(456) - 123 == F163(456) - F163(123)
     assert 123 - F163(456) == F163(123) - F163(456)
-    # assert 456 - F163(123) == F163(456) - F163(123)
+    assert 456 - F163(123) == F163(456) - F163(123)
     assert F163(123) - fmpz(456) == F163(123) - F163(456)
     assert raises(lambda: F163(123) - Fbig(456), ValueError)
+    assert raises(lambda: F163(123) - "AAA", TypeError)
+
 
     test_inplace = F163(123) 
     test_inplace -= F163(456) 
@@ -1714,6 +1728,8 @@ def test_fmpz_mod():
     assert fmpz(1) * F163(123) == F163(1 * 123)
     assert fmpz(2) * F163(123) == F163(2 * 123)
     assert fmpz(3) * F163(123) == F163(3 * 123)
+    assert raises(lambda: F163(123) * "AAA", TypeError)
+
 
     test_inplace = F163(123) 
     test_inplace *= F163(456) 
@@ -1733,6 +1749,8 @@ def test_fmpz_mod():
     assert F163(0)**1 == pow(0, 1, 163)
     assert F163(0)**2 == pow(0, 2, 163)
     assert raises(lambda: F163(0)**(-1), ZeroDivisionError)
+    assert raises(lambda: F163(0)**("AA"), NotImplementedError)
+
 
     assert F163(123)**0 == pow(123, 0, 163)
     assert F163(123)**1 == pow(123, 1, 163)
@@ -1761,7 +1779,10 @@ def test_fmpz_mod():
     assert F163(123) / F163(456) == (123 * pow(456, -1, 163)) % 163
     assert F163(123) / fmpz(456) == (123 * pow(456, -1, 163)) % 163
     assert F163(123) / 456 == (123 * pow(456, -1, 163)) % 163
-
+    assert raises(lambda: F163(123) / "AAA", TypeError)
+    assert raises(lambda: "AAA" / F163(123), TypeError)
+    assert raises(lambda: Fbig(123) / F163(123), ValueError)
+    assert raises(lambda: F163(123) // F163(123), TypeError)
     assert 1 / F163(2) ==  pow(2, -1, 163)
     assert 1 / F163(123) ==  pow(123, -1, 163)
     assert 1 / F163(456) ==  pow(456, -1, 163)
