@@ -1,10 +1,7 @@
-from flint.flintlib.flint cimport slong
 from flint.flintlib.fmpz cimport (
     fmpz_t,
     fmpz_one,
     fmpz_set,
-    COEFF_IS_MPZ,
-    fmpz_get_str,
     fmpz_init,
     fmpz_clear,
     fmpz_equal
@@ -12,29 +9,13 @@ from flint.flintlib.fmpz cimport (
 from flint.flintlib.fmpz_mod cimport *
 
 from flint.utils.typecheck cimport typecheck
-from flint.utils.conversion cimport str_from_chars
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.types.fmpz cimport (
     fmpz,
     any_as_fmpz,
+    fmpz_get_intlong
 )
 
-cimport libc.stdlib
-
-# TODO: import this from types.fmpz somehow, it's not good
-# to have the function repeated here.
-cdef fmpz_get_intlong(fmpz_t x):
-    """
-    Convert fmpz_t to a Python int or long.
-    """
-    cdef char * s
-    if COEFF_IS_MPZ(x[0]):
-        s = fmpz_get_str(NULL, 16, x)
-        v = int(str_from_chars(s), 16)
-        libc.stdlib.free(s)
-        return v
-    else:
-        return <slong>x[0]
 
 cdef class fmpz_mod_ctx:
     """
