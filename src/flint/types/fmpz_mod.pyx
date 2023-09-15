@@ -6,7 +6,8 @@ from flint.flintlib.fmpz cimport (
     COEFF_IS_MPZ,
     fmpz_get_str,
     fmpz_init,
-    fmpz_clear
+    fmpz_clear,
+    fmpz_equal
 )
 from flint.flintlib.fmpz_mod cimport *
 
@@ -59,11 +60,6 @@ cdef class fmpz_mod_ctx:
 
         # Init the context
         fmpz_mod_ctx_init(self.val, (<fmpz>mod).val)
-
-    def __eq__(self, other):
-        if typecheck(other, fmpz_mod_ctx):
-            return self.val.n == (<fmpz_mod_ctx>other).val.n
-        return False
     
     def modulus(self):
         """
@@ -73,6 +69,14 @@ cdef class fmpz_mod_ctx:
         n = fmpz()
         fmpz_set(n.val, (<fmpz_t>self.val.n))
         return n
+
+    def __eq__(self, other):
+        if typecheck(other, fmpz_mod_ctx):
+            return fmpz_equal(self.val.n, (<fmpz_mod_ctx>other).val.n)
+        return False
+
+    def __hash__(self):
+        return hash(self.modulus())
 
     def __repr__(self):
         return "Context for fmpz_mod with modulus: {}".format(
@@ -151,7 +155,6 @@ cdef class fmpz_mod(flint_scalar):
                 return res
             else:
                 return not res
-        return NotImplemented
 
     def __bool__(self):
         return not self.is_zero()
@@ -284,7 +287,7 @@ cdef class fmpz_mod(flint_scalar):
         return fmpz_mod._div_(t, s)
 
     def __floordiv__(self, other):
-        raise NotImplemented
+        return NotImplemented
 
     def inverse(self, check=True):
         """
