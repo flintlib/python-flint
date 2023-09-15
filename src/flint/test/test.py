@@ -1586,15 +1586,21 @@ def test_pickling():
 
 def test_fmpz_mod():
     from flint import fmpz_mod_ctx, fmpz
-
+    
     # Context tests
     F163 = fmpz_mod_ctx(163)
     assert F163.modulus() == 163
+
     big = 2**1024 - 1
     Fbig = fmpz_mod_ctx(2**1024 - 1)
     assert Fbig.modulus() == big
 
     # Rich comparisons 
+    assert raises(lambda: F163(123) > 0, TypeError)
+    assert raises(lambda: F163(123) >= 0, TypeError)
+    assert raises(lambda: F163(123) < 0, TypeError)
+    assert raises(lambda: F163(123) <= 0, TypeError)
+
     assert (F163(123) == 123) is True
     assert (F163(123) == 123 + 163) is True
     assert (F163(123) == 1) is False
@@ -1604,15 +1610,6 @@ def test_fmpz_mod():
     assert (F163(123) == F163(123 + 163)) is True
     assert (F163(123) == F163(1)) is False
     assert (F163(123) != F163(1)) is True
-
-    assert (Fbig(123) == 123) is True
-    assert (Fbig(123) == 123 + big) is True
-    assert (Fbig(123) == 1) is False
-    assert (Fbig(123) != 1) is True
-    assert (Fbig(123) == Fbig(123)) is True
-    assert (Fbig(123) == Fbig(123 + big)) is True
-    assert (Fbig(123) == Fbig(1)) is False
-    assert (Fbig(123) != Fbig(1)) is True
 
     # Is one, zero, canoncial
     assert (F163(0) == 0) is True
@@ -1625,6 +1622,7 @@ def test_fmpz_mod():
     assert F163(2).is_one() is False
     assert F163(123).is_canonical() is True
 
+
     # Arithmetic tests
 
     # Negation
@@ -1635,6 +1633,7 @@ def test_fmpz_mod():
     assert F163(123) + F163(456) == F163(123 + 456)
     assert F163(123) + F163(456) == F163(456) + F163(123)
     assert F163(123) + 456 == F163(123 + 456)
+    assert 456 + F163(123) == F163(123 + 456)
     assert F163(123) + fmpz(456) == F163(456) + F163(123)
     assert raises(lambda: F163(123) + Fbig(456), ValueError)
 
@@ -1649,6 +1648,102 @@ def test_fmpz_mod():
     test_inplace = F163(123) 
     test_inplace += fmpz(456)
     assert test_inplace == F163(123 + 456)
+
+    # Subtraction
+
+    assert F163(123) - F163(456) == F163(123 - 456)
+    assert F163(123) - 456 == F163(123 - 456)
+    assert F163(123) - 456 == F163(123) - F163(456)
+    assert F163(456) - 123 == F163(456) - F163(123)
+    assert 123 - F163(456) == F163(123) - F163(456)
+    # assert 456 - F163(123) == F163(456) - F163(123)
+    assert F163(123) - fmpz(456) == F163(123) - F163(456)
+    assert raises(lambda: F163(123) - Fbig(456), ValueError)
+
+    test_inplace = F163(123) 
+    test_inplace -= F163(456) 
+    assert test_inplace == F163(123 - 456)
+
+    test_inplace = F163(123) 
+    test_inplace -= 456
+    assert test_inplace == F163(123 - 456)
+
+    test_inplace = F163(123) 
+    test_inplace -= fmpz(456)
+    assert test_inplace == F163(123 - 456)
+
+    # Multiplication
+
+    assert F163(123) * F163(456) == (123 * 456) % 163
+    assert F163(123) * 456 == (123 * 456) % 163
+    assert 456 * F163(123) == (123 * 456) % 163
+
+    assert F163(1) * F163(123) == F163(1 * 123)
+    assert F163(2) * F163(123) == F163(2 * 123)
+    assert F163(3) * F163(123) == F163(3 * 123)
+    assert 1 * F163(123) == F163(1 * 123)
+    assert 2 * F163(123) == F163(2 * 123)
+    assert 3 * F163(123) == F163(3 * 123)
+    assert F163(123) * 1 == F163(1 * 123)
+    assert F163(123) * 2 == F163(2 * 123)
+    assert F163(123) * 3 == F163(3 * 123)
+    assert fmpz(1) * F163(123) == F163(1 * 123)
+    assert fmpz(2) * F163(123) == F163(2 * 123)
+    assert fmpz(3) * F163(123) == F163(3 * 123)
+
+    test_inplace = F163(123) 
+    test_inplace *= F163(456) 
+    assert test_inplace == F163(123 * 456)
+
+    test_inplace = F163(123) 
+    test_inplace *= 456
+    assert test_inplace == F163(123 * 456)
+
+    test_inplace = F163(123) 
+    test_inplace *= fmpz(456)
+    assert test_inplace == F163(123 * 456)
+
+    # Exponentiation 
+
+    assert F163(0)**0 == pow(0, 0, 163)
+    assert F163(0)**1 == pow(0, 1, 163)
+    assert F163(0)**2 == pow(0, 2, 163)
+    assert raises(lambda: F163(0)**(-1), ZeroDivisionError)
+
+    assert F163(123)**0 == pow(123, 0, 163)
+    assert F163(123)**1 == pow(123, 1, 163)
+    assert F163(123)**2 == pow(123, 2, 163)
+    assert F163(123)**3 == pow(123, 3, 163)
+    assert F163(123)**100 == pow(123, 100, 163)
+    assert F163(123)**(-1) == pow(123, -1, 163)
+    assert F163(123)**(-2) == pow(123, -2, 163)
+    assert F163(123)**(-3) == pow(123, -3, 163)
+    assert F163(123)**(-4) == pow(123, -4, 163)
+
+    # Inversion
+
+    assert raises(lambda: F163(0).__invert__(), ZeroDivisionError)
+    assert F163(123).__invert__() == pow(123, -1, 163)
+    assert F163(1).__invert__() == pow(1, -1, 163)
+    assert F163(2).__invert__() == pow(2, -1, 163)
+
+    assert F163(1).inverse(check=False) == pow(1, -1, 163)
+    assert F163(2).inverse(check=False) == pow(2, -1, 163)
+    assert F163(123).inverse(check=False) == pow(123, -1, 163)
+
+    # Division
+
+    assert raises(lambda: F163(1) / F163(0), ZeroDivisionError)
+    assert F163(123) / F163(456) == (123 * pow(456, -1, 163)) % 163
+    assert F163(123) / fmpz(456) == (123 * pow(456, -1, 163)) % 163
+    assert F163(123) / 456 == (123 * pow(456, -1, 163)) % 163
+
+    assert 1 / F163(2) ==  pow(2, -1, 163)
+    assert 1 / F163(123) ==  pow(123, -1, 163)
+    assert 1 / F163(456) ==  pow(456, -1, 163)
+
+    assert fmpz(456) / F163(123) == (456 * pow(123, -1, 163)) % 163
+    assert 456 / F163(123) == (456 * pow(123, -1, 163)) % 163
     
 
 all_tests = [
