@@ -19,6 +19,11 @@ from flint.types.fmpz cimport (
 
 cdef class fmpz_mod_ctx:
     """
+    Context object for *fmpz_mod* initalised with a modulus `n`
+
+        >>> fmpz_mod_ctx(2**127 - 1)
+        fmpz_mod_ctx(170141183460469231731687303715884105727)
+
     """
     def __cinit__(self):
         # TODO: is this the best method?
@@ -47,6 +52,11 @@ cdef class fmpz_mod_ctx:
         """
         Return the modulus from the context as an fmpz
         type
+
+            >>> mod_ctx = fmpz_mod_ctx(2**127 - 1)
+            >>> mod_ctx.modulus()
+            170141183460469231731687303715884105727
+
         """
         n = fmpz()
         fmpz_set(n.val, (<fmpz_t>self.val.n))
@@ -70,6 +80,16 @@ cdef class fmpz_mod_ctx:
         return fmpz_mod(val, self)
 
 cdef class fmpz_mod(flint_scalar):
+    """
+    The *fmpz_mod* type represents integer modulo an 
+    arbitrary-size modulus. For wordsize modulus, see
+    *nmod*.
+
+        >>> fmpz_mod(-1, fmpz_mod_ctx(2**127 - 1))
+        fmpz_mod(170141183460469231731687303715884105726, 170141183460469231731687303715884105727)
+
+    """
+
     def __cinit__(self):
         fmpz_init(self.val)
 
@@ -105,9 +125,28 @@ cdef class fmpz_mod(flint_scalar):
             return NotImplemented
 
     def is_zero(self):
+        """
+        Return whether an element is equal to zero
+
+            >>> mod_ctx = fmpz_mod_ctx(163)
+            >>> mod_ctx(0).is_zero()
+            True
+            >>> mod_ctx(1).is_zero()
+            False
+        """
         return self == 0
     
     def is_one(self):
+        """
+        Return whether an element is equal to one
+
+            >>> mod_ctx = fmpz_mod_ctx(163)
+            >>> mod_ctx(0).is_one()
+            False
+            >>> mod_ctx(1).is_zero()
+            True
+        """
+
         cdef bint res
         res = fmpz_mod_is_one(self.val, self.ctx.val)
         return res == 1
@@ -267,6 +306,12 @@ cdef class fmpz_mod(flint_scalar):
 
         When check=False, the solutions is assumed to exist and Flint will abort on
         failure. 
+
+            >>> mod_ctx = fmpz_mod_ctx(163)
+            >>> mod_ctx(2).inverse()
+            fmpz_mod(82, 163)
+            >>> mod_ctx(2).inverse(check=False)
+            fmpz_mod(82, 163)
         """
         cdef fmpz_mod res
         res = fmpz_mod.__new__(fmpz_mod)

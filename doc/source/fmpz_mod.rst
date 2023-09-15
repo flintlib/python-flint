@@ -1,7 +1,7 @@
-**nmod** -- integers mod wordsize n
+**fmpz** -- integers mod n
 ===============================================================================
 
-.. autoclass :: flint.nmod
+.. autoclass :: flint.fmpz_mod
   :members:
   :inherited-members:
   :undoc-members:
