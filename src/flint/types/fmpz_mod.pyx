@@ -1,6 +1,7 @@
 from flint.flintlib.flint cimport slong
 from flint.flintlib.fmpz cimport (
     fmpz_t,
+    fmpz_one,
     fmpz_set,
     COEFF_IS_MPZ,
     fmpz_get_str
@@ -51,6 +52,7 @@ cdef class fmpz_mod_ctx:
         # Init the context
         fmpz_mod_ctx_init(self.val, (<fmpz>mod).val)
     
+    # TODO: should this be cached if we make immutable?
     def modulus(self):
         """
         Return the modulus from the context as an fmpz
@@ -78,22 +80,6 @@ cdef class fmpz_mod_ctx:
 
         return fmpz_mod(val, self)
 
-    # TODO: should this be allowed, or should
-    #       we make a ctx immutatble?
-    def set_modulus(self, n):
-        """
-        """
-        # Ensure modulus is fmpz type
-        mod = any_as_fmpz(n)
-        if mod is NotImplemented:
-            raise NotImplementedError("TODO")
-
-        # Ensure modulus is positive
-        if mod < 1:
-            raise ValueError("Modulus is expected to be positive")
-
-        fmpz_mod_ctx_set_modulus(self.val, (<fmpz>mod).val)
-
 
 cdef class fmpz_mod(flint_scalar):
     def __init__(self, val, ctx):
@@ -104,7 +90,7 @@ cdef class fmpz_mod(flint_scalar):
             if val is NotImplemented:
                 raise NotImplementedError("TODO")
 
-        fmpz_mod_set_fmpz(self.val, (<fmpz>val).val, (<fmpz_mod_ctx_t>self.ctx.val))
+        fmpz_mod_set_fmpz(self.val, (<fmpz>val).val, self.ctx.val)
 
     def is_zero(self):
         return self == 0
@@ -112,12 +98,12 @@ cdef class fmpz_mod(flint_scalar):
     # TODO: kind of pointless, as we always ensure canonical on init?
     def is_canonical(self):
         cdef bint res
-        res = fmpz_mod_is_canonical(self.val, (<fmpz_mod_ctx_t>self.ctx.val))
+        res = fmpz_mod_is_canonical(self.val, self.ctx.val)
         return res == 1
 
     def is_one(self):
         cdef bint res
-        res = fmpz_mod_is_one(self.val, (<fmpz_mod_ctx_t>self.ctx.val))
+        res = fmpz_mod_is_one(self.val, self.ctx.val)
         return res == 1
 
     def __richcmp__(s, t, int op):
@@ -166,52 +152,56 @@ cdef class fmpz_mod(flint_scalar):
     #    Arithmetic    #
     # ---------------- #
 
+    def __pos__(self):
+        return self
+
     def __neg__(self):
-        res = fmpz()
+        cdef fmpz_mod res
+        res = fmpz_mod.__new__(fmpz_mod)
+        res.ctx = self.ctx
+
         fmpz_mod_neg(
             res.val, self.val, 
             (<fmpz_mod_ctx_t>self.ctx.val))
-        return self.ctx(res)
+        return res
 
-    # TODO: proper type handing for the other...
     def __add__(self, other):
-        res = fmpz()
+        cdef fmpz_mod res
+        res = fmpz_mod.__new__(fmpz_mod)
+        res.ctx = self.ctx
 
         # Add two fmpz_mod if moduli match
         if typecheck(other, fmpz_mod):
-            if not (self).ctx.modulus() == (<fmpz_mod>other).ctx.modulus():
+            if not self.ctx.val.n == (<fmpz_mod>other).ctx.val.n:
                 raise ValueError("moduli must match")
 
             fmpz_mod_add(
-                res.val, self.val, (<fmpz_mod>other).val, 
-                (<fmpz_mod_ctx_t>self.ctx.val)
+                res.val, self.val, (<fmpz_mod>other).val, self.ctx.val
             )
-            return self.ctx(res)
+            return res
 
+        # Attempt to add an fmpz to an fmpz_mod
         other = any_as_fmpz(other)
         if other is NotImplemented:
             raise NotImplementedError
 
-        # Add an fmpz to an fmpz_mod
         fmpz_mod_add_fmpz(
-            res.val, self.val, (<fmpz>other).val, 
-            (<fmpz_mod_ctx_t>self.ctx.val)
+            res.val, self.val, (<fmpz>other).val, self.ctx.val
         )
 
-        return self.ctx(res)
+        return res
 
     def __radd__(self, other):
-        return other + self
+        return self.__add__(other)
 
     def __iadd__(self, other):
         # Add two fmpz_mod if moduli match
         if typecheck(other, fmpz_mod):
-            if not (self).ctx.modulus() == (<fmpz_mod>other).ctx.modulus():
+            if not self.ctx.val.n == (<fmpz_mod>other).ctx.val.n:
                 raise ValueError("moduli must match")
 
             fmpz_mod_add(
-                self.val, self.val, (<fmpz_mod>other).val, 
-                (<fmpz_mod_ctx_t>self.ctx.val)
+                self.val, self.val, (<fmpz_mod>other).val, self.ctx.val
             )
             return self
 
@@ -221,31 +211,217 @@ cdef class fmpz_mod(flint_scalar):
             raise NotImplementedError
 
         fmpz_mod_add_fmpz(
-            self.val, self.val, (<fmpz>other).val, 
-            (<fmpz_mod_ctx_t>self.ctx.val)
+            self.val, self.val, (<fmpz>other).val, self.ctx.val
         )
         return self
 
     def __sub__(self, other):
-        pass
+        cdef fmpz_mod res
+        res = fmpz_mod.__new__(fmpz_mod)
+        res.ctx = self.ctx
 
+        # Sub two fmpz_mod if moduli match
+        if typecheck(other, fmpz_mod):
+            if not self.ctx.val.n == (<fmpz_mod>other).ctx.val.n:
+                raise ValueError("moduli must match")
+
+            fmpz_mod_sub(
+                res.val, self.val, (<fmpz_mod>other).val, self.ctx.val
+            )
+            return res
+
+        # Attempt to sub an fmpz to an fmpz_mod
+        other = any_as_fmpz(other)
+        if other is NotImplemented:
+            raise NotImplementedError
+
+        fmpz_mod_fmpz_sub(
+            res.val, self.val, (<fmpz>other).val, self.ctx.val
+        )
+
+        return res
+
+    # TODO: is this bad? Should I just copy paste logic
+    # above?
     def __rsub__(self, other):
-        pass
+        return self.__sub__(other).__neg__()
 
     def __isub__(self, other):
-        pass
+        if typecheck(other, fmpz_mod):
+            if not self.ctx.val.n == (<fmpz_mod>other).ctx.val.n:
+                raise ValueError("moduli must match")
+
+            fmpz_mod_sub(
+                self.val, self.val, (<fmpz_mod>other).val, self.ctx.val
+            )
+            return self
+
+        other = any_as_fmpz(other)
+        if other is NotImplemented:
+            raise NotImplementedError
+
+        fmpz_mod_sub_fmpz(
+            self.val, self.val, (<fmpz>other).val, self.ctx.val
+        )
+        return self
 
     def __mul__(self, other):
-        pass
+        cdef fmpz_mod res
+        res = fmpz_mod.__new__(fmpz_mod)
+        res.ctx = self.ctx
+
+        # Add two fmpz_mod if moduli match
+        if typecheck(other, fmpz_mod):
+            if not self.ctx.val.n == (<fmpz_mod>other).ctx.val.n:
+                raise ValueError("moduli must match")
+
+            fmpz_mod_mul(
+                res.val, self.val, (<fmpz_mod>other).val, self.ctx.val
+            )
+            return res
+
+        # Attempt to add an fmpz to an fmpz_mod
+        other = any_as_fmpz(other)
+        if other is NotImplemented:
+            raise NotImplementedError
+
+        # There's no `fmpz_mod_mul_fmpz`
+        # So we need to make sure that other is canonical
+        # TODO: should we check with `fmpz_mod_is_canoncial`
+        # or just always reduce?
+        fmpz_mod_set_fmpz(
+            (<fmpz>other).val, (<fmpz>other).val, self.ctx.val
+        )
+
+        fmpz_mod_mul(
+            res.val, self.val, (<fmpz>other).val, self.ctx.val
+        )
+
+        return res
 
     def __rmul__(self, other):
-        pass
+        return self.__mul__(other)
 
     def __imul__(self, other):
-        pass
+        # Add two fmpz_mod if moduli match
+        if typecheck(other, fmpz_mod):
+            if not self.ctx.val.n == (<fmpz_mod>other).ctx.val.n:
+                raise ValueError("moduli must match")
 
-    def __truediv__(self, other):
-        pass
+            fmpz_mod_mul(
+                self.val, self.val, (<fmpz_mod>other).val, self.ctx.val
+            )
+            return self
+
+        # Attempt to add an fmpz to an fmpz_mod
+        other = any_as_fmpz(other)
+        if other is NotImplemented:
+            raise NotImplementedError
+
+        # There's no `fmpz_mod_mul_fmpz`
+        # So we need to make sure that other is canonical
+        # TODO: should we check with `fmpz_mod_is_canoncial`
+        # or just always reduce?
+        fmpz_mod_set_fmpz(
+            (<fmpz>other).val, (<fmpz>other).val, self.ctx.val
+        )
+
+        fmpz_mod_mul(
+            self.val, self.val, (<fmpz>other).val, self.ctx.val
+        )
+
+        return self
+
+    @staticmethod
+    def _div_(left, right):
+        cdef bint check
+        cdef fmpz_mod res
+        res = fmpz_mod.__new__(fmpz_mod)
+        
+        # Division when left and right are fmpz_mod
+        if typecheck(left, fmpz_mod) and typecheck(right, fmpz_mod):
+            res.ctx = (<fmpz_mod>left).ctx
+            if not (<fmpz_mod>left).ctx.val.n == (<fmpz_mod>right).ctx.val.n:
+                raise ValueError("moduli must match")
+            check = fmpz_mod_divides(
+                res.val, (<fmpz_mod>left).val, (<fmpz_mod>right).val, res.ctx.val
+            ) 
+        
+        # Case when only left is fmpz_mod
+        elif typecheck(left, fmpz_mod):
+            res.ctx = (<fmpz_mod>left).ctx
+            right = any_as_fmpz(right)
+            if right is NotImplemented:
+                raise NotImplementedError   
+            check = fmpz_mod_divides(
+                res.val, (<fmpz_mod>left).val, (<fmpz>right).val, res.ctx.val
+            ) 
+
+        # Case when right is an fmpz_mod
+        else:
+            res.ctx = (<fmpz_mod>right).ctx
+            left = any_as_fmpz(left)
+            if left is NotImplemented:
+                raise NotImplementedError        
+            check = fmpz_mod_divides(
+                res.val, (<fmpz>left).val, (<fmpz_mod>right).val, res.ctx.val
+            ) 
+        
+        if check == 0:
+            raise ZeroDivisionError(f"{right} is not invertible modulo {res.ctx.modulus()}")
+
+        return res
+
+    def __truediv__(s, t):
+        return fmpz_mod._div_(s, t)
+
+    def __rtruediv__(s, t):
+        return fmpz_mod._div_(t, s)
 
     def __floordiv__(self, other):
         raise NotImplemented
+
+    def inverse(self, check=True):
+        cdef fmpz_mod res
+        res = fmpz_mod.__new__(fmpz_mod)
+        res.ctx = self.ctx
+
+        # Warning! This will crash if there's no solution
+        if check is False:
+            fmpz_mod_inv(res.val, self.val, self.ctx.val)
+            return res
+
+        cdef bint r
+        cdef fmpz one = fmpz.__new__(fmpz)
+        fmpz_one(one.val)
+
+        r = fmpz_mod_divides(
+            res.val, one.val, self.val, self.ctx.val
+        )
+        if r == 0:
+            raise ZeroDivisionError(f"{self} is not invertible modulo {self.ctx.modulus()}")
+
+        return res
+
+    def __invert__(self):
+        return self.inverse()
+
+    def __pow__(self, e):
+        cdef bint check
+        cdef fmpz_mod res
+        res = fmpz_mod.__new__(fmpz_mod)
+        res.ctx = self.ctx
+
+        # Attempt to convert exponent to fmpz
+        e = any_as_fmpz(e)
+        if e is NotImplemented:
+            raise NotImplementedError
+
+        check = fmpz_mod_pow_fmpz(
+            res.val, self.val, (<fmpz>e).val, self.ctx.val
+        )
+
+        if check == 0:
+            raise ZeroDivisionError(f"{self} is not invertible modulo {self.ctx.modulus()}")
+
+        return res
