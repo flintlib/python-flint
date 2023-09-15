@@ -113,12 +113,13 @@ cdef class fmpz_mod(flint_scalar):
         # TODO: is this the best method for comparison?
         if typecheck(s, fmpz_mod) and typecheck(t, fmpz_mod):
             res = ((<fmpz_mod>s).val[0] == (<fmpz_mod>t).val[0]) and \
-                  ((<fmpz_mod>s).ctx.modulus() == (<fmpz_mod>t).ctx.modulus())
+                  ((<fmpz_mod>s).ctx.val.n == (<fmpz_mod>t).ctx.val.n)
             if op == 2:
                 return res
             else:
                 return not res
         # TODO: is this the best method for comparison?
+        # Seems like I'm doing too many type conversions?
         elif typecheck(s, fmpz_mod) and typecheck(t, int):
             res = int(s) == t % (<fmpz_mod>s).ctx.modulus()
             if op == 2:
