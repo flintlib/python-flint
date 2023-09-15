@@ -10,3 +10,5 @@ cdef class fmpz_mod(flint_scalar):
     cdef fmpz_mod_ctx ctx
     cdef fmpz_t val
 
+    cdef any_as_fmpz_mod(self, obj)
+

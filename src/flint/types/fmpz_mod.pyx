@@ -125,7 +125,7 @@ cdef class fmpz_mod(flint_scalar):
                 raise NotImplementedError
         fmpz_mod_set_fmpz(self.val, (<fmpz>val).val, self.ctx.val)
 
-    def any_as_fmpz_mod(self, obj):
+    cdef any_as_fmpz_mod(self, obj):
         try:
             return self.ctx(obj)
         except NotImplementedError:
