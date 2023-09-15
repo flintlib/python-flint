@@ -1595,6 +1595,14 @@ def test_fmpz_mod():
     Fbig = fmpz_mod_ctx(2**1024 - 1)
     assert Fbig.modulus() == big
 
+    F163_copy = fmpz_mod_ctx(163)
+    assert F163_copy == F163
+    assert F163_copy != Fbig
+    assert str(F163) == "fmpz_mod_ctx(163)"
+    assert repr(F163) == "Context for fmpz_mod with modulus: 163"
+
+    # Type tests
+
     # Rich comparisons 
     assert raises(lambda: F163(123) > 0, TypeError)
     assert raises(lambda: F163(123) >= 0, TypeError)
@@ -1605,11 +1613,19 @@ def test_fmpz_mod():
     assert (F163(123) == 123 + 163) is True
     assert (F163(123) == 1) is False
     assert (F163(123) != 1) is True
-
     assert (F163(123) == F163(123)) is True
     assert (F163(123) == F163(123 + 163)) is True
     assert (F163(123) == F163(1)) is False
     assert (F163(123) != F163(1)) is True
+
+    assert (hash(F163(123)) == hash(123)) is True
+    assert (hash(F163(F163(123))) == hash(123)) is True
+    assert (hash(F163(123)) == hash(1)) is False
+    assert (hash(F163(123)) != hash(1)) is True
+    assert (hash(F163(123)) == hash(F163(123))) is True
+    assert (hash(F163(123)) == hash(F163(123 + 163))) is True
+    assert (hash(F163(123)) == hash(F163(1))) is False
+    assert (hash(F163(123)) != hash(F163(1))) is True
 
     # Is one, zero, canoncial
     assert (F163(0) == 0) is True
@@ -1620,8 +1636,14 @@ def test_fmpz_mod():
     assert F163(164).is_one() is True
     assert F163(1).is_one() is True
     assert F163(2).is_one() is False
-    assert F163(123).is_canonical() is True
 
+    # int, str, repr
+    assert str(F163(11)) == "11"
+    assert repr(F163(-1)) == "162"
+    assert repr(F163(11)) == "fmpz_mod(11, 163)"
+    assert repr(F163(-1)) == "fmpz_mod(162, 163)"
+
+    assert F163(5).__pos__() == F163(5)
 
     # Arithmetic tests
 
@@ -1631,6 +1653,8 @@ def test_fmpz_mod():
 
     # Addition
     assert F163(123) + F163(456) == F163(123 + 456)
+    assert raises(lambda: F163(123) + "AAA", TypeError)
+
     assert F163(123) + F163(456) == F163(456) + F163(123)
     assert F163(123) + 456 == F163(123 + 456)
     assert 456 + F163(123) == F163(123 + 456)
