@@ -19,14 +19,14 @@ from flint.types.fmpz cimport (
 
 cdef class fmpz_mod_ctx:
     """
-    Context object for *fmpz_mod* initalised with a modulus `n`
+    Context object for creating :class:`~.fmpz_mod` initalised 
+    with a modulus `n`
 
         >>> fmpz_mod_ctx(2**127 - 1)
         fmpz_mod_ctx(170141183460469231731687303715884105727)
 
     """
     def __cinit__(self):
-        # TODO: is this the best method?
         cdef fmpz one = fmpz.__new__(fmpz)
         fmpz_one(one.val)
         fmpz_mod_ctx_init(self.val, one.val)
@@ -83,10 +83,17 @@ cdef class fmpz_mod(flint_scalar):
     """
     The *fmpz_mod* type represents integer modulo an 
     arbitrary-size modulus. For wordsize modulus, see
-    *nmod*.
+    :class:`~.nmod`.
+
+    An *fmpz_mod* element is constructed from an :class:`~.fmpz_mod_ctx`
+    either by passing it as an argument to the type, or
+    by directly calling the context
 
         >>> fmpz_mod(-1, fmpz_mod_ctx(2**127 - 1))
         fmpz_mod(170141183460469231731687303715884105726, 170141183460469231731687303715884105727)
+        >>> ZmodN = fmpz_mod_ctx(2**127 - 1)
+        >>> ZmodN(-2)
+        fmpz_mod(170141183460469231731687303715884105725, 170141183460469231731687303715884105727)
 
     """
 
