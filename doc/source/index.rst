@@ -43,6 +43,7 @@ Scalar types
 
    fmpz.rst
    fmpq.rst
+   fmpz_mod.rst
    nmod.rst
    arb.rst
    acb.rst

@@ -47,9 +47,6 @@ cdef class nmod(flint_scalar):
 
     """
 
-    # cdef mp_limb_t val
-    # cdef nmod_t mod
-
     def __init__(self, val, mod):
         cdef mp_limb_t m
         m = mod
