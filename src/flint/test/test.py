@@ -1587,209 +1587,189 @@ def test_pickling():
 def test_fmpz_mod():
     from flint import fmpz_mod_ctx, fmpz, fmpz_mod
     
+    p_sml = 163
+    p_med = 2**127 - 1
+    p_big = 2**255 - 19
+
+    F_sml = fmpz_mod_ctx(p_sml)
+    F_med = fmpz_mod_ctx(p_med)
+    F_big = fmpz_mod_ctx(p_big)
+
     # Context tests
-    F163 = fmpz_mod_ctx(163)
-    assert raises(lambda: fmpz_mod_ctx("AAA"), NotImplementedError)
+    assert raises(lambda: fmpz_mod_ctx("AAA"), TypeError)
     assert raises(lambda: fmpz_mod_ctx(-1), ValueError)
-    assert F163.modulus() == 163
+    assert F_sml.modulus() == p_sml
+    assert F_med.modulus() == p_med
+    assert F_big.modulus() == p_big
 
-    big = 2**1024 - 1
-    Fbig = fmpz_mod_ctx(2**1024 - 1)
-    assert Fbig.modulus() == big
+    F_big_copy = fmpz_mod_ctx(p_big)
+    assert F_big_copy == F_big
+    assert F_big != F_sml
+    assert hash(F_big_copy) == hash(F_big)
+    assert hash(F_big) != hash(F_sml)
+    assert F_big_copy != F_sml
+    assert F_big_copy != "A"
 
-    F163_copy = fmpz_mod_ctx(163)
-    assert F163_copy == F163
-    assert Fbig != F163
-    assert hash(F163_copy) == hash(F163)
-    assert hash(Fbig) != hash(F163), f"{hash(Fbig)}, {hash(F163)}"
-    assert F163_copy != Fbig
-    assert F163_copy != "A"
-
-    assert str(F163) == "fmpz_mod_ctx(163)"
-    assert repr(F163) == "Context for fmpz_mod with modulus: 163"
+    assert repr(F_sml) == "fmpz_mod_ctx(163)"
+    assert str(F_sml) == "Context for fmpz_mod with modulus: 163"
 
     # Type tests
+    assert raises(lambda: fmpz_mod(1, "AAA"), TypeError)
 
-    assert raises(lambda: fmpz_mod(1, "AAA"), ValueError)
+    # Test for small, medium and large char.
+    for F_test in [F_sml, F_med, F_big]:
+        test_mod = int(F_test.modulus())
+        test_x = (-123) % test_mod # canonical value
+        test_y = ((-456) % test_mod)**2 # non-canoncial value
 
+        F_test_copy = fmpz_mod_ctx(test_mod)
+        F_other = fmpz_mod_ctx(11)
 
-    # Rich comparisons 
-    assert raises(lambda: F163(123) > 0, TypeError)
-    assert raises(lambda: F163(123) >= 0, TypeError)
-    assert raises(lambda: F163(123) < 0, TypeError)
-    assert raises(lambda: F163(123) <= 0, TypeError)
+        assert raises(lambda: F_test(test_x) > 0, TypeError)
+        assert raises(lambda: F_test(test_x) >= 0, TypeError)
+        assert raises(lambda: F_test(test_x) < 0, TypeError)
+        assert raises(lambda: F_test(test_x) <= 0, TypeError)
 
-    assert (F163(123) == 123) is True
-    assert (F163(123) == 123 + 163) is True
-    assert (F163(123) == 1) is False
-    assert (F163(123) != 1) is True
-    assert (F163(123) == F163(123)) is True
-    assert (F163(123) == F163(123 + 163)) is True
-    assert (F163(123) == F163(1)) is False
-    assert (F163(123) != F163(1)) is True
+        assert (test_x == F_test(test_x)) is True, f"{test_x}, {F_test(test_x)}"
+        assert (124 != F_test(test_x)) is True
+        assert (F_test(test_x) == test_x) is True
+        assert (F_test(test_x) == test_x + test_mod) is True
+        assert (F_test(test_x) == 1) is False
+        assert (F_test(test_x) != 1) is True
+        assert (F_test(test_x) == F_test(test_x)) is True
+        assert (F_test(test_x) == F_test(test_x + test_mod)) is True
+        assert (F_test(test_x) == F_test(1)) is False
+        assert (F_test(test_x) != F_test(1)) is True
 
-    assert (hash(F163(123)) == hash(123)) is True
-    assert (hash(F163(F163(123))) == hash(123)) is True
-    assert (hash(F163(123)) == hash(1)) is False
-    assert (hash(F163(123)) != hash(1)) is True
-    assert (hash(F163(123)) == hash(F163(123))) is True
-    assert (hash(F163(123)) == hash(F163(123 + 163))) is True
-    assert (hash(F163(123)) == hash(F163(1))) is False
-    assert (hash(F163(123)) != hash(F163(1))) is True
+        assert (hash(F_test(test_x)) == hash(test_x)) is True
+        assert (hash(F_test(F_test(test_x))) == hash(test_x)) is True
+        assert (hash(F_test(test_x)) == hash(1)) is False
+        assert (hash(F_test(test_x)) != hash(1)) is True
+        assert (hash(F_test(test_x)) == hash(F_test(test_x))) is True
+        assert (hash(F_test(test_x)) == hash(F_test(test_x + test_mod))) is True
+        assert (hash(F_test(test_x)) == hash(F_test(1))) is False
+        assert (hash(F_test(test_x)) != hash(F_test(1))) is True
 
-    # Is one, zero, canoncial
-    assert (F163(0) == 0) is True
-    assert F163(0).is_zero() is True
-    assert not F163(0)
-    assert not F163(163)
-    assert F163(1).is_one() is True
-    assert F163(164).is_one() is True
-    assert F163(1).is_one() is True
-    assert F163(2).is_one() is False
+        # Is one, zero
+        assert (F_test(0) == 0) is True
+        assert F_test(0).is_zero() is True
+        assert not F_test(0)
+        assert not F_test(test_mod)
+        assert F_test(1).is_one() is True
+        assert F_test(test_mod + 1).is_one() is True
+        assert F_test(1).is_one() is True
+        assert F_test(2).is_one() is False
 
-    # int, str, repr
-    assert str(F163(11)) == "11"
-    assert str(F163(-1)) == "162"
-    assert repr(F163(11)) == "fmpz_mod(11, 163)"
-    assert repr(F163(-1)) == "fmpz_mod(162, 163)"
+        # int, str, repr
+        assert str(F_test(11)) == "11"
+        assert str(F_test(-1)) == str(test_mod - 1)
+        assert repr(F_test(11)) == f"fmpz_mod(11, {test_mod})"
+        assert repr(F_test(-1)) == f"fmpz_mod({test_mod - 1}, {test_mod})"
 
-    assert F163(5).__pos__() == F163(5)
+        assert +F_test(5) == F_test(5)
 
-    # Arithmetic tests
+        # Arithmetic tests
 
-    # Negation
-    assert -F163(123) == F163(-123) == (-123 % 163)
-    assert -F163(1) == F163(-1) == F163(162)
+        # Negation
+        assert -F_test(test_x) == F_test(-test_x) == (-test_x % test_mod)
+        assert -F_test(1) == F_test(-1) == F_test(test_mod - 1)
 
-    # Addition
-    assert F163(123) + F163(456) == F163(123 + 456)
-    assert F163(123) + F163_copy(456) == F163(123 + 456)
-    assert F163(123) + F163(456) == F163_copy(123 + 456)
-    assert raises(lambda: F163(123) + "AAA", TypeError)
+        # Addition
+        assert F_test(test_x) + F_test(test_y) == F_test(test_x + test_y)
+        assert F_test(test_x) + F_test_copy(test_y) == F_test(test_x + test_y)
+        assert F_test(test_x) + F_test(test_y) == F_test_copy(test_x + test_y)
+        assert raises(lambda: F_test(test_x) + "AAA", TypeError)
 
-    assert F163(123) + F163(456) == F163(456) + F163(123)
-    assert F163(123) + 456 == F163(123 + 456)
-    assert 456 + F163(123) == F163(123 + 456)
-    assert F163(123) + fmpz(456) == F163(456) + F163(123)
-    assert raises(lambda: F163(123) + Fbig(456), ValueError)
+        assert F_test(test_x) + F_test(test_y) == F_test(test_y) + F_test(test_x)
+        assert F_test(test_x) + test_y == F_test(test_x + test_y)
+        assert test_y + F_test(test_x) == F_test(test_x + test_y)
+        assert F_test(test_x) + fmpz(test_y) == F_test(test_y) + F_test(test_x)
+        assert raises(lambda: F_test(test_x) + F_other(test_y), ValueError)
 
-    test_inplace = F163(123) 
-    test_inplace += F163(456) 
-    assert test_inplace == F163(123 + 456)
+        # Subtraction
 
-    test_inplace = F163(123) 
-    test_inplace += 456
-    assert test_inplace == F163(123 + 456)
+        assert F_test(test_x) - F_test(test_y) == F_test(test_x - test_y)
+        assert F_test(test_x) - test_y == F_test(test_x - test_y)
+        assert F_test(test_x) - test_y == F_test(test_x) - F_test(test_y)
+        assert F_test(test_y) - test_x == F_test(test_y) - F_test(test_x)
+        assert test_x - F_test(test_y) == F_test(test_x) - F_test(test_y)
+        assert test_y - F_test(test_x) == F_test(test_y) - F_test(test_x)
+        assert F_test(test_x) - fmpz(test_y) == F_test(test_x) - F_test(test_y)
+        assert raises(lambda: F_test(test_x) - F_other(test_y), ValueError)
+        assert raises(lambda: F_test(test_x) - "AAA", TypeError)
 
-    test_inplace = F163(123) 
-    test_inplace += fmpz(456)
-    assert test_inplace == F163(123 + 456)
+        # Multiplication
 
-    # Subtraction
+        assert F_test(test_x) * F_test(test_y) == (test_x * test_y) % test_mod
+        assert F_test(test_x) * test_y == (test_x * test_y) % test_mod
+        assert test_y * F_test(test_x) == (test_x * test_y) % test_mod
 
-    assert F163(123) - F163(456) == F163(123 - 456)
-    assert F163(123) - 456 == F163(123 - 456)
-    assert F163(123) - 456 == F163(123) - F163(456)
-    assert F163(456) - 123 == F163(456) - F163(123)
-    assert 123 - F163(456) == F163(123) - F163(456)
-    assert 456 - F163(123) == F163(456) - F163(123)
-    assert F163(123) - fmpz(456) == F163(123) - F163(456)
-    assert raises(lambda: F163(123) - Fbig(456), ValueError)
-    assert raises(lambda: F163(123) - "AAA", TypeError)
+        assert F_test(1) * F_test(test_x) == F_test(1 * test_x)
+        assert F_test(2) * F_test(test_x) == F_test(2 * test_x)
+        assert F_test(3) * F_test(test_x) == F_test(3 * test_x)
+        assert 1 * F_test(test_x) == F_test(1 * test_x)
+        assert 2 * F_test(test_x) == F_test(2 * test_x)
+        assert 3 * F_test(test_x) == F_test(3 * test_x)
+        assert F_test(test_x) * 1 == F_test(1 * test_x)
+        assert F_test(test_x) * 2 == F_test(2 * test_x)
+        assert F_test(test_x) * 3 == F_test(3 * test_x)
+        assert fmpz(1) * F_test(test_x) == F_test(1 * test_x)
+        assert fmpz(2) * F_test(test_x) == F_test(2 * test_x)
+        assert fmpz(3) * F_test(test_x) == F_test(3 * test_x)
+        assert raises(lambda: F_test(test_x) * "AAA", TypeError)
+        assert raises(lambda: F_test(test_x) * F_other(test_x), ValueError)
 
+        # Exponentiation 
 
-    test_inplace = F163(123) 
-    test_inplace -= F163(456) 
-    assert test_inplace == F163(123 - 456)
+        assert F_test(0)**0 == pow(0, 0, test_mod)
+        assert F_test(0)**1 == pow(0, 1, test_mod)
+        assert F_test(0)**2 == pow(0, 2, test_mod)
+        assert raises(lambda: F_test(0)**(-1), ZeroDivisionError)
+        assert raises(lambda: F_test(0)**("AA"), NotImplementedError)
 
-    test_inplace = F163(123) 
-    test_inplace -= 456
-    assert test_inplace == F163(123 - 456)
+        assert F_test(test_x)**fmpz(0) == pow(test_x, 0, test_mod)
+        assert F_test(test_x)**fmpz(1) == pow(test_x, 1, test_mod)
+        assert F_test(test_x)**fmpz(2) == pow(test_x, 2, test_mod)
+        assert F_test(test_x)**fmpz(3) == pow(test_x, 3, test_mod)
 
-    test_inplace = F163(123) 
-    test_inplace -= fmpz(456)
-    assert test_inplace == F163(123 - 456)
+        assert F_test(test_x)**0 == pow(test_x, 0, test_mod)
+        assert F_test(test_x)**1 == pow(test_x, 1, test_mod)
+        assert F_test(test_x)**2 == pow(test_x, 2, test_mod)
+        assert F_test(test_x)**3 == pow(test_x, 3, test_mod)
+        assert F_test(test_x)**100 == pow(test_x, 100, test_mod)
 
-    # Multiplication
+        assert F_test(test_x)**(-1) == pow(test_x, -1, test_mod)
+        assert F_test(test_x)**(-2) == pow(test_x, -2, test_mod)
+        assert F_test(test_x)**(-3) == pow(test_x, -3, test_mod)
+        assert F_test(test_x)**(-4) == pow(test_x, -4, test_mod)
 
-    assert F163(123) * F163(456) == (123 * 456) % 163
-    assert F163(123) * 456 == (123 * 456) % 163
-    assert 456 * F163(123) == (123 * 456) % 163
+        # Inversion
 
-    assert F163(1) * F163(123) == F163(1 * 123)
-    assert F163(2) * F163(123) == F163(2 * 123)
-    assert F163(3) * F163(123) == F163(3 * 123)
-    assert 1 * F163(123) == F163(1 * 123)
-    assert 2 * F163(123) == F163(2 * 123)
-    assert 3 * F163(123) == F163(3 * 123)
-    assert F163(123) * 1 == F163(1 * 123)
-    assert F163(123) * 2 == F163(2 * 123)
-    assert F163(123) * 3 == F163(3 * 123)
-    assert fmpz(1) * F163(123) == F163(1 * 123)
-    assert fmpz(2) * F163(123) == F163(2 * 123)
-    assert fmpz(3) * F163(123) == F163(3 * 123)
-    assert raises(lambda: F163(123) * "AAA", TypeError)
+        assert raises(lambda: ~F_test(0), ZeroDivisionError)
+        assert ~F_test(test_x) == pow(test_x, -1, test_mod)
+        assert ~F_test(1) == pow(1, -1, test_mod)
+        assert ~F_test(2) == pow(2, -1, test_mod), f"Broken!! {~F_test(2)}, {pow(2, -1, test_mod)}"
 
+        assert F_test(1).inverse(check=False) == pow(1, -1, test_mod)
+        assert F_test(2).inverse(check=False) == pow(2, -1, test_mod)
+        assert F_test(test_x).inverse(check=False) == pow(test_x, -1, test_mod)
 
-    test_inplace = F163(123) 
-    test_inplace *= F163(456) 
-    assert test_inplace == F163(123 * 456)
+        # Division
+        assert raises(lambda: F_test(1) / F_test(0), ZeroDivisionError)
+        assert F_test(test_x) / F_test(test_y) == (test_x * pow(test_y, -1, test_mod)) % test_mod
+        assert F_test(test_x) / fmpz(test_y) == (test_x * pow(test_y, -1, test_mod)) % test_mod
+        assert F_test(test_x) / test_y == (test_x * pow(test_y, -1, test_mod)) % test_mod
+        assert raises(lambda: F_test(test_x) / "AAA", TypeError)
+        assert raises(lambda: "AAA" / F_test(test_x), TypeError)
+        assert raises(lambda: F_other(test_x) / F_test(test_x), ValueError)
+        assert raises(lambda: F_test(test_x) // F_test(test_x), TypeError)
+        assert 1 / F_test(2) ==  pow(2, -1, test_mod)
+        assert 1 / F_test(test_x) ==  pow(test_x, -1, test_mod)
+        assert 1 / F_test(test_y) ==  pow(test_y, -1, test_mod)
 
-    test_inplace = F163(123) 
-    test_inplace *= 456
-    assert test_inplace == F163(123 * 456)
-
-    test_inplace = F163(123) 
-    test_inplace *= fmpz(456)
-    assert test_inplace == F163(123 * 456)
-
-    # Exponentiation 
-
-    assert F163(0)**0 == pow(0, 0, 163)
-    assert F163(0)**1 == pow(0, 1, 163)
-    assert F163(0)**2 == pow(0, 2, 163)
-    assert raises(lambda: F163(0)**(-1), ZeroDivisionError)
-    assert raises(lambda: F163(0)**("AA"), NotImplementedError)
-
-
-    assert F163(123)**0 == pow(123, 0, 163)
-    assert F163(123)**1 == pow(123, 1, 163)
-    assert F163(123)**2 == pow(123, 2, 163)
-    assert F163(123)**3 == pow(123, 3, 163)
-    assert F163(123)**100 == pow(123, 100, 163)
-    assert F163(123)**(-1) == pow(123, -1, 163)
-    assert F163(123)**(-2) == pow(123, -2, 163)
-    assert F163(123)**(-3) == pow(123, -3, 163)
-    assert F163(123)**(-4) == pow(123, -4, 163)
-
-    # Inversion
-
-    assert raises(lambda: F163(0).__invert__(), ZeroDivisionError)
-    assert F163(123).__invert__() == pow(123, -1, 163)
-    assert F163(1).__invert__() == pow(1, -1, 163)
-    assert F163(2).__invert__() == pow(2, -1, 163)
-
-    assert F163(1).inverse(check=False) == pow(1, -1, 163)
-    assert F163(2).inverse(check=False) == pow(2, -1, 163)
-    assert F163(123).inverse(check=False) == pow(123, -1, 163)
-
-    # Division
-
-    assert raises(lambda: F163(1) / F163(0), ZeroDivisionError)
-    assert F163(123) / F163(456) == (123 * pow(456, -1, 163)) % 163
-    assert F163(123) / fmpz(456) == (123 * pow(456, -1, 163)) % 163
-    assert F163(123) / 456 == (123 * pow(456, -1, 163)) % 163
-    assert raises(lambda: F163(123) / "AAA", TypeError)
-    assert raises(lambda: "AAA" / F163(123), TypeError)
-    assert raises(lambda: Fbig(123) / F163(123), ValueError)
-    assert raises(lambda: F163(123) // F163(123), TypeError)
-    assert 1 / F163(2) ==  pow(2, -1, 163)
-    assert 1 / F163(123) ==  pow(123, -1, 163)
-    assert 1 / F163(456) ==  pow(456, -1, 163)
-
-    assert fmpz(456) / F163(123) == (456 * pow(123, -1, 163)) % 163
-    assert 456 / F163(123) == (456 * pow(123, -1, 163)) % 163
-    
+        assert fmpz(test_y) / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
+        assert test_y / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
+            
 
 all_tests = [
     test_pyflint,
