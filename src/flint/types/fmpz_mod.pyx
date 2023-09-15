@@ -18,9 +18,9 @@ from flint.types.fmpz cimport (
 
 
 cdef class fmpz_mod_ctx:
-    """
+    r"""
     Context object for creating :class:`~.fmpz_mod` initalised 
-    with a modulus `n`
+    with a modulus :math:`N`.
 
         >>> fmpz_mod_ctx(2**127 - 1)
         fmpz_mod_ctx(170141183460469231731687303715884105727)
@@ -308,8 +308,8 @@ cdef class fmpz_mod(flint_scalar):
         return NotImplemented
 
     def inverse(self, check=True):
-        """
-        Computes a^-1 mod N
+        r"""
+        Computes :math:`a^{-1} \pmod N`
 
         When check=False, the solutions is assumed to exist and Flint will abort on
         failure. 
