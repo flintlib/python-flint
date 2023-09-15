@@ -20,9 +20,16 @@ from flint.types.fmpz cimport (
 cdef class fmpz_mod_ctx:
     """
     """
-    def __cinit__(self, mod):
-        """
-        """
+    def __cinit__(self):
+        # TODO: is this the best method?
+        cdef fmpz one = fmpz.__new__(fmpz)
+        fmpz_one(one.val)
+        fmpz_mod_ctx_init(self.val, one.val)
+
+    def __dealloc__(self):
+        fmpz_mod_ctx_clear(self.val)
+
+    def __init__(self, mod):
         # Ensure modulus is fmpz type
         if not typecheck(mod, fmpz):
             mod = any_as_fmpz(mod)
@@ -35,12 +42,6 @@ cdef class fmpz_mod_ctx:
 
         # Init the context
         fmpz_mod_ctx_init(self.val, (<fmpz>mod).val)
-
-    def __dealloc__(self):
-        fmpz_mod_ctx_clear(self.val)
-
-    def __init__(self, mod):
-        pass
     
     def modulus(self):
         """
