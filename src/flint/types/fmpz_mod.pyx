@@ -21,19 +21,13 @@ cdef class fmpz_mod_ctx:
     """
     """
     def __cinit__(self, mod):
-        self.__init__(mod)
-
-    def __dealloc__(self):
-        fmpz_mod_ctx_clear(self.val)
-
-    def __init__(self, mod):
         """
         """
         # Ensure modulus is fmpz type
         if not typecheck(mod, fmpz):
             mod = any_as_fmpz(mod)
             if mod is NotImplemented:
-                raise NotImplementedError("TODO")
+                raise TypeError("Context modulus must be able to be case to an `fmpz` type")
 
         # Ensure modulus is positive
         if mod < 1:
@@ -41,6 +35,12 @@ cdef class fmpz_mod_ctx:
 
         # Init the context
         fmpz_mod_ctx_init(self.val, (<fmpz>mod).val)
+
+    def __dealloc__(self):
+        fmpz_mod_ctx_clear(self.val)
+
+    def __init__(self, mod):
+        pass
     
     def modulus(self):
         """
@@ -59,25 +59,14 @@ cdef class fmpz_mod_ctx:
     def __hash__(self):
         return hash(self.modulus())
 
-    def __repr__(self):
-        return "Context for fmpz_mod with modulus: {}".format(
-            self.modulus()
-        )
-
     def __str__(self):
-        return "fmpz_mod_ctx({})".format(
-            self.modulus()
-        )
+        return f"Context for fmpz_mod with modulus: {self.modulus()}"
+
+    def __repr__(self):
+        return f"fmpz_mod_ctx({self.modulus()})"
 
     def __call__(self, val):
         return fmpz_mod(val, self)
-
-# TODO: this seems stupid 
-def any_as_fmpz_mod(obj, ctx):
-    try:
-        return ctx(obj)
-    except NotImplementedError:
-        return NotImplemented
 
 cdef class fmpz_mod(flint_scalar):
     def __cinit__(self):
@@ -88,7 +77,7 @@ cdef class fmpz_mod(flint_scalar):
 
     def __init__(self, val, ctx):
         if not typecheck(ctx, fmpz_mod_ctx):
-            raise ValueError
+            raise TypeError
         self.ctx = ctx
 
         # When the input is also an fmpz_mod we just need
@@ -108,6 +97,12 @@ cdef class fmpz_mod(flint_scalar):
                 raise NotImplementedError
         fmpz_mod_set_fmpz(self.val, (<fmpz>val).val, self.ctx.val)
 
+    def any_as_fmpz_mod(self, obj):
+        try:
+            return self.ctx(obj)
+        except NotImplementedError:
+            return NotImplemented
+
     def is_zero(self):
         return self == 0
     
@@ -116,26 +111,23 @@ cdef class fmpz_mod(flint_scalar):
         res = fmpz_mod_is_one(self.val, self.ctx.val)
         return res == 1
 
-    def __richcmp__(s, t, int op):
+    def __richcmp__(self, other, int op):
         cdef bint res
         if op != 2 and op != 3:
             raise TypeError("fmpz_mod cannot be ordered")
-        # TODO: is this the best method for comparison?
-        if typecheck(s, fmpz_mod) and typecheck(t, fmpz_mod):
-            res = ((<fmpz_mod>s).val[0] == (<fmpz_mod>t).val[0]) and \
-                  ((<fmpz_mod>s).ctx == (<fmpz_mod>t).ctx)
+
+        if not typecheck(other, fmpz_mod):
+            other = self.any_as_fmpz_mod(other)
+
+        if typecheck(self, fmpz_mod) and typecheck(other, fmpz_mod):
+            res = fmpz_equal(self.val, (<fmpz_mod>other).val) and \
+                  (self.ctx == (<fmpz_mod>other).ctx)
             if op == 2:
                 return res
             else:
                 return not res
-        # TODO: is this the best method for comparison?
-        # Seems like I'm doing too many type conversions?
-        elif typecheck(s, fmpz_mod) and typecheck(t, int):
-            res = int(s) == t % (<fmpz_mod>s).ctx.modulus()
-            if op == 2:
-                return res
-            else:
-                return not res
+        else:
+            return NotImplemented
 
     def __bool__(self):
         return not self.is_zero()
@@ -170,7 +162,7 @@ cdef class fmpz_mod(flint_scalar):
         return res
 
     def __add__(self, other):
-        other = any_as_fmpz_mod(other, self.ctx)
+        other = self.any_as_fmpz_mod(other)
         if other is NotImplemented:
             return NotImplemented
 
@@ -186,7 +178,7 @@ cdef class fmpz_mod(flint_scalar):
         return self.__add__(other)
 
     def __sub__(self, other):
-        other = any_as_fmpz_mod(other, self.ctx)
+        other = self.any_as_fmpz_mod(other)
         if other is NotImplemented:
             return NotImplemented
 
@@ -199,13 +191,11 @@ cdef class fmpz_mod(flint_scalar):
         )
         return res
 
-    # TODO: is this bad? Should I just copy paste logic
-    # above?
     def __rsub__(self, other):
         return self.__sub__(other).__neg__()
 
     def __mul__(self, other):
-        other = any_as_fmpz_mod(other, self.ctx)
+        other = self.any_as_fmpz_mod(other)
         if other is NotImplemented:
             return NotImplemented
 
