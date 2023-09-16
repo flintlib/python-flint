@@ -125,10 +125,35 @@ To do
 CHANGELOG
 -------------
 
-0.5.0
+0.4.5
+
+- gh-83: Introduces the `fmpz_mod` and `fmpz_mod_ctx` types for multi-precision integer mods
+- gh-80: Switch from Flint 2.9 to Flint 3.0.0.alpha1 
+
+0.4.4
+
+- gh-78, gh-79: minor fixes for the `nmod` type for compatibility with Sympy
+- gh-75, gh-77: finish bulk of the work in refactoring `python-flint` into submodules
+- gh-72: The roots method of `arb_poly` is not supported. Use either the `complex_roots` method or `acb_roots(p).roots()` to get the old behaviour of returning the complex roots. The `roots` method on `fmpz_poly` and `fmpq_poly` now return integer and rational roots respectively. To access complex roots on these types, use the `complex_roots` method. For `acb_poly`, both `roots` and `complex_roots` behave the same
+- gh-71: Include files in sdist and fix issue gh-70
+- gh-67: Continue refactoring job to introduce submodules into `python-flint`
+
+0.4.3
 
 - gh-63: The `roots` method of `arb_poly`, and `nmod_poly` is no longer supported. Use `acb_roots(p).roots()` to get the old behaviour of returning the roots as `acb`. Note that the `roots` method of `fmpz_poly` and `fmpq_poly` currently returns the complex roots of the polynomial.
-- gh-72: The roots method of `arb_poly` is not supported. Use either the `complex_roots` method or `acb_roots(p).roots()` to get the old behaviour of returning the complex roots. The `roots` method on `fmpz_poly` and `fmpq_poly` now return integer and rational roots respectively. To access complex roots on these types, use the `complex_roots` method. For `acb_poly`, both `roots` and `complex_roots` behave the same.
+- gh-61: Start refactoring job to introduce submodules into `python-flint`
+
+0.4.2
+
+- gh-57: Adds manylinux wheels
+
+0.4.1
+
+- gh-47: Removes Linux wheels, updates instructions for building from source.
+
+0.4.0
+
+- gh-45: Adds wheels for Windows, OSX and manylinux but the Linux wheels are broken.
 
 License
 ------------
