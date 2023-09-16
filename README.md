@@ -112,7 +112,7 @@ To do
 -------------------------------------
 
 * Write more tests and add missing docstrings
-* Wrap missing flint types: finite fields, p-adic numbers, multiprecision integer mods, rational functions
+* Wrap missing flint types: finite fields, p-adic numbers, rational functions
 * Vector or array types (maybe)
 * Many convenience methods
 * Write generic implementations of functions missing for specific FLINT types
