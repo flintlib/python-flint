@@ -4,8 +4,16 @@ from flint.flintlib.fmpz cimport (
     fmpz_set,
     fmpz_init,
     fmpz_clear,
-    fmpz_equal
+    fmpz_equal,
+    fmpz_is_probabprime,
+    fmpz_sub,
+    fmpz_mul,
+    fmpz_invmod,
+    fmpz_divexact,
+    fmpz_gcd
 )
+from flint.flintlib.fmpz cimport fmpz_mod as fmpz_type_mod
+
 from flint.flintlib.fmpz_mod cimport *
 
 from flint.utils.typecheck cimport typecheck
@@ -157,6 +165,112 @@ cdef class fmpz_mod(flint_scalar):
         cdef bint res
         res = fmpz_mod_is_one(self.val, self.ctx.val)
         return res == 1
+
+    def inverse(self, check=True):
+        r"""
+        Computes :math:`a^{-1} \pmod N`
+
+        When check=False, the solutions is assumed to exist and Flint will abort on
+        failure. 
+
+            >>> mod_ctx = fmpz_mod_ctx(163)
+            >>> mod_ctx(2).inverse()
+            fmpz_mod(82, 163)
+            >>> mod_ctx(2).inverse(check=False)
+            fmpz_mod(82, 163)
+        """
+        cdef fmpz_mod res
+        res = fmpz_mod.__new__(fmpz_mod)
+        res.ctx = self.ctx
+
+        if check is False:
+            fmpz_mod_inv(res.val, self.val, self.ctx.val)
+            return res
+
+        cdef bint r
+        cdef fmpz one = fmpz.__new__(fmpz)
+        fmpz_one(one.val)
+
+        r = fmpz_mod_divides(
+            res.val, one.val, self.val, self.ctx.val
+        )
+        if r == 0:
+            raise ZeroDivisionError(f"{self} is not invertible modulo {self.ctx.modulus()}")
+
+        return res
+
+    def discrete_log(self, a, check=False):
+        """
+        Solve the discrete logarithm problem, using `self = g` as a base.
+        Assumes a solution, :math:`a = g^x \pmod p` exists.
+        
+        NOTE: Requires that the context modulus is prime.
+
+        TODO: This could instead be initalised as a class from a 
+        given base and the precomputations could be stored to allow 
+        faster computations for many discrete logs with the same base. 
+
+            >>> p = 163
+            >>> F = fmpz_mod_ctx(p)
+            >>> g = F(2)
+            >>> x = 123
+            >>> g.discrete_log(g**123)
+            123
+        """
+        cdef fmpz_mod_discrete_log_pohlig_hellman_t L
+        cdef bint is_prime
+
+        # Ensure that the modulus is prime
+        if check:
+            is_prime = fmpz_is_probabprime(self.ctx.val.n)
+            if not is_prime:
+                raise ValueError("modulus must be prime")
+
+        # Then check the type of the input
+        if typecheck(a, fmpz_mod):
+            if self.ctx != (<fmpz_mod>a).ctx:
+                raise ValueError("moduli must match")
+        else:
+            a = self.any_as_fmpz_mod(a)
+            if a is NotImplemented:
+                raise TypeError
+
+        # Initalise the dlog data, all discrete logs are solved with an internally
+        # chosen base `y`
+        fmpz_mod_discrete_log_pohlig_hellman_init(L)
+        fmpz_mod_discrete_log_pohlig_hellman_precompute_prime(L, self.ctx.val.n)
+
+        # Solve the discrete log for the chosen base and target
+        # g = y^x_g and  a = y^x_a
+        # We want to find x such that a = g^x =>
+        # (y^x_a) = (y^x_g)^x => x = (x_a / x_g) mod (p-1) 
+        cdef fmpz_t x_a
+        cdef fmpz_t x_g
+        fmpz_mod_discrete_log_pohlig_hellman_run(x_g, L, self.val)
+        fmpz_mod_discrete_log_pohlig_hellman_run(x_a, L, (<fmpz_mod>a).val)
+
+        # If x_a, x_g share a common factor divide it out?
+        # TODO: this step seems annoying, but it solved the 
+        # problem when I had even x_a, x_g so there was no
+        # inverse mod (p-1)
+        cdef fmpz_t g
+        fmpz_gcd(g, x_a, x_g)
+        fmpz_divexact(x_g, x_g, g)
+        fmpz_divexact(x_a, x_a, g)
+
+        # Finally, compute output exponent
+        cdef fmpz x
+        x = fmpz.__new__(fmpz)
+
+        # Compute (x_a / x_g) mod (p-1) 
+        fmpz_invmod(x.val, x_g, L.pm1)
+        fmpz_mul(x.val, x.val, x_a)
+        fmpz_type_mod(x.val, x.val, L.pm1)
+
+        # Clear the dlog struct
+        fmpz_mod_discrete_log_pohlig_hellman_clear(L)
+        
+        return x
 
     def __richcmp__(self, other, int op):
         cdef bint res
@@ -315,39 +429,6 @@ cdef class fmpz_mod(flint_scalar):
 
     def __floordiv__(self, other):
         return NotImplemented
-
-    def inverse(self, check=True):
-        r"""
-        Computes :math:`a^{-1} \pmod N`
-
-        When check=False, the solutions is assumed to exist and Flint will abort on
-        failure. 
-
-            >>> mod_ctx = fmpz_mod_ctx(163)
-            >>> mod_ctx(2).inverse()
-            fmpz_mod(82, 163)
-            >>> mod_ctx(2).inverse(check=False)
-            fmpz_mod(82, 163)
-        """
-        cdef fmpz_mod res
-        res = fmpz_mod.__new__(fmpz_mod)
-        res.ctx = self.ctx
-
-        if check is False:
-            fmpz_mod_inv(res.val, self.val, self.ctx.val)
-            return res
-
-        cdef bint r
-        cdef fmpz one = fmpz.__new__(fmpz)
-        fmpz_one(one.val)
-
-        r = fmpz_mod_divides(
-            res.val, one.val, self.val, self.ctx.val
-        )
-        if r == 0:
-            raise ZeroDivisionError(f"{self} is not invertible modulo {self.ctx.modulus()}")
-
-        return res
 
     def __invert__(self):
         return self.inverse()
