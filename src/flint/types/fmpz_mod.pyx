@@ -276,6 +276,9 @@ cdef class fmpz_mod(flint_scalar):
         # (y^x_a) = (y^x_g)^x => x = (x_a / x_g) mod (p-1) 
         cdef fmpz_t x_a
         cdef fmpz_t x_g
+        fmpz_init(x_a)
+        fmpz_init(x_g)
+
         # TODO: should this value be stored for efficiency?
         fmpz_mod_discrete_log_pohlig_hellman_run(x_g, L, self.val)
         print("\t[DEBUG]: Solved dlog for base")
@@ -286,6 +289,9 @@ cdef class fmpz_mod(flint_scalar):
         # a common factor. We can use this to compute the order of 
         # g.
         cdef fmpz_t g, g_order
+        fmpz_init(g)
+        fmpz_init(g_order)
+
         fmpz_gcd(g, x_g, L.pm1)
         if not fmpz_is_one(g):
             fmpz_divexact(x_g, x_g, g)
@@ -296,8 +302,7 @@ cdef class fmpz_mod(flint_scalar):
         print("\t[DEBUG]: Fixed order")
 
         # Finally, compute output exponent
-        cdef fmpz x
-        x = fmpz.__new__(fmpz)
+        cdef fmpz x = fmpz.__new__(fmpz)
 
         # Compute (x_a / x_g) mod g_order
         fmpz_invmod(x.val, x_g, g_order)
