@@ -245,13 +245,13 @@ cdef class fmpz_mod(flint_scalar):
         # (y^x_a) = (y^x_g)^x => x = (x_a / x_g) mod (p-1) 
         cdef fmpz_t x_a
         cdef fmpz_t x_g
+        # TODO: should this value be stored for efficiency?
         fmpz_mod_discrete_log_pohlig_hellman_run(x_g, L, self.val)
         fmpz_mod_discrete_log_pohlig_hellman_run(x_a, L, (<fmpz_mod>a).val)
 
-        # If x_a, x_g share a common factor divide it out?
-        # TODO: this step seems annoying, but it solved the 
-        # problem when I had even x_a, x_g so there was no
-        # inverse mod (p-1)
+        # If g is not a primative root, then x_g and x_a will share
+        # a factor which divides (p-1). 
+        # TODO: should we only divide if g != 1, might be faster?
         cdef fmpz_t g
         fmpz_gcd(g, x_a, x_g)
         fmpz_divexact(x_g, x_g, g)
