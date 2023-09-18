@@ -210,11 +210,11 @@ cdef class fmpz_mod(flint_scalar):
         given base and the precomputations could be stored to allow 
         faster computations for many discrete logs with the same base. 
 
-            >>> p = 163
-            >>> F = fmpz_mod_ctx(p)
+            >>> F = fmpz_mod_ctx(163)
             >>> g = F(2)
             >>> x = 123
-            >>> g.discrete_log(g**123)
+            >>> a = g**123
+            >>> g.discrete_log(a)
             123
         """
         cdef fmpz_mod_discrete_log_pohlig_hellman_t L
