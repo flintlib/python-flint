@@ -6,7 +6,6 @@ from flint.flintlib.fmpz cimport (
     fmpz_clear,
     fmpz_equal,
     fmpz_is_probabprime,
-    fmpz_sub,
     fmpz_mul,
     fmpz_invmod,
     fmpz_divexact,
