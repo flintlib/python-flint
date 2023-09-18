@@ -238,12 +238,17 @@ cdef class fmpz_mod(flint_scalar):
         cdef fmpz_mod_discrete_log_pohlig_hellman_t L
         cdef bint is_prime
 
+        print(f"[DEBUGGING!]")
+        print("\t[DEBUG]: Starting discrete log")
+
         # Ensure that the modulus is prime
         if check:
             is_prime = fmpz_is_probabprime(self.ctx.val.n)
             if not is_prime:
                 raise ValueError("modulus must be prime")
 
+        print("\t[DEBUG]: Checked Primality")
+    
         # Then check the type of the input
         if typecheck(a, fmpz_mod):
             if self.ctx != (<fmpz_mod>a).ctx:
@@ -253,10 +258,17 @@ cdef class fmpz_mod(flint_scalar):
             if a is NotImplemented:
                 raise TypeError
 
+        print("\t[DEBUG]: Converted types")
+        
         # Initalise the dlog data, all discrete logs are solved with an internally
         # chosen base `y`
         fmpz_mod_discrete_log_pohlig_hellman_init(L)
+
+        print("\t[DEBUG]: Initialised L")
+
         fmpz_mod_discrete_log_pohlig_hellman_precompute_prime(L, self.ctx.val.n)
+
+        print("\t[DEBUG]: Precomputed prime for L")
 
         # Solve the discrete log for the chosen base and target
         # g = y^x_g and  a = y^x_a
@@ -266,7 +278,9 @@ cdef class fmpz_mod(flint_scalar):
         cdef fmpz_t x_g
         # TODO: should this value be stored for efficiency?
         fmpz_mod_discrete_log_pohlig_hellman_run(x_g, L, self.val)
+        print("\t[DEBUG]: Solved dlog for base")
         fmpz_mod_discrete_log_pohlig_hellman_run(x_a, L, (<fmpz_mod>a).val)
+        print("\t[DEBUG]: Solved dlog for input")
 
         # If g is not a primative root, then x_g and pm1 will share
         # a common factor. We can use this to compute the order of 
@@ -279,6 +293,7 @@ cdef class fmpz_mod(flint_scalar):
             fmpz_divexact(g_order, L.pm1, g)
         else:
             fmpz_set(g_order, L.pm1)
+        print("\t[DEBUG]: Fixed order")
 
         # Finally, compute output exponent
         cdef fmpz x
@@ -286,11 +301,18 @@ cdef class fmpz_mod(flint_scalar):
 
         # Compute (x_a / x_g) mod g_order
         fmpz_invmod(x.val, x_g, g_order)
+        print("\t[DEBUG]: Computed Inverse")
+
         fmpz_mul(x.val, x.val, x_a)
+        print("\t[DEBUG]: Computed multiplication")
+
         fmpz_type_mod(x.val, x.val, g_order)
+        print("\t[DEBUG]: Computed modular reduction")
 
         # Clear the dlog struct
         fmpz_mod_discrete_log_pohlig_hellman_clear(L)
+        print("\t[DEBUG]: Cleared Struct")
+
         
         return x
 
