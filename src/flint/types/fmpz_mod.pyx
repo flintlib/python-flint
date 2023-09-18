@@ -70,6 +70,30 @@ cdef class fmpz_mod_ctx:
         fmpz_set(n.val, (<fmpz_t>self.val.n))
         return n
 
+    cdef any_as_fmpz_mod(self, obj):
+        # If `obj` is an `fmpz_mod`, just check moduli
+        # match
+        # TODO: we could allow conversion from one modulus to another?
+        if typecheck(obj, fmpz_mod):
+            if self != (<fmpz_mod>obj).ctx:
+                raise ValueError("moduli must match")
+            return obj
+        
+        # Try and convert obj to fmpz
+        if not typecheck(obj, fmpz):
+            obj = any_as_fmpz(obj)
+            if obj is NotImplemented:
+                return NotImplemented
+        
+        # We have been able to cast `obj` to an `fmpz` so 
+        # we create a new `fmpz_mod` and set the val
+        cdef fmpz_mod res
+        res = fmpz_mod.__new__(fmpz_mod)
+        res.ctx = self
+        fmpz_mod_set_fmpz(res.val, (<fmpz>obj).val, self.val)
+        
+        return res
+
     def __eq__(self, other):
         if typecheck(other, fmpz_mod_ctx):
             return fmpz_equal(self.val.n, (<fmpz_mod_ctx>other).val.n)
@@ -132,12 +156,6 @@ cdef class fmpz_mod(flint_scalar):
             if val is NotImplemented:
                 raise NotImplementedError
         fmpz_mod_set_fmpz(self.val, (<fmpz>val).val, self.ctx.val)
-
-    cdef any_as_fmpz_mod(self, obj):
-        try:
-            return self.ctx(obj)
-        except NotImplementedError:
-            return NotImplemented
 
     def is_zero(self):
         """
@@ -231,7 +249,7 @@ cdef class fmpz_mod(flint_scalar):
             if self.ctx != (<fmpz_mod>a).ctx:
                 raise ValueError("moduli must match")
         else:
-            a = self.any_as_fmpz_mod(a)
+            a = self.ctx.any_as_fmpz_mod(a)
             if a is NotImplemented:
                 raise TypeError
 
@@ -282,7 +300,7 @@ cdef class fmpz_mod(flint_scalar):
             raise TypeError("fmpz_mod cannot be ordered")
 
         if not typecheck(other, fmpz_mod):
-            other = self.any_as_fmpz_mod(other)
+            other = self.ctx.any_as_fmpz_mod(other)
 
         if typecheck(self, fmpz_mod) and typecheck(other, fmpz_mod):
             res = fmpz_equal(self.val, (<fmpz_mod>other).val) and \
@@ -327,7 +345,7 @@ cdef class fmpz_mod(flint_scalar):
         return res
 
     def __add__(self, other):
-        other = self.any_as_fmpz_mod(other)
+        other = self.ctx.any_as_fmpz_mod(other)
         if other is NotImplemented:
             return NotImplemented
 
@@ -354,13 +372,13 @@ cdef class fmpz_mod(flint_scalar):
 
         # Case when right is not fmpz_mod, try to convert to fmpz
         elif typecheck(left, fmpz_mod):
-            right = (<fmpz_mod>left).any_as_fmpz_mod(right)
+            right = (<fmpz_mod>left).ctx.any_as_fmpz_mod(right)
             if right is NotImplemented:
                 return NotImplemented
 
         # Case when left is not fmpz_mod, try to convert to fmpz
         else:
-            left = (<fmpz_mod>right).any_as_fmpz_mod(left)
+            left = (<fmpz_mod>right).ctx.any_as_fmpz_mod(left)
             if left is NotImplemented:
                 return NotImplemented
 
@@ -377,7 +395,7 @@ cdef class fmpz_mod(flint_scalar):
         return fmpz_mod._sub_(t, s)
 
     def __mul__(self, other):
-        other = self.any_as_fmpz_mod(other)
+        other = self.ctx.any_as_fmpz_mod(other)
         if other is NotImplemented:
             return NotImplemented
 
@@ -406,13 +424,13 @@ cdef class fmpz_mod(flint_scalar):
 
         # Case when right is not fmpz_mod, try to convert to fmpz
         elif typecheck(left, fmpz_mod):
-            right = (<fmpz_mod>left).any_as_fmpz_mod(right)
+            right = (<fmpz_mod>left).ctx.any_as_fmpz_mod(right)
             if right is NotImplemented:
                 return NotImplemented
 
         # Case when left is not fmpz_mod, try to convert to fmpz
         else:
-            left = (<fmpz_mod>right).any_as_fmpz_mod(left)
+            left = (<fmpz_mod>right).ctx.any_as_fmpz_mod(left)
             if left is NotImplemented:
                 return NotImplemented
         
