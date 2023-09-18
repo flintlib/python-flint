@@ -9,7 +9,8 @@ from flint.flintlib.fmpz cimport (
     fmpz_mul,
     fmpz_invmod,
     fmpz_divexact,
-    fmpz_gcd
+    fmpz_gcd,
+    fmpz_is_one
 )
 from flint.flintlib.fmpz cimport fmpz_mod as fmpz_type_mod
 
@@ -249,22 +250,26 @@ cdef class fmpz_mod(flint_scalar):
         fmpz_mod_discrete_log_pohlig_hellman_run(x_g, L, self.val)
         fmpz_mod_discrete_log_pohlig_hellman_run(x_a, L, (<fmpz_mod>a).val)
 
-        # If g is not a primative root, then x_g and x_a will share
-        # a factor which divides (p-1). 
-        # TODO: should we only divide if g != 1, might be faster?
-        cdef fmpz_t g
-        fmpz_gcd(g, x_a, x_g)
-        fmpz_divexact(x_g, x_g, g)
-        fmpz_divexact(x_a, x_a, g)
+        # If g is not a primative root, then x_g and pm1 will share
+        # a common factor. We can use this to compute the order of 
+        # g.
+        cdef fmpz_t g, g_order
+        fmpz_gcd(g, x_g, L.pm1)
+        if not fmpz_is_one(g):
+            fmpz_divexact(x_g, x_g, g)
+            fmpz_divexact(x_a, x_a, g)
+            fmpz_divexact(g_order, L.pm1, g)
+        else:
+            fmpz_set(g_order, L.pm1)
 
         # Finally, compute output exponent
         cdef fmpz x
         x = fmpz.__new__(fmpz)
 
-        # Compute (x_a / x_g) mod (p-1) 
-        fmpz_invmod(x.val, x_g, L.pm1)
+        # Compute (x_a / x_g) mod g_order
+        fmpz_invmod(x.val, x_g, g_order)
         fmpz_mul(x.val, x.val, x_a)
-        fmpz_type_mod(x.val, x.val, L.pm1)
+        fmpz_type_mod(x.val, x.val, g_order)
 
         # Clear the dlog struct
         fmpz_mod_discrete_log_pohlig_hellman_clear(L)
