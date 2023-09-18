@@ -1,4 +1,4 @@
-from flint.flintlib.fmpz cimport (
+from flint.flintlib.fmpz cimport(
     fmpz_t,
     fmpz_one,
     fmpz_set,
@@ -13,17 +13,15 @@ from flint.flintlib.fmpz cimport (
     fmpz_is_one
 )
 from flint.flintlib.fmpz cimport fmpz_mod as fmpz_type_mod
-
 from flint.flintlib.fmpz_mod cimport *
 
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_scalar
-from flint.types.fmpz cimport (
+from flint.types.fmpz cimport(
     fmpz,
     any_as_fmpz,
     fmpz_get_intlong
 )
-
 
 cdef class fmpz_mod_ctx:
     r"""
@@ -47,7 +45,9 @@ cdef class fmpz_mod_ctx:
         if not typecheck(mod, fmpz):
             mod = any_as_fmpz(mod)
             if mod is NotImplemented:
-                raise TypeError("Context modulus must be able to be case to an `fmpz` type")
+                raise TypeError(
+                    "Context modulus must be able to be case to an `fmpz` type"
+                )
 
         # Ensure modulus is positive
         if mod < 1:
@@ -55,7 +55,7 @@ cdef class fmpz_mod_ctx:
 
         # Set the modulus
         fmpz_mod_ctx_set_modulus(self.val, (<fmpz>mod).val)
-    
+
     def modulus(self):
         """
         Return the modulus from the context as an fmpz
@@ -78,20 +78,20 @@ cdef class fmpz_mod_ctx:
             if self != (<fmpz_mod>obj).ctx:
                 raise ValueError("moduli must match")
             return obj
-        
+
         # Try and convert obj to fmpz
         if not typecheck(obj, fmpz):
             obj = any_as_fmpz(obj)
             if obj is NotImplemented:
                 return NotImplemented
-        
-        # We have been able to cast `obj` to an `fmpz` so 
+
+        # We have been able to cast `obj` to an `fmpz` so
         # we create a new `fmpz_mod` and set the val
         cdef fmpz_mod res
         res = fmpz_mod.__new__(fmpz_mod)
         res.ctx = self
         fmpz_mod_set_fmpz(res.val, (<fmpz>obj).val, self.val)
-        
+
         return res
 
     def __eq__(self, other):
@@ -168,7 +168,7 @@ cdef class fmpz_mod(flint_scalar):
             False
         """
         return self == 0
-    
+
     def is_one(self):
         """
         Return whether an element is equal to one
@@ -213,7 +213,9 @@ cdef class fmpz_mod(flint_scalar):
             res.val, one.val, self.val, self.ctx.val
         )
         if r == 0:
-            raise ZeroDivisionError(f"{self} is not invertible modulo {self.ctx.modulus()}")
+            raise ZeroDivisionError(
+                f"{self} is not invertible modulo {self.ctx.modulus()}"
+            )
 
         return res
 
@@ -221,7 +223,7 @@ cdef class fmpz_mod(flint_scalar):
         """
         Solve the discrete logarithm problem, using `self = g` as a base.
         Assumes a solution, :math:`a = g^x \pmod p` exists.
-        
+
         NOTE: Requires that the context modulus is prime.
 
         TODO: This could instead be initalised as a class from a 
@@ -238,17 +240,12 @@ cdef class fmpz_mod(flint_scalar):
         cdef fmpz_mod_discrete_log_pohlig_hellman_t L
         cdef bint is_prime
 
-        print(f"[DEBUGGING!]")
-        print("\t[DEBUG]: Starting discrete log")
-
         # Ensure that the modulus is prime
         if check:
             is_prime = fmpz_is_probabprime(self.ctx.val.n)
             if not is_prime:
                 raise ValueError("modulus must be prime")
 
-        print("\t[DEBUG]: Checked Primality")
-    
         # Then check the type of the input
         if typecheck(a, fmpz_mod):
             if self.ctx != (<fmpz_mod>a).ctx:
@@ -258,22 +255,17 @@ cdef class fmpz_mod(flint_scalar):
             if a is NotImplemented:
                 raise TypeError
 
-        print("\t[DEBUG]: Converted types")
-        
-        # Initalise the dlog data, all discrete logs are solved with an internally
-        # chosen base `y`
+        # Initalise the dlog data, all discrete logs are solved with an 
+        # internally chosen base `y`
         fmpz_mod_discrete_log_pohlig_hellman_init(L)
-
-        print("\t[DEBUG]: Initialised L")
-
-        fmpz_mod_discrete_log_pohlig_hellman_precompute_prime(L, self.ctx.val.n)
-
-        print("\t[DEBUG]: Precomputed prime for L")
+        fmpz_mod_discrete_log_pohlig_hellman_precompute_prime(
+            L, self.ctx.val.n
+        )
 
         # Solve the discrete log for the chosen base and target
         # g = y^x_g and  a = y^x_a
         # We want to find x such that a = g^x =>
-        # (y^x_a) = (y^x_g)^x => x = (x_a / x_g) mod (p-1) 
+        # (y^x_a) = (y^x_g)^x => x = (x_a / x_g) mod (p-1)
         cdef fmpz_t x_a
         cdef fmpz_t x_g
         fmpz_init(x_a)
@@ -281,12 +273,10 @@ cdef class fmpz_mod(flint_scalar):
 
         # TODO: should this value be stored for efficiency?
         fmpz_mod_discrete_log_pohlig_hellman_run(x_g, L, self.val)
-        print("\t[DEBUG]: Solved dlog for base")
         fmpz_mod_discrete_log_pohlig_hellman_run(x_a, L, (<fmpz_mod>a).val)
-        print("\t[DEBUG]: Solved dlog for input")
 
         # If g is not a primative root, then x_g and pm1 will share
-        # a common factor. We can use this to compute the order of 
+        # a common factor. We can use this to compute the order of
         # g.
         cdef fmpz_t g, g_order
         fmpz_init(g)
@@ -299,26 +289,18 @@ cdef class fmpz_mod(flint_scalar):
             fmpz_divexact(g_order, L.pm1, g)
         else:
             fmpz_set(g_order, L.pm1)
-        print("\t[DEBUG]: Fixed order")
 
         # Finally, compute output exponent
         cdef fmpz x = fmpz.__new__(fmpz)
 
         # Compute (x_a / x_g) mod g_order
         fmpz_invmod(x.val, x_g, g_order)
-        print("\t[DEBUG]: Computed Inverse")
-
         fmpz_mul(x.val, x.val, x_a)
-        print("\t[DEBUG]: Computed multiplication")
-
         fmpz_type_mod(x.val, x.val, g_order)
-        print("\t[DEBUG]: Computed modular reduction")
 
         # Clear the dlog struct
         fmpz_mod_discrete_log_pohlig_hellman_clear(L)
-        print("\t[DEBUG]: Cleared Struct")
 
-        
         return x
 
     def __richcmp__(self, other, int op):
@@ -349,7 +331,7 @@ cdef class fmpz_mod(flint_scalar):
         )
 
     def __hash__(self):
-        return  hash((int(self)))
+        return hash((int(self)))
 
     def __int__(self):
         return fmpz_get_intlong(self.val)
@@ -391,7 +373,7 @@ cdef class fmpz_mod(flint_scalar):
     def _sub_(left, right):
         cdef fmpz_mod res
         res = fmpz_mod.__new__(fmpz_mod)
-        
+
         # Case when left and right are already fmpz_mod
         if typecheck(left, fmpz_mod) and typecheck(right, fmpz_mod):
             if not (<fmpz_mod>left).ctx == (<fmpz_mod>right).ctx:
@@ -412,7 +394,7 @@ cdef class fmpz_mod(flint_scalar):
         res.ctx = (<fmpz_mod>left).ctx
         fmpz_mod_sub(
                 res.val, (<fmpz_mod>left).val, (<fmpz_mod>right).val, res.ctx.val
-        )         
+        )
         return res
 
     def __sub__(s, t):
@@ -443,7 +425,7 @@ cdef class fmpz_mod(flint_scalar):
         cdef bint check
         cdef fmpz_mod res
         res = fmpz_mod.__new__(fmpz_mod)
-        
+
         # Case when left and right are already fmpz_mod
         if typecheck(left, fmpz_mod) and typecheck(right, fmpz_mod):
             if not (<fmpz_mod>left).ctx == (<fmpz_mod>right).ctx:
@@ -460,13 +442,15 @@ cdef class fmpz_mod(flint_scalar):
             left = (<fmpz_mod>right).ctx.any_as_fmpz_mod(left)
             if left is NotImplemented:
                 return NotImplemented
-        
+
         res.ctx = (<fmpz_mod>left).ctx
         check = fmpz_mod_divides(
             res.val, (<fmpz_mod>left).val, (<fmpz_mod>right).val, res.ctx.val
-        ) 
+        )
         if check == 0:
-            raise ZeroDivisionError(f"{right} is not invertible modulo {res.ctx.modulus()}")
+            raise ZeroDivisionError(
+                f"{right} is not invertible modulo {res.ctx.modulus()}"
+            )
 
         return res
 
@@ -498,6 +482,8 @@ cdef class fmpz_mod(flint_scalar):
         )
 
         if check == 0:
-            raise ZeroDivisionError(f"{self} is not invertible modulo {self.ctx.modulus()}")
+            raise ZeroDivisionError(
+                f"{self} is not invertible modulo {self.ctx.modulus()}"
+            )
 
         return res
