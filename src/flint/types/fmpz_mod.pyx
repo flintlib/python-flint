@@ -45,8 +45,8 @@ cdef class fmpz_mod_ctx:
         if mod < 1:
             raise ValueError("Modulus is expected to be positive")
 
-        # Init the context
-        fmpz_mod_ctx_init(self.val, (<fmpz>mod).val)
+        # Set the modulus
+        fmpz_mod_ctx_set_modulus(self.val, (<fmpz>mod).val)
     
     def modulus(self):
         """
@@ -224,22 +224,39 @@ cdef class fmpz_mod(flint_scalar):
     def __radd__(self, other):
         return self.__add__(other)
 
-    def __sub__(self, other):
-        other = self.any_as_fmpz_mod(other)
-        if other is NotImplemented:
-            return NotImplemented
-
+    @staticmethod
+    def _sub_(left, right):
         cdef fmpz_mod res
         res = fmpz_mod.__new__(fmpz_mod)
-        res.ctx = self.ctx
+        
+        # Case when left and right are already fmpz_mod
+        if typecheck(left, fmpz_mod) and typecheck(right, fmpz_mod):
+            if not (<fmpz_mod>left).ctx == (<fmpz_mod>right).ctx:
+                raise ValueError("moduli must match")
 
+        # Case when right is not fmpz_mod, try to convert to fmpz
+        elif typecheck(left, fmpz_mod):
+            right = (<fmpz_mod>left).any_as_fmpz_mod(right)
+            if right is NotImplemented:
+                return NotImplemented
+
+        # Case when left is not fmpz_mod, try to convert to fmpz
+        else:
+            left = (<fmpz_mod>right).any_as_fmpz_mod(left)
+            if left is NotImplemented:
+                return NotImplemented
+
+        res.ctx = (<fmpz_mod>left).ctx
         fmpz_mod_sub(
-            res.val, self.val, (<fmpz_mod>other).val, self.ctx.val
-        )
+                res.val, (<fmpz_mod>left).val, (<fmpz_mod>right).val, res.ctx.val
+        )         
         return res
 
-    def __rsub__(self, other):
-        return self.__sub__(other).__neg__()
+    def __sub__(s, t):
+        return fmpz_mod._sub_(s, t)
+
+    def __rsub__(s, t):
+        return fmpz_mod._sub_(t, s)
 
     def __mul__(self, other):
         other = self.any_as_fmpz_mod(other)
@@ -264,35 +281,27 @@ cdef class fmpz_mod(flint_scalar):
         cdef fmpz_mod res
         res = fmpz_mod.__new__(fmpz_mod)
         
-        # Division when left and right are fmpz_mod
+        # Case when left and right are already fmpz_mod
         if typecheck(left, fmpz_mod) and typecheck(right, fmpz_mod):
-            res.ctx = (<fmpz_mod>left).ctx
             if not (<fmpz_mod>left).ctx == (<fmpz_mod>right).ctx:
                 raise ValueError("moduli must match")
-            check = fmpz_mod_divides(
-                res.val, (<fmpz_mod>left).val, (<fmpz_mod>right).val, res.ctx.val
-            ) 
-        
-        # Case when only left is fmpz_mod
-        elif typecheck(left, fmpz_mod):
-            res.ctx = (<fmpz_mod>left).ctx
-            right = any_as_fmpz(right)
-            if right is NotImplemented:
-                return NotImplemented   
-            check = fmpz_mod_divides(
-                res.val, (<fmpz_mod>left).val, (<fmpz>right).val, res.ctx.val
-            ) 
 
-        # Case when right is an fmpz_mod
+        # Case when right is not fmpz_mod, try to convert to fmpz
+        elif typecheck(left, fmpz_mod):
+            right = (<fmpz_mod>left).any_as_fmpz_mod(right)
+            if right is NotImplemented:
+                return NotImplemented
+
+        # Case when left is not fmpz_mod, try to convert to fmpz
         else:
-            res.ctx = (<fmpz_mod>right).ctx
-            left = any_as_fmpz(left)
+            left = (<fmpz_mod>right).any_as_fmpz_mod(left)
             if left is NotImplemented:
-                return NotImplemented   
-            check = fmpz_mod_divides(
-                res.val, (<fmpz>left).val, (<fmpz_mod>right).val, res.ctx.val
-            ) 
+                return NotImplemented
         
+        res.ctx = (<fmpz_mod>left).ctx
+        check = fmpz_mod_divides(
+            res.val, (<fmpz_mod>left).val, (<fmpz_mod>right).val, res.ctx.val
+        ) 
         if check == 0:
             raise ZeroDivisionError(f"{right} is not invertible modulo {res.ctx.modulus()}")
 
