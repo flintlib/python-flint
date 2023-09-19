@@ -22,6 +22,8 @@ from flint.types.fmpz cimport(
     any_as_fmpz,
     fmpz_get_intlong
 )
+cimport cython
+cimport libc.stdlib
 
 cdef class fmpz_mod_ctx:
     r"""
@@ -36,11 +38,13 @@ cdef class fmpz_mod_ctx:
         cdef fmpz one = fmpz.__new__(fmpz)
         fmpz_one(one.val)
         fmpz_mod_ctx_init(self.val, one.val)
-        fmpz_mod_discrete_log_pohlig_hellman_init(self.L)
+        self.L = NULL
+        
 
     def __dealloc__(self):
         fmpz_mod_ctx_clear(self.val)
-        fmpz_mod_discrete_log_pohlig_hellman_clear(self.L)
+        if self.L:
+            fmpz_mod_discrete_log_pohlig_hellman_clear(self.L[0])
 
     def __init__(self, mod):
         # Ensure modulus is fmpz type
@@ -57,10 +61,6 @@ cdef class fmpz_mod_ctx:
 
         # Set the modulus
         fmpz_mod_ctx_set_modulus(self.val, (<fmpz>mod).val)
-
-        # Store whether the pohlig-hellman precomputation has 
-        # been performed
-        self._dlog_precomputed = 0
 
     def modulus(self):
         """
@@ -81,10 +81,13 @@ cdef class fmpz_mod_ctx:
         Initalise the dlog data, all discrete logs are solved with an 
         internally chosen base `y`
         """
-        fmpz_mod_discrete_log_pohlig_hellman_precompute_prime(
-            self.L, self.val.n
+        self.L = <fmpz_mod_discrete_log_pohlig_hellman_t *>libc.stdlib.malloc(
+            cython.sizeof(fmpz_mod_discrete_log_pohlig_hellman_struct)
         )
-        self._dlog_precomputed = 1
+        fmpz_mod_discrete_log_pohlig_hellman_init(self.L[0])
+        fmpz_mod_discrete_log_pohlig_hellman_precompute_prime(
+            self.L[0], self.val.n
+        )
 
     cdef any_as_fmpz_mod(self, obj):
         # If `obj` is an `fmpz_mod`, just check moduli
@@ -158,11 +161,12 @@ cdef class fmpz_mod(flint_scalar):
 
     def __cinit__(self):
         fmpz_init(self.val)
-        fmpz_init(self.x_g)
+        self.x_g = NULL
 
     def __dealloc__(self):
         fmpz_clear(self.val)
-        fmpz_clear(self.x_g)
+        if self.x_g:
+            fmpz_clear(self.x_g[0])
 
     def __init__(self, val, ctx):
         if not typecheck(ctx, fmpz_mod_ctx):
@@ -185,9 +189,6 @@ cdef class fmpz_mod(flint_scalar):
             if val is NotImplemented:
                 raise NotImplementedError
         fmpz_mod_set_fmpz(self.val, (<fmpz>val).val, self.ctx.val)
-
-        # Bool to say whether x_g has been computed before
-        self.base_dlog_precomputed = 0
 
     def is_zero(self):
         """
@@ -258,10 +259,6 @@ cdef class fmpz_mod(flint_scalar):
 
         NOTE: Requires that the context modulus is prime.
 
-        TODO: This could instead be initalised as a class from a 
-        given base and the precomputations could be stored to allow 
-        faster computations for many discrete logs with the same base. 
-
             >>> F = fmpz_mod_ctx(163)
             >>> g = F(2)
             >>> x = 123
@@ -286,45 +283,54 @@ cdef class fmpz_mod(flint_scalar):
             if a is NotImplemented:
                 raise TypeError
 
+        # First, Ensure that self.ctx.L has performed precomputations
+        # This generates a `y` which is a primative root, and used as
+        # the base in `fmpz_mod_discrete_log_pohlig_hellman_run`
+        if not self.ctx.L:
+            self.ctx._precompute_dlog_prime()
+        
         # Solve the discrete log for the chosen base and target
         # g = y^x_g and  a = y^x_a
         # We want to find x such that a = g^x =>
         # (y^x_a) = (y^x_g)^x => x = (x_a / x_g) mod (p-1)
+
+        # For repeated calls to discrete_log, it's more efficient to
+        # store x_g rather than keep computing it
+        if not self.x_g:
+            self.x_g = <fmpz_t *>libc.stdlib.malloc(
+                cython.sizeof(fmpz_t)
+            )
+            fmpz_mod_discrete_log_pohlig_hellman_run(
+                self.x_g[0], self.ctx.L[0], self.val
+            )
+
+        # Then we need to compute x_a which will be different for each call
         cdef fmpz_t x_a
-        cdef fmpz_t x_g
         fmpz_init(x_a)
-        fmpz_init(x_g)
-
-        # Ensure that self.ctx.L has performed precomputations
-        if not self.ctx._dlog_precomputed:
-            self.ctx._precompute_dlog_prime()
-
-        if not self.base_dlog_precomputed:
-            fmpz_mod_discrete_log_pohlig_hellman_run(self.x_g, self.ctx.L, self.val)
-            self.base_dlog_precomputed = 1
-        fmpz_mod_discrete_log_pohlig_hellman_run(x_a, self.ctx.L, (<fmpz_mod>a).val)
+        fmpz_mod_discrete_log_pohlig_hellman_run(
+            x_a, self.ctx.L[0], (<fmpz_mod>a).val
+        )
 
         # If g is not a primative root, then x_g and pm1 will share
         # a common factor. We can use this to compute the order of
         # g.
-        cdef fmpz_t g, g_order
+        cdef fmpz_t g, g_order, x_g
         fmpz_init(g)
         fmpz_init(g_order)
+        fmpz_init(x_g)
 
-        fmpz_gcd(g, self.x_g, self.ctx.L.pm1)
+        fmpz_gcd(g, self.x_g[0], self.ctx.L[0].pm1)
         if not fmpz_is_one(g):
-            fmpz_divexact(x_g, self.x_g, g)
+            fmpz_divexact(x_g, self.x_g[0], g)
             fmpz_divexact(x_a, x_a, g)
-            fmpz_divexact(g_order, self.ctx.L.pm1, g)
+            fmpz_divexact(g_order, self.ctx.L[0].pm1, g)
         else:
-            fmpz_set(g_order, self.ctx.L.pm1)
-            fmpz_set(x_g, self.x_g)
+            fmpz_set(g_order, self.ctx.L[0].pm1)
+            fmpz_set(x_g, self.x_g[0])
 
-
-        # Finally, compute output exponent
+        # Finally, compute output exponent by computing
+        # (x_a / x_g) mod g_order
         cdef fmpz x = fmpz.__new__(fmpz)
-
-        # Compute (x_a / x_g) mod g_order
         fmpz_invmod(x.val, x_g, g_order)
         fmpz_mul(x.val, x.val, x_a)
         fmpz_type_mod(x.val, x.val, g_order)

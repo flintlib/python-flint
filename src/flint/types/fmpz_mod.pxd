@@ -8,13 +8,11 @@ from flint.flintlib.fmpz_mod cimport (
 
 cdef class fmpz_mod_ctx:
     cdef fmpz_mod_ctx_t val
-    cdef fmpz_mod_discrete_log_pohlig_hellman_t L
-    cdef bint _dlog_precomputed
+    cdef fmpz_mod_discrete_log_pohlig_hellman_t *L
     cdef any_as_fmpz_mod(self, obj)
     cdef _precompute_dlog_prime(self)
     
 cdef class fmpz_mod(flint_scalar):
     cdef fmpz_mod_ctx ctx
     cdef fmpz_t val
-    cdef bint base_dlog_precomputed
-    cdef fmpz_t x_g
+    cdef fmpz_t *x_g
