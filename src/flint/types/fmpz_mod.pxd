@@ -16,4 +16,5 @@ cdef class fmpz_mod_ctx:
 cdef class fmpz_mod(flint_scalar):
     cdef fmpz_mod_ctx ctx
     cdef fmpz_t val
-
+    cdef bint base_dlog_precomputed
+    cdef fmpz_t x_g

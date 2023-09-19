@@ -158,9 +158,11 @@ cdef class fmpz_mod(flint_scalar):
 
     def __cinit__(self):
         fmpz_init(self.val)
+        fmpz_init(self.x_g)
 
     def __dealloc__(self):
         fmpz_clear(self.val)
+        fmpz_clear(self.x_g)
 
     def __init__(self, val, ctx):
         if not typecheck(ctx, fmpz_mod_ctx):
@@ -183,6 +185,9 @@ cdef class fmpz_mod(flint_scalar):
             if val is NotImplemented:
                 raise NotImplementedError
         fmpz_mod_set_fmpz(self.val, (<fmpz>val).val, self.ctx.val)
+
+        # Bool to say whether x_g has been computed before
+        self.base_dlog_precomputed = 0
 
     def is_zero(self):
         """
@@ -294,8 +299,9 @@ cdef class fmpz_mod(flint_scalar):
         if not self.ctx._dlog_precomputed:
             self.ctx._precompute_dlog_prime()
 
-        # TODO: should this value be stored for efficiency?
-        fmpz_mod_discrete_log_pohlig_hellman_run(x_g, self.ctx.L, self.val)
+        if not self.base_dlog_precomputed:
+            fmpz_mod_discrete_log_pohlig_hellman_run(self.x_g, self.ctx.L, self.val)
+            self.base_dlog_precomputed = 1
         fmpz_mod_discrete_log_pohlig_hellman_run(x_a, self.ctx.L, (<fmpz_mod>a).val)
 
         # If g is not a primative root, then x_g and pm1 will share
@@ -305,13 +311,15 @@ cdef class fmpz_mod(flint_scalar):
         fmpz_init(g)
         fmpz_init(g_order)
 
-        fmpz_gcd(g, x_g, self.ctx.L.pm1)
+        fmpz_gcd(g, self.x_g, self.ctx.L.pm1)
         if not fmpz_is_one(g):
-            fmpz_divexact(x_g, x_g, g)
+            fmpz_divexact(x_g, self.x_g, g)
             fmpz_divexact(x_a, x_a, g)
             fmpz_divexact(g_order, self.ctx.L.pm1, g)
         else:
             fmpz_set(g_order, self.ctx.L.pm1)
+            fmpz_set(x_g, self.x_g)
+
 
         # Finally, compute output exponent
         cdef fmpz x = fmpz.__new__(fmpz)
