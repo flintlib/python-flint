@@ -95,6 +95,10 @@ cdef class fmpz_mod_ctx:
         return res
 
     def __eq__(self, other):
+        # TODO:
+        # If we could cache contexts, then we would ensure that only
+        # the a is b check is needed for equality.
+        
         # Most often, we expect both `fmpz_mod` to be pointing to the 
         # same ctx, so this seems the fastest way to check
         if self is other:
