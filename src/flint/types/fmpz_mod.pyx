@@ -36,9 +36,11 @@ cdef class fmpz_mod_ctx:
         cdef fmpz one = fmpz.__new__(fmpz)
         fmpz_one(one.val)
         fmpz_mod_ctx_init(self.val, one.val)
+        fmpz_mod_discrete_log_pohlig_hellman_init(self.L)
 
     def __dealloc__(self):
         fmpz_mod_ctx_clear(self.val)
+        fmpz_mod_discrete_log_pohlig_hellman_clear(self.L)
 
     def __init__(self, mod):
         # Ensure modulus is fmpz type
@@ -56,6 +58,10 @@ cdef class fmpz_mod_ctx:
         # Set the modulus
         fmpz_mod_ctx_set_modulus(self.val, (<fmpz>mod).val)
 
+        # Store whether the pohlig-hellman precomputation has 
+        # been performed
+        self._dlog_precomputed = 0
+
     def modulus(self):
         """
         Return the modulus from the context as an fmpz
@@ -69,6 +75,16 @@ cdef class fmpz_mod_ctx:
         n = fmpz()
         fmpz_set(n.val, (<fmpz_t>self.val.n))
         return n
+
+    cdef _precompute_dlog_prime(self):
+        """
+        Initalise the dlog data, all discrete logs are solved with an 
+        internally chosen base `y`
+        """
+        fmpz_mod_discrete_log_pohlig_hellman_precompute_prime(
+            self.L, self.val.n
+        )
+        self._dlog_precomputed = 1
 
     cdef any_as_fmpz_mod(self, obj):
         # If `obj` is an `fmpz_mod`, just check moduli
@@ -98,7 +114,7 @@ cdef class fmpz_mod_ctx:
         # TODO:
         # If we could cache contexts, then we would ensure that only
         # the a is b check is needed for equality.
-        
+
         # Most often, we expect both `fmpz_mod` to be pointing to the 
         # same ctx, so this seems the fastest way to check
         if self is other:
@@ -248,7 +264,6 @@ cdef class fmpz_mod(flint_scalar):
             >>> g.discrete_log(a)
             123
         """
-        cdef fmpz_mod_discrete_log_pohlig_hellman_t L
         cdef bint is_prime
 
         # Ensure that the modulus is prime
@@ -266,13 +281,6 @@ cdef class fmpz_mod(flint_scalar):
             if a is NotImplemented:
                 raise TypeError
 
-        # Initalise the dlog data, all discrete logs are solved with an 
-        # internally chosen base `y`
-        fmpz_mod_discrete_log_pohlig_hellman_init(L)
-        fmpz_mod_discrete_log_pohlig_hellman_precompute_prime(
-            L, self.ctx.val.n
-        )
-
         # Solve the discrete log for the chosen base and target
         # g = y^x_g and  a = y^x_a
         # We want to find x such that a = g^x =>
@@ -282,9 +290,13 @@ cdef class fmpz_mod(flint_scalar):
         fmpz_init(x_a)
         fmpz_init(x_g)
 
+        # Ensure that self.ctx.L has performed precomputations
+        if not self.ctx._dlog_precomputed:
+            self.ctx._precompute_dlog_prime()
+
         # TODO: should this value be stored for efficiency?
-        fmpz_mod_discrete_log_pohlig_hellman_run(x_g, L, self.val)
-        fmpz_mod_discrete_log_pohlig_hellman_run(x_a, L, (<fmpz_mod>a).val)
+        fmpz_mod_discrete_log_pohlig_hellman_run(x_g, self.ctx.L, self.val)
+        fmpz_mod_discrete_log_pohlig_hellman_run(x_a, self.ctx.L, (<fmpz_mod>a).val)
 
         # If g is not a primative root, then x_g and pm1 will share
         # a common factor. We can use this to compute the order of
@@ -293,13 +305,13 @@ cdef class fmpz_mod(flint_scalar):
         fmpz_init(g)
         fmpz_init(g_order)
 
-        fmpz_gcd(g, x_g, L.pm1)
+        fmpz_gcd(g, x_g, self.ctx.L.pm1)
         if not fmpz_is_one(g):
             fmpz_divexact(x_g, x_g, g)
             fmpz_divexact(x_a, x_a, g)
-            fmpz_divexact(g_order, L.pm1, g)
+            fmpz_divexact(g_order, self.ctx.L.pm1, g)
         else:
-            fmpz_set(g_order, L.pm1)
+            fmpz_set(g_order, self.ctx.L.pm1)
 
         # Finally, compute output exponent
         cdef fmpz x = fmpz.__new__(fmpz)
@@ -308,9 +320,6 @@ cdef class fmpz_mod(flint_scalar):
         fmpz_invmod(x.val, x_g, g_order)
         fmpz_mul(x.val, x.val, x_a)
         fmpz_type_mod(x.val, x.val, g_order)
-
-        # Clear the dlog struct
-        fmpz_mod_discrete_log_pohlig_hellman_clear(L)
 
         return x
 
