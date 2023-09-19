@@ -1770,6 +1770,50 @@ def test_fmpz_mod():
         assert fmpz(test_y) / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
         assert test_y / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
             
+def test_fmpz_mod_dlog():
+    from flint import fmpz, fmpz_mod_ctx
+
+    # Input modulus must be prime
+    F = fmpz_mod_ctx(4)
+    g, a = F(1), F(2)
+    assert raises(lambda: g.discrete_log(a, check=True), ValueError)
+
+    # Moduli must match
+    F1, F2 = fmpz_mod_ctx(2), fmpz_mod_ctx(3)
+    g = F1(2)
+    a = F2(4)
+    assert raises(lambda: g.discrete_log(a, check=True), ValueError)
+
+    # Need to use either fmpz_mod or something which can be case to
+    # fmpz
+    assert raises(lambda: g.discrete_log("A", check=True), TypeError)
+
+    F = fmpz_mod_ctx(163)
+    g = F(2)
+    a = g**123
+    
+    assert 123 == g.discrete_log(a)
+
+    a_int = pow(2, 123, 163)
+    a_fmpz = fmpz(a_int)
+    assert 123 == g.discrete_log(a_int)
+    assert 123 == g.discrete_log(a_fmpz)
+
+    # Randomised testing with smooth large modulus
+    e2, e3 = 92, 79
+    p = 2**e2 * 3**e3 + 1
+    F = fmpz_mod_ctx(p)
+
+    import random
+    for _ in range(10):
+        g = F(random.randint(0,p))
+        for _ in range(10):
+            i = random.randint(0,p)
+            a = g**i
+            x = g.discrete_log(a)
+            assert g**x == a
+
+
 
 all_tests = [
     test_pyflint,
@@ -1790,4 +1834,5 @@ all_tests = [
     test_nmod_mat,
     test_arb,
     test_fmpz_mod,
+    test_fmpz_mod_dlog
 ]
