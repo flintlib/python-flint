@@ -95,6 +95,13 @@ cdef class fmpz_mod_ctx:
         return res
 
     def __eq__(self, other):
+        # Most often, we expect both `fmpz_mod` to be pointing to the 
+        # same ctx, so this seems the fastest way to check
+        if self is other:
+            return True
+        
+        # If they're not the same object in memory, they may have the
+        # same modulus, which is good enough
         if typecheck(other, fmpz_mod_ctx):
             return fmpz_equal(self.val.n, (<fmpz_mod_ctx>other).val.n)
         return False
