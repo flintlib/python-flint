@@ -1814,16 +1814,50 @@ def test_fmpz_mod_dlog():
             assert g**x == a
 
 def test_fmpz_mod_poly():
-    from flint import fmpz_poly, fmpz_mod_poly_ctx
-    
-    R = fmpz_mod_poly_ctx(11)
+    from flint import fmpz_poly, fmpz_mod_poly_ctx, fmpz_mod_ctx
+
+    # fmpz_mod_poly_ctx tests
+    F = fmpz_mod_ctx(11)
+    R1 = fmpz_mod_poly_ctx(F)
+    R2 = fmpz_mod_poly_ctx(11)
+    R3 = fmpz_mod_poly_ctx(13)
+
+    assert raises(lambda: fmpz_mod_ctx("AAA"), TypeError)
+    assert raises(lambda: fmpz_mod_ctx(-1), ValueError)
+    assert (R1 == R1) is True
+    assert (R1 == R2) is True
+    assert (R1 != R3) is True
+    assert (R1 != "AAA") is True
+
+    assert (hash(R1) == hash(R1)) is True
+    assert (hash(R1) == hash(R2)) is True
+    assert (hash(R1) != hash(R3)) is True
+
+    assert str(R1) == "Context for fmpz_mod_poly with modulus: 11"
+    assert str(R1) == str(R2)
+    assert repr(R3) == "fmpz_mod_poly_ctx(13)"
+
+    assert R1.modulus() == 11
+
+    # fmpz_mod_poly tests
+    # TODO
+    R = fmpz_mod_poly_ctx(F)
     f = fmpz_poly([1,2,3])
-    g = R(f)
+    g = R1(f)
     assert str(g) == "3*x^2 + 2*x + 1"
 
     f = fmpz_poly([12,13,14])
-    g = R(f)
+    g = R1(f)
     assert str(g) == "3*x^2 + 2*x + 1"
+
+    f = fmpz_poly([5, 6, 7])
+    g = R1(f)
+    assert g[0] == 5
+    assert repr(g[0]) == "fmpz_mod(5, 11)"
+
+    g[0] = 7
+    assert repr(g[0]) == "fmpz_mod(7, 11)"
+    assert str(g) == "7*x^2 + 6*x + 7"
 
 all_tests = [
     test_pyflint,

@@ -52,7 +52,7 @@ cdef class fmpz_mod_ctx:
             mod = any_as_fmpz(mod)
             if mod is NotImplemented:
                 raise TypeError(
-                    "Context modulus must be able to be case to an `fmpz` type"
+                    "Context modulus must be able to be cast to an `fmpz` type"
                 )
 
         # Ensure modulus is positive
@@ -126,11 +126,11 @@ cdef class fmpz_mod_ctx:
         # If they're not the same object in memory, they may have the
         # same modulus, which is good enough
         if typecheck(other, fmpz_mod_ctx):
-            return fmpz_equal(self.val.n, (<fmpz_mod_ctx>other).val.n)
+            return fmpz_equal(self.val.n, (<fmpz_mod_ctx>other).val.n) == 1
         return False
 
     def __hash__(self):
-        return hash(self.modulus())
+        return hash(repr(self))
 
     def __str__(self):
         return f"Context for fmpz_mod with modulus: {self.modulus()}"
