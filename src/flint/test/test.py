@@ -1813,7 +1813,17 @@ def test_fmpz_mod_dlog():
             x = g.discrete_log(a)
             assert g**x == a
 
+def test_fmpz_mod_poly():
+    from flint import fmpz_poly, fmpz_mod_poly_ctx
+    
+    R = fmpz_mod_poly_ctx(11)
+    f = fmpz_poly([1,2,3])
+    g = R(f)
+    assert str(g) == "3*x^2 + 2*x + 1"
 
+    f = fmpz_poly([12,13,14])
+    g = R(f)
+    assert str(g) == "3*x^2 + 2*x + 1"
 
 all_tests = [
     test_pyflint,
@@ -1834,5 +1844,6 @@ all_tests = [
     test_nmod_mat,
     test_arb,
     test_fmpz_mod,
-    test_fmpz_mod_dlog
+    test_fmpz_mod_dlog,
+    test_fmpz_mod_poly
 ]

@@ -95,6 +95,7 @@ ext_files = [
     ("flint.types.acb_series", ["src/flint/types/acb_series.pyx"]),
     ("flint.types.fmpz_mpoly", ["src/flint/types/fmpz_mpoly.pyx"]),
     ("flint.types.fmpz_mod", ["src/flint/types/fmpz_mod.pyx"]),
+    ("flint.types.fmpz_mod_poly", ["src/flint/types/fmpz_mod_poly.pyx"]),
     ("flint.types.dirichlet", ["src/flint/types/dirichlet.pyx"]),
     ("flint.flint_base.flint_base", ["src/flint/flint_base/flint_base.pyx"]),
     ("flint.flint_base.flint_context", ["src/flint/flint_base/flint_context.pyx"]),
