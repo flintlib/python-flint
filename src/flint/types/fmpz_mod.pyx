@@ -67,7 +67,7 @@ cdef class fmpz_mod_ctx:
         Return the modulus from the context as an fmpz
         type
 
-            >>> mod_ctx = fmpz_mod_poly_ctx(2**127 - 1)
+            >>> mod_ctx = fmpz_mod_ctx(2**127 - 1)
             >>> mod_ctx.modulus()
             170141183460469231731687303715884105727
 
@@ -130,7 +130,7 @@ cdef class fmpz_mod_ctx:
         return False
 
     def __hash__(self):
-        return hash(repr(self))
+        return hash(self.modulus())
 
     def __str__(self):
         return f"Context for fmpz_mod with modulus: {self.modulus()}"
