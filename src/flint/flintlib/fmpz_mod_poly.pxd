@@ -67,6 +67,7 @@ cdef extern from "flint/fmpz_mod_poly.h":
     ctypedef fmpz_mod_berlekamp_massey_struct fmpz_mod_berlekamp_massey_t[1]
 
     # Parsed from here
+    # Memory Management
     void fmpz_mod_poly_init(fmpz_mod_poly_t poly, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_init2(fmpz_mod_poly_t poly, slong alloc, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_clear(fmpz_mod_poly_t poly, const fmpz_mod_ctx_t ctx)
@@ -76,6 +77,8 @@ cdef extern from "flint/fmpz_mod_poly.h":
     void _fmpz_mod_poly_set_length(fmpz_mod_poly_t poly, slong len)
     void fmpz_mod_poly_truncate(fmpz_mod_poly_t poly, slong len, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_set_trunc(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly, slong n, const fmpz_mod_ctx_t ctx)
+    
+    # Randomisation
     void fmpz_mod_poly_randtest(fmpz_mod_poly_t f, flint_rand_t state, slong len, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_randtest_irreducible(fmpz_mod_poly_t f, flint_rand_t state, slong len, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_randtest_not_zero(fmpz_mod_poly_t f, flint_rand_t state, slong len, const fmpz_mod_ctx_t ctx)
@@ -87,35 +90,49 @@ cdef extern from "flint/fmpz_mod_poly.h":
     void fmpz_mod_poly_randtest_pentomial(fmpz_mod_poly_t poly, flint_rand_t state, slong len, const fmpz_mod_ctx_t ctx)
     int fmpz_mod_poly_randtest_pentomial_irreducible(fmpz_mod_poly_t poly, flint_rand_t state, slong len, slong max_attempts, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_randtest_sparse_irreducible(fmpz_mod_poly_t poly, flint_rand_t state, slong len, const fmpz_mod_ctx_t ctx)
+    
+    # Attributes
     slong fmpz_mod_poly_degree(const fmpz_mod_poly_t poly, const fmpz_mod_ctx_t ctx)
     slong fmpz_mod_poly_length(const fmpz_mod_poly_t poly, const fmpz_mod_ctx_t ctx)
     fmpz_struct * fmpz_mod_poly_lead(const fmpz_mod_poly_t poly, const fmpz_mod_ctx_t ctx)
+    
+    # Assignment and Basic Manipulation
     void fmpz_mod_poly_set(fmpz_mod_poly_t poly1, const fmpz_mod_poly_t poly2, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_swap(fmpz_mod_poly_t poly1, fmpz_mod_poly_t poly2, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_zero(fmpz_mod_poly_t poly, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_one(fmpz_mod_poly_t poly, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_zero_coeffs(fmpz_mod_poly_t poly, slong i, slong j, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_reverse(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly, slong n, const fmpz_mod_ctx_t ctx)
+    
+    # Conversion
     void fmpz_mod_poly_set_ui(fmpz_mod_poly_t f, ulong c, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_set_fmpz(fmpz_mod_poly_t f, const fmpz_t c, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_set_fmpz_poly(fmpz_mod_poly_t f, const fmpz_poly_t g, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_get_fmpz_poly(fmpz_poly_t f, const fmpz_mod_poly_t g, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_get_nmod_poly(nmod_poly_t f, const fmpz_mod_poly_t g)
     void fmpz_mod_poly_set_nmod_poly(fmpz_mod_poly_t f, const nmod_poly_t g)
+    
+    # Comparison
     int fmpz_mod_poly_equal(const fmpz_mod_poly_t poly1, const fmpz_mod_poly_t poly2, const fmpz_mod_ctx_t ctx)
     int fmpz_mod_poly_equal_trunc(const fmpz_mod_poly_t poly1, const fmpz_mod_poly_t poly2, slong n, const fmpz_mod_ctx_t ctx)
     int fmpz_mod_poly_is_zero(const fmpz_mod_poly_t poly, const fmpz_mod_ctx_t ctx)
     int fmpz_mod_poly_is_one(const fmpz_mod_poly_t poly, const fmpz_mod_ctx_t ctx)
     int fmpz_mod_poly_is_gen(const fmpz_mod_poly_t poly, const fmpz_mod_ctx_t ctx)
+    
+    # Getting and Setting coefficients
     void fmpz_mod_poly_set_coeff_fmpz(fmpz_mod_poly_t poly, slong n, const fmpz_t x, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_set_coeff_ui(fmpz_mod_poly_t poly, slong n, ulong x, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_get_coeff_fmpz(fmpz_t x, const fmpz_mod_poly_t poly, slong n, const fmpz_mod_ctx_t ctx)
     # void fmpz_mod_poly_set_coeff_mpz(fmpz_mod_poly_t poly, slong n, const mpz_t x, const fmpz_mod_ctx_t ctx)
     # void fmpz_mod_poly_get_coeff_mpz(mpz_t x, const fmpz_mod_poly_t poly, slong n, const fmpz_mod_ctx_t ctx)
+    
+    # Shifiting
     void _fmpz_mod_poly_shift_left(fmpz_struct * res, const fmpz_struct * poly, slong len, slong n, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_shift_left(fmpz_mod_poly_t f, const fmpz_mod_poly_t g, slong n, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_poly_shift_right(fmpz_struct * res, const fmpz_struct * poly, slong len, slong n, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_shift_right(fmpz_mod_poly_t f, const fmpz_mod_poly_t g, slong n, const fmpz_mod_ctx_t ctx)
+    
+    # Addition and Subtraction
     void _fmpz_mod_poly_add(fmpz_struct *res, const fmpz_struct *poly1, slong len1, const fmpz_struct *poly2, slong len2, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_add(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly1, const fmpz_mod_poly_t poly2, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_add_series(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly1, const fmpz_mod_poly_t poly2, slong n, const fmpz_mod_ctx_t ctx)
@@ -124,11 +141,15 @@ cdef extern from "flint/fmpz_mod_poly.h":
     void fmpz_mod_poly_sub_series(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly1, const fmpz_mod_poly_t poly2, slong n, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_poly_neg(fmpz_struct *res, const fmpz_struct *poly, slong len, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_neg(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly, const fmpz_mod_ctx_t ctx)
+    
+    # Scalar Multiplication and division
     void _fmpz_mod_poly_scalar_mul_fmpz(fmpz_struct *res, const fmpz_struct *poly, slong len, const fmpz_t x, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_scalar_mul_fmpz(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly, const fmpz_t x, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_scalar_addmul_fmpz(fmpz_mod_poly_t rop, const fmpz_mod_poly_t op, const fmpz_t x, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_poly_scalar_div_fmpz(fmpz_struct *res, const fmpz_struct *poly, slong len, const fmpz_t x, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_scalar_div_fmpz(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly, const fmpz_t x, const fmpz_mod_ctx_t ctx)
+    
+    # Multiplication
     void _fmpz_mod_poly_mul(fmpz_struct *res, const fmpz_struct *poly1, slong len1, const fmpz_struct *poly2, slong len2, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_mul(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly1, const fmpz_mod_poly_t poly2, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_poly_mullow(fmpz_struct *res, const fmpz_struct *poly1, slong len1, const fmpz_struct *poly2, slong len2, const fmpz_t p, slong n)
@@ -140,9 +161,13 @@ cdef extern from "flint/fmpz_mod_poly.h":
     void fmpz_mod_poly_mulmod(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly1, const fmpz_mod_poly_t poly2, const fmpz_mod_poly_t f, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_poly_mulmod_preinv(fmpz_struct * res, const fmpz_struct * poly1, slong len1, const fmpz_struct * poly2, slong len2, const fmpz_struct * f, slong lenf, const fmpz_struct* finv, slong lenfinv, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_mulmod_preinv(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly1, const fmpz_mod_poly_t poly2, const fmpz_mod_poly_t f, const fmpz_mod_poly_t finv, const fmpz_mod_ctx_t ctx)
+    
+    # Products
     void _fmpz_mod_poly_product_roots_fmpz_vec(fmpz_struct * poly, const fmpz_struct * xs, slong n, fmpz_t f)
     void fmpz_mod_poly_product_roots_fmpz_vec(fmpz_mod_poly_t poly, const fmpz_struct * xs, slong n, fmpz_t f, const fmpz_mod_ctx_t ctx)
     int fmpz_mod_poly_find_distinct_nonzero_roots(fmpz_struct * roots, const fmpz_mod_poly_t A, const fmpz_mod_ctx_t ctx)
+    
+    # Powering
     void _fmpz_mod_poly_pow(fmpz_struct *rop, const fmpz_struct *op, slong len, ulong e, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_pow(fmpz_mod_poly_t rop, const fmpz_mod_poly_t op, ulong e, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_poly_pow_trunc(fmpz_struct * res, const fmpz_struct * poly, ulong e, slong trunc, const fmpz_mod_ctx_t ctx)
@@ -168,6 +193,8 @@ cdef extern from "flint/fmpz_mod_poly.h":
     void fmpz_mod_poly_frobenius_power(fmpz_mod_poly_t res, fmpz_mod_poly_frobenius_powers_2exp_t pow, const fmpz_mod_poly_t f, ulong m, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_frobenius_powers_precomp(fmpz_mod_poly_frobenius_powers_t pow, const fmpz_mod_poly_t f, const fmpz_mod_poly_t finv, ulong m, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_frobenius_powers_clear(fmpz_mod_poly_frobenius_powers_t pow, const fmpz_mod_ctx_t ctx)
+    
+    # Division
     void _fmpz_mod_poly_divrem_basecase(fmpz_struct * Q, fmpz_struct * R, const fmpz_struct * A, slong lenA, const fmpz_struct * B, slong lenB, const fmpz_t invB, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_divrem_basecase(fmpz_mod_poly_t Q, fmpz_mod_poly_t R, const fmpz_mod_poly_t A, const fmpz_mod_poly_t B, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_poly_divrem_newton_n_preinv (fmpz_struct* Q, fmpz_struct* R, const fmpz_struct* A, slong lenA, const fmpz_struct* B, slong lenB, const fmpz_struct* Binv, slong lenBinv, const fmpz_mod_ctx_t ctx)
@@ -185,15 +212,21 @@ cdef extern from "flint/fmpz_mod_poly.h":
     void _fmpz_mod_poly_rem(fmpz_struct *R, const fmpz_struct *A, slong lenA, const fmpz_struct *B, slong lenB, const fmpz_t invB, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_poly_rem_f(fmpz_t f, fmpz_struct *R, const fmpz_struct *A, slong lenA, const fmpz_struct *B, slong lenB, const fmpz_t invB, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_rem(fmpz_mod_poly_t R, const fmpz_mod_poly_t A, const fmpz_mod_poly_t B, const fmpz_mod_ctx_t ctx)
+    
+    # Divisibility testing
     int _fmpz_mod_poly_divides_classical(fmpz_struct * Q, const fmpz_struct * A, slong lenA, const fmpz_struct * B, slong lenB, const fmpz_mod_ctx_t ctx)
     int fmpz_mod_poly_divides_classical(fmpz_mod_poly_t Q, const fmpz_mod_poly_t A, const fmpz_mod_poly_t B, fmpz_mod_ctx_t ctx)
     int _fmpz_mod_poly_divides(fmpz_struct * Q, const fmpz_struct * A, slong lenA, const fmpz_struct * B, slong lenB, const fmpz_mod_ctx_t ctx)
     int fmpz_mod_poly_divides(fmpz_mod_poly_t Q, const fmpz_mod_poly_t A, const fmpz_mod_poly_t B, fmpz_mod_ctx_t ctx)
+    
+    # Power series division
     void _fmpz_mod_poly_inv_series(fmpz_struct * Qinv, const fmpz_struct * Q, slong n, const fmpz_t cinv, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_inv_series(fmpz_mod_poly_t Qinv, const fmpz_mod_poly_t Q, slong n, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_inv_series_f(fmpz_t f, fmpz_mod_poly_t Qinv, const fmpz_mod_poly_t Q, slong n, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_poly_div_series(fmpz_struct * Q, const fmpz_struct * A, slong Alen, const fmpz_struct * B, slong Blen, const fmpz_t p, slong n)
     void fmpz_mod_poly_div_series(fmpz_mod_poly_t Q, const fmpz_mod_poly_t A, const fmpz_mod_poly_t B, slong n, const fmpz_mod_ctx_t ctx)
+    
+    # Greatest common divisor
     void fmpz_mod_poly_make_monic(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_make_monic_f(fmpz_t f, fmpz_mod_poly_t res, const fmpz_mod_poly_t poly, const fmpz_mod_ctx_t ctx)
     slong _fmpz_mod_poly_gcd(fmpz_struct *G, const fmpz_struct *A, slong lenA, const fmpz_struct *B, slong lenB, const fmpz_t invB, const fmpz_mod_ctx_t ctx)
@@ -220,12 +253,16 @@ cdef extern from "flint/fmpz_mod_poly.h":
     int _fmpz_mod_poly_invmod_f(fmpz_t f, fmpz_struct *A, const fmpz_struct *B, slong lenB, const fmpz_struct *P, slong lenP, const fmpz_mod_ctx_t ctx)
     int fmpz_mod_poly_invmod(fmpz_mod_poly_t A, const fmpz_mod_poly_t B, const fmpz_mod_poly_t P, const fmpz_mod_ctx_t ctx)
     int fmpz_mod_poly_invmod_f(fmpz_t f, fmpz_mod_poly_t A, const fmpz_mod_poly_t B, const fmpz_mod_poly_t P, const fmpz_mod_ctx_t ctx)
+    
+    # Minpoly
     slong _fmpz_mod_poly_minpoly_bm(fmpz_struct* poly, const fmpz_struct* seq, slong len, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_minpoly_bm(fmpz_mod_poly_t poly, const fmpz_struct* seq, slong len, const fmpz_mod_ctx_t ctx)
     slong _fmpz_mod_poly_minpoly_hgcd(fmpz_struct* poly, const fmpz_struct* seq, slong len, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_minpoly_hgcd(fmpz_mod_poly_t poly, const fmpz_struct* seq, slong len, const fmpz_mod_ctx_t ctx)
     slong _fmpz_mod_poly_minpoly(fmpz_struct* poly, const fmpz_struct* seq, slong len, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_minpoly(fmpz_mod_poly_t poly, const fmpz_struct* seq, slong len, const fmpz_mod_ctx_t ctx)
+    
+    # Resultant
     void _fmpz_mod_poly_resultant_euclidean(fmpz_t res, const fmpz_struct *poly1, slong len1, const fmpz_struct *poly2, slong len2, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_resultant_euclidean(fmpz_t r, const fmpz_mod_poly_t f, const fmpz_mod_poly_t g, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_poly_resultant_hgcd(fmpz_t res, const fmpz_struct *A, slong lenA, const fmpz_struct *B, slong lenB, const fmpz_mod_ctx_t ctx)

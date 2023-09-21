@@ -1814,7 +1814,7 @@ def test_fmpz_mod_dlog():
             assert g**x == a
 
 def test_fmpz_mod_poly():
-    from flint import fmpz_poly, fmpz_mod_poly_ctx, fmpz_mod_ctx
+    from flint import fmpz_poly, fmpz_mod_poly_ctx, fmpz_mod_ctx, fmpz
 
     # fmpz_mod_poly_ctx tests
     F = fmpz_mod_ctx(11)
@@ -1838,26 +1838,61 @@ def test_fmpz_mod_poly():
     assert repr(R3) == "fmpz_mod_poly_ctx(13)"
 
     assert R1.modulus() == 11
+    assert R1([0,1]) == R1.gen()
 
-    # fmpz_mod_poly tests
-    # TODO
+    # Conversion tests
+    F = fmpz_mod_ctx(11)
     R = fmpz_mod_poly_ctx(F)
-    f = fmpz_poly([1,2,3])
-    g = R1(f)
-    assert str(g) == "3*x^2 + 2*x + 1"
 
-    f = fmpz_poly([12,13,14])
-    g = R1(f)
-    assert str(g) == "3*x^2 + 2*x + 1"
+    f1 = R([int(-1),int(-2),int(-3)])
+    f2 = R([fmpz(-1),fmpz(-2),fmpz(-3)])
+    f3 = R([F(-1),F(-2),F(-3)])
+    f4 = R(fmpz_poly([-1, -2, -3]))
 
-    f = fmpz_poly([5, 6, 7])
-    g = R1(f)
-    assert g[0] == 5
-    assert repr(g[0]) == "fmpz_mod(5, 11)"
+    assert str(f1) == "8*x^2 + 9*x + 10"
+    assert str(f2) == "8*x^2 + 9*x + 10"
+    assert str(f3) == "8*x^2 + 9*x + 10"
+    assert str(f4) == "8*x^2 + 9*x + 10"
 
-    g[0] = 7
-    assert repr(g[0]) == "fmpz_mod(7, 11)"
-    assert str(g) == "7*x^2 + 6*x + 7"
+    f1 = R(5)
+    f2 = R(fmpz(6))
+    f3 = R(F(7))
+    assert str(f1) == "5"
+    assert str(f2) == "6"
+    assert str(f3) == "7"
+
+    # Printing
+    f = R([5, 6, 7, 8])
+    assert str(f) == "8*x^3 + 7*x^2 + 6*x + 5"
+    assert repr(f) == "fmpz_mod_poly([5, 6, 7, 8], fmpz_mod_poly_ctx(11))"
+
+    # Get and Set tests
+    f = R([5, 6, 7, 8])
+    assert f[0] == 5
+    assert repr(f[0]) == "fmpz_mod(5, 11)"
+    f[0] = 7
+    assert repr(f[0]) == "fmpz_mod(7, 11)"
+    assert str(f) == "8*x^3 + 7*x^2 + 6*x + 7"
+
+    # Comparisons
+    f1 = R([1,2,3])
+    f2 = R([12,13,14])
+    f3 = R([4,5,6])
+    f4 = R([3])
+
+    assert (f1 == f2) is True
+    assert (f1 != f3) is True
+    assert (f1 != "1") is True
+    assert (f4 == 3) is True
+
+    f1 = R([0])
+    f2 = R([1])
+    f3 = R([0, 1])
+
+    assert f1.is_zero() is True
+    assert f2.is_one() is True
+    assert f3.is_gen() is True
+
 
 all_tests = [
     test_pyflint,

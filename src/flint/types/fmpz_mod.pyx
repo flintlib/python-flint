@@ -67,7 +67,7 @@ cdef class fmpz_mod_ctx:
         Return the modulus from the context as an fmpz
         type
 
-            >>> mod_ctx = fmpz_mod_ctx(2**127 - 1)
+            >>> mod_ctx = fmpz_mod_poly_ctx(2**127 - 1)
             >>> mod_ctx.modulus()
             170141183460469231731687303715884105727
 
@@ -345,7 +345,7 @@ cdef class fmpz_mod(flint_scalar):
         if not typecheck(other, fmpz_mod):
             other = self.ctx.any_as_fmpz_mod(other)
 
-        if typecheck(self, fmpz_mod) and typecheck(other, fmpz_mod):
+        if typecheck(other, fmpz_mod):
             res = fmpz_equal(self.val, (<fmpz_mod>other).val) and \
                   (self.ctx == (<fmpz_mod>other).ctx)
             if op == 2:
