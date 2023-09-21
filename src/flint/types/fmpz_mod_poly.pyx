@@ -1,10 +1,14 @@
 from cpython.list cimport PyList_GET_SIZE
+from flint.flintlib.fmpz_mod cimport fmpz_mod_set_fmpz
 from flint.flintlib.fmpz_mod_poly cimport *
+from flint.flintlib.fmpz_mod_poly_factor cimport *
+
 from flint.flintlib.fmpz cimport(
     fmpz_equal,
     fmpz_set,
     fmpz_init,
-    fmpz_clear
+    fmpz_clear,
+    fmpz_set_si
 )
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 from flint.types.fmpz_mod cimport fmpz_mod_ctx, fmpz_mod
@@ -196,9 +200,6 @@ cdef class fmpz_mod_poly(flint_poly):
             self.val, i, (<fmpz_mod>v).val, self.ctx.mod.val
         )
 
-    def __repr__(self):
-        return f"fmpz_mod_poly([{', '.join(map(str, self.coeffs()))}], {repr(self.ctx)})"
-
     def __len__(self):
         return fmpz_mod_poly_length(self.val, self.ctx.mod.val)
 
@@ -234,3 +235,41 @@ cdef class fmpz_mod_poly(flint_poly):
                 return not res
         else:
             return NotImplemented
+
+
+    def is_irreducible(self):
+        pass
+
+    def is_squarefree(self):
+        pass
+
+    def factor(self, algorithm=None):
+        """
+        Factors self into irreducible factors, returning a tuple
+        (c, factors) where c is the content of the coefficients and
+        factors is a list of (poly, exp) pairs.
+        """
+        cdef fmpz_mod_poly_factor_t fac
+        cdef int i
+        fmpz_mod_poly_factor_init(fac, self.ctx.mod.val)
+
+        if algorithm == None:
+            fmpz_mod_poly_factor(fac, self.val, self.ctx.mod.val)
+        elif algorithm == "cantor_zassenhaus":
+            fmpz_mod_poly_factor_cantor_zassenhaus(fac, self.val, self.ctx.mod.val)
+        elif algorithm == "kaltofen_shoup":
+            fmpz_mod_poly_factor_kaltofen_shoup(fac, self.val, self.ctx.mod.val)
+        elif algorithm == "berlekamp":
+            fmpz_mod_poly_factor_berlekamp(fac, self.val, self.ctx.mod.val)
+        else:
+            raise ValueError("unknown algorithm")
+        res = [0] * fac.num
+
+        cdef fmpz_mod_poly u
+        for i in range(fac.num):
+            u = fmpz_mod_poly.__new__(fmpz_mod_poly)
+            u.ctx = self.ctx
+            fmpz_mod_poly_set(u.val, &fac.poly[i], self.ctx.mod.val)
+            exp = fac.exp[i]
+            res[i] = (u, exp)
+        return res

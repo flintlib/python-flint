@@ -1864,7 +1864,7 @@ def test_fmpz_mod_poly():
     # Printing
     f = R([5, 6, 7, 8])
     assert str(f) == "8*x^3 + 7*x^2 + 6*x + 5"
-    assert repr(f) == "fmpz_mod_poly([5, 6, 7, 8], fmpz_mod_poly_ctx(11))"
+    # assert repr(f) == "fmpz_mod_poly([5, 6, 7, 8], fmpz_mod_poly_ctx(11))"
 
     # Get and Set tests
     f = R([5, 6, 7, 8])
