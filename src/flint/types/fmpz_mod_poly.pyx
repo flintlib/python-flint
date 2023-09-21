@@ -8,7 +8,8 @@ from flint.flintlib.fmpz cimport(
     fmpz_set,
     fmpz_init,
     fmpz_clear,
-    fmpz_set_si
+    fmpz_set_si,
+    fmpz_is_one
 )
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 from flint.types.fmpz_mod cimport fmpz_mod_ctx, fmpz_mod
@@ -236,6 +237,46 @@ cdef class fmpz_mod_poly(flint_poly):
         else:
             return NotImplemented
 
+    def leading_coefficient(self):
+        """
+        Return the leading coefficient of this polynomial.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,2,3])
+            >>> f.leading_coefficient()
+            fmpz_mod(3, 163)
+        """
+        return self[self.degree()]
+
+    def monic(self, check=True):
+        """
+        Return this polynomial divided by its leading coefficient.
+
+        If `check` is True, raises ValueError if the leading coefficient 
+        is not invertible modulo N.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,2,3])
+            >>> f.monic()
+            x^2 + 55*x + 109
+        """
+        cdef fmpz_mod_poly res
+        cdef fmpz_t f
+
+        res =  fmpz_mod_poly.__new__(fmpz_mod_poly)
+        if not check:
+            fmpz_mod_poly_make_monic(
+                res.val, self.val, self.ctx.mod.val
+            )
+        else:
+            fmpz_init(f) 
+            fmpz_mod_poly_make_monic_f(
+                f, res.val, self.val, self.ctx.mod.val
+            )
+            if not fmpz_is_one(f):
+                raise ValueError(f"Leading coefficient is not invertible")
+        res.ctx = self.ctx
+        return res
 
     def is_irreducible(self):
         pass
@@ -248,6 +289,10 @@ cdef class fmpz_mod_poly(flint_poly):
         Factors self into irreducible factors, returning a tuple
         (c, factors) where c is the content of the coefficients and
         factors is a list of (poly, exp) pairs.
+
+        TODO: docstrings
+        TODO: add a check that at least the leading term is
+        invertible to stop segfaults?
         """
         cdef fmpz_mod_poly_factor_t fac
         cdef int i
@@ -272,4 +317,4 @@ cdef class fmpz_mod_poly(flint_poly):
             fmpz_mod_poly_set(u.val, &fac.poly[i], self.ctx.mod.val)
             exp = fac.exp[i]
             res[i] = (u, exp)
-        return res
+        return self.leading_coefficient(), res
