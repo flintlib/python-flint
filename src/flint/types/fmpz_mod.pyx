@@ -39,6 +39,7 @@ cdef class fmpz_mod_ctx:
         fmpz_one(one.val)
         fmpz_mod_ctx_init(self.val, one.val)
         self.L = NULL
+        self._is_prime = 0
         
 
     def __dealloc__(self):
@@ -62,6 +63,10 @@ cdef class fmpz_mod_ctx:
         # Set the modulus
         fmpz_mod_ctx_set_modulus(self.val, (<fmpz>mod).val)
 
+        # Check whether the modulus is prime
+        # TODO: should we use a stronger test?
+        self._is_prime = fmpz_is_probabprime(self.val.n)
+
     def modulus(self):
         """
         Return the modulus from the context as an fmpz
@@ -75,6 +80,17 @@ cdef class fmpz_mod_ctx:
         n = fmpz()
         fmpz_set(n.val, (<fmpz_t>self.val.n))
         return n
+
+    def is_prime(self):
+        """
+        Return whether the modulus is prime
+
+            >>> fmpz_mod_ctx(2**127).is_prime()
+            False
+            >>> fmpz_mod_ctx(2**127 - 1).is_prime()
+            True
+        """
+        return self._is_prime == 1
 
     cdef _precompute_dlog_prime(self):
         """
@@ -252,7 +268,7 @@ cdef class fmpz_mod(flint_scalar):
 
         return res
 
-    def discrete_log(self, a, check=False):
+    def discrete_log(self, a):
         """
         Solve the discrete logarithm problem, using `self = g` as a base.
         Assumes a solution, :math:`a = g^x \pmod p` exists.
@@ -269,10 +285,8 @@ cdef class fmpz_mod(flint_scalar):
         cdef bint is_prime
 
         # Ensure that the modulus is prime
-        if check:
-            is_prime = fmpz_is_probabprime(self.ctx.val.n)
-            if not is_prime:
-                raise ValueError("modulus must be prime")
+        if not self.ctx.is_prime():
+            raise NotImplementedError("algorithm assumes modulus is prime")
 
         # Then check the type of the input
         if typecheck(a, fmpz_mod):

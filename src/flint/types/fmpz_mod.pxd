@@ -8,6 +8,7 @@ from flint.flintlib.fmpz_mod cimport (
 
 cdef class fmpz_mod_ctx:
     cdef fmpz_mod_ctx_t val
+    cdef bint _is_prime
     cdef fmpz_mod_discrete_log_pohlig_hellman_t *L
     cdef any_as_fmpz_mod(self, obj)
     cdef _precompute_dlog_prime(self)
