@@ -1,6 +1,8 @@
+from flint.pyflint cimport global_random_state
 from flint.flintlib.fmpz cimport(
     fmpz_t,
     fmpz_one,
+    fmpz_zero,
     fmpz_set,
     fmpz_init,
     fmpz_clear,
@@ -10,7 +12,8 @@ from flint.flintlib.fmpz cimport(
     fmpz_invmod,
     fmpz_divexact,
     fmpz_gcd,
-    fmpz_is_one
+    fmpz_is_one,
+    fmpz_randm
 )
 from flint.flintlib.fmpz cimport fmpz_mod as fmpz_type_mod
 from flint.flintlib.fmpz_mod cimport *
@@ -91,6 +94,48 @@ cdef class fmpz_mod_ctx:
             True
         """
         return self._is_prime == 1
+
+    def zero(self):
+        """
+        Return the zero element
+
+            >>> F = fmpz_mod_ctx(163)
+            >>> F.zero()
+            fmpz_mod(0, 163)
+        """
+        cdef fmpz_mod res 
+        res = fmpz_mod.__new__(fmpz_mod)
+        fmpz_zero(res.val)
+        res.ctx = self
+
+        return res
+
+    def one(self):
+        """
+        Return the one element
+
+            >>> F = fmpz_mod_ctx(163)
+            >>> F.one()
+            fmpz_mod(1, 163)
+        """
+        cdef fmpz_mod res 
+        res = fmpz_mod.__new__(fmpz_mod)
+        fmpz_one(res.val)
+        res.ctx = self
+
+        return res
+
+    def random_element(self):
+        r"""
+        Return a random element in :math:`\mathbb{Z}/N\mathbb{Z}`
+        """
+        cdef fmpz_mod res
+        res = fmpz_mod.__new__(fmpz_mod)
+        res.ctx = self
+
+        fmpz_randm(res.val, global_random_state, self.val.n)
+
+        return res
 
     cdef _precompute_dlog_prime(self):
         """

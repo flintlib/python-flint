@@ -1,10 +1,13 @@
 from cpython.list cimport PyList_GET_SIZE
+from flint.pyflint cimport global_random_state
+from flint.flintlib.fmpz_mod cimport fmpz_mod_ctx_t, fmpz_mod_ctx_init, fmpz_mod_neg
 from flint.flintlib.fmpz_mod_poly cimport *
 from flint.flintlib.fmpz_mod_poly_factor cimport *
 
 from flint.flintlib.fmpz cimport(
     fmpz_init,
     fmpz_clear,
+    fmpz_one,
     fmpz_is_one
 )
 from flint.types.fmpz cimport fmpz, any_as_fmpz
@@ -13,6 +16,13 @@ from flint.types.fmpz_poly cimport fmpz_poly
 
 from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
+
+# Global context with modulus one to make `__cinit__` happy within
+# `fmpz_mod_poly`
+cdef fmpz_t _fmpz_one
+cdef fmpz_mod_ctx_t _fmpz_mod_one_ctx
+fmpz_one(_fmpz_one)
+fmpz_mod_ctx_init(_fmpz_mod_one_ctx, _fmpz_one)
 
 cdef class fmpz_mod_poly_ctx:
     """
@@ -41,8 +51,8 @@ cdef class fmpz_mod_poly_ctx:
         Return the modulus from the context as an fmpz
         type
 
-            >>> mod_ctx = fmpz_mod_poly_ctx(2**127 - 1)
-            >>> mod_ctx.modulus()
+            >>> R = fmpz_mod_poly_ctx(2**127 - 1)
+            >>> R.modulus()
             170141183460469231731687303715884105727
 
         """
@@ -91,13 +101,63 @@ cdef class fmpz_mod_poly_ctx:
         """
         Return the generator of the polynomial `x`
 
-            >>> R = fmpz_mod_poly_ctx(2**127 - 1)
-            >>> mod_ctx.gen()
-            fmpz_mod_poly([0, 1], fmpz_mod_poly_ctx(170141183460469231731687303715884105727))
-            >>> str(mod_ctx.gen())
-            'x'
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> R.gen()
+            x
         """
         return self.any_as_fmpz_mod_poly([0, 1])
+
+    def random_element(self, degree=3, monic=False, irreducible=False):
+        """
+        Return a random element of degree `degree`.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R.random_element()
+            >>> f.degree()
+            3
+            >>> f = R.random_element(degree=123)
+            >>> f.degree()
+            123
+            >>> f = R.random_element(monic=True)
+            >>> f.is_monic()
+            True
+            >>> f = R.random_element(degree=13, monic=True, irreducible=True)
+            >>> f.degree()
+            13
+            >>> f.is_monic()
+            True
+            >>> f.is_irreducible()
+            True
+        """
+        cdef slong length
+        if not (isinstance(monic, bool) and isinstance(irreducible, bool)):
+            raise ValueError("Both `monic` and `irreducible` must be of type bool")
+
+        length = degree + 1
+        if length <= 0:
+            raise ValueError("The degree argument must be non-negative")
+
+        cdef fmpz_mod_poly res
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self
+        if (monic and irreducible):
+            fmpz_mod_poly_randtest_monic_irreducible(
+                res.val, global_random_state, length, self.mod.val
+            )
+        elif monic:
+            fmpz_mod_poly_randtest_monic(
+                res.val, global_random_state, length, self.mod.val
+            )
+        elif irreducible:
+            fmpz_mod_poly_randtest_irreducible(
+                res.val, global_random_state, length, self.mod.val
+            )
+        else:
+            fmpz_mod_poly_randtest(
+                res.val, global_random_state, length, self.mod.val
+            )
+        return res
+
 
     cdef set_list_as_fmpz_mod_poly(self, fmpz_mod_poly_t poly, val):
         cdef long i, n
@@ -204,7 +264,7 @@ cdef class fmpz_mod_poly(flint_poly):
     """
     """
     def __cinit__(self):
-        fmpz_mod_poly_init(self.val, self.ctx.mod.val)
+        fmpz_mod_poly_init(self.val, _fmpz_mod_one_ctx)
 
     def __dealloc__(self):
         fmpz_mod_poly_clear(self.val, self.ctx.mod.val)
@@ -356,6 +416,13 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         return res
 
+    def __lshift__(self, n):
+        pass
+
+    def __rshift__(self, n):
+        pass
+
+
     @staticmethod
     def _mod_(s, t):
         pass
@@ -414,6 +481,18 @@ cdef class fmpz_mod_poly(flint_poly):
 
     def __hash__(self):
         return hash(map(int, self.coeffs()))
+
+    def __call__(self, val):
+        cdef fmpz_mod res
+
+        val = self.ctx.mod.any_as_fmpz_mod(val)
+        if val is NotImplemented:
+            return val
+
+        res = fmpz_mod.__new__(fmpz_mod)
+        res.ctx = self.ctx.mod
+        fmpz_mod_poly_evaluate_fmpz(res.val, self.val, (<fmpz_mod>val).val, self.ctx.mod.val)
+        return res
 
     cpdef long length(self):
         return fmpz_mod_poly_length(self.val, self.ctx.mod.val)
@@ -476,7 +555,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
             >>> R = fmpz_mod_poly_ctx(163)
             >>> f = R([1,2,3])
-            >>> f.leading_coefficient()
+            >>> f.constant_coefficient()
             fmpz_mod(1, 163)
         """
         return self[0]
@@ -526,6 +605,9 @@ cdef class fmpz_mod_poly(flint_poly):
         fmpz_mod_poly_reverse(res.val, self.val, length, self.ctx.mod.val)
         return res
 
+    def shift(self, n):
+        pass
+
     def monic(self, check=True):
         """
         Return this polynomial divided by its leading coefficient.
@@ -556,16 +638,31 @@ cdef class fmpz_mod_poly(flint_poly):
         res.ctx = self.ctx
         return res
 
+    def is_monic(self):
+        """
+        Return whether this polynomial is monic.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = x**2 + 5*x + 3
+            >>> f.is_monic()
+            True
+            >>> f = 5*x**2 + x + 3
+            >>> f.is_monic()
+            False
+        """
+        return self.leading_coefficient().is_one()
+
     def is_irreducible(self):
         """
         Return whether this polynomial is irreducible.
 
             >>> R = fmpz_mod_poly_ctx(163)
-            >>> f = R([1,2,3])
-            >>> f = (x**2 + 5*x + 3)
+            >>> x = R.gen()
+            >>> f = x**2 + 5*x + 3
             >>> f.is_irreducible()
             True
-            >>> f = (x**2 + x + 3)
+            >>> f = x**2 + x + 3
             >>> f.is_irreducible()
             False
         """
@@ -759,8 +856,48 @@ cdef class fmpz_mod_poly(flint_poly):
             res[i] = (u, exp)
         return self.leading_coefficient(), res
 
-    def roots(self):
-        return NotImplemented
+    def roots(self, multiplicities=True):
+        """
+        Return the roots of the polynomial in (Z/NZ)*
+        Requires that the modulus N is prime.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = (x - 1) * (x - 2)**3 * (x - 3)**5
+            >>> f.roots()
+            [(fmpz_mod(1, 163), 1), (fmpz_mod(2, 163), 3), (fmpz_mod(3, 163), 5)]
+            >>> f.roots(multiplicities=False)
+            [fmpz_mod(1, 163), fmpz_mod(2, 163), fmpz_mod(3, 163)]
+        """
+        cdef fmpz_mod_poly_factor_t fac
+        cdef int i, with_multiplicity
+
+        if multiplicities:
+            with_multiplicity = 1
+
+        if not self.ctx.is_prime():
+            raise NotImplementedError("factor algorithm assumes that the modulus is prime")
+                 
+        fmpz_mod_poly_factor_init(fac, self.ctx.mod.val)
+        fmpz_mod_poly_roots(fac, self.val, with_multiplicity, self.ctx.mod.val)
+        res = [0] * fac.num
+
+        cdef fmpz_mod root
+        for i in range(fac.num):
+            root = fmpz_mod.__new__(fmpz_mod)
+            root.ctx = self.ctx.mod
+            fmpz_mod_poly_get_coeff_fmpz(
+                root.val, &fac.poly[i], 0, self.ctx.mod.val
+            )
+            fmpz_mod_neg(
+                root.val, root.val, root.ctx.val
+            )
+            if multiplicities:
+                mul = fac.exp[i]
+                res[i] = (root, mul)
+            else:
+                res[i] = root
+        return res
 
     def complex_roots(self):
-        return NotImplemented
+        return NotImplementedError("the method `complex_roots` is not yet implemented for fmpz_mod_poly")
