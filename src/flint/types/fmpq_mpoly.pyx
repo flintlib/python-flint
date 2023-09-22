@@ -1,4 +1,19 @@
+from cpython.dict cimport PyDict_Size, PyDict_Check, PyDict_Next
+from cpython.tuple cimport PyTuple_Check, PyTuple_GET_SIZE
+from flint.types.fmpq cimport any_as_fmpq, fmpq
+from flint.types.fmpz cimport fmpz, fmpz_set_any_ref, any_as_fmpz
 
+from flint.utils.typecheck cimport typecheck
+from flint.utils.conversion cimport str_from_chars
+
+from flint.flintlib.flint cimport *
+from flint.flintlib.fmpq cimport fmpq_init, fmpq_clear, fmpq_is_zero
+from flint.flintlib.fmpz cimport fmpz_clear, fmpz_init
+from flint.flintlib.fmpq_mpoly cimport *
+
+
+cimport cython
+cimport libc.stdlib
 
 cdef dict _fmpq_mpoly_ctx_cache = {}
 
@@ -62,7 +77,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
         """
         cdef fmpq_mpoly res
         assert i >= 0 and i < self.val.zctx.minfo.nvars
-        res = fmpq_mpoly.__new__(fmpz_mpoly)
+        res = fmpq_mpoly.__new__(fmpq_mpoly)
         res.ctx = self
         fmpq_mpoly_init(res.val, res.ctx.val)
         res._init = True
@@ -77,77 +92,92 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
         z = any_as_fmpq(z)
         if z is NotImplemented:
             raise ValueError("A constant fmpq_mpoly is a fmpq")
-        res = fmpz_mpoly.__new__(fmpz_mpoly)
+        res = fmpq_mpoly.__new__(fmpq_mpoly)
         res.ctx = self
-        fmpz_mpoly_init(res.val, res.ctx.val)
+        fmpq_mpoly_init(res.val, res.ctx.val)
         res._init = True
-        fmpz_mpoly_set_fmpz(res.val, (<fmpz>z).val, res.ctx.val)
+        fmpq_mpoly_set_fmpq(res.val, (<fmpq>z).val, res.ctx.val)
         return res
 
-    def fmpz_mpoly_from_dict(self, d):
+    def fmpq_mpoly_from_dict(self, d):
          """
          Create a fmpz_mpoly from a dictionary.
 
          The dictionary's keys are tuples of ints (or anything that implicitly converts
-         to fmpz) representing exponents, and corresponding values of fmpz.
+         to fmpz) representing exponents, and corresponding coefficient values of fmpq.
 
              >>> ctx = get_fmpz_mpoly_context(2,'lex','x,y')
-             >>> ctx.fmpz_mpoly_from_dict({(1,0):2, (1,1):3, (0,1):1})
+             >>> ctx.fmpq_mpoly_from_dict({(1,0):2, (1,1):3, (0,1):1})
              3*x*y + 2*x + y
          """
          cdef long n
-         cdef fmpz_t coefficient
+         cdef fmpq coefficient
          cdef fmpz_struct *exponents
+         cdef fmpz_struct **exp_ptr
          cdef int xtype
          cdef int nvars = self.nvars()
          cdef int i,j
          cdef int count
-         cdef fmpz_mpoly res
+         cdef fmpq_mpoly res
 
          if not PyDict_Check(d):
              raise ValueError("expected a dictionary")
          n = PyDict_Size(d)
-         fmpz_init(coefficient)
          exponents = <fmpz_struct *> libc.stdlib.calloc(nvars, sizeof(fmpz_struct))
          if exponents == NULL:
              raise MemoryError()
+         exp_ptr = <fmpz_struct **> libc.stdlib.calloc(nvars, sizeof(fmpz_struct *))
+         if exp_ptr == NULL:
+             libc.stdlib.free(exponents)
+             raise MemoryError()
          for i in range(nvars):
              fmpz_init(exponents + i)
-         fmpz_init(coefficient)
-         res = fmpz_mpoly.__new__(fmpz_mpoly)
+             exp_ptr[i] = exponents + i
+         # fmpq_init(coefficient)
+         res = fmpq_mpoly.__new__(fmpq_mpoly)
          res.ctx = self
-         fmpz_mpoly_init(res.val, res.ctx.val)
+         fmpq_mpoly_init(res.val, res.ctx.val)
          res._init = True
          count = 0
          for k,v in d.items():
-             xtype = fmpz_set_any_ref(coefficient, v)
-             if xtype == FMPZ_UNKNOWN:
+             coefficient = any_as_fmpq(v)
+             if coefficient == NotImplemented:
+                 for i in range(nvars):
+                     fmpz_clear(exponents + i)
                  libc.stdlib.free(exponents)
+                 libc.stdlib.free(exp_ptr)
                  raise TypeError("invalid coefficient type %s" % type(v))
              if not PyTuple_Check(k):
+                 for i in range(nvars):
+                     fmpz_clear(exponents + i)
                  libc.stdlib.free(exponents)
                  raise TypeError("Expected tuple of ints as key not %s" % type(k))
              if PyTuple_GET_SIZE(k) != nvars:
+                 for i in range(nvars):
+                     fmpz_clear(exponents + i)
                  libc.stdlib.free(exponents)
                  raise TypeError("Expected exponent tuple of length %d" % nvars)
              for i,tup in enumerate(k):
                  xtype = fmpz_set_any_ref(exponents + i, tup)
                  if xtype == FMPZ_UNKNOWN:
+                     for i in range(nvars):
+                         fmpz_clear(exponents + i)
                      libc.stdlib.free(exponents)
                      raise TypeError("Invalid exponent type %s" % type(tup))
              #Todo lobby for fmpz_mpoly_push_term_fmpz_ffmpz
-             if not fmpz_is_zero(coefficient):
-                 _fmpz_mpoly_push_exp_ffmpz(res.val, exponents, self.val)
-                 fmpz_mpoly_set_term_coeff_fmpz(res.val, count, coefficient, self.val)
+             if not fmpq_is_zero(coefficient.val):
+                 fmpq_mpoly_push_term_fmpq_fmpz(res.val, coefficient.val, exp_ptr, self.val)
+                 # _fmpq_mpoly_push_exp_ffmpz(res.val, exponents, self.val)
+                 # fmpq_mpoly_set_term_coeff_fmpz(res.val, count, coefficient, self.val)
                  count += 1
          for i in range(nvars):
              fmpz_clear(exponents + i)
-         fmpz_clear(coefficient)
-         fmpz_mpoly_sort_terms(res.val, self.val)
+             fmpq_mpoly_sort_terms(res.val, self.val)
+             fmpq_mpoly_reduce(res.val, self.val)
          return res
 
 
-def get_fmpz_mpoly_context(slong nvars=1, ordering="lex", names='x'):
+def get_fmpq_mpoly_context(slong nvars=1, ordering="lex", names='x'):
     if nvars <= 0:
         nvars = 1
     nametup = tuple(name.strip() for name in names.split(','))
@@ -156,8 +186,355 @@ def get_fmpz_mpoly_context(slong nvars=1, ordering="lex", names='x'):
             raise ValueError("Number of variables does not equal number of names")
         nametup = tuple(nametup[0] + str(i) for i in range(nvars))
     key = (nvars, ordering, nametup)
-    ctx = _fmpz_mpoly_ctx_cache.get(key)
+    ctx = _fmpq_mpoly_ctx_cache.get(key)
     if ctx is None:
-        ctx = fmpz_mpoly_ctx(nvars, ordering, nametup)
-        _fmpz_mpoly_ctx_cache[key] = ctx
+        ctx = fmpq_mpoly_ctx(nvars, ordering, nametup)
+        _fmpq_mpoly_ctx_cache[key] = ctx
     return ctx
+
+cdef inline init_fmpq_mpoly(fmpq_mpoly var, fmpq_mpoly_ctx ctx):
+    var.ctx = ctx
+    fmpq_mpoly_init(var.val, ctx.val)
+    var._init = True
+
+cdef inline create_fmpq_mpoly(fmpq_mpoly_ctx ctx):
+    cdef fmpq_mpoly var
+    var = fmpq_mpoly.__new__(fmpq_mpoly)
+    var.ctx = ctx
+    fmpq_mpoly_init(var.val, ctx.val)
+    var._init = True
+    return var
+
+
+
+
+cdef class fmpq_mpoly(flint_mpoly):
+    """
+    The *fmpz_poly* type represents sparse multivariate polynomials over
+    the integers.
+    """
+
+    # cdef fmpz_mpoly_t val
+    # cdef fmpz_mpoly_ctx ctx
+    # cdef bint _init
+
+    def __cinit__(self):
+        self._init = False
+
+    def __dealloc__(self):
+        if self._init:
+            fmpq_mpoly_clear(self.val, self.ctx.val)
+            self._init = False
+
+    def __init__(self, val=0, ctx=None):
+        if typecheck(val, fmpq_mpoly):
+            if ctx is None or ctx == (<fmpq_mpoly>val).ctx:
+                init_fmpq_mpoly(self, (<fmpq_mpoly>val).ctx)
+                fmpq_mpoly_set(self.val, (<fmpq_mpoly>val).val, self.ctx.val)
+            else:
+                raise ValueError("Cannot automatically coerce contexts")
+        elif isinstance(val, dict):
+            if ctx is None:
+                if len(val) == 0:
+                    raise ValueError("Need context for zero polynomial")
+                k = list(val.keys())[0]
+                if not isinstance(k, tuple):
+                    raise ValueError("Dict should be keyed with tuples of integers")
+                ctx = get_fmpq_mpoly_context(len(k))
+            x = ctx.fmpq_mpoly_from_dict(val)
+            #XXX this copy is silly, have a ctx function that assigns an fmpz_mpoly_t
+            init_fmpq_mpoly(self, ctx)
+            fmpq_mpoly_set(self.val, (<fmpq_mpoly>x).val, self.ctx.val)
+        elif isinstance(val, str):
+            if ctx is None:
+                raise ValueError("Cannot parse a polynomial without context")
+            val = bytes(val, 'utf-8')
+            init_fmpq_mpoly(self, ctx)
+            fmpq_mpoly_set_str_pretty(self.val, val, self.ctx.c_names, self.ctx.val)
+            fmpq_mpoly_sort_terms(self.val, self.ctx.val)
+        else:
+            v = any_as_fmpz(val)
+            if v is NotImplemented:
+                raise TypeError("cannot create fmpz_mpoly from type %s" % type(val))
+            if ctx is None:
+                raise ValueError("Need context to convert  fmpz to fmpq_mpoly")
+            init_fmpq_mpoly(self, ctx)
+            fmpq_mpoly_set_fmpz(self.val, (<fmpz>v).val, self.ctx.val)
+
+    def __nonzero__(self):
+        return not fmpq_mpoly_is_zero(self.val, self.ctx.val)
+
+    def __bool__(self):
+        return not fmpq_mpoly_is_zero(self.val, self.ctx.val)
+
+    def is_one(self):
+        return fmpq_mpoly_is_one(self.val, self.ctx.val)
+
+    def __richcmp__(self, other, int op):
+        if op != 2 and op != 3:
+            return NotImplemented
+        if typecheck(self, fmpq_mpoly) and typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is (<fmpq_mpoly>other).ctx:
+                if op == 2:
+                    return bool(fmpq_mpoly_equal((<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, (<fmpq_mpoly>self).ctx.val))
+                else:
+                    return not bool(fmpq_mpoly_equal((<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, (<fmpq_mpoly>self).ctx.val))
+            else:
+                if op == 2:
+                    return False
+                else:
+                    return True
+        if op == 2:
+            return not bool(self - other)
+        else:
+            return bool(self - other)
+
+    def __len__(self):
+        return fmpq_mpoly_length(self.val, self.ctx.val)
+
+    def coefficient(self, slong i):
+        cdef fmpq v
+        if i < 0 or i >= fmpq_mpoly_length(self.val, self.ctx.val):
+            return fmpq(0)
+        else:
+            v = fmpq.__new__(fmpz)
+            fmpq_mpoly_get_term_coeff_fmpq(v.val, self.val, i, self.ctx.val)
+            return v
+
+    def exponent_tuple(self, slong i):
+        cdef slong j, nvars
+        cdef fmpz_struct ** tmp
+        if i < 0 or i >= fmpq_mpoly_length(self.val, self.ctx.val):
+            raise ValueError
+        nvars = self.ctx.nvars()
+        res = tuple(fmpz() for j in range(nvars))
+        tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct **))
+        try:
+            for j in range(nvars):
+                tmp[j] = &((<fmpz> (res[j])).val[0])
+            fmpq_mpoly_get_term_exp_fmpz(tmp, self.val, i, self.ctx.val)
+        finally:
+            libc.stdlib.free(tmp)
+        return res
+
+    def repr(self):
+        return self.str() + "  (nvars=%s, ordering=%s names=%s)" % (self.ctx.nvars(), self.ctx.ordering(), self.ctx.py_names)
+
+    def str(self):
+        cdef char * s = fmpq_mpoly_get_str_pretty(self.val, self.ctx.c_names, self.ctx.val)
+        try:
+            res = str_from_chars(s)
+        finally:
+            libc.stdlib.free(s)
+        res = res.replace("+", " + ")
+        res = res.replace("-", " - ")
+        if res.startswith(" - "):
+            res = "-" + res[3:]
+        return res
+
+    def __neg__(self):
+        cdef fmpq_mpoly res
+        res = create_fmpq_mpoly(self.ctx)
+        fmpq_mpoly_neg(res.val, (<fmpq_mpoly>self).val, res.ctx.val)
+        return res
+
+    def __add__(self, other):
+        cdef fmpq_mpoly res
+        if typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+                return NotImplemented
+            res = create_fmpq_mpoly(self.ctx)
+            fmpq_mpoly_add(res.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
+            return res
+        else:
+            other = any_as_fmpq(other)
+            if other is not NotImplemented:
+                res = create_fmpq_mpoly(self.ctx)
+                fmpq_mpoly_add_fmpq(res.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, res.ctx.val)
+                return res
+        return NotImplemented
+
+    def __radd__(self, other):
+        cdef fmpq_mpoly res
+        other = any_as_fmpq(other)
+        if other is not NotImplemented:
+            res = create_fmpq_mpoly(self.ctx)
+            fmpq_mpoly_add_fmpq(res.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, res.ctx.val)
+            return res
+        return NotImplemented
+
+    def __iadd__(self, other):
+        if typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+                return NotImplemented
+            fmpq_mpoly_add((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
+            return self
+        else:
+            other = any_as_fmpq(other)
+            if other is not NotImplemented:
+                fmpq_mpoly_add_fmpq((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
+                return self
+        return NotImplemented
+
+    def __sub__(self, other):
+        cdef fmpq_mpoly res
+        if typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+                return NotImplemented
+            res = create_fmpq_mpoly(self.ctx)
+            fmpq_mpoly_sub(res.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
+            return res
+        else:
+            other = any_as_fmpq(other)
+            if other is not NotImplemented:
+                res = create_fmpq_mpoly(self.ctx)
+                fmpq_mpoly_sub_fmpq(res.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, res.ctx.val)
+                return res
+        return NotImplemented
+
+    def __rsub__(self, other):
+        cdef fmpq_mpoly res
+        other = any_as_fmpq(other)
+        if other is not NotImplemented:
+            res = create_fmpq_mpoly(self.ctx)
+            fmpq_mpoly_sub_fmpq(res.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, res.ctx.val)
+            return -res
+        return NotImplemented
+
+    def __isub__(self, other):
+        if typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+                return NotImplemented
+            fmpq_mpoly_sub((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
+            return self
+        else:
+            other = any_as_fmpq(other)
+            if other is not NotImplemented:
+                fmpq_mpoly_sub_fmpq((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
+                return self
+        return NotImplemented
+
+    def __mul__(self, other):
+        cdef fmpq_mpoly res
+        if typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+                return NotImplemented
+            res = create_fmpq_mpoly(self.ctx)
+            fmpq_mpoly_mul(res.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
+            return res
+        else:
+            other = any_as_fmpq(other)
+            if other is not NotImplemented:
+                res = create_fmpq_mpoly(self.ctx)
+                fmpq_mpoly_scalar_mul_fmpq(res.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, res.ctx.val)
+                return res
+        return NotImplemented
+
+    def __rmul__(self, other):
+        cdef fmpq_mpoly res
+        other = any_as_fmpq(other)
+        if other is not NotImplemented:
+            res = create_fmpq_mpoly(self.ctx)
+            fmpq_mpoly_scalar_mul_fmpq(res.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, res.ctx.val)
+            return res
+        return NotImplemented
+
+    def __imul__(self, other):
+        if typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+                return NotImplemented
+            fmpq_mpoly_mul((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
+            return self
+        else:
+            other = any_as_fmpq(other)
+            if other is not NotImplemented:
+                fmpq_mpoly_scalar_mul_fmpq(self.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
+                return self
+        return NotImplemented
+
+    def __pow__(self, other, modulus):
+        cdef fmpq_mpoly res
+        if modulus is not None:
+            raise NotImplementedError
+        other = any_as_fmpz(other)
+        if other is NotImplemented:
+            return other
+        if other < 0:
+            raise ValueError("cannot raise fmpz_mpoly to negative power")
+        res = create_fmpq_mpoly(self.ctx)
+        if fmpq_mpoly_pow_fmpz(res.val, (<fmpq_mpoly>self).val, (<fmpz>other).val, res.ctx.val) == 0:
+            raise ValueError("unreasonably large polynomial")
+        return res
+
+    def __divmod__(self, other):
+        cdef fmpq_mpoly res, res2
+        if typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+                return NotImplemented
+            res = create_fmpq_mpoly(self.ctx)
+            res2 = create_fmpq_mpoly(self.ctx)
+            fmpq_mpoly_divrem(res.val, res2.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
+            return (res, res2)
+        else:
+            other = any_as_fmpq(other)
+            if other is not NotImplemented:
+                other= fmpq_mpoly(other, self.ctx)
+                res = create_fmpq_mpoly(self.ctx)
+                res2 = create_fmpq_mpoly(self.ctx)
+                fmpq_mpoly_divrem(res.val, res2.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
+                return (res, res2)
+        return NotImplemented
+
+    def __rdivmod__(self, other):
+        cdef fmpq_mpoly res, res2
+        other = any_as_fmpq(other)
+        if other is not NotImplemented:
+            other = fmpq_mpoly(other, self.ctx)
+            res = create_fmpq_mpoly(self.ctx)
+            res2 = create_fmpq_mpoly(self.ctx)
+            fmpq_mpoly_divrem(res.val, res2.val, (<fmpq_mpoly>other).val, (<fmpq_mpoly>self).val, res.ctx.val)
+            return res
+        return NotImplemented
+
+    def __floordiv__(self, other):
+        cdef fmpq_mpoly res
+        if typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+                return NotImplemented
+            res = create_fmpq_mpoly(self.ctx)
+            fmpq_mpoly_div(res.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
+            return res
+        else:
+            other = any_as_fmpq(other)
+            if other is not NotImplemented:
+                other = fmpq_mpoly(other, self.ctx)
+                res = create_fmpq_mpoly(self.ctx)
+                fmpq_mpoly_div(res.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
+                return res
+        return NotImplemented
+
+    def __rfloordiv__(self,other):
+        cdef fmpq_mpoly res
+        other = any_as_fmpq(other)
+        if other is not NotImplemented:
+            other = fmpq_mpoly(other, self.ctx)
+            res = create_fmpq_mpoly(self.ctx)
+            fmpq_mpoly_div(res.val, (<fmpq_mpoly>other).val,  self.val, res.ctx.val)
+            return res
+        return NotImplemented
+
+
+    def __mod__(self, other):
+        return divmod(self, other)[1]
+
+    def gcd(self, other):
+        cdef fmpq_mpoly res
+        assert isinstance(other, fmpq_mpoly)
+        if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+            return NotImplemented
+        res = create_fmpq_mpoly(self.ctx)
+        fmpq_mpoly_gcd(res.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
+        return res
+
+
+

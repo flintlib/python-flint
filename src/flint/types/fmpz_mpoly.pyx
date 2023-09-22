@@ -14,7 +14,9 @@ from flint.types.fmpz cimport fmpz, fmpz_set_any_ref
 
 cimport cython
 cimport libc.stdlib
+from flint.flintlib.fmpz cimport fmpz_set
 from flint.flintlib.fmpz_mpoly cimport *
+from flint.flintlib.fmpz_mpoly_factor cimport *
 
 cdef any_as_fmpz_mpoly(x):
     cdef fmpz_mpoly res
@@ -642,22 +644,30 @@ cdef class fmpz_mpoly(flint_mpoly):
     #         finally:
     #             libc.stdlib.free(C)
 
-    '''
     def factor(self):
         """
         Factors self into irreducible factors, returning a tuple
         (c, factors) where c is the content of the coefficients and
         factors is a list of (poly, exp) pairs.
 
+            >>> Zm = fmpz_mpoly
+            >>> ctx = get_fmpz_mpoly_context(3, 'lex', 'x,y,z')
+            >>> p1 = Zm("2*x + 4", ctx)
+            >>> p2 = Zm("3*x*z +  + 3*x + 3*z + 3", ctx)
+            >>> (p1 * p2).factor()
+            (6, [(z + 1, 1), (x + 2, 1), (x + 1, 1)])
+            >>> (p2 * p1 * p2).factor()
+            (18, [(z + 1, 2), (x + 2, 1), (x + 1, 2)])
+            (18, [(x + 1, 1), (x*y + z + 1, 2)])
         """
         cdef fmpz_mpoly_factor_t fac
         cdef int i
         cdef fmpz c
         cdef fmpz_mpoly u
         fmpz_mpoly_factor_init(fac, self.ctx.val)
-        fmpz_mpoly_factor(fac, self.val, 1, self.ctx.val)
-        res = [0] * fac.length
-        for 0 <= i < fac.length:
+        fmpz_mpoly_factor(fac, self.val, self.ctx.val)
+        res = [0] * fac.num
+        for 0 <= i < fac.num:
             u = fmpz_mpoly.__new__(fmpz_mpoly)
             u.ctx = self.ctx
             fmpz_mpoly_init(u.val, u.ctx.val)
@@ -667,8 +677,42 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_set((<fmpz>c).val, &fac.exp[i])
             res[i] = (u, c)
         c = fmpz.__new__(fmpz)
-        fmpz_set((<fmpz>c).val, fac.content)   # should be & with ...
+        fmpz_set((<fmpz>c).val, fac.constant)
         fmpz_mpoly_factor_clear(fac, self.ctx.val)
         return c, res
-    '''
 
+    def factor_squarefree(self):
+        """
+        Factors self into irreducible factors, returning a tuple
+        (c, factors) where c is the content of the coefficients and
+        factors is a list of (poly, exp) pairs.
+
+            >>> Zm = fmpz_mpoly
+            >>> ctx = get_fmpz_mpoly_context(3, 'lex', 'x,y,z')
+            >>> p1 = Zm("2*x + 4", ctx)
+            >>> p2 = Zm("3*x*y + 3*x + 3*y + 3", ctx)
+            >>> (p1 * p2).factor_squarefree()
+            (6, [(x + 2, 1), (x*y + x + y + 1, 1)])
+            >>> (p1 * p2 * p1).factor_squarefree()
+            (18, [(x + 2, 2), (x*y + x + y + 1, 1)])
+        """
+        cdef fmpz_mpoly_factor_t fac
+        cdef int i
+        cdef fmpz c
+        cdef fmpz_mpoly u
+        fmpz_mpoly_factor_init(fac, self.ctx.val)
+        fmpz_mpoly_factor_squarefree(fac, self.val, self.ctx.val)
+        res = [0] * fac.num
+        for 0 <= i < fac.num:
+            u = fmpz_mpoly.__new__(fmpz_mpoly)
+            u.ctx = self.ctx
+            fmpz_mpoly_init(u.val, u.ctx.val)
+            u._init = True
+            fmpz_mpoly_set((<fmpz_mpoly>u).val, &fac.poly[i], self.ctx.val)
+            c = fmpz.__new__(fmpz)
+            fmpz_set((<fmpz>c).val, &fac.exp[i])
+            res[i] = (u, c)
+        c = fmpz.__new__(fmpz)
+        fmpz_set((<fmpz>c).val, fac.constant)
+        fmpz_mpoly_factor_clear(fac, self.ctx.val)
+        return c, res

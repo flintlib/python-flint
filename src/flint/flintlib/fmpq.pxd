@@ -5,6 +5,7 @@ cdef extern from "flint/fmpq.h":
     ctypedef struct fmpq_struct:
         fmpz_struct num
         fmpz_struct den
+
     ctypedef fmpq_struct fmpq_t[1]
     fmpz_struct * fmpq_numref(fmpq_t x)
     fmpz_struct * fmpq_denref(fmpq_t x)
