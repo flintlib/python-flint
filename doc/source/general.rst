@@ -161,8 +161,6 @@ determined from the available data.
 The following convenience functions are provided for numerical evaluation
 with adaptive working precision.
 
-.. autofunction :: flint.good
-
 .. autofunction :: flint.showgood
 
 Power series

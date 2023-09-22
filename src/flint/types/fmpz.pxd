@@ -10,6 +10,7 @@ from flint.flintlib.fmpz cimport fmpz_t, fmpz_set_str, fmpz_set_si
 from cpython.version cimport PY_MAJOR_VERSION
 
 cdef int fmpz_set_any_ref(fmpz_t x, obj)
+cdef fmpz_get_intlong(fmpz_t x)
 
 cdef inline int fmpz_set_pylong(fmpz_t x, obj):
     cdef int overflow
