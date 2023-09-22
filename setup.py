@@ -94,6 +94,7 @@ ext_files = [
     ("flint.types.acb_mat", ["src/flint/types/acb_mat.pyx"]),
     ("flint.types.acb_series", ["src/flint/types/acb_series.pyx"]),
     ("flint.types.fmpz_mpoly", ["src/flint/types/fmpz_mpoly.pyx"]),
+    ("flint.types.fmpq_mpoly", ["src/flint/types/fmpq_mpoly.pyx"]),
     ("flint.types.dirichlet", ["src/flint/types/dirichlet.pyx"]),
     ("flint.flint_base.flint_base", ["src/flint/flint_base/flint_base.pyx"]),
     ("flint.flint_base.flint_context", ["src/flint/flint_base/flint_context.pyx"]),
@@ -104,8 +105,8 @@ ext_files = [
 
 ext_options = {
     "libraries" : libraries,
-    "library_dirs" : default_lib_dirs + ["/Users/davideinstein/opt/flint2.9/lib", "/Users/davideinstein/opt/arb/lib"],
-    "include_dirs" : default_include_dirs + ["/Users/davideinstein/opt/flint2.9/include", "/Users/davideinstein/opt/arb/include"],
+    "library_dirs" : default_lib_dirs,
+    "include_dirs" : default_include_dirs,
     "define_macros" : define_macros,
 }
 
