@@ -1,19 +1,15 @@
 from cpython.list cimport PyList_GET_SIZE
-from flint.flintlib.fmpz_mod cimport fmpz_mod_set_fmpz
 from flint.flintlib.fmpz_mod_poly cimport *
 from flint.flintlib.fmpz_mod_poly_factor cimport *
 
 from flint.flintlib.fmpz cimport(
-    fmpz_equal,
-    fmpz_set,
     fmpz_init,
     fmpz_clear,
-    fmpz_set_si,
     fmpz_is_one
 )
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 from flint.types.fmpz_mod cimport fmpz_mod_ctx, fmpz_mod
-from flint.types.fmpz_poly cimport any_as_fmpz_poly, fmpz_poly
+from flint.types.fmpz_poly cimport fmpz_poly
 
 from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
@@ -52,9 +48,24 @@ cdef class fmpz_mod_poly_ctx:
         """
         return self.mod.modulus()
 
+    def is_prime(self):
+        """
+        Return whether the modulus is prime
+
+            >>> fmpz_mod_poly_ctx(2**127).is_prime()
+            False
+            >>> fmpz_mod_poly_ctx(2**127 - 1).is_prime()
+            True
+        """
+        return self.mod.is_prime()
+
     def zero(self):
         """
-        TODO
+        Return the zero element of this polynomial ring
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> R.zero()
+            0
         """
         cdef fmpz_mod_poly res
         res = fmpz_mod_poly.__new__(fmpz_mod_poly)
@@ -64,7 +75,11 @@ cdef class fmpz_mod_poly_ctx:
 
     def one(self):
         """
-        TODO
+        Return the one element of this polynomial ring
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> R.one()
+            1
         """
         cdef fmpz_mod_poly res
         res = fmpz_mod_poly.__new__(fmpz_mod_poly)
@@ -76,11 +91,11 @@ cdef class fmpz_mod_poly_ctx:
         """
         Return the generator of the polynomial `x`
 
-        >>> mod_ctx = fmpz_mod_poly_ctx(2**127 - 1)
-        >>> mod_ctx.gen()
-        fmpz_mod_poly([0, 1], fmpz_mod_poly_ctx(170141183460469231731687303715884105727))
-        >>> str(mod_ctx.gen())
-        'x'
+            >>> R = fmpz_mod_poly_ctx(2**127 - 1)
+            >>> mod_ctx.gen()
+            fmpz_mod_poly([0, 1], fmpz_mod_poly_ctx(170141183460469231731687303715884105727))
+            >>> str(mod_ctx.gen())
+            'x'
         """
         return self.any_as_fmpz_mod_poly([0, 1])
 
@@ -200,33 +215,6 @@ cdef class fmpz_mod_poly(flint_poly):
         self.ctx = ctx
         self.ctx.set_any_as_fmpz_mod_poly(self.val, val)
 
-    def __getitem__(self, long i):
-        cdef fmpz_mod x
-        x = fmpz_mod.__new__(fmpz_mod)
-        x.ctx = self.ctx.mod
-        if i < 0:
-            return x
-        fmpz_mod_poly_get_coeff_fmpz(
-            x.val, self.val, i, self.ctx.mod.val
-        )
-        return x
-
-    def __setitem__(self, long i, x):
-        if i < 0:
-            raise ValueError("cannot assign to index < 0 of polynomial")
-        v = self.ctx.mod.any_as_fmpz_mod(x)
-        if v is NotImplemented:
-            raise TypeError
-        fmpz_mod_poly_set_coeff_fmpz(
-            self.val, i, (<fmpz_mod>v).val, self.ctx.mod.val
-        )
-
-    def __len__(self):
-        return fmpz_mod_poly_length(self.val, self.ctx.mod.val)
-
-    def __hash__(self):
-        return hash(map(int, self.coeffs()))
-
     # ---------------- #
     #    Arithmetic    #
     # ---------------- #
@@ -315,10 +303,8 @@ cdef class fmpz_mod_poly(flint_poly):
         # TODO:
         # Allow scalar division for efficiency, rather 
         # than casting `other` to a polynomial?
-
         cdef bint check
         cdef fmpz_mod_poly res
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
 
         # Case when left and right are already fmpz_mod_poly
         if typecheck(left, fmpz_mod_poly) and typecheck(right, fmpz_mod_poly):
@@ -337,6 +323,7 @@ cdef class fmpz_mod_poly(flint_poly):
             if left is NotImplemented:
                 return NotImplemented
 
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
         res.ctx = (<fmpz_mod_poly>left).ctx
         check = fmpz_mod_poly_divides(
             res.val, (<fmpz_mod_poly>left).val, (<fmpz_mod_poly>right).val, res.ctx.mod.val
@@ -356,33 +343,32 @@ cdef class fmpz_mod_poly(flint_poly):
 
     def __floordiv__(self, other):
         return NotImplemented
-        
-    cpdef long length(self):
-        return fmpz_mod_poly_length(self.val, self.ctx.mod.val)
 
-    cpdef long degree(self):
-        return fmpz_mod_poly_degree(self.val, self.ctx.mod.val)
+    def __pow__(self, e):
+        cdef fmpz_mod_poly res
+        if e < 0:
+            raise ValueError("Exponent must be non-negative")
 
-    def is_zero(self):
-        """
-        Return `True` if the polynomial is the zero polynomial
-        and `False` otherwise
-        """
-        return 0 != fmpz_mod_poly_is_zero(self.val, self.ctx.mod.val)
-    
-    def is_one(self):
-        """
-        Return `True` if the polynomial is the zero polynomial
-        and `False` otherwise
-        """
-        return 0 != fmpz_mod_poly_is_one(self.val, self.ctx.mod.val)
-    
-    def is_gen(self):
-        """
-        Return `True` if the polynomial is the zero polynomial
-        and `False` otherwise
-        """
-        return 0 != fmpz_mod_poly_is_gen(self.val, self.ctx.mod.val)
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        fmpz_mod_poly_pow(
+            res.val, self.val, (<ulong>e), self.ctx.mod.val
+        )
+        return res
+
+    @staticmethod
+    def _mod_(s, t):
+        pass
+
+    def __mod__(s, t):
+        return fmpz_mod_poly._mod_(s, t)
+
+    def __rmod__(s, t):
+        return fmpz_mod_poly._mod_(t, s)    
+
+    # =
+    # Other Magic Methods
+    # =
 
     def __richcmp__(self, other, int op):
         cdef bint res
@@ -402,6 +388,99 @@ cdef class fmpz_mod_poly(flint_poly):
         else:
             return NotImplemented
 
+    def __getitem__(self, long i):
+        cdef fmpz_mod x
+        x = fmpz_mod.__new__(fmpz_mod)
+        x.ctx = self.ctx.mod
+        if i < 0:
+            return x
+        fmpz_mod_poly_get_coeff_fmpz(
+            x.val, self.val, i, self.ctx.mod.val
+        )
+        return x
+
+    def __setitem__(self, long i, x):
+        if i < 0:
+            raise ValueError("cannot assign to index < 0 of polynomial")
+        v = self.ctx.mod.any_as_fmpz_mod(x)
+        if v is NotImplemented:
+            raise TypeError
+        fmpz_mod_poly_set_coeff_fmpz(
+            self.val, i, (<fmpz_mod>v).val, self.ctx.mod.val
+        )
+
+    def __len__(self):
+        return fmpz_mod_poly_length(self.val, self.ctx.mod.val)
+
+    def __hash__(self):
+        return hash(map(int, self.coeffs()))
+
+    cpdef long length(self):
+        return fmpz_mod_poly_length(self.val, self.ctx.mod.val)
+
+    cpdef long degree(self):
+        return fmpz_mod_poly_degree(self.val, self.ctx.mod.val)
+
+    def is_zero(self):
+        """
+        Return `True` if the polynomial is the zero polynomial
+        and `False` otherwise
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R(0)
+            >>> f.is_zero()
+            True
+        """
+        return 0 != fmpz_mod_poly_is_zero(self.val, self.ctx.mod.val)
+    
+    def is_one(self):
+        """
+        Return `True` if the polynomial is the zero polynomial
+        and `False` otherwise
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R(1)
+            >>> f.is_one()
+            True
+        """
+        return 0 != fmpz_mod_poly_is_one(self.val, self.ctx.mod.val)
+    
+    def is_gen(self):
+        """
+        Return `True` if the polynomial is the zero polynomial
+        and `False` otherwise
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([0,1])
+            >>> f.is_gen()
+            True
+        """
+        return 0 != fmpz_mod_poly_is_gen(self.val, self.ctx.mod.val)
+
+    def is_constant(self):
+        """
+        Return True if this is a constant polynomial.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> x.is_constant()
+            False
+            >>> R(123).is_constant()
+            True
+        """
+        return self.degree() <= 0
+
+    def constant_coefficient(self):
+        """
+        Return the leading coefficient of this polynomial.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,2,3])
+            >>> f.leading_coefficient()
+            fmpz_mod(1, 163)
+        """
+        return self[0]
+
     def leading_coefficient(self):
         """
         Return the leading coefficient of this polynomial.
@@ -415,7 +494,20 @@ cdef class fmpz_mod_poly(flint_poly):
 
     def reverse(self, degree=None):
         """
-        TODO
+        Return a polynomial with the coefficients of this polynomial
+        reversed.
+
+        If `degree` is not None, the output polynomial will be zero-padded
+        or truncated before being reversed. Note: degree must be non-negative.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,2,3,4,5])
+            >>> f.reverse()
+            x^4 + 2*x^3 + 3*x^2 + 4*x + 5
+            >>> f.reverse(degree=1)
+            x + 2
+            >>> f.reverse(degree=100)
+            x^100 + 2*x^99 + 3*x^98 + 4*x^97 + 5*x^96
         """
         cdef fmpz_mod_poly res
         cdef slong d
@@ -467,28 +559,126 @@ cdef class fmpz_mod_poly(flint_poly):
     def is_irreducible(self):
         """
         Return whether this polynomial is irreducible.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,2,3])
+            >>> f = (x**2 + 5*x + 3)
+            >>> f.is_irreducible()
+            True
+            >>> f = (x**2 + x + 3)
+            >>> f.is_irreducible()
+            False
         """
         return 1 == fmpz_mod_poly_is_irreducible(self.val, self.ctx.mod.val)
 
     def is_squarefree(self):
         """
         Return whether this polynomial is squarefree.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = (x + 1)**2 * (x + 3)
+            >>> f.is_squarefree()
+            False
+            >>> f = (x + 1) * (x + 3)
+            >>> f.is_squarefree()
+            True
+
         """
         return 1 == fmpz_mod_poly_is_squarefree(self.val, self.ctx.mod.val)
+
+    def gcd(self, other):
+        """
+        Return the greatest common divisor of self and other.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = x*(x + 1)
+            >>> f.gcd(x+1)
+            x + 1
+            >>> f.gcd(x*x)
+            x
+
+        """
+        cdef fmpz_mod_poly res
+
+        if not self.ctx.is_prime():
+            raise NotImplementedError("gcd algorithm assumes that the modulus is prime")
+                 
+        other = self.ctx.any_as_fmpz_mod_poly(other)
+        if other is NotImplemented:
+            return other
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        fmpz_mod_poly_gcd(
+            res.val, self.val, (<fmpz_mod_poly>other).val, self.ctx.mod.val
+        )
+        return res
+
+    def derivative(self):
+        """
+        The formal derivative of this polynomial
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = 111*x**4 + 58*x**3 + 98*x**2 + 117*x + 7
+            >>> f.derivative()
+            118*x^3 + 11*x^2 + 33*x + 117
+
+        """
+        cdef fmpz_mod_poly res
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        fmpz_mod_poly_derivative(
+            res.val, self.val, self.ctx.mod.val
+        )
+        return res
+
+    def discriminant(self):
+        """
+        Return the discriminant of self.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = 6*x**4 + 7*x**3 + 7*x**2 + 8*x + 6
+            >>> f.discriminant()
+            fmpz_mod(50, 163)
+
+        """
+        cdef fmpz_mod res
+
+        if not self.ctx.is_prime():
+            raise NotImplementedError("discriminant algorithm assumes that the base is a field")
+
+        res = fmpz_mod.__new__(fmpz_mod)
+        res.ctx = self.ctx.mod
+        fmpz_mod_poly_discriminant(
+            res.val, self.val, self.ctx.mod.val
+        )
+        return res
 
     def radical(self):
         """
         Return the radical of self, the product of the irreducible
         factors of the polynomial. This is also referred to as the
         square-free part of the polynomial.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = (x + 1)**3 * (x + 2)
+            >>> f.radical()
+            x^2 + 3*x + 2
+
         """
-        res = self.ctx.one()
-        # TODO: this should be the squarefree leading coeff I guess...
-        res *= self.leading_coefficient()
-        _, factors = self.factor()
-        for p, _ in factors:
-            res *= p
-        return res
+        if not self.ctx.is_prime():
+            raise NotImplementedError("radical algorithm assumes that the base is a field")
+
+        return self / self.gcd(self.derivative())    
+
+    # TODO: we could make a factorisation class which we could then
+    # implement the factor methods such as pow and concat. I think
+    # sage does something like this with `Factorisation` classes.
 
     def factor_squarefree(self):
         """
@@ -496,13 +686,21 @@ cdef class fmpz_mod_poly(flint_poly):
         (c, factors) where c is the content of the coefficients and
         factors is a list of (poly, exp) pairs.
 
-        TODO: docstrings
-        TODO: add a check that at least the leading term is
-        invertible to stop segfaults?
-        TODO: Other option is to only support prime moduli?
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = (x + 1) * (x + 2)
+            >>> f.factor_squarefree()
+            (fmpz_mod(1, 163), [(x^2 + 3*x + 2, 1)])
+            >>> f = (x + 1) * (x + 2)**5
+            >>> f.factor_squarefree()
+            (fmpz_mod(1, 163), [(x + 1, 1), (x + 2, 5)])
         """
         cdef fmpz_mod_poly_factor_t fac
         cdef int i
+
+        if not self.ctx.is_prime():
+            raise NotImplementedError("factor_squarefree algorithm assumes that the modulus is prime")
+
         fmpz_mod_poly_factor_init(fac, self.ctx.mod.val)
         fmpz_mod_poly_factor_squarefree(fac, self.val, self.ctx.mod.val)
 
@@ -517,24 +715,28 @@ cdef class fmpz_mod_poly(flint_poly):
             res[i] = (u, exp)
         return self.leading_coefficient(), res
 
-    # TODO: we could make a factorisation class which we could then
-    # implement the factor methods such as pow and concat. I think
-    # sage does something like this with `Factorisation` classes.
     def factor(self, algorithm=None):
         """
         Factors self into irreducible factors, returning a tuple
         (c, factors) where c is the content of the coefficients and
         factors is a list of (poly, exp) pairs.
 
-        TODO: docstrings
-        TODO: add a check that at least the leading term is
-        invertible to stop segfaults?
-        TODO: Other option is to only support prime moduli?
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = 6*x**4 + 7*x**3 + 7*x**2 + 8*x + 6
+            >>> f.factor()
+            (fmpz_mod(6, 163), [(x^4 + 137*x^3 + 137*x^2 + 110*x + 1, 1)])
+            >>> f = (x + 1)**3 * (x + 2)
+            >>> f.factor()
+            (fmpz_mod(1, 163), [(x + 1, 3), (x + 2, 1)])
         """
         cdef fmpz_mod_poly_factor_t fac
         cdef int i
-        fmpz_mod_poly_factor_init(fac, self.ctx.mod.val)
 
+        if not self.ctx.is_prime():
+            raise NotImplementedError("factor algorithm assumes that the modulus is prime")
+                 
+        fmpz_mod_poly_factor_init(fac, self.ctx.mod.val)
         if algorithm == None:
             fmpz_mod_poly_factor(fac, self.val, self.ctx.mod.val)
         elif algorithm == "cantor_zassenhaus":
@@ -545,6 +747,7 @@ cdef class fmpz_mod_poly(flint_poly):
             fmpz_mod_poly_factor_berlekamp(fac, self.val, self.ctx.mod.val)
         else:
             raise ValueError("unknown algorithm")
+        
         res = [0] * fac.num
 
         cdef fmpz_mod_poly u
@@ -555,3 +758,9 @@ cdef class fmpz_mod_poly(flint_poly):
             exp = fac.exp[i]
             res[i] = (u, exp)
         return self.leading_coefficient(), res
+
+    def roots(self):
+        return NotImplemented
+
+    def complex_roots(self):
+        return NotImplemented

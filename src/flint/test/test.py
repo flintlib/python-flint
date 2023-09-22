@@ -1591,9 +1591,16 @@ def test_fmpz_mod():
     p_med = 2**127 - 1
     p_big = 2**255 - 19
 
+    F_cmp = fmpz_mod_ctx(10)
     F_sml = fmpz_mod_ctx(p_sml)
     F_med = fmpz_mod_ctx(p_med)
     F_big = fmpz_mod_ctx(p_big)
+
+    assert F_sml.is_prime() is True
+    assert F_med.is_prime() is True
+    assert F_big.is_prime() is True
+    assert F_cmp.is_prime() is False
+
 
     # Context tests
     assert raises(lambda: fmpz_mod_ctx("AAA"), TypeError)
@@ -1776,17 +1783,17 @@ def test_fmpz_mod_dlog():
     # Input modulus must be prime
     F = fmpz_mod_ctx(4)
     g, a = F(1), F(2)
-    assert raises(lambda: g.discrete_log(a, check=True), ValueError)
+    assert raises(lambda: g.discrete_log(a), NotImplementedError)
 
     # Moduli must match
     F1, F2 = fmpz_mod_ctx(2), fmpz_mod_ctx(3)
     g = F1(2)
     a = F2(4)
-    assert raises(lambda: g.discrete_log(a, check=True), ValueError)
+    assert raises(lambda: g.discrete_log(a), ValueError)
 
     # Need to use either fmpz_mod or something which can be case to
     # fmpz
-    assert raises(lambda: g.discrete_log("A", check=True), TypeError)
+    assert raises(lambda: g.discrete_log("A"), TypeError)
 
     F = fmpz_mod_ctx(163)
     g = F(2)
