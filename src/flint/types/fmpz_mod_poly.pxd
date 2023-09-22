@@ -11,6 +11,7 @@ cdef class fmpz_mod_poly_ctx:
     cdef set_list_as_fmpz_mod_poly(self, fmpz_mod_poly_t poly, val)
 
 cdef class fmpz_mod_poly(flint_poly):
+    cdef bint initialized
     cdef fmpz_mod_poly_t val
     cdef fmpz_mod_poly_ctx ctx
     cpdef long length(self)

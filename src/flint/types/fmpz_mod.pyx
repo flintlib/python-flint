@@ -278,6 +278,22 @@ cdef class fmpz_mod(flint_scalar):
         res = fmpz_mod_is_one(self.val, self.ctx.val)
         return res == 1
 
+    def is_unit(self):
+        """
+        Returns whether the element is invertible modulo `N`
+
+            >>> from flint import *
+            >>> F = fmpz_mod_ctx(10)
+            >>> F(3).is_unit()
+            True
+            >>> F(2).is_unit()
+            False
+        """
+        cdef fmpz_t g
+        fmpz_init(g)
+        fmpz_gcd(g, self.val, self.ctx.val.n)
+        return 1 == fmpz_is_one(g)
+
     def inverse(self, check=True):
         r"""
         Computes :math:`a^{-1} \pmod N`

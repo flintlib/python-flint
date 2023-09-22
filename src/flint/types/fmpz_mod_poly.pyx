@@ -1,13 +1,12 @@
 from cpython.list cimport PyList_GET_SIZE
 from flint.pyflint cimport global_random_state
-from flint.flintlib.fmpz_mod cimport fmpz_mod_ctx_t, fmpz_mod_ctx_init, fmpz_mod_neg
+from flint.flintlib.fmpz_mod cimport fmpz_mod_neg
 from flint.flintlib.fmpz_mod_poly cimport *
 from flint.flintlib.fmpz_mod_poly_factor cimport *
 
 from flint.flintlib.fmpz cimport(
     fmpz_init,
     fmpz_clear,
-    fmpz_one,
     fmpz_is_one
 )
 from flint.types.fmpz cimport fmpz, any_as_fmpz
@@ -16,13 +15,6 @@ from flint.types.fmpz_poly cimport fmpz_poly
 
 from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
-
-# Global context with modulus one to make `__cinit__` happy within
-# `fmpz_mod_poly`
-cdef fmpz_t _fmpz_one
-cdef fmpz_mod_ctx_t _fmpz_mod_one_ctx
-fmpz_one(_fmpz_one)
-fmpz_mod_ctx_init(_fmpz_mod_one_ctx, _fmpz_one)
 
 cdef class fmpz_mod_poly_ctx:
     """
@@ -264,16 +256,18 @@ cdef class fmpz_mod_poly(flint_poly):
     """
     """
     def __cinit__(self):
-        fmpz_mod_poly_init(self.val, _fmpz_mod_one_ctx)
+        self.initialized = False
 
     def __dealloc__(self):
-        fmpz_mod_poly_clear(self.val, self.ctx.mod.val)
+        if self.initialized:
+            fmpz_mod_poly_clear(self.val, self.ctx.mod.val)
 
     def __init__(self, val, ctx):
         if not typecheck(ctx, fmpz_mod_poly_ctx):
             raise TypeError
         self.ctx = ctx
         self.ctx.set_any_as_fmpz_mod_poly(self.val, val)
+        self.initialized = True
 
     # ---------------- #
     #    Arithmetic    #
@@ -401,8 +395,42 @@ cdef class fmpz_mod_poly(flint_poly):
     def __rtruediv__(s, t):
         return fmpz_mod_poly._div_(t, s)
 
+    @staticmethod
+    def _floordiv_(left, right):
+        cdef fmpz_mod_poly res
+
+        # Case when left and right are already fmpz_mod_poly
+        if typecheck(left, fmpz_mod_poly) and typecheck(right, fmpz_mod_poly):
+            if not (<fmpz_mod_poly>left).ctx == (<fmpz_mod_poly>right).ctx:
+                raise ValueError("moduli must match")
+
+        # Case when right is not fmpz_mod_poly, try to convert to fmpz
+        elif typecheck(left, fmpz_mod_poly):
+            right = (<fmpz_mod_poly>left).ctx.any_as_fmpz_mod_poly(right)
+            if right is NotImplemented:
+                return NotImplemented
+
+        # Case when left is not fmpz_mod_poly, try to convert to fmpz
+        else:
+            left = (<fmpz_mod_poly>right).ctx.any_as_fmpz_mod_poly(left)
+            if left is NotImplemented:
+                return NotImplemented
+
+        if not right.leading_coefficient().is_unit():
+            raise ValueError(f"The leading term of {right} must be a unit modulo N")
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = (<fmpz_mod_poly>left).ctx
+        fmpz_mod_poly_div(
+            res.val, (<fmpz_mod_poly>left).val, (<fmpz_mod_poly>right).val, res.ctx.mod.val
+        )
+        return res 
+
     def __floordiv__(self, other):
-        return NotImplemented
+        return fmpz_mod_poly._floordiv_(self, other)
+
+    def __rfloordiv__(self, other):
+        return fmpz_mod_poly._floordiv_(other, self)
 
     def __pow__(self, e):
         cdef fmpz_mod_poly res
@@ -416,16 +444,85 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         return res
 
+    def shift(self, slong n):
+        """
+        Returns `self` shifted by `n` coefficients. If `n` is positive,
+        zero coefficients are inserted, when `n` is negative, if `n` is 
+        greater than or equal to the length of `self`, the zero polynomial
+        is returned.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,2,3])
+            >>> f.shift(0)
+            3*x^2 + 2*x + 1
+            >>> f.shift(1)
+            3*x^3 + 2*x^2 + x
+            >>> f.shift(4)
+            3*x^6 + 2*x^5 + x^4
+            >>> f.shift(-1)
+            3*x + 2
+            >>> f.shift(-4)
+            0
+
+        """
+        if n == 0:
+            return self
+
+        cdef fmpz_mod_poly res
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+
+        if n > 0:
+            fmpz_mod_poly_shift_left(
+                res.val, self.val, n, self.ctx.mod.val
+            )
+        elif n < 0:
+            fmpz_mod_poly_shift_right(
+                res.val, self.val, -n, self.ctx.mod.val
+            )
+
+        return res          
+
     def __lshift__(self, n):
-        pass
+        return self.shift(n)
 
     def __rshift__(self, n):
-        pass
-
+        return self.shift(-n)
 
     @staticmethod
-    def _mod_(s, t):
-        pass
+    def _mod_(left, right):
+        cdef fmpz_t f
+        cdef fmpz_mod_poly res
+
+        # Case when left and right are already fmpz_mod_poly
+        if typecheck(left, fmpz_mod_poly) and typecheck(right, fmpz_mod_poly):
+            if not (<fmpz_mod_poly>left).ctx == (<fmpz_mod_poly>right).ctx:
+                raise ValueError("moduli must match")
+
+        # Case when right is not fmpz_mod_poly, try to convert to fmpz
+        elif typecheck(left, fmpz_mod_poly):
+            right = (<fmpz_mod_poly>left).ctx.any_as_fmpz_mod_poly(right)
+            if right is NotImplemented:
+                return NotImplemented
+
+        # Case when left is not fmpz_mod_poly, try to convert to fmpz
+        else:
+            left = (<fmpz_mod_poly>right).ctx.any_as_fmpz_mod_poly(left)
+            if left is NotImplemented:
+                return NotImplemented
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = (<fmpz_mod_poly>left).ctx
+        fmpz_init(f)
+        fmpz_mod_poly_rem_f(
+            f, res.val, (<fmpz_mod_poly>left).val, (<fmpz_mod_poly>right).val, res.ctx.mod.val
+        )
+        if not fmpz_is_one(f):
+            raise ValueError(
+                f"Cannot compute remainder of {left} modulo {right}"
+            )
+
+        return res
 
     def __mod__(s, t):
         return fmpz_mod_poly._mod_(s, t)
@@ -605,8 +702,20 @@ cdef class fmpz_mod_poly(flint_poly):
         fmpz_mod_poly_reverse(res.val, self.val, length, self.ctx.mod.val)
         return res
 
-    def shift(self, n):
-        pass
+    def is_monic(self):
+        """
+        Return whether this polynomial is monic.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = x**2 + 5*x + 3
+            >>> f.is_monic()
+            True
+            >>> f = 5*x**2 + x + 3
+            >>> f.is_monic()
+            False
+        """
+        return self.leading_coefficient().is_one()
 
     def monic(self, check=True):
         """
@@ -638,21 +747,6 @@ cdef class fmpz_mod_poly(flint_poly):
         res.ctx = self.ctx
         return res
 
-    def is_monic(self):
-        """
-        Return whether this polynomial is monic.
-
-            >>> R = fmpz_mod_poly_ctx(163)
-            >>> x = R.gen()
-            >>> f = x**2 + 5*x + 3
-            >>> f.is_monic()
-            True
-            >>> f = 5*x**2 + x + 3
-            >>> f.is_monic()
-            False
-        """
-        return self.leading_coefficient().is_one()
-
     def is_irreducible(self):
         """
         Return whether this polynomial is irreducible.
@@ -683,6 +777,37 @@ cdef class fmpz_mod_poly(flint_poly):
 
         """
         return 1 == fmpz_mod_poly_is_squarefree(self.val, self.ctx.mod.val)
+
+    def divrem(self, other):
+        """
+        >>> R = fmpz_mod_poly_ctx(163)
+        >>> f = R([123, 129, 63, 14, 51, 76, 133])
+        >>> g = R([106, 134, 32, 41, 158, 115, 115])
+        >>> f.divrem(g)
+        (21, 106*x^5 + 156*x^4 + 131*x^3 + 43*x^2 + 86*x + 16)
+        """
+        cdef fmpz_t f
+        cdef fmpz_mod_poly Q, R
+
+        other = self.ctx.any_as_fmpz_mod_poly(other)
+        if other is NotImplemented:
+            return NotImplemented
+
+        Q = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        R = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        Q.ctx = self.ctx
+        R.ctx = self.ctx
+
+        fmpz_init(f)
+        fmpz_mod_poly_divrem_f(
+            f, Q.val, R.val, self.val, (<fmpz_mod_poly>other).val, self.ctx.mod.val
+        )
+        if not fmpz_is_one(f):
+            raise ValueError(
+                f"Cannot compute divrem of {self} with {other}"
+            )
+
+        return Q, R
 
     def gcd(self, other):
         """
