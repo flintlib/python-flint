@@ -30,7 +30,7 @@ threads = 1        # max number of threads used internally
 
 def test_pyflint():
 
-    assert flint.__version__ == "0.4.2"
+    assert flint.__version__ == "0.4.4"
 
     ctx = flint.ctx
     assert str(ctx) == repr(ctx) == _default_ctx_string
@@ -438,11 +438,17 @@ def test_fmpz_poly():
     assert Z([1,2,2]).sqrt() is None
     assert Z([1,0,2,0,3]).deflation() == (Z([1,2,3]), 2)
     assert Z([1,1]).deflation() == (Z([1,1]), 1)
-    [(r,m)] = Z([1,1]).roots()
+    [(r,m)] = Z([1,1]).complex_roots()
     assert m == 1
     assert r.overlaps(-1)
+    assert Z([]).complex_roots() == []
+    assert Z([1]).complex_roots() == []
+    [(r,m)] = Z([1,1]).roots()
+    assert m == 1
+    assert r == -1
     assert Z([]).roots() == []
     assert Z([1]).roots() == []
+    assert Z([1, 2]).roots() == []
 
 def test_fmpz_poly_factor():
     Z = flint.fmpz_poly
@@ -985,11 +991,13 @@ def test_fmpq_poly():
     assert Q.bernoulli_poly(3) == Q([0,1,-3,2],2)
     assert Q.euler_poly(3) == Q([1,0,-6,4],4)
     assert Q.legendre_p(3) == Q([0,-3,0,5],2)
-    assert Q([]).roots() == []
-    assert Q([1]).roots() == []
-    [(r,m)] = Q([1,1]).roots()
+    assert Q([]).complex_roots() == []
+    assert Q([1]).complex_roots() == []
+    [(r,m)] = Q([1,1]).complex_roots()
     assert m == 1
     assert r.overlaps(-1)
+    assert str(Q([1,2]).roots()) == "[(-1/2, 1)]"
+    assert Q([2,1]).roots() == [(-2, 1)]
 
 def test_fmpq_mat():
     Q = flint.fmpq_mat
@@ -1271,6 +1279,8 @@ def test_nmod():
     assert G(1,2) != G(0,2)
     assert G(0,2) != G(0,3)
     assert G(3,5) == G(8,5)
+    assert G(1,2) != (1,2)
+    assert isinstance(hash(G(3, 5)), int)
     assert raises(lambda: G([], 3), TypeError)
     #assert G(3,5) == 8        # do we want this?
     #assert 8 == G(3,5)
@@ -1292,12 +1302,23 @@ def test_nmod():
     assert G(3,17) / G(2,17) == G(10,17)
     assert G(3,17) / 2 == G(10,17)
     assert 3 / G(2,17) == G(10,17)
+    assert G(0,3) / G(1,3) == G(0,3)
     assert G(3,17) * flint.fmpq(11,5) == G(10,17)
     assert G(3,17) / flint.fmpq(11,5) == G(6,17)
-    assert G(flint.fmpq(2, 3), 5) == G(4,5)
     assert raises(lambda: G(flint.fmpq(2, 3), 3), ZeroDivisionError)
     assert raises(lambda: G(2,5) / G(0,5), ZeroDivisionError)
     assert raises(lambda: G(2,5) / 0, ZeroDivisionError)
+    assert G(1,6) / G(5,6) == G(5,6)
+    assert raises(lambda: G(1,6) / G(3,6), ZeroDivisionError)
+    assert G(1,3) ** 2 == G(1,3)
+    assert G(2,3) ** flint.fmpz(2) == G(1,3)
+    assert ~G(2,7) == G(2,7) ** -1 == G(4,7)
+    assert raises(lambda: G(3,6) ** -1, ZeroDivisionError)
+    assert raises(lambda: ~G(3,6), ZeroDivisionError)
+    assert raises(lambda: pow(G(1,3), 2, 7), TypeError)
+    assert G(flint.fmpq(2, 3), 5) == G(4,5)
+    assert raises(lambda: G(2,5) ** G(2,5), TypeError)
+    assert raises(lambda: flint.fmpz(2) ** G(2,5), TypeError)
     assert raises(lambda: G(2,5) + G(2,7), ValueError)
     assert raises(lambda: G(2,5) - G(2,7), ValueError)
     assert raises(lambda: G(2,5) * G(2,7), ValueError)
@@ -1306,10 +1327,12 @@ def test_nmod():
     assert raises(lambda: G(2,5) - [], TypeError)
     assert raises(lambda: G(2,5) * [], TypeError)
     assert raises(lambda: G(2,5) / [], TypeError)
+    assert raises(lambda: G(2,5) ** [], TypeError)
     assert raises(lambda: [] + G(2,5), TypeError)
     assert raises(lambda: [] - G(2,5), TypeError)
     assert raises(lambda: [] * G(2,5), TypeError)
     assert raises(lambda: [] / G(2,5), TypeError)
+    assert raises(lambda: [] ** G(2,5), TypeError)
     assert G(3,17).modulus() == 17
     assert str(G(3,5)) == "3"
     assert G(3,5).repr() == "nmod(3, 5)"
@@ -1411,6 +1434,9 @@ def test_nmod_poly():
     for alg in [None, 'berlekamp', 'cantor-zassenhaus']:
         assert p3.factor(alg) == f3
         assert p3.factor(algorithm=alg) == f3
+    assert P([1], 11).roots() == []
+    assert P([1, 2, 3], 11).roots() == [(8, 1), (6, 1)]
+    assert P([1, 6, 1, 8], 11).roots() == [(5, 3)]
 
 def test_nmod_mat():
     M = flint.nmod_mat
@@ -1558,6 +1584,236 @@ def test_pickling():
         obj2 = pickle.loads(s)
         assert obj == obj2
 
+def test_fmpz_mod():
+    from flint import fmpz_mod_ctx, fmpz, fmpz_mod
+    
+    p_sml = 163
+    p_med = 2**127 - 1
+    p_big = 2**255 - 19
+
+    F_sml = fmpz_mod_ctx(p_sml)
+    F_med = fmpz_mod_ctx(p_med)
+    F_big = fmpz_mod_ctx(p_big)
+
+    # Context tests
+    assert raises(lambda: fmpz_mod_ctx("AAA"), TypeError)
+    assert raises(lambda: fmpz_mod_ctx(-1), ValueError)
+    assert F_sml.modulus() == p_sml
+    assert F_med.modulus() == p_med
+    assert F_big.modulus() == p_big
+
+    F_big_copy = fmpz_mod_ctx(p_big)
+    assert F_big_copy == F_big
+    assert F_big != F_sml
+    assert hash(F_big_copy) == hash(F_big)
+    assert hash(F_big) != hash(F_sml)
+    assert F_big_copy != F_sml
+    assert F_big_copy != "A"
+
+    assert repr(F_sml) == "fmpz_mod_ctx(163)"
+    assert str(F_sml) == "Context for fmpz_mod with modulus: 163"
+
+    # Type tests
+    assert raises(lambda: fmpz_mod(1, "AAA"), TypeError)
+
+    # Test for small, medium and large char.
+    for F_test in [F_sml, F_med, F_big]:
+        test_mod = int(F_test.modulus())
+        test_x = (-123) % test_mod # canonical value
+        test_y = ((-456) % test_mod)**2 # non-canoncial value
+
+        F_test_copy = fmpz_mod_ctx(test_mod)
+        F_other = fmpz_mod_ctx(11)
+
+        assert raises(lambda: F_test(test_x) > 0, TypeError)
+        assert raises(lambda: F_test(test_x) >= 0, TypeError)
+        assert raises(lambda: F_test(test_x) < 0, TypeError)
+        assert raises(lambda: F_test(test_x) <= 0, TypeError)
+
+        assert (test_x == F_test(test_x)) is True, f"{test_x}, {F_test(test_x)}"
+        assert (124 != F_test(test_x)) is True
+        assert (F_test(test_x) == test_x) is True
+        assert (F_test(test_x) == test_x + test_mod) is True
+        assert (F_test(test_x) == 1) is False
+        assert (F_test(test_x) != 1) is True
+        assert (F_test(test_x) == F_test(test_x)) is True
+        assert (F_test(test_x) == F_test(test_x + test_mod)) is True
+        assert (F_test(test_x) == F_test(1)) is False
+        assert (F_test(test_x) != F_test(1)) is True
+
+        assert (hash(F_test(test_x)) == hash(test_x)) is True
+        assert (hash(F_test(F_test(test_x))) == hash(test_x)) is True
+        assert (hash(F_test(test_x)) == hash(1)) is False
+        assert (hash(F_test(test_x)) != hash(1)) is True
+        assert (hash(F_test(test_x)) == hash(F_test(test_x))) is True
+        assert (hash(F_test(test_x)) == hash(F_test(test_x + test_mod))) is True
+        assert (hash(F_test(test_x)) == hash(F_test(1))) is False
+        assert (hash(F_test(test_x)) != hash(F_test(1))) is True
+
+        # Is one, zero
+        assert (F_test(0) == 0) is True
+        assert F_test(0).is_zero() is True
+        assert not F_test(0)
+        assert not F_test(test_mod)
+        assert F_test(1).is_one() is True
+        assert F_test(test_mod + 1).is_one() is True
+        assert F_test(1).is_one() is True
+        assert F_test(2).is_one() is False
+
+        # int, str, repr
+        assert str(F_test(11)) == "11"
+        assert str(F_test(-1)) == str(test_mod - 1)
+        assert repr(F_test(11)) == f"fmpz_mod(11, {test_mod})"
+        assert repr(F_test(-1)) == f"fmpz_mod({test_mod - 1}, {test_mod})"
+
+        assert +F_test(5) == F_test(5)
+
+        # Arithmetic tests
+
+        # Negation
+        assert -F_test(test_x) == F_test(-test_x) == (-test_x % test_mod)
+        assert -F_test(1) == F_test(-1) == F_test(test_mod - 1)
+
+        # Addition
+        assert F_test(test_x) + F_test(test_y) == F_test(test_x + test_y)
+        assert F_test(test_x) + F_test_copy(test_y) == F_test(test_x + test_y)
+        assert F_test(test_x) + F_test(test_y) == F_test_copy(test_x + test_y)
+        assert raises(lambda: F_test(test_x) + "AAA", TypeError)
+
+        assert F_test(test_x) + F_test(test_y) == F_test(test_y) + F_test(test_x)
+        assert F_test(test_x) + test_y == F_test(test_x + test_y)
+        assert test_y + F_test(test_x) == F_test(test_x + test_y)
+        assert F_test(test_x) + fmpz(test_y) == F_test(test_y) + F_test(test_x)
+        assert raises(lambda: F_test(test_x) + F_other(test_y), ValueError)
+
+        # Subtraction
+
+        assert F_test(test_x) - F_test(test_y) == F_test(test_x - test_y)
+        assert F_test(test_x) - test_y == F_test(test_x - test_y)
+        assert F_test(test_x) - test_y == F_test(test_x) - F_test(test_y)
+        assert F_test(test_y) - test_x == F_test(test_y) - F_test(test_x)
+        assert test_x - F_test(test_y) == F_test(test_x) - F_test(test_y)
+        assert test_y - F_test(test_x) == F_test(test_y) - F_test(test_x)
+        assert F_test(test_x) - fmpz(test_y) == F_test(test_x) - F_test(test_y)
+        assert raises(lambda: F_test(test_x) - F_other(test_y), ValueError)
+        assert raises(lambda: F_test(test_x) - "AAA", TypeError)
+
+        # Multiplication
+
+        assert F_test(test_x) * F_test(test_y) == (test_x * test_y) % test_mod
+        assert F_test(test_x) * test_y == (test_x * test_y) % test_mod
+        assert test_y * F_test(test_x) == (test_x * test_y) % test_mod
+
+        assert F_test(1) * F_test(test_x) == F_test(1 * test_x)
+        assert F_test(2) * F_test(test_x) == F_test(2 * test_x)
+        assert F_test(3) * F_test(test_x) == F_test(3 * test_x)
+        assert 1 * F_test(test_x) == F_test(1 * test_x)
+        assert 2 * F_test(test_x) == F_test(2 * test_x)
+        assert 3 * F_test(test_x) == F_test(3 * test_x)
+        assert F_test(test_x) * 1 == F_test(1 * test_x)
+        assert F_test(test_x) * 2 == F_test(2 * test_x)
+        assert F_test(test_x) * 3 == F_test(3 * test_x)
+        assert fmpz(1) * F_test(test_x) == F_test(1 * test_x)
+        assert fmpz(2) * F_test(test_x) == F_test(2 * test_x)
+        assert fmpz(3) * F_test(test_x) == F_test(3 * test_x)
+        assert raises(lambda: F_test(test_x) * "AAA", TypeError)
+        assert raises(lambda: F_test(test_x) * F_other(test_x), ValueError)
+
+        # Exponentiation 
+
+        assert F_test(0)**0 == pow(0, 0, test_mod)
+        assert F_test(0)**1 == pow(0, 1, test_mod)
+        assert F_test(0)**2 == pow(0, 2, test_mod)
+        assert raises(lambda: F_test(0)**(-1), ZeroDivisionError)
+        assert raises(lambda: F_test(0)**("AA"), NotImplementedError)
+
+        assert F_test(test_x)**fmpz(0) == pow(test_x, 0, test_mod)
+        assert F_test(test_x)**fmpz(1) == pow(test_x, 1, test_mod)
+        assert F_test(test_x)**fmpz(2) == pow(test_x, 2, test_mod)
+        assert F_test(test_x)**fmpz(3) == pow(test_x, 3, test_mod)
+
+        assert F_test(test_x)**0 == pow(test_x, 0, test_mod)
+        assert F_test(test_x)**1 == pow(test_x, 1, test_mod)
+        assert F_test(test_x)**2 == pow(test_x, 2, test_mod)
+        assert F_test(test_x)**3 == pow(test_x, 3, test_mod)
+        assert F_test(test_x)**100 == pow(test_x, 100, test_mod)
+
+        assert F_test(test_x)**(-1) == pow(test_x, -1, test_mod)
+        assert F_test(test_x)**(-2) == pow(test_x, -2, test_mod)
+        assert F_test(test_x)**(-3) == pow(test_x, -3, test_mod)
+        assert F_test(test_x)**(-4) == pow(test_x, -4, test_mod)
+
+        # Inversion
+
+        assert raises(lambda: ~F_test(0), ZeroDivisionError)
+        assert ~F_test(test_x) == pow(test_x, -1, test_mod)
+        assert ~F_test(1) == pow(1, -1, test_mod)
+        assert ~F_test(2) == pow(2, -1, test_mod), f"Broken!! {~F_test(2)}, {pow(2, -1, test_mod)}"
+
+        assert F_test(1).inverse(check=False) == pow(1, -1, test_mod)
+        assert F_test(2).inverse(check=False) == pow(2, -1, test_mod)
+        assert F_test(test_x).inverse(check=False) == pow(test_x, -1, test_mod)
+
+        # Division
+        assert raises(lambda: F_test(1) / F_test(0), ZeroDivisionError)
+        assert F_test(test_x) / F_test(test_y) == (test_x * pow(test_y, -1, test_mod)) % test_mod
+        assert F_test(test_x) / fmpz(test_y) == (test_x * pow(test_y, -1, test_mod)) % test_mod
+        assert F_test(test_x) / test_y == (test_x * pow(test_y, -1, test_mod)) % test_mod
+        assert raises(lambda: F_test(test_x) / "AAA", TypeError)
+        assert raises(lambda: "AAA" / F_test(test_x), TypeError)
+        assert raises(lambda: F_other(test_x) / F_test(test_x), ValueError)
+        assert raises(lambda: F_test(test_x) // F_test(test_x), TypeError)
+        assert 1 / F_test(2) ==  pow(2, -1, test_mod)
+        assert 1 / F_test(test_x) ==  pow(test_x, -1, test_mod)
+        assert 1 / F_test(test_y) ==  pow(test_y, -1, test_mod)
+
+        assert fmpz(test_y) / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
+        assert test_y / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
+            
+def test_fmpz_mod_dlog():
+    from flint import fmpz, fmpz_mod_ctx
+
+    # Input modulus must be prime
+    F = fmpz_mod_ctx(4)
+    g, a = F(1), F(2)
+    assert raises(lambda: g.discrete_log(a, check=True), ValueError)
+
+    # Moduli must match
+    F1, F2 = fmpz_mod_ctx(2), fmpz_mod_ctx(3)
+    g = F1(2)
+    a = F2(4)
+    assert raises(lambda: g.discrete_log(a, check=True), ValueError)
+
+    # Need to use either fmpz_mod or something which can be case to
+    # fmpz
+    assert raises(lambda: g.discrete_log("A", check=True), TypeError)
+
+    F = fmpz_mod_ctx(163)
+    g = F(2)
+    a = g**123
+    
+    assert 123 == g.discrete_log(a)
+
+    a_int = pow(2, 123, 163)
+    a_fmpz = fmpz(a_int)
+    assert 123 == g.discrete_log(a_int)
+    assert 123 == g.discrete_log(a_fmpz)
+
+    # Randomised testing with smooth large modulus
+    e2, e3 = 92, 79
+    p = 2**e2 * 3**e3 + 1
+    F = fmpz_mod_ctx(p)
+
+    import random
+    for _ in range(10):
+        g = F(random.randint(0,p))
+        for _ in range(10):
+            i = random.randint(0,p)
+            a = g**i
+            x = g.discrete_log(a)
+            assert g**x == a
+
+
 
 all_tests = [
     test_pyflint,
@@ -1577,4 +1833,6 @@ all_tests = [
     test_nmod_poly,
     test_nmod_mat,
     test_arb,
+    test_fmpz_mod,
+    test_fmpz_mod_dlog
 ]

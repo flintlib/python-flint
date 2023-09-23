@@ -30,3 +30,11 @@ cdef inline matrix_to_str(tab):
         tab[i] = [s.rjust(widths[j]) for j, s in enumerate(tab[i])]
         tab[i] = "[" + (", ".join(tab[i])) + "]"
     return "\n".join(tab)
+
+cdef inline _str_trunc(s, trunc=0):
+    if trunc > 0 and len(s) > 3 * trunc:
+        left = right = trunc
+        omitted = len(s) - left - right
+        return s[:left] + ("{...%s digits...}" % omitted) + s[-right:]
+    return s
+

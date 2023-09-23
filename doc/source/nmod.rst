@@ -1,4 +1,4 @@
-**nmod** -- integers mod n
+**nmod** -- integers mod wordsize n
 ===============================================================================
 
 .. autoclass :: flint.nmod

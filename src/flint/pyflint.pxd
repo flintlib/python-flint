@@ -1,83 +1,16 @@
-from flint._flint cimport *
+from flint.flintlib.arf cimport arf_rnd_t
+from flint.flint_base.flint_base cimport flint_mat
+from flint.flint_base.flint_base cimport flint_mpoly
+from flint.flint_base.flint_base cimport flint_series
+from flint.flint_base.flint_base cimport flint_scalar
+from flint.flint_base.flint_base cimport flint_poly
+
+from flint.types.fmpz cimport fmpz
+from flint.flintlib.flint cimport *
+
+cdef flint_rand_t global_random_state
 
 cdef class Context:
-    cpdef public bint pretty
-    cpdef public long prec
-    cpdef arf_rnd_t rnd
-
-cdef class fmpz:
-    cdef fmpz_t val
-
-cdef class fmpz_poly:
-    cdef fmpz_poly_t val
-
-cdef class fmpz_mat:
-    cdef fmpz_mat_t val
-
-cdef class fmpz_series:
-    cdef fmpz_poly_t val
-    cdef long prec
-
-cdef class fmpq:
-    cdef fmpq_t val
-
-cdef class fmpq_poly:
-    cdef fmpq_poly_t val
-
-cdef class fmpq_mat:
-    cdef fmpq_mat_t val
-
-cdef class fmpq_series:
-    cdef fmpq_poly_t val
-    cdef long prec
-
-cdef class nmod:
-    cdef mp_limb_t val
-    cdef nmod_t mod
-
-cdef class nmod_poly:
-    cdef nmod_poly_t val
-
-cdef class nmod_mat:
-    cdef nmod_mat_t val
-
-cdef class nmod_series:
-    cdef nmod_poly_t val
-    cdef long prec
-
-cdef class arf:
-    cdef arf_t val
-
-cdef class arb:
-    cdef arb_t val
-
-cdef class acb:
-    cdef acb_t val
-
-cdef class arb_poly:
-    cdef arb_poly_t val
-
-cdef class acb_poly:
-    cdef acb_poly_t val
-
-cdef class arb_mat:
-    cdef arb_mat_t val
-
-cdef class acb_mat:
-    cdef acb_mat_t val
-
-cdef class arb_series:
-    cdef arb_poly_t val
-    cdef long prec
-
-cdef class acb_series:
-    cdef acb_poly_t val
-    cdef long prec
-
-cdef class fmpz_mpoly_ctx:
-    cdef fmpz_mpoly_ctx_t val
-
-cdef class fmpz_mpoly:
-    cdef fmpz_mpoly_t val
-    cdef bint initialized
-
+    cdef public bint pretty
+    cdef public long prec
+    cdef arf_rnd_t rnd
