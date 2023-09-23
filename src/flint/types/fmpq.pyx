@@ -14,16 +14,45 @@ from flint.flintlib.fmpz cimport fmpz_clear
 from flint.flintlib.fmpq cimport *
 from flint.flintlib.bernoulli cimport *
 
-cdef any_as_fmpq(obj):
+cdef extern from *:
+    """
+    /* An ugly hack to get around the ugly hack of renaming fmpq to avoid a c/python name collision */
+    typedef fmpq fmpq_struct;
+    """
+
+cdef int fmpq_set_any_ref(fmpq_t x, obj):
+    cdef int status
+    fmpq_init(x)
     if typecheck(obj, fmpq):
-        return obj
-    z = any_as_fmpz(obj)
-    if z is NotImplemented:
-        return z 
-    q = fmpq.__new__(fmpq)
-    fmpz_set(fmpq_numref((<fmpq>q).val), (<fmpz>z).val)
-    fmpz_one(fmpq_denref((<fmpq>q).val))
-    return q
+        x[0] = (<fmpq>obj).val[0]
+        return FMPZ_REF
+    if typecheck(obj, fmpz):
+        fmpz_set(fmpq_numref(x), (<fmpz>obj).val)
+        fmpz_one(fmpq_denref(x))
+        return FMPZ_TMP
+    status = fmpz_set_any_ref(fmpq_numref(x), obj)
+    if status != FMPZ_UNKNOWN:
+        fmpz_one(fmpq_denref(x))
+        return FMPZ_TMP
+    fmpq_clear(x)
+    return FMPZ_UNKNOWN
+
+cdef any_as_fmpq(obj):
+    cdef fmpq_t x
+    cdef int status
+    cdef fmpq q
+    status = fmpq_set_any_ref(x, obj)
+    if status == FMPZ_REF:
+        q = fmpq.__new__(fmpq)
+        fmpq_set(q.val, x)
+        return q
+    elif status == FMPZ_TMP:
+        q = fmpq.__new__(fmpq)
+        fmpq_clear(q.val)
+        q.val[0] = x[0]
+        return q
+    else:
+        return NotImplemented
 
 cdef class fmpq(flint_scalar):
     """
