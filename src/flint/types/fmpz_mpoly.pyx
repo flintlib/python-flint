@@ -70,8 +70,6 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
 
     Do not construct one of these directly, use `get_fmpz_mpoly_context`.
     """
-#    cdef fmpz_mpoly_ctx_t val
-
     def __init__(self, slong nvars, ordering, names):
         if ordering == "lex":
             fmpz_mpoly_ctx_init(self.val, nvars, ordering_t.ORD_LEX)
@@ -81,7 +79,6 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
             fmpz_mpoly_ctx_init(self.val, nvars, ordering_t.ORD_DEGREVLEX)
         else:
             raise ValueError("Unimplemented term order %s" % ordering)
-
         super().__init__(nvars, names)
 
     cpdef slong nvars(self):
@@ -179,17 +176,25 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
          for k,v in d.items():
              xtype = fmpz_set_any_ref(coefficient, v)
              if xtype == FMPZ_UNKNOWN:
+                 for i in range(nvars):
+                     fmpz_clear(exponents + i)
                  libc.stdlib.free(exponents)
                  raise TypeError("invalid coefficient type %s" % type(v))
              if not PyTuple_Check(k):
+                 for i in range(nvars):
+                     fmpz_clear(exponents + i)
                  libc.stdlib.free(exponents)
                  raise TypeError("Expected tuple of ints as key not %s" % type(k))
              if PyTuple_GET_SIZE(k) != nvars:
+                 for i in range(nvars):
+                     fmpz_clear(exponents + i)
                  libc.stdlib.free(exponents)
                  raise TypeError("Expected exponent tuple of length %d" % nvars)
              for i,tup in enumerate(k):
                  xtype = fmpz_set_any_ref(exponents + i, tup)
                  if xtype == FMPZ_UNKNOWN:
+                     for i in range(nvars):
+                         fmpz_clear(exponents + i)
                      libc.stdlib.free(exponents)
                      raise TypeError("Invalid exponent type %s" % type(tup))
              #Todo lobby for fmpz_mpoly_push_term_fmpz_ffmpz
@@ -269,7 +274,6 @@ cdef inline create_fmpz_mpoly(fmpz_mpoly_ctx ctx):
     fmpz_mpoly_init(var.val, ctx.val)
     var._init = True
     return var
-
 
 # todo: store cached context objects externally
 cdef class fmpz_mpoly(flint_mpoly):

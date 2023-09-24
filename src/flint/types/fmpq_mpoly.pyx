@@ -115,7 +115,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
 
              >>> ctx = get_fmpq_mpoly_context(2,'lex','x,y')
              >>> ctx.fmpq_mpoly_from_dict({(1,0):2, (1,1):3, (0,1):1})
-             3*x*y  +  2*x  +  y
+             3*x*y + 2*x + y
          """
          cdef long n
          cdef fmpq_t coefficient
@@ -333,8 +333,6 @@ cdef class fmpq_mpoly(flint_mpoly):
             res = str_from_chars(s)
         finally:
             libc.stdlib.free(s)
-        res = res.replace("+", " + ")
-        res = res.replace("-", " - ")
         if res.startswith(" - "):
             res = "-" + res[3:]
         return res
@@ -556,9 +554,9 @@ cdef class fmpq_mpoly(flint_mpoly):
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*z +  + 3*x + 3*z + 3", ctx)
             >>> (p1 * p2).factor()
-            (6, [(z  +  1, 1), (x  +  2, 1), (x  +  1, 1)])
+            (6, [(z + 1, 1), (x + 2, 1), (x + 1, 1)])
             >>> (p2 * p1 * p2).factor()
-            (18, [(z  +  1, 2), (x  +  2, 1), (x  +  1, 2)])
+            (18, [(z + 1, 2), (x + 2, 1), (x + 1, 2)])
         """
         cdef fmpq_mpoly_factor_t fac
         cdef int i
@@ -593,9 +591,9 @@ cdef class fmpq_mpoly(flint_mpoly):
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*y + 3*x + 3*y + 3", ctx)
             >>> (p1 * p2).factor_squarefree()
-            (6, [(y  +  1, 1), (x^2  +  3*x  +  2, 1)])
+            (6, [(y + 1, 1), (x^2 + 3*x + 2, 1)])
             >>> (p1 * p2 * p1).factor_squarefree()
-            (12, [(y  +  1, 1), (x  +  1, 1), (x  +  2, 2)])
+            (12, [(y + 1, 1), (x + 1, 1), (x + 2, 2)])
         """
         cdef fmpq_mpoly_factor_t fac
         cdef int i
