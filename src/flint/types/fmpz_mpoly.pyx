@@ -658,7 +658,6 @@ cdef class fmpz_mpoly(flint_mpoly):
             (6, [(z + 1, 1), (x + 2, 1), (x + 1, 1)])
             >>> (p2 * p1 * p2).factor()
             (18, [(z + 1, 2), (x + 2, 1), (x + 1, 2)])
-            (18, [(x + 1, 1), (x*y + z + 1, 2)])
         """
         cdef fmpz_mpoly_factor_t fac
         cdef int i
@@ -692,9 +691,9 @@ cdef class fmpz_mpoly(flint_mpoly):
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*y + 3*x + 3*y + 3", ctx)
             >>> (p1 * p2).factor_squarefree()
-            (6, [(x + 2, 1), (x*y + x + y + 1, 1)])
+            (6, [(y + 1, 1), (x^2 + 3*x + 2, 1)])
             >>> (p1 * p2 * p1).factor_squarefree()
-            (18, [(x + 2, 2), (x*y + x + y + 1, 1)])
+            (12, [(y + 1, 1), (x + 1, 1), (x + 2, 2)])
         """
         cdef fmpz_mpoly_factor_t fac
         cdef int i
