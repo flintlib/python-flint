@@ -218,3 +218,7 @@ cdef class flint_mat(flint_elem):
 
     # supports mpmath conversions
     tolist = table
+
+
+cdef class flint_rational_function(flint_elem):
+    pass
