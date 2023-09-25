@@ -513,6 +513,8 @@ cdef class fmpz_poly(flint_poly):
     def deflation(self):
         cdef fmpz_poly v
         cdef ulong n
+        if fmpz_poly_is_zero(self.val):
+            return self, 1
         n = arb_fmpz_poly_deflation(self.val)
         if n == 1:
             return self, int(n)
