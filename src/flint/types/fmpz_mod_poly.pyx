@@ -758,7 +758,8 @@ cdef class fmpz_mod_poly(flint_poly):
         Return this polynomial divided by its leading coefficient.
 
         If `check` is True, raises ValueError if the leading coefficient 
-        is not invertible modulo N.
+        is not invertible modulo N. If `check` is False and the leading 
+        coefficient is not invertible, the output is undefined.
 
             >>> R = fmpz_mod_poly_ctx(163)
             >>> f = R([1,2,3])
@@ -958,6 +959,7 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> f = R([143, 19, 37, 138, 102, 127, 95])
             >>> g = R([139, 9, 35, 154, 87, 120, 24])
             >>> f.xgcd(g)
+            (x^3 + 128*x^2 + 123*x + 91, 17*x^2 + 49*x + 104, 21*x^2 + 5*x + 25)
 
         """
         cdef fmpz_mod_poly G, S, T
@@ -1081,11 +1083,11 @@ cdef class fmpz_mod_poly(flint_poly):
 
             >>> R = fmpz_mod_poly_ctx(163)
             >>> f = R([123, 129, 63, 14, 51, 76, 133])
-            >>> f.inverse_series(3)
+            >>> f.inverse_series_trunc(3)
             159*x^2 + 151*x + 110
-            >>> f.inverse_series(4)
+            >>> f.inverse_series_trunc(4)
             23*x^3 + 159*x^2 + 151*x + 110
-            >>> f.inverse_series(5)
+            >>> f.inverse_series_trunc(5)
             45*x^4 + 23*x^3 + 159*x^2 + 151*x + 110
         """
         cdef fmpz_t f

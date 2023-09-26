@@ -153,7 +153,6 @@ cdef class fmpz_mod_ctx:
     cdef any_as_fmpz_mod(self, obj):
         # If `obj` is an `fmpz_mod`, just check moduli
         # match
-        # TODO: we could allow conversion from one modulus to another?
         if typecheck(obj, fmpz_mod):
             if self != (<fmpz_mod>obj).ctx:
                 raise ValueError("moduli must match")
@@ -270,7 +269,7 @@ cdef class fmpz_mod(flint_scalar):
             >>> mod_ctx = fmpz_mod_ctx(163)
             >>> mod_ctx(0).is_one()
             False
-            >>> mod_ctx(1).is_zero()
+            >>> mod_ctx(1).is_one()
             True
         """
 
@@ -350,13 +349,9 @@ cdef class fmpz_mod(flint_scalar):
             raise NotImplementedError("algorithm assumes modulus is prime")
 
         # Then check the type of the input
-        if typecheck(a, fmpz_mod):
-            if self.ctx != (<fmpz_mod>a).ctx:
-                raise ValueError("moduli must match")
-        else:
-            a = self.ctx.any_as_fmpz_mod(a)
-            if a is NotImplemented:
-                raise TypeError
+        a = self.ctx.any_as_fmpz_mod(a)
+        if a is NotImplemented:
+            raise TypeError(f"Cannot solve the discrete log with {type(a)} as input")
 
         # First, Ensure that self.ctx.L has performed precomputations
         # This generates a `y` which is a primative root, and used as
@@ -417,18 +412,17 @@ cdef class fmpz_mod(flint_scalar):
         if op != 2 and op != 3:
             raise TypeError("fmpz_mod cannot be ordered")
 
-        if not typecheck(other, fmpz_mod):
-            other = self.ctx.any_as_fmpz_mod(other)
-
-        if typecheck(other, fmpz_mod):
-            res = fmpz_equal(self.val, (<fmpz_mod>other).val) and \
-                  (self.ctx == (<fmpz_mod>other).ctx)
-            if op == 2:
-                return res
-            else:
-                return not res
-        else:
+        other = self.ctx.any_as_fmpz_mod(other)
+        if other is NotImplemented:
             return NotImplemented
+
+        res = fmpz_equal(self.val, (<fmpz_mod>other).val) and \
+                (self.ctx == (<fmpz_mod>other).ctx)
+        if op == 2:
+            return res
+        else:
+            return not res
+
 
     def __bool__(self):
         return not self.is_zero()

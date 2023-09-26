@@ -1629,6 +1629,13 @@ def test_fmpz_mod():
         test_x = (-123) % test_mod # canonical value
         test_y = ((-456) % test_mod)**2 # non-canoncial value
 
+        test_z = F_test.random_element()
+        assert int(test_z) < F_test.modulus()
+        assert int(test_z) >= 0
+
+        assert raises(lambda: F_test(F_cmp(1)), ValueError)
+        assert raises(lambda: F_test("abc"), NotImplementedError)
+
         F_test_copy = fmpz_mod_ctx(test_mod)
         F_other = fmpz_mod_ctx(11)
 
@@ -1647,6 +1654,7 @@ def test_fmpz_mod():
         assert (F_test(test_x) == F_test(test_x + test_mod)) is True
         assert (F_test(test_x) == F_test(1)) is False
         assert (F_test(test_x) != F_test(1)) is True
+        assert (F_test(test_x) != "abc") is True
 
         assert (hash(F_test(test_x)) == hash(test_x)) is True
         assert (hash(F_test(F_test(test_x))) == hash(test_x)) is True
@@ -1704,6 +1712,8 @@ def test_fmpz_mod():
         assert F_test(test_x) - fmpz(test_y) == F_test(test_x) - F_test(test_y)
         assert raises(lambda: F_test(test_x) - F_other(test_y), ValueError)
         assert raises(lambda: F_test(test_x) - "AAA", TypeError)
+        assert raises(lambda: "AAA" - F_test(test_x), TypeError)
+
 
         # Multiplication
 
