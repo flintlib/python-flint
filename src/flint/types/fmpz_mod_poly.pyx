@@ -97,11 +97,17 @@ cdef class fmpz_mod_poly_ctx:
             >>> R.gen()
             x
         """
-        return self.any_as_fmpz_mod_poly([0, 1])
+        cdef fmpz_mod_poly res
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self
+        fmpz_mod_poly_set_coeff_ui(res.val, 1, 1, self.mod.val)
+        return res
 
     def random_element(self, degree=3, monic=False, irreducible=False):
         """
-        Return a random element of degree `degree`.
+        Return a random element of degree `degree`. If `monic` is True,
+        ensures the output is monic. If `irreducible` is True, ensures
+        that the output is irreducible.
 
             >>> R = fmpz_mod_poly_ctx(163)
             >>> f = R.random_element()
@@ -268,10 +274,6 @@ cdef class fmpz_mod_poly(flint_poly):
         self.ctx = ctx
         self.ctx.set_any_as_fmpz_mod_poly(self.val, val)
         self.initialized = True
-
-    # ---------------- #
-    #    Arithmetic    #
-    # ---------------- #
 
     def __pos__(self):
         return self
@@ -530,10 +532,6 @@ cdef class fmpz_mod_poly(flint_poly):
     def __rmod__(s, t):
         return fmpz_mod_poly._mod_(t, s)    
 
-    # =
-    # Other Magic Methods
-    # =
-
     def __richcmp__(self, other, int op):
         cdef bint res
         if op != 2 and op != 3:
@@ -687,10 +685,7 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         cdef fmpz_mod_poly res
         cdef slong d
-
-        res =  fmpz_mod_poly.__new__(fmpz_mod_poly)
-        res.ctx = self.ctx
-
+        
         if degree is not None:
             d = degree
             if d != degree or d < 0:
@@ -699,7 +694,48 @@ cdef class fmpz_mod_poly(flint_poly):
             d = fmpz_mod_poly_degree(self.val, self.ctx.mod.val)
 
         length = d + 1
+
+        res =  fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
         fmpz_mod_poly_reverse(res.val, self.val, length, self.ctx.mod.val)
+        return res
+
+    def truncate(self, slong n):
+        r"""
+        Notionally truncate the polynomial to have length `n`. If 
+        `n` is larger than the length of the input, then `self` is
+        returned. If n is not positive, then the zero polynomial 
+        is returned.
+
+        Effectively returns this polynomial :math:`\mod x^n`.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,2,3])
+            >>> f.truncate(3) is f
+            True
+            >>> f.truncate(2)
+            2*x + 1
+            >>> f.truncate(1)
+            1
+            >>> f.truncate(0)
+            0
+            >>> f.truncate(-1)
+            0
+
+        """
+        cdef fmpz_mod_poly res
+
+        length = fmpz_mod_poly_degree(self.val, self.ctx.mod.val)
+        if n > length:
+            return self
+
+        res =  fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+
+        if n <= 0:
+            return res
+
+        fmpz_mod_poly_set_trunc(res.val, self.val, n, self.ctx.mod.val)
         return res
 
     def is_monic(self):
@@ -778,13 +814,86 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         return 1 == fmpz_mod_poly_is_squarefree(self.val, self.ctx.mod.val)
 
+    def square(self):
+        """
+        Returns the square of `self`
+        """
+        cdef fmpz_mod_poly res
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        fmpz_mod_poly_sqr(
+            res.val, self.val, self.ctx.mod.val
+        )
+        return res
+
+    def mul_mod(self, other, modulus):
+        """
+        Computes the multiplication of `self` with `other`
+        modulo the polynomial `modulus`
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = 30*x**6 + 104*x**5 + 76*x**4 + 33*x**3 + 70*x**2 + 44*x + 65
+            >>> g = 43*x**6 + 91*x**5 + 77*x**4 + 113*x**3 + 71*x**2 + 132*x + 60
+            >>> mod = x**4 + 93*x**3 + 78*x**2 + 72*x + 149
+            >>> 
+            >>> f.mul_mod(g, mod)
+            106*x^3 + 44*x^2 + 53*x + 77
+        """
+        cdef fmpz_mod_poly res
+        
+        other = self.ctx.any_as_fmpz_mod_poly(other)
+        if other is NotImplemented:
+            return other
+
+        modulus = self.ctx.any_as_fmpz_mod_poly(modulus)
+        if modulus is NotImplemented:
+            return modulus
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+
+        fmpz_mod_poly_mulmod(
+            res.val, self.val, (<fmpz_mod_poly>other).val, (<fmpz_mod_poly>modulus).val, res.ctx.mod.val
+        )
+        return res
+
+    def pow_mod(self, e, modulus):
+        """
+        Returns `self` raised to the power `e` modulo `modulus`
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = 30*x**6 + 104*x**5 + 76*x**4 + 33*x**3 + 70*x**2 + 44*x + 65
+            >>> g = 43*x**6 + 91*x**5 + 77*x**4 + 113*x**3 + 71*x**2 + 132*x + 60
+            >>> mod = x**4 + 93*x**3 + 78*x**2 + 72*x + 149
+            >>> 
+            >>> f.pow_mod(123, mod) 
+            3*x^3 + 25*x^2 + 115*x + 161
+        """
+        cdef fmpz_mod_poly res
+
+        modulus = self.ctx.any_as_fmpz_mod_poly(modulus)
+        if modulus is NotImplemented:
+            return modulus
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        fmpz_mod_poly_powmod_ui_binexp(
+            res.val, self.val, <ulong>e, (<fmpz_mod_poly>modulus).val, res.ctx.mod.val
+        )
+        return res
+
     def divrem(self, other):
         """
-        >>> R = fmpz_mod_poly_ctx(163)
-        >>> f = R([123, 129, 63, 14, 51, 76, 133])
-        >>> g = R([106, 134, 32, 41, 158, 115, 115])
-        >>> f.divrem(g)
-        (21, 106*x^5 + 156*x^4 + 131*x^3 + 43*x^2 + 86*x + 16)
+        Return Q, R such that self = Q*other + R
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([123, 129, 63, 14, 51, 76, 133])
+            >>> g = R([106, 134, 32, 41, 158, 115, 115])
+            >>> f.divrem(g)
+            (21, 106*x^5 + 156*x^4 + 131*x^3 + 43*x^2 + 86*x + 16)
         """
         cdef fmpz_t f
         cdef fmpz_mod_poly Q, R
@@ -837,6 +946,44 @@ cdef class fmpz_mod_poly(flint_poly):
             res.val, self.val, (<fmpz_mod_poly>other).val, self.ctx.mod.val
         )
         return res
+
+    def xgcd(self, other):
+        """
+        Computes the extended gcd of self and other: (G, S, T)
+        where G is the gcd(self, other) and S, T are such that:
+
+        G = self*S + other*T
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([143, 19, 37, 138, 102, 127, 95])
+            >>> g = R([139, 9, 35, 154, 87, 120, 24])
+            >>> f.xgcd(g)
+
+        """
+        cdef fmpz_mod_poly G, S, T
+        cdef fmpz_t f
+
+        other = self.ctx.any_as_fmpz_mod_poly(other)
+        if other is NotImplemented:
+            return other
+
+        G = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        S = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        T = fmpz_mod_poly.__new__(fmpz_mod_poly)
+
+        G.ctx = self.ctx
+        S.ctx = self.ctx
+        T.ctx = self.ctx
+
+        fmpz_init(f)
+        fmpz_mod_poly_xgcd_f(
+            f, G.val, S.val, T.val, self.val, (<fmpz_mod_poly>other).val, self.ctx.mod.val
+        )
+        if not fmpz_is_one(f):
+            raise ValueError(
+                f"Cannot compute xgcd of {self} with {other}"
+            )
+        return (G, S, T)
 
     def derivative(self):
         """
@@ -896,7 +1043,86 @@ cdef class fmpz_mod_poly(flint_poly):
         if not self.ctx.is_prime():
             raise NotImplementedError("radical algorithm assumes that the base is a field")
 
-        return self / self.gcd(self.derivative())    
+        return self / self.gcd(self.derivative())
+
+    def inverse_mod(self, other):
+        """
+        Returns the inverse of self modulo other
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = f = R([123, 129, 63, 14, 51, 76, 133])
+            >>> f = R([123, 129, 63, 14, 51, 76, 133])
+            >>> g = R([139, 9, 35, 154, 87, 120, 24])
+            >>> f.inverse_mod(g)
+            41*x^5 + 121*x^4 + 47*x^3 + 41*x^2 + 6*x + 5
+        """
+        cdef fmpz_mod_poly res 
+        cdef fmpz_t f
+
+        other = self.ctx.any_as_fmpz_mod_poly(other)
+        if other is NotImplemented:
+            return other
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        fmpz_init(f)
+        fmpz_mod_poly_invmod_f(
+            f, res.val, self.val, (<fmpz_mod_poly>other).val, res.ctx.mod.val
+        )
+        if not fmpz_is_one(f):
+            raise ValueError(
+                f"Cannot compute inverse series of {self} modulo {other}"
+            )
+        return res
+
+    def inverse_series_trunc(self, slong n):
+        """
+        Returns the inverse of self modulo x^n.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([123, 129, 63, 14, 51, 76, 133])
+            >>> f.inverse_series(3)
+            159*x^2 + 151*x + 110
+            >>> f.inverse_series(4)
+            23*x^3 + 159*x^2 + 151*x + 110
+            >>> f.inverse_series(5)
+            45*x^4 + 23*x^3 + 159*x^2 + 151*x + 110
+        """
+        cdef fmpz_t f
+        cdef fmpz_mod_poly res 
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        fmpz_init(f)
+        fmpz_mod_poly_inv_series_f(
+            f, res.val, self.val, n, res.ctx.mod.val
+        )
+        if not fmpz_is_one(f):
+            raise ValueError(
+                f"Cannot compute inverse series of {self} modulo x^{n}"
+            )
+        return res
+
+    def resultant(self):
+        pass
+
+    def evaluate(self):
+        pass
+
+    def multipoint_evaluate(self):
+        pass
+
+    def square_root(self):
+        pass
+
+    def inverse_square_root(self):
+        pass
+
+    def inflate(self):
+        pass
+
+    def deflate(self):
+        pass
 
     # TODO: we could make a factorisation class which we could then
     # implement the factor methods such as pow and concat. I think
@@ -1026,3 +1252,9 @@ cdef class fmpz_mod_poly(flint_poly):
 
     def complex_roots(self):
         return NotImplementedError("the method `complex_roots` is not yet implemented for fmpz_mod_poly")
+
+    def berlekamp_massey(self):
+        raise NotImplemented
+
+    def radix_conversion(self):
+        raise NotImplemented
