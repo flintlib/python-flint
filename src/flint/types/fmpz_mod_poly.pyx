@@ -14,7 +14,9 @@ from flint.types.fmpz_mod cimport fmpz_mod_ctx, fmpz_mod
 from flint.types.fmpz_poly cimport fmpz_poly
 
 from flint.flint_base.flint_base cimport flint_poly
+
 from flint.utils.typecheck cimport typecheck
+from flint.utils.flint_exceptions import DomainError
 
 cdef class fmpz_mod_poly_ctx:
     r"""
@@ -181,7 +183,7 @@ cdef class fmpz_mod_poly_ctx:
                 val_fmpz = any_as_fmpz(val[i])
                 if val_fmpz is NotImplemented:
                     fmpz_clear(x)
-                    raise TypeError("unsupported coefficient in list")
+                    raise TypeError(f"unsupported coefficient in list")
                 fmpz_mod_poly_set_coeff_fmpz(
                     poly, i, (<fmpz>(val_fmpz)).val, self.mod.val
                 )
@@ -448,10 +450,11 @@ cdef class fmpz_mod_poly(flint_poly):
         if e < 0:
             raise ValueError("Exponent must be non-negative")
 
+        cdef ulong e_ulong = e
         res = fmpz_mod_poly.__new__(fmpz_mod_poly)
         res.ctx = self.ctx
         fmpz_mod_poly_pow(
-            res.val, self.val, (<ulong>e), self.ctx.mod.val
+            res.val, self.val, e_ulong, self.ctx.mod.val
         )
         return res
 
@@ -476,9 +479,6 @@ cdef class fmpz_mod_poly(flint_poly):
             0
 
         """
-        if n == 0:
-            return self
-
         cdef fmpz_mod_poly res
         res = fmpz_mod_poly.__new__(fmpz_mod_poly)
         res.ctx = self.ctx
@@ -490,6 +490,10 @@ cdef class fmpz_mod_poly(flint_poly):
         elif n < 0:
             fmpz_mod_poly_shift_right(
                 res.val, self.val, -n, self.ctx.mod.val
+            )
+        else: # do nothing, just copy self
+            fmpz_mod_poly_set(
+                res.val, self.val, self.ctx.mod.val
             )
 
         return res          
@@ -529,6 +533,7 @@ cdef class fmpz_mod_poly(flint_poly):
             f, res.val, (<fmpz_mod_poly>left).val, (<fmpz_mod_poly>right).val, res.ctx.mod.val
         )
         if not fmpz_is_one(f):
+            fmpz_clear(f)
             raise ValueError(
                 f"Cannot compute remainder of {left} modulo {right}"
             )
@@ -738,7 +743,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
             >>> R = fmpz_mod_poly_ctx(163)
             >>> f = R([1,2,3])
-            >>> f.truncate(3) is f
+            >>> f.truncate(3) == f
             True
             >>> f.truncate(2)
             2*x + 1
@@ -753,16 +758,19 @@ cdef class fmpz_mod_poly(flint_poly):
         cdef fmpz_mod_poly res
 
         length = fmpz_mod_poly_degree(self.val, self.ctx.mod.val)
-        if n > length:
-            return self
-
         res =  fmpz_mod_poly.__new__(fmpz_mod_poly)
         res.ctx = self.ctx
 
-        if n <= 0:
+        if n <= 0: # return zero
             return res
-
-        fmpz_mod_poly_set_trunc(res.val, self.val, n, self.ctx.mod.val)
+        elif n > length: # do nothing
+            fmpz_mod_poly_set(
+                res.val, self.val, self.ctx.mod.val
+            )
+        else:
+            fmpz_mod_poly_set_trunc(
+                res.val, self.val, n, self.ctx.mod.val
+            )
         return res
 
     def is_monic(self):
@@ -807,6 +815,7 @@ cdef class fmpz_mod_poly(flint_poly):
                 f, res.val, self.val, self.ctx.mod.val
             )
             if not fmpz_is_one(f):
+                fmpz_clear(f)
                 raise ValueError(f"Leading coefficient is not invertible")
         res.ctx = self.ctx
         return res
@@ -860,7 +869,7 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         return res
 
-    def mul_mod(self, other, modulus):
+    def mulmod(self, other, modulus):
         """
         Computes the multiplication of ``self`` with ``other``
         modulo the polynomial ``modulus``
@@ -871,18 +880,18 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> g = 43*x**6 + 91*x**5 + 77*x**4 + 113*x**3 + 71*x**2 + 132*x + 60
             >>> mod = x**4 + 93*x**3 + 78*x**2 + 72*x + 149
             >>> 
-            >>> f.mul_mod(g, mod)
+            >>> f.mulmod(g, mod)
             106*x^3 + 44*x^2 + 53*x + 77
         """
         cdef fmpz_mod_poly res
         
         other = self.ctx.any_as_fmpz_mod_poly(other)
         if other is NotImplemented:
-            raise TypeError("Cannot interpret {other} as a polynomial")
+            raise TypeError(f"Cannot interpret {other} as a polynomial")
 
         modulus = self.ctx.any_as_fmpz_mod_poly(modulus)
         if modulus is NotImplemented:
-            raise TypeError("Cannot interpret {modulus} as a polynomial")
+            raise TypeError(f"Cannot interpret {modulus} as a polynomial")
 
         res = fmpz_mod_poly.__new__(fmpz_mod_poly)
         res.ctx = self.ctx
@@ -892,7 +901,7 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         return res
 
-    def pow_mod(self, e, modulus):
+    def powmod(self, e, modulus):
         """
         Returns ``self`` raised to the power ``e`` modulo ``modulus``:
         :math:`f^e \mod g`
@@ -903,14 +912,14 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> g = 43*x**6 + 91*x**5 + 77*x**4 + 113*x**3 + 71*x**2 + 132*x + 60
             >>> mod = x**4 + 93*x**3 + 78*x**2 + 72*x + 149
             >>> 
-            >>> f.pow_mod(123, mod) 
+            >>> f.powmod(123, mod) 
             3*x^3 + 25*x^2 + 115*x + 161
         """
         cdef fmpz_mod_poly res
 
         modulus = self.ctx.any_as_fmpz_mod_poly(modulus)
         if modulus is NotImplemented:
-            raise TypeError("Cannot interpret {modulus} as a polynomial")
+            raise TypeError(f"Cannot interpret {modulus} as a polynomial")
 
         res = fmpz_mod_poly.__new__(fmpz_mod_poly)
         res.ctx = self.ctx
@@ -935,7 +944,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
         other = self.ctx.any_as_fmpz_mod_poly(other)
         if other is NotImplemented:
-            raise TypeError("Cannot interpret {other} as a polynomial")
+            raise TypeError(f"Cannot interpret {other} as a polynomial")
 
         Q = fmpz_mod_poly.__new__(fmpz_mod_poly)
         R = fmpz_mod_poly.__new__(fmpz_mod_poly)
@@ -947,6 +956,7 @@ cdef class fmpz_mod_poly(flint_poly):
             f, Q.val, R.val, self.val, (<fmpz_mod_poly>other).val, self.ctx.mod.val
         )
         if not fmpz_is_one(f):
+            fmpz_clear(f)
             raise ValueError(
                 f"Cannot compute divrem of {self} with {other}"
             )
@@ -973,7 +983,7 @@ cdef class fmpz_mod_poly(flint_poly):
                  
         other = self.ctx.any_as_fmpz_mod_poly(other)
         if other is NotImplemented:
-            raise TypeError("Cannot interpret {other} as a polynomial")
+            raise TypeError(f"Cannot interpret {other} as a polynomial")
 
         res = fmpz_mod_poly.__new__(fmpz_mod_poly)
         res.ctx = self.ctx
@@ -1001,7 +1011,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
         other = self.ctx.any_as_fmpz_mod_poly(other)
         if other is NotImplemented:
-            raise TypeError("Cannot interpret {other} as a polynomial")
+            raise TypeError(f"Cannot interpret {other} as a polynomial")
 
         G = fmpz_mod_poly.__new__(fmpz_mod_poly)
         S = fmpz_mod_poly.__new__(fmpz_mod_poly)
@@ -1016,6 +1026,7 @@ cdef class fmpz_mod_poly(flint_poly):
             f, G.val, S.val, T.val, self.val, (<fmpz_mod_poly>other).val, self.ctx.mod.val
         )
         if not fmpz_is_one(f):
+            fmpz_clear(f)
             raise ValueError(
                 f"Cannot compute xgcd of {self} with {other}"
             )
@@ -1097,7 +1108,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
         other = self.ctx.any_as_fmpz_mod_poly(other)
         if other is NotImplemented:
-            raise TypeError("Cannot interpret {other} as a polynomial")
+            raise TypeError(f"Cannot interpret {other} as a polynomial")
 
         res = fmpz_mod_poly.__new__(fmpz_mod_poly)
         res.ctx = self.ctx
@@ -1106,8 +1117,9 @@ cdef class fmpz_mod_poly(flint_poly):
             f, res.val, self.val, (<fmpz_mod_poly>other).val, res.ctx.mod.val
         )
         if not fmpz_is_one(f):
+            fmpz_clear(f)
             raise ValueError(
-                f"Cannot compute inverse series of {self} modulo {other}"
+                f"Cannot compute inverse of {self} modulo {other}"
             )
         return res
 
@@ -1134,38 +1146,151 @@ cdef class fmpz_mod_poly(flint_poly):
             f, res.val, self.val, n, res.ctx.mod.val
         )
         if not fmpz_is_one(f):
+            fmpz_clear(f)
             raise ValueError(
                 f"Cannot compute inverse series of {self} modulo x^{n}"
             )
         return res
 
-    def resultant(self):
-        pass
+    def resultant(self, other):
+        """
+        Returns the resultant of ``self`` with ``other``.
 
-    def multipoint_evaluate(self):
-        pass
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,2,3,4,5])
+            >>> g = R([9,8,7])
+            >>> f.resultant(g)
+            fmpz_mod(57, 163)
 
-    def square_root(self):
-        pass
+        """
+        cdef fmpz_mod res 
 
-    def inverse_square_root(self):
-        pass
+        other = self.ctx.any_as_fmpz_mod_poly(other)
+        if other is NotImplemented:
+            raise TypeError(f"Cannot interpret {other} as a polynomial")
 
-    def inflate(self):
-        pass
+        res = fmpz_mod.__new__(fmpz_mod)
+        res.ctx = self.ctx.mod
+        fmpz_mod_poly_resultant(
+            res.val, self.val, (<fmpz_mod_poly>other).val, self.ctx.mod.val
+        )
+        return res
 
-    def deflate(self):
-        pass
+    def sqrt(self):
+        """
+        If ``self`` is a perfect square, compute the square root
 
-    def berlekamp_massey(self):
-        pass
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,1])
+            >>> (f*f).sqrt()
+            x + 1
 
-    def radix_conversion(self):
-        pass
+        """
+        cdef fmpz_mod_poly res
+        cdef int check
 
-    # TODO: we could make a factorisation class which we could then
-    # implement the factor methods such as pow and concat. I think
-    # sage does something like this with `Factorisation` classes.
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        check = fmpz_mod_poly_sqrt(
+            res.val, self.val, res.ctx.mod.val
+        )
+        if check != 1:
+            raise ValueError(
+                f"Cannot compute square-root {self}"
+            )
+        return res
+
+    def sqrt_trunc(self, slong n):
+        """
+        Returns the squareroot of ``self`` modulo `x^n`.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = R([1,2,3])
+            >>> h = f.sqrt_trunc(5)
+            >>> h
+            82*x^4 + 162*x^3 + x^2 + x + 1
+            >>> h.mulmod(h, x**5) == f
+            True
+
+        """
+        cdef fmpz_mod_poly res
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        fmpz_mod_poly_sqrt_series(
+            res.val, self.val, n, res.ctx.mod.val
+        )
+        return res
+
+    def inverse_sqrt_trunc(self, slong n):
+        """
+        Returns the inverse squareroot of ``self`` modulo `x^n`.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,2,3])
+            >>> h = f.inverse_sqrt_trunc(5)
+            >>> h
+            78*x^4 + 2*x^3 + 162*x + 1
+            >>> (h*h).inverse_series_trunc(5) == f
+            True
+        """
+        cdef fmpz_mod_poly res
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        fmpz_mod_poly_invsqrt_series(
+            res.val, self.val, n, res.ctx.mod.val
+        )
+        return res
+
+    def inflate(self, ulong n):
+        r"""
+        Returns the result of the polynomial `f = \textrm{self}` to
+        `f(x^n)`
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,2,3])
+            >>> f.inflate(10)
+            3*x^20 + 2*x^10 + 1
+
+        """
+        cdef fmpz_mod_poly res
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        fmpz_mod_poly_inflate(
+            res.val, self.val, n, res.ctx.mod.val
+        )
+        return res
+
+    def deflate(self, ulong n):
+        r"""
+        Returns the result of the polynomial `f = \textrm{self}` to
+        `f(x^{1/n})`
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,0,2,0,3])
+            >>> f
+            3*x^4 + 2*x^2 + 1
+            >>> f.deflate(2)
+            3*x^2 + 2*x + 1
+
+        """
+        cdef fmpz_mod_poly res
+
+        n_max = fmpz_mod_poly_deflation(
+            self.val, self.ctx.mod.val
+        )
+        if n > n_max:
+            raise ValueError(f"Cannot deflate with {n = }, maximum allowed value is {n_max = }")
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        fmpz_mod_poly_deflate(
+            res.val, self.val, n, res.ctx.mod.val
+        )
+        return res
 
     def factor_squarefree(self):
         """
@@ -1291,7 +1416,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
     def complex_roots(self):
         """
-        This method is not currently implemented for polynomials in
+        This method is not implemented for polynomials in
         :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
         """
-        raise NotImplementedError("the method `complex_roots` is not yet implemented for fmpz_mod_poly")
+        raise DomainError("Cannot compute compex roots for polynomials over integers modulo N")

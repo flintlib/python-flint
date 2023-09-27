@@ -4,6 +4,8 @@ import operator
 import pickle
 import doctest
 
+from flint.utils.flint_exceptions import DomainError
+
 import flint
 
 if sys.version_info[0] >= 3:
@@ -1926,10 +1928,15 @@ def test_fmpz_mod_poly():
     f[0] = 7
     assert repr(f[0]) == "fmpz_mod(7, 11)"
     assert str(f) == "8*x^3 + 7*x^2 + 6*x + 7"
-    assert f[-1] == 0
 
-    # TODO: I had to use this instead of f[-1] = 1
-    # for the lambda... is this ok?
+    # TODO: currently repr does pretty printing
+    # just like str, we should address this. Mainly, 
+    # the issue is we want nice `repr` behaviour in
+    # interactive shells, which currently is why this
+    # choice has been made
+    assert str(f) == repr(f)
+
+    assert f[-1] == 0
     assert raises(lambda: f.__setitem__(-1, 1), ValueError)
     assert raises(lambda: f.__setitem__(1, "A"), TypeError)
 
@@ -2089,14 +2096,14 @@ def test_fmpz_mod_poly():
         # Square
         assert f*f == f**2 == f.square()
 
-        # mul_mod
-        assert f.mul_mod(f, g) == (f*f) % g
-        assert raises(lambda: f.mul_mod(f, "AAA"), TypeError)
-        assert raises(lambda: f.mul_mod("AAA", g), TypeError)
+        # mulmod
+        assert f.mulmod(f, g) == (f*f) % g
+        assert raises(lambda: f.mulmod(f, "AAA"), TypeError)
+        assert raises(lambda: f.mulmod("AAA", g), TypeError)
 
-        # pow_mod
-        assert f.pow_mod(2, g) == (f*f) % g
-        assert raises(lambda: f.pow_mod(2, "AAA"), TypeError)
+        # powmod
+        assert f.powmod(2, g) == (f*f) % g
+        assert raises(lambda: f.powmod(2, "AAA"), TypeError)
 
         # divrem
         S, T = f.divrem(g)
@@ -2129,6 +2136,21 @@ def test_fmpz_mod_poly():
         assert (f * f_inv) % R_test([0,0,1]) == 1
         assert raises(lambda: R_cmp([0,0,1]).inverse_series_trunc(2), ValueError)
 
+        # Resultant
+        f1 = R_test([-3, 1])
+        f2 = R_test([-5, 1])
+        assert f1.resultant(f2) == (3 - 5)
+        assert raises(lambda: f.resultant("AAA"), TypeError)        
+
+        # sqrt
+        f1 = R_test.random_element(irreducible=True)
+        assert raises(lambda: f1.sqrt(), ValueError)
+        assert (f1*f1).sqrt() in [f1, -f1]
+
+        # deflate
+        f1 = R_test([1,0,2,0,3])
+        assert raises(lambda: f1.deflate(100), ValueError)
+        assert f1.deflate(2) == R_test([1,2,3])
 
         # factor
         ff = R_test([3,2,1]) * R_test([3,2,1]) * R_test([5,4,3])
@@ -2144,14 +2166,13 @@ def test_fmpz_mod_poly():
         assert set(ff.factor()[1]) == set(ff.factor(algorithm="kaltofen_shoup")[1])
         assert set(ff.factor()[1]) == set(ff.factor(algorithm="berlekamp")[1])
         assert raises(lambda: R_test([0,0,1]).factor(algorithm="AAA"), ValueError)
-        assert raises(lambda: R_test([0,0,1]).complex_roots(), NotImplementedError)
-
+        assert raises(lambda: R_test([0,0,1]).complex_roots(), DomainError)
 
         # composite moduli not supported
         assert raises(lambda: R_cmp([0,0,1]).factor(), NotImplementedError)
         assert raises(lambda: R_cmp([0,0,1]).factor_squarefree(), NotImplementedError)
         assert raises(lambda: R_cmp([0,0,1]).roots(), NotImplementedError)
-        assert raises(lambda: R_cmp([0,0,1]).complex_roots(), NotImplementedError)
+        assert raises(lambda: R_cmp([0,0,1]).complex_roots(), DomainError)
 
 
 all_tests = [
