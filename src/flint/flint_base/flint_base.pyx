@@ -27,6 +27,14 @@ cdef class flint_poly(flint_elem):
             yield self[i]
 
     def coeffs(self):
+        """
+        Returns the coefficients of ``self`` as a list
+
+            >>> from flint import fmpz_poly
+            >>> f = fmpz_poly([1,2,3,4,5])
+            >>> f.coeffs()
+            [1,2,3,4,5]
+        """
         return list(self)
 
     def str(self, bint ascending=False):
