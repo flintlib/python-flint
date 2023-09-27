@@ -52,6 +52,8 @@ def run_doctests(verbose=None):
     """Run the python-flint doctests"""
     # Here verbose=True shows a lot of output.
     modules = [flint.pyflint,
+               flint.flint_base.flint_base,
+               flint.flint_base.flint_context,
                flint.types.fmpz,
                flint.types.fmpz_poly,
                flint.types.fmpz_mat,

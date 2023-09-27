@@ -1842,9 +1842,13 @@ def test_fmpz_mod_poly():
     assert raises(lambda: fmpz_mod_ctx("AAA"), TypeError)
     assert raises(lambda: fmpz_mod_ctx(-1), ValueError)
     assert (R1 == R1) is True
+    assert (R1 != R1) is False
     assert (R1 == R2) is True
+    assert (R1 != R2) is False
     assert (R1 != R3) is True
+    assert (R1 == R3) is False
     assert (R1 != "AAA") is True
+    assert (R1 == "AAA") is False
 
     assert (hash(R1) == hash(R1)) is True
     assert (hash(R1) == hash(R2)) is True

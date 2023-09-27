@@ -313,8 +313,7 @@ cdef class fmpz_mod_poly(flint_poly):
     @staticmethod
     def _sub_(left, right):
         cdef fmpz_mod_poly res
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
-
+    
         # Case when left and right are already fmpz_mod_poly
         if typecheck(left, fmpz_mod_poly) and typecheck(right, fmpz_mod_poly):
             if not (<fmpz_mod_poly>left).ctx == (<fmpz_mod_poly>right).ctx:
@@ -332,6 +331,7 @@ cdef class fmpz_mod_poly(flint_poly):
             if left is NotImplemented:
                 return NotImplemented
 
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
         res.ctx = (<fmpz_mod_poly>left).ctx
         fmpz_mod_poly_sub(
                 res.val, (<fmpz_mod_poly>left).val, (<fmpz_mod_poly>right).val, res.ctx.mod.val
@@ -584,7 +584,7 @@ cdef class fmpz_mod_poly(flint_poly):
         return fmpz_mod_poly_length(self.val, self.ctx.mod.val)
 
     def __hash__(self):
-        return hash((int(c) for c in self.coeffs()))
+        return hash(tuple(self.coeffs()))
 
     def __call__(self, input):
         cdef fmpz_mod res
