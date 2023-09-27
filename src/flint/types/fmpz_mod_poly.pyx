@@ -1420,3 +1420,112 @@ cdef class fmpz_mod_poly(flint_poly):
         :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
         """
         raise DomainError("Cannot compute compex roots for polynomials over integers modulo N")
+
+cdef class BerlekampMassey:
+    def __cinit__(self):
+        self.initialized = False
+
+    def __dealloc__(self):
+        if self.initialized:
+            fmpz_mod_berlekamp_massey_clear(self.B, self.ctx.mod.val)
+
+    def __init__(self, ctx):
+        if not typecheck(ctx, fmpz_mod_poly_ctx):
+            raise TypeError
+        self.ctx = ctx
+        fmpz_mod_berlekamp_massey_init(self.B, self.ctx.mod.val)
+        self.initialized = True
+
+    def __str__(self):
+        return f"Berlekamp-Massey algorithm with context: {repr(self.ctx)}"
+
+    def __repr__(self):
+        return f"BerlekampMassey({repr(self.ctx)})"
+
+    def start_over(self):
+        """
+        Empty the stream of points
+        """
+        fmpz_mod_berlekamp_massey_start_over(self.B, self.ctx.mod.val)
+    
+    def add_point(self, point):
+        """
+        Add a point to the stream processed by `B`. Addition of
+        these points will not update `V` or `R`. To update the 
+        values use the method `reduce`.
+        """
+        point = self.ctx.mod.any_as_fmpz_mod(point)
+        if point is NotImplemented:
+            raise TypeError
+        
+        fmpz_mod_berlekamp_massey_add_point(
+            self.B, (<fmpz_mod>point).val, self.ctx.mod.val
+        )
+
+    def add_points(self, points):
+        """
+        Add a list of points to the stream processed by `B`. 
+        Addition of these points will not update `V` or `R`. 
+        To update the values use the method `reduce`.
+
+        TODO:
+        Should I instead use:
+
+            fmpz_mod_berlekamp_massey_add_point
+
+        Then I need to convert the python list to
+        const fmpz *a, what's the best method?
+        """
+        if not isinstance(points, list):
+            raise TypeError
+
+        for point in points:
+            self.add_point(point)
+
+    def add_zeros(self, slong count):
+        """
+        Add ``count`` zeros
+        """
+        fmpz_mod_berlekamp_massey_add_zeros(
+            self.B, count, self.ctx.mod.val
+        )
+        
+    def reduce(self):
+        """
+        Ensure that the polynomials `V`, `R` are up to date. 
+
+        Returns ``1`` if the values have been updated and ``0`` otherwise
+        """
+        return fmpz_mod_berlekamp_massey_reduce(self.B, self.ctx.mod.val)
+
+    def point_count(self):
+        """
+        Return the number of points stored in self
+        """
+        return fmpz_mod_berlekamp_massey_point_count(self.B)
+
+    def V(self):
+        """
+        Return the polynomial `V` in `B`
+        """
+        cdef fmpz_mod_poly res
+        res =  fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        res.val = fmpz_mod_berlekamp_massey_V_poly(self.B)
+        return res
+
+    def R(self):
+        """
+        Return the polynomial `R` in `B`
+        """
+        cdef fmpz_mod_poly res
+        res =  fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        res.val = fmpz_mod_berlekamp_massey_R_poly(self.B)
+        return res
+
+    def VR(self):
+        """
+        Return the polynomials `V` and `R` in `B`
+        """
+        return self.V(), self.R()
