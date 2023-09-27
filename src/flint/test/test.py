@@ -1831,7 +1831,7 @@ def test_fmpz_mod_dlog():
             assert g**x == a
 
 def test_fmpz_mod_poly():
-    from flint import fmpz_poly, fmpz_mod_poly_ctx, fmpz_mod_ctx, fmpz
+    from flint import fmpz_poly, fmpz_mod_poly, fmpz_mod_poly_ctx, fmpz_mod_ctx, fmpz
 
     # fmpz_mod_poly_ctx tests
     F = fmpz_mod_ctx(11)
@@ -1855,21 +1855,53 @@ def test_fmpz_mod_poly():
     assert repr(R3) == "fmpz_mod_poly_ctx(13)"
 
     assert R1.modulus() == 11
-    assert R1([0,1]) == R1.gen()
+    
+    assert R1.is_prime()
+    assert R1.zero() == 0
+    assert R1.one() == 1
+    assert R1.gen() == R1([0,1])
+
+    # Random testing
+    f = R1.random_element()
+    assert f.degree() == 3
+    f = R1.random_element(degree=5, monic=True)
+    assert f.degree() == 5
+    assert f.is_monic()
+    f = R1.random_element(degree=100, irreducible=True)
+    assert f.degree() == 100
+    assert f.is_irreducible()
+    f = R1.random_element(degree=1, monic=True, irreducible=True)
+    assert f.degree() == 1
+    assert f.is_irreducible()
+    assert f.is_monic()
+    assert raises(lambda: R1.random_element(degree=-123), ValueError)
+    assert raises(lambda: R1.random_element(monic="A"), ValueError)
+    assert raises(lambda: R1.random_element(irreducible="A"), ValueError)
+
 
     # Conversion tests
     F = fmpz_mod_ctx(11)
+    F_other = fmpz_mod_ctx(10)
     R = fmpz_mod_poly_ctx(F)
+    R_other = fmpz_mod_poly_ctx(F_other)
+
+    assert raises(lambda: fmpz_mod_poly(1, "A"), TypeError) # Need a valid context
+    assert raises(lambda: R(R_other([1,2,3])), ValueError), f"{R(R_other([1,2,3])) = }" # moduli must match
+    assert raises(lambda: R(F_other(2)), ValueError) # moduli must match
+    assert raises(lambda: R([F(1), F_other(2)]), ValueError) # moduli must match
+    assert raises(lambda: R([F(1), "A"]), TypeError) # need to be able to cast to fmpz_mod
 
     f1 = R([int(-1),int(-2),int(-3)])
     f2 = R([fmpz(-1),fmpz(-2),fmpz(-3)])
     f3 = R([F(-1),F(-2),F(-3)])
     f4 = R(fmpz_poly([-1, -2, -3]))
+    f5 = R(f4)
 
     assert str(f1) == "8*x^2 + 9*x + 10"
     assert str(f2) == "8*x^2 + 9*x + 10"
     assert str(f3) == "8*x^2 + 9*x + 10"
     assert str(f4) == "8*x^2 + 9*x + 10"
+    assert str(f5) == "8*x^2 + 9*x + 10"
 
     f1 = R(5)
     f2 = R(fmpz(6))
@@ -1890,6 +1922,13 @@ def test_fmpz_mod_poly():
     f[0] = 7
     assert repr(f[0]) == "fmpz_mod(7, 11)"
     assert str(f) == "8*x^3 + 7*x^2 + 6*x + 7"
+    assert f[-1] == 0
+
+    # TODO: I had to use this instead of f[-1] = 1
+    # for the lambda... is this ok?
+    assert raises(lambda: f.__setitem__(-1, 1), ValueError)
+    assert raises(lambda: f.__setitem__(1, "A"), TypeError)
+
 
     # Comparisons
     f1 = R([1,2,3])
@@ -1901,6 +1940,14 @@ def test_fmpz_mod_poly():
     assert (f1 != f3) is True
     assert (f1 != "1") is True
     assert (f4 == 3) is True
+    assert (hash(f1) == hash(f2)) is True
+    assert raises(lambda: f1 > f2, TypeError)
+    assert raises(lambda: f1 >= f2, TypeError)
+    assert raises(lambda: f1 < f2, TypeError)
+    assert raises(lambda: f1 <= f2, TypeError)
+
+    assert len(f1) == f1.length() == 3
+    assert f1.degree() == 2
 
     f1 = R([0])
     f2 = R([1])
@@ -1909,6 +1956,198 @@ def test_fmpz_mod_poly():
     assert f1.is_zero() is True
     assert f2.is_one() is True
     assert f3.is_gen() is True
+
+    # Arithmetic
+    p_sml = 163
+    p_med = 2**127 - 1
+    p_big = 2**255 - 19
+
+    F_sml = fmpz_mod_ctx(p_sml)
+    F_med = fmpz_mod_ctx(p_med)
+    F_big = fmpz_mod_ctx(p_big)
+    
+    R_sml = fmpz_mod_poly_ctx(F_sml)
+    R_med = fmpz_mod_poly_ctx(F_med)
+    R_big = fmpz_mod_poly_ctx(F_big)
+
+    F_cmp = fmpz_mod_ctx(10)
+    R_cmp = fmpz_mod_poly_ctx(F_cmp)
+    f_cmp = R_cmp([1,2,3,4,5])
+    f_bad = R_cmp([2,2,2,2,2])
+
+    for (F_test, R_test) in [(F_sml, R_sml), (F_med, R_med), (F_big, R_big)]:
+        
+        f = R_test([-1,-2])
+        g = R_test([-3,-4])
+
+        # pos, neg
+        assert f is +f
+        assert -f == R_test([1,2])
+        
+        # add
+        assert raises(lambda: f + f_cmp, ValueError)
+        assert raises(lambda: f + "AAA", TypeError)
+        assert raises(lambda: "AAA" + f, TypeError)
+        assert f + g == R_test([-4,-6])
+        assert f + 1 ==  R_test([0,-2])
+        assert f + fmpz(1) ==  R_test([0,-2])
+        assert f + F_test(1) ==  R_test([0,-2])
+        assert 1 + f ==  R_test([0,-2])
+        assert fmpz(1) + f ==  R_test([0,-2])
+        assert F_test(1) + f ==  R_test([0,-2])
+
+        # sub
+        assert raises(lambda: f - f_cmp, ValueError)
+        assert raises(lambda: f - "AAA", TypeError)
+        assert raises(lambda: "AAA" - f, TypeError)
+        assert f - g == R_test([2, 2])
+        assert f - 1 ==  R_test([-2,-2])
+        assert f - fmpz(1) ==  R_test([-2,-2])
+        assert f - F_test(1) ==  R_test([-2,-2])
+        assert 1 - f ==  R_test([2, 2])
+        assert fmpz(1) - f ==  R_test([2, 2])
+        assert F_test(1) - f ==  R_test([2, 2])
+
+        # mul
+        assert raises(lambda: f * f_cmp, ValueError)
+        assert raises(lambda: f * "AAA", TypeError)
+        assert raises(lambda: "AAA" * f, TypeError)
+        assert f * g == R_test([3, 4 + 6, 8])
+        assert f * 2 ==  R_test([-2,-4])
+        assert f * fmpz(2) ==  R_test([-2,-4])
+        assert f * F_test(2) ==  R_test([-2,-4])
+        assert 2 * f ==  R_test([-2,-4])
+        assert fmpz(2) * f ==  R_test([-2,-4])
+        assert F_test(2) * f ==  R_test([-2,-4])
+
+        # true div
+        assert raises(lambda: f / f_cmp, ValueError)
+        assert raises(lambda: f / "AAA", TypeError)
+        assert raises(lambda: "AAA" / f, TypeError)
+        assert (f * g) / g == f
+        assert (f + f) / 2  ==  f
+        assert (f + f) / fmpz(2)  ==  f
+        assert (f + f) / F_test(2)  ==  f
+        assert 2 / R_test(2) == 1
+        assert raises(lambda: f / g, ValueError)
+
+        # floor div
+        assert raises(lambda: 1 // f_bad, ValueError)
+        assert raises(lambda: f // f_cmp, ValueError)
+        assert raises(lambda: f // "AAA", TypeError)
+        assert raises(lambda: "AAA" // f, TypeError)
+        assert (f * g) // g == f
+        assert (f + f) // 2  ==  f
+        assert (f + f) // fmpz(2)  ==  f
+        assert (f + f) // F_test(2)  ==  f
+        assert 2 // R_test(2) == 1        
+        assert (f + 1) // f == 1
+
+        # pow
+        assert raises(lambda: f**(-2), ValueError)
+        assert f*f == f**2
+        assert f*f == f**fmpz(2)
+
+        # Shifts
+        assert R_test([1,2,3]) << 3 == R_test([0,0,0,1,2,3])
+        assert R_test([1,2,3]) >> 1 == R_test([2,3])
+
+        # Mod
+        assert raises(lambda: f % f_bad, ValueError)
+        assert raises(lambda: 123 % f_bad, ValueError)
+        assert raises(lambda: f % "AAA", TypeError)
+        assert raises(lambda: tuple() % f, TypeError), f'{"AAA" % f = }'
+
+        assert f % 1 == 0
+        assert R_test.one() % 1 == 0
+        assert 100 % R_test.one() == 0
+        assert (f*g + 1) % f == 1
+        assert (f*g + g) % f == (g % f)
+        assert f % R_test([0,1]) == f.constant_coefficient()
+
+        # Evaluation
+        h = R_test([0, 1])
+        assert h(1) == 1
+        assert h(-1) == R_test.modulus() - 1
+        h = R_test([0, 0, 1])
+        assert h(1) == h(-1)
+        assert raises(lambda: h("AAA"), TypeError)
+
+        # Reverse
+        assert raises(lambda: h.reverse(degree=-100), ValueError)
+        assert R_test([-1,-2,-3]).reverse() == R_test([-3,-2,-1])
+
+        # monic
+        assert raises(lambda: f_bad.monic(), ValueError)
+        assert R_test([1,2]).monic() == R_test([1 / F_test(2), 1])
+        assert R_test([1,2]).monic(check=False) == R_test([1 / F_test(2), 1])
+
+        # Square
+        assert f*f == f**2 == f.square()
+
+        # mul_mod
+        assert f.mul_mod(f, g) == (f*f) % g
+        assert raises(lambda: f.mul_mod(f, "AAA"), TypeError)
+        assert raises(lambda: f.mul_mod("AAA", g), TypeError)
+
+        # pow_mod
+        assert f.pow_mod(2, g) == (f*f) % g
+        assert raises(lambda: f.pow_mod(2, "AAA"), TypeError)
+
+        # divrem
+        S, T = f.divrem(g)
+        assert S*g + T == f
+        assert raises(lambda: f.divrem("AAA"), TypeError)
+        assert raises(lambda: f_bad.divrem(f_bad), ValueError)
+
+        # gcd
+        assert raises(lambda: f_cmp.gcd(f_cmp), NotImplementedError)
+        assert raises(lambda: f.gcd("f"), TypeError)
+
+        # xgcd
+        assert raises(lambda: (f_cmp).xgcd(f_cmp), ValueError)
+        assert raises(lambda: (f).xgcd("f_cmp"), TypeError)
+
+
+        # disc.
+        assert raises(lambda: (f_cmp).discriminant(), NotImplementedError)
+
+        # Radical
+        assert raises(lambda: (f_cmp).radical(), NotImplementedError)
+
+        # inverse_mod
+        f_inv = f.inverse_mod(g)
+        assert (f * f_inv) % g == 1
+        assert raises(lambda: f.inverse_mod("AAA"), TypeError)
+        assert raises(lambda: (f_cmp).inverse_mod(f_cmp), ValueError)
+
+        f_inv = f.inverse_series_trunc(2)
+        assert (f * f_inv) % R_test([0,0,1]) == 1
+        assert raises(lambda: R_cmp([0,0,1]).inverse_series_trunc(2), ValueError)
+
+
+        # factor
+        ff = R_test([3,2,1]) * R_test([3,2,1]) * R_test([5,4,3])
+        ff_rebuild = R_test.one()
+        c, facs = ff.factor()
+        ff_rebuild *= c
+        for p, e in facs:
+            assert p.is_irreducible()
+            ff_rebuild *= p**e
+        assert ff_rebuild == ff
+
+        assert set(ff.factor()[1]) == set(ff.factor(algorithm="cantor_zassenhaus")[1])
+        assert set(ff.factor()[1]) == set(ff.factor(algorithm="kaltofen_shoup")[1])
+        assert set(ff.factor()[1]) == set(ff.factor(algorithm="berlekamp")[1])
+        assert raises(lambda: R_test([0,0,1]).factor(algorithm="AAA"), ValueError)
+        assert raises(lambda: R_test([0,0,1]).complex_roots(), NotImplementedError)
+
+
+        # composite moduli not supported
+        assert raises(lambda: R_cmp([0,0,1]).factor(), NotImplementedError)
+        assert raises(lambda: R_cmp([0,0,1]).factor_squarefree(), NotImplementedError)
+        assert raises(lambda: R_cmp([0,0,1]).roots(), NotImplementedError)
+        assert raises(lambda: R_cmp([0,0,1]).complex_roots(), NotImplementedError)
 
 
 all_tests = [
