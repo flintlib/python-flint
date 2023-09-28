@@ -437,6 +437,7 @@ def test_fmpz_poly():
     assert Z([1,2,1]).sqrt() == Z([1,1])
     assert Z([1,2,2]).sqrt() is None
     assert Z([1,0,2,0,3]).deflation() == (Z([1,2,3]), 2)
+    assert Z([]).deflation() == (Z([]), 1)
     assert Z([1,1]).deflation() == (Z([1,1]), 1)
     [(r,m)] = Z([1,1]).complex_roots()
     assert m == 1
