@@ -2174,6 +2174,19 @@ def test_fmpz_mod_poly():
         assert raises(lambda: R_cmp([0,0,1]).roots(), NotImplementedError)
         assert raises(lambda: R_cmp([0,0,1]).complex_roots(), DomainError)
 
+        # minpoly
+        assert raises(lambda: R_cmp.minpoly([1,2,3,4]), NotImplementedError)
+        assert raises(lambda: R_test.minpoly(1), ValueError)
+        assert raises(lambda: R_test.minpoly([1,2,3,"AAA"]), ValueError)
+
+        # multipoint_evaluation
+        assert raises(lambda: R_test([1,2,3]).multipoint_evaluation([1,2,3,"AAA"]), ValueError)
+        f = R_test([1,2,3])
+        l = [-1,-2,-3]
+        # TODO: not working for large modulus!
+        # assert [f(x) for x in l] == f.multipoint_evaluation(l)
+
+
 
 all_tests = [
     test_pyflint,

@@ -1,21 +1,24 @@
+cimport cython
+cimport libc.stdlib
 from cpython.list cimport PyList_GET_SIZE
+
 from flint.pyflint cimport global_random_state
-from flint.flintlib.fmpz_mod cimport fmpz_mod_neg
+from flint.flintlib.fmpz_mod cimport fmpz_mod_neg, fmpz_mod_set_fmpz
 from flint.flintlib.fmpz_mod_poly cimport *
 from flint.flintlib.fmpz_mod_poly_factor cimport *
-
 from flint.flintlib.fmpz cimport(
     fmpz_init,
     fmpz_clear,
     fmpz_is_one
 )
+
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 from flint.types.fmpz_mod cimport fmpz_mod_ctx, fmpz_mod
 from flint.types.fmpz_poly cimport fmpz_poly
 
 from flint.flint_base.flint_base cimport flint_poly
-
 from flint.utils.typecheck cimport typecheck
+
 from flint.utils.flint_exceptions import DomainError
 
 cdef class fmpz_mod_poly_ctx:
@@ -268,9 +271,61 @@ cdef class fmpz_mod_poly_ctx:
     def __call__(self, val):
         return fmpz_mod_poly(val, self)
 
+    def minpoly(self, vals):
+        """
+        Returns a minimal generating polynomial for sequence `vals`.
+
+        A minimal generating polynomial is a monic polynomial, of minimal degree `d`, 
+        that annihilates any consecutive `d+1` terms in seq.
+
+        Assumes that the modulus is prime.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> R.minpoly([1,1,2,3,5,8])
+            x^2 + 162*x + 162
+            >>> R.minpoly([2,4,6,8,10])
+            x^2 + 161*x + 1
+        """
+        cdef fmpz_mod_poly res
+
+        if not self.is_prime():
+            raise NotImplementedError("minpoly algorithm assumes that the modulus is prime")
+
+        if not isinstance(vals, (list, tuple)):
+            raise ValueError("Input must be a list or tuple of points")
+
+        n = len(vals)
+        xs = <fmpz_struct *> libc.stdlib.malloc(cython.sizeof(fmpz_struct) * n)
+        for i in range(n):
+            val_fmpz_mod = self.mod.any_as_fmpz_mod(vals[i])
+            if val_fmpz_mod is NotImplemented:
+                libc.stdlib.free(xs)
+                raise ValueError(f"Unable to cast {vals[i]} to an `fmpz_mod`")
+            xs[i] = (<fmpz_mod>(val_fmpz_mod)).val[0]
+        
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self
+        fmpz_mod_poly_minpoly(res.val, xs, n, self.mod.val)
+
+        libc.stdlib.free(xs)
+        return res
 
 cdef class fmpz_mod_poly(flint_poly):
     """
+    The *fmpz_mod_poly* type represents univariate polynomials
+    over integer modulo an arbitrary-size modulus. 
+    For wordsize modulus, see :class:`~.nmod_poly`.
+
+    An *fmpz_mod* element is constructed from an :class:`~.fmpz_mod_ctx`
+    either by passing it as an argument to the type, or
+    by directly calling the context
+
+        >>> fmpz_mod(-1, fmpz_mod_ctx(2**127 - 1))
+        fmpz_mod(170141183460469231731687303715884105726, 170141183460469231731687303715884105727)
+        >>> ZmodN = fmpz_mod_ctx(2**127 - 1)
+        >>> ZmodN(-2)
+        fmpz_mod(170141183460469231731687303715884105725, 170141183460469231731687303715884105727)
+
     """
     def __cinit__(self):
         self.initialized = False
@@ -602,6 +657,58 @@ cdef class fmpz_mod_poly(flint_poly):
         res.ctx = self.ctx.mod
         fmpz_mod_poly_evaluate_fmpz(res.val, self.val, (<fmpz_mod>val).val, self.ctx.mod.val)
         return res
+    
+    def multipoint_evaluation(self, vals):
+        """
+        Returns a list of values computed from evaluating
+        ``self`` at the ``n`` values given in the vector ``val``
+        
+        TODO: We could allow passing as an optional input the
+        subproduct tree, which would allow for faster, repeated
+        multipoint evaluations
+
+        TODO!! This currently segfaults for very large input,
+        suggesting a memory leak. Is this something our side of
+        on the FLINT side?
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,2,3,4,5])
+            >>> [f(x) for x in [-1,-2,-3]]
+            [fmpz_mod(3, 163), fmpz_mod(57, 163), fmpz_mod(156, 163)]
+            >>> f.multipoint_evaluation([-1,-2,-3])
+            [fmpz_mod(3, 163), fmpz_mod(57, 163), fmpz_mod(156, 163)]
+        """
+        cdef fmpz_mod f
+
+        if not isinstance(vals, (list, tuple)):
+            raise ValueError("Input must be a list of points")
+        
+        n = len(vals)
+        xs = <fmpz_struct *> libc.stdlib.malloc(cython.sizeof(fmpz_struct) * n)
+        for i in range(n):
+            val = self.ctx.mod.any_as_fmpz_mod(vals[i])
+            if val is NotImplemented:
+                libc.stdlib.free(xs)
+                raise ValueError(f"Unable to cast {val} to an `fmpz_mod`")
+            xs[i] = (<fmpz_mod>(val)).val[0]
+        
+        # Call for multipoint eval, iterative horner will be used
+        # for small arrays (len < 32) and a fast eval for larger ones
+        # using a subproduct tree
+        ys = <fmpz_struct *> libc.stdlib.malloc(cython.sizeof(fmpz_struct) * n)
+        fmpz_mod_poly_evaluate_fmpz_vec(ys, self.val, xs, n, self.ctx.mod.val)
+
+        evaluations = []
+        for i in range(n):
+            f = fmpz_mod.__new__(fmpz_mod)
+            f.ctx = self.ctx.mod
+            fmpz_mod_set_fmpz(f.val, &ys[i], self.ctx.mod.val)
+            evaluations.append(f)
+
+        libc.stdlib.free(xs)
+        libc.stdlib.free(ys)
+
+        return evaluations
 
     cpdef long length(self):
         """
@@ -1420,112 +1527,3 @@ cdef class fmpz_mod_poly(flint_poly):
         :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
         """
         raise DomainError("Cannot compute compex roots for polynomials over integers modulo N")
-
-cdef class BerlekampMassey:
-    def __cinit__(self):
-        self.initialized = False
-
-    def __dealloc__(self):
-        if self.initialized:
-            fmpz_mod_berlekamp_massey_clear(self.B, self.ctx.mod.val)
-
-    def __init__(self, ctx):
-        if not typecheck(ctx, fmpz_mod_poly_ctx):
-            raise TypeError
-        self.ctx = ctx
-        fmpz_mod_berlekamp_massey_init(self.B, self.ctx.mod.val)
-        self.initialized = True
-
-    def __str__(self):
-        return f"Berlekamp-Massey algorithm with context: {repr(self.ctx)}"
-
-    def __repr__(self):
-        return f"BerlekampMassey({repr(self.ctx)})"
-
-    def start_over(self):
-        """
-        Empty the stream of points
-        """
-        fmpz_mod_berlekamp_massey_start_over(self.B, self.ctx.mod.val)
-    
-    def add_point(self, point):
-        """
-        Add a point to the stream processed by `B`. Addition of
-        these points will not update `V` or `R`. To update the 
-        values use the method `reduce`.
-        """
-        point = self.ctx.mod.any_as_fmpz_mod(point)
-        if point is NotImplemented:
-            raise TypeError
-        
-        fmpz_mod_berlekamp_massey_add_point(
-            self.B, (<fmpz_mod>point).val, self.ctx.mod.val
-        )
-
-    def add_points(self, points):
-        """
-        Add a list of points to the stream processed by `B`. 
-        Addition of these points will not update `V` or `R`. 
-        To update the values use the method `reduce`.
-
-        TODO:
-        Should I instead use:
-
-            fmpz_mod_berlekamp_massey_add_point
-
-        Then I need to convert the python list to
-        const fmpz *a, what's the best method?
-        """
-        if not isinstance(points, list):
-            raise TypeError
-
-        for point in points:
-            self.add_point(point)
-
-    def add_zeros(self, slong count):
-        """
-        Add ``count`` zeros
-        """
-        fmpz_mod_berlekamp_massey_add_zeros(
-            self.B, count, self.ctx.mod.val
-        )
-        
-    def reduce(self):
-        """
-        Ensure that the polynomials `V`, `R` are up to date. 
-
-        Returns ``1`` if the values have been updated and ``0`` otherwise
-        """
-        return fmpz_mod_berlekamp_massey_reduce(self.B, self.ctx.mod.val)
-
-    def point_count(self):
-        """
-        Return the number of points stored in self
-        """
-        return fmpz_mod_berlekamp_massey_point_count(self.B)
-
-    def V(self):
-        """
-        Return the polynomial `V` in `B`
-        """
-        cdef fmpz_mod_poly res
-        res =  fmpz_mod_poly.__new__(fmpz_mod_poly)
-        res.ctx = self.ctx
-        res.val = fmpz_mod_berlekamp_massey_V_poly(self.B)
-        return res
-
-    def R(self):
-        """
-        Return the polynomial `R` in `B`
-        """
-        cdef fmpz_mod_poly res
-        res =  fmpz_mod_poly.__new__(fmpz_mod_poly)
-        res.ctx = self.ctx
-        res.val = fmpz_mod_berlekamp_massey_R_poly(self.B)
-        return res
-
-    def VR(self):
-        """
-        Return the polynomials `V` and `R` in `B`
-        """
-        return self.V(), self.R()

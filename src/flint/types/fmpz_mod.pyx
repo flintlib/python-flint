@@ -227,6 +227,7 @@ cdef class fmpz_mod(flint_scalar):
         fmpz_clear(self.val)
         if self.x_g:
             fmpz_clear(self.x_g[0])
+            libc.stdlib.free(self.x_g)
 
     def __init__(self, val, ctx):
         if not typecheck(ctx, fmpz_mod_ctx):

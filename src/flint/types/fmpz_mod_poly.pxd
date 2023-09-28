@@ -16,8 +16,3 @@ cdef class fmpz_mod_poly(flint_poly):
     cdef fmpz_mod_poly_ctx ctx
     cpdef long length(self)
     cpdef long degree(self)
-
-cdef class BerlekampMassey:
-    cdef bint initialized
-    cdef fmpz_mod_berlekamp_massey_t B
-    cdef fmpz_mod_poly_ctx ctx
