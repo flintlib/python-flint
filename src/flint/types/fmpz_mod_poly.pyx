@@ -316,15 +316,15 @@ cdef class fmpz_mod_poly(flint_poly):
     over integer modulo an arbitrary-size modulus. 
     For wordsize modulus, see :class:`~.nmod_poly`.
 
-    An *fmpz_mod* element is constructed from an :class:`~.fmpz_mod_ctx`
+    An *fmpz_mod_poly* element is constructed from an :class:`~.fmpz_mod_poly_ctx`
     either by passing it as an argument to the type, or
-    by directly calling the context
+    by directly calling the context:
 
-        >>> fmpz_mod(-1, fmpz_mod_ctx(2**127 - 1))
-        fmpz_mod(170141183460469231731687303715884105726, 170141183460469231731687303715884105727)
-        >>> ZmodN = fmpz_mod_ctx(2**127 - 1)
-        >>> ZmodN(-2)
-        fmpz_mod(170141183460469231731687303715884105725, 170141183460469231731687303715884105727)
+        >>> fmpz_mod_poly([1,-2,3], fmpz_mod_poly_ctx(2**127 - 1))
+        3*x^2 + 170141183460469231731687303715884105725*x + 1
+        >>> R = fmpz_mod_poly_ctx(2**127 - 1)
+        >>> R([4,5,6])
+        6*x^2 + 5*x + 4
 
     """
     def __cinit__(self):

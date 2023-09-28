@@ -2182,7 +2182,7 @@ def test_fmpz_mod_poly():
         # multipoint_evaluation
         assert raises(lambda: R_test([1,2,3]).multipoint_evaluation([1,2,3,"AAA"]), ValueError)
         f = R_test([1,2,3])
-        l = [-1,-2,-3]
+        l = [-1,-2,-3,-4,-5]
         # TODO: not working for large modulus!
         # assert [f(x) for x in l] == f.multipoint_evaluation(l)
 
