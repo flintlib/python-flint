@@ -420,51 +420,59 @@ cdef class fmpz_mod_poly(flint_poly):
     def __rmul__(self, other):
         return self.__mul__(other)
 
-    @staticmethod
-    def _div_(left, right):
-        # TODO:
-        # Allow scalar division for efficiency, rather 
-        # than casting `other` to a polynomial?
+    def exact_division(self, right):
+        """
+        TODO
+        """
         cdef bint check
         cdef fmpz_mod_poly res
 
-        # Case when left and right are already fmpz_mod_poly
-        if typecheck(left, fmpz_mod_poly) and typecheck(right, fmpz_mod_poly):
-            if not (<fmpz_mod_poly>left).ctx == (<fmpz_mod_poly>right).ctx:
-                raise ValueError("moduli must match")
-
         # Case when right is not fmpz_mod_poly, try to convert to fmpz
-        elif typecheck(left, fmpz_mod_poly):
-            right = (<fmpz_mod_poly>left).ctx.any_as_fmpz_mod_poly(right)
-            if right is NotImplemented:
-                return NotImplemented
+        right = self.ctx.any_as_fmpz_mod_poly(right)
+        if right is NotImplemented:
+            return NotImplemented
 
-        # Case when left is not fmpz_mod_poly, try to convert to fmpz
-        else:
-            left = (<fmpz_mod_poly>right).ctx.any_as_fmpz_mod_poly(left)
-            if left is NotImplemented:
-                return NotImplemented
-        
         if right == 0:
             raise ZeroDivisionError(f"Cannot divide by zero")
 
         res = fmpz_mod_poly.__new__(fmpz_mod_poly)
-        res.ctx = (<fmpz_mod_poly>left).ctx
+        res.ctx = self.ctx
         check = fmpz_mod_poly_divides(
-            res.val, (<fmpz_mod_poly>left).val, (<fmpz_mod_poly>right).val, res.ctx.mod.val
+            res.val, self.val, (<fmpz_mod_poly>right).val, res.ctx.mod.val
         )
         if check == 0:
             raise ValueError(
-                f"{right} does not divide {left}"
+                f"{right} does not divide {self}"
             )
 
         return res
 
-    def __truediv__(s, t):
+    def _div_(self, other):
+        cdef fmpz_mod_poly res
+
+        other = self.ctx.mod.any_as_fmpz_mod(other)
+        if other is NotImplemented:
+            return NotImplemented
+        
+        if other == 0:
+            raise ZeroDivisionError(f"Cannot divide by zero")
+
+        if not other.is_unit():
+            raise ZeroDivisionError(f"Cannot divide by {other} modulo {self.ctx.modulus()}")
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        fmpz_mod_poly_scalar_div_fmpz(
+            res.val, self.val, (<fmpz_mod>other).val, res.ctx.mod.val
+        )
+
+        return res
+
+    def __div__(s, t):
         return fmpz_mod_poly._div_(s, t)
 
-    def __rtruediv__(s, t):
-        return fmpz_mod_poly._div_(t, s)
+    def __truediv__(s, t):
+        return fmpz_mod_poly._div_(s, t)
 
     @staticmethod
     def _floordiv_(left, right):
@@ -503,7 +511,10 @@ cdef class fmpz_mod_poly(flint_poly):
     def __rfloordiv__(self, other):
         return fmpz_mod_poly._floordiv_(other, self)
 
-    def __pow__(self, e):
+    def __pow__(self, e, mod=None):
+        if mod is not None:
+            raise NotImplementedError
+
         cdef fmpz_mod_poly res
         if e < 0:
             raise ValueError("Exponent must be non-negative")
@@ -1217,6 +1228,21 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         return res
 
+    def integral(self):
+        """
+        The formal integral of this polynomial. The constant term
+        from boundary conditions is picked to be zero.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = 118*x**3 + 11*x**2 + 33*x + 117
+            >>> f.integral()
+            111*x^4 + 58*x^3 + 98*x^2 + 117*x
+
+        """ 
+        new_coeffs = [0] + [c/n for n, c in enumerate(self.coeffs(), 1)]
+        return self.ctx(new_coeffs)
+
     def discriminant(self):
         """
         Return the discriminant of ``self``.
@@ -1256,7 +1282,7 @@ cdef class fmpz_mod_poly(flint_poly):
         if not self.ctx.is_prime():
             raise NotImplementedError("radical algorithm assumes that the base is a field")
 
-        return self / self.gcd(self.derivative())
+        return self.exact_division(self.gcd(self.derivative()))
 
     def inverse_mod(self, other):
         """

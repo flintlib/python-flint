@@ -437,7 +437,7 @@ def test_fmpz_poly():
     assert Z([1,2,-4]).height_bits() == 3
     assert Z([1,2,-4]).height_bits(signed=True) == -3
     assert Z([1,2,1]).sqrt() == Z([1,1])
-    assert Z([1,2,2]).sqrt() is None
+    assert raises(lambda: Z([1,2,2]).sqrt(), ValueError)
     assert Z([1,0,2,0,3]).deflation() == (Z([1,2,3]), 2)
     assert Z([]).deflation() == (Z([]), 1)
     assert Z([1,1]).deflation() == (Z([1,1]), 1)
@@ -2031,16 +2031,16 @@ def test_fmpz_mod_poly():
         assert fmpz(2) * f ==  R_test([-2,-4])
         assert F_test(2) * f ==  R_test([-2,-4])
 
+        # Exact division
+        assert raises(lambda: f.exact_division(f_cmp), ValueError)
+        assert (f * g).exact_division(g) == f
+        assert raises(lambda: f.exact_division(g), ValueError)
+
         # true div
-        assert raises(lambda: f / f_cmp, ValueError)
         assert raises(lambda: f / "AAA", TypeError)
-        assert raises(lambda: "AAA" / f, TypeError)
-        assert (f * g) / g == f
         assert (f + f) / 2  ==  f
         assert (f + f) / fmpz(2)  ==  f
         assert (f + f) / F_test(2)  ==  f
-        assert 2 / R_test(2) == 1
-        assert raises(lambda: f / g, ValueError)
 
         # floor div
         assert raises(lambda: 1 // f_bad, ZeroDivisionError)
@@ -2356,11 +2356,9 @@ def test_polys():
         else:
             assert raises(lambda: P([2, 2]) / 2, TypeError)
 
-        # TODO:
-        # I think this should be a ValueError and not a Type Error?
-        # assert raises(lambda: 1 / P([1, 1]), TypeError)
-        # assert raises(lambda: P([1, 2, 1]) / P([1, 1]), TypeError)
-        # assert raises(lambda: P([1, 2, 1]) / P([1, 2]), TypeError)
+        assert raises(lambda: 1 / P([1, 1]), TypeError)
+        assert raises(lambda: P([1, 2, 1]) / P([1, 1]), TypeError)
+        assert raises(lambda: P([1, 2, 1]) / P([1, 2]), TypeError)
 
         assert P([1, 1]) ** 0 == P([1])
         assert P([1, 1]) ** 1 == P([1, 1])
@@ -2369,8 +2367,7 @@ def test_polys():
         assert raises(lambda: P([1, 1]) ** None, TypeError)
         
         # # XXX: Not sure what this should do in general:
-        # TODO: this test cannot work with how fmpz_mod_poly does pow...
-        # assert raises(lambda: pow(P([1, 1]), 2, 3), NotImplementedError)
+        assert raises(lambda: pow(P([1, 1]), 2, 3), NotImplementedError)
 
         assert P([1, 2, 1]).gcd(P([1, 1])) == P([1, 1])
         assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
@@ -2385,15 +2382,10 @@ def test_polys():
         assert P([1, 2, 1]).factor() == (S(1), [(P([1, 1]), 2)])
 
         assert P([1, 2, 1]).sqrt() == P([1, 1])
-        
-        # TODO: diverging behaviour
-        # Most polynomials return None when therre's not root,
-        # but fmpz_mod_poly raises a ValueError
-        # assert raises(lambda: P([1, 2, 2]).sqrt(), ValueError)
-        # assert P([1, 2, 2]).sqrt() is None
+        assert raises(lambda: P([1, 2, 2]).sqrt(), ValueError), f"{P}, {P([1, 2, 2]).sqrt()}"
 
         if P == flint.fmpq_poly:
-            assert P([1, 2, 1], 3).sqrt() is None
+            assert raises(lambda: P([1, 2, 1], 3).sqrt(), ValueError)
             assert P([1, 2, 1], 4).sqrt() == P([1, 1], 2)
 
         assert P([]).deflation() == (P([]), 1)
@@ -2402,10 +2394,7 @@ def test_polys():
 
         assert P([1, 2, 1]).derivative() == P([2, 2])
 
-        # TODO: fmpz_mod_poly has no FLINT function for
-        # integration
-        has_integral = getattr(P, "integral", None)
-        if is_field and has_integral:
+        if is_field:
             assert P([1, 2, 1]).integral() == P([0, 1, 1, S(1)/3])
 
 

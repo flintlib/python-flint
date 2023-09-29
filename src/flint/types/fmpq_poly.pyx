@@ -409,10 +409,10 @@ cdef class fmpq_poly(flint_poly):
         n = self.numer()
         d, r = d.sqrtrem()
         if r != 0:
-            return None
+            raise ValueError(f"Cannot compute square root of {self}")
         n = n.sqrt()
         if n is None:
-            return None
+            raise ValueError(f"Cannot compute square root of {self}")
         return fmpq_poly(n, d)
 
     def deflation(self):

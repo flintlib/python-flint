@@ -421,7 +421,7 @@ cdef class nmod_poly(flint_poly):
         if nmod_poly_sqrt(res.val, self.val):
             return res
         else:
-            return None
+            raise ValueError(f"Cannot compute square root of {self}")
 
     def deflation(self):
         cdef nmod_poly v
