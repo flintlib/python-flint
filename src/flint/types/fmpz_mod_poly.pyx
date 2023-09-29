@@ -221,7 +221,7 @@ cdef class fmpz_mod_poly_ctx:
             )
             return 0
 
-
+        # Lastly try and convert to an fmpz
         obj = any_as_fmpz(obj)
         if obj is NotImplemented:
             return NotImplemented
@@ -336,7 +336,9 @@ cdef class fmpz_mod_poly(flint_poly):
         if not typecheck(ctx, fmpz_mod_poly_ctx):
             raise TypeError
         self.ctx = ctx
-        self.ctx.set_any_as_fmpz_mod_poly(self.val, val)
+        check = self.ctx.set_any_as_fmpz_mod_poly(self.val, val)
+        if check is NotImplemented:
+            raise TypeError 
         self.initialized = True
 
     def __pos__(self):
@@ -442,6 +444,9 @@ cdef class fmpz_mod_poly(flint_poly):
             left = (<fmpz_mod_poly>right).ctx.any_as_fmpz_mod_poly(left)
             if left is NotImplemented:
                 return NotImplemented
+        
+        if right == 0:
+            raise ZeroDivisionError(f"Cannot divide by zero")
 
         res = fmpz_mod_poly.__new__(fmpz_mod_poly)
         res.ctx = (<fmpz_mod_poly>left).ctx
@@ -483,7 +488,7 @@ cdef class fmpz_mod_poly(flint_poly):
                 return NotImplemented
 
         if not right.leading_coefficient().is_unit():
-            raise ValueError(f"The leading term of {right} must be a unit modulo N")
+            raise ZeroDivisionError(f"The leading term of {right} must be a unit modulo N")
 
         res = fmpz_mod_poly.__new__(fmpz_mod_poly)
         res.ctx = (<fmpz_mod_poly>left).ctx
@@ -601,6 +606,9 @@ cdef class fmpz_mod_poly(flint_poly):
             if left is NotImplemented:
                 return NotImplemented
 
+        if right == 0:
+            raise ZeroDivisionError(f"Cannot reduce modulo zero")
+
         res = fmpz_mod_poly.__new__(fmpz_mod_poly)
         res.ctx = (<fmpz_mod_poly>left).ctx
         fmpz_init(f)
@@ -667,8 +675,18 @@ cdef class fmpz_mod_poly(flint_poly):
         return hash(tuple(self.coeffs()))
 
     def __call__(self, input):
+        if typecheck(input, fmpz_mod_poly):
+            return self.compose(input)
+        elif isinstance(input, (list, tuple)):
+            return self.multipoint_evaluate(input)
+        else:
+            return self.evalutate(input)
+    
+    def evalutate(self, input):
+        """
+        TODO
+        """
         cdef fmpz_mod res
-
         val = self.ctx.mod.any_as_fmpz_mod(input)
         if val is NotImplemented:
             raise TypeError(f"Cannot evaluate the polynomial with input: {input}")
@@ -677,8 +695,8 @@ cdef class fmpz_mod_poly(flint_poly):
         res.ctx = self.ctx.mod
         fmpz_mod_poly_evaluate_fmpz(res.val, self.val, (<fmpz_mod>val).val, self.ctx.mod.val)
         return res
-    
-    def multipoint_evaluation(self, vals):
+
+    def multipoint_evaluate(self, vals):
         """
         Returns a list of values computed from evaluating
         ``self`` at the ``n`` values given in the vector ``val``
@@ -691,7 +709,7 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> f = R([1,2,3,4,5])
             >>> [f(x) for x in [-1,-2,-3]]
             [fmpz_mod(3, 163), fmpz_mod(57, 163), fmpz_mod(156, 163)]
-            >>> f.multipoint_evaluation([-1,-2,-3])
+            >>> f.multipoint_evaluate([-1,-2,-3])
             [fmpz_mod(3, 163), fmpz_mod(57, 163), fmpz_mod(156, 163)]
         """
         cdef fmpz_mod f
@@ -724,6 +742,20 @@ cdef class fmpz_mod_poly(flint_poly):
         _fmpz_vec_clear(ys, n)
 
         return evaluations
+
+    def compose(self, input):
+        """
+        TODO
+        """
+        cdef fmpz_mod_poly res
+        val = self.ctx.any_as_fmpz_mod_poly(input)
+        if val is NotImplemented:
+            raise TypeError(f"Cannot compose the polynomial with input: {input}")
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        fmpz_mod_poly_compose(res.val, self.val, (<fmpz_mod_poly>val).val, self.ctx.mod.val) 
+        return res    
 
     cpdef long length(self):
         """
@@ -1050,7 +1082,7 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         return res
 
-    def divrem(self, other):
+    def divmod(self, other):
         """
         Return `Q`, `R` such that for ``self`` = `F` and ``other`` = `G`,
         `F = Q*G + R`
@@ -1058,7 +1090,7 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> R = fmpz_mod_poly_ctx(163)
             >>> f = R([123, 129, 63, 14, 51, 76, 133])
             >>> g = R([106, 134, 32, 41, 158, 115, 115])
-            >>> f.divrem(g)
+            >>> f.divmod(g)
             (21, 106*x^5 + 156*x^4 + 131*x^3 + 43*x^2 + 86*x + 16)
         """
         cdef fmpz_t f
@@ -1067,6 +1099,9 @@ cdef class fmpz_mod_poly(flint_poly):
         other = self.ctx.any_as_fmpz_mod_poly(other)
         if other is NotImplemented:
             raise TypeError(f"Cannot interpret {other} as a polynomial")
+
+        if other == 0:
+            raise ZeroDivisionError(f"Cannot compute divmod as {other =}")
 
         Q = fmpz_mod_poly.__new__(fmpz_mod_poly)
         R = fmpz_mod_poly.__new__(fmpz_mod_poly)
@@ -1080,10 +1115,19 @@ cdef class fmpz_mod_poly(flint_poly):
         if not fmpz_is_one(f):
             fmpz_clear(f)
             raise ValueError(
-                f"Cannot compute divrem of {self} with {other}"
+                f"Cannot compute divmod of {self} with {other}"
             )
 
         return Q, R
+
+    def __divmod__(self, other):
+        return self.divmod(other)
+
+    def __rdivmod__(self, other):
+        other = self.ctx.any_as_fmpz_mod_poly(other)
+        if other is NotImplemented:
+            return other
+        return other.divmod(self)
 
     def gcd(self, other):
         """
@@ -1366,14 +1410,14 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         return res
 
-    def inflation(self, ulong n):
+    def inflate(self, ulong n):
         r"""
         Returns the result of the polynomial `f = \textrm{self}` to
         `f(x^n)`
 
             >>> R = fmpz_mod_poly_ctx(163)
             >>> f = R([1,2,3])
-            >>> f.inflation(10)
+            >>> f.inflate(10)
             3*x^20 + 2*x^10 + 1
 
         """
@@ -1386,7 +1430,7 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         return res
 
-    def deflation(self, ulong n):
+    def deflate(self, ulong n):
         r"""
         Returns the result of the polynomial `f = \textrm{self}` to
         `f(x^{1/n})`
@@ -1395,7 +1439,7 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> f = R([1,0,2,0,3])
             >>> f
             3*x^4 + 2*x^2 + 1
-            >>> f.deflation(2)
+            >>> f.deflate(2)
             3*x^2 + 2*x + 1
 
         """
@@ -1413,6 +1457,32 @@ cdef class fmpz_mod_poly(flint_poly):
             res.val, self.val, n, res.ctx.mod.val
         )
         return res
+
+    def deflation(self):
+        r"""
+        Returns the tuple (g, n) where for `f = \textrm{self}` to
+        `g = f(x^{1/n})` where n is the largest allowed integer
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,0,2,0,3])
+            >>> f
+            3*x^4 + 2*x^2 + 1
+            >>> f.deflate(2)
+            3*x^2 + 2*x + 1
+
+        """
+        cdef fmpz_mod_poly res
+        if self.is_zero():
+            return self, 1
+        n = fmpz_mod_poly_deflation(
+            self.val, self.ctx.mod.val
+        )
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+        fmpz_mod_poly_deflate(
+            res.val, self.val, n, res.ctx.mod.val
+        )
+        return res, int(n)
 
     def factor_squarefree(self):
         """
