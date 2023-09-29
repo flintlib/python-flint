@@ -4,7 +4,7 @@ from flint.types.fmpz cimport fmpz_set_any_ref
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 
-from flint.flintlib.flint cimport FMPZ_UNKNOWN, FMPZ_TMP
+from flint.flintlib.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
 from flint.flintlib.fmpz cimport fmpz_set, fmpz_one
 from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_sgn
 from flint.flintlib.fmpz cimport fmpz_fdiv_q, fmpz_bits
@@ -14,16 +14,45 @@ from flint.flintlib.fmpz cimport fmpz_clear
 from flint.flintlib.fmpq cimport *
 from flint.flintlib.bernoulli cimport *
 
-cdef any_as_fmpq(obj):
+cdef extern from *:
+    """
+    /* An ugly hack to get around the ugly hack of renaming fmpq to avoid a c/python name collision */
+    typedef fmpq fmpq_struct;
+    """
+
+cdef int fmpq_set_any_ref(fmpq_t x, obj):
+    cdef int status
+    fmpq_init(x)
     if typecheck(obj, fmpq):
-        return obj
-    z = any_as_fmpz(obj)
-    if z is NotImplemented:
-        return z 
-    q = fmpq.__new__(fmpq)
-    fmpz_set(fmpq_numref((<fmpq>q).val), (<fmpz>z).val)
-    fmpz_one(fmpq_denref((<fmpq>q).val))
-    return q
+        x[0] = (<fmpq>obj).val[0]
+        return FMPZ_REF
+    if typecheck(obj, fmpz):
+        fmpz_set(fmpq_numref(x), (<fmpz>obj).val)
+        fmpz_one(fmpq_denref(x))
+        return FMPZ_TMP
+    status = fmpz_set_any_ref(fmpq_numref(x), obj)
+    if status != FMPZ_UNKNOWN:
+        fmpz_one(fmpq_denref(x))
+        return FMPZ_TMP
+    fmpq_clear(x)
+    return FMPZ_UNKNOWN
+
+cdef any_as_fmpq(obj):
+    cdef fmpq_t x
+    cdef int status
+    cdef fmpq q
+    status = fmpq_set_any_ref(x, obj)
+    if status == FMPZ_REF:
+        q = fmpq.__new__(fmpq)
+        fmpq_set(q.val, x)
+        return q
+    elif status == FMPZ_TMP:
+        q = fmpq.__new__(fmpq)
+        fmpq_clear(q.val)
+        q.val[0] = x[0]
+        return q
+    else:
+        return NotImplemented
 
 cdef class fmpq(flint_scalar):
     """
@@ -42,12 +71,14 @@ cdef class fmpq(flint_scalar):
     def __dealloc__(self):
         fmpq_clear(self.val)
 
-    def __init__(self, p=None, q=None):
-        cdef long x
-        if q is None:
-            if p is None:
-                return # zero
-            elif typecheck(p, fmpq):
+    def __init__(self, *args):
+        if not args:
+            return # zero
+        elif len(args) == 2:
+            p, q = args
+        elif len(args) == 1:
+            p = args[0]
+            if typecheck(p, fmpq):
                 fmpq_set(self.val, (<fmpq>p).val)
                 return
             elif typecheck(p, str):
@@ -61,17 +92,21 @@ cdef class fmpq(flint_scalar):
             else:
                 p = any_as_fmpq(p)
                 if p is NotImplemented:
-                    raise ValueError("cannot create fmpq from object of type %s" % type(p))
+                    raise TypeError("cannot create fmpq from object of type %s" % type(p))
                 fmpq_set(self.val, (<fmpq>p).val)
                 return
+        else:
+            raise TypeError("fmpq() takes at most 2 arguments (%d given)" % len(args))
+
         p = any_as_fmpz(p)
         if p is NotImplemented:
-            raise ValueError("cannot create fmpq from object of type %s" % type(p))
+            raise TypeError("cannot create fmpq from object of type %s" % type(p))
         q = any_as_fmpz(q)
         if q is NotImplemented:
-            raise ValueError("cannot create fmpq from object of type %s" % type(q))
+            raise TypeError("cannot create fmpq from object of type %s" % type(q))
         if fmpz_is_zero((<fmpz>q).val):
             raise ZeroDivisionError("cannot create rational number with zero denominator")
+
         fmpz_set(fmpq_numref(self.val), (<fmpz>p).val)
         fmpz_set(fmpq_denref(self.val), (<fmpz>q).val)
         fmpq_canonicalise(self.val)

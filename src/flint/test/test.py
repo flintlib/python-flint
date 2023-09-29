@@ -439,6 +439,7 @@ def test_fmpz_poly():
     assert Z([1,2,1]).sqrt() == Z([1,1])
     assert Z([1,2,2]).sqrt() is None
     assert Z([1,0,2,0,3]).deflation() == (Z([1,2,3]), 2)
+    assert Z([]).deflation() == (Z([]), 1)
     assert Z([1,1]).deflation() == (Z([1,1]), 1)
     [(r,m)] = Z([1,1]).complex_roots()
     assert m == 1
@@ -743,9 +744,9 @@ def test_fmpq():
     assert raises(lambda: Q("1.0"), ValueError)
     assert raises(lambda: Q("1.5"), ValueError)
     assert raises(lambda: Q("1/2/3"), ValueError)
-    assert raises(lambda: Q([]), ValueError)
-    assert raises(lambda: Q(1, []), ValueError)
-    assert raises(lambda: Q([], 1), ValueError)
+    assert raises(lambda: Q([]), TypeError)
+    assert raises(lambda: Q(1, []), TypeError)
+    assert raises(lambda: Q([], 1), TypeError)
     assert bool(Q(0)) == False
     assert bool(Q(1)) == True
     assert Q(1,3) + Q(2,3) == 1
@@ -1050,9 +1051,8 @@ def test_fmpq_mat():
     assert raises(lambda: Q(None), TypeError)
     assert Q([[1,2,3],[4,5,6]]) == Q(2,3,[1,2,3,4,5,6])
     assert raises(lambda: Q(2,3,[1,2,3,4,5]), ValueError)
-    # XXX: Should be TypeError not ValueError:
-    assert raises(lambda: Q([[1,2,3],[4,[],6]]), ValueError)
-    assert raises(lambda: Q(2,3,[1,2,3,4,[],6]), ValueError)
+    assert raises(lambda: Q([[1,2,3],[4,[],6]]), TypeError)
+    assert raises(lambda: Q(2,3,[1,2,3,4,[],6]), TypeError)
     assert raises(lambda: Q(2,3,[1,2],[3,4]), ValueError)
     assert bool(Q([[1]])) is True
     assert bool(Q([[0]])) is False
@@ -2188,6 +2188,204 @@ def test_fmpz_mod_poly():
         assert [f(x) for x in l] == f.multipoint_evaluation(l)
 
 
+def _all_polys():
+    return [
+        # (poly_type, scalar_type, is_field)
+        (flint.fmpz_poly, flint.fmpz, False),
+        (flint.fmpq_poly, flint.fmpq, True),
+        (lambda *a: flint.nmod_poly(*a, 17), lambda x: flint.nmod(x, 17), True),
+    ]
+
+
+def test_polys():
+    for P, S, is_field in _all_polys():
+
+        assert P([S(1)]) == P([1]) == P(P([1])) == P(1)
+
+        assert raises(lambda: P([None]), TypeError)
+        assert raises(lambda: P(object()), TypeError)
+        assert raises(lambda: P(None), TypeError)
+        assert raises(lambda: P(None, None), TypeError)
+        assert raises(lambda: P([1,2], None), TypeError)
+        assert raises(lambda: P(1, None), TypeError)
+
+        assert len(P([])) == P([]).length() == 0
+        assert len(P([1])) == P([1]).length() == 1
+        assert len(P([1,2])) == P([1,2]).length() == 2
+        assert len(P([1,2,3])) == P([1,2,3]).length() == 3
+
+        assert P([]).degree() == -1
+        assert P([1]).degree() == 0
+        assert P([1,2]).degree() == 1
+        assert P([1,2,3]).degree() == 2
+
+        assert (P([1]) == P([1])) is True
+        assert (P([1]) != P([1])) is False
+        assert (P([1]) == P([2])) is False
+        assert (P([1]) != P([2])) is True
+
+        assert (P([1]) == None) is False
+        assert (P([1]) != None) is True
+        assert (None == P([1])) is False
+        assert (None != P([1])) is True
+
+        assert raises(lambda: P([1]) < P([1]), TypeError)
+        assert raises(lambda: P([1]) <= P([1]), TypeError)
+        assert raises(lambda: P([1]) > P([1]), TypeError)
+        assert raises(lambda: P([1]) >= P([1]), TypeError)
+        assert raises(lambda: P([1]) < None, TypeError)
+        assert raises(lambda: P([1]) <= None, TypeError)
+        assert raises(lambda: P([1]) > None, TypeError)
+        assert raises(lambda: P([1]) >= None, TypeError)
+        assert raises(lambda: None < P([1]), TypeError)
+        assert raises(lambda: None <= P([1]), TypeError)
+        assert raises(lambda: None > P([1]), TypeError)
+        assert raises(lambda: None >= P([1]), TypeError)
+
+        assert P([1, 2, 3])[1] == S(2)
+        assert P([1, 2, 3])[-1] == S(0)
+        assert P([1, 2, 3])[3] == S(0)
+
+        p = P([1, 2, 3])
+        p[1] = S(4)
+        assert p == P([1, 4, 3])
+
+        def setbad(obj, i, val):
+            obj[i] = val
+
+        assert raises(lambda: setbad(p, 2, None), TypeError)
+        assert raises(lambda: setbad(p, -1, 1), ValueError)
+
+        for v in [], [1], [1, 2]:
+            if P == flint.fmpz_poly:
+                assert P(v).repr() == f'fmpz_poly({v!r})'
+            elif P == flint.fmpq_poly:
+                assert P(v).repr() == f'fmpq_poly({v!r})'
+            else:
+                assert P(v).repr() == f'nmod_poly({v!r}, 17)'
+
+        assert repr(P([])) == '0'
+        assert repr(P([1])) == '1'
+        assert repr(P([1, 2])) == '2*x + 1'
+        assert repr(P([1, 2, 3])) == '3*x^2 + 2*x + 1'
+
+        p = P([1, 2, 3])
+        assert p(0) == p(S(0)) == S(1) == 1
+        assert p(1) == p(S(1)) == S(6) == 6
+        assert p(p) == P([6, 16, 36, 36, 27])
+        assert raises(lambda: p(None), TypeError)
+
+        assert bool(P([])) is False
+        assert bool(P([1])) is True
+
+        assert +P([1, 2, 3]) == P([1, 2, 3])
+        assert -P([1, 2, 3]) == P([-1, -2, -3])
+
+        assert P([1, 2, 3]) + P([4, 5, 6]) == P([5, 7, 9])
+
+        for T in [int, S, flint.fmpz]:
+            assert P([1, 2, 3]) + T(1) == P([2, 2, 3])
+            assert T(1) + P([1, 2, 3]) == P([2, 2, 3])
+
+        assert raises(lambda: P([1, 2, 3]) + None, TypeError)
+        assert raises(lambda: None + P([1, 2, 3]), TypeError)
+
+        assert P([1, 2, 3]) - P([4, 5, 6]) == P([-3, -3, -3])
+
+        for T in [int, S, flint.fmpz]:
+            assert P([1, 2, 3]) - T(1) == P([0, 2, 3])
+            assert T(1) - P([1, 2, 3]) == P([0, -2, -3])
+
+        assert raises(lambda: P([1, 2, 3]) - None, TypeError)
+        assert raises(lambda: None - P([1, 2, 3]), TypeError)
+
+        assert P([1, 2, 3]) * P([4, 5, 6]) == P([4, 13, 28, 27, 18])
+
+        for T in [int, S, flint.fmpz]:
+            assert P([1, 2, 3]) * T(2) == P([2, 4, 6])
+            assert T(2) * P([1, 2, 3]) == P([2, 4, 6])
+
+        assert raises(lambda: P([1, 2, 3]) * None, TypeError)
+        assert raises(lambda: None * P([1, 2, 3]), TypeError)
+
+        assert P([1, 2, 1]) // P([1, 1]) == P([1, 1])
+        assert P([1, 2, 1]) % P([1, 1]) == P([0])
+        assert divmod(P([1, 2, 1]), P([1, 1])) == (P([1, 1]), P([0]))
+
+        if is_field:
+            assert P([1, 1]) // 2 == P([S(1)/2, S(1)/2])
+            assert P([1, 1]) % 2 == P([0])
+        else:
+            assert P([1, 1]) // 2 == P([0, 0])
+            assert P([1, 1]) % 2 == P([1, 1])
+
+        assert 1 // P([1, 1]) == P([0])
+        assert 1 % P([1, 1]) == P([1])
+        assert divmod(1, P([1, 1])) == (P([0]), P([1]))
+
+        assert raises(lambda: P([1, 2, 1]) // None, TypeError)
+        assert raises(lambda: P([1, 2, 1]) % None, TypeError)
+        assert raises(lambda: divmod(P([1, 2, 1]), None), TypeError)
+
+        assert raises(lambda: None // P([1, 1]), TypeError)
+        assert raises(lambda: None % P([1, 1]), TypeError)
+        assert raises(lambda: divmod(None, P([1, 1])), TypeError)
+
+        assert raises(lambda: P([1, 2, 1]) // 0, ZeroDivisionError)
+        assert raises(lambda: P([1, 2, 1]) % 0, ZeroDivisionError)
+        assert raises(lambda: divmod(P([1, 2, 1]), 0), ZeroDivisionError)
+
+        assert raises(lambda: P([1, 2, 1]) // P([0]), ZeroDivisionError)
+        assert raises(lambda: P([1, 2, 1]) % P([0]), ZeroDivisionError)
+        assert raises(lambda: divmod(P([1, 2, 1]), P([0])), ZeroDivisionError)
+
+        if is_field:
+            assert P([2, 2]) / 2 == P([1, 1])
+            assert P([1, 2]) / 2 == P([S(1)/2, 1])
+            assert raises(lambda: P([1, 2]) / 0, ZeroDivisionError)
+        else:
+            assert raises(lambda: P([2, 2]) / 2, TypeError)
+
+        assert raises(lambda: 1 / P([1, 1]), TypeError)
+        assert raises(lambda: P([1, 2, 1]) / P([1, 1]), TypeError)
+        assert raises(lambda: P([1, 2, 1]) / P([1, 2]), TypeError)
+
+        assert P([1, 1]) ** 0 == P([1])
+        assert P([1, 1]) ** 1 == P([1, 1])
+        assert P([1, 1]) ** 2 == P([1, 2, 1])
+        assert raises(lambda: P([1, 1]) ** -1, ValueError)
+        assert raises(lambda: P([1, 1]) ** None, TypeError)
+        # XXX: Not sure what this should do in general:
+        assert raises(lambda: pow(P([1, 1]), 2, 3), NotImplementedError)
+
+        assert P([1, 2, 1]).gcd(P([1, 1])) == P([1, 1])
+        assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
+
+        if is_field:
+            p1 = P([1, 0, 1])
+            p2 = P([2, 1])
+            g, s, t = P([1]), P([1])/5, P([2, -1])/5
+            assert p1.xgcd(p2) == (g, s, t)
+            assert raises(lambda: p1.xgcd(None), TypeError)
+
+        assert P([1, 2, 1]).factor() == (S(1), [(P([1, 1]), 2)])
+
+        assert P([1, 2, 1]).sqrt() == P([1, 1])
+        assert P([1, 2, 2]).sqrt() is None
+        if P == flint.fmpq_poly:
+            assert P([1, 2, 1], 3).sqrt() is None
+            assert P([1, 2, 1], 4).sqrt() == P([1, 1], 2)
+
+        assert P([]).deflation() == (P([]), 1)
+        assert P([1, 2]).deflation() == (P([1, 2]), 1)
+        assert P([1, 0, 2]).deflation() == (P([1, 2]), 2)
+
+        assert P([1, 2, 1]).derivative() == P([2, 2])
+
+        if is_field:
+            assert P([1, 2, 1]).integral() == P([0, 1, 1, S(1)/3])
+
+
 
 all_tests = [
     test_pyflint,
@@ -2210,4 +2408,5 @@ all_tests = [
     test_fmpz_mod,
     test_fmpz_mod_dlog,
     test_fmpz_mod_poly
+    test_polys,
 ]
