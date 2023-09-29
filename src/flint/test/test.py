@@ -2060,8 +2060,10 @@ def test_fmpz_mod_poly():
         assert f*f == f**fmpz(2)
 
         # Shifts
-        assert R_test([1,2,3]) << 3 == R_test([0,0,0,1,2,3])
-        assert R_test([1,2,3]) >> 1 == R_test([2,3])
+        assert raises(lambda: R_test([1,2,3]).left_shift(-1), ValueError)
+        assert raises(lambda: R_test([1,2,3]).right_shift(-1), ValueError)
+        assert R_test([1,2,3]).left_shift(3) == R_test([0,0,0,1,2,3])
+        assert R_test([1,2,3]).right_shift(1) == R_test([2,3])
 
         # Mod
         assert raises(lambda: f % f_bad, ValueError)
@@ -2119,7 +2121,6 @@ def test_fmpz_mod_poly():
         assert raises(lambda: (f_cmp).xgcd(f_cmp), ValueError)
         assert raises(lambda: (f).xgcd("f_cmp"), TypeError)
 
-
         # disc.
         assert raises(lambda: (f_cmp).discriminant(), NotImplementedError)
 
@@ -2147,10 +2148,10 @@ def test_fmpz_mod_poly():
         assert raises(lambda: f1.sqrt(), ValueError)
         assert (f1*f1).sqrt() in [f1, -f1]
 
-        # deflate
+        # deflation
         f1 = R_test([1,0,2,0,3])
-        assert raises(lambda: f1.deflate(100), ValueError)
-        assert f1.deflate(2) == R_test([1,2,3])
+        assert raises(lambda: f1.deflation(100), ValueError)
+        assert f1.deflation(2) == R_test([1,2,3])
 
         # factor
         ff = R_test([3,2,1]) * R_test([3,2,1]) * R_test([5,4,3])
@@ -2407,6 +2408,6 @@ all_tests = [
     test_arb,
     test_fmpz_mod,
     test_fmpz_mod_dlog,
-    test_fmpz_mod_poly
+    test_fmpz_mod_poly,
     test_polys,
 ]

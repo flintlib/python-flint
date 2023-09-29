@@ -510,52 +510,74 @@ cdef class fmpz_mod_poly(flint_poly):
             res.val, self.val, e_ulong, self.ctx.mod.val
         )
         return res
-
-    def shift(self, slong n):
+          
+    def left_shift(self, slong n):
         """
-        Returns ``self`` shifted by ``n`` coefficients. If ``n`` is positive,
-        zero coefficients are inserted, when ``n`` is negative, if ``n`` is 
-        greater than or equal to the length of ``self``, the zero polynomial
-        is returned.
+        Returns ``self`` shifted left by ``n`` coefficients by inserting 
+        zero coefficients. This is equivalent to multiplying the polynomial
+        by x^n
 
             >>> R = fmpz_mod_poly_ctx(163)
             >>> f = R([1,2,3])
-            >>> f.shift(0)
+            >>> f.left_shift(0)
             3*x^2 + 2*x + 1
-            >>> f.shift(1)
+            >>> f.left_shift(1)
             3*x^3 + 2*x^2 + x
-            >>> f.shift(4)
+            >>> f.left_shift(4)
             3*x^6 + 2*x^5 + x^4
-            >>> f.shift(-1)
-            3*x + 2
-            >>> f.shift(-4)
-            0
 
         """
         cdef fmpz_mod_poly res
         res = fmpz_mod_poly.__new__(fmpz_mod_poly)
         res.ctx = self.ctx
 
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+
         if n > 0:
             fmpz_mod_poly_shift_left(
                 res.val, self.val, n, self.ctx.mod.val
-            )
-        elif n < 0:
-            fmpz_mod_poly_shift_right(
-                res.val, self.val, -n, self.ctx.mod.val
             )
         else: # do nothing, just copy self
             fmpz_mod_poly_set(
                 res.val, self.val, self.ctx.mod.val
             )
 
-        return res          
+        return res
 
-    def __lshift__(self, n):
-        return self.shift(n)
+    def right_shift(self, slong n):
+        """
+        Returns ``self`` shifted right by ``n`` coefficients. 
+        This is equivalent to the floor division of the polynomial
+        by x^n
 
-    def __rshift__(self, n):
-        return self.shift(-n)
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,2,3])
+            >>> f.right_shift(0)
+            3*x^2 + 2*x + 1
+            >>> f.right_shift(1)
+            3*x + 2
+            >>> f.right_shift(4)
+            0
+        """
+        cdef fmpz_mod_poly res
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+
+        res = fmpz_mod_poly.__new__(fmpz_mod_poly)
+        res.ctx = self.ctx
+
+        if n > 0:
+            fmpz_mod_poly_shift_right(
+                res.val, self.val, n, self.ctx.mod.val
+            )
+        else: # do nothing, just copy self
+            fmpz_mod_poly_set(
+                res.val, self.val, self.ctx.mod.val
+            )
+
+        return res
 
     @staticmethod
     def _mod_(left, right):
@@ -1344,14 +1366,14 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         return res
 
-    def inflate(self, ulong n):
+    def inflation(self, ulong n):
         r"""
         Returns the result of the polynomial `f = \textrm{self}` to
         `f(x^n)`
 
             >>> R = fmpz_mod_poly_ctx(163)
             >>> f = R([1,2,3])
-            >>> f.inflate(10)
+            >>> f.inflation(10)
             3*x^20 + 2*x^10 + 1
 
         """
@@ -1364,7 +1386,7 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         return res
 
-    def deflate(self, ulong n):
+    def deflation(self, ulong n):
         r"""
         Returns the result of the polynomial `f = \textrm{self}` to
         `f(x^{1/n})`
@@ -1373,7 +1395,7 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> f = R([1,0,2,0,3])
             >>> f
             3*x^4 + 2*x^2 + 1
-            >>> f.deflate(2)
+            >>> f.deflation(2)
             3*x^2 + 2*x + 1
 
         """
