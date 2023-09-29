@@ -150,6 +150,24 @@ cdef class fmpz_mod_ctx:
             self.L[0], self.val.n
         )
 
+    cdef set_any_as_fmpz_mod(self, fmpz_t val, obj):
+        # Try and convert obj to fmpz
+        if typecheck(obj, fmpz_mod):
+            if self != (<fmpz_mod>obj).ctx:
+                raise ValueError("moduli must match")
+            fmpz_set(val, (<fmpz_mod>obj).val)
+            return 0
+        
+        # Try and convert obj to fmpz
+        if not typecheck(obj, fmpz):
+            obj = any_as_fmpz(obj)
+            if obj is NotImplemented:
+                return NotImplemented
+        
+        fmpz_mod_set_fmpz(val, (<fmpz>obj).val, self.val)
+        
+        return 0
+
     cdef any_as_fmpz_mod(self, obj):
         # If `obj` is an `fmpz_mod`, just check moduli
         # match
@@ -158,19 +176,15 @@ cdef class fmpz_mod_ctx:
                 raise ValueError("moduli must match")
             return obj
 
-        # Try and convert obj to fmpz
-        if not typecheck(obj, fmpz):
-            obj = any_as_fmpz(obj)
-            if obj is NotImplemented:
-                return NotImplemented
-
         # We have been able to cast `obj` to an `fmpz` so
         # we create a new `fmpz_mod` and set the val
         cdef fmpz_mod res
         res = fmpz_mod.__new__(fmpz_mod)
+        check = self.set_any_as_fmpz_mod(res.val, obj)
+        if check is NotImplemented:
+            return NotImplemented
         res.ctx = self
-        fmpz_mod_set_fmpz(res.val, (<fmpz>obj).val, self.val)
-
+        
         return res
 
     def __eq__(self, other):
@@ -233,23 +247,9 @@ cdef class fmpz_mod(flint_scalar):
         if not typecheck(ctx, fmpz_mod_ctx):
             raise TypeError
         self.ctx = ctx
-
-        # When the input is also an fmpz_mod we just need
-        # moduli to match
-        if typecheck(val, fmpz_mod):
-            if self.ctx != (<fmpz_mod>val).ctx:
-                raise ValueError("moduli must match")
-            # fmpz_mod_set_fmpz(self.val, (<fmpz_mod>val).val, self.ctx.val)
-            fmpz_set(self.val, (<fmpz_mod>val).val)
-            return
-
-        # For all other cases, the easiest is to first convert to
-        # fmpz type and set this way
-        if not typecheck(val, fmpz):
-            val = any_as_fmpz(val)
-            if val is NotImplemented:
-                raise NotImplementedError
-        fmpz_mod_set_fmpz(self.val, (<fmpz>val).val, self.ctx.val)
+        check = self.ctx.set_any_as_fmpz_mod(self.val, val)
+        if check is NotImplemented:
+            raise NotImplementedError(f"Cannot convert {val} to type `fmpz_mod`")
 
     def is_zero(self):
         """

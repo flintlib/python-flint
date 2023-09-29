@@ -1,5 +1,3 @@
-cimport cython
-cimport libc.stdlib
 from cpython.list cimport PyList_GET_SIZE
 
 from flint.pyflint cimport global_random_state
@@ -11,6 +9,7 @@ from flint.flintlib.fmpz cimport(
     fmpz_clear,
     fmpz_is_one
 )
+from flint.flintlib.fmpz_vec cimport _fmpz_vec_init, _fmpz_vec_clear
 
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 from flint.types.fmpz_mod cimport fmpz_mod_ctx, fmpz_mod
@@ -295,19 +294,18 @@ cdef class fmpz_mod_poly_ctx:
             raise ValueError("Input must be a list or tuple of points")
 
         n = len(vals)
-        xs = <fmpz_struct *> libc.stdlib.malloc(cython.sizeof(fmpz_struct) * n)
+        xs = _fmpz_vec_init(n)
         for i in range(n):
-            val_fmpz_mod = self.mod.any_as_fmpz_mod(vals[i])
-            if val_fmpz_mod is NotImplemented:
-                libc.stdlib.free(xs)
+            check = self.mod.set_any_as_fmpz_mod(&xs[i], vals[i])
+            if check is NotImplemented:
+                _fmpz_vec_clear(xs, n)
                 raise ValueError(f"Unable to cast {vals[i]} to an `fmpz_mod`")
-            xs[i] = (<fmpz_mod>(val_fmpz_mod)).val[0]
         
         res = fmpz_mod_poly.__new__(fmpz_mod_poly)
         res.ctx = self
         fmpz_mod_poly_minpoly(res.val, xs, n, self.mod.val)
 
-        libc.stdlib.free(xs)
+        _fmpz_vec_clear(xs, n)
         return res
 
 cdef class fmpz_mod_poly(flint_poly):
@@ -667,10 +665,6 @@ cdef class fmpz_mod_poly(flint_poly):
         subproduct tree, which would allow for faster, repeated
         multipoint evaluations
 
-        TODO!! This currently segfaults for very large input,
-        suggesting a memory leak. Is this something our side of
-        on the FLINT side?
-
             >>> R = fmpz_mod_poly_ctx(163)
             >>> f = R([1,2,3,4,5])
             >>> [f(x) for x in [-1,-2,-3]]
@@ -684,18 +678,17 @@ cdef class fmpz_mod_poly(flint_poly):
             raise ValueError("Input must be a list of points")
         
         n = len(vals)
-        xs = <fmpz_struct *> libc.stdlib.malloc(cython.sizeof(fmpz_struct) * n)
+        xs = _fmpz_vec_init(n)
         for i in range(n):
-            val = self.ctx.mod.any_as_fmpz_mod(vals[i])
-            if val is NotImplemented:
-                libc.stdlib.free(xs)
-                raise ValueError(f"Unable to cast {val} to an `fmpz_mod`")
-            xs[i] = (<fmpz_mod>(val)).val[0]
+            check = self.ctx.mod.set_any_as_fmpz_mod(&xs[i], vals[i])
+            if check is NotImplemented:
+                _fmpz_vec_clear(xs, n)
+                raise ValueError(f"Unable to cast {vals[i]} to an `fmpz_mod`")
         
         # Call for multipoint eval, iterative horner will be used
         # for small arrays (len < 32) and a fast eval for larger ones
         # using a subproduct tree
-        ys = <fmpz_struct *> libc.stdlib.malloc(cython.sizeof(fmpz_struct) * n)
+        ys = _fmpz_vec_init(n)
         fmpz_mod_poly_evaluate_fmpz_vec(ys, self.val, xs, n, self.ctx.mod.val)
 
         evaluations = []
@@ -705,8 +698,8 @@ cdef class fmpz_mod_poly(flint_poly):
             fmpz_mod_set_fmpz(f.val, &ys[i], self.ctx.mod.val)
             evaluations.append(f)
 
-        libc.stdlib.free(xs)
-        libc.stdlib.free(ys)
+        _fmpz_vec_clear(xs, n)
+        _fmpz_vec_clear(ys, n)
 
         return evaluations
 
