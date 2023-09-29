@@ -1,4 +1,3 @@
-from cpython.version cimport PY_MAJOR_VERSION
 from cpython.int cimport PyInt_AS_LONG
 from cpython.list cimport PyList_GET_SIZE
 from cpython.long cimport PyLong_Check
@@ -37,10 +36,6 @@ cdef any_as_fmpz_poly(x):
     elif typecheck(x, fmpz):
         res = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_set_fmpz(res.val, (<fmpz>x).val)
-        return res
-    elif PY_MAJOR_VERSION < 3 and PyInt_Check(x):
-        res = fmpz_poly.__new__(fmpz_poly)
-        fmpz_poly_set_si(res.val, PyInt_AS_LONG(x))
         return res
     elif PyLong_Check(x):
         res = fmpz_poly.__new__(fmpz_poly)
@@ -82,14 +77,21 @@ cdef class fmpz_poly(flint_poly):
     def __dealloc__(self):
         fmpz_poly_clear(self.val)
 
-    def __init__(self, val=None):
-        if val is not None:
-            if typecheck(val, fmpz_poly):
-                fmpz_poly_set(self.val, (<fmpz_poly>val).val)
-            elif isinstance(val, list):
-                fmpz_poly_set_list(self.val, val)
-            else:
-                raise TypeError("cannot create fmpz_poly from input of type %s", type(val))
+    def __init__(self, *args):
+        if not args:
+            return
+        elif len(args) == 1:
+            val = args[0]
+        else:
+            raise TypeError("fmpz_poly() takes 0 or 1 arguments")
+        if typecheck(val, fmpz_poly):
+            fmpz_poly_set(self.val, (<fmpz_poly>val).val)
+        elif isinstance(val, list):
+            fmpz_poly_set_list(self.val, val)
+        elif (v := any_as_fmpz(val)) is not NotImplemented:
+            fmpz_poly_set_fmpz(self.val, (<fmpz>v).val)
+        else:
+            raise TypeError("cannot create fmpz_poly from input of type %s", type(val))
 
     def __len__(self):
         return fmpz_poly_length(self.val)
@@ -286,12 +288,14 @@ cdef class fmpz_poly(flint_poly):
             return other
         return other._divmod_(self)
 
-    def __pow__(fmpz_poly self, ulong exp, mod):
+    def __pow__(fmpz_poly self, exp, mod):
         cdef fmpz_poly res
         if mod is not None:
             raise NotImplementedError("fmpz_poly modular exponentiation")
+        if exp < 0:
+            raise ValueError("fmpz_poly negative exponent")
         res = fmpz_poly.__new__(fmpz_poly)
-        fmpz_poly_pow(res.val, self.val, exp)
+        fmpz_poly_pow(res.val, self.val, <ulong>exp)
         return res
 
     def gcd(self, other):

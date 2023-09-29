@@ -71,18 +71,22 @@ cdef class fmpz(flint_scalar):
     def __dealloc__(self):
         fmpz_clear(self.val)
 
-    def __init__(self, val=None):
+    def __init__(self, *args):
         cdef long x
-        if val is not None:
-            if typecheck(val, fmpz):
-                fmpz_set(self.val, (<fmpz>val).val)
-            else:
-                if fmpz_set_any_ref(self.val, val) == FMPZ_UNKNOWN: # XXX
-                    if typecheck(val, str):
-                        if fmpz_set_str(self.val, chars_from_str(val), 10) != 0:
-                            raise ValueError("invalid string for fmpz")
-                        return
-                    raise TypeError("cannot create fmpz from type %s" % type(val))
+        if not args:
+            return
+        elif len(args) != 1:
+            raise TypeError("fmpz takes zero or one arguments.")
+        val = args[0]
+        if typecheck(val, fmpz):
+            fmpz_set(self.val, (<fmpz>val).val)
+        else:
+            if fmpz_set_any_ref(self.val, val) == FMPZ_UNKNOWN: # XXX
+                if typecheck(val, str):
+                    if fmpz_set_str(self.val, chars_from_str(val), 10) != 0:
+                        raise ValueError("invalid string for fmpz")
+                    return
+                raise TypeError("cannot create fmpz from type %s" % type(val))
 
     @property
     def numerator(self):
