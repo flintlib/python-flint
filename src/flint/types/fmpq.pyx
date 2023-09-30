@@ -71,12 +71,14 @@ cdef class fmpq(flint_scalar):
     def __dealloc__(self):
         fmpq_clear(self.val)
 
-    def __init__(self, p=None, q=None):
-        cdef long x
-        if q is None:
-            if p is None:
-                return # zero
-            elif typecheck(p, fmpq):
+    def __init__(self, *args):
+        if not args:
+            return # zero
+        elif len(args) == 2:
+            p, q = args
+        elif len(args) == 1:
+            p = args[0]
+            if typecheck(p, fmpq):
                 fmpq_set(self.val, (<fmpq>p).val)
                 return
             elif typecheck(p, str):
@@ -90,17 +92,21 @@ cdef class fmpq(flint_scalar):
             else:
                 p = any_as_fmpq(p)
                 if p is NotImplemented:
-                    raise ValueError("cannot create fmpq from object of type %s" % type(p))
+                    raise TypeError("cannot create fmpq from object of type %s" % type(p))
                 fmpq_set(self.val, (<fmpq>p).val)
                 return
+        else:
+            raise TypeError("fmpq() takes at most 2 arguments (%d given)" % len(args))
+
         p = any_as_fmpz(p)
         if p is NotImplemented:
-            raise ValueError("cannot create fmpq from object of type %s" % type(p))
+            raise TypeError("cannot create fmpq from object of type %s" % type(p))
         q = any_as_fmpz(q)
         if q is NotImplemented:
-            raise ValueError("cannot create fmpq from object of type %s" % type(q))
+            raise TypeError("cannot create fmpq from object of type %s" % type(q))
         if fmpz_is_zero((<fmpz>q).val):
             raise ZeroDivisionError("cannot create rational number with zero denominator")
+
         fmpz_set(fmpq_numref(self.val), (<fmpz>p).val)
         fmpz_set(fmpq_denref(self.val), (<fmpz>q).val)
         fmpq_canonicalise(self.val)

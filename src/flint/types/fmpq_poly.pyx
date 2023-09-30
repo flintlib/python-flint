@@ -78,18 +78,26 @@ cdef class fmpq_poly(flint_poly):
     def __dealloc__(self):
         fmpq_poly_clear(self.val)
 
-    def __init__(self, p=None, q=None):
-        if p is not None:
-            if typecheck(p, fmpq_poly):
-                fmpq_poly_set(self.val, (<fmpq_poly>p).val)
-            elif typecheck(p, fmpz_poly):
-                fmpq_poly_set_fmpz_poly(self.val, (<fmpz_poly>p).val)
-            elif isinstance(p, list):
-                fmpq_poly_set_list(self.val, p)
-            else:
-                raise TypeError("cannot create fmpq_poly from input of type %s", type(p))
-        if q is not None:
-            q = any_as_fmpz(q)
+    def __init__(self, *args):
+        if len(args) == 0:
+            return
+        elif len(args) > 2:
+            raise TypeError("fmpq_poly() takes 0, 1 or 2 arguments (%d given)" % len(args))
+
+        p = args[0]
+        if typecheck(p, fmpq_poly):
+            fmpq_poly_set(self.val, (<fmpq_poly>p).val)
+        elif typecheck(p, fmpz_poly):
+            fmpq_poly_set_fmpz_poly(self.val, (<fmpz_poly>p).val)
+        elif isinstance(p, list):
+            fmpq_poly_set_list(self.val, p)
+        elif (v := any_as_fmpq(p)) is not NotImplemented:
+            fmpq_poly_set_fmpq(self.val, (<fmpq>v).val)
+        else:
+            raise TypeError("cannot create fmpq_poly from input of type %s", type(p))
+
+        if len(args) == 2:
+            q = any_as_fmpz(args[1])
             if q is NotImplemented:
                 raise TypeError("denominator must be an integer, got %s", type(q))
             if fmpz_is_zero((<fmpz>q).val):
@@ -326,12 +334,14 @@ cdef class fmpq_poly(flint_poly):
             return t
         return t._divmod_(s)
 
-    def __pow__(fmpq_poly self, ulong exp, mod):
+    def __pow__(fmpq_poly self, exp, mod):
         cdef fmpq_poly res
         if mod is not None:
             raise NotImplementedError("fmpz_poly modular exponentiation")
+        if exp < 0:
+            raise ValueError("fmpq_poly negative exponent")
         res = fmpq_poly.__new__(fmpq_poly)
-        fmpq_poly_pow(res.val, self.val, exp)
+        fmpq_poly_pow(res.val, self.val, <ulong>exp)
         return res
 
     def gcd(self, other):
@@ -383,6 +393,32 @@ cdef class fmpq_poly(flint_poly):
             c *= lead ** exp
             fac[i] = (base, exp)
         return c / self.denom(), fac
+
+    def sqrt(self):
+        """
+        Return the exact square root of this polynomial or ``None``.
+
+            >>> p = fmpq_poly([1,2,1],4)
+            >>> p
+            1/4*x^2 + 1/2*x + 1/4
+            >>> p.sqrt()
+            1/2*x + 1/2
+
+        """
+        d = self.denom()
+        n = self.numer()
+        d, r = d.sqrtrem()
+        if r != 0:
+            return None
+        n = n.sqrt()
+        if n is None:
+            return None
+        return fmpq_poly(n, d)
+
+    def deflation(self):
+        num, n = self.numer().deflation()
+        num = fmpq_poly(num, self.denom())
+        return num, n
 
     def complex_roots(self, **kwargs):
         """
