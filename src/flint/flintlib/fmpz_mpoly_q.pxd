@@ -6,7 +6,7 @@ from flint.flintlib.fmpz_mpoly cimport fmpz_mpoly_ctx_t, fmpz_mpoly_t, fmpz_mpol
 cdef extern from "flint/fmpz_mpoly_q.h":
     ctypedef struct fmpz_mpoly_q_struct:
         fmpz_mpoly_struct num
-        fmpz_mpoly_struct num
+        fmpz_mpoly_struct den
     ctypedef fmpz_mpoly_q_struct fmpz_mpoly_q_t[1]
 
     fmpz_mpoly_struct * fmpz_mpoly_q_numref(fmpz_mpoly_q_t x)

@@ -23,6 +23,7 @@ from .types.acb_series import *
 from .types.fmpz_mpoly import *
 from .types.fmpq_mpoly import *
 from .types.fmpz_mod import *
+from .types.fmpz_mpoly_q import *
 from .types.dirichlet import *
 from .functions.showgood import showgood
 

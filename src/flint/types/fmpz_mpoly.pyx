@@ -275,6 +275,7 @@ cdef inline create_fmpz_mpoly(fmpz_mpoly_ctx ctx):
     var._init = True
     return var
 
+
 # todo: store cached context objects externally
 cdef class fmpz_mpoly(flint_mpoly):
     """
