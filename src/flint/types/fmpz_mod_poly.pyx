@@ -329,13 +329,9 @@ cdef class fmpz_mod_poly(flint_poly):
         fmpz_mod_poly_clear(self.val, self.ctx.mod.val)
 
     def __init__(self, val, ctx):
-        if not typecheck(ctx, fmpz_mod_poly_ctx):
-            raise TypeError
-        self.ctx = ctx
         check = self.ctx.set_any_as_fmpz_mod_poly(self.val, val)
         if check is NotImplemented:
-            raise TypeError 
-        self.initialized = True
+            raise TypeError
 
     def __pos__(self):
         return self
