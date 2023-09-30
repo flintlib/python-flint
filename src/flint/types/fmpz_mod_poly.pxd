@@ -9,7 +9,7 @@ cdef class fmpz_mod_poly_ctx:
     cdef any_as_fmpz_mod_poly(self, obj)
     cdef set_any_as_fmpz_mod_poly(self, fmpz_mod_poly_t poly, obj)
     cdef set_list_as_fmpz_mod_poly(self, fmpz_mod_poly_t poly, val)
-    cdef new_poly(self)
+    cdef new_ctype_poly(self)
 
 cdef class fmpz_mod_poly(flint_poly):
     cdef fmpz_mod_poly_t val
