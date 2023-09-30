@@ -2031,13 +2031,23 @@ def test_fmpz_mod_poly():
         assert fmpz(2) * f ==  R_test([-2,-4])
         assert F_test(2) * f ==  R_test([-2,-4])
 
+        # scalar_mul
+        assert 2 * f == f.scalar_mul(2)
+        assert raises(lambda: f.scalar_mul("AAA"), TypeError)
+
         # Exact division
         assert raises(lambda: f.exact_division(f_cmp), ValueError)
+        assert raises(lambda: f.exact_division("AAA"), TypeError)
+        assert raises(lambda: f.exact_division(0), ZeroDivisionError)
+
         assert (f * g).exact_division(g) == f
         assert raises(lambda: f.exact_division(g), ValueError)
 
         # true div
         assert raises(lambda: f / "AAA", TypeError)
+        assert raises(lambda: f / 0, ZeroDivisionError)
+        assert raises(lambda: f_cmp / 2, ZeroDivisionError)
+    
         assert (f + f) / 2  ==  f
         assert (f + f) / fmpz(2)  ==  f
         assert (f + f) / F_test(2)  ==  f
@@ -2085,6 +2095,10 @@ def test_fmpz_mod_poly():
         h = R_test([0, 0, 1])
         assert h(1) == h(-1)
         assert raises(lambda: h("AAA"), TypeError)
+        assert f([-1,-2,-3]) == [f(x) for x in [-1, -2, -3]]
+
+        # compose
+        assert raises(lambda: h.compose("AAA"), TypeError)
 
         # Reverse
         assert raises(lambda: h.reverse(degree=-100), ValueError)
