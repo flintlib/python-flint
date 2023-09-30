@@ -74,7 +74,7 @@ cdef class fmpz_mod_poly_ctx:
             0
         """
         cdef fmpz_mod_poly res
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self)
+        res = self.new_poly()
         fmpz_mod_poly_zero(res.val, self.mod.val)
         return res
 
@@ -87,7 +87,7 @@ cdef class fmpz_mod_poly_ctx:
             1
         """
         cdef fmpz_mod_poly res
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self)
+        res = self.new_poly()
         fmpz_mod_poly_one(res.val, self.mod.val)
         return res
 
@@ -100,7 +100,7 @@ cdef class fmpz_mod_poly_ctx:
             x
         """
         cdef fmpz_mod_poly res
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self)
+        res = self.new_poly()
         fmpz_mod_poly_set_coeff_ui(res.val, 1, 1, self.mod.val)
         return res
 
@@ -137,7 +137,7 @@ cdef class fmpz_mod_poly_ctx:
             raise ValueError("The degree argument must be non-negative")
 
         cdef fmpz_mod_poly res
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self)
+        res = self.new_poly()
         if (monic and irreducible):
             fmpz_mod_poly_randtest_monic_irreducible(
                 res.val, global_random_state, length, self.mod.val
@@ -155,7 +155,6 @@ cdef class fmpz_mod_poly_ctx:
                 res.val, global_random_state, length, self.mod.val
             )
         return res
-
 
     cdef set_list_as_fmpz_mod_poly(self, fmpz_mod_poly_t poly, val):
         cdef long i, n
@@ -234,12 +233,15 @@ cdef class fmpz_mod_poly_ctx:
             return obj
         
         cdef fmpz_mod_poly res
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self)
+        res = self.new_poly()
         check = self.set_any_as_fmpz_mod_poly(res.val, obj)
         if check is NotImplemented:
             return NotImplemented
         
         return res
+
+    cdef new_poly(self):
+        return fmpz_mod_poly.__new__(fmpz_mod_poly, None, self)
 
     def __eq__(self, other):
         # Most often, we expect both `fmpz_mod_poly` to be pointing 
@@ -296,7 +298,7 @@ cdef class fmpz_mod_poly_ctx:
                 _fmpz_vec_clear(xs, n)
                 raise ValueError(f"Unable to cast {vals[i]} to an `fmpz_mod`")
         
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self)
+        res = self.new_poly()
         fmpz_mod_poly_minpoly(res.val, xs, n, self.mod.val)
 
         _fmpz_vec_clear(xs, n)
@@ -339,7 +341,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
     def __neg__(self):
         cdef fmpz_mod_poly res
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_neg(res.val, self.val, self.ctx.mod.val)
         return res
 
@@ -349,7 +351,7 @@ cdef class fmpz_mod_poly(flint_poly):
         if other is NotImplemented:
             return other
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_add(
             res.val, self.val, (<fmpz_mod_poly>other).val, self.ctx.mod.val
         )
@@ -379,7 +381,7 @@ cdef class fmpz_mod_poly(flint_poly):
             if left is NotImplemented:
                 return NotImplemented
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, (<fmpz_mod_poly>left).ctx)
+        res = (<fmpz_mod_poly>left).ctx.new_poly()
         fmpz_mod_poly_sub(
                 res.val, (<fmpz_mod_poly>left).val, (<fmpz_mod_poly>right).val, res.ctx.mod.val
         )
@@ -400,7 +402,7 @@ cdef class fmpz_mod_poly(flint_poly):
         if other is NotImplemented:
             return other
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_mul(
             res.val, self.val, (<fmpz_mod_poly>other).val, self.ctx.mod.val
         )
@@ -424,7 +426,7 @@ cdef class fmpz_mod_poly(flint_poly):
         if right == 0:
             raise ZeroDivisionError(f"Cannot divide by zero")
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         check = fmpz_mod_poly_divides(
             res.val, self.val, (<fmpz_mod_poly>right).val, res.ctx.mod.val
         )
@@ -448,7 +450,7 @@ cdef class fmpz_mod_poly(flint_poly):
         if not other.is_unit():
             raise ZeroDivisionError(f"Cannot divide by {other} modulo {self.ctx.modulus()}")
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_scalar_div_fmpz(
             res.val, self.val, (<fmpz_mod>other).val, res.ctx.mod.val
         )
@@ -485,7 +487,7 @@ cdef class fmpz_mod_poly(flint_poly):
         if not right.leading_coefficient().is_unit():
             raise ZeroDivisionError(f"The leading term of {right} must be a unit modulo N")
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, (<fmpz_mod_poly>left).ctx)
+        res = (<fmpz_mod_poly>left).ctx.new_poly()
         fmpz_mod_poly_div(
             res.val, (<fmpz_mod_poly>left).val, (<fmpz_mod_poly>right).val, res.ctx.mod.val
         )
@@ -506,7 +508,7 @@ cdef class fmpz_mod_poly(flint_poly):
             raise ValueError("Exponent must be non-negative")
 
         cdef ulong e_ulong = e
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_pow(
             res.val, self.val, e_ulong, self.ctx.mod.val
         )
@@ -529,7 +531,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
         """
         cdef fmpz_mod_poly res
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
 
         if n < 0:
             raise ValueError("Value must be shifted by a non-negative integer")
@@ -565,7 +567,7 @@ cdef class fmpz_mod_poly(flint_poly):
         if n < 0:
             raise ValueError("Value must be shifted by a non-negative integer")
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
 
         if n > 0:
             fmpz_mod_poly_shift_right(
@@ -603,7 +605,7 @@ cdef class fmpz_mod_poly(flint_poly):
         if right == 0:
             raise ZeroDivisionError(f"Cannot reduce modulo zero")
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, (<fmpz_mod_poly>left).ctx)
+        res = (<fmpz_mod_poly>left).ctx.new_poly()
         fmpz_init(f)
         fmpz_mod_poly_rem_f(
             f, res.val, (<fmpz_mod_poly>left).val, (<fmpz_mod_poly>right).val, res.ctx.mod.val
@@ -745,7 +747,7 @@ cdef class fmpz_mod_poly(flint_poly):
         if val is NotImplemented:
             raise TypeError(f"Cannot compose the polynomial with input: {input}")
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_compose(res.val, self.val, (<fmpz_mod_poly>val).val, self.ctx.mod.val) 
         return res    
 
@@ -873,7 +875,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
         length = d + 1
 
-        res =  fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_reverse(res.val, self.val, length, self.ctx.mod.val)
         return res
 
@@ -903,7 +905,7 @@ cdef class fmpz_mod_poly(flint_poly):
         cdef fmpz_mod_poly res
 
         length = fmpz_mod_poly_degree(self.val, self.ctx.mod.val)
-        res =  fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
 
         if n <= 0: # return zero
             return res
@@ -948,7 +950,7 @@ cdef class fmpz_mod_poly(flint_poly):
         cdef fmpz_mod_poly res
         cdef fmpz_t f
 
-        res =  fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res =  self.ctx.new_poly()
         if not check:
             fmpz_mod_poly_make_monic(
                 res.val, self.val, self.ctx.mod.val
@@ -1005,7 +1007,7 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         cdef fmpz_mod_poly res
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_sqr(
             res.val, self.val, self.ctx.mod.val
         )
@@ -1035,7 +1037,7 @@ cdef class fmpz_mod_poly(flint_poly):
         if modulus is NotImplemented:
             raise TypeError(f"Cannot interpret {modulus} as a polynomial")
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
 
         fmpz_mod_poly_mulmod(
             res.val, self.val, (<fmpz_mod_poly>other).val, (<fmpz_mod_poly>modulus).val, res.ctx.mod.val
@@ -1062,7 +1064,7 @@ cdef class fmpz_mod_poly(flint_poly):
         if modulus is NotImplemented:
             raise TypeError(f"Cannot interpret {modulus} as a polynomial")
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_powmod_ui_binexp(
             res.val, self.val, <ulong>e, (<fmpz_mod_poly>modulus).val, res.ctx.mod.val
         )
@@ -1089,8 +1091,8 @@ cdef class fmpz_mod_poly(flint_poly):
         if other == 0:
             raise ZeroDivisionError(f"Cannot compute divmod as {other =}")
 
-        Q = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
-        R = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        Q = self.ctx.new_poly()
+        R = self.ctx.new_poly()
 
         fmpz_init(f)
         fmpz_mod_poly_divrem_f(
@@ -1135,7 +1137,7 @@ cdef class fmpz_mod_poly(flint_poly):
         if other is NotImplemented:
             raise TypeError(f"Cannot interpret {other} as a polynomial")
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_gcd(
             res.val, self.val, (<fmpz_mod_poly>other).val, self.ctx.mod.val
         )
@@ -1162,9 +1164,9 @@ cdef class fmpz_mod_poly(flint_poly):
         if other is NotImplemented:
             raise TypeError(f"Cannot interpret {other} as a polynomial")
 
-        G = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
-        S = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
-        T = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        G = self.ctx.new_poly()
+        S = self.ctx.new_poly()
+        T = self.ctx.new_poly()
 
         fmpz_init(f)
         fmpz_mod_poly_xgcd_f(
@@ -1189,7 +1191,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
         """
         cdef fmpz_mod_poly res
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_derivative(
             res.val, self.val, self.ctx.mod.val
         )
@@ -1269,7 +1271,7 @@ cdef class fmpz_mod_poly(flint_poly):
         if other is NotImplemented:
             raise TypeError(f"Cannot interpret {other} as a polynomial")
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         res.ctx = self.ctx
         fmpz_init(f)
         fmpz_mod_poly_invmod_f(
@@ -1298,7 +1300,7 @@ cdef class fmpz_mod_poly(flint_poly):
         cdef fmpz_t f
         cdef fmpz_mod_poly res 
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_init(f)
         fmpz_mod_poly_inv_series_f(
             f, res.val, self.val, n, res.ctx.mod.val
@@ -1347,7 +1349,7 @@ cdef class fmpz_mod_poly(flint_poly):
         cdef fmpz_mod_poly res
         cdef int check
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         check = fmpz_mod_poly_sqrt(
             res.val, self.val, res.ctx.mod.val
         )
@@ -1373,7 +1375,7 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         cdef fmpz_mod_poly res
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_sqrt_series(
             res.val, self.val, n, res.ctx.mod.val
         )
@@ -1393,7 +1395,7 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         cdef fmpz_mod_poly res
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_invsqrt_series(
             res.val, self.val, n, res.ctx.mod.val
         )
@@ -1412,7 +1414,7 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         cdef fmpz_mod_poly res
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_inflate(
             res.val, self.val, n, res.ctx.mod.val
         )
@@ -1439,7 +1441,7 @@ cdef class fmpz_mod_poly(flint_poly):
         if n > n_max:
             raise ValueError(f"Cannot deflate with {n = }, maximum allowed value is {n_max = }")
 
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_deflate(
             res.val, self.val, n, res.ctx.mod.val
         )
@@ -1464,7 +1466,7 @@ cdef class fmpz_mod_poly(flint_poly):
         n = fmpz_mod_poly_deflation(
             self.val, self.ctx.mod.val
         )
-        res = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+        res = self.ctx.new_poly()
         fmpz_mod_poly_deflate(
             res.val, self.val, n, res.ctx.mod.val
         )
@@ -1498,7 +1500,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
         cdef fmpz_mod_poly u
         for i in range(fac.num):
-            u = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+            u = self.ctx.new_poly()
             fmpz_mod_poly_set(u.val, &fac.poly[i], self.ctx.mod.val)
             exp = fac.exp[i]
             res[i] = (u, exp)
@@ -1541,7 +1543,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
         cdef fmpz_mod_poly u
         for i in range(fac.num):
-            u = fmpz_mod_poly.__new__(fmpz_mod_poly, None, self.ctx)
+            u = self.ctx.new_poly()
             fmpz_mod_poly_set(u.val, &fac.poly[i], self.ctx.mod.val)
             exp = fac.exp[i]
             res[i] = (u, exp)
