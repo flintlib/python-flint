@@ -326,7 +326,8 @@ cdef class fmpz_mod_poly(flint_poly):
         fmpz_mod_poly_init(self.val, self.ctx.mod.val)
 
     def __dealloc__(self):
-        fmpz_mod_poly_clear(self.val, self.ctx.mod.val)
+        if self.ctx is not None:
+            fmpz_mod_poly_clear(self.val, self.ctx.mod.val)
 
     def __init__(self, val, ctx):
         check = self.ctx.set_any_as_fmpz_mod_poly(self.val, val)
