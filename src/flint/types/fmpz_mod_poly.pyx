@@ -834,8 +834,8 @@ cdef class fmpz_mod_poly(flint_poly):
     
     def is_one(self):
         """
-        Return ``True`` if the polynomial is the zero polynomial
-        and `Fal`se` otherwise
+        Return ``True`` if the polynomial is equal to one
+        and ``False`` otherwise
 
             >>> R = fmpz_mod_poly_ctx(163)
             >>> f = R(1)
@@ -846,8 +846,8 @@ cdef class fmpz_mod_poly(flint_poly):
     
     def is_gen(self):
         """
-        Return ``True`` if the polynomial is the zero polynomial
-        and ``False`` otherwise
+        Return ``True`` if the polynomial is the generator
+        of the polynomial, `x`, and ``False`` otherwise
 
             >>> R = fmpz_mod_poly_ctx(163)
             >>> f = R([0,1])
@@ -1610,6 +1610,7 @@ cdef class fmpz_mod_poly(flint_poly):
         cdef fmpz_mod_poly_factor_t fac
         cdef int i, with_multiplicity
 
+        with_multiplicity = 0
         if multiplicities:
             with_multiplicity = 1
 
