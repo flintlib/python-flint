@@ -1,6 +1,8 @@
+from flint.pyflint cimport global_random_state
 from flint.flintlib.fmpz cimport(
     fmpz_t,
     fmpz_one,
+    fmpz_zero,
     fmpz_set,
     fmpz_init,
     fmpz_clear,
@@ -10,7 +12,8 @@ from flint.flintlib.fmpz cimport(
     fmpz_invmod,
     fmpz_divexact,
     fmpz_gcd,
-    fmpz_is_one
+    fmpz_is_one,
+    fmpz_randm
 )
 from flint.flintlib.fmpz cimport fmpz_mod as fmpz_type_mod
 from flint.flintlib.fmpz_mod cimport *
@@ -39,6 +42,7 @@ cdef class fmpz_mod_ctx:
         fmpz_one(one.val)
         fmpz_mod_ctx_init(self.val, one.val)
         self.L = NULL
+        self._is_prime = 0
         
 
     def __dealloc__(self):
@@ -52,7 +56,7 @@ cdef class fmpz_mod_ctx:
             mod = any_as_fmpz(mod)
             if mod is NotImplemented:
                 raise TypeError(
-                    "Context modulus must be able to be case to an `fmpz` type"
+                    "Context modulus must be able to be cast to an `fmpz` type"
                 )
 
         # Ensure modulus is positive
@@ -61,6 +65,10 @@ cdef class fmpz_mod_ctx:
 
         # Set the modulus
         fmpz_mod_ctx_set_modulus(self.val, (<fmpz>mod).val)
+
+        # Check whether the modulus is prime
+        # TODO: should we use a stronger test?
+        self._is_prime = fmpz_is_probabprime(self.val.n)
 
     def modulus(self):
         """
@@ -76,6 +84,59 @@ cdef class fmpz_mod_ctx:
         fmpz_set(n.val, (<fmpz_t>self.val.n))
         return n
 
+    def is_prime(self):
+        """
+        Return whether the modulus is prime
+
+            >>> fmpz_mod_ctx(2**127).is_prime()
+            False
+            >>> fmpz_mod_ctx(2**127 - 1).is_prime()
+            True
+        """
+        return self._is_prime == 1
+
+    def zero(self):
+        """
+        Return the zero element
+
+            >>> F = fmpz_mod_ctx(163)
+            >>> F.zero()
+            fmpz_mod(0, 163)
+        """
+        cdef fmpz_mod res 
+        res = fmpz_mod.__new__(fmpz_mod)
+        fmpz_zero(res.val)
+        res.ctx = self
+
+        return res
+
+    def one(self):
+        """
+        Return the one element
+
+            >>> F = fmpz_mod_ctx(163)
+            >>> F.one()
+            fmpz_mod(1, 163)
+        """
+        cdef fmpz_mod res 
+        res = fmpz_mod.__new__(fmpz_mod)
+        fmpz_one(res.val)
+        res.ctx = self
+
+        return res
+
+    def random_element(self):
+        r"""
+        Return a random element in :math:`\mathbb{Z}/N\mathbb{Z}`
+        """
+        cdef fmpz_mod res
+        res = fmpz_mod.__new__(fmpz_mod)
+        res.ctx = self
+
+        fmpz_randm(res.val, global_random_state, self.val.n)
+
+        return res
+
     cdef _precompute_dlog_prime(self):
         """
         Initalise the dlog data, all discrete logs are solved with an 
@@ -89,28 +150,41 @@ cdef class fmpz_mod_ctx:
             self.L[0], self.val.n
         )
 
-    cdef any_as_fmpz_mod(self, obj):
-        # If `obj` is an `fmpz_mod`, just check moduli
-        # match
-        # TODO: we could allow conversion from one modulus to another?
+    cdef set_any_as_fmpz_mod(self, fmpz_t val, obj):
+        # Try and convert obj to fmpz
         if typecheck(obj, fmpz_mod):
             if self != (<fmpz_mod>obj).ctx:
                 raise ValueError("moduli must match")
-            return obj
-
+            fmpz_set(val, (<fmpz_mod>obj).val)
+            return 0
+        
         # Try and convert obj to fmpz
         if not typecheck(obj, fmpz):
             obj = any_as_fmpz(obj)
             if obj is NotImplemented:
                 return NotImplemented
+        
+        fmpz_mod_set_fmpz(val, (<fmpz>obj).val, self.val)
+        
+        return 0
+
+    cdef any_as_fmpz_mod(self, obj):
+        # If `obj` is an `fmpz_mod`, just check moduli
+        # match
+        if typecheck(obj, fmpz_mod):
+            if self != (<fmpz_mod>obj).ctx:
+                raise ValueError("moduli must match")
+            return obj
 
         # We have been able to cast `obj` to an `fmpz` so
         # we create a new `fmpz_mod` and set the val
         cdef fmpz_mod res
         res = fmpz_mod.__new__(fmpz_mod)
+        check = self.set_any_as_fmpz_mod(res.val, obj)
+        if check is NotImplemented:
+            return NotImplemented
         res.ctx = self
-        fmpz_mod_set_fmpz(res.val, (<fmpz>obj).val, self.val)
-
+        
         return res
 
     def __eq__(self, other):
@@ -126,7 +200,7 @@ cdef class fmpz_mod_ctx:
         # If they're not the same object in memory, they may have the
         # same modulus, which is good enough
         if typecheck(other, fmpz_mod_ctx):
-            return fmpz_equal(self.val.n, (<fmpz_mod_ctx>other).val.n)
+            return fmpz_equal(self.val.n, (<fmpz_mod_ctx>other).val.n) == 1
         return False
 
     def __hash__(self):
@@ -167,28 +241,15 @@ cdef class fmpz_mod(flint_scalar):
         fmpz_clear(self.val)
         if self.x_g:
             fmpz_clear(self.x_g[0])
+            libc.stdlib.free(self.x_g)
 
     def __init__(self, val, ctx):
         if not typecheck(ctx, fmpz_mod_ctx):
             raise TypeError
         self.ctx = ctx
-
-        # When the input is also an fmpz_mod we just need
-        # moduli to match
-        if typecheck(val, fmpz_mod):
-            if self.ctx != (<fmpz_mod>val).ctx:
-                raise ValueError("moduli must match")
-            # fmpz_mod_set_fmpz(self.val, (<fmpz_mod>val).val, self.ctx.val)
-            fmpz_set(self.val, (<fmpz_mod>val).val)
-            return
-
-        # For all other cases, the easiest is to first convert to
-        # fmpz type and set this way
-        if not typecheck(val, fmpz):
-            val = any_as_fmpz(val)
-            if val is NotImplemented:
-                raise NotImplementedError
-        fmpz_mod_set_fmpz(self.val, (<fmpz>val).val, self.ctx.val)
+        check = self.ctx.set_any_as_fmpz_mod(self.val, val)
+        if check is NotImplemented:
+            raise NotImplementedError(f"Cannot convert {val} to type `fmpz_mod`")
 
     def is_zero(self):
         """
@@ -209,13 +270,29 @@ cdef class fmpz_mod(flint_scalar):
             >>> mod_ctx = fmpz_mod_ctx(163)
             >>> mod_ctx(0).is_one()
             False
-            >>> mod_ctx(1).is_zero()
+            >>> mod_ctx(1).is_one()
             True
         """
 
         cdef bint res
         res = fmpz_mod_is_one(self.val, self.ctx.val)
         return res == 1
+
+    def is_unit(self):
+        """
+        Returns whether the element is invertible modulo `N`
+
+            >>> from flint import *
+            >>> F = fmpz_mod_ctx(10)
+            >>> F(3).is_unit()
+            True
+            >>> F(2).is_unit()
+            False
+        """
+        cdef fmpz_t g
+        fmpz_init(g)
+        fmpz_gcd(g, self.val, self.ctx.val.n)
+        return 1 == fmpz_is_one(g)
 
     def inverse(self, check=True):
         r"""
@@ -252,7 +329,7 @@ cdef class fmpz_mod(flint_scalar):
 
         return res
 
-    def discrete_log(self, a, check=False):
+    def discrete_log(self, a):
         """
         Solve the discrete logarithm problem, using `self = g` as a base.
         Assumes a solution, :math:`a = g^x \pmod p` exists.
@@ -269,19 +346,13 @@ cdef class fmpz_mod(flint_scalar):
         cdef bint is_prime
 
         # Ensure that the modulus is prime
-        if check:
-            is_prime = fmpz_is_probabprime(self.ctx.val.n)
-            if not is_prime:
-                raise ValueError("modulus must be prime")
+        if not self.ctx.is_prime():
+            raise NotImplementedError("algorithm assumes modulus is prime")
 
         # Then check the type of the input
-        if typecheck(a, fmpz_mod):
-            if self.ctx != (<fmpz_mod>a).ctx:
-                raise ValueError("moduli must match")
-        else:
-            a = self.ctx.any_as_fmpz_mod(a)
-            if a is NotImplemented:
-                raise TypeError
+        a = self.ctx.any_as_fmpz_mod(a)
+        if a is NotImplemented:
+            raise TypeError(f"Cannot solve the discrete log with {type(a)} as input")
 
         # First, Ensure that self.ctx.L has performed precomputations
         # This generates a `y` which is a primative root, and used as
@@ -342,18 +413,17 @@ cdef class fmpz_mod(flint_scalar):
         if op != 2 and op != 3:
             raise TypeError("fmpz_mod cannot be ordered")
 
-        if not typecheck(other, fmpz_mod):
-            other = self.ctx.any_as_fmpz_mod(other)
-
-        if typecheck(self, fmpz_mod) and typecheck(other, fmpz_mod):
-            res = fmpz_equal(self.val, (<fmpz_mod>other).val) and \
-                  (self.ctx == (<fmpz_mod>other).ctx)
-            if op == 2:
-                return res
-            else:
-                return not res
-        else:
+        other = self.ctx.any_as_fmpz_mod(other)
+        if other is NotImplemented:
             return NotImplemented
+
+        res = fmpz_equal(self.val, (<fmpz_mod>other).val) and \
+                (self.ctx == (<fmpz_mod>other).ctx)
+        if op == 2:
+            return res
+        else:
+            return not res
+
 
     def __bool__(self):
         return not self.is_zero()
