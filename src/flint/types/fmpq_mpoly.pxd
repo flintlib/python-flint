@@ -1,9 +1,25 @@
 from flint.flint_base.flint_base cimport flint_mpoly
 from flint.flint_base.flint_base cimport flint_mpoly_context
 
-from flint.flintlib.fmpq_mpoly cimport fmpq_mpoly_ctx_t
-from flint.flintlib.fmpq_mpoly cimport fmpq_mpoly_t
+from flint.flintlib.fmpq_mpoly cimport *
 from flint.flintlib.flint cimport slong
+
+from flint.types.fmpz_mpoly cimport fmpz_mpoly_ctx
+
+cdef inline init_fmpq_mpoly(fmpq_mpoly var, fmpq_mpoly_ctx ctx):
+    var.ctx = ctx
+    fmpq_mpoly_init(var.val, ctx.val)
+    var._init = True
+
+cdef inline create_fmpq_mpoly(fmpq_mpoly_ctx ctx):
+    cdef fmpq_mpoly var
+    var = fmpq_mpoly.__new__(fmpq_mpoly)
+    var.ctx = ctx
+    fmpq_mpoly_init(var.val, ctx.val)
+    var._init = True
+    return var
+
+cdef fmpq_mpoly_ctx create_fmpq_mpoly_ctx_from_fmpz_mpoly_ctx(fmpz_mpoly_ctx ctx)
 
 cdef class fmpq_mpoly_ctx(flint_mpoly_context):
     cdef fmpq_mpoly_ctx_t val

@@ -2,7 +2,8 @@ from flint.flint_base.flint_base cimport flint_rational_function
 from flint.utils.typecheck cimport typecheck
 from flint.flintlib.fmpz_mpoly cimport fmpz_mpoly_set, fmpz_mpoly_get_str_pretty
 from flint.flintlib.fmpz_mpoly_q cimport *
-from flint.types.fmpz_mpoly cimport fmpz_mpoly, fmpz_mpoly_ctx
+from flint.types.fmpz_mpoly cimport fmpz_mpoly, fmpz_mpoly_ctx, create_fmpz_mpoly
+
 
 cdef inline init_fmpz_mpoly_q(fmpz_mpoly_q var, fmpz_mpoly_ctx ctx):
     var.ctx = ctx
@@ -86,7 +87,52 @@ cdef class fmpz_mpoly_q(flint_rational_function):
         res = res.replace("-", " - ")
         return res
 
+    def numer(self):
+        """
+        Returns the numerator of *self* as an *fmpz_mpoly*
+        """
+        cdef fmpz_mpoly num = create_fmpz_mpoly(self.ctx)
+        fmpz_mpoly_set(num.val, &(self.fraction.num), self.ctx.val)
+        return num
+
+    def denom(self):
+        """
+        Returns the denominator of *self* as an *fmpz_mpoly*.
+        """
+        cdef fmpz_mpoly num = create_fmpz_mpoly(self.ctx)
+        fmpz_mpoly_set(num.val, &(self.fraction.den), self.ctx.val)
+        return num
+
     def __neg__(self):
         cdef fmpz_mpoly_q res
         res = create_fmpz_mpoly_q(self.ctx)
         fmpz_mpoly_q_neg(res.fraction, self.fraction, res.ctx.val)
+        return res
+
+    def __add__(s, t):
+        cdef fmpz_mpoly_q res
+        if typecheck(t, fmpz_mpoly_q) and typecheck(s, fmpz_mpoly_q):
+            if (<fmpz_mpoly_q>s).ctx is (<fmpz_mpoly_q>t).ctx:
+                res = create_fmpz_mpoly_q(s.ctx)
+                fmpz_mpoly_q_add(res.fraction, (<fmpz_mpoly_q>s).fraction, (<fmpz_mpoly_q>t).fraction, (<fmpz_mpoly_q> s).ctx.val)
+                return res
+        return NotImplemented
+
+    def __sub__(s,t):
+        cdef fmpz_mpoly_q res
+        if typecheck(t, fmpz_mpoly_q) and typecheck(s, fmpz_mpoly_q):
+            if (<fmpz_mpoly_q>s).ctx is (<fmpz_mpoly_q>t).ctx:
+                res = create_fmpz_mpoly_q(s.ctx)
+                fmpz_mpoly_q_sub(res.fraction, (<fmpz_mpoly_q>s).fraction, (<fmpz_mpoly_q>t).fraction, (<fmpz_mpoly_q> s).ctx.val)
+                return res
+        return NotImplemented
+
+    def __mul__(s,t):
+        cdef fmpz_mpoly_q res
+        if typecheck(t, fmpz_mpoly_q) and typecheck(s, fmpz_mpoly_q):
+            if (<fmpz_mpoly_q>s).ctx is (<fmpz_mpoly_q>t).ctx:
+                res = create_fmpz_mpoly_q(s.ctx)
+                fmpz_mpoly_q_mul(res.fraction, (<fmpz_mpoly_q>s).fraction, (<fmpz_mpoly_q>t).fraction, (<fmpz_mpoly_q> s).ctx.val)
+                return res
+        return NotImplemented
+

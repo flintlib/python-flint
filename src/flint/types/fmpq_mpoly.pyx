@@ -7,10 +7,13 @@ from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport str_from_chars
 
 from flint.flintlib.flint cimport *
-from flint.flintlib.fmpq cimport fmpq_init, fmpq_clear, fmpq_is_zero, fmpq_set
+from flint.flintlib.fmpq cimport fmpq_init, fmpq_clear, fmpq_is_zero, fmpq_set, fmpq_one
 from flint.flintlib.fmpz cimport fmpz_clear, fmpz_init, fmpz_set
+from flint.flintlib.fmpz_mpoly cimport fmpz_mpoly_set
 from flint.flintlib.fmpq_mpoly cimport *
 from flint.flintlib.fmpq_mpoly_factor cimport *
+
+from flint.types.fmpz_mpoly cimport fmpz_mpoly, fmpz_mpoly_ctx
 
 cdef extern from *:
     """
@@ -184,14 +187,18 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
          return res
 
 
-def get_fmpq_mpoly_context(slong nvars=1, ordering="lex", names='x'):
+def get_fmpq_mpoly_context(slong nvars=1, ordering="lex", names='x', nametup=None):
     if nvars <= 0:
         nvars = 1
-    nametup = tuple(name.strip() for name in names.split(','))
-    if len(nametup) != nvars:
-        if len(nametup) != 1:
+    if nametup is None:
+        nametup = tuple(name.strip() for name in names.split(','))
+        if len(nametup) != nvars:
+            if len(nametup) != 1:
+                raise ValueError("Number of variables does not equal number of names")
+            nametup = tuple(nametup[0] + str(i) for i in range(nvars))
+    else:
+        if len(nametup) != nvars:
             raise ValueError("Number of variables does not equal number of names")
-        nametup = tuple(nametup[0] + str(i) for i in range(nvars))
     key = (nvars, ordering, nametup)
     ctx = _fmpq_mpoly_ctx_cache.get(key)
     if ctx is None:
@@ -199,18 +206,25 @@ def get_fmpq_mpoly_context(slong nvars=1, ordering="lex", names='x'):
         _fmpq_mpoly_ctx_cache[key] = ctx
     return ctx
 
-cdef inline init_fmpq_mpoly(fmpq_mpoly var, fmpq_mpoly_ctx ctx):
-    var.ctx = ctx
-    fmpq_mpoly_init(var.val, ctx.val)
-    var._init = True
+cdef fmpq_mpoly_ctx create_fmpq_mpoly_ctx_from_fmpz_mpoly_ctx(fmpz_mpoly_ctx ctx):
+    return get_fmpq_mpoly_context(nvars=ctx.nvars(), ordering=ctx.ordering(), names=None,
+                                  nametup=tuple(str(s, 'utf-8') for s in ctx.py_names))
 
-cdef inline create_fmpq_mpoly(fmpq_mpoly_ctx ctx):
-    cdef fmpq_mpoly var
-    var = fmpq_mpoly.__new__(fmpq_mpoly)
-    var.ctx = ctx
-    fmpq_mpoly_init(var.val, ctx.val)
-    var._init = True
-    return var
+
+
+
+# cdef inline init_fmpq_mpoly(fmpq_mpoly var, fmpq_mpoly_ctx ctx):
+#     var.ctx = ctx
+#     fmpq_mpoly_init(var.val, ctx.val)
+#     var._init = True
+
+# cdef inline create_fmpq_mpoly(fmpq_mpoly_ctx ctx):
+#     cdef fmpq_mpoly var
+#     var = fmpq_mpoly.__new__(fmpq_mpoly)
+#     var.ctx = ctx
+#     fmpq_mpoly_init(var.val, ctx.val)
+#     var._init = True
+#     return var
 
 
 
@@ -240,6 +254,15 @@ cdef class fmpq_mpoly(flint_mpoly):
                 fmpq_mpoly_set(self.val, (<fmpq_mpoly>val).val, self.ctx.val)
             else:
                 raise ValueError("Cannot automatically coerce contexts")
+        if typecheck(val, fmpz_mpoly):
+            if ctx is None:
+                ctx = create_fmpq_mpoly_ctx_from_fmpz_mpoly_ctx((<fmpz_mpoly>val).ctx)
+            elif ctx !=  create_fmpq_mpoly_ctx_from_fmpz_mpoly_ctx((<fmpz_mpoly>val).ctx):
+                raise ValueError("Cannot automatically coerce contexts")
+            init_fmpq_mpoly(self, ctx)
+            fmpz_mpoly_set(self.val.zpoly, (<fmpz_mpoly>val).val, (<fmpz_mpoly> val).ctx.val)
+            fmpq_one(self.val.content)
+            fmpq_mpoly_reduce(self.val, self.ctx.val)
         elif isinstance(val, dict):
             if ctx is None:
                 if len(val) == 0:
