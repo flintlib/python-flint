@@ -283,13 +283,13 @@ cdef class fmpq_mpoly(flint_mpoly):
             fmpq_mpoly_set_str_pretty(self.val, val, self.ctx.c_names, self.ctx.val)
             fmpq_mpoly_sort_terms(self.val, self.ctx.val)
         else:
-            v = any_as_fmpz(val)
+            v = any_as_fmpq(val)
             if v is NotImplemented:
                 raise TypeError("cannot create fmpz_mpoly from type %s" % type(val))
             if ctx is None:
                 raise ValueError("Need context to convert  fmpz to fmpq_mpoly")
             init_fmpq_mpoly(self, ctx)
-            fmpq_mpoly_set_fmpz(self.val, (<fmpz>v).val, self.ctx.val)
+            fmpq_mpoly_set_fmpq(self.val, (<fmpq>v).val, self.ctx.val)
 
     def __nonzero__(self):
         return not fmpq_mpoly_is_zero(self.val, self.ctx.val)
@@ -318,6 +318,9 @@ cdef class fmpq_mpoly(flint_mpoly):
             return not bool(self - other)
         else:
             return bool(self - other)
+
+    def context(self):
+        return self.ctx
 
     def __len__(self):
         return fmpq_mpoly_length(self.val, self.ctx.val)

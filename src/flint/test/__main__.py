@@ -56,6 +56,7 @@ def run_doctests(verbose=None):
                flint.types.fmpz_poly,
                flint.types.fmpz_mat,
                flint.types.fmpz_mpoly,
+               flint.types.fmpz_mpoly_q,
                flint.types.fmpz_series,
                flint.types.fmpq,
                flint.types.fmpq_poly,

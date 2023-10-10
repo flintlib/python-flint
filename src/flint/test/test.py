@@ -665,6 +665,29 @@ def test_fmpz_mpoly():
         assert p1 // ztype(3) == ctx.fmpz_mpoly_from_dict({(1,0):1,(0,3):1,(2,4):3})
         assert ztype(3) // p1 == Zp(0,ctx)
         assert ctx.constant(7) + ztype(3) == Zp(10, ctx)
+    q1 = flint.fmpq_mpoly(p1)
+    qctx = q1.context()
+    assert qctx.nvars() == 2
+    assert qctx.ordering() == 'lex'
+    QQ = flint.fmpq
+    assert p1 + QQ(1,2) == qctx.fmpq_mpoly_from_dict({(1,0):4,(0,3):4,(2,4):9,(0,0):QQ(1,2)})
+    assert QQ(1,2) + p1 == qctx.fmpq_mpoly_from_dict({(1,0):4,(0,3):4,(2,4):9,(0,0):QQ(1,2)})
+    assert p1 - QQ(1,2) == qctx.fmpq_mpoly_from_dict({(1,0):4,(0,3):4,(2,4):9,(0,0):QQ(-1,2)})
+    assert QQ(1,2) - p1 == qctx.fmpq_mpoly_from_dict({(1,0):-4,(0,3):-4,(2,4):-9,(0,0):QQ(1,2)})
+    assert QQ(1,2) * p1 == qctx.fmpq_mpoly_from_dict({(1,0):2,(0,3):2,(2,4):QQ(9,2)})
+    assert p1 * QQ(1,2) == qctx.fmpq_mpoly_from_dict({(1,0):2,(0,3):2,(2,4):QQ(9,2)})
+    assert p1 / 2   == qctx.fmpq_mpoly_from_dict({(1,0):2,(0,3):2,(2,4):QQ(9,2)})
+    assert p1 / QQ(1,2) == flint.fmpq_mpoly(p1 * 2)
+    p0 = Zp(0, ctx)
+    assert raises(lambda: p1 // p0 , ZeroDivisionError)
+    assert raises(lambda: p1 // 0 , ZeroDivisionError)
+    assert raises(lambda: p1 // QQ(1,1) , TypeError)
+    assert raises(lambda: p1 % p0 , ZeroDivisionError)
+    assert raises(lambda: p1 % 0 , ZeroDivisionError)
+    assert raises(lambda: p1 % QQ(1,1) , TypeError)
+    assert raises(lambda: p1 / p0 , ZeroDivisionError)
+    assert raises(lambda: p1 / 0 , ZeroDivisionError)
+    assert raises(lambda: p1 / QQ(0,1) , ZeroDivisionError)
 
 
 def test_fmpz_series():

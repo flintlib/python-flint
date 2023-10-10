@@ -3,7 +3,10 @@ from cpython.dict cimport PyDict_Size, PyDict_Check, PyDict_Next
 from cpython.tuple cimport PyTuple_Check, PyTuple_GET_SIZE
 from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear, fmpz_is_zero
 from flint.flintlib.fmpq_mpoly cimport fmpq_mpoly_t, fmpq_mpoly_add_fmpq, fmpq_mpoly_sub_fmpq, fmpq_mpoly_scalar_mul_fmpq
+from flint.flintlib.fmpq_mpoly cimport fmpq_mpoly_scalar_div_fmpq
 from flint.flintlib.flint cimport *
+from flint.flintlib.fmpq cimport fmpq_numref, fmpq_denref
+from flint.flintlib.fmpz_mpoly_q cimport  fmpz_mpoly_q_div_fmpz
 
 from flint.utils.conversion cimport str_from_chars
 from flint.utils.typecheck cimport typecheck
@@ -329,6 +332,9 @@ cdef class fmpz_mpoly(flint_mpoly):
             init_fmpz_mpoly(self, ctx)
             fmpz_mpoly_set_fmpz(self.val, (<fmpz>v).val, self.ctx.val)
 
+    def context(self):
+        return self.ctx
+
     def __nonzero__(self):
         return not fmpz_mpoly_is_zero(self.val, self.ctx.val)
 
@@ -543,18 +549,26 @@ cdef class fmpz_mpoly(flint_mpoly):
             if xtype != FMPZ_UNKNOWN:
                 qres = fmpq_mpoly(self)
                 fmpq_mpoly_scalar_mul_fmpq(qres.val, qres.val, q_other, qres.ctx.val)
+                return qres
         return NotImplemented
 
     def __rmul__(self, other):
         cdef fmpz_mpoly res
-        other = any_as_fmpz(other)
-        if other is not NotImplemented:
+        cdef fmpq_mpoly qres
+        cdef fmpz_t z_other
+        cdef fmpq_t q_other
+        cdef int xtype
+
+        xtype = fmpz_set_any_ref(z_other, other)
+        if xtype != FMPZ_UNKNOWN:
             res = create_fmpz_mpoly(self.ctx)
-            fmpz_mpoly_scalar_mul_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val)
+            fmpz_mpoly_scalar_mul_fmpz(res.val, (<fmpz_mpoly>self).val, z_other, res.ctx.val)
             return res
-        other = any_as_fmpq(other)
-        if other is not NotImplemented:
-            return fmpq_mpoly(self) * other
+        xtype = fmpq_set_any_ref(q_other, other)
+        if xtype != FMPZ_UNKNOWN:
+            qres = fmpq_mpoly(self)
+            fmpq_mpoly_scalar_mul_fmpq(qres.val, qres.val, q_other, qres.ctx.val)
+            return qres
         return NotImplemented
 
     def __imul__(self, other):
@@ -590,6 +604,8 @@ cdef class fmpz_mpoly(flint_mpoly):
     def __divmod__(self, other):
         cdef fmpz_mpoly res, res2
         if typecheck(other, fmpz_mpoly):
+            if not other:
+                raise ZeroDivisionError("fmpz_mpoly_divison by zero")
             if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
                 return NotImplemented
             res = create_fmpz_mpoly(self.ctx)
@@ -600,6 +616,8 @@ cdef class fmpz_mpoly(flint_mpoly):
             other = any_as_fmpz(other)
             if other is not NotImplemented:
                 other= fmpz_mpoly(other, self.ctx)
+                if not other:
+                    raise ZeroDivisionError("fmpz_mpoly divison by zero")
                 res = create_fmpz_mpoly(self.ctx)
                 res2 = create_fmpz_mpoly(self.ctx)
                 fmpz_mpoly_divrem(res.val, res2.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
@@ -608,6 +626,8 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def __rdivmod__(self, other):
         cdef fmpz_mpoly res, res2
+        if not self:
+            raise ZeroDivisionError("fmpz_mpoly divison by zero")
         other = any_as_fmpz(other)
         if other is not NotImplemented:
             other = fmpz_mpoly(other, self.ctx)
@@ -620,6 +640,8 @@ cdef class fmpz_mpoly(flint_mpoly):
     def __floordiv__(self, other):
         cdef fmpz_mpoly res
         if typecheck(other, fmpz_mpoly):
+            if not other:
+                raise ZeroDivisionError("fmpz_mpoly division by zero")
             if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
                 return NotImplemented
             res = create_fmpz_mpoly(self.ctx)
@@ -628,6 +650,8 @@ cdef class fmpz_mpoly(flint_mpoly):
         else:
             other = any_as_fmpz(other)
             if other is not NotImplemented:
+                if not other:
+                    raise ZeroDivisionError("fmpz_mpoly division by zero")
                 other = fmpz_mpoly(other, self.ctx)
                 res = create_fmpz_mpoly(self.ctx)
                 fmpz_mpoly_div(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
@@ -636,6 +660,8 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def __rfloordiv__(self,other):
         cdef fmpz_mpoly res
+        if not self:
+            raise ZeroDivisionError("fmpz_mpoly division by zero")
         other = any_as_fmpz(other)
         if other is not NotImplemented:
             other = fmpz_mpoly(other, self.ctx)
@@ -645,11 +671,51 @@ cdef class fmpz_mpoly(flint_mpoly):
         return NotImplemented
 
     def __truediv__(self, other):
-        # TODO division by fmpq
+        cdef fmpq_mpoly qres
+        cdef fmpq_t q_other
+        cdef int xtype
+
         if typecheck(other, fmpz_mpoly):
+            if not other:
+                raise ZeroDivisionError("fmpz_mpoly division by zero")
             if self.ctx is not (<fmpz_mpoly> other).ctx:
                 return NotImplemented
             return fmpz_mpoly_q(self, other)
+        xtype = fmpq_set_any_ref(q_other, other)
+        if xtype != FMPZ_UNKNOWN:
+            if not other:
+                raise ZeroDivisionError("fmpz_mpoly division by zero")
+            qres = fmpq_mpoly(self)
+            fmpq_mpoly_scalar_div_fmpq(qres.val, qres.val, q_other, qres.ctx.val)
+            return qres
+
+    def __rtruediv__(self, other):
+        cdef fmpz_mpoly num
+        cdef fmpz_mpoly_q ret
+        cdef fmpz_t z_other
+        cdef fmpq_t q_other
+        cdef int xtype
+
+        if not self:
+            raise ZeroDivisionError("fmpz_mpoly division by zero")
+        if typecheck(other, fmpz_mpoly):
+            if self.ctx is not (<fmpz_mpoly> other).ctx:
+                return NotImplemented
+            return fmpz_mpoly_q(other, self)
+        xtype = fmpz_set_any_ref(z_other, other)
+        if xtype != FMPZ_UNKNOWN:
+            num = create_fmpz_mpoly(self.ctx)
+            fmpz_mpoly_set_fmpz(num.val, z_other, self.ctx.val)
+            return fmpz_mpoly_q(num, self)
+        xtype = fmpq_set_any_ref(q_other, other)
+        if xtype != FMPZ_UNKNOWN:
+            num = create_fmpz_mpoly(self.ctx)
+            fmpz_mpoly_set_fmpz(num.val, fmpq_numref(q_other),self.ctx.val)
+            ret = fmpz_mpoly_q(num, self)
+            fmpz_mpoly_q_div_fmpz(ret.fraction, ret.fraction, fmpq_denref(q_other), self.ctx.val)
+            return ret
+        return NotImplemented
+
 
     def __mod__(self, other):
         return divmod(self, other)[1]
