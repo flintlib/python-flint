@@ -136,12 +136,16 @@ def test_fmpz():
         (2, 2, 3, 1),
         (2, -1, 5, 3),
         (2, 0, 5, 1),
+        (2, 5, 1000, 32),
     ]
     for a, b, c, ab_mod_c in pow_mod_examples:
         assert pow(a, b, c) == ab_mod_c
         assert pow(flint.fmpz(a), b, c) == ab_mod_c
         assert pow(a, flint.fmpz(b), c) == ab_mod_c
+        assert pow(a, b, flint.fmpz(c)) == ab_mod_c
         assert pow(flint.fmpz(a), flint.fmpz(b), c) == ab_mod_c
+        assert pow(flint.fmpz(a), b, flint.fmpz(c)) == ab_mod_c
+        assert pow(a, flint.fmpz(b), flint.fmpz(c)) == ab_mod_c
         assert pow(flint.fmpz(a), flint.fmpz(b), flint.fmpz(c)) == ab_mod_c
 
     assert raises(lambda: pow(flint.fmpz(2), 2, 0), ValueError)
