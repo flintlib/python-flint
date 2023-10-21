@@ -25,4 +25,4 @@ from .types.fmpz_mod import *
 from .types.dirichlet import *
 from .functions.showgood import showgood
 
-__version__ = '0.4.5'
+__version__ = '0.5.0'

@@ -28,20 +28,18 @@ Alternatively python-flint can be installed using `conda`
 
     conda install -c conda-forge python-flint
 
+Note that currently python-flint does not support Python 3.12 (gh-52).
+
 Build from source
 -----------------
 
 For other platforms or architectures installation needs to build from source.
-First install both FLINT 2.9.0 and Arb 2.23. Note that for python-flint 0.4
-only these *exact* versions of FLINT and Arb will work. While some Linux
-distributions may provide FLINT and Arb it is unlikely that they will provide
-the exact versions required (e.g. for Ubuntu only Ubuntu 23.04 provides these
-versions at the time of writing).
+First install FLINT 3.0.0. Note that as of python-flint 0.5.0 only this *exact*
+version of FLINT will work.
 
-See here for instructions on building FLINT and Arb:
+See here for instructions on building FLINT:
 
 * http://flintlib.org/
-* http://arblib.org/
 
 The latest release of Python-FLINT can then be built and installed using:
 
@@ -116,7 +114,8 @@ To do
 * Vector or array types (maybe)
 * Many convenience methods
 * Write generic implementations of functions missing for specific FLINT types
-* Proper handling of special values in various places (throwing Python exceptions instead of aborting, etc.)
+* Proper handling of special values in various places (throwing Python
+  exceptions instead of aborting, etc.)
 * Various automatic conversions
 * Conversions to and from external types (numpy, sage, sympy, mpmath, gmpy)
 * Improved printing and string input/output
@@ -125,22 +124,46 @@ To do
 CHANGELOG
 -------------
 
-0.4.5
+0.5.0
 
-- gh-83: Introduces the `fmpz_mod` and `fmpz_mod_ctx` types for multi-precision integer mods
-- gh-80: Switch from Flint 2.9 to Flint 3.0.0.alpha1 
+One important change in 0.5.0 is that now python-flint requires Flint 3.0.0
+instead of Flint 2.9 and Arb 2.23 (Arb has now been merged into Flint).
+
+Important compatibility change:
+
+- gh-80, gh-94, gh-98: Switch from Flint 2.9 to Flint 3.
+
+New features:
+
+- gh-87: Adds `fmpz_mod_poly` type for polynomials over `fmpz_mod`.
+- gh-85: Adds discrete logarithms to `fmpz_mod`.
+- gh-83: Introduces the `fmpz_mod` type for multi-precision integer mods.
+
+Bug fixes:
+
+- gh-93: Fixes a bug with `pow(int, int, fmpz)` which previously gave incorrect
+  results.
+- gh-78, gh-79: minor fixes for the `nmod` type.
 
 0.4.4
 
-- gh-78, gh-79: minor fixes for the `nmod` type for compatibility with Sympy
-- gh-75, gh-77: finish bulk of the work in refactoring `python-flint` into submodules
-- gh-72: The roots method of `arb_poly` is not supported. Use either the `complex_roots` method or `acb_roots(p).roots()` to get the old behaviour of returning the complex roots. The `roots` method on `fmpz_poly` and `fmpq_poly` now return integer and rational roots respectively. To access complex roots on these types, use the `complex_roots` method. For `acb_poly`, both `roots` and `complex_roots` behave the same
+- gh-75, gh-77: finish bulk of the work in refactoring `python-flint` into
+  submodules
+- gh-72: The roots method of `arb_poly` is not supported. Use either the
+  `complex_roots` method or `acb_roots(p).roots()` to get the old behaviour of
+  returning the complex roots. The `roots` method on `fmpz_poly` and
+  `fmpq_poly` now return integer and rational roots respectively. To access
+  complex roots on these types, use the `complex_roots` method. For `acb_poly`,
+  both `roots` and `complex_roots` behave the same
 - gh-71: Include files in sdist and fix issue gh-70
 - gh-67: Continue refactoring job to introduce submodules into `python-flint`
 
 0.4.3
 
-- gh-63: The `roots` method of `arb_poly`, and `nmod_poly` is no longer supported. Use `acb_roots(p).roots()` to get the old behaviour of returning the roots as `acb`. Note that the `roots` method of `fmpz_poly` and `fmpq_poly` currently returns the complex roots of the polynomial.
+- gh-63: The `roots` method of `arb_poly`, and `nmod_poly` is no longer
+  supported. Use `acb_roots(p).roots()` to get the old behaviour of returning
+  the roots as `acb`. Note that the `roots` method of `fmpz_poly` and
+  `fmpq_poly` currently returns the complex roots of the polynomial.
 - gh-61: Start refactoring job to introduce submodules into `python-flint`
 
 0.4.2
@@ -153,7 +176,8 @@ CHANGELOG
 
 0.4.0
 
-- gh-45: Adds wheels for Windows, OSX and manylinux but the Linux wheels are broken.
+- gh-45: Adds wheels for Windows, OSX and manylinux but the Linux wheels are
+  broken.
 
 License
 ------------
