@@ -49,8 +49,8 @@ pip install 'cython>=3' numpy wheel
 echo -----------------------------------------------------------
 echo
 echo     Running:
-echo        $ pip install --no-build-isolation --no-binary $1
+echo        $ pip install --no-binary :all: --no-build-isolation $1
 echo
 echo -----------------------------------------------------------
 
-pip install --no-build-isolation --no-binary $1
+pip install --no-binary :all: --no-build-isolation $1
