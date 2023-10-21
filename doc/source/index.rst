@@ -70,6 +70,7 @@ Polynomial types
    fmpz_poly.rst
    fmpq_poly.rst
    nmod_poly.rst
+   fmpz_mod_poly.rst
    arb_poly.rst
    acb_poly.rst
 

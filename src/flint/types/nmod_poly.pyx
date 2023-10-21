@@ -10,6 +10,7 @@ from flint.flintlib.nmod_vec cimport *
 from flint.flintlib.nmod_poly cimport *
 from flint.flintlib.nmod_poly_factor cimport *
 from flint.flintlib.fmpz_poly cimport fmpz_poly_get_nmod_poly
+from flint.flintlib.ulong_extras cimport n_gcdinv
 
 cdef any_as_nmod_poly(obj, nmod_t mod):
     cdef nmod_poly r
@@ -68,13 +69,15 @@ cdef class nmod_poly(flint_poly):
 
     # cdef nmod_poly_t val
 
-    #def __cinit__(self):
+    def __cinit__(self):
+        nmod_poly_init(self.val, 1)
 
     def __dealloc__(self):
         nmod_poly_clear(self.val)
 
     def __init__(self, val=None, ulong mod=0):
         cdef ulong m2
+        cdef mp_limb_t v
         if typecheck(val, nmod_poly):
             m2 = nmod_poly_modulus((<nmod_poly>val).val)
             if m2 != mod:
@@ -89,6 +92,9 @@ cdef class nmod_poly(flint_poly):
                 fmpz_poly_get_nmod_poly(self.val, (<fmpz_poly>val).val)
             elif typecheck(val, list):
                 nmod_poly_set_list(self.val, val)
+            elif any_as_nmod(&v, val, self.val.mod):
+                nmod_poly_fit_length(self.val, 1)
+                nmod_poly_set_coeff_ui(self.val, 0, v)
             else:
                 raise TypeError("cannot create nmod_poly from input of type %s", type(val))
 
@@ -173,6 +179,18 @@ cdef class nmod_poly(flint_poly):
             nmod_poly_compose((<nmod_poly>r).val, self.val, (<nmod_poly>t).val)
             return r
         raise TypeError("cannot call nmod_poly with input of type %s", type(other))
+
+    def derivative(self):
+        cdef nmod_poly res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        nmod_poly_derivative(res.val, self.val)
+        return res
+
+    def integral(self):
+        cdef nmod_poly res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        nmod_poly_integral(res.val, self.val)
+        return res
 
     def __pos__(self):
         return self
@@ -290,19 +308,28 @@ cdef class nmod_poly(flint_poly):
             return t
         return t._divmod_(s)
 
+    def __truediv__(s, t):
+        try:
+            t = nmod(t, (<nmod_poly>s).val.mod.n)
+        except TypeError:
+            return NotImplemented
+        return s * t ** -1
+
     def __mod__(s, t):
         return divmod(s, t)[1]      # XXX
 
     def __rmod__(s, t):
         return divmod(t, s)[1]      # XXX
 
-    def __pow__(nmod_poly self, ulong exp, mod):
+    def __pow__(nmod_poly self, exp, mod):
         cdef nmod_poly res
         if mod is not None:
             raise NotImplementedError("nmod_poly modular exponentiation")
+        if exp < 0:
+            raise ValueError("negative exponent")
         res = nmod_poly.__new__(nmod_poly)
         nmod_poly_init_preinv(res.val, (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
-        nmod_poly_pow(res.val, self.val, exp)
+        nmod_poly_pow(res.val, self.val, <ulong>exp)
         return res
 
     def gcd(self, other):
@@ -324,6 +351,20 @@ cdef class nmod_poly(flint_poly):
         nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
         nmod_poly_gcd(res.val, self.val, (<nmod_poly>other).val)
         return res
+
+    def xgcd(self, other):
+        cdef nmod_poly res1, res2, res3
+        other = any_as_nmod_poly(other, (<nmod_poly>self).val.mod)
+        if other is NotImplemented:
+            raise TypeError("cannot convert input to fmpq_poly")
+        res1 = nmod_poly.__new__(nmod_poly)
+        res2 = nmod_poly.__new__(nmod_poly)
+        res3 = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init(res1.val, (<nmod_poly>self).val.mod.n)
+        nmod_poly_init(res2.val, (<nmod_poly>self).val.mod.n)
+        nmod_poly_init(res3.val, (<nmod_poly>self).val.mod.n)
+        nmod_poly_xgcd(res1.val, res2.val, res3.val, self.val, (<nmod_poly>other).val)
+        return (res1, res2, res3)
 
     def factor(self, algorithm=None):
         """
@@ -372,3 +413,26 @@ cdef class nmod_poly(flint_poly):
         nmod_poly_factor_clear(fac)
         return c, res
 
+    def sqrt(nmod_poly self):
+        """Return exact square root or ``None``. """
+        cdef nmod_poly res
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        if nmod_poly_sqrt(res.val, self.val):
+            return res
+        else:
+            raise ValueError(f"Cannot compute square root of {self}")
+
+    def deflation(self):
+        cdef nmod_poly v
+        cdef ulong n
+        if nmod_poly_is_zero(self.val):
+            return self, 1
+        n = nmod_poly_deflation(self.val)
+        if n == 1:
+            return self, int(n)
+        else:
+            v = nmod_poly.__new__(nmod_poly)
+            nmod_poly_init(v.val, self.val.mod.n)
+            nmod_poly_deflate(v.val, self.val, n)
+            return v, int(n)

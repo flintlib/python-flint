@@ -71,18 +71,22 @@ cdef class fmpz(flint_scalar):
     def __dealloc__(self):
         fmpz_clear(self.val)
 
-    def __init__(self, val=None):
+    def __init__(self, *args):
         cdef long x
-        if val is not None:
-            if typecheck(val, fmpz):
-                fmpz_set(self.val, (<fmpz>val).val)
-            else:
-                if fmpz_set_any_ref(self.val, val) == FMPZ_UNKNOWN: # XXX
-                    if typecheck(val, str):
-                        if fmpz_set_str(self.val, chars_from_str(val), 10) != 0:
-                            raise ValueError("invalid string for fmpz")
-                        return
-                    raise TypeError("cannot create fmpz from type %s" % type(val))
+        if not args:
+            return
+        elif len(args) != 1:
+            raise TypeError("fmpz takes zero or one arguments.")
+        val = args[0]
+        if typecheck(val, fmpz):
+            fmpz_set(self.val, (<fmpz>val).val)
+        else:
+            if fmpz_set_any_ref(self.val, val) == FMPZ_UNKNOWN: # XXX
+                if typecheck(val, str):
+                    if fmpz_set_str(self.val, chars_from_str(val), 10) != 0:
+                        raise ValueError("invalid string for fmpz")
+                    return
+                raise TypeError("cannot create fmpz from type %s" % type(val))
 
     @property
     def numerator(self):
@@ -356,36 +360,41 @@ cdef class fmpz(flint_scalar):
         return u
 
     def __pow__(s, t, m):
+        cdef fmpz_struct sval[1]
         cdef fmpz_struct tval[1]
         cdef fmpz_struct mval[1]
+        cdef int stype = FMPZ_UNKNOWN
         cdef int ttype = FMPZ_UNKNOWN
         cdef int mtype = FMPZ_UNKNOWN
         cdef int success
         u = NotImplemented
-        ttype = fmpz_set_any_ref(tval, t)
-        if ttype == FMPZ_UNKNOWN:
-            return NotImplemented
 
-        if m is None:
-            # fmpz_pow_fmpz throws if x is negative
-            if fmpz_sgn(tval) == -1:
-                if ttype == FMPZ_TMP: fmpz_clear(tval)
-                raise ValueError("negative exponent")
+        try:
+            stype = fmpz_set_any_ref(sval, s)
+            if stype == FMPZ_UNKNOWN:
+                return NotImplemented
+            ttype = fmpz_set_any_ref(tval, t)
+            if ttype == FMPZ_UNKNOWN:
+                return NotImplemented
+            if m is None:
+                # fmpz_pow_fmpz throws if x is negative
+                if fmpz_sgn(tval) == -1:
+                    raise ValueError("negative exponent")
 
-            u = fmpz.__new__(fmpz)
-            success = fmpz_pow_fmpz((<fmpz>u).val, (<fmpz>s).val, tval)
+                u = fmpz.__new__(fmpz)
+                success = fmpz_pow_fmpz((<fmpz>u).val, (<fmpz>s).val, tval)
 
-            if not success:
-                if ttype == FMPZ_TMP: fmpz_clear(tval)
-                raise OverflowError("fmpz_pow_fmpz: exponent too large")
-        else:
-            # Modular exponentiation
-            mtype = fmpz_set_any_ref(mval, m)
-            if mtype != FMPZ_UNKNOWN:
+                if not success:
+                    raise OverflowError("fmpz_pow_fmpz: exponent too large")
+
+                return u
+            else:
+                # Modular exponentiation
+                mtype = fmpz_set_any_ref(mval, m)
+                if mtype == FMPZ_UNKNOWN:
+                    return NotImplemented
 
                 if fmpz_is_zero(mval):
-                    if ttype == FMPZ_TMP: fmpz_clear(tval)
-                    if mtype == FMPZ_TMP: fmpz_clear(mval)
                     raise ValueError("pow(): modulus cannot be zero")
 
                 # The Flint docs say that fmpz_powm will throw if m is zero
@@ -393,16 +402,16 @@ cdef class fmpz(flint_scalar):
                 # e.g. pow(2, 2, -3) == (2^2) % (-3) == -2. We could implement
                 # that here as well but it is not clear how useful it is.
                 if fmpz_sgn(mval) == -1:
-                    if ttype == FMPZ_TMP: fmpz_clear(tval)
-                    if mtype == FMPZ_TMP: fmpz_clear(mval)
-                    raise ValueError("pow(): negative modulua not supported")
+                    raise ValueError("pow(): negative modulus not supported")
 
                 u = fmpz.__new__(fmpz)
-                fmpz_powm((<fmpz>u).val, (<fmpz>s).val, tval, mval)
+                fmpz_powm((<fmpz>u).val, sval, tval, mval)
 
-        if ttype == FMPZ_TMP: fmpz_clear(tval)
-        if mtype == FMPZ_TMP: fmpz_clear(mval)
-        return u
+                return u
+        finally:
+            if stype == FMPZ_TMP: fmpz_clear(sval)
+            if ttype == FMPZ_TMP: fmpz_clear(tval)
+            if mtype == FMPZ_TMP: fmpz_clear(mval)
 
     def __rpow__(s, t, m):
         t = any_as_fmpz(t)
