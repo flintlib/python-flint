@@ -42,7 +42,7 @@ jobs:
           CIBW_BEFORE_ALL_MACOS: bin/cibw_before_all_macosx_x86_64.sh
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
           CIBW_BEFORE_BUILD_WINDOWS: msys2 -c bin/cibw_before_build_windows.sh
-          CIBW_BEFORE_BUILD: pip install cython delvewheel
+          CIBW_BEFORE_BUILD: pip install numpy setuptools cython delvewheel
           CIBW_ENVIRONMENT: >
             C_INCLUDE_PATH=$(pwd)/.local/include/
             LIBRARY_PATH=$(pwd)/.local/lib/
@@ -99,21 +99,17 @@ jobs:
   test_pip_linux_vcs:
     name: Install from git checkout on Ubuntu
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+        # '.' means install from git checkout
+        # 'python-flint' means install from PyPI sdist
+        target: ['.', 'python-flint']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.12
-      - run: bin/pip_install_ubuntu.sh . # Install from checkout
-      - run: python -m flint.test --verbose
-
-  test_pip_linux_pypi:
-    name: Install from PyPI sdist on Ubuntu
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.11
-      - run: bin/pip_install_ubuntu.sh python-flint # Install from PyPI sdist
+          python-version: ${{ matrix.python-version }}
+      - run: bin/pip_install_ubuntu.sh ${{ matrix.target }}
       - run: python -m flint.test --verbose
