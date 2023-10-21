@@ -18,9 +18,10 @@ Author: Fredrik Johansson <fredrik.johansson@gmail.com>
 Installation
 ------------
 
-For Windows (x86-64) or OSX (x86-64 or arm64) or Linux (x86-64
-`manylinux_2_17`) there are binary wheels for python-flint on PyPI. For these
-platforms python-flint can be installed simply with `pip`
+Currently python-flint supports CPython versions 3.9-3.12. For Windows (x86-64)
+or OSX (x86-64 or arm64) or Linux (x86-64 `manylinux_2_17`) there are CPython
+binary wheels for python-flint on PyPI. For these platforms python-flint can be
+installed simply with `pip`
 
     pip install python-flint
 
@@ -28,14 +29,18 @@ Alternatively python-flint can be installed using `conda`
 
     conda install -c conda-forge python-flint
 
-Note that currently python-flint does not support Python 3.12 (gh-52).
+It is also possible to use python-flint with some PyPy versions. Binary wheels
+are not provided for this on PyPI but can be installed with conda.
 
 Build from source
 -----------------
 
 For other platforms or architectures installation needs to build from source.
 First install FLINT 3.0.0. Note that as of python-flint 0.5.0 only this *exact*
-version of FLINT will work.
+version of FLINT will work. In future it is hoped that the version requirement
+for python-flint will be FLINT >= 3.0.0 but at the time of writing 3.0.0 is the
+newest version of FLINT that has only been released recently and is the only
+version that is supported by python-flint.
 
 See here for instructions on building FLINT:
 
@@ -52,13 +57,13 @@ as follows:
     pip install 'cython>=3' numpy wheel
     pip install --no-build-isolation .
 
-A script that builds and installs FLINT, Arb and Python-FLINT that is tested on
+A script that builds and installs FLINT and python-flint that is tested on
 Ubuntu can be found in the git repo here:
 
 * https://github.com/flintlib/python-flint/blob/master/bin/pip_install_ubuntu.sh
 
 See the documentation for further notes on building and installing
-Python-FLINT:
+python-flint:
 
 * https://fredrikj.net/python-flint/setup.html
 
@@ -126,12 +131,10 @@ CHANGELOG
 
 0.5.0
 
-One important change in 0.5.0 is that now python-flint requires Flint 3.0.0
-instead of Flint 2.9 and Arb 2.23 (Arb has now been merged into Flint).
-
-Important compatibility change:
+Important compatibility changes:
 
 - gh-80, gh-94, gh-98: Switch from Flint 2.9 to Flint 3.
+- gh-100: Supports Python 3.12 by using setuptools instead of numpy.distutils.
 
 New features:
 
