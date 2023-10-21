@@ -2,14 +2,22 @@ import sys
 import os
 from subprocess import check_call
 
-from setuptools import setup
-from setuptools.extension import Extension
 from Cython.Distutils import build_ext
 from Cython.Build import cythonize
 
 
-default_include_dirs = []
-default_lib_dirs = []
+if sys.version_info < (3, 12):
+    from distutils.core import setup
+    from distutils.extension import Extension
+    from numpy.distutils.system_info import default_include_dirs, default_lib_dirs
+    from distutils.sysconfig import get_config_vars
+else:
+    from setuptools import setup
+    from setuptools.extension import Extension
+    from sysconfig import get_config_vars
+    default_include_dirs = []
+    default_lib_dirs = []
+
 
 libraries = ["flint"]
 
@@ -36,6 +44,10 @@ if sys.platform == 'win32':
     else:
         # For the MSVC toolchain link with mpir instead of gmp
         libraries += ["mpir", "mpfr", "pthreads"]
+else:
+    libraries = ["flint"]
+    (opt,) = get_config_vars('OPT')
+    os.environ['OPT'] = " ".join(flag for flag in opt.split() if flag != '-Wstrict-prototypes')
 
 
 define_macros = []
