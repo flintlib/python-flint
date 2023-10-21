@@ -32,18 +32,17 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.11.2
+        uses: pypa/cibuildwheel@v2.16.2
         env:
-          CIBW_BUILD: cp39-* cp310-* cp311-*
+          CIBW_BUILD: cp39-* cp310-* cp311-* cp312-*
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux_*"
-          #CIBW_SKIP: "*-win32 *-musllinux_*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
           CIBW_BEFORE_ALL_LINUX: bin/cibw_before_all_linux.sh
           CIBW_BEFORE_ALL_MACOS: bin/cibw_before_all_macosx_x86_64.sh
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
           CIBW_BEFORE_BUILD_WINDOWS: msys2 -c bin/cibw_before_build_windows.sh
-          CIBW_BEFORE_BUILD: pip install numpy cython==3.0.0b2 delvewheel
+          CIBW_BEFORE_BUILD: pip install numpy setuptools cython delvewheel
           CIBW_ENVIRONMENT: >
             C_INCLUDE_PATH=$(pwd)/.local/include/
             LIBRARY_PATH=$(pwd)/.local/lib/
@@ -66,10 +65,10 @@ jobs:
 
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - run: pip install --upgrade pip
-      - run: pip install cython numpy
+      - run: pip install cython setuptools
       - run: python setup.py sdist
 
       - uses: actions/upload-artifact@v3
@@ -84,7 +83,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, windows-2019, macos-12]
-        python-version: ['3.9', '3.10', '3.11']
+        python-version: ['3.9', '3.10', '3.11', '3.12']
 
     steps:
       - uses: actions/setup-python@v4
@@ -94,27 +93,23 @@ jobs:
         with:
           name: artifact
           path: wheelhouse
-      - run: pip install --find-links wheelhouse python_flint
+      - run: pip install --no-index --find-links wheelhouse python_flint
       - run: python -m flint.test --verbose
 
-  test_pip_linux_vcs:
-    name: Install from git checkout on Ubuntu
+  test_pip_vcs_sdist:
+    name: pip install ${{ matrix.target }} on ${{ matrix.python-version }}
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+        # '.' means install from git checkout
+        # 'python-flint' means install from PyPI sdist
+        target: ['.', 'python-flint']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.11
-      - run: bin/pip_install_ubuntu.sh . # Install from checkout
-      - run: python -m flint.test --verbose
-
-  test_pip_linux_pypi:
-    name: Install from PyPI sdist on Ubuntu
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.11
-      - run: bin/pip_install_ubuntu.sh python-flint # Install from PyPI sdist
+          python-version: ${{ matrix.python-version }}
+      - run: bin/pip_install_ubuntu.sh ${{ matrix.target }}
       - run: python -m flint.test --verbose

@@ -3,6 +3,7 @@ import math
 import operator
 import pickle
 import doctest
+import platform
 
 from flint.utils.flint_exceptions import DomainError
 
@@ -10,6 +11,8 @@ import flint
 
 if sys.version_info[0] >= 3:
     long = int
+
+PYPY = platform.python_implementation() == "PyPy"
 
 ctx = flint.ctx
 
@@ -141,12 +144,16 @@ def test_fmpz():
     for a, b, c, ab_mod_c in pow_mod_examples:
         assert pow(a, b, c) == ab_mod_c
         assert pow(flint.fmpz(a), b, c) == ab_mod_c
-        assert pow(a, flint.fmpz(b), c) == ab_mod_c
-        assert pow(a, b, flint.fmpz(c)) == ab_mod_c
         assert pow(flint.fmpz(a), flint.fmpz(b), c) == ab_mod_c
         assert pow(flint.fmpz(a), b, flint.fmpz(c)) == ab_mod_c
-        assert pow(a, flint.fmpz(b), flint.fmpz(c)) == ab_mod_c
         assert pow(flint.fmpz(a), flint.fmpz(b), flint.fmpz(c)) == ab_mod_c
+
+        # 3-arg pow cannot be made to work with fmpz on PyPy
+        # https://github.com/flintlib/python-flint/issues/74
+        if not PYPY:
+            assert pow(a, flint.fmpz(b), c) == ab_mod_c
+            assert pow(a, b, flint.fmpz(c)) == ab_mod_c
+            assert pow(a, flint.fmpz(b), flint.fmpz(c)) == ab_mod_c
 
     assert raises(lambda: pow(flint.fmpz(2), 2, 0), ValueError)
     # XXX: Handle negative modulus like int?
