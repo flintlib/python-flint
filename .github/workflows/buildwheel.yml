@@ -43,7 +43,7 @@ jobs:
           CIBW_BEFORE_ALL_MACOS: bin/cibw_before_all_macosx_x86_64.sh
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
           CIBW_BEFORE_BUILD_WINDOWS: msys2 -c bin/cibw_before_build_windows.sh
-          CIBW_BEFORE_BUILD: pip install numpy cython==3.0.0b2 delvewheel
+          CIBW_BEFORE_BUILD: pip install cython==3.0.0b2 delvewheel
           CIBW_ENVIRONMENT: >
             C_INCLUDE_PATH=$(pwd)/.local/include/
             LIBRARY_PATH=$(pwd)/.local/lib/
@@ -69,7 +69,7 @@ jobs:
           python-version: '3.12'
 
       - run: pip install --upgrade pip
-      - run: pip install cython numpy
+      - run: pip install cython setuptools
       - run: python setup.py sdist
 
       - uses: actions/upload-artifact@v3
