@@ -96,8 +96,8 @@ jobs:
       - run: pip install --no-index --find-links wheelhouse python_flint
       - run: python -m flint.test --verbose
 
-  test_pip_linux_vcs:
-    name: Install from git checkout on Ubuntu
+  test_pip_vcs_sdist:
+    name: pip install ${{ matrix.target }} on ${{ matrix.python-version }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
