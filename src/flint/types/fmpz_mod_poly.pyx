@@ -880,6 +880,9 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         return self[0]
 
+    # XXX: Methods like leading_coefficient() that are generic should be moved
+    # to the flint_poly base class rather than defined here.
+
     def leading_coefficient(self):
         """
         Return the leading coefficient of this polynomial.
@@ -889,6 +892,12 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> f.leading_coefficient()
             fmpz_mod(3, 163)
         """
+        # XXX: This is a workaround for a Cython/PyPy bug:
+        # https://github.com/flintlib/python-flint/issues/74
+        # https://github.com/cython/cython/issues/5776
+        d = self.degree()
+        if d < 0:
+            return self.ctx.mod.zero()
         return self[self.degree()]
 
     def reverse(self, degree=None):
