@@ -2,13 +2,16 @@ import sys
 import os
 from subprocess import check_call
 
-from distutils.core import setup
-from distutils.extension import Extension
+from setuptools import setup
+from setuptools.extension import Extension
 from Cython.Distutils import build_ext
 from Cython.Build import cythonize
-from numpy.distutils.system_info import default_include_dirs, default_lib_dirs
 
-from distutils.sysconfig import get_config_vars
+
+default_include_dirs = []
+default_lib_dirs = []
+
+libraries = ["flint"]
 
 
 if sys.platform == 'win32':
@@ -16,7 +19,6 @@ if sys.platform == 'win32':
     # This is used in CI to build wheels with mingw64
     #
     if os.getenv('PYTHON_FLINT_MINGW64'):
-        libraries = ["flint", "mpfr", "gmp"]
         includedir = os.path.join(os.path.dirname(__file__), '.local', 'include')
         librarydir1 = os.path.join(os.path.dirname(__file__), '.local', 'bin')
         librarydir2 = os.path.join(os.path.dirname(__file__), '.local', 'lib')
@@ -26,22 +28,14 @@ if sys.platform == 'win32':
         # Add gcc to the PATH in GitHub Actions when this setup.py is called by
         # cibuildwheel.
         os.environ['PATH'] += r';C:\msys64\mingw64\bin'
+        libraries += ["mpfr", "gmp"]
     elif os.getenv('PYTHON_FLINT_MINGW64_TMP'):
         # This would be used to build under Windows against these libraries if
         # they have been installed somewhere other than .local
-        libraries = ["flint", "mpfr", "gmp"]
+        libraries += ["mpfr", "gmp"]
     else:
         # For the MSVC toolchain link with mpir instead of gmp
-        libraries = ["flint", "mpir", "mpfr", "pthreads"]
-else:
-    libraries = ["flint"]
-    (opt,) = get_config_vars('OPT')
-    os.environ['OPT'] = " ".join(flag for flag in opt.split() if flag != '-Wstrict-prototypes')
-
-
-default_include_dirs += [
-    os.path.join(d, "flint") for d in default_include_dirs
-]
+        libraries += ["mpir", "mpfr", "pthreads"]
 
 
 define_macros = []
@@ -69,9 +63,7 @@ packages=[
 
 
 ext_files = [
-    # ("flint._flint", ["src/flint/_flint.pxd"]), # Main Module
-    ("flint.pyflint", ["src/flint/pyflint.pyx"]), # Main Module
-    # Submodules
+    ("flint.pyflint", ["src/flint/pyflint.pyx"]),
     ("flint.types.fmpz", ["src/flint/types/fmpz.pyx"]),
     ("flint.types.fmpz_poly", ["src/flint/types/fmpz_poly.pyx"]),
     ("flint.types.fmpz_mat", ["src/flint/types/fmpz_mat.pyx"]),
@@ -119,11 +111,11 @@ for mod_name, src_files in ext_files:
 for e in ext_modules:
     e.cython_directives = {"embedsignature": True}
 
+
 setup(
     name='python-flint',
     cmdclass={'build_ext': build_ext},
     ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives),
-    #ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives, annotate=True),
     packages=packages,
     package_dir={'': 'src'},
     description='Bindings for FLINT and Arb',
