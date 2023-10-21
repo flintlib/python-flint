@@ -94,7 +94,7 @@ jobs:
         with:
           name: artifact
           path: wheelhouse
-      - run: pip install --find-links wheelhouse python_flint
+      - run: pip install --no-index --find-links wheelhouse python_flint
       - run: python -m flint.test --verbose
 
   test_pip_linux_vcs:
