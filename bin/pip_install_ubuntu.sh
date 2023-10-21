@@ -41,9 +41,9 @@ cd ..
 ls -l /usr/local/lib
 sudo ldconfig /usr/local/lib
 
-# Python build requirements. Ideally these would be in pyprojec.toml, but
+# Python build requirements. Ideally these would be in pyproject.toml, but
 # first need to migrate from setup.py to pyproject.toml.
-pip install 'cython>=3' numpy wheel
+pip install 'cython>=3' setuptools wheel
 
 # Install from checkout (or sdist).
 echo -----------------------------------------------------------
