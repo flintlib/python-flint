@@ -19,12 +19,12 @@ sudo apt-get update
 sudo apt-get install libgmp-dev libmpfr-dev xz-utils
 
 # Only Flint 3 or newer will work.
-FLINTVER=3.0.0-alpha1
+FLINTVER=3.0.0
 
 # This will default to installing in /usr/local. If you want to install in a
 # non-standard location then configure flint with
 #    ./configure --disable-static --prefix=$PREFIX
-# If $PREFIX is no in default search paths, then at build time set
+# If $PREFIX is not in default search paths, then at build time set
 #    export C_INCLUDE_PATH=$PREFIX/include
 # and at runtime set
 #    export LD_LIBRARY_PATH=$PREFIX/lib

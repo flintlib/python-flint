@@ -35,7 +35,7 @@ threads = 1        # max number of threads used internally
 
 def test_pyflint():
 
-    assert flint.__version__ == "0.4.4"
+    assert flint.__version__ == "0.5.0"
 
     ctx = flint.ctx
     assert str(ctx) == repr(ctx) == _default_ctx_string
