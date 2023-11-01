@@ -30,7 +30,7 @@ unicode = False    # use unicode characters in output
 prec = 53          # real/complex precision (in bits)
 dps = 15           # real/complex precision (in digits)
 cap = 10           # power series precision
-threads = 1        # max number of threads used internally
+threads = 1        # max number of threads used internally\
 """
 
 def test_pyflint():
