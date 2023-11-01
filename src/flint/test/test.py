@@ -78,6 +78,9 @@ def test_pyflint():
     assert raises(lambda: setattr(ctx, "prec", -1), ValueError)
     assert raises(lambda: setattr(ctx, "dps", -1), ValueError)
 
+def test_showgood():
+    from flint import good, showgood
+
 def test_fmpz():
     assert flint.fmpz() == flint.fmpz(0)
     L = [0, 1, 2, 3, 2**31-1, 2**31, 2**63-1, 2**63, 2**64-1, 2**64]
@@ -2422,10 +2425,14 @@ def test_polys():
         if is_field:
             assert P([1, 2, 1]).integral() == P([0, 1, 1, S(1)/3])
 
-
+def test_all_tests():
+    test_funcs = {f for name, f in globals().items() if name.startswith("test_")}
+    untested = test_funcs - set(all_tests)
+    assert not untested, f"Untested functions: {untested}"
 
 all_tests = [
     test_pyflint,
+    test_showgood,
     test_fmpz,
     test_fmpz_factor,
     test_fmpz_functions,
@@ -2441,9 +2448,12 @@ all_tests = [
     test_nmod,
     test_nmod_poly,
     test_nmod_mat,
+    test_nmod_series,
     test_arb,
     test_fmpz_mod,
     test_fmpz_mod_dlog,
     test_fmpz_mod_poly,
     test_polys,
+    test_pickling,
+    test_all_tests,
 ]
