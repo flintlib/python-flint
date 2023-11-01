@@ -93,30 +93,10 @@ jobs:
         with:
           name: artifact
           path: wheelhouse
-      - run: pip install --no-index --find-links wheelhouse python_flint
       - run: pip install pytest
-      - run: pytest --doctest-glob='*.rst' doc/source
-
-  rst_doctest:
-    needs: build_wheels
-    name: Test ${{ matrix.python-version }} wheel on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-20.04, windows-2019, macos-12]
-        python-version: ['3.9', '3.10', '3.11', '3.12']
-
-    steps:
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-      - uses: actions/download-artifact@v3
-        with:
-          name: artifact
-          path: wheelhouse
       - run: pip install --no-index --find-links wheelhouse python_flint
       - run: python -m flint.test --verbose
+      - run: pytest --doctest-glob='*.rst' doc/source
 
   test_pip_vcs_sdist:
     name: pip install ${{ matrix.target }} on ${{ matrix.python-version }}
