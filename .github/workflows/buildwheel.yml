@@ -97,7 +97,7 @@ jobs:
       - run: pip install pytest
       - run: pytest --doctest-glob='*.rst' doc/source
 
-  test_wheels:
+  rst_doctest:
     needs: build_wheels
     name: Test ${{ matrix.python-version }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
