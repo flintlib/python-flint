@@ -40,7 +40,6 @@ from flint.flintlib.nmod_mat cimport (
     nmod_mat_randtest,
 )
 
-from flint.utils.conversion cimport matrix_to_str
 from flint.utils.typecheck cimport typecheck
 from flint.types.fmpz_mat cimport any_as_fmpz_mat
 from flint.types.fmpz_mat cimport fmpz_mat
@@ -49,6 +48,8 @@ from flint.types.nmod cimport any_as_nmod
 from flint.types.nmod_poly cimport nmod_poly
 from flint.pyflint cimport global_random_state
 from flint.flint_base.flint_context cimport thectx
+
+from flint.flint_base.flint_base cimport flint_mat
 
 
 ctx = thectx
@@ -69,10 +70,12 @@ cdef any_as_nmod_mat(obj, nmod_t mod):
     return NotImplemented
 
 
-cdef class nmod_mat:
+cdef class nmod_mat(flint_mat):
     """
-    The nmod_mat type represents dense matrices over Z/nZ for
-    word-size n. Some operations may assume that n is a prime.
+    The nmod_mat type represents dense matrices over Z/nZ for word-size n (see
+    fmpz_mod_mat for larger moduli).
+
+    Some operations may assume that n is a prime.
     """
 
 #    cdef nmod_mat_t val
@@ -177,18 +180,6 @@ cdef class nmod_mat:
         entries = ', '.join(map(str, self.entries()))
         return f"nmod_mat({m}, {n}, [{entries}], {self.modulus()})"
 
-    def str(self):
-        return matrix_to_str(self.table())
-
-    def __str__(self):
-        return self.str()
-
-    def __repr__(self):
-        if ctx.pretty:
-            return self.str()
-        else:
-            return self.repr()
-
     def entries(self):
         cdef long i, j, m, n
         cdef nmod t
@@ -201,13 +192,6 @@ cdef class nmod_mat:
                 t = nmod(nmod_mat_entry(self.val, i, j), self.val.mod.n)
                 L[i*n + j] = t
         return L
-
-    def table(self):
-        cdef long i, m, n
-        m = self.nrows()
-        n = self.ncols()
-        L = self.entries()
-        return [L[i*n:(i+1)*n] for i in range(m)]
 
     def __getitem__(self, index):
         cdef long i, j
@@ -228,21 +212,6 @@ cdef class nmod_mat:
             nmod_mat_set_entry(self.val, i, j, v)
         else:
             raise TypeError("cannot set item of type %s" % type(value))
-
-    def det(self):
-        """
-        Returns the determinant of self as an nmod.
-
-            >>> nmod_mat(2,2,[1,2,3,4],17).det()
-            15
-
-        """
-        if not nmod_mat_is_square(self.val):
-            raise ValueError("matrix must be square")
-        return nmod(nmod_mat_det(self.val), self.modulus())
-
-    def rank(self):
-        return nmod_mat_rank(self.val)
 
     def __pos__(self):
         return self
@@ -391,7 +360,29 @@ cdef class nmod_mat:
     def __div__(s, t):
         return nmod_mat._div_(s, t)
 
+    def det(self):
+        """
+        Returns the determinant of self as an nmod.
+
+            >>> nmod_mat(2,2,[1,2,3,4],17).det()
+            15
+
+        """
+        if not nmod_mat_is_square(self.val):
+            raise ValueError("matrix must be square")
+        return nmod(nmod_mat_det(self.val), self.modulus())
+
     def inv(self):
+        """
+        Returns the inverse of self.
+
+            >>> from flint import nmod_mat
+            >>> A = nmod_mat(2,2,[1,2,3,4],17)
+            >>> A.inv()
+            [15, 1]
+            [10, 8]
+
+        """
         cdef nmod_mat u
         if not nmod_mat_is_square(self.val):
             raise ValueError("matrix must be square")
@@ -485,6 +476,16 @@ cdef class nmod_mat:
             nmod_mat_init_set((<nmod_mat>res).val, self.val)
         rank = nmod_mat_rref((<nmod_mat>res).val)
         return res, rank
+
+    def rank(self):
+        """Return the rank of a matrix.
+
+        >>> from flint import nmod_mat
+        >>> M = nmod_mat([[1, 2], [3, 4]], 11)
+        >>> M.rank()
+        2
+        """
+        return nmod_mat_rank(self.val)
 
     def nullspace(self):
         """
