@@ -136,8 +136,6 @@ cdef class flint_mat(flint_elem):
     """
 
     def repr(self):
-        if thectx.pretty:
-            return str(self)
         # XXX
         return "%s(%i, %i, [%s])" % (type(self).__name__,
             self.nrows(), self.ncols(), (", ".join(map(str, self.entries()))))

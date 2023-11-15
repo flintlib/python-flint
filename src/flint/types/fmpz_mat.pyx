@@ -126,7 +126,7 @@ cdef class fmpz_mat(flint_mat):
                     x = fmpz(entries[i*n + j])
                     fmpz_set(fmpz_mat_entry(self.val, i, j), (<fmpz>x).val)
         else:
-            raise ValueError("fmpz_mat: expected 1-3 arguments")
+            raise TypeError("fmpz_mat: expected 1-3 arguments")
 
     def __nonzero__(self):
         return not fmpz_mat_is_zero(self.val)
@@ -163,7 +163,7 @@ cdef class fmpz_mat(flint_mat):
         cdef fmpz x
         i, j = index
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
-            raise ValueError("index %i,%i exceeds matrix dimensions" % (i, j))
+            raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
         x = fmpz.__new__(fmpz)
         fmpz_set(x.val, fmpz_mat_entry(self.val, i, j))
         return x
@@ -172,7 +172,7 @@ cdef class fmpz_mat(flint_mat):
         cdef long i, j
         i, j = index
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
-            raise ValueError("index %i,%i exceeds matrix dimensions" % (i, j))
+            raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
         c = fmpz(value)  # XXX
         fmpz_set(fmpz_mat_entry(self.val, i, j), (<fmpz>c).val)
 
@@ -716,16 +716,47 @@ cdef class fmpz_mat(flint_mat):
         return bool(fmpz_mat_is_in_snf(self.val))
 
     def charpoly(self):
+        """Returns the characteristic polynomial of *self* as an *fmpz_poly*.
+
+        >>> from flint import fmpz_mat
+        >>> A = fmpz_mat(3, 3, range(9))
+        >>> A
+        [0, 1, 2]
+        [3, 4, 5]
+        [6, 7, 8]
+        >>> A.charpoly()
+        x^3 + (-12)*x^2 + (-18)*x
+        """
         cdef fmpz_poly u
+
+        if not fmpz_mat_is_square(self.val):
+            raise ValueError("matrix must be square")
+
         u = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_init(u.val)
         fmpz_mat_charpoly(u.val, self.val)
         return u
 
     def minpoly(self):
+        """Returns the minimal polynomial of *self* as an *fmpz_poly*.
+
+        >>> from flint import fmpz_mat
+        >>> A = fmpz_mat([[2, 1, 0], [0, 2, 0], [0, 0, 2]])
+        >>> A
+        [2, 1, 0]
+        [0, 2, 0]
+        [0, 0, 2]
+        >>> A.charpoly()
+        x^3 + (-6)*x^2 + 12*x + (-8)
+        >>> A.minpoly()
+        x^2 + (-4)*x + 4
+        """
         cdef fmpz_poly u
+
+        if not fmpz_mat_is_square(self.val):
+            raise ValueError("matrix must be square")
+
         u = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_init(u.val)
         fmpz_mat_minpoly(u.val, self.val)
         return u
-

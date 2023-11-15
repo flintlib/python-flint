@@ -1,19 +1,58 @@
+cimport cython
+
+from flint.flintlib.flint cimport ulong, mp_limb_t
+from flint.flintlib.nmod cimport nmod_t
+
+from flint.flintlib.nmod_poly cimport (
+    nmod_poly_init,
+)
+
+from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
+from flint.flintlib.fmpz_mat cimport fmpz_mat_get_nmod_mat
+
+from flint.flintlib.nmod_mat cimport (
+    nmod_mat_struct,
+    nmod_mat_init,
+    nmod_mat_init_set,
+    nmod_mat_clear,
+    nmod_mat_nrows,
+    nmod_mat_ncols,
+    nmod_mat_is_square,
+    nmod_mat_entry,
+    nmod_mat_set_entry,
+    nmod_mat_equal,
+    nmod_mat_is_zero,
+    nmod_mat_transpose,
+    nmod_mat_scalar_mul,
+    nmod_mat_neg,
+    nmod_mat_add,
+    nmod_mat_sub,
+    nmod_mat_mul,
+    nmod_mat_pow,
+    nmod_mat_inv,
+    nmod_mat_solve,
+    nmod_mat_nullspace,
+    nmod_mat_det,
+    nmod_mat_rref,
+    nmod_mat_rank,
+    nmod_mat_charpoly,
+    nmod_mat_minpoly,
+    nmod_mat_randtest,
+)
+
 from flint.utils.conversion cimport matrix_to_str
 from flint.utils.typecheck cimport typecheck
 from flint.types.fmpz_mat cimport any_as_fmpz_mat
 from flint.types.fmpz_mat cimport fmpz_mat
 from flint.types.nmod cimport nmod
 from flint.types.nmod cimport any_as_nmod
+from flint.types.nmod_poly cimport nmod_poly
 from flint.pyflint cimport global_random_state
 from flint.flint_base.flint_context cimport thectx
 
-cimport cython
 
-from flint.flintlib.flint cimport ulong
-from flint.flintlib.nmod_mat cimport *
-from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
-from flint.flintlib.fmpz_mat cimport fmpz_mat_get_nmod_mat
 ctx = thectx
+
 
 cdef any_as_nmod_mat(obj, nmod_t mod):
     cdef nmod_mat r
@@ -28,6 +67,7 @@ cdef any_as_nmod_mat(obj, nmod_t mod):
         fmpz_mat_get_nmod_mat(r.val, (<fmpz_mat>x).val)
         return r
     return NotImplemented
+
 
 cdef class nmod_mat:
     """
@@ -91,7 +131,7 @@ cdef class nmod_mat:
                     x = nmod(entries[i*n + j], mod)         # XXX: slow
                     self.val.rows[i][j] = (<nmod>x).val
         else:
-            raise ValueError("nmod_mat: expected 1-3 arguments plus modulus")
+            raise TypeError("nmod_mat: expected 1-3 arguments plus modulus")
 
     def __nonzero__(self):
         return not nmod_mat_is_zero(self.val)
@@ -131,14 +171,23 @@ cdef class nmod_mat:
         nmod_mat_randtest(mat.val, global_random_state)
         return mat
 
-    def __repr__(self):
-        if ctx.pretty:
-            return str(self)
-        return "nmod_mat(%i, %i, %s, %i)" % (self.nrows(), self.ncols(),
-            [int(c) for c in self.entries()], self.modulus())
+    def repr(self):
+        m = self.nrows()
+        n = self.ncols()
+        entries = ', '.join(map(str, self.entries()))
+        return f"nmod_mat({m}, {n}, [{entries}], {self.modulus()})"
+
+    def str(self):
+        return matrix_to_str(self.table())
 
     def __str__(self):
-        return matrix_to_str(self.table())
+        return self.str()
+
+    def __repr__(self):
+        if ctx.pretty:
+            return self.str()
+        else:
+            return self.repr()
 
     def entries(self):
         cdef long i, j, m, n
@@ -165,7 +214,7 @@ cdef class nmod_mat:
         cdef nmod x
         i, j = index
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
-            raise ValueError("index %i,%i exceeds matrix dimensions" % (i, j))
+            raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
         x = nmod(nmod_mat_entry(self.val, i, j), self.modulus()) # XXX: slow
         return x
 
@@ -174,11 +223,11 @@ cdef class nmod_mat:
         cdef mp_limb_t v
         i, j = index
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
-            raise ValueError("index %i,%i exceeds matrix dimensions" % (i, j))
+            raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
         if any_as_nmod(&v, value, self.val.mod):
-            self.val.rows[i][j] = v
+            nmod_mat_set_entry(self.val, i, j, v)
         else:
-            raise ValueError("cannot set item of type %s" % type(value))
+            raise TypeError("cannot set item of type %s" % type(value))
 
     def det(self):
         """
@@ -312,6 +361,21 @@ cdef class nmod_mat:
         if u is NotImplemented:
             return u
         return u * s
+
+    def __pow__(self, e, m):
+        cdef nmod_mat t
+        cdef ulong ee
+        if not self.nrows() == self.ncols():
+            raise ValueError("matrix must be square")
+        if m is not None:
+            raise NotImplementedError("modular matrix exponentiation")
+        if e < 0:
+            self = self.inv()
+            e = -e
+        ee = e
+        t = nmod_mat(self)   # XXX
+        nmod_mat_pow(t.val, t.val, ee)
+        return t
 
     @staticmethod
     def _div_(nmod_mat s, t):
@@ -451,3 +515,42 @@ cdef class nmod_mat:
         nullity = nmod_mat_nullspace(res.val, self.val)
         return res, nullity
 
+    def charpoly(self):
+        """Return the characteristic polynomial of a matrix.
+
+        >>> from flint import nmod_mat
+        >>> M = nmod_mat([[1, 2], [3, 4]], 11)
+        >>> M.charpoly()
+        x^2 + 6*x + 9
+
+        """
+        cdef nmod_poly res
+
+        if self.nrows() != self.ncols():
+            raise ValueError("fmpz_mod_mat charpoly: matrix must be square")
+
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init(res.val, self.val.mod.n)
+        nmod_mat_charpoly(res.val, self.val)
+        return res
+
+    def minpoly(self):
+        """Return the minimal polynomial of a matrix.
+
+        >>> from flint import nmod_mat
+        >>> M = nmod_mat([[2, 1, 0], [0, 2, 0], [0, 0, 2]], 7)
+        >>> M.charpoly()
+        x^3 + x^2 + 5*x + 6
+        >>> M.minpoly()
+        x^2 + 3*x + 4
+
+        """
+        cdef nmod_poly res
+
+        if self.nrows() != self.ncols():
+            raise ValueError("fmpz_mod_mat minpoly: matrix must be square")
+
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init(res.val, self.val.mod.n)
+        nmod_mat_minpoly(res.val, self.val)
+        return res

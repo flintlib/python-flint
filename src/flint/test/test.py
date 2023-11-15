@@ -557,7 +557,7 @@ def test_fmpz_mat():
     assert raises(lambda: M([[1],[2,3]]), ValueError)
     assert raises(lambda: M(None), TypeError)
     assert raises(lambda: M(2,2,[1,2,3]), ValueError)
-    assert raises(lambda: M(2,2,2,2), ValueError)
+    assert raises(lambda: M(2,2,2,2), TypeError)
     assert M([[1,2,3],[4,5,6]]) == M(2,3,[1,2,3,4,5,6])
     assert raises(lambda: M([[1]]) < M([[2]]), TypeError)
     assert (M([[1]]) == 1) is False
@@ -571,15 +571,15 @@ def test_fmpz_mat():
     def set_bad(i,j):
         D[i,j] = -1
     # XXX: Should be IndexError
-    raises(lambda: set_bad(2,0), ValueError)
-    raises(lambda: set_bad(0,2), ValueError)
-    raises(lambda: D[0,2], ValueError)
-    raises(lambda: D[0,2], ValueError)
+    raises(lambda: set_bad(2,0), IndexError)
+    raises(lambda: set_bad(0,2), IndexError)
+    raises(lambda: D[0,2], IndexError)
+    raises(lambda: D[0,2], IndexError)
     # XXX: Negative indices?
-    raises(lambda: set_bad(-1,0), ValueError)
-    raises(lambda: set_bad(0,-1), ValueError)
-    raises(lambda: D[-1,0], ValueError)
-    raises(lambda: D[0,-1], ValueError)
+    raises(lambda: set_bad(-1,0), IndexError)
+    raises(lambda: set_bad(0,-1), IndexError)
+    raises(lambda: D[-1,0], IndexError)
+    raises(lambda: D[0,-1], IndexError)
     assert M.hadamard(2) == M([[1,1],[1,-1]])
     assert raises(lambda: M.hadamard(3), ValueError)
     assert M.hadamard(2).is_hadamard() is True
@@ -1067,7 +1067,7 @@ def test_fmpq_mat():
     assert raises(lambda: Q(2,3,[1,2,3,4,5]), ValueError)
     assert raises(lambda: Q([[1,2,3],[4,[],6]]), TypeError)
     assert raises(lambda: Q(2,3,[1,2,3,4,[],6]), TypeError)
-    assert raises(lambda: Q(2,3,[1,2],[3,4]), ValueError)
+    assert raises(lambda: Q(2,3,[1,2],[3,4]), TypeError)
     assert bool(Q([[1]])) is True
     assert bool(Q([[0]])) is False
     assert raises(lambda: Q([[1]]) < Q([[0]]), TypeError)
@@ -1078,13 +1078,12 @@ def test_fmpq_mat():
     # XXX: Negative indices should probably be allowed
     def set_bad(i):
         M[i,0] = -1
-    raises(lambda: M[-1,0], ValueError)
-    raises(lambda: M[0,-1], ValueError)
-    raises(lambda: set_bad(-1), ValueError)
-    # XXX: Should be IndexError
-    raises(lambda: M[2,0], ValueError)
-    raises(lambda: M[0,2], ValueError)
-    raises(lambda: set_bad(2), ValueError)
+    raises(lambda: M[-1,0], IndexError)
+    raises(lambda: M[0,-1], IndexError)
+    raises(lambda: set_bad(-1), IndexError)
+    raises(lambda: M[2,0], IndexError)
+    raises(lambda: M[0,2], IndexError)
+    raises(lambda: set_bad(2), IndexError)
     assert Q([[1,2,3],[4,5,6]]).transpose() == Q([[1,4],[2,5],[3,6]])
     raises(lambda: M + [], TypeError)
     raises(lambda: M - [], TypeError)
@@ -1488,9 +1487,12 @@ def test_nmod_mat():
     assert A*(B*C) == (A*B)*C
     assert bool(M(2,2,[0,0,0,0],17)) == False
     assert bool(M(2,2,[0,0,0,1],17)) == True
-    ctx.pretty = False
-    assert repr(M(2,2,[1,2,3,4],17)) == 'nmod_mat(2, 2, [1, 2, 3, 4], 17)'
-    ctx.pretty = True
+    pretty = ctx.pretty
+    try:
+        ctx.pretty = False
+        assert repr(M(2,2,[1,2,3,4],17)) == 'nmod_mat(2, 2, [1, 2, 3, 4], 17)'
+    finally:
+        ctx.pretty = pretty
     assert str(M(2,2,[1,2,3,4],17)) == '[1, 2]\n[3, 4]'
     assert repr(M(2,2,[1,2,3,4],17)) == '[1, 2]\n[3, 4]'
     assert M(1,2,[3,4],17) / 3 == M(1,2,[3,4],17) * (~G(3,17))
@@ -1504,7 +1506,7 @@ def test_nmod_mat():
     assert raises(lambda: M(None,17), TypeError)
     assert M(2,3,17) == M(2,3,[0,0,0,0,0,0],17)
     assert raises(lambda: M(2,3,[0,0,0,0,0],17), ValueError)
-    assert raises(lambda: M(2,3,[0,1],[1,2],17), ValueError)
+    assert raises(lambda: M(2,3,[0,1],[1,2],17), TypeError)
     assert M([[1,2,3],[4,5,6]], 5) == M(2,3,[1,2,3,4,5,6], 5)
     assert raises(lambda: M([[0]],13) < M([[1]],13), TypeError)
     assert (M([[1]],17) == M([[1]],13)) is False
@@ -1522,18 +1524,17 @@ def test_nmod_mat():
     def set_bad(i,j):
         M3[i,j] = 2
     # XXX: negative indices should be allowed
-    assert raises(lambda: M3[-1,0], ValueError)
-    assert raises(lambda: M3[0,-1], ValueError)
-    assert raises(lambda: set_bad(-1,0), ValueError)
-    assert raises(lambda: set_bad(0,-1), ValueError)
-    # XXX: Should be IndexError
-    assert raises(lambda: M3[2,0], ValueError)
-    assert raises(lambda: M3[0,2], ValueError)
-    assert raises(lambda: set_bad(2,0), ValueError)
-    assert raises(lambda: set_bad(0,2), ValueError)
+    assert raises(lambda: M3[-1,0], IndexError)
+    assert raises(lambda: M3[0,-1], IndexError)
+    assert raises(lambda: set_bad(-1,0), IndexError)
+    assert raises(lambda: set_bad(0,-1), IndexError)
+    assert raises(lambda: M3[2,0], IndexError)
+    assert raises(lambda: M3[0,2], IndexError)
+    assert raises(lambda: set_bad(2,0), IndexError)
+    assert raises(lambda: set_bad(0,2), IndexError)
     def set_bad2():
         M3[0,0] = 1.5
-    assert raises(set_bad2, ValueError)
+    assert raises(set_bad2, TypeError)
     assert raises(lambda: M3 + [], TypeError)
     assert raises(lambda: M3 - [], TypeError)
     assert raises(lambda: M3 * [], TypeError)
@@ -2643,8 +2644,7 @@ def test_matrices_eq():
 
 def test_matrices_constructor():
     for M, S, is_field in _all_matrices():
-        # XXX: Inconsistent exception types for different matrix types.
-        assert raises(lambda: M(), (ValueError, TypeError))
+        assert raises(lambda: M(), TypeError)
 
         # Empty matrices
         assert M([]).nrows() == 0
@@ -2720,13 +2720,8 @@ def test_matrices_strrepr():
         A_str = "[1, 2]\n[3, 4]"
         A_repr = _matrix_repr(A)
 
-        # XXX: inconsistent repr/str for different matrix types
-        if type(A) is not flint.nmod_mat:
-            assert A.str() == A_str, type(A).__name__
-            if type(A) not in (flint.fmpz_mat, flint.fmpq_mat):
-                assert A.repr() == A_repr, type(A).__name__
-            else:
-                assert A.repr() == A_str, type(A).__name__
+        assert A.str() == A_str, type(A).__name__
+        assert A.repr() == A_repr, type(A).__name__
 
         # str always returns a pretty result
         assert str(A) == A_str, type(A).__name__
@@ -2749,14 +2744,13 @@ def test_matrices_getitem():
         assert M1234[0, 1] == S(2)
         assert M1234[1, 0] == S(3)
         assert M1234[1, 1] == S(4)
-        # XXX: Should be IndexError
-        assert raises(lambda: M1234[0, 2], ValueError)
-        assert raises(lambda: M1234[2, 0], ValueError)
-        assert raises(lambda: M1234[2, 2], ValueError)
+        assert raises(lambda: M1234[0, 2], IndexError)
+        assert raises(lambda: M1234[2, 0], IndexError)
+        assert raises(lambda: M1234[2, 2], IndexError)
         # XXX: Should negative indices be allowed?
-        assert raises(lambda: M1234[-1, 0], ValueError)
-        assert raises(lambda: M1234[0, -1], ValueError)
-        assert raises(lambda: M1234[-1, -1], ValueError)
+        assert raises(lambda: M1234[-1, 0], IndexError)
+        assert raises(lambda: M1234[0, -1], IndexError)
+        assert raises(lambda: M1234[-1, -1], IndexError)
 
 
 def test_matrices_setitem():
@@ -2770,19 +2764,19 @@ def test_matrices_setitem():
 
         def setbad(obj, key, val):
             obj[key] = val
-        # XXX: Inconsistent exception types for different matrix types.
-        assert raises(lambda: setbad(M1234, (0,0), None), (TypeError, ValueError))
+
+        assert raises(lambda: setbad(M1234, (0,0), None), TypeError)
         assert raises(lambda: setbad(M1234, (0,None), 1), TypeError)
         assert raises(lambda: setbad(M1234, (None,0), 1), TypeError)
         assert raises(lambda: setbad(M1234, None, 1), TypeError)
-        # XXX: Should be IndexError
-        assert raises(lambda: setbad(M1234, (0,2), 1), ValueError)
-        assert raises(lambda: setbad(M1234, (2,0), 1), ValueError)
-        assert raises(lambda: setbad(M1234, (2,2), 1), ValueError)
+
+        assert raises(lambda: setbad(M1234, (0,2), 1), IndexError)
+        assert raises(lambda: setbad(M1234, (2,0), 1), IndexError)
+        assert raises(lambda: setbad(M1234, (2,2), 1), IndexError)
         # XXX: Should negative indices be allowed?
-        assert raises(lambda: setbad(M1234, (-1,0), 1), ValueError)
-        assert raises(lambda: setbad(M1234, (0,-1), 1), ValueError)
-        assert raises(lambda: setbad(M1234, (-1,-1), 1), ValueError)
+        assert raises(lambda: setbad(M1234, (-1,0), 1), IndexError)
+        assert raises(lambda: setbad(M1234, (0,-1), 1), IndexError)
+        assert raises(lambda: setbad(M1234, (-1,-1), 1), IndexError)
 
 
 def test_matrices_bool():
@@ -2819,7 +2813,6 @@ def test_matrices_add():
             assert raises(lambda: M1234 + M2([[1, 2, 3], [4, 5, 6]]), ValueError)
             assert raises(lambda: M2([[1, 2, 3], [4, 5, 6]]) + M1234, ValueError)
         for M2 in _incompatible_matrix_types(M):
-            # XXX: Inconsistent exception types for different matrix types.
             assert raises(lambda: M1234 + M2([[1, 2], [3, 4]]), (TypeError, ValueError))
             assert raises(lambda: M2([[1, 2], [3, 4]]) + M1234, (TypeError, ValueError))
 
@@ -2840,7 +2833,6 @@ def test_matrices_sub():
             assert raises(lambda: M1234 - M2([[1, 2, 3], [4, 5, 6]]), ValueError)
             assert raises(lambda: M2([[1, 2, 3], [4, 5, 6]]) - M1234, ValueError)
         for M2 in _incompatible_matrix_types(M):
-            # XXX: Inconsistent exception types for different matrix types.
             assert raises(lambda: M1234 - M2([[1, 2], [3, 4]]), (TypeError, ValueError))
             assert raises(lambda: M2([[1, 2], [3, 4]]) - M1234, (TypeError, ValueError))
 
@@ -2867,7 +2859,6 @@ def test_matrices_mul():
             assert M2([[1, 2], [3, 4]]) * M1234 == M([[7, 10], [15, 22]])
 
         for M2 in _incompatible_matrix_types(M):
-            # XXX: Inconsistent exception types for different matrix types.
             assert raises(lambda: M1234 * M2([[1, 2], [3, 4]]), (TypeError, ValueError))
             assert raises(lambda: M2([[1, 2], [3, 4]]) * M1234, (TypeError, ValueError))
 
@@ -2875,9 +2866,6 @@ def test_matrices_mul():
 def test_matrices_pow():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
-        # XXX: nmod_mat should support __pow__
-        if type(M1234) is flint.nmod_mat:
-            continue
         assert M1234**0 == M([[1, 0], [0, 1]])
         assert M1234**1 == M1234
         assert M1234**2 == M([[7, 10], [15, 22]])
@@ -2889,15 +2877,9 @@ def test_matrices_pow():
             Ms = M([[1, 2], [3, 6]])
             assert raises(lambda: Ms**-1, ZeroDivisionError)
         Mr = M([[1, 2, 3], [4, 5, 6]])
-        # XXX: Fix fmpq_mat.__pow__
-        if type(Mr) is flint.fmpq_mat:
-            assert raises(lambda: Mr**0, AssertionError)
-            assert Mr ** 1 == Mr
-            assert raises(lambda: Mr**2, ValueError)
-        else:
-            assert raises(lambda: Mr**0, ValueError)
-            assert raises(lambda: Mr**1, ValueError)
-            assert raises(lambda: Mr**2, ValueError)
+        assert raises(lambda: Mr**0, ValueError)
+        assert raises(lambda: Mr**1, ValueError)
+        assert raises(lambda: Mr**2, ValueError)
         assert raises(lambda: M1234**None, TypeError)
         assert raises(lambda: None**M1234, TypeError)
 
@@ -2938,41 +2920,28 @@ def test_matrices_det():
 
 def test_matrices_charpoly():
     for M, S, is_field in _all_matrices():
-        # XXX: Add support for nmod_mat charpoly
-        if type(M([[0]])) is flint.nmod_mat:
-            continue
         P = _poly_type_from_matrix_type(M)
         M1234 = M([[1, 2], [3, 4]])
         assert M1234.charpoly() == P([-2, -5, 1])
         M9 = M([[1, 2, 3], [4, 5, 6], [7, 8, 10]])
         assert M9.charpoly() == P([3, -12, -16, 1])
         Mr = M([[1, 2, 3], [4, 5, 6]])
-        # XXX: Fix fmpz_mat and fmpq_mat charpoly to not abort
-        if M is not flint.fmpz_mat and M is not flint.fmpq_mat:
-            assert raises(lambda: Mr.charpoly(), ValueError)
+        assert raises(lambda: Mr.charpoly(), ValueError)
 
 
 def test_matrices_minpoly():
     for M, S, is_field in _all_matrices():
-        # XXX: Add support for nmod_mat minpoly
-        if type(M([[0]])) is flint.nmod_mat:
-            continue
         P = _poly_type_from_matrix_type(M)
         M1234 = M([[1, 2], [3, 4]])
         assert M1234.minpoly() == P([-2, -5, 1])
         M9 = M([[2, 1, 0], [0, 2, 0], [0, 0, 2]])
         assert M9.minpoly() == P([4, -4, 1])
         Mr = M([[1, 2, 3], [4, 5, 6]])
-        # XXX: Fix fmpz_mat and fmpq_mat minpoly to not abort
-        if M is not flint.fmpz_mat and M is not flint.fmpq_mat:
-            assert raises(lambda: Mr.minpoly(), ValueError)
+        assert raises(lambda: Mr.minpoly(), ValueError)
 
 
 def test_matrices_rank():
     for M, S, is_field in _all_matrices():
-        # XXX: fmpq_mat doesn't support rank
-        if M is flint.fmpq_mat:
-            continue
         M1234 = M([[1, 2], [3, 4]])
         assert M1234.rank() == 2
         Mr = M([[1, 2, 3], [4, 5, 6]])

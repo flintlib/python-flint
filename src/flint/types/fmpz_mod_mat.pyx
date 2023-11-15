@@ -288,7 +288,7 @@ cdef class fmpz_mod_mat(flint_mat):
         cdef slong i, j
         i, j = index
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
-            raise ValueError("index %i,%i exceeds matrix dimensions" % (i, j))
+            raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
         return self._getitem(i, j)
 
     def __setitem__(self, index, value):
@@ -299,7 +299,7 @@ cdef class fmpz_mod_mat(flint_mat):
             raise TypeError("fmpz_mod_mat indices must be 2-tuples")
         i, j = index
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
-            raise ValueError("index %i,%i exceeds matrix dimensions" % (i, j))
+            raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
         e = self.ctx.any_as_fmpz_mod(value)
         self._setitem(i, j, e.val)
 
