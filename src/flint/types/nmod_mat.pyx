@@ -31,7 +31,7 @@ cdef any_as_nmod_mat(obj, nmod_t mod):
 
 cdef class nmod_mat:
     """
-    The nmod_poly type represents dense matrices over Z/nZ for
+    The nmod_mat type represents dense matrices over Z/nZ for
     word-size n. Some operations may assume that n is a prime.
     """
 

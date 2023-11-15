@@ -2217,6 +2217,64 @@ def test_fmpz_mod_poly():
         assert [f(x) for x in l] == f.multipoint_evaluate(l)
 
 
+def test_fmpz_mod_mat():
+    c11 = flint.fmpz_mod_ctx(11)
+    c13 = flint.fmpz_mod_ctx(13)
+
+    M11_1 = flint.fmpz_mod_mat([[1,2,3],[4,5,6],[7,8,9]], c11)
+    M11_2 = flint.fmpz_mod_mat([[1,2,3],[4,5,6],[7,8,9]], c11)
+    M13 = flint.fmpz_mod_mat([[1,2,3],[4,5,6],[7,8,9]], c13)
+    assert (M11_1 == M11_2) is True
+    assert (M11_1 != M11_2) is False
+    assert (M11_1 == M13) is False
+    assert (M11_1 != M13) is True
+
+    Mn_11 = flint.nmod_mat([[1,2,3],[4,5,6],[7,8,9]], 11)
+    Mn_13 = flint.nmod_mat([[1,2,3],[4,5,6],[7,8,9]], 13)
+    assert (M11_1 == Mn_11) is True
+    assert (M11_1 != Mn_11) is False
+    assert (M11_1 == Mn_13) is False
+    assert (M11_1 != Mn_13) is True
+    assert (Mn_11 == M11_1) is True
+    assert (Mn_11 != M11_1) is False
+    assert (Mn_13 == M11_1) is False
+    assert (Mn_13 != M11_1) is True
+
+    M = flint.fmpz_mod_mat([[1,2,3],[4,5,6],[7,8,9]], c11)
+    assert M.nrows() == 3
+    assert M.ncols() == 3
+    assert M.entries() == [flint.fmpz_mod(i, c11) for i in [1,2,3,4,5,6,7,8,9]]
+    assert type(M[0,0]) == flint.fmpz_mod
+    assert M[0,0] == 1
+    assert raises(lambda: flint.fmpz_mod_mat([[1]]), TypeError)
+    assert raises(lambda: flint.fmpz_mod_mat([[1,2],[3,4]], c11, c11), TypeError)
+    assert raises(lambda: flint.fmpz_mod_mat([[1,2],[3,4]], None), TypeError)
+
+    M11 = flint.fmpz_mod_mat([[1,2,3],[4,5,6],[7,8,9]], c11)
+    M13 = flint.fmpz_mod_mat([[1,2,3],[4,5,6],[7,8,9]], c13)
+    Mz = flint.fmpz_mat([[1,2,3],[4,5,6],[7,8,9]])
+    Mn_11 = flint.nmod_mat([[1,2,3],[4,5,6],[7,8,9]], 11)
+    Mn_13 = flint.nmod_mat([[1,2,3],[4,5,6],[7,8,9]], 13)
+    assert raises(lambda: flint.fmpz_mod_mat(Mz), TypeError)
+    assert flint.fmpz_mod_mat(Mz, c11) == M11
+    assert flint.fmpz_mod_mat(Mz, c13) == M13
+    assert flint.fmpz_mod_mat(Mn_11) == M11
+    assert flint.fmpz_mod_mat(Mn_13) == M13
+    assert flint.fmpz_mod_mat(Mn_11, c11) == M11
+    assert flint.fmpz_mod_mat(Mn_13, c13) == M13
+    assert raises(lambda: flint.fmpz_mod_mat(Mn_11, c13), TypeError)
+    assert raises(lambda: flint.fmpz_mod_mat(Mn_13, c11), TypeError)
+    assert flint.fmpz_mod_mat(M11) == M11
+    assert flint.fmpz_mod_mat(M13) == M13
+    assert flint.fmpz_mod_mat(M11, c11) == M11
+    assert flint.fmpz_mod_mat(M13, c13) == M13
+    assert raises(lambda: flint.fmpz_mod_mat(M11, c13), TypeError)
+    assert raises(lambda: flint.fmpz_mod_mat(M13, c11), TypeError)
+
+    A = flint.arb_mat([[1,2,3],[4,5,6],[7,8,9]])
+    assert raises(lambda: flint.fmpz_mod_mat(A, c11), TypeError)
+
+
 def _all_polys():
     return [
         # (poly_type, scalar_type, is_field)
@@ -2425,14 +2483,553 @@ def test_polys():
         if is_field:
             assert P([1, 2, 1]).integral() == P([0, 1, 1, S(1)/3])
 
+
+def _all_matrices():
+    """Return a list of matrix types and scalar types."""
+    R163 = flint.fmpz_mod_ctx(163)
+    R127 = flint.fmpz_mod_ctx(2**127 - 1)
+    R255 = flint.fmpz_mod_ctx(2**255 - 19)
+    return [
+        # (matrix_type, scalar_type, is_field)
+        (flint.fmpz_mat, flint.fmpz, False),
+        (flint.fmpq_mat, flint.fmpq, True),
+        (lambda *a: flint.nmod_mat(*a, 17), lambda x: flint.nmod(x, 17), True),
+        (lambda *a: flint.fmpz_mod_mat(*a, R163), lambda x: flint.fmpz_mod(x, R163), True),
+        (lambda *a: flint.fmpz_mod_mat(*a, R127), lambda x: flint.fmpz_mod(x, R127), True),
+        (lambda *a: flint.fmpz_mod_mat(*a, R255), lambda x: flint.fmpz_mod(x, R255), True),
+    ]
+
+
+def _coercible_matrix_types(mat_type):
+    """Return a list of matrix types that can be coerced to `mat_type`."""
+    M = mat_type([[1, 2], [3, 4]])
+
+    if type(M) is flint.fmpz_mat:
+        return [
+            flint.fmpz_mat
+        ]
+    elif type(M) is flint.fmpq_mat:
+        return [
+            flint.fmpz_mat,
+            flint.fmpq_mat
+        ]
+    elif type(M) is flint.nmod_mat:
+        m = M.modulus()
+        return [
+            flint.fmpz_mat,
+            lambda *a: flint.nmod_mat(*a, m)
+        ]
+    elif type(M) is flint.fmpz_mod_mat:
+        m = M.modulus()
+        c = flint.fmpz_mod_ctx(m)
+        mat_types = [
+            flint.fmpz_mat,
+            lambda *a: flint.fmpz_mod_mat(*a, c)
+        ]
+        if m < 2**64 - 1:
+            mat_types.append(lambda *a: flint.nmod_mat(*a, m))
+        return mat_types
+    else:
+        assert False
+
+
+def _compatible_matrix_types(mat_type):
+    """Return a list of matrix types that can be added to `mat_type`."""
+    M = mat_type([[1, 2], [3, 4]])
+
+    if type(M) is flint.fmpz_mat:
+        return [
+            flint.fmpz_mat
+        ]
+    elif type(M) is flint.fmpq_mat:
+        return [
+            # flint.fmpz_mat,
+            flint.fmpq_mat
+        ]
+    elif type(M) is flint.nmod_mat:
+        m = M.modulus()
+        return [
+            flint.fmpz_mat,
+            lambda *a: flint.nmod_mat(*a, m)
+        ]
+    elif type(M) is flint.fmpz_mod_mat:
+        m = M.modulus()
+        c = flint.fmpz_mod_ctx(m)
+        mat_types = [
+            flint.fmpz_mat,
+            lambda *a: flint.fmpz_mod_mat(*a, c)
+        ]
+        if m < 2**64 - 1:
+            mat_types.append(lambda *a: flint.nmod_mat(*a, m))
+        return mat_types
+    else:
+        assert False
+
+
+def _incompatible_matrix_types(mat_type):
+    M = mat_type([[1, 2], [3, 4]])
+
+    if type(M) is flint.fmpz_mat:
+        return []
+    elif type(M) is flint.fmpq_mat:
+        return [
+            lambda *a: flint.nmod_mat(*a, 17),
+            lambda *a: flint.fmpz_mod_mat(*a, flint.fmpz_mod_ctx(163)),
+        ]
+    elif type(M) is flint.nmod_mat:
+        m = M.modulus()
+        m2 = m - 1
+        return [
+            flint.fmpq_mat,
+            lambda *a: flint.nmod_mat(*a, m2),
+        ]
+    elif type(M) is flint.fmpz_mod_mat:
+        m = M.modulus()
+        m2 = m - 1
+        mat_types = [
+            flint.fmpq_mat,
+            lambda *a: flint.fmpz_mod_mat(*a, flint.fmpz_mod_ctx(m2)),
+        ]
+        if m < 2**64 - 1:
+            mat_types.append(lambda *a: flint.nmod_mat(*a, m2))
+        return mat_types
+    else:
+        assert False
+
+
+def _poly_type_from_matrix_type(mat_type):
+    M = mat_type([[1, 2], [3, 4]])
+
+    if type(M) is flint.fmpz_mat:
+        return flint.fmpz_poly
+    elif type(M) is flint.fmpq_mat:
+        return flint.fmpq_poly
+    elif type(M) is flint.nmod_mat:
+        m = M.modulus()
+        return lambda *a: flint.nmod_poly(*a, m)
+    elif type(M) is flint.fmpz_mod_mat:
+        m = M.modulus()
+        ctx = flint.fmpz_mod_ctx(m)
+        pctx = flint.fmpz_mod_poly_ctx(ctx)
+        return lambda *a: flint.fmpz_mod_poly(*a, pctx)
+    else:
+        assert False
+
+
+def test_matrices_eq():
+    for M, S, is_field in _all_matrices():
+        A1 = M([[1, 2], [3, 4]])
+        A2 = M([[1, 2], [3, 4]])
+        B = M([[5, 6], [7, 8]])
+        assert (A1 == A2) is True
+        assert (A1 != A2) is False
+        assert (A1 == B) is False
+        assert (A1 != B) is True
+        assert (A1 == None) is False
+        assert (A1 != None) is True
+        assert (None == A1) is False
+        assert (None != A1) is True
+        assert raises(lambda: A1 < A2, TypeError)
+        assert raises(lambda: A1 <= A2, TypeError)
+        assert raises(lambda: A1 > A2, TypeError)
+        assert raises(lambda: A1 >= A2, TypeError)
+
+        for M2 in _incompatible_matrix_types(M):
+            A1 = M([[1, 2], [3, 4]])
+            A2 = M2([[1, 2], [3, 4]])
+            assert (A1 == A2) is False
+            assert (A1 != A2) is True
+
+
+def test_matrices_constructor():
+    for M, S, is_field in _all_matrices():
+        # XXX: Inconsistent exception types for different matrix types.
+        assert raises(lambda: M(), (ValueError, TypeError))
+
+        # Empty matrices
+        assert M([]).nrows() == 0
+        assert M([]).ncols() == 0
+        assert M([]) != M([[]])
+        assert M([[]]).nrows() == 1
+        assert M([[]]).ncols() == 0
+        assert M([]) == M(0, 0, []) == M(0, 0)
+        assert M([[]]) == M(1, 0, []) == M(1, 0)
+        assert M([[], []]) == M(2, 0, []) == M(2, 0)
+        assert M(0, 2, []) == M(0, 2) != M(2, 0)
+
+        # Basic construction
+        M1234 = M([[1, 2], [3, 4]])
+        assert M1234.nrows() == 2
+        assert M1234.ncols() == 2
+        assert M1234 == M([[1, 2], [3, 4]])
+        assert M1234 != M([[1, 2], [3, 5]])
+        assert M1234 == M(2, 2, [1, 2, 3, 4])
+        assert M1234.entries() == [S(1), S(2), S(3), S(4)]
+        assert M1234.table() == [[S(1), S(2)], [S(3), S(4)]]
+        assert M1234[0, 0] == S(1)
+        assert M1234[0, 1] == S(2)
+        assert M1234[1, 0] == S(3)
+        assert M1234[1, 1] == S(4)
+        assert type(M1234[0, 0]) is type(S(1))
+        assert M1234 == M([[S(1), S(2)], [S(3), S(4)]])
+        assert M1234 == M(2, 2, [S(1), S(2), S(3), S(4)])
+
+        # Non-square matrices
+        M6 = M([[1, 2, 3], [4, 5, 6]])
+        assert M6.nrows() == 2
+        assert M6.ncols() == 3
+        assert M6 == M(2, 3, [1, 2, 3, 4, 5, 6])
+        assert M6.entries() == [S(1), S(2), S(3), S(4), S(5), S(6)]
+        assert M6 != M1234
+
+        # Bad list inputs
+        assert raises(lambda: M(None), TypeError)
+        assert raises(lambda: M([None]), TypeError)
+        assert raises(lambda: M(2, 3, [1, 2, 3, 4, 5]), ValueError)
+        assert raises(lambda: M([[1, 2], [3, 4], [5, 6, 7]]), ValueError)
+        assert raises(lambda: M([[1, 2], [3, 4], [5, 6, 7, 8]]), ValueError)
+        assert raises(lambda: M([[1, 2], [3, None]]), TypeError)
+
+        # Construct from a coercible matrix
+        M1234 = M([[1, 2], [3, 4]])
+        for M2 in _coercible_matrix_types(M):
+            if type(M2([[1]])) is flint.nmod_mat:
+                continue
+            M1234_2 = M(M2([[1, 2], [3, 4]]))
+            assert M1234_2 == M1234
+            assert type(M1234_2) is type(M1234)
+
+
+def _matrix_repr(M):
+    item = M[0, 0]
+    if type(item) is flint.fmpz:
+        return f"fmpz_mat({M.nrows()}, {M.ncols()}, {M.entries()!r})"
+    elif type(item) is flint.fmpq:
+        return f"fmpq_mat({M.nrows()}, {M.ncols()}, {M.entries()!r})"
+    elif type(item) is flint.nmod:
+        return f"nmod_mat({M.nrows()}, {M.ncols()}, {M.entries()!r}, {M.modulus()})"
+    elif type(item) is flint.fmpz_mod:
+        return f"fmpz_mod_mat({M.nrows()}, {M.ncols()}, {M.entries()!r}, {M.modulus()})"
+    else:
+        assert False
+
+
+def test_matrices_strrepr():
+    for M, S, is_field in _all_matrices():
+        A = M([[1, 2], [3, 4]])
+        A_str = "[1, 2]\n[3, 4]"
+        A_repr = _matrix_repr(A)
+
+        # XXX: inconsistent repr/str for different matrix types
+        if type(A) is not flint.nmod_mat:
+            assert A.str() == A_str, type(A).__name__
+            if type(A) not in (flint.fmpz_mat, flint.fmpq_mat):
+                assert A.repr() == A_repr, type(A).__name__
+            else:
+                assert A.repr() == A_str, type(A).__name__
+
+        # str always returns a pretty result
+        assert str(A) == A_str, type(A).__name__
+
+        # repr depends on ctx.pretty
+        pretty = ctx.pretty
+        try:
+            ctx.pretty = True
+            assert repr(A) == A_str, type(A).__name__
+            ctx.pretty = False
+            assert repr(A) == A_repr, type(A).__name__
+        finally:
+            ctx.pretty = pretty
+
+
+def test_matrices_getitem():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        assert M1234[0, 0] == S(1)
+        assert M1234[0, 1] == S(2)
+        assert M1234[1, 0] == S(3)
+        assert M1234[1, 1] == S(4)
+        # XXX: Should be IndexError
+        assert raises(lambda: M1234[0, 2], ValueError)
+        assert raises(lambda: M1234[2, 0], ValueError)
+        assert raises(lambda: M1234[2, 2], ValueError)
+        # XXX: Should negative indices be allowed?
+        assert raises(lambda: M1234[-1, 0], ValueError)
+        assert raises(lambda: M1234[0, -1], ValueError)
+        assert raises(lambda: M1234[-1, -1], ValueError)
+
+
+def test_matrices_setitem():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+
+        assert M1234[0, 0] == S(1)
+        M1234[0, 0] = S(5)
+        assert M1234[0, 0] == S(5)
+        assert M1234.table() == [[S(5), S(2)], [S(3), S(4)]]
+
+        def setbad(obj, key, val):
+            obj[key] = val
+        # XXX: Inconsistent exception types for different matrix types.
+        assert raises(lambda: setbad(M1234, (0,0), None), (TypeError, ValueError))
+        assert raises(lambda: setbad(M1234, (0,None), 1), TypeError)
+        assert raises(lambda: setbad(M1234, (None,0), 1), TypeError)
+        assert raises(lambda: setbad(M1234, None, 1), TypeError)
+        # XXX: Should be IndexError
+        assert raises(lambda: setbad(M1234, (0,2), 1), ValueError)
+        assert raises(lambda: setbad(M1234, (2,0), 1), ValueError)
+        assert raises(lambda: setbad(M1234, (2,2), 1), ValueError)
+        # XXX: Should negative indices be allowed?
+        assert raises(lambda: setbad(M1234, (-1,0), 1), ValueError)
+        assert raises(lambda: setbad(M1234, (0,-1), 1), ValueError)
+        assert raises(lambda: setbad(M1234, (-1,-1), 1), ValueError)
+
+
+def test_matrices_bool():
+    for M, S, is_field in _all_matrices():
+        assert bool(M([])) is False
+        assert bool(M([[0]])) is False
+        assert bool(M([[1]])) is True
+        assert bool(M([[0, 0], [0, 0]])) is False
+        assert bool(M([[1, 0], [0, 0]])) is True
+        assert bool(M([[0, 0], [0, 1]])) is True
+        assert bool(M([[1, 0], [0, 1]])) is True
+
+
+def test_matrices_pos_neg():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        assert +M1234 == M1234
+        assert -M1234 == M([[-1, -2], [-3, -4]])
+
+
+def test_matrices_add():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        M5678 = M([[5, 6], [7, 8]])
+        assert M1234 + M5678 == M([[6, 8], [10, 12]])
+        assert raises(lambda: M1234 + 1, TypeError)
+        assert raises(lambda: 1 + M1234, TypeError)
+        assert raises(lambda: M1234 + None, TypeError)
+        assert raises(lambda: None + M1234, TypeError)
+        assert raises(lambda: M1234 + M([[1, 2, 3], [4, 5, 6]]), ValueError)
+        for M2 in _compatible_matrix_types(M):
+            assert M1234 + M2([[1, 2], [3, 4]]) == M([[2, 4], [6, 8]])
+            assert M2([[1, 2], [3, 4]]) + M1234 == M([[2, 4], [6, 8]])
+            assert raises(lambda: M1234 + M2([[1, 2, 3], [4, 5, 6]]), ValueError)
+            assert raises(lambda: M2([[1, 2, 3], [4, 5, 6]]) + M1234, ValueError)
+        for M2 in _incompatible_matrix_types(M):
+            # XXX: Inconsistent exception types for different matrix types.
+            assert raises(lambda: M1234 + M2([[1, 2], [3, 4]]), (TypeError, ValueError))
+            assert raises(lambda: M2([[1, 2], [3, 4]]) + M1234, (TypeError, ValueError))
+
+
+def test_matrices_sub():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        M5678 = M([[5, 6], [7, 8]])
+        assert M1234 - M5678 == M([[-4, -4], [-4, -4]])
+        assert raises(lambda: M1234 - 1, TypeError)
+        assert raises(lambda: 1 - M1234, TypeError)
+        assert raises(lambda: M1234 - None, TypeError)
+        assert raises(lambda: None - M1234, TypeError)
+        assert raises(lambda: M1234 - M([[1, 2, 3], [4, 5, 6]]), ValueError)
+        for M2 in _compatible_matrix_types(M):
+            assert M1234 - M2([[1, 2], [3, 4]]) == M([[0, 0], [0, 0]])
+            assert M2([[1, 2], [3, 4]]) - M1234 == M([[0, 0], [0, 0]])
+            assert raises(lambda: M1234 - M2([[1, 2, 3], [4, 5, 6]]), ValueError)
+            assert raises(lambda: M2([[1, 2, 3], [4, 5, 6]]) - M1234, ValueError)
+        for M2 in _incompatible_matrix_types(M):
+            # XXX: Inconsistent exception types for different matrix types.
+            assert raises(lambda: M1234 - M2([[1, 2], [3, 4]]), (TypeError, ValueError))
+            assert raises(lambda: M2([[1, 2], [3, 4]]) - M1234, (TypeError, ValueError))
+
+
+def test_matrices_mul():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        M5678 = M([[5, 6], [7, 8]])
+        assert M1234 * M5678 == M([[19, 22], [43, 50]])
+        M21 = M([[2], [1]])
+        assert M1234 * M21 == M([[4], [10]])
+
+        assert 2 * M1234 == M([[2, 4], [6, 8]])
+        assert M1234 * 2 == M([[2, 4], [6, 8]])
+        assert S(2) * M1234 == M([[2, 4], [6, 8]])
+        assert M1234 * S(2) == M([[2, 4], [6, 8]])
+        assert raises(lambda: M1234 * None, TypeError)
+        assert raises(lambda: None * M1234, TypeError)
+        assert raises(lambda: M1234 * M([[1, 2], [3, 4], [5, 6]]), ValueError)
+        assert raises(lambda: M([[1, 2, 3], [4, 5, 6]]) * M1234, ValueError)
+
+        for M2 in _compatible_matrix_types(M):
+            assert M1234 * M2([[1, 2], [3, 4]]) == M([[7, 10], [15, 22]])
+            assert M2([[1, 2], [3, 4]]) * M1234 == M([[7, 10], [15, 22]])
+
+        for M2 in _incompatible_matrix_types(M):
+            # XXX: Inconsistent exception types for different matrix types.
+            assert raises(lambda: M1234 * M2([[1, 2], [3, 4]]), (TypeError, ValueError))
+            assert raises(lambda: M2([[1, 2], [3, 4]]) * M1234, (TypeError, ValueError))
+
+
+def test_matrices_pow():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        # XXX: nmod_mat should support __pow__
+        if type(M1234) is flint.nmod_mat:
+            continue
+        assert M1234**0 == M([[1, 0], [0, 1]])
+        assert M1234**1 == M1234
+        assert M1234**2 == M([[7, 10], [15, 22]])
+        assert M1234**3 == M([[37, 54], [81, 118]])
+        if is_field:
+            assert M1234**-1 == M([[-4, 2], [3, -1]]) / 2
+            assert M1234**-2 == M([[22, -10], [-15, 7]]) / 4
+            assert M1234**-3 == M([[-118, 54], [81, -37]]) / 8
+            Ms = M([[1, 2], [3, 6]])
+            assert raises(lambda: Ms**-1, ZeroDivisionError)
+        Mr = M([[1, 2, 3], [4, 5, 6]])
+        # XXX: Fix fmpq_mat.__pow__
+        if type(Mr) is flint.fmpq_mat:
+            assert raises(lambda: Mr**0, AssertionError)
+            assert Mr ** 1 == Mr
+            assert raises(lambda: Mr**2, ValueError)
+        else:
+            assert raises(lambda: Mr**0, ValueError)
+            assert raises(lambda: Mr**1, ValueError)
+            assert raises(lambda: Mr**2, ValueError)
+        assert raises(lambda: M1234**None, TypeError)
+        assert raises(lambda: None**M1234, TypeError)
+
+
+def test_matrices_div():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        if is_field:
+            assert M1234 / 2 == M([[S(1)/2, S(1)], [S(3)/2, 2]])
+            assert M1234 / S(2) == M([[S(1)/2, S(1)], [S(3)/2, 2]])
+            assert raises(lambda: M1234 / 0, ZeroDivisionError)
+            assert raises(lambda: M1234 / S(0), ZeroDivisionError)
+        raises(lambda: M1234 / None, TypeError)
+        raises(lambda: None / M1234, TypeError)
+
+
+def test_matrices_inv():
+    for M, S, is_field in _all_matrices():
+        if is_field:
+            M1234 = M([[1, 2], [3, 4]])
+            assert M1234.inv() == M([[-2, 1], [S(3)/2, -S(1)/2]])
+            M1236 = M([[1, 2], [3, 6]])
+            assert raises(lambda: M1236.inv(), ZeroDivisionError)
+            Mr = M([[1, 2, 3], [4, 5, 6]])
+            assert raises(lambda: Mr.inv(), ValueError)
+        # XXX: Test non-field matrices. unimodular?
+
+
+def test_matrices_det():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        assert M1234.det() == S(-2)
+        M9 = M([[1, 2, 3], [4, 5, 6], [7, 8, 10]])
+        assert M9.det() == S(-3)
+        Mr = M([[1, 2, 3], [4, 5, 6]])
+        assert raises(lambda: Mr.det(), ValueError)
+
+
+def test_matrices_charpoly():
+    for M, S, is_field in _all_matrices():
+        # XXX: Add support for nmod_mat charpoly
+        if type(M([[0]])) is flint.nmod_mat:
+            continue
+        P = _poly_type_from_matrix_type(M)
+        M1234 = M([[1, 2], [3, 4]])
+        assert M1234.charpoly() == P([-2, -5, 1])
+        M9 = M([[1, 2, 3], [4, 5, 6], [7, 8, 10]])
+        assert M9.charpoly() == P([3, -12, -16, 1])
+        Mr = M([[1, 2, 3], [4, 5, 6]])
+        # XXX: Fix fmpz_mat and fmpq_mat charpoly to not abort
+        if M is not flint.fmpz_mat and M is not flint.fmpq_mat:
+            assert raises(lambda: Mr.charpoly(), ValueError)
+
+
+def test_matrices_minpoly():
+    for M, S, is_field in _all_matrices():
+        # XXX: Add support for nmod_mat minpoly
+        if type(M([[0]])) is flint.nmod_mat:
+            continue
+        P = _poly_type_from_matrix_type(M)
+        M1234 = M([[1, 2], [3, 4]])
+        assert M1234.minpoly() == P([-2, -5, 1])
+        M9 = M([[2, 1, 0], [0, 2, 0], [0, 0, 2]])
+        assert M9.minpoly() == P([4, -4, 1])
+        Mr = M([[1, 2, 3], [4, 5, 6]])
+        # XXX: Fix fmpz_mat and fmpq_mat minpoly to not abort
+        if M is not flint.fmpz_mat and M is not flint.fmpq_mat:
+            assert raises(lambda: Mr.minpoly(), ValueError)
+
+
+def test_matrices_rank():
+    for M, S, is_field in _all_matrices():
+        # XXX: fmpq_mat doesn't support rank
+        if M is flint.fmpq_mat:
+            continue
+        M1234 = M([[1, 2], [3, 4]])
+        assert M1234.rank() == 2
+        Mr = M([[1, 2, 3], [4, 5, 6]])
+        assert Mr.rank() == 2
+        Ms = M([[1, 2], [2, 4]])
+        assert Ms.rank() == 1
+        Mz = M([[0, 0], [0, 0]])
+        assert Mz.rank() == 0
+
+
+def test_matrices_rref():
+    for M, S, is_field in _all_matrices():
+        if is_field:
+            Mr = M([[1, 2, 3], [4, 5, 6]])
+            Mr_rref = M([[1, 0, -1], [0, 1, 2]])
+            assert Mr.rref() == (Mr_rref, 2)
+            assert Mr == M([[1, 2, 3], [4, 5, 6]])
+            assert Mr.rref(inplace=True) == (Mr_rref, 2)
+            assert Mr == Mr_rref
+
+
+def test_matrices_solve():
+    for M, S, is_field in _all_matrices():
+        if is_field:
+            A = M([[1, 2], [3, 4]])
+            x = M([[1], [2]])
+            b = M([[5], [11]])
+            assert A*x == b
+            assert A.solve(b) == x
+            A22 = M([[1, 2], [3, 4]])
+            A23 = M([[1, 2, 3], [4, 5, 6]])
+            b2 = M([[5], [11]])
+            b3 = M([[5], [11], [17]])
+            assert raises(lambda: A22.solve(b3), ValueError)
+            assert raises(lambda: A23.solve(b2), ValueError)
+            assert raises(lambda: A.solve(None), TypeError)
+            A = M([[1, 2], [2, 4]])
+            assert raises(lambda: A.solve(b), ZeroDivisionError)
+
+
+def test_matrices_transpose():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2, 3], [4, 5, 6]])
+        assert M1234.transpose() == M([[1, 4], [2, 5], [3, 6]])
+
+
 def test_all_tests():
     test_funcs = {f for name, f in globals().items() if name.startswith("test_")}
     untested = test_funcs - set(all_tests)
     assert not untested, f"Untested functions: {untested}"
 
+
 all_tests = [
+
     test_pyflint,
     test_showgood,
+
     test_fmpz,
     test_fmpz_factor,
     test_fmpz_functions,
@@ -2441,19 +3038,48 @@ all_tests = [
     test_fmpz_poly_functions,
     test_fmpz_mat,
     test_fmpz_series,
+
     test_fmpq,
     test_fmpq_poly,
     test_fmpq_mat,
     test_fmpq_series,
+
     test_nmod,
     test_nmod_poly,
     test_nmod_mat,
     test_nmod_series,
-    test_arb,
+
     test_fmpz_mod,
     test_fmpz_mod_dlog,
     test_fmpz_mod_poly,
+    test_fmpz_mod_mat,
+
+    test_arb,
+
     test_polys,
+
+    test_matrices_eq,
+    test_matrices_constructor,
+    test_matrices_strrepr,
+    test_matrices_getitem,
+    test_matrices_setitem,
+    test_matrices_bool,
+    test_matrices_transpose,
+    test_matrices_pos_neg,
+    test_matrices_add,
+    test_matrices_sub,
+    test_matrices_mul,
+    test_matrices_pow,
+    test_matrices_div,
+    test_matrices_inv,
+    test_matrices_det,
+    test_matrices_charpoly,
+    test_matrices_minpoly,
+    test_matrices_rank,
+    test_matrices_rref,
+    test_matrices_solve,
+
     test_pickling,
     test_all_tests,
+
 ]

@@ -1,4 +1,6 @@
+from flint.flintlib.flint cimport FLINT_BITS as _FLINT_BITS
 from flint.flint_base.flint_context cimport thectx
+
 
 cdef class flint_elem:
     def __repr__(self):

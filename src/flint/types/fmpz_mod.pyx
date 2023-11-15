@@ -409,11 +409,14 @@ cdef class fmpz_mod(flint_scalar):
     def __bool__(self):
         return not self.is_zero()
 
-    def __repr__(self):
+    def repr(self):
         return "fmpz_mod({}, {})".format(
             fmpz_get_intlong(self.val),
             self.ctx.modulus()
         )
+
+    def __repr__(self):
+        return self.repr()
 
     def __hash__(self):
         return hash((int(self)))
@@ -421,8 +424,11 @@ cdef class fmpz_mod(flint_scalar):
     def __int__(self):
         return fmpz_get_intlong(self.val)
 
-    def __str__(self):
+    def str(self):
         return str(int(self))
+
+    def __str__(self):
+        return self.str()
 
     # ---------------- #
     #    Arithmetic    #
