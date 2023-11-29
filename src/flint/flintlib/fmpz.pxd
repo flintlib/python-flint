@@ -1,4 +1,4 @@
-from flint.flintlib.flint cimport fmpz_struct, ulong, mp_limb_t, mp_ptr
+from flint.flintlib.flint cimport fmpz_struct, ulong, mp_limb_t, mp_ptr, __mpz_struct
 from flint.flintlib.flint cimport mp_size_t, mp_bitcnt_t, slong, flint_rand_t, flint_bitcnt_t
 
 cdef extern from "flint/fmpz.h":
@@ -11,15 +11,15 @@ cdef extern from "flint/fmpz.h":
     ctypedef fmpz_preinvn_struct fmpz_preinvn_t[1]
 
 # from here on is parsed
-    # fmpz_struct PTR_TO_COEFF(__mpz_struct * ptr)
-    # __mpz_struct * COEFF_TO_PTR(fmpz_struct f)
+    fmpz_struct PTR_TO_COEFF(__mpz_struct * ptr)
+    __mpz_struct * COEFF_TO_PTR(fmpz_struct f)
     int COEFF_IS_MPZ(fmpz_struct f)
-    # __mpz_struct * _fmpz_new_mpz(void)
+    __mpz_struct * _fmpz_new_mpz()
     void _fmpz_clear_mpz(fmpz_struct f)
     void _fmpz_cleanup_mpz_content()
     void _fmpz_cleanup()
-    # __mpz_struct * _fmpz_promote(fmpz_t f)
-    # __mpz_struct * _fmpz_promote_val(fmpz_t f)
+    __mpz_struct * _fmpz_promote(fmpz_t f)
+    __mpz_struct * _fmpz_promote_val(fmpz_t f)
     void _fmpz_demote(fmpz_t f)
     void _fmpz_demote_val(fmpz_t f)
     void fmpz_init(fmpz_t f)

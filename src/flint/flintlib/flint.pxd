@@ -29,6 +29,15 @@ cdef extern from "gmp.h":
     ctypedef mp_limb_t* mp_ptr
     ctypedef mp_limb_t* mp_srcptr
     ctypedef unsigned long mp_bitcnt_t
+    ctypedef struct __mpz_struct:
+        pass
+    ctypedef __mpz_struct mpz_t[1]
+    void mpz_init(mpz_t)
+    void mpz_import(mpz_t val, size_t count, int order, size_t size, int endian, size_t nails, const void * op)
+    void mpz_clear(mpz_t val)
+    void mpz_neg(mpz_t rop, mpz_t op)
+    size_t mpz_sizeinbase (const mpz_t op, int base)
+    void * mpz_export (void *rop, size_t *countp, int order, size_t size, int endian, size_t nails, const mpz_t op)
 
 cdef extern from "flint/fmpz.h":
     ctypedef long slong
