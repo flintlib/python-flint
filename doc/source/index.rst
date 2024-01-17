@@ -58,6 +58,7 @@ Matrix types
    fmpz_mat.rst
    fmpq_mat.rst
    nmod_mat.rst
+   fmpz_mod_mat.rst
    arb_mat.rst
    acb_mat.rst
 

@@ -90,7 +90,7 @@ cdef class fmpq_mat(flint_mat):
                     x = fmpq(entries[i*n + j])
                     fmpq_set(fmpq_mat_entry(self.val, i, j), (<fmpq>x).val)
         else:
-            raise ValueError("fmpq_mat: expected 1-3 arguments")
+            raise TypeError("fmpq_mat: expected 1-3 arguments")
 
     def __nonzero__(self):
         return not fmpq_mat_is_zero(self.val)
@@ -121,7 +121,7 @@ cdef class fmpq_mat(flint_mat):
         cdef fmpq x
         i, j = index
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
-            raise ValueError("index %i,%i exceeds matrix dimensions" % (i, j))
+            raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
         x = fmpq.__new__(fmpq)
         fmpq_set(x.val, fmpq_mat_entry(self.val, i, j))
         return x
@@ -130,7 +130,7 @@ cdef class fmpq_mat(flint_mat):
         cdef long i, j
         i, j = index
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
-            raise ValueError("index %i,%i exceeds matrix dimensions" % (i, j))
+            raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
         c = fmpq(value)  # XXX
         fmpq_set(fmpq_mat_entry(self.val, i, j), (<fmpq>c).val)
 
@@ -297,7 +297,7 @@ cdef class fmpq_mat(flint_mat):
     def transpose(self):
         """
         Returns the transpose of *self*.
-        
+
             >>> fmpq_mat(2,3,range(6)).transpose()
             [0, 3]
             [1, 4]
@@ -393,6 +393,17 @@ cdef class fmpq_mat(flint_mat):
         rank = fmpq_mat_rref((<fmpq_mat>res).val, self.val)
         return res, rank
 
+    def rank(self):
+        """
+        Returns the rank of *self*.
+
+            >>> from flint import fmpq_mat
+            >>> M = fmpq_mat([[1,2,3],[4,5,6],[7,8,9]])
+            >>> M.rank()
+            2
+        """
+        return self.rref()[1]
+
     @classmethod
     def hilbert(cls, long n, long m):
         """
@@ -429,14 +440,46 @@ cdef class fmpq_mat(flint_mat):
         return num, den
 
     def charpoly(self):
+        """Returns the characteristic polynomial of *self* as an *fmpq_poly*.
+
+        >>> from flint import fmpq_mat, fmpq
+        >>> A = fmpq_mat(3,3,[1,3,5,2,4,6,fmpq(2,3),2,4])
+        >>> A
+        [  1, 3, 5]
+        [  2, 4, 6]
+        [2/3, 2, 4]
+        >>> A.charpoly()
+        x^3 + (-9)*x^2 + 8/3*x + 4/3
+        """
         cdef fmpq_poly u
+
+        if self.nrows() != self.ncols():
+            raise ValueError("matrix must be square")
+
         u = fmpq_poly.__new__(fmpq_poly)
         fmpq_poly_init(u.val)
         fmpq_mat_charpoly(u.val, self.val)
         return u
 
     def minpoly(self):
+        """Returns the minimal polynomial of *self* as an *fmpq_poly*.
+
+        >>> from flint import fmpq_mat, fmpq
+        >>> A = fmpq_mat([[2, 1, 0], [0, 2, 0], [0, 0, 2]])
+        >>> A
+        [2, 1, 0]
+        [0, 2, 0]
+        [0, 0, 2]
+        >>> A.charpoly()
+        x^3 + (-6)*x^2 + 12*x + (-8)
+        >>> A.minpoly()
+        x^2 + (-4)*x + 4
+        """
         cdef fmpq_poly u
+
+        if self.nrows() != self.ncols():
+            raise ValueError("matrix must be square")
+
         u = fmpq_poly.__new__(fmpq_poly)
         fmpq_poly_init(u.val)
         fmpq_mat_minpoly(u.val, self.val)
@@ -444,12 +487,16 @@ cdef class fmpq_mat(flint_mat):
 
     def __pow__(self, n, z):
         cdef fmpq_mat v
-        assert z is None
+
+        if self.nrows() != self.ncols():
+            raise ValueError("matrix must be square")
+        if z is not None:
+            raise TypeError("fmpq_mat does not support modular exponentiation")
+
         n = int(n)
         if n == 0:
-            r, c = self.nrows(), self.ncols()
-            assert r == c
-            v = fmpq_mat(r, c)
+            r = self.nrows()
+            v = fmpq_mat(r, r)
             fmpq_mat_one(v.val)
             return v
         if n == 1:
@@ -458,6 +505,7 @@ cdef class fmpq_mat(flint_mat):
             return self * self
         if n < 0:
             return self.inv() ** (-n)
+
         v = self ** (n // 2)
         v = v * v
         if n % 2:

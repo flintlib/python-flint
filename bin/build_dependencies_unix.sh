@@ -277,7 +277,7 @@ echo "           building Flint"
 echo --------------------------------------------
 echo
 
-curl -O -L https://www.flintlib.org/flint-$FLINTVER.tar.gz
+curl -O -L https://github.com/flintlib/flint/releases/download/v$FLINTVER/flint-$FLINTVER.tar.gz
 tar xf flint-$FLINTVER.tar.gz
 cd flint-$FLINTVER
   ./bootstrap.sh

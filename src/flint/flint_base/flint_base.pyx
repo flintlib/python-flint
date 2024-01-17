@@ -1,4 +1,6 @@
+from flint.flintlib.flint cimport FLINT_BITS as _FLINT_BITS
 from flint.flint_base.flint_context cimport thectx
+
 
 cdef class flint_elem:
     def __repr__(self):
@@ -134,8 +136,6 @@ cdef class flint_mat(flint_elem):
     """
 
     def repr(self):
-        if thectx.pretty:
-            return str(self)
         # XXX
         return "%s(%i, %i, [%s])" % (type(self).__name__,
             self.nrows(), self.ncols(), (", ".join(map(str, self.entries()))))

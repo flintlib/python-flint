@@ -46,6 +46,7 @@ The user can mutate the properties directly, for example::
     >>> fmpq(3,2)
     fmpq(3,2)
     >>> ctx.pretty = True
+    >>> fmpq(3,2)
     3/2
 
 Calling ``ctx.default()`` restores the default settings.
