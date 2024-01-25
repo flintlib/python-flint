@@ -2319,6 +2319,33 @@ def test_division_scalar():
         assert raises(lambda: "AAA" / R(5), TypeError)
 
 
+def test_division_poly():
+    Z = flint.fmpz
+    Q = flint.fmpq
+    F17 = lambda x: flint.nmod(x, 17)
+    ctx = flint.fmpz_mod_ctx(163)
+    F163 = lambda a: flint.fmpz_mod(a, ctx)
+    PZ = lambda x: flint.fmpz_poly(x)
+    PQ = lambda x: flint.fmpq_poly(x)
+    PF17 = lambda x: flint.nmod_poly(x, 17)
+    PF163 = lambda x: flint.fmpz_mod_poly(x, flint.fmpz_mod_poly_ctx(163))
+    # fmpz exact scalar division
+    assert PZ([2, 4]) / Z(2) == PZ([1, 2])
+    assert PZ([2, 4]) / 2 == PZ([1, 2])
+    assert raises(lambda: PZ([2, 5]) / Z(2), DomainError)
+    assert raises(lambda: PZ([2, 5]) / 2, DomainError)
+    # field division by scalar
+    for (K, PK) in [(Q, PQ), (F17, PF17), (F163, PF163)]:
+        assert PK([2, 5]) / K(2) == PK([K(2)/K(2), K(5)/K(2)])
+        assert PK([2, 5]) / 2 == PK([K(2)/K(2), K(5)/K(2)])
+    # No other scalar division is allowed
+    for (R, PR) in [(Z, PZ), (Q, PQ), (F17, PF17), (F163, PF163)]:
+        assert raises(lambda: R(2) / PR([2, 5]), TypeError)
+        assert raises(lambda: 2 / PR([2, 5]), TypeError)
+        assert raises(lambda: PR([2, 5]) / 0, ZeroDivisionError)
+        assert raises(lambda: PR([2, 5]) / R(0), ZeroDivisionError)
+
+
 def test_division_matrix():
     Z = flint.fmpz
     Q = flint.fmpq
@@ -2517,12 +2544,14 @@ def test_polys():
         assert raises(lambda: P([1, 2, 1]) % P([0]), ZeroDivisionError)
         assert raises(lambda: divmod(P([1, 2, 1]), P([0])), ZeroDivisionError)
 
+        # Exact/field scalar division
         if is_field:
             assert P([2, 2]) / 2 == P([1, 1])
             assert P([1, 2]) / 2 == P([S(1)/2, 1])
-            assert raises(lambda: P([1, 2]) / 0, ZeroDivisionError)
         else:
-            assert raises(lambda: P([2, 2]) / 2, TypeError)
+            assert P([2, 2]) / 2 == P([1, 1])
+            assert raises(lambda: P([1, 2]) / 2, DomainError)
+        assert raises(lambda: P([1, 2]) / 0, ZeroDivisionError)
 
         assert raises(lambda: 1 / P([1, 1]), TypeError)
         assert raises(lambda: P([1, 2, 1]) / P([1, 1]), TypeError)
@@ -3105,6 +3134,7 @@ all_tests = [
     test_fmpz_mod_mat,
 
     test_division_scalar,
+    test_division_poly,
     test_division_matrix,
 
     test_polys,

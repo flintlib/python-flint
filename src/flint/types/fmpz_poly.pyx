@@ -19,7 +19,7 @@ from flint.types.arb cimport arb
 from flint.types.acb cimport any_as_acb_or_notimplemented
 cimport libc.stdlib
 from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear, fmpz_set
-from flint.flintlib.fmpz cimport fmpz_is_one, fmpz_equal_si, fmpz_equal
+from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_is_one, fmpz_equal_si, fmpz_equal
 from flint.flintlib.acb_modular cimport *
 from flint.flintlib.ulong_extras cimport n_is_prime
 from flint.flintlib.fmpz_poly cimport *
@@ -28,6 +28,9 @@ from flint.flintlib.arith cimport *
 from flint.flintlib.acb cimport *
 from flint.flintlib.arb_poly cimport *
 from flint.flintlib.arb_fmpz_poly cimport *
+
+from flint.utils.flint_exceptions import DomainError
+
 
 cdef any_as_fmpz_poly(x):
     cdef fmpz_poly res
@@ -226,6 +229,20 @@ cdef class fmpz_poly(flint_poly):
 
     def __rmul__(self, other):
         return self._mul_(other)
+
+    def __truediv__(fmpz_poly self, other):
+        cdef fmpz_poly res
+        other = any_as_fmpz(other)
+        if other is NotImplemented:
+            return other
+        if fmpz_is_zero((<fmpz>other).val):
+            raise ZeroDivisionError("fmpz_poly division by 0")
+        res = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_scalar_divexact_fmpz(res.val, self.val, (<fmpz>other).val)
+        # Check division is exact - there should be a better way to do this
+        if res * other != self:
+            raise DomainError("fmpz_poly division is not exact")
+        return res
 
     def _floordiv_(self, other):
         cdef fmpz_poly res
