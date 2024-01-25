@@ -6,7 +6,7 @@ from Cython.Distutils import build_ext
 from Cython.Build import cythonize
 
 
-if sys.version_info < (3, 12):
+if sys.platform == 'win32' and sys.version_info < (3, 12):
     from distutils.core import setup
     from distutils.extension import Extension
     from numpy.distutils.system_info import default_include_dirs, default_lib_dirs
