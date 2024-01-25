@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools",
-            "numpy",
+            "numpy; sys_platform == 'win32' and python_version < '3.12'",
             "Cython>=3"]
 build-backend = "setuptools.build_meta"
 
