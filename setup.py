@@ -132,18 +132,8 @@ for e in ext_modules:
 
 
 setup(
-    name='python-flint',
     cmdclass={'build_ext': build_ext},
     ext_modules=cythonize(ext_modules, compiler_directives=compiler_directives),
     packages=packages,
     package_dir={'': 'src'},
-    description='Bindings for FLINT and Arb',
-    long_description=open('README.md').read(),
-    long_description_content_type='text/markdown',
-    version='0.5.0',
-    url='https://github.com/flintlib/python-flint',
-    author='Fredrik Johansson',
-    author_email='fredrik.johansson@gmail.com',
-    license='MIT',
-    classifiers=['Topic :: Scientific/Engineering :: Mathematics'])
-
+)
