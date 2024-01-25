@@ -46,16 +46,15 @@ See here for instructions on building FLINT:
 
 * http://flintlib.org/
 
-The latest release of Python-FLINT can then be built and installed using:
+The latest release of Python-FLINT can then be built from source and installed
+using:
 
-    pip install 'cython>=3' numpy wheel
-    pip install --no-build-isolation python-flint
+    pip install --no-binary python-flint python-flint
 
 Python-FLINT can also be installed from a git checkout or a source archive
 as follows:
 
-    pip install 'cython>=3' numpy wheel
-    pip install --no-build-isolation .
+    pip install .
 
 A script that builds and installs FLINT and python-flint that is tested on
 Ubuntu can be found in the git repo here:
