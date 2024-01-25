@@ -452,7 +452,19 @@ cdef class fmpz_mod_poly(flint_poly):
         return res
 
     def __truediv__(s, t):
-        return fmpz_mod_poly._div_(s, t)
+        t2 = s.ctx.mod.any_as_fmpz_mod(t)
+        if t2 is not NotImplemented:
+            return s._div_(t2)
+        t2 = s.ctx.any_as_fmpz_mod_poly(t)
+        if t2 is NotImplemented:
+            return NotImplemented
+        return s.exact_division(t2)
+
+    def __rtruediv__(s, t):
+        t = s.ctx.any_as_fmpz_mod_poly(t)
+        if t is NotImplemented:
+            return NotImplemented
+        return t.exact_division(s)
 
     def exact_division(self, right):
         """
@@ -482,7 +494,7 @@ cdef class fmpz_mod_poly(flint_poly):
             res.val, self.val, (<fmpz_mod_poly>right).val, res.ctx.mod.val
         )
         if check == 0:
-            raise ValueError(
+            raise DomainError(
                 f"{right} does not divide {self}"
             )
 

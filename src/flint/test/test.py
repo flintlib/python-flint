@@ -970,7 +970,8 @@ def test_fmpq_poly():
     assert 3 * Q([1,2,3]) == Q([3,6,9])
     assert Q([1,2,3]) * flint.fmpq(2,3) == (Q([1,2,3]) * 2) / 3
     assert flint.fmpq(2,3) * Q([1,2,3]) == (Q([1,2,3]) * 2) / 3
-    assert raises(lambda: Q([1,2]) / Q([1,2]), TypeError)
+    assert Q([1,2]) / Q([1,2]) == Q([1])
+    assert raises(lambda: Q([1,2]) / Q([2,2]), DomainError)
     assert Q([1,2,3]) / flint.fmpq(2,3) == Q([1,2,3]) * flint.fmpq(3,2)
     assert Q([1,2,3]) ** 2 == Q([1,2,3]) * Q([1,2,3])
     assert raises(lambda: pow(Q([1,2]), 3, 5), NotImplementedError)
@@ -2061,7 +2062,7 @@ def test_fmpz_mod_poly():
         assert raises(lambda: f.exact_division(0), ZeroDivisionError)
 
         assert (f * g).exact_division(g) == f
-        assert raises(lambda: f.exact_division(g), ValueError)
+        assert raises(lambda: f.exact_division(g), DomainError)
 
         # true div
         assert raises(lambda: f / "AAA", TypeError)
@@ -2340,10 +2341,52 @@ def test_division_poly():
         assert PK([2, 5]) / 2 == PK([K(2)/K(2), K(5)/K(2)])
     # No other scalar division is allowed
     for (R, PR) in [(Z, PZ), (Q, PQ), (F17, PF17), (F163, PF163)]:
-        assert raises(lambda: R(2) / PR([2, 5]), TypeError)
-        assert raises(lambda: 2 / PR([2, 5]), TypeError)
+        assert raises(lambda: R(2) / PR([2, 5]), DomainError)
+        assert raises(lambda: 2 / PR([2, 5]), DomainError)
         assert raises(lambda: PR([2, 5]) / 0, ZeroDivisionError)
         assert raises(lambda: PR([2, 5]) / R(0), ZeroDivisionError)
+    # exact polynomial division
+    for (R, PR) in [(Z, PZ), (Q, PQ), (F17, PF17), (F163, PF163)]:
+        assert PR([2, 4]) / PR([1, 2]) == PR([2])
+        assert PR([2, -3, 1]) / PR([-1, 1]) == PR([-2, 1])
+        assert raises(lambda: PR([2, 4]) / PR([1, 3]), DomainError)
+        assert PR([2]) / PR([2]) == 2 / PR([2]) == PR([1])
+        assert PR([0]) / PR([1, 2]) == 0 / PR([1, 2]) == PR([0])
+        if R is Z:
+            assert raises(lambda: PR([1, 2]) / PR([2, 4]), DomainError)
+            assert raises(lambda: 1 / PR([2]), DomainError)
+        else:
+            assert PR([1, 2]) / PR([2, 4]) == PR([R(1)/R(2)])
+            assert 1 / PR([2]) == PR([R(1)/R(2)])
+        assert raises(lambda: PR([1, 2]) / PR([0]), ZeroDivisionError)
+    # Euclidean polynomial division
+    for (R, PR) in [(Z, PZ), (Q, PQ), (F17, PF17), (F163, PF163)]:
+        assert PR([2, 4]) // PR([1, 2]) == PR([2])
+        assert PR([2, 4]) % PR([1, 2]) == PR([0])
+        assert divmod(PR([2, 4]), PR([1, 2])) == (PR([2]), PR([0]))
+        assert PR([3, -3, 1]) // PR([-1, 1]) == PR([-2, 1])
+        assert PR([3, -3, 1]) % PR([-1, 1]) == PR([1])
+        assert divmod(PR([3, -3, 1]), PR([-1, 1])) == (PR([-2, 1]), PR([1]))
+        assert PR([2]) // PR([2]) == 2 // PR([2]) == PR([1])
+        assert PR([2]) % PR([2]) == 2 % PR([2]) == PR([0])
+        assert divmod(PR([2]), PR([2])) == (PR([1]), PR([0]))
+        assert PR([0]) // PR([1, 2]) == 0 // PR([1, 2]) == PR([0])
+        assert PR([0]) % PR([1, 2]) == 0 % PR([1, 2]) == PR([0])
+        assert divmod(PR([0]), PR([1, 2])) == (PR([0]), PR([0]))
+        if R is Z:
+            assert PR([2, 2]) // PR([2, 4]) == PR([2, 2]) // PR([2, 4]) == PR([0])
+            assert PR([2, 2]) % PR([2, 4]) == PR([2, 2]) % PR([2, 4]) == PR([2, 2])
+            assert divmod(PR([2, 2]), PR([2, 4])) == (PR([0]), PR([2, 2]))
+            assert 1 // PR([2]) == PR([1]) // PR([2]) == PR([0])
+            assert 1 % PR([2]) == PR([1]) % PR([2]) == PR([1])
+            assert divmod(1, PR([2])) == (PR([0]), PR([1]))
+        else:
+            assert PR([2, 2]) // PR([2, 4]) == PR([R(1)/R(2)])
+            assert PR([2, 2]) % PR([2, 4]) == PR([1])
+            assert divmod(PR([2, 2]), PR([2, 4])) == (PR([R(1)/R(2)]), PR([1]))
+            assert 1 // PR([2]) == PR([R(1)/R(2)])
+            assert 1 % PR([2]) == PR([0])
+            assert divmod(1, PR([2])) == (PR([R(1)/R(2)]), PR([0]))
 
 
 def test_division_matrix():
@@ -2553,9 +2596,9 @@ def test_polys():
             assert raises(lambda: P([1, 2]) / 2, DomainError)
         assert raises(lambda: P([1, 2]) / 0, ZeroDivisionError)
 
-        assert raises(lambda: 1 / P([1, 1]), TypeError)
-        assert raises(lambda: P([1, 2, 1]) / P([1, 1]), TypeError)
-        assert raises(lambda: P([1, 2, 1]) / P([1, 2]), TypeError)
+        assert P([1, 2, 1]) / P([1, 1]) == P([1, 1])
+        assert raises(lambda: 1 / P([1, 1]), DomainError)
+        assert raises(lambda: P([1, 2, 1]) / P([1, 2]), DomainError)
 
         assert P([1, 1]) ** 0 == P([1])
         assert P([1, 1]) ** 1 == P([1, 1])

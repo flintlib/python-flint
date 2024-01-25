@@ -16,6 +16,9 @@ from flint.flintlib.arith cimport arith_bernoulli_polynomial
 from flint.flintlib.arith cimport arith_euler_polynomial
 from flint.flintlib.arith cimport arith_legendre_polynomial
 
+from flint.utils.flint_exceptions import DomainError
+
+
 cdef any_as_fmpq_poly(obj):
     if typecheck(obj, fmpq_poly):
         return obj
@@ -295,23 +298,35 @@ cdef class fmpq_poly(flint_poly):
             return t
         return t._mod_(s)
 
-    @staticmethod
-    def _div_(fmpq_poly s, t):
-        cdef fmpq_poly r
-        t = any_as_fmpq(t)
+    def __truediv__(fmpq_poly s, t):
+        cdef fmpq_poly res
+        cdef fmpq_poly_t r
+        t2 = any_as_fmpq(t)
+        if t2 is NotImplemented:
+            t2 = any_as_fmpq_poly(t)
+            if t2 is NotImplemented:
+                return t2
+            if fmpq_poly_is_zero((<fmpq_poly>t2).val):
+                raise ZeroDivisionError("fmpq_poly division by 0")
+            res = fmpq_poly.__new__(fmpq_poly)
+            fmpq_poly_init(r)
+            fmpq_poly_divrem(res.val, r, (<fmpq_poly>s).val, (<fmpq_poly>t2).val)
+            exact = fmpq_poly_is_zero(r)
+            fmpq_poly_clear(r)
+            if not exact:
+                raise DomainError("fmpq_poly inexact division")
+        else:
+            if fmpq_is_zero((<fmpq>t2).val):
+                raise ZeroDivisionError("fmpq_poly scalar division by 0")
+            res = fmpq_poly.__new__(fmpq_poly)
+            fmpq_poly_scalar_div_fmpq(res.val, (<fmpq_poly>s).val, (<fmpq>t2).val)
+        return res
+
+    def __rtruediv__(fmpq_poly s, t):
+        t = any_as_fmpq_poly(t)
         if t is NotImplemented:
             return t
-        if fmpq_is_zero((<fmpq>t).val):
-            raise ZeroDivisionError("fmpq_poly scalar division by 0")
-        r = fmpq_poly.__new__(fmpq_poly)
-        fmpq_poly_scalar_div_fmpq(r.val, (<fmpq_poly>s).val, (<fmpq>t).val)
-        return r
-
-    def __div__(s, t):
-        return fmpq_poly._div_(s, t)
-
-    def __truediv__(s, t):
-        return fmpq_poly._div_(s, t)
+        return t / s
 
     def _divmod_(s, t):
         cdef fmpq_poly P, Q

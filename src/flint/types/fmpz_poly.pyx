@@ -232,17 +232,31 @@ cdef class fmpz_poly(flint_poly):
 
     def __truediv__(fmpz_poly self, other):
         cdef fmpz_poly res
-        other = any_as_fmpz(other)
-        if other is NotImplemented:
-            return other
-        if fmpz_is_zero((<fmpz>other).val):
-            raise ZeroDivisionError("fmpz_poly division by 0")
-        res = fmpz_poly.__new__(fmpz_poly)
-        fmpz_poly_scalar_divexact_fmpz(res.val, self.val, (<fmpz>other).val)
-        # Check division is exact - there should be a better way to do this
-        if res * other != self:
-            raise DomainError("fmpz_poly division is not exact")
+        o = any_as_fmpz(other)
+        if o is NotImplemented:
+            o = any_as_fmpz_poly(other)
+            if o is NotImplemented:
+                return NotImplemented
+            if fmpz_poly_is_zero((<fmpz_poly>o).val):
+                raise ZeroDivisionError("fmpz_poly division by 0")
+            res, r = self._divmod_(o)
+            if r:
+                raise DomainError("fmpz_poly division is not exact")
+        else:
+            if fmpz_is_zero((<fmpz>o).val):
+                raise ZeroDivisionError("fmpz_poly division by 0")
+            res = fmpz_poly.__new__(fmpz_poly)
+            fmpz_poly_scalar_divexact_fmpz(res.val, self.val, (<fmpz>o).val)
+            # Check division is exact - there should be a better way to do this
+            if res * o != self:
+                raise DomainError("fmpz_poly division is not exact")
         return res
+
+    def __rtruediv__(fmpz_poly self, other):
+        o = any_as_fmpz_poly(other)
+        if o is NotImplemented:
+            return NotImplemented
+        return o / self
 
     def _floordiv_(self, other):
         cdef fmpz_poly res
