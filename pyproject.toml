@@ -3,3 +3,20 @@ requires = ["setuptools",
             "numpy",
             "Cython>=3"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-flint"
+description = "Bindings for FLINT and Arb"
+version = "0.5.0"
+urls = {Homepage = "https://github.com/flintlib/python-flint"}
+authors = [
+    {name = "Fredrik Johansson", email = "fredrik.johansson@gmail.com"},
+]
+license = {text = "MIT"}
+classifiers = [
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
