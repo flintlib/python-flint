@@ -547,7 +547,8 @@ def test_fmpz_mat():
     assert str(M(2,2,[1,2,3,4])) == '[1, 2]\n[3, 4]'
     assert M(1,2,[3,4]) * flint.fmpq(1,3) == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
     assert flint.fmpq(1,3) * M(1,2,[3,4]) == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
-    assert M(1,2,[3,4]) / 3 == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
+    assert raises(lambda: M(1,2,[3,4]) / 3, DomainError)
+    assert M(1,2,[2,4]) / 2 == M(1,2,[1,2])
     assert M(2,2,[1,2,3,4]).inv().det() == flint.fmpq(1) / M(2,2,[1,2,3,4]).det()
     assert M(2,2,[1,2,3,4]).inv().inv() == M(2,2,[1,2,3,4])
     assert raises(lambda: M.randrank(4,3,4,1), ValueError)
@@ -2318,6 +2319,44 @@ def test_division_scalar():
         assert raises(lambda: "AAA" / R(5), TypeError)
 
 
+def test_division_matrix():
+    Z = flint.fmpz
+    Q = flint.fmpq
+    F17 = lambda x: flint.nmod(x, 17)
+    ctx = flint.fmpz_mod_ctx(163)
+    F163 = lambda a: flint.fmpz_mod(a, ctx)
+    MZ = lambda x: flint.fmpz_mat(x)
+    MQ = lambda x: flint.fmpq_mat(x)
+    MF17 = lambda x: flint.nmod_mat(x, 17)
+    MF163 = lambda x: flint.fmpz_mod_mat(x, ctx)
+    # fmpz exact division
+    assert MZ([[2, 4]]) / Z(2) == MZ([[1, 2]])
+    assert MZ([[2, 4]]) / 2 == MZ([[1, 2]])
+    assert raises(lambda: MZ([[2, 5]]) / Z(2), DomainError)
+    assert raises(lambda: MZ([[2, 5]]) / 2, DomainError)
+    # field division by scalar
+    for (K, MK) in [(Q, MQ), (F17, MF17), (F163, MF163)]:
+        assert MK([[2, 5]]) / K(2) == MK([[K(2)/K(2), K(5)/K(2)]])
+        assert MK([[2, 5]]) / 2 == MK([[K(2)/K(2), K(5)/K(2)]])
+    # No other division is allowed
+    for (R, MR) in [(Z, MZ), (Q, MQ), (F17, MF17), (F163, MF163)]:
+        M = MR([[2, 5]])
+        for s in (2, R(2)):
+            assert raises(lambda: s / M, TypeError)
+            assert raises(lambda: M // s, TypeError)
+            assert raises(lambda: s // M, TypeError)
+            assert raises(lambda: M % s, TypeError)
+            assert raises(lambda: s % M, TypeError)
+            assert raises(lambda: divmod(s, M), TypeError)
+            assert raises(lambda: divmod(M, s), TypeError)
+        assert raises(lambda: M / M, TypeError)
+        assert raises(lambda: M // M, TypeError)
+        assert raises(lambda: M % M, TypeError)
+        assert raises(lambda: divmod(M, M), TypeError)
+        assert raises(lambda: M / 0, ZeroDivisionError)
+        assert raises(lambda: M / R(0), ZeroDivisionError)
+
+
 def _all_polys():
     return [
         # (poly_type, scalar_type, is_field)
@@ -3066,6 +3105,7 @@ all_tests = [
     test_fmpz_mod_mat,
 
     test_division_scalar,
+    test_division_matrix,
 
     test_polys,
 
