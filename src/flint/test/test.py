@@ -90,6 +90,7 @@ def test_fmpz():
         assert int(f) == i
         assert flint.fmpz(f) == f
         assert flint.fmpz(str(i)) == f
+    assert raises(lambda: flint.fmpz(1,2), TypeError)
     assert raises(lambda: flint.fmpz("qwe"), ValueError)
     assert raises(lambda: flint.fmpz([]), TypeError)
     for s in L:
@@ -161,6 +162,9 @@ def test_fmpz():
     assert raises(lambda: pow(flint.fmpz(2), 2, 0), ValueError)
     # XXX: Handle negative modulus like int?
     assert raises(lambda: pow(flint.fmpz(2), 2, -1), ValueError)
+
+    assert raises(lambda: pow(flint.fmpz(2), "asd", 2), TypeError)
+    assert raises(lambda: pow(flint.fmpz(2), 2, "asd"), TypeError)
 
     f = flint.fmpz(2)
     assert f.numerator == f
@@ -2276,6 +2280,44 @@ def test_fmpz_mod_mat():
     assert raises(lambda: flint.fmpz_mod_mat(A, c11), TypeError)
 
 
+def test_division_scalar():
+    Z = flint.fmpz
+    Q = flint.fmpq
+    F17 = lambda x: flint.nmod(x, 17)
+    ctx = flint.fmpz_mod_ctx(163)
+    F163 = lambda a: flint.fmpz_mod(a, ctx)
+    # fmpz exact division
+    for (a, b) in [(Z(4), Z(2)), (Z(4), 2), (4, Z(2))]:
+        assert a / b == Z(2)
+    for (a, b) in [(Z(5), Z(2)), (Z(5), 2), (5, Z(2))]:
+        assert raises(lambda: a / b, DomainError)
+    # fmpz Euclidean division
+    for (a, b) in [(Z(5), Z(2)), (Z(5), 2), (5, Z(2))]:
+        assert a // b == 2
+        assert a % b == 1
+        assert divmod(a, b) == (2, 1)
+    # field division
+    for (a, b) in [(Q(5), Q(2)), (Q(5), 2), (5, Q(2))]:
+        assert a / b == Q(5,2)
+    for (a, b) in [(F17(5), F17(2)), (F17(5), 2), (5, F17(2))]:
+        assert a / b == F17(11)
+    for (a, b) in [(F163(5), F163(2)), (F163(5), 2), (5, F163(2))]:
+        assert a / b == F163(84)
+    # divmod with fields - should this give remainder zero instead of error?
+    for K in [Q, F17, F163]:
+        for (a, b) in [(K(5), K(2)), (K(5), 2), (5, K(2))]:
+            assert raises(lambda: divmod(a, b), TypeError)
+    # Zero division
+    for R in [Z, Q, F17, F163]:
+        assert raises(lambda: R(5) / 0, ZeroDivisionError)
+        assert raises(lambda: R(5) / R(0), ZeroDivisionError)
+        assert raises(lambda: 5 / R(0), ZeroDivisionError)
+    # Bad types
+    for R in [Z, Q, F17, F163]:
+        assert raises(lambda: R(5) / "AAA", TypeError)
+        assert raises(lambda: "AAA" / R(5), TypeError)
+
+
 def _all_polys():
     return [
         # (poly_type, scalar_type, is_field)
@@ -3023,7 +3065,7 @@ all_tests = [
     test_fmpz_mod_poly,
     test_fmpz_mod_mat,
 
-    test_arb,
+    test_division_scalar,
 
     test_polys,
 
@@ -3048,7 +3090,9 @@ all_tests = [
     test_matrices_rref,
     test_matrices_solve,
 
-    test_pickling,
-    test_all_tests,
+    test_arb,
 
+    test_pickling,
+
+    test_all_tests,
 ]
