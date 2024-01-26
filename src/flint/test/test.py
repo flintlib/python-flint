@@ -90,6 +90,7 @@ def test_fmpz():
         assert int(f) == i
         assert flint.fmpz(f) == f
         assert flint.fmpz(str(i)) == f
+    assert raises(lambda: flint.fmpz(1,2), TypeError)
     assert raises(lambda: flint.fmpz("qwe"), ValueError)
     assert raises(lambda: flint.fmpz([]), TypeError)
     for s in L:
@@ -161,6 +162,9 @@ def test_fmpz():
     assert raises(lambda: pow(flint.fmpz(2), 2, 0), ValueError)
     # XXX: Handle negative modulus like int?
     assert raises(lambda: pow(flint.fmpz(2), 2, -1), ValueError)
+
+    assert raises(lambda: pow(flint.fmpz(2), "asd", 2), TypeError)
+    assert raises(lambda: pow(flint.fmpz(2), 2, "asd"), TypeError)
 
     f = flint.fmpz(2)
     assert f.numerator == f
@@ -543,7 +547,8 @@ def test_fmpz_mat():
     assert str(M(2,2,[1,2,3,4])) == '[1, 2]\n[3, 4]'
     assert M(1,2,[3,4]) * flint.fmpq(1,3) == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
     assert flint.fmpq(1,3) * M(1,2,[3,4]) == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
-    assert M(1,2,[3,4]) / 3 == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
+    assert raises(lambda: M(1,2,[3,4]) / 3, DomainError)
+    assert M(1,2,[2,4]) / 2 == M(1,2,[1,2])
     assert M(2,2,[1,2,3,4]).inv().det() == flint.fmpq(1) / M(2,2,[1,2,3,4]).det()
     assert M(2,2,[1,2,3,4]).inv().inv() == M(2,2,[1,2,3,4])
     assert raises(lambda: M.randrank(4,3,4,1), ValueError)
@@ -965,7 +970,8 @@ def test_fmpq_poly():
     assert 3 * Q([1,2,3]) == Q([3,6,9])
     assert Q([1,2,3]) * flint.fmpq(2,3) == (Q([1,2,3]) * 2) / 3
     assert flint.fmpq(2,3) * Q([1,2,3]) == (Q([1,2,3]) * 2) / 3
-    assert raises(lambda: Q([1,2]) / Q([1,2]), TypeError)
+    assert Q([1,2]) / Q([1,2]) == Q([1])
+    assert raises(lambda: Q([1,2]) / Q([2,2]), DomainError)
     assert Q([1,2,3]) / flint.fmpq(2,3) == Q([1,2,3]) * flint.fmpq(3,2)
     assert Q([1,2,3]) ** 2 == Q([1,2,3]) * Q([1,2,3])
     assert raises(lambda: pow(Q([1,2]), 3, 5), NotImplementedError)
@@ -2056,7 +2062,7 @@ def test_fmpz_mod_poly():
         assert raises(lambda: f.exact_division(0), ZeroDivisionError)
 
         assert (f * g).exact_division(g) == f
-        assert raises(lambda: f.exact_division(g), ValueError)
+        assert raises(lambda: f.exact_division(g), DomainError)
 
         # true div
         assert raises(lambda: f / "AAA", TypeError)
@@ -2276,6 +2282,151 @@ def test_fmpz_mod_mat():
     assert raises(lambda: flint.fmpz_mod_mat(A, c11), TypeError)
 
 
+def test_division_scalar():
+    Z = flint.fmpz
+    Q = flint.fmpq
+    F17 = lambda x: flint.nmod(x, 17)
+    ctx = flint.fmpz_mod_ctx(163)
+    F163 = lambda a: flint.fmpz_mod(a, ctx)
+    # fmpz exact division
+    for (a, b) in [(Z(4), Z(2)), (Z(4), 2), (4, Z(2))]:
+        assert a / b == Z(2)
+    for (a, b) in [(Z(5), Z(2)), (Z(5), 2), (5, Z(2))]:
+        assert raises(lambda: a / b, DomainError)
+    # fmpz Euclidean division
+    for (a, b) in [(Z(5), Z(2)), (Z(5), 2), (5, Z(2))]:
+        assert a // b == 2
+        assert a % b == 1
+        assert divmod(a, b) == (2, 1)
+    # field division
+    for (a, b) in [(Q(5), Q(2)), (Q(5), 2), (5, Q(2))]:
+        assert a / b == Q(5,2)
+    for (a, b) in [(F17(5), F17(2)), (F17(5), 2), (5, F17(2))]:
+        assert a / b == F17(11)
+    for (a, b) in [(F163(5), F163(2)), (F163(5), 2), (5, F163(2))]:
+        assert a / b == F163(84)
+    # divmod with fields - should this give remainder zero instead of error?
+    for K in [Q, F17, F163]:
+        for (a, b) in [(K(5), K(2)), (K(5), 2), (5, K(2))]:
+            assert raises(lambda: divmod(a, b), TypeError)
+    # Zero division
+    for R in [Z, Q, F17, F163]:
+        assert raises(lambda: R(5) / 0, ZeroDivisionError)
+        assert raises(lambda: R(5) / R(0), ZeroDivisionError)
+        assert raises(lambda: 5 / R(0), ZeroDivisionError)
+    # Bad types
+    for R in [Z, Q, F17, F163]:
+        assert raises(lambda: R(5) / "AAA", TypeError)
+        assert raises(lambda: "AAA" / R(5), TypeError)
+
+
+def test_division_poly():
+    Z = flint.fmpz
+    Q = flint.fmpq
+    F17 = lambda x: flint.nmod(x, 17)
+    ctx = flint.fmpz_mod_ctx(163)
+    F163 = lambda a: flint.fmpz_mod(a, ctx)
+    PZ = lambda x: flint.fmpz_poly(x)
+    PQ = lambda x: flint.fmpq_poly(x)
+    PF17 = lambda x: flint.nmod_poly(x, 17)
+    PF163 = lambda x: flint.fmpz_mod_poly(x, flint.fmpz_mod_poly_ctx(163))
+    # fmpz exact scalar division
+    assert PZ([2, 4]) / Z(2) == PZ([1, 2])
+    assert PZ([2, 4]) / 2 == PZ([1, 2])
+    assert raises(lambda: PZ([2, 5]) / Z(2), DomainError)
+    assert raises(lambda: PZ([2, 5]) / 2, DomainError)
+    # field division by scalar
+    for (K, PK) in [(Q, PQ), (F17, PF17), (F163, PF163)]:
+        assert PK([2, 5]) / K(2) == PK([K(2)/K(2), K(5)/K(2)])
+        assert PK([2, 5]) / 2 == PK([K(2)/K(2), K(5)/K(2)])
+    # No other scalar division is allowed
+    for (R, PR) in [(Z, PZ), (Q, PQ), (F17, PF17), (F163, PF163)]:
+        assert raises(lambda: R(2) / PR([2, 5]), DomainError)
+        assert raises(lambda: 2 / PR([2, 5]), DomainError)
+        assert raises(lambda: PR([2, 5]) / 0, ZeroDivisionError)
+        assert raises(lambda: PR([2, 5]) / R(0), ZeroDivisionError)
+    # exact polynomial division
+    for (R, PR) in [(Z, PZ), (Q, PQ), (F17, PF17), (F163, PF163)]:
+        assert PR([2, 4]) / PR([1, 2]) == PR([2])
+        assert PR([2, -3, 1]) / PR([-1, 1]) == PR([-2, 1])
+        assert raises(lambda: PR([2, 4]) / PR([1, 3]), DomainError)
+        assert PR([2]) / PR([2]) == 2 / PR([2]) == PR([1])
+        assert PR([0]) / PR([1, 2]) == 0 / PR([1, 2]) == PR([0])
+        if R is Z:
+            assert raises(lambda: PR([1, 2]) / PR([2, 4]), DomainError)
+            assert raises(lambda: 1 / PR([2]), DomainError)
+        else:
+            assert PR([1, 2]) / PR([2, 4]) == PR([R(1)/R(2)])
+            assert 1 / PR([2]) == PR([R(1)/R(2)])
+        assert raises(lambda: PR([1, 2]) / PR([0]), ZeroDivisionError)
+    # Euclidean polynomial division
+    for (R, PR) in [(Z, PZ), (Q, PQ), (F17, PF17), (F163, PF163)]:
+        assert PR([2, 4]) // PR([1, 2]) == PR([2])
+        assert PR([2, 4]) % PR([1, 2]) == PR([0])
+        assert divmod(PR([2, 4]), PR([1, 2])) == (PR([2]), PR([0]))
+        assert PR([3, -3, 1]) // PR([-1, 1]) == PR([-2, 1])
+        assert PR([3, -3, 1]) % PR([-1, 1]) == PR([1])
+        assert divmod(PR([3, -3, 1]), PR([-1, 1])) == (PR([-2, 1]), PR([1]))
+        assert PR([2]) // PR([2]) == 2 // PR([2]) == PR([1])
+        assert PR([2]) % PR([2]) == 2 % PR([2]) == PR([0])
+        assert divmod(PR([2]), PR([2])) == (PR([1]), PR([0]))
+        assert PR([0]) // PR([1, 2]) == 0 // PR([1, 2]) == PR([0])
+        assert PR([0]) % PR([1, 2]) == 0 % PR([1, 2]) == PR([0])
+        assert divmod(PR([0]), PR([1, 2])) == (PR([0]), PR([0]))
+        if R is Z:
+            assert PR([2, 2]) // PR([2, 4]) == PR([2, 2]) // PR([2, 4]) == PR([0])
+            assert PR([2, 2]) % PR([2, 4]) == PR([2, 2]) % PR([2, 4]) == PR([2, 2])
+            assert divmod(PR([2, 2]), PR([2, 4])) == (PR([0]), PR([2, 2]))
+            assert 1 // PR([2]) == PR([1]) // PR([2]) == PR([0])
+            assert 1 % PR([2]) == PR([1]) % PR([2]) == PR([1])
+            assert divmod(1, PR([2])) == (PR([0]), PR([1]))
+        else:
+            assert PR([2, 2]) // PR([2, 4]) == PR([R(1)/R(2)])
+            assert PR([2, 2]) % PR([2, 4]) == PR([1])
+            assert divmod(PR([2, 2]), PR([2, 4])) == (PR([R(1)/R(2)]), PR([1]))
+            assert 1 // PR([2]) == PR([R(1)/R(2)])
+            assert 1 % PR([2]) == PR([0])
+            assert divmod(1, PR([2])) == (PR([R(1)/R(2)]), PR([0]))
+
+
+def test_division_matrix():
+    Z = flint.fmpz
+    Q = flint.fmpq
+    F17 = lambda x: flint.nmod(x, 17)
+    ctx = flint.fmpz_mod_ctx(163)
+    F163 = lambda a: flint.fmpz_mod(a, ctx)
+    MZ = lambda x: flint.fmpz_mat(x)
+    MQ = lambda x: flint.fmpq_mat(x)
+    MF17 = lambda x: flint.nmod_mat(x, 17)
+    MF163 = lambda x: flint.fmpz_mod_mat(x, ctx)
+    # fmpz exact division
+    assert MZ([[2, 4]]) / Z(2) == MZ([[1, 2]])
+    assert MZ([[2, 4]]) / 2 == MZ([[1, 2]])
+    assert raises(lambda: MZ([[2, 5]]) / Z(2), DomainError)
+    assert raises(lambda: MZ([[2, 5]]) / 2, DomainError)
+    # field division by scalar
+    for (K, MK) in [(Q, MQ), (F17, MF17), (F163, MF163)]:
+        assert MK([[2, 5]]) / K(2) == MK([[K(2)/K(2), K(5)/K(2)]])
+        assert MK([[2, 5]]) / 2 == MK([[K(2)/K(2), K(5)/K(2)]])
+    # No other division is allowed
+    for (R, MR) in [(Z, MZ), (Q, MQ), (F17, MF17), (F163, MF163)]:
+        M = MR([[2, 5]])
+        for s in (2, R(2)):
+            assert raises(lambda: s / M, TypeError)
+            assert raises(lambda: M // s, TypeError)
+            assert raises(lambda: s // M, TypeError)
+            assert raises(lambda: M % s, TypeError)
+            assert raises(lambda: s % M, TypeError)
+            assert raises(lambda: divmod(s, M), TypeError)
+            assert raises(lambda: divmod(M, s), TypeError)
+        assert raises(lambda: M / M, TypeError)
+        assert raises(lambda: M // M, TypeError)
+        assert raises(lambda: M % M, TypeError)
+        assert raises(lambda: divmod(M, M), TypeError)
+        assert raises(lambda: M / 0, ZeroDivisionError)
+        assert raises(lambda: M / R(0), ZeroDivisionError)
+
+
 def _all_polys():
     return [
         # (poly_type, scalar_type, is_field)
@@ -2436,16 +2587,18 @@ def test_polys():
         assert raises(lambda: P([1, 2, 1]) % P([0]), ZeroDivisionError)
         assert raises(lambda: divmod(P([1, 2, 1]), P([0])), ZeroDivisionError)
 
+        # Exact/field scalar division
         if is_field:
             assert P([2, 2]) / 2 == P([1, 1])
             assert P([1, 2]) / 2 == P([S(1)/2, 1])
-            assert raises(lambda: P([1, 2]) / 0, ZeroDivisionError)
         else:
-            assert raises(lambda: P([2, 2]) / 2, TypeError)
+            assert P([2, 2]) / 2 == P([1, 1])
+            assert raises(lambda: P([1, 2]) / 2, DomainError)
+        assert raises(lambda: P([1, 2]) / 0, ZeroDivisionError)
 
-        assert raises(lambda: 1 / P([1, 1]), TypeError)
-        assert raises(lambda: P([1, 2, 1]) / P([1, 1]), TypeError)
-        assert raises(lambda: P([1, 2, 1]) / P([1, 2]), TypeError)
+        assert P([1, 2, 1]) / P([1, 1]) == P([1, 1])
+        assert raises(lambda: 1 / P([1, 1]), DomainError)
+        assert raises(lambda: P([1, 2, 1]) / P([1, 2]), DomainError)
 
         assert P([1, 1]) ** 0 == P([1])
         assert P([1, 1]) ** 1 == P([1, 1])
@@ -3023,7 +3176,9 @@ all_tests = [
     test_fmpz_mod_poly,
     test_fmpz_mod_mat,
 
-    test_arb,
+    test_division_scalar,
+    test_division_poly,
+    test_division_matrix,
 
     test_polys,
 
@@ -3048,7 +3203,9 @@ all_tests = [
     test_matrices_rref,
     test_matrices_solve,
 
-    test_pickling,
-    test_all_tests,
+    test_arb,
 
+    test_pickling,
+
+    test_all_tests,
 ]

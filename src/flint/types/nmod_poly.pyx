@@ -12,6 +12,9 @@ from flint.flintlib.nmod_poly_factor cimport *
 from flint.flintlib.fmpz_poly cimport fmpz_poly_get_nmod_poly
 from flint.flintlib.ulong_extras cimport n_gcdinv
 
+from flint.utils.flint_exceptions import DomainError
+
+
 cdef any_as_nmod_poly(obj, nmod_t mod):
     cdef nmod_poly r
     cdef mp_limb_t v
@@ -258,7 +261,23 @@ cdef class nmod_poly(flint_poly):
     def __rmul__(s, t):
         return s._mul_(t)
 
-    # TODO: __div__, __truediv__
+    def __truediv__(s, t):
+        t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+        if t is NotImplemented:
+            return t
+        res, r = s._divmod_(t)
+        if not nmod_poly_is_zero((<nmod_poly>r).val):
+            raise DomainError("nmod_poly inexact division")
+        return res
+
+    def __rtruediv__(s, t):
+        t = any_as_nmod_poly(t, (<nmod_poly>s).val.mod)
+        if t is NotImplemented:
+            return t
+        res, r = t._divmod_(s)
+        if not nmod_poly_is_zero((<nmod_poly>r).val):
+            raise DomainError("nmod_poly inexact division")
+        return res
 
     def _floordiv_(s, t):
         cdef nmod_poly r
@@ -307,13 +326,6 @@ cdef class nmod_poly(flint_poly):
         if t is NotImplemented:
             return t
         return t._divmod_(s)
-
-    def __truediv__(s, t):
-        try:
-            t = nmod(t, (<nmod_poly>s).val.mod.n)
-        except TypeError:
-            return NotImplemented
-        return s * t ** -1
 
     def __mod__(s, t):
         return divmod(s, t)[1]      # XXX

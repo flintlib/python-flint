@@ -1,5 +1,3 @@
-from cpython.version cimport PY_MAJOR_VERSION
-
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport chars_from_str
@@ -11,6 +9,9 @@ from flint.flintlib.fmpz cimport *
 from flint.flintlib.fmpz_factor cimport *
 from flint.flintlib.arith cimport *
 from flint.flintlib.partitions cimport *
+
+from flint.utils.flint_exceptions import DomainError
+
 
 cdef fmpz_get_intlong(fmpz_t x):
     """
@@ -29,10 +30,6 @@ cdef int fmpz_set_any_ref(fmpz_t x, obj):
     if typecheck(obj, fmpz):
         x[0] = (<fmpz>obj).val[0]
         return FMPZ_REF
-    if PY_MAJOR_VERSION < 3 and PyInt_Check(obj):
-        fmpz_init(x)
-        fmpz_set_si(x, PyInt_AS_LONG(obj))
-        return FMPZ_TMP
     if PyLong_Check(obj):
         fmpz_init(x)
         fmpz_set_pylong(x, obj)
@@ -103,9 +100,6 @@ cdef class fmpz(flint_scalar):
     def __int__(self):
         return fmpz_get_intlong(self.val)
 
-    def __long__(self):
-        return long(fmpz_get_intlong(self.val))
-
     def __index__(self):
         return fmpz_get_intlong(self.val)
 
@@ -134,27 +128,18 @@ cdef class fmpz(flint_scalar):
         cdef fmpz_struct * sval
         cdef int ttype
         sval = &((<fmpz>s).val[0])
-        if PY_MAJOR_VERSION < 3 and PyInt_Check(t):
-            tl = PyInt_AS_LONG(t)
-            if   op == 2: res = fmpz_cmp_si(sval, tl) == 0
-            elif op == 3: res = fmpz_cmp_si(sval, tl) != 0
-            elif op == 0: res = fmpz_cmp_si(sval, tl) < 0
-            elif op == 1: res = fmpz_cmp_si(sval, tl) <= 0
-            elif op == 4: res = fmpz_cmp_si(sval, tl) > 0
-            elif op == 5: res = fmpz_cmp_si(sval, tl) >= 0
-        else:
-            ttype = fmpz_set_any_ref(tval, t)
-            if ttype != FMPZ_UNKNOWN:
-                if   op == 2: res = fmpz_equal(sval, tval)
-                elif op == 3: res = not fmpz_equal(sval, tval)
-                elif op == 0: res = fmpz_cmp(sval, tval) < 0
-                elif op == 1: res = fmpz_cmp(sval, tval) <= 0
-                elif op == 4: res = fmpz_cmp(sval, tval) > 0
-                elif op == 5: res = fmpz_cmp(sval, tval) >= 0
-            if ttype == FMPZ_TMP:
-                fmpz_clear(tval)
-            if ttype == FMPZ_UNKNOWN:
-                return NotImplemented
+        ttype = fmpz_set_any_ref(tval, t)
+        if ttype != FMPZ_UNKNOWN:
+            if   op == 2: res = fmpz_equal(sval, tval)
+            elif op == 3: res = not fmpz_equal(sval, tval)
+            elif op == 0: res = fmpz_cmp(sval, tval) < 0
+            elif op == 1: res = fmpz_cmp(sval, tval) <= 0
+            elif op == 4: res = fmpz_cmp(sval, tval) > 0
+            elif op == 5: res = fmpz_cmp(sval, tval) >= 0
+        if ttype == FMPZ_TMP:
+            fmpz_clear(tval)
+        if ttype == FMPZ_UNKNOWN:
+            return NotImplemented
         return res
 
     def bit_length(self):
@@ -264,6 +249,39 @@ cdef class fmpz(flint_scalar):
             fmpz_mul((<fmpz>u).val, tval, (<fmpz>s).val)
         if ttype == FMPZ_TMP: fmpz_clear(tval)
         return u
+
+    def __truediv__(s, t):
+        cdef fmpz_struct tval[1]
+        cdef fmpz_struct rval[1]
+        cdef int ttype
+
+        ttype = fmpz_set_any_ref(tval, t)
+        if ttype == FMPZ_UNKNOWN:
+            return NotImplemented
+
+        if fmpz_is_zero(tval):
+            if ttype == FMPZ_TMP:
+                fmpz_clear(tval)
+            raise ZeroDivisionError("fmpz division by zero")
+
+        q = fmpz.__new__(fmpz)
+        fmpz_init(rval)
+        fmpz_fdiv_qr((<fmpz>q).val, rval, (<fmpz>s).val, tval)
+        exact = fmpz_is_zero(rval)
+        fmpz_clear(rval)
+
+        if ttype == FMPZ_TMP: fmpz_clear(tval)
+
+        if exact:
+            return q
+        else:
+            raise DomainError("fmpz division is not exact")
+
+    def __rtruediv__(s, t):
+        t = any_as_fmpz(t)
+        if t is NotImplemented:
+            return t
+        return t.__truediv__(s)
 
     def __floordiv__(s, t):
         cdef fmpz_struct tval[1]
