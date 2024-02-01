@@ -36,11 +36,9 @@ Build from source
 -----------------
 
 For other platforms or architectures installation needs to build from source.
-First install FLINT 3.0.0. Note that as of python-flint 0.5.0 only this *exact*
-version of FLINT will work. In future it is hoped that the version requirement
-for python-flint will be FLINT >= 3.0.0 but at the time of writing 3.0.0 is the
-newest version of FLINT that has only been released recently and is the only
-version that is supported by python-flint.
+First install FLINT 3. Starting with python-flint 0.5.0 older versions of Flint
+such as 2.9 are not supported any more. Note that as of Flint 3 Arb no longer
+needs to be built separately as it is now merged into Flint.
 
 See here for instructions on building FLINT:
 
