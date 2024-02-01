@@ -33,4 +33,4 @@ from .types.acb_series import *
 from .types.dirichlet import *
 from .functions.showgood import good, showgood
 
-__version__ = '0.5.0'
+__version__ = '0.6.0'

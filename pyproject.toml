@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "python-flint"
 description = "Bindings for FLINT and Arb"
-version = "0.5.0"
+version = "0.6.0"
 urls = {Homepage = "https://github.com/flintlib/python-flint"}
 authors = [
     {name = "Fredrik Johansson", email = "fredrik.johansson@gmail.com"},
