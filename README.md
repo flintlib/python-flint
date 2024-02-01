@@ -128,6 +128,20 @@ To do
 CHANGELOG
 -------------
 
+0.6.0
+
+- gh-112, gh-111, gh-110, gh-108: Add pyproject.toml and build dependencies.
+  This means that python-flint can be built from source without
+  `--no-build-isolation`.
+- gh-109: Use exact division for non-field domains. Now `fmpz(6)/fmpz(3)` returns
+  an exact result `fmpz(2)` or raises an error if an exact result is not
+  possible. Similar changes for `fmpz_poly/fmpz`, `fmpz_mat/fmpz`, and for
+  polynomial division with `fmpz_poly`, `fmpq_poly`, `nmod_poly` and
+  `fmpz_mod_poly`.
+- gh-106: Add `fmpz_mod_mat` for matrices of integers mod `n` where `n` is
+  larger than word sized.
+- gh-104: Bump Flint from 3.0.0 to 3.0.1
+
 0.5.0
 
 Important compatibility changes:
