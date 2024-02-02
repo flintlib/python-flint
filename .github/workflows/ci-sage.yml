@@ -109,6 +109,7 @@ jobs:
       targets: SAGE_CHECK=no SAGE_CHECK_flint=yes SAGE_CHECK_python_flint=yes python_flint
       # Standard setting: Test the current beta release of Sage:
       sage_repo:         sagemath/sage
-      sage_ref:          develop
+      sage_ref:          refs/pull/37224/head
+      #sage_ref:          develop
       upstream_artifact: upstream
     needs: [dist]
