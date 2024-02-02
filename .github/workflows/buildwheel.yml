@@ -52,8 +52,9 @@ jobs:
             bin\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}
           CIBW_TEST_COMMAND: python -c "import flint; print(str(flint.fmpz(2)))"
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: wheels-${{ matrix.os }}
           path: wheelhouse/*.whl
 
   build_sdist:
@@ -71,8 +72,9 @@ jobs:
       - run: pip install cython setuptools
       - run: python setup.py sdist
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: sdist
           path: dist/*.tar.gz
 
   test_rst:
@@ -87,9 +89,9 @@ jobs:
         with:
           python-version: '3.12'
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          name: wheels-ubuntu-20.04
           path: wheelhouse
 
       - run: pip install --upgrade pip
@@ -111,9 +113,9 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          name: wheels-${{ matrix.os }}
           path: wheelhouse
       - run: pip install --no-index --find-links wheelhouse python_flint
       - run: python -m flint.test --verbose
