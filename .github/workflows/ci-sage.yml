@@ -8,8 +8,6 @@ name: Run Sage CI
 ##  - continuous integration, by building and testing other software
 ##    that depends on this project.
 ##
-## It runs on every pull request and push of a tag to the GitHub repository.
-##
 ## The testing can be monitored in the "Actions" tab of the GitHub repository.
 ##
 ## After all jobs have finished (or are canceled) and a short delay,
@@ -50,8 +48,6 @@ env:
   # Name of this project in the Sage distribution
   SPKG:             python_flint
   # Standard setting: Test the current beta release of Sage:
-  SAGE_REPO:        sagemath/sage
-  SAGE_REF:         develop
   REMOVE_PATCHES:   "*"
 
 jobs:
@@ -88,16 +84,17 @@ jobs:
     uses: sagemath/sage/.github/workflows/docker.yml@develop
     with:
       # Sage distribution packages to build
-      targets: SAGE_CHECK=no SAGE_CHECK_flint=yes SAGE_CHECK_python_flint=yes python_flint
+      targets:                  SAGE_CHECK=no SAGE_CHECK_flint=yes SAGE_CHECK_python_flint=yes python_flint
       # Standard setting: Test the current beta release of Sage:
-      sage_repo: sagemath/sage
-      sage_ref: develop
-      upstream_artifact: upstream
+      sage_repo:                sagemath/sage
+      sage_ref:                 refs/pull/37224/head
+      #sage_ref:                 develop
+      upstream_artifact:        upstream
       # Docker targets (stages) to tag
-      docker_targets: "with-targets"
+      docker_targets:           "with-targets"
       # We prefix the image name with the SPKG name ("python_flint_") to avoid the error
       # 'Package "sage-docker-..." is already associated with another repository.'
-      docker_push_repository: ghcr.io/${{ github.repository }}/python_flint_
+      docker_push_repository:   ghcr.io/${{ github.repository }}/python_flint_
     needs: [dist]
 
   macos:
@@ -106,10 +103,10 @@ jobs:
       osversion_xcodeversion_toxenv_tuples: >-
         [["latest", "",           "homebrew-macos-usrlocal-minimal"],
          ["latest", "",           "homebrew-macos-usrlocal-standard"]]
-      targets: SAGE_CHECK=no SAGE_CHECK_flint=yes SAGE_CHECK_python_flint=yes python_flint
+      targets:                  SAGE_CHECK=no SAGE_CHECK_flint=yes SAGE_CHECK_python_flint=yes python_flint
       # Standard setting: Test the current beta release of Sage:
-      sage_repo:         sagemath/sage
-      sage_ref:          refs/pull/37224/head
-      #sage_ref:          develop
-      upstream_artifact: upstream
+      sage_repo:                sagemath/sage
+      sage_ref:                 refs/pull/37224/head
+      #sage_ref:                 develop
+      upstream_artifact:        upstream
     needs: [dist]
