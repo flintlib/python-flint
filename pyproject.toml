@@ -36,6 +36,7 @@ LD_LIBRARY_PATH = "$(pwd)/.local/lib:$LD_LIBRARY_PATH"
 before-all = "bin/cibw_before_all_linux.sh"
 
 [tool.cibuildwheel.macos]
+before-all = "bin/cibw_before_all_macosx_$(uname -m).sh"
 
 [tool.cibuildwheel.windows]
 repair-wheel-command = "bin\\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}"
