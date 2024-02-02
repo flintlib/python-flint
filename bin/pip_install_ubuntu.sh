@@ -37,14 +37,6 @@ PYTHON_FLINT=$1
 sudo apt-get update
 sudo apt-get install libgmp-dev libmpfr-dev xz-utils
 
-# This will default to installing in /usr/local. If you want to install in a
-# non-standard location then configure flint with
-#    ./configure --disable-static --prefix=$PREFIX
-# If $PREFIX is not in default search paths, then at build time set
-#    export C_INCLUDE_PATH=$PREFIX/include
-# and at runtime set
-#    export LD_LIBRARY_PATH=$PREFIX/lib
-
 if [ -z "$FLINT_GIT" ]; then
     # Install from release tarball
     echo "Installing Flint $FLINTVER from release tarball"
@@ -59,10 +51,18 @@ else
     git checkout $FLINT_GIT
 fi
 
+# This will default to installing in /usr/local. If you want to install in a
+# non-standard location then configure flint with
+#    ./configure --disable-static --prefix=$PREFIX
+# If $PREFIX is not in default search paths, then at build time set
+#    export C_INCLUDE_PATH=$PREFIX/include
+# and at runtime set
+#    export LD_LIBRARY_PATH=$PREFIX/lib
 ./bootstrap.sh
 ./configure --disable-static
 make -j
 sudo make install
+cd ..
 
 ls -l /usr/local/lib
 sudo ldconfig /usr/local/lib
