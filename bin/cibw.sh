@@ -8,9 +8,6 @@
 
 rm -f wheelhouse/*
 
-# bin/build_dependencies_unix.sh places headers and shared libraries under .local
-export CIBW_ENVIRONMENT='C_INCLUDE_PATH=$(pwd)/.local/include/ LIBRARY_PATH=$(pwd)/.local/lib/ LD_LIBRARY_PATH=$(pwd)/.local/lib:$LD_LIBRARY_PATH'
-
 export CIBW_BUILD='cp39-* cp310-* cp311-* cp312-*'
 # export CIBW_BUILD='cp311-*'
 export CIBW_SKIP='*-win32 *-manylinux_i686 *-musllinux_*'

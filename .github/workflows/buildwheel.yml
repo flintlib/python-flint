@@ -43,10 +43,6 @@ jobs:
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
           CIBW_BEFORE_BUILD_WINDOWS: msys2 -c bin/cibw_before_build_windows.sh
           CIBW_BEFORE_BUILD: pip install numpy setuptools cython delvewheel
-          CIBW_ENVIRONMENT: >
-            C_INCLUDE_PATH=$(pwd)/.local/include/
-            LIBRARY_PATH=$(pwd)/.local/lib/
-            LD_LIBRARY_PATH=$(pwd)/.local/lib:$LD_LIBRARY_PATH
 
       - uses: actions/upload-artifact@v4
         with:
