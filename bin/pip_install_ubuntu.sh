@@ -19,7 +19,7 @@ sudo apt-get update
 sudo apt-get install libgmp-dev libmpfr-dev xz-utils
 
 # Only Flint 3 or newer will work.
-FLINTVER=3.0.0
+FLINTVER=3.0.1
 
 # This will default to installing in /usr/local. If you want to install in a
 # non-standard location then configure flint with
@@ -41,16 +41,12 @@ cd ..
 ls -l /usr/local/lib
 sudo ldconfig /usr/local/lib
 
-# Python build requirements. Ideally these would be in pyproject.toml, but
-# first need to migrate from setup.py to pyproject.toml.
-pip install numpy cython setuptools wheel
-
 # Install from checkout (or sdist).
 echo -----------------------------------------------------------
 echo
 echo     Running:
-echo        $ pip install --no-binary :all: --no-build-isolation $1
+echo        $ pip install --no-binary :all: $1
 echo
 echo -----------------------------------------------------------
 
-pip install --no-binary :all: --no-build-isolation $1
+pip install --no-binary :all: $1
