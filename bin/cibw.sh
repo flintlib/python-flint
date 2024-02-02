@@ -15,7 +15,6 @@ export CIBW_SKIP='*-win32 *-manylinux_i686 *-musllinux_*'
 # export CIBW_ARCHS_MACOS="x86_64"
 export CIBW_ARCHS_MACOS="arm64"
 
-export CIBW_BEFORE_ALL_LINUX=bin/cibw_before_all_linux.sh
 # export CIBW_BEFORE_ALL_MACOS=bin/cibw_before_all_macosx_x86_64.sh
 export CIBW_BEFORE_ALL_MACOS=bin/cibw_before_all_macosx_arm64.sh
 export CIBW_BEFORE_ALL_WINDOWS='C:\\msys64\\usr\\bin\\bash bin/cibw_before_all_windows.sh'

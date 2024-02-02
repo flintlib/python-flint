@@ -31,6 +31,7 @@ LIBRARY_PATH = "$(pwd)/.local/lib/"
 LD_LIBRARY_PATH = "$(pwd)/.local/lib:$LD_LIBRARY_PATH"
 
 [tool.cibuildwheel.linux]
+before-all = "bin/cibw_before_all_linux.sh"
 
 [tool.cibuildwheel.macos]
 
