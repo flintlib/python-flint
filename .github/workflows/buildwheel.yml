@@ -47,7 +47,6 @@ jobs:
             C_INCLUDE_PATH=$(pwd)/.local/include/
             LIBRARY_PATH=$(pwd)/.local/lib/
             LD_LIBRARY_PATH=$(pwd)/.local/lib:$LD_LIBRARY_PATH
-            PYTHON_FLINT_MINGW64=true
 
       - uses: actions/upload-artifact@v4
         with:
