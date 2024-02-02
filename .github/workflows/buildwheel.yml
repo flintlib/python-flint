@@ -68,9 +68,8 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install --upgrade pip
-      - run: pip install cython setuptools
-      - run: python setup.py sdist
+      - run: pip install build
+      - run: python -m build --sdist
 
       - uses: actions/upload-artifact@v4
         with:
