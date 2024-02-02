@@ -8,8 +8,6 @@
 
 rm -f wheelhouse/*
 
-export CIBW_BUILD='cp39-* cp310-* cp311-* cp312-*'
-# export CIBW_BUILD='cp311-*'
 export CIBW_SKIP='*-win32 *-manylinux_i686 *-musllinux_*'
 
 # export CIBW_ARCHS_MACOS="x86_64"
