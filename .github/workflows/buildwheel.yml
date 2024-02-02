@@ -48,8 +48,6 @@ jobs:
             LIBRARY_PATH=$(pwd)/.local/lib/
             LD_LIBRARY_PATH=$(pwd)/.local/lib:$LD_LIBRARY_PATH
             PYTHON_FLINT_MINGW64=true
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
-            bin\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}
 
       - uses: actions/upload-artifact@v4
         with:

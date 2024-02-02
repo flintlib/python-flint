@@ -26,8 +26,6 @@ export CIBW_BEFORE_ALL_WINDOWS='C:\\msys64\\usr\\bin\\bash bin/cibw_before_all_w
 export CIBW_BEFORE_BUILD='pip install numpy cython delvewheel'
 export CIBW_BEFORE_BUILD_WINDOWS='C:\\msys64\\usr\\bin\\bash bin/cibw_before_build_windows.sh'
 
-export CIBW_REPAIR_WHEEL_COMMAND_WINDOWS='bin\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}'
-
 export CIBW_TEST_COMMAND="python -m flint.test"  # override setting in pyproject.toml
 
 # cibuildwheel --platform linux

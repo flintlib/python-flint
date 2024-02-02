@@ -23,3 +23,10 @@ content-type = "text/markdown"
 
 [tool.cibuildwheel]
 test-command = "python -c \"import flint; print(str(flint.fmpz(2)))\""
+
+[tool.cibuildwheel.linux]
+
+[tool.cibuildwheel.macos]
+
+[tool.cibuildwheel.windows]
+repair-wheel-command = "bin\\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}"
