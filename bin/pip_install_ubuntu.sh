@@ -71,8 +71,8 @@ sudo ldconfig /usr/local/lib
 echo -----------------------------------------------------------
 echo
 echo     Running:
-echo        $ pip install --no-binary :all: $PYTHON_FLINT
+echo        $ pip install --no-binary python-flint $PYTHON_FLINT
 echo
 echo -----------------------------------------------------------
 
-pip install --no-binary :all: $PYTHON_FLINT
+pip install --no-binary python-flint $PYTHON_FLINT
