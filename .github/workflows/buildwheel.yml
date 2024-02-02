@@ -137,17 +137,17 @@ jobs:
       - run: python -m flint.test --verbose
 
   test_flint_versions:
-    name: pip install ${{ matrix.target }} on ${{ matrix.python-version }}
+    name: Test flint ${{ matrix.flinttag }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         # minimum supported version and latest git
-        flint: ['v3.0.0', 'main']
+        flinttag: ['v3.0.0', 'main']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
           python-version: 3.12
-      - run: bin/pip_install_ubuntu.sh . ${{ matrix.flint }}
+      - run: bin/pip_install_ubuntu.sh . ${{ matrix.flinttag }}
       - run: python -m flint.test --verbose
