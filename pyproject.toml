@@ -20,3 +20,6 @@ classifiers = [
 [project.readme]
 file = "README.md"
 content-type = "text/markdown"
+
+[tool.cibuildwheel]
+test-command = "python -c \"import flint; print(str(flint.fmpz(2)))\""

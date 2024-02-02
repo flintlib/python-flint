@@ -27,6 +27,5 @@ set CIBW_BEFORE_ALL_WINDOWS=C:\msys64\usr\bin\bash bin/cibw_before_all_windows.s
 set CIBW_BEFORE_BUILD_WINDOWS=C:\msys64\usr\bin\bash bin/cibw_before_build_windows.sh
 set CIBW_ENVIRONMENT=PYTHON_FLINT_MINGW64=true
 set CIBW_REPAIR_WHEEL_COMMAND_WINDOWS=bin\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}
-set CIBW_TEST_COMMAND=python -c "import flint; print(str(flint.fmpz(2)))"
 
 cibuildwheel --platform windows
