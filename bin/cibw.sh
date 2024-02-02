@@ -8,8 +8,6 @@
 
 rm -f wheelhouse/*
 
-export CIBW_SKIP='*-win32 *-manylinux_i686 *-musllinux_*'
-
 # export CIBW_ARCHS_MACOS="x86_64"
 export CIBW_ARCHS_MACOS="arm64"
 

@@ -23,6 +23,7 @@ content-type = "text/markdown"
 
 [tool.cibuildwheel]
 build = "cp39-* cp310-* cp311-* cp312-*"
+skip = "*-win32 *-manylinux_i686 *-musllinux_*"
 test-command = "python -c \"import flint; print(str(flint.fmpz(2)))\""
 
 [tool.cibuildwheel.environment]
