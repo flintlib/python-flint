@@ -125,7 +125,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.11', '3.12', '3.13-dev']
-        # '.' means install from git checkout
+        # '.' means install from python-flint git checkout
         # 'python-flint' means install from PyPI sdist
         target: ['.', 'python-flint']
     steps:
@@ -134,4 +134,20 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: bin/pip_install_ubuntu.sh ${{ matrix.target }}
+      - run: python -m flint.test --verbose
+
+  test_flint_versions:
+    name: pip install ${{ matrix.target }} on ${{ matrix.python-version }}
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # minimum supported version and latest git
+        flint: ['v3.0.0', 'main']
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+      - run: bin/pip_install_ubuntu.sh . ${{ matrix.flint }}
       - run: python -m flint.test --verbose
