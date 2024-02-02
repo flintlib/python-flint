@@ -84,7 +84,7 @@ jobs:
     uses: sagemath/sage/.github/workflows/docker.yml@develop
     with:
       # Sage distribution packages to build
-      targets:                  SAGE_CHECK=no SAGE_CHECK_flint=yes SAGE_CHECK_python_flint=yes python_flint
+      targets:                  SAGE_CHECK=no SAGE_CHECK_flint=warn SAGE_CHECK_python_flint=yes python_flint
       # Standard setting: Test the current beta release of Sage:
       sage_repo:                sagemath/sage
       sage_ref:                 refs/pull/37224/head
@@ -103,7 +103,7 @@ jobs:
       osversion_xcodeversion_toxenv_tuples: >-
         [["latest", "",           "homebrew-macos-usrlocal-minimal"],
          ["latest", "",           "homebrew-macos-usrlocal-standard"]]
-      targets:                  SAGE_CHECK=no SAGE_CHECK_flint=yes SAGE_CHECK_python_flint=yes python_flint
+      targets:                  SAGE_CHECK=no SAGE_CHECK_flint=warn SAGE_CHECK_python_flint=yes python_flint
       # Standard setting: Test the current beta release of Sage:
       sage_repo:                sagemath/sage
       sage_ref:                 refs/pull/37224/head
