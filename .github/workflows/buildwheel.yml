@@ -36,6 +36,7 @@ jobs:
         env:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
+          # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
           CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel && msys2 -c bin/cibw_before_build_windows.sh
 

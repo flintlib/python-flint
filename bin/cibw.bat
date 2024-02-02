@@ -24,7 +24,4 @@ del /q wheelhouse\*
 rem override setting in pyproject.toml
 set CIBW_BUILD=cp39-* cp310-* cp311-*
 
-set CIBW_BEFORE_ALL_WINDOWS=C:\msys64\usr\bin\bash bin/cibw_before_all_windows.sh
-set CIBW_BEFORE_BUILD_WINDOWS=C:\msys64\usr\bin\bash bin/cibw_before_build_windows.sh
-
 cibuildwheel --platform windows
