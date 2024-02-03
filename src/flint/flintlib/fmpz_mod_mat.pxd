@@ -44,7 +44,7 @@ cdef extern from *:
     #define compat_fmpz_mod_mat_inv(B, A, ctx) fmpz_mod_mat_inv(B, A, ctx)
     #define compat_fmpz_mod_mat_transpose(B, A, ctx) fmpz_mod_mat_transpose(B, A, ctx)
     #define compat_fmpz_mod_mat_solve(X, A, B, ctx) fmpz_mod_mat_solve(X, A, B, ctx)
-    #define compat_fmpz_mod_mat_rref(perm, mat, ctx) fmpz_mod_mat_rref(perm, mat, ctx)
+    #define compat_fmpz_mod_mat_rref(mat, ctx) fmpz_mod_mat_rref(mat, mat, ctx)
     #define compat_fmpz_mod_mat_charpoly(p, M, ctx) fmpz_mod_mat_charpoly(p, M, ctx)
     #define compat_fmpz_mod_mat_minpoly(p, M, ctx) fmpz_mod_mat_minpoly(p, M, ctx)
 
@@ -69,7 +69,7 @@ cdef extern from *:
     #define compat_fmpz_mod_mat_inv(B, A, ctx) fmpz_mod_mat_inv(B, A)
     #define compat_fmpz_mod_mat_transpose(B, A, ctx) fmpz_mod_mat_transpose(B, A)
     #define compat_fmpz_mod_mat_solve(X, A, B, ctx) fmpz_mod_mat_solve(X, A, B)
-    #define compat_fmpz_mod_mat_rref(perm, mat, ctx) fmpz_mod_mat_rref(perm, mat)
+    #define compat_fmpz_mod_mat_rref(mat, ctx) fmpz_mod_mat_rref(NULL, perm, mat)
     #define compat_fmpz_mod_mat_charpoly(p, M, ctx) fmpz_mod_mat_charpoly(p, M, ctx)
     #define compat_fmpz_mod_mat_minpoly(p, M, ctx) fmpz_mod_mat_minpoly(p, M, ctx)
 
@@ -97,7 +97,7 @@ cdef extern from "flint/fmpz_mod_mat.h":
     int compat_fmpz_mod_mat_inv(fmpz_mod_mat_t B, fmpz_mod_mat_t A, const fmpz_mod_ctx_t ctx)
     void compat_fmpz_mod_mat_transpose(fmpz_mod_mat_t B, const fmpz_mod_mat_t A, const fmpz_mod_ctx_t ctx)
     int compat_fmpz_mod_mat_solve(fmpz_mod_mat_t X, const fmpz_mod_mat_t A, const fmpz_mod_mat_t B, const fmpz_mod_ctx_t ctx)
-    slong compat_fmpz_mod_mat_rref(slong * perm, fmpz_mod_mat_t mat, const fmpz_mod_ctx_t ctx)
+    slong compat_fmpz_mod_mat_rref(fmpz_mod_mat_t mat, const fmpz_mod_ctx_t ctx)
     void compat_fmpz_mod_mat_charpoly(fmpz_mod_poly_t p, const fmpz_mod_mat_t M, const fmpz_mod_ctx_t ctx)
     void compat_fmpz_mod_mat_minpoly(fmpz_mod_poly_t p, const fmpz_mod_mat_t M, const fmpz_mod_ctx_t ctx)
     #

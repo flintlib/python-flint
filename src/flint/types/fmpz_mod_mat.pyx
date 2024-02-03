@@ -320,7 +320,10 @@ cdef class fmpz_mod_mat(flint_mat):
         if other is NotImplemented:
             return other
 
-        res = compat_fmpz_mod_mat_equal((<fmpz_mod_mat>self).val, (<fmpz_mod_mat>other).val, self.ctx.val)
+        if (<fmpz_mod_mat>self).ctx != (<fmpz_mod_mat>other).ctx:
+            res = 0
+        else:
+            res = compat_fmpz_mod_mat_equal((<fmpz_mod_mat>self).val, (<fmpz_mod_mat>other).val, self.ctx.val)
 
         if op == 2:
             return res
@@ -652,5 +655,5 @@ cdef class fmpz_mod_mat(flint_mat):
             res = self
         else:
             res = self._copy()
-        r = compat_fmpz_mod_mat_rref(NULL, res.val, res.ctx.val)
+        r = compat_fmpz_mod_mat_rref(res.val, res.ctx.val)
         return (res, r)
