@@ -1,5 +1,14 @@
-from flint.flintlib.flint cimport FLINT_BITS as _FLINT_BITS
+from flint.flintlib.flint cimport (
+    FLINT_BITS as _FLINT_BITS,
+    FLINT_VERSION as _FLINT_VERSION,
+    __FLINT_RELEASE as _FLINT_RELEASE,
+)
 from flint.flint_base.flint_context cimport thectx
+
+
+FLINT_BITS = _FLINT_BITS
+FLINT_VERSION = _FLINT_VERSION.decode("ascii")
+FLINT_RELEASE = _FLINT_RELEASE
 
 
 cdef class flint_elem:

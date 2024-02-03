@@ -37,6 +37,8 @@ cdef extern from "flint/fmpz.h":
 ctypedef slong fmpz_struct
 
 cdef extern from "flint/flint.h":
+    const char * FLINT_VERSION
+    const int __FLINT_RELEASE
     const int FLINT_BITS
     ctypedef void * flint_rand_t
     void flint_randinit(flint_rand_t state)
