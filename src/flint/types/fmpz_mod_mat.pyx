@@ -244,7 +244,7 @@ cdef class fmpz_mod_mat(flint_mat):
         """Return the modulus."""
         cdef fmpz mod
         mod = fmpz.__new__(fmpz)
-        fmpz_init_set(mod.val, self.val.mod)
+        fmpz_init_set(mod.val, self.ctx.val.n)
         return mod
 
     cdef fmpz_mod _getitem(self, slong i, slong j):
