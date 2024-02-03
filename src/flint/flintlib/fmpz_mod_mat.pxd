@@ -69,7 +69,7 @@ cdef extern from *:
     #define compat_fmpz_mod_mat_inv(B, A, ctx) fmpz_mod_mat_inv(B, A)
     #define compat_fmpz_mod_mat_transpose(B, A, ctx) fmpz_mod_mat_transpose(B, A)
     #define compat_fmpz_mod_mat_solve(X, A, B, ctx) fmpz_mod_mat_solve(X, A, B)
-    #define compat_fmpz_mod_mat_rref(mat, ctx) fmpz_mod_mat_rref(NULL, perm, mat)
+    #define compat_fmpz_mod_mat_rref(mat, ctx) fmpz_mod_mat_rref(NULL, mat)
     #define compat_fmpz_mod_mat_charpoly(p, M, ctx) fmpz_mod_mat_charpoly(p, M, ctx)
     #define compat_fmpz_mod_mat_minpoly(p, M, ctx) fmpz_mod_mat_minpoly(p, M, ctx)
 
