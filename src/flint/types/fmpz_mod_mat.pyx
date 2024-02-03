@@ -8,28 +8,28 @@ from flint.flintlib.fmpz cimport (
     fmpz_set,
 )
 from flint.flintlib.fmpz_mod_mat cimport (
-    fmpz_mod_mat_init,
-    fmpz_mod_mat_init_set,
-    fmpz_mod_mat_clear,
-    fmpz_mod_mat_set,
-    fmpz_mod_mat_nrows,
-    fmpz_mod_mat_ncols,
-    fmpz_mod_mat_entry,
-    fmpz_mod_mat_set_entry,
-    fmpz_mod_mat_one,
-    fmpz_mod_mat_equal,
-    fmpz_mod_mat_is_zero,
-    fmpz_mod_mat_neg,
-    fmpz_mod_mat_add,
-    fmpz_mod_mat_sub,
-    fmpz_mod_mat_mul,
-    fmpz_mod_mat_scalar_mul_fmpz,
-    fmpz_mod_mat_inv,
-    fmpz_mod_mat_transpose,
-    fmpz_mod_mat_solve,
-    fmpz_mod_mat_rref,
-    fmpz_mod_mat_charpoly,
-    fmpz_mod_mat_minpoly,
+    compat_fmpz_mod_mat_init,
+    compat_fmpz_mod_mat_init_set,
+    compat_fmpz_mod_mat_clear,
+    compat_fmpz_mod_mat_set,
+    compat_fmpz_mod_mat_nrows,
+    compat_fmpz_mod_mat_ncols,
+    compat_fmpz_mod_mat_entry,
+    compat_fmpz_mod_mat_set_entry,
+    compat_fmpz_mod_mat_one,
+    compat_fmpz_mod_mat_equal,
+    compat_fmpz_mod_mat_is_zero,
+    compat_fmpz_mod_mat_neg,
+    compat_fmpz_mod_mat_add,
+    compat_fmpz_mod_mat_sub,
+    compat_fmpz_mod_mat_mul,
+    compat_fmpz_mod_mat_scalar_mul_fmpz,
+    compat_fmpz_mod_mat_inv,
+    compat_fmpz_mod_mat_transpose,
+    compat_fmpz_mod_mat_solve,
+    compat_fmpz_mod_mat_rref,
+    compat_fmpz_mod_mat_charpoly,
+    compat_fmpz_mod_mat_minpoly,
 )
 
 from flint.flint_base.flint_base cimport (
@@ -83,7 +83,7 @@ cdef class fmpz_mod_mat(flint_mat):
     """
     def __dealloc__(self):
         if self._initialized:
-            fmpz_mod_mat_clear(self.val)
+            compat_fmpz_mod_mat_clear(self.val, self.ctx.val)
 
     def __init__(self, *args):
         """Construct an ``fmpz_mod_mat`` matrix.
@@ -152,7 +152,7 @@ cdef class fmpz_mod_mat(flint_mat):
     cdef void _init_empty_ctx(self, slong m, slong n, fmpz_mod_ctx ctx):
         """Initialize an empty matrix with a given modulus context."""
         self.ctx = ctx
-        fmpz_mod_mat_init(self.val, m, n, ctx.val.n)
+        compat_fmpz_mod_mat_init(self.val, m, n, ctx.val)
         self._initialized = True
 
     cdef void _init_empty(self, slong m, slong n, list args):
@@ -175,7 +175,7 @@ cdef class fmpz_mod_mat(flint_mat):
                 if val is NotImplemented:
                     raise TypeError("fmpz_mod_mat: incompatible entries")
                 e = <fmpz_mod> val
-                fmpz_mod_mat_set_entry(self.val, i, j, e.val)
+                compat_fmpz_mod_mat_set_entry(self.val, i, j, e.val, ctx.val)
 
     # XXX: Should be possible to type this as flint_mat but nmod_mat is not a subclass
     # cdef void _init_from_matrix(self, flint_mat M, list args):
@@ -192,7 +192,7 @@ cdef class fmpz_mod_mat(flint_mat):
                 ctx = N1.ctx
             if N1.ctx != ctx:
                 raise TypeError("fmpz_mod_mat: incompatible moduli")
-            fmpz_mod_mat_init_set(self.val, N1.val)
+            compat_fmpz_mod_mat_init_set(self.val, N1.val, ctx.val)
             self.ctx = ctx
             self._initialized = True
         elif typecheck(M, fmpz_mat):
@@ -216,7 +216,7 @@ cdef class fmpz_mod_mat(flint_mat):
         """Create an initialized matrix of given shape and context."""
         cdef fmpz_mod_mat res
         res = fmpz_mod_mat.__new__(fmpz_mod_mat)
-        fmpz_mod_mat_init(res.val, m, n, ctx.val.n)
+        compat_fmpz_mod_mat_init(res.val, m, n, ctx.val)
         res.ctx = ctx
         res._initialized = True
         return res
@@ -229,29 +229,29 @@ cdef class fmpz_mod_mat(flint_mat):
         """Create a copy of the matrix."""
         cdef fmpz_mod_mat res
         res = self._newlike()
-        fmpz_mod_mat_set(res.val, self.val)
+        compat_fmpz_mod_mat_set(res.val, self.val, self.ctx.val)
         return res
 
     cpdef slong nrows(self):
         """Return the number of rows."""
-        return fmpz_mod_mat_nrows(self.val)
+        return compat_fmpz_mod_mat_nrows(self.val, self.ctx.val)
 
     cpdef slong ncols(self):
         """Return the number of columns."""
-        return fmpz_mod_mat_ncols(self.val)
+        return compat_fmpz_mod_mat_ncols(self.val, self.ctx.val)
 
     def modulus(self):
         """Return the modulus."""
         cdef fmpz mod
         mod = fmpz.__new__(fmpz)
-        fmpz_init_set(mod.val, self.val.mod)
+        fmpz_init_set(mod.val, self.ctx.val.n)
         return mod
 
     cdef fmpz_mod _getitem(self, slong i, slong j):
         """Retrieve an element as an ``fmpz_mod``."""
         cdef fmpz_struct * p_e
         cdef fmpz_mod e
-        p_e = fmpz_mod_mat_entry(self.val, i, j)
+        p_e = compat_fmpz_mod_mat_entry(self.val, i, j)
         e = fmpz_mod.__new__(fmpz_mod)
         fmpz_set(e.val, p_e)
         e.ctx = self.ctx
@@ -259,7 +259,7 @@ cdef class fmpz_mod_mat(flint_mat):
 
     cdef void _setitem(self, slong i, slong j, fmpz_t e):
         """Set an element from a raw ``fmpz_t``."""
-        fmpz_mod_mat_set_entry(self.val, i, j, e)
+        compat_fmpz_mod_mat_set_entry(self.val, i, j, e, self.ctx.val)
 
     def repr(self):
         """Return a representation string."""
@@ -306,7 +306,7 @@ cdef class fmpz_mod_mat(flint_mat):
     def __nonzero__(self):
         """Return ``True`` if the matrix has any nonzero entries."""
         cdef bint zero
-        zero = fmpz_mod_mat_is_zero(self.val)
+        zero = compat_fmpz_mod_mat_is_zero(self.val, self.ctx.val)
         return not zero
 
     def __richcmp__(self, other, int op):
@@ -320,7 +320,10 @@ cdef class fmpz_mod_mat(flint_mat):
         if other is NotImplemented:
             return other
 
-        res = fmpz_mod_mat_equal((<fmpz_mod_mat>self).val, (<fmpz_mod_mat>other).val)
+        if (<fmpz_mod_mat>self).ctx != (<fmpz_mod_mat>other).ctx:
+            res = 0
+        else:
+            res = compat_fmpz_mod_mat_equal((<fmpz_mod_mat>self).val, (<fmpz_mod_mat>other).val, self.ctx.val)
 
         if op == 2:
             return res
@@ -334,7 +337,7 @@ cdef class fmpz_mod_mat(flint_mat):
     def __neg__(self):
         """``-M``"""
         res = self._newlike()
-        fmpz_mod_mat_neg((<fmpz_mod_mat> res).val, self.val)
+        compat_fmpz_mod_mat_neg((<fmpz_mod_mat> res).val, self.val, self.ctx.val)
         return res
 
     def _as_fmpz_mod_mat(self, other, same_shape=True):
@@ -353,13 +356,13 @@ cdef class fmpz_mod_mat(flint_mat):
     def _add(self, fmpz_mod_mat other):
         """Add two ``fmpz_mod_mat`` matrices."""
         res = self._newlike()
-        fmpz_mod_mat_add(res.val, self.val, other.val)
+        compat_fmpz_mod_mat_add(res.val, self.val, other.val, self.ctx.val)
         return res
 
     def _sub(self, fmpz_mod_mat other):
         """Subtract two ``fmpz_mod_mat`` matrices."""
         res = self._newlike()
-        fmpz_mod_mat_sub(res.val, self.val, other.val)
+        compat_fmpz_mod_mat_sub(res.val, self.val, other.val, self.ctx.val)
         return res
 
     def _matmul(self, fmpz_mod_mat other):
@@ -367,13 +370,13 @@ cdef class fmpz_mod_mat(flint_mat):
         if self.ncols() != other.nrows():
             raise ValueError("Shape mismatch: cannot multiply matrices")
         res = self._new(self.nrows(), other.ncols(), self.ctx)
-        fmpz_mod_mat_mul(res.val, self.val, other.val)
+        compat_fmpz_mod_mat_mul(res.val, self.val, other.val, self.ctx.val)
         return res
 
     def _scalarmul(self, fmpz_mod other):
         """Multiply an ``fmpz_mod_mat`` matrix by an ``fmpz_mod`` scalar."""
         res = self._newlike()
-        fmpz_mod_mat_scalar_mul_fmpz(res.val, self.val, other.val)
+        compat_fmpz_mod_mat_scalar_mul_fmpz(res.val, self.val, other.val, self.ctx.val)
         return res
 
     def _pow(self, slong other):
@@ -387,14 +390,14 @@ cdef class fmpz_mod_mat(flint_mat):
             other = -other
 
         res = self._newlike()
-        fmpz_mod_mat_one(res.val)
+        compat_fmpz_mod_mat_one(res.val, self.ctx.val)
 
         tmp = self._copy()
 
         while other > 0:
             if other % 2 == 1:
-                fmpz_mod_mat_mul(res.val, res.val, tmp.val)
-            fmpz_mod_mat_mul(tmp.val, tmp.val, tmp.val)
+                compat_fmpz_mod_mat_mul(res.val, res.val, tmp.val, self.ctx.val)
+            compat_fmpz_mod_mat_mul(tmp.val, tmp.val, tmp.val, self.ctx.val)
             other //= 2
 
         return res
@@ -497,7 +500,7 @@ cdef class fmpz_mod_mat(flint_mat):
         if self.nrows() != self.ncols():
             raise ValueError("fmpz_mod_mat inv: matrix must be square")
         res = self._newlike()
-        r = fmpz_mod_mat_inv(res.val, self.val)
+        r = compat_fmpz_mod_mat_inv(res.val, self.val, self.ctx.val)
         if r == 0:
             raise ZeroDivisionError("fmpz_mod_mat inv: matrix is not invertible")
         return res
@@ -537,7 +540,7 @@ cdef class fmpz_mod_mat(flint_mat):
 
         pctx = fmpz_mod_poly_ctx(self.ctx)
         res = fmpz_mod_poly(0, pctx)
-        fmpz_mod_mat_charpoly(res.val, self.val, self.ctx.val)
+        compat_fmpz_mod_mat_charpoly(res.val, self.val, self.ctx.val)
         return res
 
     def minpoly(self):
@@ -560,7 +563,7 @@ cdef class fmpz_mod_mat(flint_mat):
 
         pctx = fmpz_mod_poly_ctx(self.ctx)
         res = fmpz_mod_poly(0, pctx)
-        fmpz_mod_mat_minpoly(res.val, self.val, self.ctx.val)
+        compat_fmpz_mod_mat_minpoly(res.val, self.val, self.ctx.val)
         return res
 
     def transpose(self):
@@ -578,7 +581,7 @@ cdef class fmpz_mod_mat(flint_mat):
         """
         cdef fmpz_mod_mat res
         res = self._new(self.ncols(), self.nrows(), self.ctx)
-        fmpz_mod_mat_transpose(res.val, self.val)
+        compat_fmpz_mod_mat_transpose(res.val, self.val, self.ctx.val)
         return res
 
     def solve(self, rhs):
@@ -609,7 +612,7 @@ cdef class fmpz_mod_mat(flint_mat):
             raise ValueError("fmpz_mod_mat solve: shape mismatch")
 
         res = self._new(rhs.nrows(), rhs.ncols(), self.ctx)
-        success = fmpz_mod_mat_solve(res.val, self.val, (<fmpz_mod_mat> rhs).val)
+        success = compat_fmpz_mod_mat_solve(res.val, self.val, (<fmpz_mod_mat> rhs).val, self.ctx.val)
 
         if not success:
             raise ZeroDivisionError("Singular matrix in solve")
@@ -652,5 +655,5 @@ cdef class fmpz_mod_mat(flint_mat):
             res = self
         else:
             res = self._copy()
-        r = fmpz_mod_mat_rref(NULL, res.val)
+        r = compat_fmpz_mod_mat_rref(res.val, res.ctx.val)
         return (res, r)
