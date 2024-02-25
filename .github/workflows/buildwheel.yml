@@ -129,8 +129,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # minimum supported version and latest git
-        flinttag: ['v3.0.0', 'main']
+        # Supported versions and latest git
+        flinttag: ['v3.0.0', 'v3.0.1', 'v3.1.0', 'main']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4

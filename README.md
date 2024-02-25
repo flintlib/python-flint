@@ -126,6 +126,10 @@ To do
 CHANGELOG
 -------------
 
+Next release:
+
+- Bump Flint version to 3.1.0
+
 0.6.0
 
 - [gh-112](https://github.com/flintlib/python-flint/issues/112),
