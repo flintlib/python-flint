@@ -128,7 +128,8 @@ CHANGELOG
 
 Next release:
 
-- Bump Flint version to 3.1.0
+- [gh-125](https://github.com/flintlib/python-flint/pull/125)
+  Bump Flint version to 3.1.0
 
 0.6.0
 
