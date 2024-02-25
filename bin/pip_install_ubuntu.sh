@@ -23,7 +23,7 @@ set -o errexit
 if [ -z "$2" ]; then
     echo "Building from release tarball"
     FLINT_GIT=""
-    FLINTVER=3.1.0
+    FLINTVER=3.0.1
 else
     echo "Building from git: $2"
     FLINT_GIT=$2
