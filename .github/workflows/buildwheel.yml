@@ -133,7 +133,7 @@ jobs:
         flinttag: ['v3.0.0', 'v3.0.1', 'v3.1.0', 'main']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.12
       - run: bin/pip_install_ubuntu.sh . ${{ matrix.flinttag }}
