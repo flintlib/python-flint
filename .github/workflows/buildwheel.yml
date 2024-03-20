@@ -54,6 +54,11 @@ jobs:
         with:
           python-version: '3.12'
 
+      - run: sudo apt-get update
+      - run: sudo apt-get install libgmp-dev libmpfr-dev xz-utils ninja-build
+      - run: curl -O -L https://www.flintlib.org/flint-3.1.0.tar.gz
+      - run: tar -xzf flint-3.1.0.tar.gz
+      - run: cd flint-3.1.0 && ./configure --disable-static && make -j4 && sudo make install
       - run: pip install build
       - run: python -m build --sdist
 
