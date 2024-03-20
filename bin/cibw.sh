@@ -15,4 +15,4 @@ export CIBW_TEST_COMMAND="python -m flint.test"  # override setting in pyproject
 
 # cibuildwheel --platform linux
 # cibuildwheel --platform windows
-cibuildwheel --platform macos
+venv/bin/cibuildwheel --platform macos
