@@ -179,6 +179,8 @@ if [ $USE_GMP = "gmp" ]; then
 
     cd ..
 
+    cp $PREFIX/bin/libgmp-10.dll $PREFIX/lib
+
   fi
 
   FLINTARB_WITHGMP="--with-gmp=$PREFIX"
