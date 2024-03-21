@@ -31,6 +31,11 @@ jobs:
           path-type: inherit
         if: ${{ matrix.os == 'windows-2019' }}
 
+          # Remove Strawberry Perl to avoid conflicts with msys2
+          # https://github.com/actions/runner-images/issues/5459
+      - run: msys2 -c 'rm -rf /c/Strawberry'
+        if: ${{ matrix.os == 'windows-2019' }}
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
