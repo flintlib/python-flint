@@ -33,6 +33,7 @@ test-command = "python -c \"import flint; print(str(flint.fmpz(2)))\""
 C_INCLUDE_PATH = "$(pwd)/.local/include/"
 LIBRARY_PATH = "$(pwd)/.local/lib/"
 LD_LIBRARY_PATH = "$(pwd)/.local/lib:$LD_LIBRARY_PATH"
+PATH = "$(pwd)/.local/bin:$(pwd)/.local/lib:$PATH"
 
 [tool.cibuildwheel.linux]
 before-all = "bin/cibw_before_all_linux.sh"
