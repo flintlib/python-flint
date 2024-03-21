@@ -179,8 +179,7 @@ if [ $USE_GMP = "gmp" ]; then
 
     cd ..
 
-    ls $PREFIX/lib
-    ls $PREFIX/lib/pkgconfig
+    ls -R $PREFIX
     cat $PREFIX/lib/pkgconfig/gmp.pc
 
   fi
