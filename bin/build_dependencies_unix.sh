@@ -179,9 +179,6 @@ if [ $USE_GMP = "gmp" ]; then
 
     cd ..
 
-    ls -R $PREFIX
-    cat $PREFIX/lib/pkgconfig/gmp.pc
-
   fi
 
   FLINTARB_WITHGMP="--with-gmp=$PREFIX"
@@ -365,3 +362,8 @@ fi
 echo
 echo -----------------------------------------------------------------------
 echo
+
+
+
+ls -R $PREFIX
+cat $PREFIX/lib/pkgconfig/gmp.pc
