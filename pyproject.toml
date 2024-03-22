@@ -47,3 +47,7 @@ before-all = "bin/cibw_before_all_macosx_$(uname -m).sh"
 before-all = "C:\\msys64\\usr\\bin\\bash bin/cibw_before_all_windows.sh"
 before-build = "pip install delvewheel && C:\\msys64\\usr\\bin\\bash bin/cibw_before_build_windows.sh"
 repair-wheel-command = "bin\\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}"
+
+[tool.cibuildwheel.windows.environment]
+PYTHON_FLINT_MINGW64 = "true"
+PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig"
