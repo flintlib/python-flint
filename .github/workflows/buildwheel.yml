@@ -39,9 +39,6 @@ jobs:
       - run: echo "PKG_CONFIG_PATH=${{ github.workspace }}/.local/lib/pkgconfig" >> $env:GITHUB_ENV
         if: ${{ matrix.os == 'windows-2019' }}
 
-      - run: echo $PKG_CONFIG_PATH
-        if: ${{ matrix.os == 'windows-2019' }}
-
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
