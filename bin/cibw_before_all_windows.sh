@@ -5,6 +5,10 @@ set -o errexit
 # Uncomment this to run cibuildwheel locally on Windows:
 # export PATH=$PATH:/c/msys64/usr/bin:/c/msys64/mingw64/bin
 
+echo $PKG_CONFIG_PATH
+echo $PKG_CONFIG_PATH2
+exit 1
+
 #
 # Make a setup.cfg to specify compiling with mingw64 (even though it says
 # mingw32...)

@@ -46,3 +46,4 @@ before-build = "pip install delvewheel && C:\\msys64\\usr\\bin\\bash bin/cibw_be
 repair-wheel-command = "bin\\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}"
 
 [tool.cibuildwheel.windows.environment]
+PKG_CONFIG_PATH2 = "$(pwd)/.local/lib/pkgconfig"
