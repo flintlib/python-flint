@@ -30,6 +30,7 @@ test-command = "python -c \"import flint; print(str(flint.fmpz(2)))\""
 build-frontend = { name = "pip", args = ["-C", "builddir=./mybuild"] }
 
 [tool.cibuildwheel.environment]
+PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig"
 
 [tool.cibuildwheel.linux]
 before-all = "bin/cibw_before_all_linux.sh"
