@@ -36,6 +36,10 @@ jobs:
       - run: choco install -y --stoponfirstfailure --checksum 6004DF17818F5A6DBF19CB335CC92702 pkgconfiglite
         if: ${{ matrix.os == 'windows-2019' }}
 
+        # We have to set this here rather than in the cibuildwheel config
+      - run: echo "PKG_CONFIG_PATH=${{ github.workspace }}/.local/lib/pkgconfig" >> $env:GITHUB_ENV
+        if: ${{ matrix.os == 'windows-2019' }}
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
