@@ -29,10 +29,16 @@ manylinux-i686-image = "manylinux2014"
 test-command = "python -c \"import flint; print(str(flint.fmpz(2)))\""
 build-frontend = { name = "pip", args = ["-C", "builddir=./mybuild"] }
 
-[tool.cibuildwheel.environment]
-# LD_LIBRARY_PATH is needed by auditwheel on Linux
+[tool.cibuildwheel.linux.environment]
+# LD_LIBRARY_PATH is needed by auditwheel
 LD_LIBRARY_PATH = "$(pwd)/.local/lib:$LD_LIBRARY_PATH"
 PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig"
+
+[tool.cibuildwheel.macos.environment]
+PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig"
+
+[tool.cibuildwheel.windows.environment]
+# Setting PKG_CONFIG_PATH here breaks pkgconfig for some reason...
 
 [tool.cibuildwheel.linux]
 before-all = "bin/cibw_before_all_linux.sh"
@@ -44,6 +50,3 @@ before-all = "bin/cibw_before_all_macosx_$(uname -m).sh"
 before-all = "C:\\msys64\\usr\\bin\\bash bin/cibw_before_all_windows.sh"
 before-build = "pip install delvewheel && C:\\msys64\\usr\\bin\\bash bin/cibw_before_build_windows.sh"
 repair-wheel-command = "bin\\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}"
-
-[tool.cibuildwheel.windows.environment]
-PKG_CONFIG_PATH2 = "$(pwd)/.local/lib/pkgconfig"
