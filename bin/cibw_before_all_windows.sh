@@ -7,6 +7,7 @@ set -o errexit
 
 echo $PKG_CONFIG_PATH
 echo $PKG_CONFIG_PATH2
+echo $PKG_CONFIG_PATH3
 exit 1
 
 #
