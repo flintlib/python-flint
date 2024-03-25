@@ -362,8 +362,3 @@ fi
 echo
 echo -----------------------------------------------------------------------
 echo
-
-
-
-ls -R $PREFIX
-cat $PREFIX/lib/pkgconfig/gmp.pc

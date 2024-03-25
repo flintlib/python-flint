@@ -11,9 +11,8 @@ flint_dep = dependency('flint')
 
 flint_dep = dependency('flint')
 
+# flint.pc was missing -lflint until Flint 3.1.0
 if flint_dep.version().version_compare('<3.1')
-  # This is a workaround for the fact that the flint.pc file in flint < 3.1
-  # is missing -lflint. This is fixed in flint 3.1.0.
   flint_dep = cc.find_library('flint')
 endif
 
