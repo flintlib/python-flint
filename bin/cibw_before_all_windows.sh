@@ -17,8 +17,6 @@ cat setup.cfg
 pacman -S --noconfirm \
     mingw-w64-x86_64-gcc\
     mingw-w64-x86_64-tools-git\
-    mingw-w64-x86_64-pkg-config\
-    pkgconf\
     m4\
     make\
     base-devel\
