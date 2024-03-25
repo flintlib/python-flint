@@ -37,6 +37,7 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
         # We have to set this here rather than in the cibuildwheel config
+        # This is probably something to do with \ vs / in paths...
       - run: echo "PKG_CONFIG_PATH=${{ github.workspace }}/.local/lib/pkgconfig" >> $env:GITHUB_ENV
         if: ${{ matrix.os == 'windows-2019' }}
 
@@ -46,9 +47,6 @@ jobs:
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
           CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel && msys2 -c bin/cibw_before_build_windows.sh
-
-      - run: cat mybuild/meson-logs/meson-log.txt
-        if: failure()
 
       - uses: actions/upload-artifact@v4
         with:
