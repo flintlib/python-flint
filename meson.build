@@ -9,8 +9,6 @@ gmp_dep = dependency('gmp')
 mpfr_dep = dependency('mpfr')
 flint_dep = dependency('flint')
 
-flint_dep = dependency('flint')
-
 # flint.pc was missing -lflint until Flint 3.1.0
 if flint_dep.version().version_compare('<3.1')
   flint_dep = cc.find_library('flint')
