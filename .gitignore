@@ -18,3 +18,4 @@ MANIFEST
 .python-version
 *.DS_Store
 .venv
+.hypothesis
