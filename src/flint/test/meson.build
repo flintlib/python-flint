@@ -3,7 +3,7 @@ thisdir = 'flint/test'
 pyfiles = [
   '__init__.py',
   '__main__.py',
-  'test.py',
+  'test_all.py',
 ]
 
 py.install_sources(
