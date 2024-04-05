@@ -1,6 +1,8 @@
+from flint.pyflint cimport global_random_state
 from flint.flintlib.fmpz cimport(
     fmpz_t,
     fmpz_one,
+    fmpz_zero,
     fmpz_set,
     fmpz_init,
     fmpz_clear,
@@ -10,7 +12,9 @@ from flint.flintlib.fmpz cimport(
     fmpz_invmod,
     fmpz_divexact,
     fmpz_gcd,
-    fmpz_is_one
+    fmpz_is_one,
+    fmpz_is_zero,
+    fmpz_randm
 )
 from flint.flintlib.fmpz cimport fmpz_mod as fmpz_type_mod
 from flint.flintlib.fmpz_mod cimport *
@@ -38,13 +42,12 @@ cdef class fmpz_mod_ctx:
         cdef fmpz one = fmpz.__new__(fmpz)
         fmpz_one(one.val)
         fmpz_mod_ctx_init(self.val, one.val)
-        self.L = NULL
-        
+        fmpz_mod_discrete_log_pohlig_hellman_clear(self.L)
+        self._is_prime = 0
 
     def __dealloc__(self):
         fmpz_mod_ctx_clear(self.val)
-        if self.L:
-            fmpz_mod_discrete_log_pohlig_hellman_clear(self.L[0])
+        fmpz_mod_discrete_log_pohlig_hellman_clear(self.L)
 
     def __init__(self, mod):
         # Ensure modulus is fmpz type
@@ -52,7 +55,7 @@ cdef class fmpz_mod_ctx:
             mod = any_as_fmpz(mod)
             if mod is NotImplemented:
                 raise TypeError(
-                    "Context modulus must be able to be case to an `fmpz` type"
+                    "Context modulus must be able to be cast to an `fmpz` type"
                 )
 
         # Ensure modulus is positive
@@ -61,6 +64,10 @@ cdef class fmpz_mod_ctx:
 
         # Set the modulus
         fmpz_mod_ctx_set_modulus(self.val, (<fmpz>mod).val)
+
+        # Check whether the modulus is prime
+        # TODO: should we use a stronger test?
+        self._is_prime = fmpz_is_probabprime(self.val.n)
 
     def modulus(self):
         """
@@ -76,41 +83,104 @@ cdef class fmpz_mod_ctx:
         fmpz_set(n.val, (<fmpz_t>self.val.n))
         return n
 
-    cdef _precompute_dlog_prime(self):
+    def is_prime(self):
         """
-        Initalise the dlog data, all discrete logs are solved with an 
-        internally chosen base `y`
-        """
-        self.L = <fmpz_mod_discrete_log_pohlig_hellman_t *>libc.stdlib.malloc(
-            cython.sizeof(fmpz_mod_discrete_log_pohlig_hellman_struct)
-        )
-        fmpz_mod_discrete_log_pohlig_hellman_init(self.L[0])
-        fmpz_mod_discrete_log_pohlig_hellman_precompute_prime(
-            self.L[0], self.val.n
-        )
+        Return whether the modulus is prime
 
-    cdef any_as_fmpz_mod(self, obj):
-        # If `obj` is an `fmpz_mod`, just check moduli
-        # match
-        # TODO: we could allow conversion from one modulus to another?
+            >>> fmpz_mod_ctx(2**127).is_prime()
+            False
+            >>> fmpz_mod_ctx(2**127 - 1).is_prime()
+            True
+        """
+        return self._is_prime == 1
+
+    def zero(self):
+        """
+        Return the zero element
+
+            >>> F = fmpz_mod_ctx(163)
+            >>> F.zero()
+            fmpz_mod(0, 163)
+        """
+        cdef fmpz_mod res 
+        res = fmpz_mod.__new__(fmpz_mod)
+        fmpz_zero(res.val)
+        res.ctx = self
+
+        return res
+
+    def one(self):
+        """
+        Return the one element
+
+            >>> F = fmpz_mod_ctx(163)
+            >>> F.one()
+            fmpz_mod(1, 163)
+        """
+        cdef fmpz_mod res 
+        res = fmpz_mod.__new__(fmpz_mod)
+        fmpz_one(res.val)
+        res.ctx = self
+
+        return res
+
+    def random_element(self):
+        r"""
+        Return a random element in :math:`\mathbb{Z}/N\mathbb{Z}`
+        """
+        cdef fmpz_mod res
+        res = fmpz_mod.__new__(fmpz_mod)
+        res.ctx = self
+
+        fmpz_randm(res.val, global_random_state, self.val.n)
+
+        return res
+
+    cdef discrete_log_pohlig_hellman_run(self, fmpz_t x, fmpz_t y):
+        # First, Ensure that L has performed precomputations This generates a
+        # base which is a primative root, and used as the base in
+        # fmpz_mod_discrete_log_pohlig_hellman_run
+        if not self._init_L:
+            fmpz_mod_discrete_log_pohlig_hellman_precompute_prime(self.L, self.val.n)
+            self._init_L = True
+
+        fmpz_mod_discrete_log_pohlig_hellman_run(x, self.L, y)
+
+    cdef set_any_as_fmpz_mod(self, fmpz_t val, obj):
+        # Try and convert obj to fmpz
         if typecheck(obj, fmpz_mod):
             if self != (<fmpz_mod>obj).ctx:
                 raise ValueError("moduli must match")
-            return obj
-
+            fmpz_set(val, (<fmpz_mod>obj).val)
+            return 0
+        
         # Try and convert obj to fmpz
         if not typecheck(obj, fmpz):
             obj = any_as_fmpz(obj)
             if obj is NotImplemented:
                 return NotImplemented
+        
+        fmpz_mod_set_fmpz(val, (<fmpz>obj).val, self.val)
+        
+        return 0
+
+    cdef any_as_fmpz_mod(self, obj):
+        # If `obj` is an `fmpz_mod`, just check moduli
+        # match
+        if typecheck(obj, fmpz_mod):
+            if self != (<fmpz_mod>obj).ctx:
+                raise ValueError("moduli must match")
+            return obj
 
         # We have been able to cast `obj` to an `fmpz` so
         # we create a new `fmpz_mod` and set the val
         cdef fmpz_mod res
         res = fmpz_mod.__new__(fmpz_mod)
+        check = self.set_any_as_fmpz_mod(res.val, obj)
+        if check is NotImplemented:
+            return NotImplemented
         res.ctx = self
-        fmpz_mod_set_fmpz(res.val, (<fmpz>obj).val, self.val)
-
+        
         return res
 
     def __eq__(self, other):
@@ -126,7 +196,7 @@ cdef class fmpz_mod_ctx:
         # If they're not the same object in memory, they may have the
         # same modulus, which is good enough
         if typecheck(other, fmpz_mod_ctx):
-            return fmpz_equal(self.val.n, (<fmpz_mod_ctx>other).val.n)
+            return fmpz_equal(self.val.n, (<fmpz_mod_ctx>other).val.n) == 1
         return False
 
     def __hash__(self):
@@ -161,34 +231,19 @@ cdef class fmpz_mod(flint_scalar):
 
     def __cinit__(self):
         fmpz_init(self.val)
-        self.x_g = NULL
+        fmpz_init(self.x_g)
 
     def __dealloc__(self):
         fmpz_clear(self.val)
-        if self.x_g:
-            fmpz_clear(self.x_g[0])
+        fmpz_clear(self.x_g)
 
     def __init__(self, val, ctx):
         if not typecheck(ctx, fmpz_mod_ctx):
             raise TypeError
         self.ctx = ctx
-
-        # When the input is also an fmpz_mod we just need
-        # moduli to match
-        if typecheck(val, fmpz_mod):
-            if self.ctx != (<fmpz_mod>val).ctx:
-                raise ValueError("moduli must match")
-            # fmpz_mod_set_fmpz(self.val, (<fmpz_mod>val).val, self.ctx.val)
-            fmpz_set(self.val, (<fmpz_mod>val).val)
-            return
-
-        # For all other cases, the easiest is to first convert to
-        # fmpz type and set this way
-        if not typecheck(val, fmpz):
-            val = any_as_fmpz(val)
-            if val is NotImplemented:
-                raise NotImplementedError
-        fmpz_mod_set_fmpz(self.val, (<fmpz>val).val, self.ctx.val)
+        check = self.ctx.set_any_as_fmpz_mod(self.val, val)
+        if check is NotImplemented:
+            raise NotImplementedError(f"Cannot convert {val} to type `fmpz_mod`")
 
     def is_zero(self):
         """
@@ -209,13 +264,29 @@ cdef class fmpz_mod(flint_scalar):
             >>> mod_ctx = fmpz_mod_ctx(163)
             >>> mod_ctx(0).is_one()
             False
-            >>> mod_ctx(1).is_zero()
+            >>> mod_ctx(1).is_one()
             True
         """
 
         cdef bint res
         res = fmpz_mod_is_one(self.val, self.ctx.val)
         return res == 1
+
+    def is_unit(self):
+        """
+        Returns whether the element is invertible modulo `N`
+
+            >>> from flint import *
+            >>> F = fmpz_mod_ctx(10)
+            >>> F(3).is_unit()
+            True
+            >>> F(2).is_unit()
+            False
+        """
+        cdef fmpz_t g
+        fmpz_init(g)
+        fmpz_gcd(g, self.val, self.ctx.val.n)
+        return 1 == fmpz_is_one(g)
 
     def inverse(self, check=True):
         r"""
@@ -252,7 +323,7 @@ cdef class fmpz_mod(flint_scalar):
 
         return res
 
-    def discrete_log(self, a, check=False):
+    def discrete_log(self, a):
         """
         Solve the discrete logarithm problem, using `self = g` as a base.
         Assumes a solution, :math:`a = g^x \pmod p` exists.
@@ -269,26 +340,14 @@ cdef class fmpz_mod(flint_scalar):
         cdef bint is_prime
 
         # Ensure that the modulus is prime
-        if check:
-            is_prime = fmpz_is_probabprime(self.ctx.val.n)
-            if not is_prime:
-                raise ValueError("modulus must be prime")
+        if not self.ctx.is_prime():
+            raise NotImplementedError("algorithm assumes modulus is prime")
 
         # Then check the type of the input
-        if typecheck(a, fmpz_mod):
-            if self.ctx != (<fmpz_mod>a).ctx:
-                raise ValueError("moduli must match")
-        else:
-            a = self.ctx.any_as_fmpz_mod(a)
-            if a is NotImplemented:
-                raise TypeError
+        a = self.ctx.any_as_fmpz_mod(a)
+        if a is NotImplemented:
+            raise TypeError(f"Cannot solve the discrete log with {type(a)} as input")
 
-        # First, Ensure that self.ctx.L has performed precomputations
-        # This generates a `y` which is a primative root, and used as
-        # the base in `fmpz_mod_discrete_log_pohlig_hellman_run`
-        if not self.ctx.L:
-            self.ctx._precompute_dlog_prime()
-        
         # Solve the discrete log for the chosen base and target
         # g = y^x_g and  a = y^x_a
         # We want to find x such that a = g^x =>
@@ -296,20 +355,13 @@ cdef class fmpz_mod(flint_scalar):
 
         # For repeated calls to discrete_log, it's more efficient to
         # store x_g rather than keep computing it
-        if not self.x_g:
-            self.x_g = <fmpz_t *>libc.stdlib.malloc(
-                cython.sizeof(fmpz_t)
-            )
-            fmpz_mod_discrete_log_pohlig_hellman_run(
-                self.x_g[0], self.ctx.L[0], self.val
-            )
+        if fmpz_is_zero(self.x_g):
+            self.ctx.discrete_log_pohlig_hellman_run(self.x_g, self.val)
 
         # Then we need to compute x_a which will be different for each call
         cdef fmpz_t x_a
         fmpz_init(x_a)
-        fmpz_mod_discrete_log_pohlig_hellman_run(
-            x_a, self.ctx.L[0], (<fmpz_mod>a).val
-        )
+        self.ctx.discrete_log_pohlig_hellman_run(x_a, (<fmpz_mod>a).val)
 
         # If g is not a primative root, then x_g and pm1 will share
         # a common factor. We can use this to compute the order of
@@ -319,14 +371,14 @@ cdef class fmpz_mod(flint_scalar):
         fmpz_init(g_order)
         fmpz_init(x_g)
 
-        fmpz_gcd(g, self.x_g[0], self.ctx.L[0].pm1)
+        fmpz_gcd(g, self.x_g, self.ctx.L.pm1)
         if not fmpz_is_one(g):
-            fmpz_divexact(x_g, self.x_g[0], g)
+            fmpz_divexact(x_g, self.x_g, g)
             fmpz_divexact(x_a, x_a, g)
-            fmpz_divexact(g_order, self.ctx.L[0].pm1, g)
+            fmpz_divexact(g_order, self.ctx.L.pm1, g)
         else:
-            fmpz_set(g_order, self.ctx.L[0].pm1)
-            fmpz_set(x_g, self.x_g[0])
+            fmpz_set(g_order, self.ctx.L.pm1)
+            fmpz_set(x_g, self.x_g)
 
         # Finally, compute output exponent by computing
         # (x_a / x_g) mod g_order
@@ -342,27 +394,29 @@ cdef class fmpz_mod(flint_scalar):
         if op != 2 and op != 3:
             raise TypeError("fmpz_mod cannot be ordered")
 
-        if not typecheck(other, fmpz_mod):
-            other = self.ctx.any_as_fmpz_mod(other)
-
-        if typecheck(self, fmpz_mod) and typecheck(other, fmpz_mod):
-            res = fmpz_equal(self.val, (<fmpz_mod>other).val) and \
-                  (self.ctx == (<fmpz_mod>other).ctx)
-            if op == 2:
-                return res
-            else:
-                return not res
-        else:
+        other = self.ctx.any_as_fmpz_mod(other)
+        if other is NotImplemented:
             return NotImplemented
+
+        res = fmpz_equal(self.val, (<fmpz_mod>other).val) and \
+                (self.ctx == (<fmpz_mod>other).ctx)
+        if op == 2:
+            return res
+        else:
+            return not res
+
 
     def __bool__(self):
         return not self.is_zero()
 
-    def __repr__(self):
+    def repr(self):
         return "fmpz_mod({}, {})".format(
             fmpz_get_intlong(self.val),
             self.ctx.modulus()
         )
+
+    def __repr__(self):
+        return self.repr()
 
     def __hash__(self):
         return hash((int(self)))
@@ -370,8 +424,11 @@ cdef class fmpz_mod(flint_scalar):
     def __int__(self):
         return fmpz_get_intlong(self.val)
 
-    def __str__(self):
+    def str(self):
         return str(int(self))
+
+    def __str__(self):
+        return self.str()
 
     # ---------------- #
     #    Arithmetic    #

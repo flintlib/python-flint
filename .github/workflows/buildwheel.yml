@@ -13,9 +13,9 @@ jobs:
         os: [ubuntu-20.04, windows-2019, macos-12]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -32,29 +32,15 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.11.2
+        uses: pypa/cibuildwheel@v2.16.5
         env:
-          CIBW_BUILD: cp39-* cp310-* cp311-*
-          CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux_*"
-          #CIBW_SKIP: "*-win32 *-musllinux_*"
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-          CIBW_MANYLINUX_I686_IMAGE: manylinux2014
-          CIBW_BEFORE_ALL_LINUX: bin/cibw_before_all_linux.sh
-          CIBW_BEFORE_ALL_MACOS: bin/cibw_before_all_macosx_x86_64.sh
+          # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
-          CIBW_BEFORE_BUILD_WINDOWS: msys2 -c bin/cibw_before_build_windows.sh
-          CIBW_BEFORE_BUILD: pip install numpy cython==3.0.0b2 delvewheel
-          CIBW_ENVIRONMENT: >
-            C_INCLUDE_PATH=$(pwd)/.local/include/
-            LIBRARY_PATH=$(pwd)/.local/lib/
-            LD_LIBRARY_PATH=$(pwd)/.local/lib:$LD_LIBRARY_PATH
-            PYTHON_FLINT_MINGW64=true
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
-            bin\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}
-          CIBW_TEST_COMMAND: python -c "import flint; print(str(flint.fmpz(2)))"
+          CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel && msys2 -c bin/cibw_before_build_windows.sh
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: wheels-${{ matrix.os }}
           path: wheelhouse/*.whl
 
   build_sdist:
@@ -62,19 +48,41 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
+
+      - run: pip install build
+      - run: python -m build --sdist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  test_rst:
+    needs: build_wheels
+    name: Test rst docs
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: wheels-ubuntu-20.04
+          path: wheelhouse
 
       - run: pip install --upgrade pip
-      - run: pip install cython numpy
-      - run: python setup.py sdist
-
-      - uses: actions/upload-artifact@v3
-        with:
-          path: dist/*.tar.gz
+      - run: pip install pytest
+      - run: pip install --no-index --find-links wheelhouse python_flint
+      - run: pytest --doctest-glob='*.rst' doc/source
 
   test_wheels:
     needs: build_wheels
@@ -84,37 +92,49 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, windows-2019, macos-12]
-        python-version: ['3.9', '3.10', '3.11']
+        python-version: ['3.9', '3.10', '3.11', '3.12']
 
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          name: wheels-${{ matrix.os }}
           path: wheelhouse
-      - run: pip install --find-links wheelhouse python_flint
+      - run: pip install --no-index --find-links wheelhouse python_flint
       - run: python -m flint.test --verbose
 
-  test_pip_linux_vcs:
-    name: Install from git checkout on Ubuntu
+  test_pip_vcs_sdist:
+    name: pip install ${{ matrix.target }} on ${{ matrix.python-version }}
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13-dev']
+        # '.' means install from python-flint git checkout
+        # 'python-flint' means install from PyPI sdist
+        target: ['.', 'python-flint']
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: 3.11
-      - run: bin/pip_install_ubuntu.sh . # Install from checkout
+          python-version: ${{ matrix.python-version }}
+      - run: bin/pip_install_ubuntu.sh ${{ matrix.target }}
       - run: python -m flint.test --verbose
 
-  test_pip_linux_pypi:
-    name: Install from PyPI sdist on Ubuntu
+  test_flint_versions:
+    name: Test flint ${{ matrix.flinttag }}
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # Supported versions and latest git
+        flinttag: ['v3.0.0', 'v3.0.1', 'v3.1.0', 'main']
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: 3.11
-      - run: bin/pip_install_ubuntu.sh python-flint # Install from PyPI sdist
+          python-version: 3.12
+      - run: bin/pip_install_ubuntu.sh . ${{ matrix.flinttag }}
       - run: python -m flint.test --verbose

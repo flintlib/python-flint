@@ -440,8 +440,12 @@ cdef class fmpq(flint_scalar):
             return fmpz(fround)
 
     def __hash__(self):
+        import sys
         from fractions import Fraction
-        return hash(Fraction(int(self.p), int(self.q), _normalize=False))
+        if sys.version_info < (3, 12):
+            return hash(Fraction(int(self.p), int(self.q), _normalize=False))
+        else:
+            return hash(Fraction._from_coprime_ints(int(self.p), int(self.q)))
 
     def height_bits(self, bint signed=False):
         """

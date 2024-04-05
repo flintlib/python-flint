@@ -18,6 +18,9 @@ from flint.flintlib.fmpq_mat cimport fmpq_mat_init
 from flint.flintlib.fmpq_mat cimport fmpq_mat_set_fmpz_mat_div_fmpz
 from flint.flintlib.fmpq_mat cimport fmpq_mat_solve_fmpz_mat
 
+from flint.utils.flint_exceptions import DomainError
+
+
 cdef any_as_fmpz_mat(obj):
     if typecheck(obj, fmpz_mat):
         return obj
@@ -126,18 +129,15 @@ cdef class fmpz_mat(flint_mat):
                     x = fmpz(entries[i*n + j])
                     fmpz_set(fmpz_mat_entry(self.val, i, j), (<fmpz>x).val)
         else:
-            raise ValueError("fmpz_mat: expected 1-3 arguments")
+            raise TypeError("fmpz_mat: expected 1-3 arguments")
 
     def __nonzero__(self):
         return not fmpz_mat_is_zero(self.val)
 
-    def __richcmp__(s, t, int op):
+    def __richcmp__(fmpz_mat s, t, int op):
         cdef bint r
         if op != 2 and op != 3:
             raise TypeError("matrices cannot be ordered")
-        s = any_as_fmpz_mat(s)
-        if t is NotImplemented:
-            return s
         t = any_as_fmpz_mat(t)
         if t is NotImplemented:
             return t
@@ -163,7 +163,7 @@ cdef class fmpz_mat(flint_mat):
         cdef fmpz x
         i, j = index
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
-            raise ValueError("index %i,%i exceeds matrix dimensions" % (i, j))
+            raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
         x = fmpz.__new__(fmpz)
         fmpz_set(x.val, fmpz_mat_entry(self.val, i, j))
         return x
@@ -172,7 +172,7 @@ cdef class fmpz_mat(flint_mat):
         cdef long i, j
         i, j = index
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
-            raise ValueError("index %i,%i exceeds matrix dimensions" % (i, j))
+            raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
         c = fmpz(value)  # XXX
         fmpz_set(fmpz_mat_entry(self.val, i, j), (<fmpz>c).val)
 
@@ -282,15 +282,22 @@ cdef class fmpz_mat(flint_mat):
             return fmpq_mat(s) * t
         return NotImplemented
 
-    @staticmethod
-    def _div_(fmpz_mat s, t):
-        return s * (1 / fmpq(t))
-
-    def __truediv__(s, t):
-        return fmpz_mat._div_(s, t)
-
-    def __div__(s, t):
-        return fmpz_mat._div_(s, t)
+    def __truediv__(fmpz_mat s, t):
+        cdef fmpz_mat u
+        cdef fmpz_mat_struct *sval
+        t = any_as_fmpz(t)
+        if t is NotImplemented:
+            return t
+        if fmpz_is_zero((<fmpz>t).val):
+            raise ZeroDivisionError("division by zero")
+        sval = &(<fmpz_mat>s).val[0]
+        u = fmpz_mat.__new__(fmpz_mat)
+        fmpz_mat_init(u.val, fmpz_mat_nrows(sval), fmpz_mat_ncols(sval))
+        fmpz_mat_scalar_divexact_fmpz(u.val, sval, (<fmpz>t).val)
+        # XXX: check for exact division - there should be a better way!
+        if u * t != s:
+            raise DomainError("fmpz_mat division is not exact")
+        return u
 
     def __pow__(self, e, m):
         cdef fmpz_mat t
@@ -716,16 +723,47 @@ cdef class fmpz_mat(flint_mat):
         return bool(fmpz_mat_is_in_snf(self.val))
 
     def charpoly(self):
+        """Returns the characteristic polynomial of *self* as an *fmpz_poly*.
+
+        >>> from flint import fmpz_mat
+        >>> A = fmpz_mat(3, 3, range(9))
+        >>> A
+        [0, 1, 2]
+        [3, 4, 5]
+        [6, 7, 8]
+        >>> A.charpoly()
+        x^3 + (-12)*x^2 + (-18)*x
+        """
         cdef fmpz_poly u
+
+        if not fmpz_mat_is_square(self.val):
+            raise ValueError("matrix must be square")
+
         u = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_init(u.val)
         fmpz_mat_charpoly(u.val, self.val)
         return u
 
     def minpoly(self):
+        """Returns the minimal polynomial of *self* as an *fmpz_poly*.
+
+        >>> from flint import fmpz_mat
+        >>> A = fmpz_mat([[2, 1, 0], [0, 2, 0], [0, 0, 2]])
+        >>> A
+        [2, 1, 0]
+        [0, 2, 0]
+        [0, 0, 2]
+        >>> A.charpoly()
+        x^3 + (-6)*x^2 + 12*x + (-8)
+        >>> A.minpoly()
+        x^2 + (-4)*x + 4
+        """
         cdef fmpz_poly u
+
+        if not fmpz_mat_is_square(self.val):
+            raise ValueError("matrix must be square")
+
         u = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_init(u.val)
         fmpz_mat_minpoly(u.val, self.val)
         return u
-

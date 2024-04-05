@@ -174,7 +174,7 @@ if [ $USE_GMP = "gmp" ]; then
         --enable-shared=yes\
         --enable-static=no\
         --host=$HOST_ARG
-      make -j3
+      make -j6
       make install
 
     cd ..
@@ -195,7 +195,7 @@ else
   tar xf yasm-$YASMVER.tar.gz
   cd yasm-$YASMVER
     ./configure --prefix=$PREFIX
-    make -j3
+    make -j6
     make install
   cd ..
 
@@ -226,7 +226,7 @@ else
       --enable-shared=yes\
       --enable-static=no\
       --enable-gmpcompat
-    make -j3
+    make -j6
     make install
   cd ..
 
@@ -260,7 +260,7 @@ else
       --with-gmp=$PREFIX\
       --enable-shared=yes\
       --enable-static=no
-    make -j3
+    make -j6
     make install
   cd ..
 fi
@@ -277,7 +277,7 @@ echo "           building Flint"
 echo --------------------------------------------
 echo
 
-curl -O -L https://www.flintlib.org/flint-$FLINTVER.tar.gz
+curl -O -L https://github.com/flintlib/flint/releases/download/v$FLINTVER/flint-$FLINTVER.tar.gz
 tar xf flint-$FLINTVER.tar.gz
 cd flint-$FLINTVER
   ./bootstrap.sh
@@ -285,7 +285,7 @@ cd flint-$FLINTVER
     $FLINTARB_WITHGMP\
     --with-mpfr=$PREFIX\
     --disable-static
-  make -j3
+  make -j6
   make install
 cd ..
 
@@ -312,7 +312,7 @@ if [ $BUILD_ARB = "yes" ]; then
       $FLINTARB_WITHGMP\
       --with-mpfr=$PREFIX\
       --disable-static
-    make -j3
+    make -j6
     make install
     #
     # Set PATH so that DLLs are picked up on Windows.

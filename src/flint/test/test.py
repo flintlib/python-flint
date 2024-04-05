@@ -3,11 +3,16 @@ import math
 import operator
 import pickle
 import doctest
+import platform
+
+from flint.utils.flint_exceptions import DomainError
 
 import flint
 
 if sys.version_info[0] >= 3:
     long = int
+
+PYPY = platform.python_implementation() == "PyPy"
 
 ctx = flint.ctx
 
@@ -25,12 +30,12 @@ unicode = False    # use unicode characters in output
 prec = 53          # real/complex precision (in bits)
 dps = 15           # real/complex precision (in digits)
 cap = 10           # power series precision
-threads = 1        # max number of threads used internally
+threads = 1        # max number of threads used internally\
 """
 
 def test_pyflint():
 
-    assert flint.__version__ == "0.4.4"
+    assert flint.__version__ == "0.6.0"
 
     ctx = flint.ctx
     assert str(ctx) == repr(ctx) == _default_ctx_string
@@ -73,6 +78,9 @@ def test_pyflint():
     assert raises(lambda: setattr(ctx, "prec", -1), ValueError)
     assert raises(lambda: setattr(ctx, "dps", -1), ValueError)
 
+def test_showgood():
+    from flint import good, showgood
+
 def test_fmpz():
     assert flint.fmpz() == flint.fmpz(0)
     L = [0, 1, 2, 3, 2**31-1, 2**31, 2**63-1, 2**63, 2**64-1, 2**64]
@@ -82,6 +90,7 @@ def test_fmpz():
         assert int(f) == i
         assert flint.fmpz(f) == f
         assert flint.fmpz(str(i)) == f
+    assert raises(lambda: flint.fmpz(1,2), TypeError)
     assert raises(lambda: flint.fmpz("qwe"), ValueError)
     assert raises(lambda: flint.fmpz([]), TypeError)
     for s in L:
@@ -134,17 +143,28 @@ def test_fmpz():
         (2, 2, 3, 1),
         (2, -1, 5, 3),
         (2, 0, 5, 1),
+        (2, 5, 1000, 32),
     ]
     for a, b, c, ab_mod_c in pow_mod_examples:
         assert pow(a, b, c) == ab_mod_c
         assert pow(flint.fmpz(a), b, c) == ab_mod_c
-        assert pow(a, flint.fmpz(b), c) == ab_mod_c
         assert pow(flint.fmpz(a), flint.fmpz(b), c) == ab_mod_c
+        assert pow(flint.fmpz(a), b, flint.fmpz(c)) == ab_mod_c
         assert pow(flint.fmpz(a), flint.fmpz(b), flint.fmpz(c)) == ab_mod_c
+
+        # 3-arg pow cannot be made to work with fmpz on PyPy
+        # https://github.com/flintlib/python-flint/issues/74
+        if not PYPY:
+            assert pow(a, flint.fmpz(b), c) == ab_mod_c
+            assert pow(a, b, flint.fmpz(c)) == ab_mod_c
+            assert pow(a, flint.fmpz(b), flint.fmpz(c)) == ab_mod_c
 
     assert raises(lambda: pow(flint.fmpz(2), 2, 0), ValueError)
     # XXX: Handle negative modulus like int?
     assert raises(lambda: pow(flint.fmpz(2), 2, -1), ValueError)
+
+    assert raises(lambda: pow(flint.fmpz(2), "asd", 2), TypeError)
+    assert raises(lambda: pow(flint.fmpz(2), 2, "asd"), TypeError)
 
     f = flint.fmpz(2)
     assert f.numerator == f
@@ -435,7 +455,7 @@ def test_fmpz_poly():
     assert Z([1,2,-4]).height_bits() == 3
     assert Z([1,2,-4]).height_bits(signed=True) == -3
     assert Z([1,2,1]).sqrt() == Z([1,1])
-    assert Z([1,2,2]).sqrt() is None
+    assert raises(lambda: Z([1,2,2]).sqrt(), ValueError)
     assert Z([1,0,2,0,3]).deflation() == (Z([1,2,3]), 2)
     assert Z([]).deflation() == (Z([]), 1)
     assert Z([1,1]).deflation() == (Z([1,1]), 1)
@@ -527,7 +547,8 @@ def test_fmpz_mat():
     assert str(M(2,2,[1,2,3,4])) == '[1, 2]\n[3, 4]'
     assert M(1,2,[3,4]) * flint.fmpq(1,3) == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
     assert flint.fmpq(1,3) * M(1,2,[3,4]) == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
-    assert M(1,2,[3,4]) / 3 == flint.fmpq_mat(1, 2, [1, flint.fmpq(4,3)])
+    assert raises(lambda: M(1,2,[3,4]) / 3, DomainError)
+    assert M(1,2,[2,4]) / 2 == M(1,2,[1,2])
     assert M(2,2,[1,2,3,4]).inv().det() == flint.fmpq(1) / M(2,2,[1,2,3,4]).det()
     assert M(2,2,[1,2,3,4]).inv().inv() == M(2,2,[1,2,3,4])
     assert raises(lambda: M.randrank(4,3,4,1), ValueError)
@@ -541,7 +562,7 @@ def test_fmpz_mat():
     assert raises(lambda: M([[1],[2,3]]), ValueError)
     assert raises(lambda: M(None), TypeError)
     assert raises(lambda: M(2,2,[1,2,3]), ValueError)
-    assert raises(lambda: M(2,2,2,2), ValueError)
+    assert raises(lambda: M(2,2,2,2), TypeError)
     assert M([[1,2,3],[4,5,6]]) == M(2,3,[1,2,3,4,5,6])
     assert raises(lambda: M([[1]]) < M([[2]]), TypeError)
     assert (M([[1]]) == 1) is False
@@ -555,15 +576,15 @@ def test_fmpz_mat():
     def set_bad(i,j):
         D[i,j] = -1
     # XXX: Should be IndexError
-    raises(lambda: set_bad(2,0), ValueError)
-    raises(lambda: set_bad(0,2), ValueError)
-    raises(lambda: D[0,2], ValueError)
-    raises(lambda: D[0,2], ValueError)
+    raises(lambda: set_bad(2,0), IndexError)
+    raises(lambda: set_bad(0,2), IndexError)
+    raises(lambda: D[0,2], IndexError)
+    raises(lambda: D[0,2], IndexError)
     # XXX: Negative indices?
-    raises(lambda: set_bad(-1,0), ValueError)
-    raises(lambda: set_bad(0,-1), ValueError)
-    raises(lambda: D[-1,0], ValueError)
-    raises(lambda: D[0,-1], ValueError)
+    raises(lambda: set_bad(-1,0), IndexError)
+    raises(lambda: set_bad(0,-1), IndexError)
+    raises(lambda: D[-1,0], IndexError)
+    raises(lambda: D[0,-1], IndexError)
     assert M.hadamard(2) == M([[1,1],[1,-1]])
     assert raises(lambda: M.hadamard(3), ValueError)
     assert M.hadamard(2).is_hadamard() is True
@@ -1006,7 +1027,8 @@ def test_fmpq_poly():
     assert 3 * Q([1,2,3]) == Q([3,6,9])
     assert Q([1,2,3]) * flint.fmpq(2,3) == (Q([1,2,3]) * 2) / 3
     assert flint.fmpq(2,3) * Q([1,2,3]) == (Q([1,2,3]) * 2) / 3
-    assert raises(lambda: Q([1,2]) / Q([1,2]), TypeError)
+    assert Q([1,2]) / Q([1,2]) == Q([1])
+    assert raises(lambda: Q([1,2]) / Q([2,2]), DomainError)
     assert Q([1,2,3]) / flint.fmpq(2,3) == Q([1,2,3]) * flint.fmpq(3,2)
     assert Q([1,2,3]) ** 2 == Q([1,2,3]) * Q([1,2,3])
     assert raises(lambda: pow(Q([1,2]), 3, 5), NotImplementedError)
@@ -1108,7 +1130,7 @@ def test_fmpq_mat():
     assert raises(lambda: Q(2,3,[1,2,3,4,5]), ValueError)
     assert raises(lambda: Q([[1,2,3],[4,[],6]]), TypeError)
     assert raises(lambda: Q(2,3,[1,2,3,4,[],6]), TypeError)
-    assert raises(lambda: Q(2,3,[1,2],[3,4]), ValueError)
+    assert raises(lambda: Q(2,3,[1,2],[3,4]), TypeError)
     assert bool(Q([[1]])) is True
     assert bool(Q([[0]])) is False
     assert raises(lambda: Q([[1]]) < Q([[0]]), TypeError)
@@ -1119,13 +1141,12 @@ def test_fmpq_mat():
     # XXX: Negative indices should probably be allowed
     def set_bad(i):
         M[i,0] = -1
-    raises(lambda: M[-1,0], ValueError)
-    raises(lambda: M[0,-1], ValueError)
-    raises(lambda: set_bad(-1), ValueError)
-    # XXX: Should be IndexError
-    raises(lambda: M[2,0], ValueError)
-    raises(lambda: M[0,2], ValueError)
-    raises(lambda: set_bad(2), ValueError)
+    raises(lambda: M[-1,0], IndexError)
+    raises(lambda: M[0,-1], IndexError)
+    raises(lambda: set_bad(-1), IndexError)
+    raises(lambda: M[2,0], IndexError)
+    raises(lambda: M[0,2], IndexError)
+    raises(lambda: set_bad(2), IndexError)
     assert Q([[1,2,3],[4,5,6]]).transpose() == Q([[1,4],[2,5],[3,6]])
     raises(lambda: M + [], TypeError)
     raises(lambda: M - [], TypeError)
@@ -1562,9 +1583,12 @@ def test_nmod_mat():
     assert A*(B*C) == (A*B)*C
     assert bool(M(2,2,[0,0,0,0],17)) == False
     assert bool(M(2,2,[0,0,0,1],17)) == True
-    ctx.pretty = False
-    assert repr(M(2,2,[1,2,3,4],17)) == 'nmod_mat(2, 2, [1, 2, 3, 4], 17)'
-    ctx.pretty = True
+    pretty = ctx.pretty
+    try:
+        ctx.pretty = False
+        assert repr(M(2,2,[1,2,3,4],17)) == 'nmod_mat(2, 2, [1, 2, 3, 4], 17)'
+    finally:
+        ctx.pretty = pretty
     assert str(M(2,2,[1,2,3,4],17)) == '[1, 2]\n[3, 4]'
     assert repr(M(2,2,[1,2,3,4],17)) == '[1, 2]\n[3, 4]'
     assert M(1,2,[3,4],17) / 3 == M(1,2,[3,4],17) * (~G(3,17))
@@ -1578,7 +1602,7 @@ def test_nmod_mat():
     assert raises(lambda: M(None,17), TypeError)
     assert M(2,3,17) == M(2,3,[0,0,0,0,0,0],17)
     assert raises(lambda: M(2,3,[0,0,0,0,0],17), ValueError)
-    assert raises(lambda: M(2,3,[0,1],[1,2],17), ValueError)
+    assert raises(lambda: M(2,3,[0,1],[1,2],17), TypeError)
     assert M([[1,2,3],[4,5,6]], 5) == M(2,3,[1,2,3,4,5,6], 5)
     assert raises(lambda: M([[0]],13) < M([[1]],13), TypeError)
     assert (M([[1]],17) == M([[1]],13)) is False
@@ -1596,18 +1620,17 @@ def test_nmod_mat():
     def set_bad(i,j):
         M3[i,j] = 2
     # XXX: negative indices should be allowed
-    assert raises(lambda: M3[-1,0], ValueError)
-    assert raises(lambda: M3[0,-1], ValueError)
-    assert raises(lambda: set_bad(-1,0), ValueError)
-    assert raises(lambda: set_bad(0,-1), ValueError)
-    # XXX: Should be IndexError
-    assert raises(lambda: M3[2,0], ValueError)
-    assert raises(lambda: M3[0,2], ValueError)
-    assert raises(lambda: set_bad(2,0), ValueError)
-    assert raises(lambda: set_bad(0,2), ValueError)
+    assert raises(lambda: M3[-1,0], IndexError)
+    assert raises(lambda: M3[0,-1], IndexError)
+    assert raises(lambda: set_bad(-1,0), IndexError)
+    assert raises(lambda: set_bad(0,-1), IndexError)
+    assert raises(lambda: M3[2,0], IndexError)
+    assert raises(lambda: M3[0,2], IndexError)
+    assert raises(lambda: set_bad(2,0), IndexError)
+    assert raises(lambda: set_bad(0,2), IndexError)
     def set_bad2():
         M3[0,0] = 1.5
-    assert raises(set_bad2, ValueError)
+    assert raises(set_bad2, TypeError)
     assert raises(lambda: M3 + [], TypeError)
     assert raises(lambda: M3 - [], TypeError)
     assert raises(lambda: M3 * [], TypeError)
@@ -1681,9 +1704,16 @@ def test_fmpz_mod():
     p_med = 2**127 - 1
     p_big = 2**255 - 19
 
+    F_cmp = fmpz_mod_ctx(10)
     F_sml = fmpz_mod_ctx(p_sml)
     F_med = fmpz_mod_ctx(p_med)
     F_big = fmpz_mod_ctx(p_big)
+
+    assert F_sml.is_prime() is True
+    assert F_med.is_prime() is True
+    assert F_big.is_prime() is True
+    assert F_cmp.is_prime() is False
+
 
     # Context tests
     assert raises(lambda: fmpz_mod_ctx("AAA"), TypeError)
@@ -1712,6 +1742,13 @@ def test_fmpz_mod():
         test_x = (-123) % test_mod # canonical value
         test_y = ((-456) % test_mod)**2 # non-canoncial value
 
+        test_z = F_test.random_element()
+        assert int(test_z) < F_test.modulus()
+        assert int(test_z) >= 0
+
+        assert raises(lambda: F_test(F_cmp(1)), ValueError)
+        assert raises(lambda: F_test("abc"), NotImplementedError)
+
         F_test_copy = fmpz_mod_ctx(test_mod)
         F_other = fmpz_mod_ctx(11)
 
@@ -1730,6 +1767,7 @@ def test_fmpz_mod():
         assert (F_test(test_x) == F_test(test_x + test_mod)) is True
         assert (F_test(test_x) == F_test(1)) is False
         assert (F_test(test_x) != F_test(1)) is True
+        assert (F_test(test_x) != "abc") is True
 
         assert (hash(F_test(test_x)) == hash(test_x)) is True
         assert (hash(F_test(F_test(test_x))) == hash(test_x)) is True
@@ -1787,6 +1825,8 @@ def test_fmpz_mod():
         assert F_test(test_x) - fmpz(test_y) == F_test(test_x) - F_test(test_y)
         assert raises(lambda: F_test(test_x) - F_other(test_y), ValueError)
         assert raises(lambda: F_test(test_x) - "AAA", TypeError)
+        assert raises(lambda: "AAA" - F_test(test_x), TypeError)
+
 
         # Multiplication
 
@@ -1866,17 +1906,17 @@ def test_fmpz_mod_dlog():
     # Input modulus must be prime
     F = fmpz_mod_ctx(4)
     g, a = F(1), F(2)
-    assert raises(lambda: g.discrete_log(a, check=True), ValueError)
+    assert raises(lambda: g.discrete_log(a), NotImplementedError)
 
     # Moduli must match
     F1, F2 = fmpz_mod_ctx(2), fmpz_mod_ctx(3)
     g = F1(2)
     a = F2(4)
-    assert raises(lambda: g.discrete_log(a, check=True), ValueError)
+    assert raises(lambda: g.discrete_log(a), ValueError)
 
     # Need to use either fmpz_mod or something which can be case to
     # fmpz
-    assert raises(lambda: g.discrete_log("A", check=True), TypeError)
+    assert raises(lambda: g.discrete_log("A"), TypeError)
 
     F = fmpz_mod_ctx(163)
     g = F(2)
@@ -1903,6 +1943,579 @@ def test_fmpz_mod_dlog():
             x = g.discrete_log(a)
             assert g**x == a
 
+def test_fmpz_mod_poly():
+    from flint import fmpz_poly, fmpz_mod_poly, fmpz_mod_poly_ctx, fmpz_mod_ctx, fmpz
+
+    # fmpz_mod_poly_ctx tests
+    F = fmpz_mod_ctx(11)
+    R1 = fmpz_mod_poly_ctx(F)
+    R2 = fmpz_mod_poly_ctx(11)
+    R3 = fmpz_mod_poly_ctx(13)
+
+    assert raises(lambda: fmpz_mod_ctx("AAA"), TypeError)
+    assert raises(lambda: fmpz_mod_ctx(-1), ValueError)
+    assert (R1 == R1) is True
+    assert (R1 != R1) is False
+    assert (R1 == R2) is True
+    assert (R1 != R2) is False
+    assert (R1 != R3) is True
+    assert (R1 == R3) is False
+    assert (R1 != "AAA") is True
+    assert (R1 == "AAA") is False
+
+    assert (hash(R1) == hash(R1)) is True
+    assert (hash(R1) == hash(R2)) is True
+    assert (hash(R1) != hash(R3)) is True
+
+    assert str(R1) == "Context for fmpz_mod_poly with modulus: 11"
+    assert str(R1) == str(R2)
+    assert repr(R3) == "fmpz_mod_poly_ctx(13)"
+
+    assert R1.modulus() == 11
+    
+    assert R1.is_prime()
+    assert R1.zero() == 0
+    assert R1.one() == 1
+    assert R1.gen() == R1([0,1])
+
+    # Random testing
+    f = R1.random_element()
+    assert f.degree() == 3
+    f = R1.random_element(degree=5, monic=True)
+    assert f.degree() == 5
+    assert f.is_monic()
+    f = R1.random_element(degree=100, irreducible=True)
+    assert f.degree() == 100
+    assert f.is_irreducible()
+    f = R1.random_element(degree=1, monic=True, irreducible=True)
+    assert f.degree() == 1
+    assert f.is_irreducible()
+    assert f.is_monic()
+    assert raises(lambda: R1.random_element(degree=-123), ValueError)
+    assert raises(lambda: R1.random_element(monic="A"), ValueError)
+    assert raises(lambda: R1.random_element(irreducible="A"), ValueError)
+
+
+    # Conversion tests
+    F = fmpz_mod_ctx(11)
+    F_other = fmpz_mod_ctx(10)
+    R = fmpz_mod_poly_ctx(F)
+    R_other = fmpz_mod_poly_ctx(F_other)
+
+    assert raises(lambda: fmpz_mod_poly(1, "A"), TypeError) # Need a valid context
+    assert raises(lambda: R(R_other([1,2,3])), ValueError), f"{R(R_other([1,2,3])) = }" # moduli must match
+    assert raises(lambda: R(F_other(2)), ValueError) # moduli must match
+    assert raises(lambda: R([F(1), F_other(2)]), ValueError) # moduli must match
+    assert raises(lambda: R([F(1), "A"]), TypeError) # need to be able to cast to fmpz_mod
+
+    f1 = R([int(-1),int(-2),int(-3)])
+    f2 = R([fmpz(-1),fmpz(-2),fmpz(-3)])
+    f3 = R([F(-1),F(-2),F(-3)])
+    f4 = R(fmpz_poly([-1, -2, -3]))
+    f5 = R(f4)
+
+    assert str(f1) == "8*x^2 + 9*x + 10"
+    assert str(f2) == "8*x^2 + 9*x + 10"
+    assert str(f3) == "8*x^2 + 9*x + 10"
+    assert str(f4) == "8*x^2 + 9*x + 10"
+    assert str(f5) == "8*x^2 + 9*x + 10"
+
+    f1 = R(5)
+    f2 = R(fmpz(6))
+    f3 = R(F(7))
+    assert str(f1) == "5"
+    assert str(f2) == "6"
+    assert str(f3) == "7"
+
+    # Printing
+    f = R([5, 6, 7, 8])
+    assert str(f) == "8*x^3 + 7*x^2 + 6*x + 5"
+    # assert repr(f) == "fmpz_mod_poly([5, 6, 7, 8], fmpz_mod_poly_ctx(11))"
+
+    # Get and Set tests
+    f = R([5, 6, 7, 8])
+    assert f[0] == 5
+    assert repr(f[0]) == "fmpz_mod(5, 11)"
+    f[0] = 7
+    assert repr(f[0]) == "fmpz_mod(7, 11)"
+    assert str(f) == "8*x^3 + 7*x^2 + 6*x + 7"
+
+    # TODO: currently repr does pretty printing
+    # just like str, we should address this. Mainly, 
+    # the issue is we want nice `repr` behaviour in
+    # interactive shells, which currently is why this
+    # choice has been made
+    assert str(f) == repr(f)
+
+    assert f[-1] == 0
+    assert raises(lambda: f.__setitem__(-1, 1), ValueError)
+    assert raises(lambda: f.__setitem__(1, "A"), TypeError)
+
+
+    # Comparisons
+    f1 = R([1,2,3])
+    f2 = R([12,13,14])
+    f3 = R([4,5,6])
+    f4 = R([3])
+
+    assert (f1 == f2) is True
+    assert (f1 != f3) is True
+    assert (f1 != "1") is True
+    assert (f4 == 3) is True
+    assert (hash(f1) == hash(f2)) is True
+    assert raises(lambda: f1 > f2, TypeError)
+    assert raises(lambda: f1 >= f2, TypeError)
+    assert raises(lambda: f1 < f2, TypeError)
+    assert raises(lambda: f1 <= f2, TypeError)
+
+    assert len(f1) == f1.length() == 3
+    assert f1.degree() == 2
+
+    f1 = R([0])
+    f2 = R([1])
+    f3 = R([0, 1])
+
+    assert f1.is_zero() is True
+    assert f2.is_one() is True
+    assert f3.is_gen() is True
+
+    # Arithmetic
+    p_sml = 163
+    p_med = 2**127 - 1
+    p_big = 2**255 - 19
+
+    F_sml = fmpz_mod_ctx(p_sml)
+    F_med = fmpz_mod_ctx(p_med)
+    F_big = fmpz_mod_ctx(p_big)
+    
+    R_sml = fmpz_mod_poly_ctx(F_sml)
+    R_med = fmpz_mod_poly_ctx(F_med)
+    R_big = fmpz_mod_poly_ctx(F_big)
+
+    F_cmp = fmpz_mod_ctx(10)
+    R_cmp = fmpz_mod_poly_ctx(F_cmp)
+    f_cmp = R_cmp([1,2,3,4,5])
+    f_bad = R_cmp([2,2,2,2,2])
+
+    for (F_test, R_test) in [(F_sml, R_sml), (F_med, R_med), (F_big, R_big)]:
+        
+        f = R_test([-1,-2])
+        g = R_test([-3,-4])
+
+        # pos, neg
+        assert f is +f
+        assert -f == R_test([1,2])
+        
+        # add
+        assert raises(lambda: f + f_cmp, ValueError)
+        assert raises(lambda: f + "AAA", TypeError)
+        assert raises(lambda: "AAA" + f, TypeError)
+        assert f + g == R_test([-4,-6])
+        assert f + 1 ==  R_test([0,-2])
+        assert f + fmpz(1) ==  R_test([0,-2])
+        assert f + F_test(1) ==  R_test([0,-2])
+        assert 1 + f ==  R_test([0,-2])
+        assert fmpz(1) + f ==  R_test([0,-2])
+        assert F_test(1) + f ==  R_test([0,-2])
+
+        # sub
+        assert raises(lambda: f - f_cmp, ValueError)
+        assert raises(lambda: f - "AAA", TypeError)
+        assert raises(lambda: "AAA" - f, TypeError)
+        assert f - g == R_test([2, 2])
+        assert f - 1 ==  R_test([-2,-2])
+        assert f - fmpz(1) ==  R_test([-2,-2])
+        assert f - F_test(1) ==  R_test([-2,-2])
+        assert 1 - f ==  R_test([2, 2])
+        assert fmpz(1) - f ==  R_test([2, 2])
+        assert F_test(1) - f ==  R_test([2, 2])
+
+        # mul
+        assert raises(lambda: f * f_cmp, ValueError)
+        assert raises(lambda: f * "AAA", TypeError)
+        assert raises(lambda: "AAA" * f, TypeError)
+        assert f * g == R_test([3, 4 + 6, 8])
+        assert f * 2 ==  R_test([-2,-4])
+        assert f * fmpz(2) ==  R_test([-2,-4])
+        assert f * F_test(2) ==  R_test([-2,-4])
+        assert 2 * f ==  R_test([-2,-4])
+        assert fmpz(2) * f ==  R_test([-2,-4])
+        assert F_test(2) * f ==  R_test([-2,-4])
+
+        # scalar_mul
+        assert 2 * f == f.scalar_mul(2)
+        assert raises(lambda: f.scalar_mul("AAA"), TypeError)
+
+        # Exact division
+        assert raises(lambda: f.exact_division(f_cmp), ValueError)
+        assert raises(lambda: f.exact_division("AAA"), TypeError)
+        assert raises(lambda: f.exact_division(0), ZeroDivisionError)
+
+        assert (f * g).exact_division(g) == f
+        assert raises(lambda: f.exact_division(g), DomainError)
+
+        # true div
+        assert raises(lambda: f / "AAA", TypeError)
+        assert raises(lambda: f / 0, ZeroDivisionError)
+        assert raises(lambda: f_cmp / 2, ZeroDivisionError)
+    
+        assert (f + f) / 2  ==  f
+        assert (f + f) / fmpz(2)  ==  f
+        assert (f + f) / F_test(2)  ==  f
+
+        # floor div
+        assert raises(lambda: 1 // f_bad, ZeroDivisionError)
+        assert raises(lambda: f // f_cmp, ValueError)
+        assert raises(lambda: f // "AAA", TypeError)
+        assert raises(lambda: "AAA" // f, TypeError)
+        assert (f * g) // g == f
+        assert (f + f) // 2  ==  f
+        assert (f + f) // fmpz(2)  ==  f
+        assert (f + f) // F_test(2)  ==  f
+        assert 2 // R_test(2) == 1        
+        assert (f + 1) // f == 1
+
+        # pow
+        assert raises(lambda: f**(-2), ValueError)
+        assert f*f == f**2
+        assert f*f == f**fmpz(2)
+
+        # Shifts
+        assert raises(lambda: R_test([1,2,3]).left_shift(-1), ValueError)
+        assert raises(lambda: R_test([1,2,3]).right_shift(-1), ValueError)
+        assert R_test([1,2,3]).left_shift(3) == R_test([0,0,0,1,2,3])
+        assert R_test([1,2,3]).right_shift(1) == R_test([2,3])
+
+        # Mod
+        assert raises(lambda: f % f_bad, ValueError)
+        assert raises(lambda: 123 % f_bad, ValueError)
+        assert raises(lambda: f % "AAA", TypeError)
+        assert raises(lambda: tuple() % f, TypeError), f'{"AAA" % f = }'
+
+        assert f % 1 == 0
+        assert R_test.one() % 1 == 0
+        assert 100 % R_test.one() == 0
+        assert (f*g + 1) % f == 1
+        assert (f*g + g) % f == (g % f)
+        assert f % R_test([0,1]) == f.constant_coefficient()
+
+        # Evaluation
+        h = R_test([0, 1])
+        assert h(1) == 1
+        assert h(-1) == R_test.modulus() - 1
+        h = R_test([0, 0, 1])
+        assert h(1) == h(-1)
+        assert raises(lambda: h("AAA"), TypeError)
+        assert f([-1,-2,-3]) == [f(x) for x in [-1, -2, -3]]
+
+        # compose
+        assert raises(lambda: h.compose("AAA"), TypeError)
+
+        # Reverse
+        assert raises(lambda: h.reverse(degree=-100), ValueError)
+        assert R_test([-1,-2,-3]).reverse() == R_test([-3,-2,-1])
+
+        # monic
+        assert raises(lambda: f_bad.monic(), ValueError)
+        assert R_test([1,2]).monic() == R_test([1 / F_test(2), 1])
+        assert R_test([1,2]).monic(check=False) == R_test([1 / F_test(2), 1])
+
+        # Square
+        assert f*f == f**2 == f.square()
+
+        # mulmod
+        assert f.mulmod(f, g) == (f*f) % g
+        assert raises(lambda: f.mulmod(f, "AAA"), TypeError)
+        assert raises(lambda: f.mulmod("AAA", g), TypeError)
+
+        # powmod
+        assert f.powmod(2, g) == (f*f) % g
+        assert raises(lambda: f.powmod(2, "AAA"), TypeError)
+
+        # divmod
+        S, T = f.divmod(g)
+        assert S*g + T == f
+        assert raises(lambda: f.divmod("AAA"), TypeError)
+        assert raises(lambda: f_bad.divmod(f_bad), ValueError)
+
+        # gcd
+        assert raises(lambda: f_cmp.gcd(f_cmp), NotImplementedError)
+        assert raises(lambda: f.gcd("f"), TypeError)
+
+        # xgcd
+        assert raises(lambda: (f_cmp).xgcd(f_cmp), ValueError)
+        assert raises(lambda: (f).xgcd("f_cmp"), TypeError)
+
+        # disc.
+        assert raises(lambda: (f_cmp).discriminant(), NotImplementedError)
+
+        # Radical
+        assert raises(lambda: (f_cmp).radical(), NotImplementedError)
+
+        # inverse_mod
+        f_inv = f.inverse_mod(g)
+        assert (f * f_inv) % g == 1
+        assert raises(lambda: f.inverse_mod("AAA"), TypeError)
+        assert raises(lambda: (f_cmp).inverse_mod(f_cmp), ValueError)
+
+        f_inv = f.inverse_series_trunc(2)
+        assert (f * f_inv) % R_test([0,0,1]) == 1
+        assert raises(lambda: R_cmp([0,0,1]).inverse_series_trunc(2), ValueError)
+
+        # Resultant
+        f1 = R_test([-3, 1])
+        f2 = R_test([-5, 1])
+        assert f1.resultant(f2) == (3 - 5)
+        assert raises(lambda: f.resultant("AAA"), TypeError)        
+
+        # sqrt
+        f1 = R_test.random_element(irreducible=True)
+        assert raises(lambda: f1.sqrt(), ValueError)
+        assert (f1*f1).sqrt() in [f1, -f1]
+
+        # deflation
+        f1 = R_test([1,0,2,0,3])
+        assert raises(lambda: f1.deflate(100), ValueError)
+        assert f1.deflate(2) == R_test([1,2,3])
+
+        # factor
+        ff = R_test([3,2,1]) * R_test([3,2,1]) * R_test([5,4,3])
+        ff_rebuild = R_test.one()
+        c, facs = ff.factor()
+        ff_rebuild *= c
+        for p, e in facs:
+            assert p.is_irreducible()
+            ff_rebuild *= p**e
+        assert ff_rebuild == ff
+
+        assert set(ff.factor()[1]) == set(ff.factor(algorithm="cantor_zassenhaus")[1])
+        assert set(ff.factor()[1]) == set(ff.factor(algorithm="kaltofen_shoup")[1])
+        assert set(ff.factor()[1]) == set(ff.factor(algorithm="berlekamp")[1])
+        assert raises(lambda: R_test([0,0,1]).factor(algorithm="AAA"), ValueError)
+        assert raises(lambda: R_test([0,0,1]).complex_roots(), DomainError)
+
+        # composite moduli not supported
+        assert raises(lambda: R_cmp([0,0,1]).factor(), NotImplementedError)
+        assert raises(lambda: R_cmp([0,0,1]).factor_squarefree(), NotImplementedError)
+        assert raises(lambda: R_cmp([0,0,1]).roots(), NotImplementedError)
+        assert raises(lambda: R_cmp([0,0,1]).complex_roots(), DomainError)
+
+        # minpoly
+        assert raises(lambda: R_cmp.minpoly([1,2,3,4]), NotImplementedError)
+        assert raises(lambda: R_test.minpoly(1), ValueError)
+        assert raises(lambda: R_test.minpoly([1,2,3,"AAA"]), ValueError)
+
+        # multipoint_evaluation
+        assert raises(lambda: R_test([1,2,3]).multipoint_evaluate([1,2,3,"AAA"]), ValueError)
+        assert raises(lambda: R_test([1,2,3]).multipoint_evaluate("AAA"), ValueError)
+
+        f = R_test([1,2,3])
+        l = [-1,-2,-3,-4,-5]
+        assert [f(x) for x in l] == f.multipoint_evaluate(l)
+
+
+def test_fmpz_mod_mat():
+    c11 = flint.fmpz_mod_ctx(11)
+    c13 = flint.fmpz_mod_ctx(13)
+
+    M11_1 = flint.fmpz_mod_mat([[1,2,3],[4,5,6],[7,8,9]], c11)
+    M11_2 = flint.fmpz_mod_mat([[1,2,3],[4,5,6],[7,8,9]], c11)
+    M13 = flint.fmpz_mod_mat([[1,2,3],[4,5,6],[7,8,9]], c13)
+    assert (M11_1 == M11_2) is True
+    assert (M11_1 != M11_2) is False
+    assert (M11_1 == M13) is False
+    assert (M11_1 != M13) is True
+
+    Mn_11 = flint.nmod_mat([[1,2,3],[4,5,6],[7,8,9]], 11)
+    Mn_13 = flint.nmod_mat([[1,2,3],[4,5,6],[7,8,9]], 13)
+    assert (M11_1 == Mn_11) is True
+    assert (M11_1 != Mn_11) is False
+    assert (M11_1 == Mn_13) is False
+    assert (M11_1 != Mn_13) is True
+    assert (Mn_11 == M11_1) is True
+    assert (Mn_11 != M11_1) is False
+    assert (Mn_13 == M11_1) is False
+    assert (Mn_13 != M11_1) is True
+
+    M = flint.fmpz_mod_mat([[1,2,3],[4,5,6],[7,8,9]], c11)
+    assert M.nrows() == 3
+    assert M.ncols() == 3
+    assert M.entries() == [flint.fmpz_mod(i, c11) for i in [1,2,3,4,5,6,7,8,9]]
+    assert type(M[0,0]) == flint.fmpz_mod
+    assert M[0,0] == 1
+    assert raises(lambda: flint.fmpz_mod_mat([[1]]), TypeError)
+    assert raises(lambda: flint.fmpz_mod_mat([[1,2],[3,4]], c11, c11), TypeError)
+    assert raises(lambda: flint.fmpz_mod_mat([[1,2],[3,4]], None), TypeError)
+
+    M11 = flint.fmpz_mod_mat([[1,2,3],[4,5,6],[7,8,9]], c11)
+    M13 = flint.fmpz_mod_mat([[1,2,3],[4,5,6],[7,8,9]], c13)
+    Mz = flint.fmpz_mat([[1,2,3],[4,5,6],[7,8,9]])
+    Mn_11 = flint.nmod_mat([[1,2,3],[4,5,6],[7,8,9]], 11)
+    Mn_13 = flint.nmod_mat([[1,2,3],[4,5,6],[7,8,9]], 13)
+    assert raises(lambda: flint.fmpz_mod_mat(Mz), TypeError)
+    assert flint.fmpz_mod_mat(Mz, c11) == M11
+    assert flint.fmpz_mod_mat(Mz, c13) == M13
+    assert flint.fmpz_mod_mat(Mn_11) == M11
+    assert flint.fmpz_mod_mat(Mn_13) == M13
+    assert flint.fmpz_mod_mat(Mn_11, c11) == M11
+    assert flint.fmpz_mod_mat(Mn_13, c13) == M13
+    assert raises(lambda: flint.fmpz_mod_mat(Mn_11, c13), TypeError)
+    assert raises(lambda: flint.fmpz_mod_mat(Mn_13, c11), TypeError)
+    assert flint.fmpz_mod_mat(M11) == M11
+    assert flint.fmpz_mod_mat(M13) == M13
+    assert flint.fmpz_mod_mat(M11, c11) == M11
+    assert flint.fmpz_mod_mat(M13, c13) == M13
+    assert raises(lambda: flint.fmpz_mod_mat(M11, c13), TypeError)
+    assert raises(lambda: flint.fmpz_mod_mat(M13, c11), TypeError)
+
+    A = flint.arb_mat([[1,2,3],[4,5,6],[7,8,9]])
+    assert raises(lambda: flint.fmpz_mod_mat(A, c11), TypeError)
+
+
+def test_division_scalar():
+    Z = flint.fmpz
+    Q = flint.fmpq
+    F17 = lambda x: flint.nmod(x, 17)
+    ctx = flint.fmpz_mod_ctx(163)
+    F163 = lambda a: flint.fmpz_mod(a, ctx)
+    # fmpz exact division
+    for (a, b) in [(Z(4), Z(2)), (Z(4), 2), (4, Z(2))]:
+        assert a / b == Z(2)
+    for (a, b) in [(Z(5), Z(2)), (Z(5), 2), (5, Z(2))]:
+        assert raises(lambda: a / b, DomainError)
+    # fmpz Euclidean division
+    for (a, b) in [(Z(5), Z(2)), (Z(5), 2), (5, Z(2))]:
+        assert a // b == 2
+        assert a % b == 1
+        assert divmod(a, b) == (2, 1)
+    # field division
+    for (a, b) in [(Q(5), Q(2)), (Q(5), 2), (5, Q(2))]:
+        assert a / b == Q(5,2)
+    for (a, b) in [(F17(5), F17(2)), (F17(5), 2), (5, F17(2))]:
+        assert a / b == F17(11)
+    for (a, b) in [(F163(5), F163(2)), (F163(5), 2), (5, F163(2))]:
+        assert a / b == F163(84)
+    # divmod with fields - should this give remainder zero instead of error?
+    for K in [Q, F17, F163]:
+        for (a, b) in [(K(5), K(2)), (K(5), 2), (5, K(2))]:
+            assert raises(lambda: divmod(a, b), TypeError)
+    # Zero division
+    for R in [Z, Q, F17, F163]:
+        assert raises(lambda: R(5) / 0, ZeroDivisionError)
+        assert raises(lambda: R(5) / R(0), ZeroDivisionError)
+        assert raises(lambda: 5 / R(0), ZeroDivisionError)
+    # Bad types
+    for R in [Z, Q, F17, F163]:
+        assert raises(lambda: R(5) / "AAA", TypeError)
+        assert raises(lambda: "AAA" / R(5), TypeError)
+
+
+def test_division_poly():
+    Z = flint.fmpz
+    Q = flint.fmpq
+    F17 = lambda x: flint.nmod(x, 17)
+    ctx = flint.fmpz_mod_ctx(163)
+    F163 = lambda a: flint.fmpz_mod(a, ctx)
+    PZ = lambda x: flint.fmpz_poly(x)
+    PQ = lambda x: flint.fmpq_poly(x)
+    PF17 = lambda x: flint.nmod_poly(x, 17)
+    PF163 = lambda x: flint.fmpz_mod_poly(x, flint.fmpz_mod_poly_ctx(163))
+    # fmpz exact scalar division
+    assert PZ([2, 4]) / Z(2) == PZ([1, 2])
+    assert PZ([2, 4]) / 2 == PZ([1, 2])
+    assert raises(lambda: PZ([2, 5]) / Z(2), DomainError)
+    assert raises(lambda: PZ([2, 5]) / 2, DomainError)
+    # field division by scalar
+    for (K, PK) in [(Q, PQ), (F17, PF17), (F163, PF163)]:
+        assert PK([2, 5]) / K(2) == PK([K(2)/K(2), K(5)/K(2)])
+        assert PK([2, 5]) / 2 == PK([K(2)/K(2), K(5)/K(2)])
+    # No other scalar division is allowed
+    for (R, PR) in [(Z, PZ), (Q, PQ), (F17, PF17), (F163, PF163)]:
+        assert raises(lambda: R(2) / PR([2, 5]), DomainError)
+        assert raises(lambda: 2 / PR([2, 5]), DomainError)
+        assert raises(lambda: PR([2, 5]) / 0, ZeroDivisionError)
+        assert raises(lambda: PR([2, 5]) / R(0), ZeroDivisionError)
+    # exact polynomial division
+    for (R, PR) in [(Z, PZ), (Q, PQ), (F17, PF17), (F163, PF163)]:
+        assert PR([2, 4]) / PR([1, 2]) == PR([2])
+        assert PR([2, -3, 1]) / PR([-1, 1]) == PR([-2, 1])
+        assert raises(lambda: PR([2, 4]) / PR([1, 3]), DomainError)
+        assert PR([2]) / PR([2]) == 2 / PR([2]) == PR([1])
+        assert PR([0]) / PR([1, 2]) == 0 / PR([1, 2]) == PR([0])
+        if R is Z:
+            assert raises(lambda: PR([1, 2]) / PR([2, 4]), DomainError)
+            assert raises(lambda: 1 / PR([2]), DomainError)
+        else:
+            assert PR([1, 2]) / PR([2, 4]) == PR([R(1)/R(2)])
+            assert 1 / PR([2]) == PR([R(1)/R(2)])
+        assert raises(lambda: PR([1, 2]) / PR([0]), ZeroDivisionError)
+    # Euclidean polynomial division
+    for (R, PR) in [(Z, PZ), (Q, PQ), (F17, PF17), (F163, PF163)]:
+        assert PR([2, 4]) // PR([1, 2]) == PR([2])
+        assert PR([2, 4]) % PR([1, 2]) == PR([0])
+        assert divmod(PR([2, 4]), PR([1, 2])) == (PR([2]), PR([0]))
+        assert PR([3, -3, 1]) // PR([-1, 1]) == PR([-2, 1])
+        assert PR([3, -3, 1]) % PR([-1, 1]) == PR([1])
+        assert divmod(PR([3, -3, 1]), PR([-1, 1])) == (PR([-2, 1]), PR([1]))
+        assert PR([2]) // PR([2]) == 2 // PR([2]) == PR([1])
+        assert PR([2]) % PR([2]) == 2 % PR([2]) == PR([0])
+        assert divmod(PR([2]), PR([2])) == (PR([1]), PR([0]))
+        assert PR([0]) // PR([1, 2]) == 0 // PR([1, 2]) == PR([0])
+        assert PR([0]) % PR([1, 2]) == 0 % PR([1, 2]) == PR([0])
+        assert divmod(PR([0]), PR([1, 2])) == (PR([0]), PR([0]))
+        if R is Z:
+            assert PR([2, 2]) // PR([2, 4]) == PR([2, 2]) // PR([2, 4]) == PR([0])
+            assert PR([2, 2]) % PR([2, 4]) == PR([2, 2]) % PR([2, 4]) == PR([2, 2])
+            assert divmod(PR([2, 2]), PR([2, 4])) == (PR([0]), PR([2, 2]))
+            assert 1 // PR([2]) == PR([1]) // PR([2]) == PR([0])
+            assert 1 % PR([2]) == PR([1]) % PR([2]) == PR([1])
+            assert divmod(1, PR([2])) == (PR([0]), PR([1]))
+        else:
+            assert PR([2, 2]) // PR([2, 4]) == PR([R(1)/R(2)])
+            assert PR([2, 2]) % PR([2, 4]) == PR([1])
+            assert divmod(PR([2, 2]), PR([2, 4])) == (PR([R(1)/R(2)]), PR([1]))
+            assert 1 // PR([2]) == PR([R(1)/R(2)])
+            assert 1 % PR([2]) == PR([0])
+            assert divmod(1, PR([2])) == (PR([R(1)/R(2)]), PR([0]))
+
+
+def test_division_matrix():
+    Z = flint.fmpz
+    Q = flint.fmpq
+    F17 = lambda x: flint.nmod(x, 17)
+    ctx = flint.fmpz_mod_ctx(163)
+    F163 = lambda a: flint.fmpz_mod(a, ctx)
+    MZ = lambda x: flint.fmpz_mat(x)
+    MQ = lambda x: flint.fmpq_mat(x)
+    MF17 = lambda x: flint.nmod_mat(x, 17)
+    MF163 = lambda x: flint.fmpz_mod_mat(x, ctx)
+    # fmpz exact division
+    assert MZ([[2, 4]]) / Z(2) == MZ([[1, 2]])
+    assert MZ([[2, 4]]) / 2 == MZ([[1, 2]])
+    assert raises(lambda: MZ([[2, 5]]) / Z(2), DomainError)
+    assert raises(lambda: MZ([[2, 5]]) / 2, DomainError)
+    # field division by scalar
+    for (K, MK) in [(Q, MQ), (F17, MF17), (F163, MF163)]:
+        assert MK([[2, 5]]) / K(2) == MK([[K(2)/K(2), K(5)/K(2)]])
+        assert MK([[2, 5]]) / 2 == MK([[K(2)/K(2), K(5)/K(2)]])
+    # No other division is allowed
+    for (R, MR) in [(Z, MZ), (Q, MQ), (F17, MF17), (F163, MF163)]:
+        M = MR([[2, 5]])
+        for s in (2, R(2)):
+            assert raises(lambda: s / M, TypeError)
+            assert raises(lambda: M // s, TypeError)
+            assert raises(lambda: s // M, TypeError)
+            assert raises(lambda: M % s, TypeError)
+            assert raises(lambda: s % M, TypeError)
+            assert raises(lambda: divmod(s, M), TypeError)
+            assert raises(lambda: divmod(M, s), TypeError)
+        assert raises(lambda: M / M, TypeError)
+        assert raises(lambda: M // M, TypeError)
+        assert raises(lambda: M % M, TypeError)
+        assert raises(lambda: divmod(M, M), TypeError)
+        assert raises(lambda: M / 0, ZeroDivisionError)
+        assert raises(lambda: M / R(0), ZeroDivisionError)
+
 
 def _all_polys():
     return [
@@ -1910,6 +2523,15 @@ def _all_polys():
         (flint.fmpz_poly, flint.fmpz, False),
         (flint.fmpq_poly, flint.fmpq, True),
         (lambda *a: flint.nmod_poly(*a, 17), lambda x: flint.nmod(x, 17), True),
+        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(163)), 
+         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(163)), 
+         True),
+        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**127 - 1)), 
+         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**127 - 1)), 
+         True),
+        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255 - 19)), 
+         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255 - 19)), 
+         True),
     ]
 
 
@@ -1919,7 +2541,7 @@ def test_polys():
         assert P([S(1)]) == P([1]) == P(P([1])) == P(1)
 
         assert raises(lambda: P([None]), TypeError)
-        assert raises(lambda: P(object()), TypeError)
+        assert raises(lambda: P(object()), TypeError), f"{P(object()) = }"
         assert raises(lambda: P(None), TypeError)
         assert raises(lambda: P(None, None), TypeError)
         assert raises(lambda: P([1,2], None), TypeError)
@@ -1977,7 +2599,7 @@ def test_polys():
                 assert P(v).repr() == f'fmpz_poly({v!r})'
             elif P == flint.fmpq_poly:
                 assert P(v).repr() == f'fmpq_poly({v!r})'
-            else:
+            elif P == flint.nmod_poly:
                 assert P(v).repr() == f'nmod_poly({v!r}, 17)'
 
         assert repr(P([])) == '0'
@@ -2055,23 +2677,26 @@ def test_polys():
         assert raises(lambda: P([1, 2, 1]) % P([0]), ZeroDivisionError)
         assert raises(lambda: divmod(P([1, 2, 1]), P([0])), ZeroDivisionError)
 
+        # Exact/field scalar division
         if is_field:
             assert P([2, 2]) / 2 == P([1, 1])
             assert P([1, 2]) / 2 == P([S(1)/2, 1])
-            assert raises(lambda: P([1, 2]) / 0, ZeroDivisionError)
         else:
-            assert raises(lambda: P([2, 2]) / 2, TypeError)
+            assert P([2, 2]) / 2 == P([1, 1])
+            assert raises(lambda: P([1, 2]) / 2, DomainError)
+        assert raises(lambda: P([1, 2]) / 0, ZeroDivisionError)
 
-        assert raises(lambda: 1 / P([1, 1]), TypeError)
-        assert raises(lambda: P([1, 2, 1]) / P([1, 1]), TypeError)
-        assert raises(lambda: P([1, 2, 1]) / P([1, 2]), TypeError)
+        assert P([1, 2, 1]) / P([1, 1]) == P([1, 1])
+        assert raises(lambda: 1 / P([1, 1]), DomainError)
+        assert raises(lambda: P([1, 2, 1]) / P([1, 2]), DomainError)
 
         assert P([1, 1]) ** 0 == P([1])
         assert P([1, 1]) ** 1 == P([1, 1])
         assert P([1, 1]) ** 2 == P([1, 2, 1])
         assert raises(lambda: P([1, 1]) ** -1, ValueError)
         assert raises(lambda: P([1, 1]) ** None, TypeError)
-        # XXX: Not sure what this should do in general:
+        
+        # # XXX: Not sure what this should do in general:
         assert raises(lambda: pow(P([1, 1]), 2, 3), NotImplementedError)
 
         assert P([1, 2, 1]).gcd(P([1, 1])) == P([1, 1])
@@ -2087,9 +2712,10 @@ def test_polys():
         assert P([1, 2, 1]).factor() == (S(1), [(P([1, 1]), 2)])
 
         assert P([1, 2, 1]).sqrt() == P([1, 1])
-        assert P([1, 2, 2]).sqrt() is None
+        assert raises(lambda: P([1, 2, 2]).sqrt(), ValueError), f"{P}, {P([1, 2, 2]).sqrt()}"
+
         if P == flint.fmpq_poly:
-            assert P([1, 2, 1], 3).sqrt() is None
+            assert raises(lambda: P([1, 2, 1], 3).sqrt(), ValueError)
             assert P([1, 2, 1], 4).sqrt() == P([1, 1], 2)
 
         assert P([]).deflation() == (P([]), 1)
@@ -2102,9 +2728,520 @@ def test_polys():
             assert P([1, 2, 1]).integral() == P([0, 1, 1, S(1)/3])
 
 
+def _all_matrices():
+    """Return a list of matrix types and scalar types."""
+    R163 = flint.fmpz_mod_ctx(163)
+    R127 = flint.fmpz_mod_ctx(2**127 - 1)
+    R255 = flint.fmpz_mod_ctx(2**255 - 19)
+    return [
+        # (matrix_type, scalar_type, is_field)
+        (flint.fmpz_mat, flint.fmpz, False),
+        (flint.fmpq_mat, flint.fmpq, True),
+        (lambda *a: flint.nmod_mat(*a, 17), lambda x: flint.nmod(x, 17), True),
+        (lambda *a: flint.fmpz_mod_mat(*a, R163), lambda x: flint.fmpz_mod(x, R163), True),
+        (lambda *a: flint.fmpz_mod_mat(*a, R127), lambda x: flint.fmpz_mod(x, R127), True),
+        (lambda *a: flint.fmpz_mod_mat(*a, R255), lambda x: flint.fmpz_mod(x, R255), True),
+    ]
+
+
+def _coercible_matrix_types(mat_type):
+    """Return a list of matrix types that can be coerced to `mat_type`."""
+    M = mat_type([[1, 2], [3, 4]])
+
+    if type(M) is flint.fmpz_mat:
+        return [
+            flint.fmpz_mat
+        ]
+    elif type(M) is flint.fmpq_mat:
+        return [
+            flint.fmpz_mat,
+            flint.fmpq_mat
+        ]
+    elif type(M) is flint.nmod_mat:
+        m = M.modulus()
+        return [
+            flint.fmpz_mat,
+            lambda *a: flint.nmod_mat(*a, m)
+        ]
+    elif type(M) is flint.fmpz_mod_mat:
+        m = M.modulus()
+        c = flint.fmpz_mod_ctx(m)
+        mat_types = [
+            flint.fmpz_mat,
+            lambda *a: flint.fmpz_mod_mat(*a, c)
+        ]
+        if m < 2**64 - 1:
+            mat_types.append(lambda *a: flint.nmod_mat(*a, m))
+        return mat_types
+    else:
+        assert False
+
+
+def _compatible_matrix_types(mat_type):
+    """Return a list of matrix types that can be added to `mat_type`."""
+    M = mat_type([[1, 2], [3, 4]])
+
+    if type(M) is flint.fmpz_mat:
+        return [
+            flint.fmpz_mat
+        ]
+    elif type(M) is flint.fmpq_mat:
+        return [
+            # flint.fmpz_mat,
+            flint.fmpq_mat
+        ]
+    elif type(M) is flint.nmod_mat:
+        m = M.modulus()
+        return [
+            flint.fmpz_mat,
+            lambda *a: flint.nmod_mat(*a, m)
+        ]
+    elif type(M) is flint.fmpz_mod_mat:
+        m = M.modulus()
+        c = flint.fmpz_mod_ctx(m)
+        mat_types = [
+            flint.fmpz_mat,
+            lambda *a: flint.fmpz_mod_mat(*a, c)
+        ]
+        if m < 2**64 - 1:
+            mat_types.append(lambda *a: flint.nmod_mat(*a, m))
+        return mat_types
+    else:
+        assert False
+
+
+def _incompatible_matrix_types(mat_type):
+    M = mat_type([[1, 2], [3, 4]])
+
+    if type(M) is flint.fmpz_mat:
+        return []
+    elif type(M) is flint.fmpq_mat:
+        return [
+            lambda *a: flint.nmod_mat(*a, 17),
+            lambda *a: flint.fmpz_mod_mat(*a, flint.fmpz_mod_ctx(163)),
+        ]
+    elif type(M) is flint.nmod_mat:
+        m = M.modulus()
+        m2 = m - 1
+        return [
+            flint.fmpq_mat,
+            lambda *a: flint.nmod_mat(*a, m2),
+        ]
+    elif type(M) is flint.fmpz_mod_mat:
+        m = M.modulus()
+        m2 = m - 1
+        mat_types = [
+            flint.fmpq_mat,
+            lambda *a: flint.fmpz_mod_mat(*a, flint.fmpz_mod_ctx(m2)),
+        ]
+        if m < 2**64 - 1:
+            mat_types.append(lambda *a: flint.nmod_mat(*a, m2))
+        return mat_types
+    else:
+        assert False
+
+
+def _poly_type_from_matrix_type(mat_type):
+    M = mat_type([[1, 2], [3, 4]])
+
+    if type(M) is flint.fmpz_mat:
+        return flint.fmpz_poly
+    elif type(M) is flint.fmpq_mat:
+        return flint.fmpq_poly
+    elif type(M) is flint.nmod_mat:
+        m = M.modulus()
+        return lambda *a: flint.nmod_poly(*a, m)
+    elif type(M) is flint.fmpz_mod_mat:
+        m = M.modulus()
+        ctx = flint.fmpz_mod_ctx(m)
+        pctx = flint.fmpz_mod_poly_ctx(ctx)
+        return lambda *a: flint.fmpz_mod_poly(*a, pctx)
+    else:
+        assert False
+
+
+def test_matrices_eq():
+    for M, S, is_field in _all_matrices():
+        A1 = M([[1, 2], [3, 4]])
+        A2 = M([[1, 2], [3, 4]])
+        B = M([[5, 6], [7, 8]])
+        assert (A1 == A2) is True
+        assert (A1 != A2) is False
+        assert (A1 == B) is False
+        assert (A1 != B) is True
+        assert (A1 == None) is False
+        assert (A1 != None) is True
+        assert (None == A1) is False
+        assert (None != A1) is True
+        assert raises(lambda: A1 < A2, TypeError)
+        assert raises(lambda: A1 <= A2, TypeError)
+        assert raises(lambda: A1 > A2, TypeError)
+        assert raises(lambda: A1 >= A2, TypeError)
+
+        for M2 in _incompatible_matrix_types(M):
+            A1 = M([[1, 2], [3, 4]])
+            A2 = M2([[1, 2], [3, 4]])
+            assert (A1 == A2) is False
+            assert (A1 != A2) is True
+
+
+def test_matrices_constructor():
+    for M, S, is_field in _all_matrices():
+        assert raises(lambda: M(), TypeError)
+
+        # Empty matrices
+        assert M([]).nrows() == 0
+        assert M([]).ncols() == 0
+        assert M([]) != M([[]])
+        assert M([[]]).nrows() == 1
+        assert M([[]]).ncols() == 0
+        assert M([]) == M(0, 0, []) == M(0, 0)
+        assert M([[]]) == M(1, 0, []) == M(1, 0)
+        assert M([[], []]) == M(2, 0, []) == M(2, 0)
+        assert M(0, 2, []) == M(0, 2) != M(2, 0)
+
+        # Basic construction
+        M1234 = M([[1, 2], [3, 4]])
+        assert M1234.nrows() == 2
+        assert M1234.ncols() == 2
+        assert M1234 == M([[1, 2], [3, 4]])
+        assert M1234 != M([[1, 2], [3, 5]])
+        assert M1234 == M(2, 2, [1, 2, 3, 4])
+        assert M1234.entries() == [S(1), S(2), S(3), S(4)]
+        assert M1234.table() == [[S(1), S(2)], [S(3), S(4)]]
+        assert M1234[0, 0] == S(1)
+        assert M1234[0, 1] == S(2)
+        assert M1234[1, 0] == S(3)
+        assert M1234[1, 1] == S(4)
+        assert type(M1234[0, 0]) is type(S(1))
+        assert M1234 == M([[S(1), S(2)], [S(3), S(4)]])
+        assert M1234 == M(2, 2, [S(1), S(2), S(3), S(4)])
+
+        # Non-square matrices
+        M6 = M([[1, 2, 3], [4, 5, 6]])
+        assert M6.nrows() == 2
+        assert M6.ncols() == 3
+        assert M6 == M(2, 3, [1, 2, 3, 4, 5, 6])
+        assert M6.entries() == [S(1), S(2), S(3), S(4), S(5), S(6)]
+        assert M6 != M1234
+
+        # Bad list inputs
+        assert raises(lambda: M(None), TypeError)
+        assert raises(lambda: M([None]), TypeError)
+        assert raises(lambda: M(2, 3, [1, 2, 3, 4, 5]), ValueError)
+        assert raises(lambda: M([[1, 2], [3, 4], [5, 6, 7]]), ValueError)
+        assert raises(lambda: M([[1, 2], [3, 4], [5, 6, 7, 8]]), ValueError)
+        assert raises(lambda: M([[1, 2], [3, None]]), TypeError)
+
+        # Construct from a coercible matrix
+        M1234 = M([[1, 2], [3, 4]])
+        for M2 in _coercible_matrix_types(M):
+            if type(M2([[1]])) is flint.nmod_mat:
+                continue
+            M1234_2 = M(M2([[1, 2], [3, 4]]))
+            assert M1234_2 == M1234
+            assert type(M1234_2) is type(M1234)
+
+
+def _matrix_repr(M):
+    item = M[0, 0]
+    if type(item) is flint.fmpz:
+        return f"fmpz_mat({M.nrows()}, {M.ncols()}, {M.entries()!r})"
+    elif type(item) is flint.fmpq:
+        return f"fmpq_mat({M.nrows()}, {M.ncols()}, {M.entries()!r})"
+    elif type(item) is flint.nmod:
+        return f"nmod_mat({M.nrows()}, {M.ncols()}, {M.entries()!r}, {M.modulus()})"
+    elif type(item) is flint.fmpz_mod:
+        return f"fmpz_mod_mat({M.nrows()}, {M.ncols()}, {M.entries()!r}, {M.modulus()})"
+    else:
+        assert False
+
+
+def test_matrices_strrepr():
+    for M, S, is_field in _all_matrices():
+        A = M([[1, 2], [3, 4]])
+        A_str = "[1, 2]\n[3, 4]"
+        A_repr = _matrix_repr(A)
+
+        assert A.str() == A_str, type(A).__name__
+        assert A.repr() == A_repr, type(A).__name__
+
+        # str always returns a pretty result
+        assert str(A) == A_str, type(A).__name__
+
+        # repr depends on ctx.pretty
+        pretty = ctx.pretty
+        try:
+            ctx.pretty = True
+            assert repr(A) == A_str, type(A).__name__
+            ctx.pretty = False
+            assert repr(A) == A_repr, type(A).__name__
+        finally:
+            ctx.pretty = pretty
+
+
+def test_matrices_getitem():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        assert M1234[0, 0] == S(1)
+        assert M1234[0, 1] == S(2)
+        assert M1234[1, 0] == S(3)
+        assert M1234[1, 1] == S(4)
+        assert raises(lambda: M1234[0, 2], IndexError)
+        assert raises(lambda: M1234[2, 0], IndexError)
+        assert raises(lambda: M1234[2, 2], IndexError)
+        # XXX: Should negative indices be allowed?
+        assert raises(lambda: M1234[-1, 0], IndexError)
+        assert raises(lambda: M1234[0, -1], IndexError)
+        assert raises(lambda: M1234[-1, -1], IndexError)
+
+
+def test_matrices_setitem():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+
+        assert M1234[0, 0] == S(1)
+        M1234[0, 0] = S(5)
+        assert M1234[0, 0] == S(5)
+        assert M1234.table() == [[S(5), S(2)], [S(3), S(4)]]
+
+        def setbad(obj, key, val):
+            obj[key] = val
+
+        assert raises(lambda: setbad(M1234, (0,0), None), TypeError)
+        assert raises(lambda: setbad(M1234, (0,None), 1), TypeError)
+        assert raises(lambda: setbad(M1234, (None,0), 1), TypeError)
+        assert raises(lambda: setbad(M1234, None, 1), TypeError)
+
+        assert raises(lambda: setbad(M1234, (0,2), 1), IndexError)
+        assert raises(lambda: setbad(M1234, (2,0), 1), IndexError)
+        assert raises(lambda: setbad(M1234, (2,2), 1), IndexError)
+        # XXX: Should negative indices be allowed?
+        assert raises(lambda: setbad(M1234, (-1,0), 1), IndexError)
+        assert raises(lambda: setbad(M1234, (0,-1), 1), IndexError)
+        assert raises(lambda: setbad(M1234, (-1,-1), 1), IndexError)
+
+
+def test_matrices_bool():
+    for M, S, is_field in _all_matrices():
+        assert bool(M([])) is False
+        assert bool(M([[0]])) is False
+        assert bool(M([[1]])) is True
+        assert bool(M([[0, 0], [0, 0]])) is False
+        assert bool(M([[1, 0], [0, 0]])) is True
+        assert bool(M([[0, 0], [0, 1]])) is True
+        assert bool(M([[1, 0], [0, 1]])) is True
+
+
+def test_matrices_pos_neg():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        assert +M1234 == M1234
+        assert -M1234 == M([[-1, -2], [-3, -4]])
+
+
+def test_matrices_add():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        M5678 = M([[5, 6], [7, 8]])
+        assert M1234 + M5678 == M([[6, 8], [10, 12]])
+        assert raises(lambda: M1234 + 1, TypeError)
+        assert raises(lambda: 1 + M1234, TypeError)
+        assert raises(lambda: M1234 + None, TypeError)
+        assert raises(lambda: None + M1234, TypeError)
+        assert raises(lambda: M1234 + M([[1, 2, 3], [4, 5, 6]]), ValueError)
+        for M2 in _compatible_matrix_types(M):
+            assert M1234 + M2([[1, 2], [3, 4]]) == M([[2, 4], [6, 8]])
+            assert M2([[1, 2], [3, 4]]) + M1234 == M([[2, 4], [6, 8]])
+            assert raises(lambda: M1234 + M2([[1, 2, 3], [4, 5, 6]]), ValueError)
+            assert raises(lambda: M2([[1, 2, 3], [4, 5, 6]]) + M1234, ValueError)
+        for M2 in _incompatible_matrix_types(M):
+            assert raises(lambda: M1234 + M2([[1, 2], [3, 4]]), (TypeError, ValueError))
+            assert raises(lambda: M2([[1, 2], [3, 4]]) + M1234, (TypeError, ValueError))
+
+
+def test_matrices_sub():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        M5678 = M([[5, 6], [7, 8]])
+        assert M1234 - M5678 == M([[-4, -4], [-4, -4]])
+        assert raises(lambda: M1234 - 1, TypeError)
+        assert raises(lambda: 1 - M1234, TypeError)
+        assert raises(lambda: M1234 - None, TypeError)
+        assert raises(lambda: None - M1234, TypeError)
+        assert raises(lambda: M1234 - M([[1, 2, 3], [4, 5, 6]]), ValueError)
+        for M2 in _compatible_matrix_types(M):
+            assert M1234 - M2([[1, 2], [3, 4]]) == M([[0, 0], [0, 0]])
+            assert M2([[1, 2], [3, 4]]) - M1234 == M([[0, 0], [0, 0]])
+            assert raises(lambda: M1234 - M2([[1, 2, 3], [4, 5, 6]]), ValueError)
+            assert raises(lambda: M2([[1, 2, 3], [4, 5, 6]]) - M1234, ValueError)
+        for M2 in _incompatible_matrix_types(M):
+            assert raises(lambda: M1234 - M2([[1, 2], [3, 4]]), (TypeError, ValueError))
+            assert raises(lambda: M2([[1, 2], [3, 4]]) - M1234, (TypeError, ValueError))
+
+
+def test_matrices_mul():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        M5678 = M([[5, 6], [7, 8]])
+        assert M1234 * M5678 == M([[19, 22], [43, 50]])
+        M21 = M([[2], [1]])
+        assert M1234 * M21 == M([[4], [10]])
+
+        assert 2 * M1234 == M([[2, 4], [6, 8]])
+        assert M1234 * 2 == M([[2, 4], [6, 8]])
+        assert S(2) * M1234 == M([[2, 4], [6, 8]])
+        assert M1234 * S(2) == M([[2, 4], [6, 8]])
+        assert raises(lambda: M1234 * None, TypeError)
+        assert raises(lambda: None * M1234, TypeError)
+        assert raises(lambda: M1234 * M([[1, 2], [3, 4], [5, 6]]), ValueError)
+        assert raises(lambda: M([[1, 2, 3], [4, 5, 6]]) * M1234, ValueError)
+
+        for M2 in _compatible_matrix_types(M):
+            assert M1234 * M2([[1, 2], [3, 4]]) == M([[7, 10], [15, 22]])
+            assert M2([[1, 2], [3, 4]]) * M1234 == M([[7, 10], [15, 22]])
+
+        for M2 in _incompatible_matrix_types(M):
+            assert raises(lambda: M1234 * M2([[1, 2], [3, 4]]), (TypeError, ValueError))
+            assert raises(lambda: M2([[1, 2], [3, 4]]) * M1234, (TypeError, ValueError))
+
+
+def test_matrices_pow():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        assert M1234**0 == M([[1, 0], [0, 1]])
+        assert M1234**1 == M1234
+        assert M1234**2 == M([[7, 10], [15, 22]])
+        assert M1234**3 == M([[37, 54], [81, 118]])
+        if is_field:
+            assert M1234**-1 == M([[-4, 2], [3, -1]]) / 2
+            assert M1234**-2 == M([[22, -10], [-15, 7]]) / 4
+            assert M1234**-3 == M([[-118, 54], [81, -37]]) / 8
+            Ms = M([[1, 2], [3, 6]])
+            assert raises(lambda: Ms**-1, ZeroDivisionError)
+        Mr = M([[1, 2, 3], [4, 5, 6]])
+        assert raises(lambda: Mr**0, ValueError)
+        assert raises(lambda: Mr**1, ValueError)
+        assert raises(lambda: Mr**2, ValueError)
+        assert raises(lambda: M1234**None, TypeError)
+        assert raises(lambda: None**M1234, TypeError)
+
+
+def test_matrices_div():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        if is_field:
+            assert M1234 / 2 == M([[S(1)/2, S(1)], [S(3)/2, 2]])
+            assert M1234 / S(2) == M([[S(1)/2, S(1)], [S(3)/2, 2]])
+            assert raises(lambda: M1234 / 0, ZeroDivisionError)
+            assert raises(lambda: M1234 / S(0), ZeroDivisionError)
+        raises(lambda: M1234 / None, TypeError)
+        raises(lambda: None / M1234, TypeError)
+
+
+def test_matrices_inv():
+    for M, S, is_field in _all_matrices():
+        if is_field:
+            M1234 = M([[1, 2], [3, 4]])
+            assert M1234.inv() == M([[-2, 1], [S(3)/2, -S(1)/2]])
+            M1236 = M([[1, 2], [3, 6]])
+            assert raises(lambda: M1236.inv(), ZeroDivisionError)
+            Mr = M([[1, 2, 3], [4, 5, 6]])
+            assert raises(lambda: Mr.inv(), ValueError)
+        # XXX: Test non-field matrices. unimodular?
+
+
+def test_matrices_det():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        assert M1234.det() == S(-2)
+        M9 = M([[1, 2, 3], [4, 5, 6], [7, 8, 10]])
+        assert M9.det() == S(-3)
+        Mr = M([[1, 2, 3], [4, 5, 6]])
+        assert raises(lambda: Mr.det(), ValueError)
+
+
+def test_matrices_charpoly():
+    for M, S, is_field in _all_matrices():
+        P = _poly_type_from_matrix_type(M)
+        M1234 = M([[1, 2], [3, 4]])
+        assert M1234.charpoly() == P([-2, -5, 1])
+        M9 = M([[1, 2, 3], [4, 5, 6], [7, 8, 10]])
+        assert M9.charpoly() == P([3, -12, -16, 1])
+        Mr = M([[1, 2, 3], [4, 5, 6]])
+        assert raises(lambda: Mr.charpoly(), ValueError)
+
+
+def test_matrices_minpoly():
+    for M, S, is_field in _all_matrices():
+        P = _poly_type_from_matrix_type(M)
+        M1234 = M([[1, 2], [3, 4]])
+        assert M1234.minpoly() == P([-2, -5, 1])
+        M9 = M([[2, 1, 0], [0, 2, 0], [0, 0, 2]])
+        assert M9.minpoly() == P([4, -4, 1])
+        Mr = M([[1, 2, 3], [4, 5, 6]])
+        assert raises(lambda: Mr.minpoly(), ValueError)
+
+
+def test_matrices_rank():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2], [3, 4]])
+        assert M1234.rank() == 2
+        Mr = M([[1, 2, 3], [4, 5, 6]])
+        assert Mr.rank() == 2
+        Ms = M([[1, 2], [2, 4]])
+        assert Ms.rank() == 1
+        Mz = M([[0, 0], [0, 0]])
+        assert Mz.rank() == 0
+
+
+def test_matrices_rref():
+    for M, S, is_field in _all_matrices():
+        if is_field:
+            Mr = M([[1, 2, 3], [4, 5, 6]])
+            Mr_rref = M([[1, 0, -1], [0, 1, 2]])
+            assert Mr.rref() == (Mr_rref, 2)
+            assert Mr == M([[1, 2, 3], [4, 5, 6]])
+            assert Mr.rref(inplace=True) == (Mr_rref, 2)
+            assert Mr == Mr_rref
+
+
+def test_matrices_solve():
+    for M, S, is_field in _all_matrices():
+        if is_field:
+            A = M([[1, 2], [3, 4]])
+            x = M([[1], [2]])
+            b = M([[5], [11]])
+            assert A*x == b
+            assert A.solve(b) == x
+            A22 = M([[1, 2], [3, 4]])
+            A23 = M([[1, 2, 3], [4, 5, 6]])
+            b2 = M([[5], [11]])
+            b3 = M([[5], [11], [17]])
+            assert raises(lambda: A22.solve(b3), ValueError)
+            assert raises(lambda: A23.solve(b2), ValueError)
+            assert raises(lambda: A.solve(None), TypeError)
+            A = M([[1, 2], [2, 4]])
+            assert raises(lambda: A.solve(b), ZeroDivisionError)
+
+
+def test_matrices_transpose():
+    for M, S, is_field in _all_matrices():
+        M1234 = M([[1, 2, 3], [4, 5, 6]])
+        assert M1234.transpose() == M([[1, 4], [2, 5], [3, 6]])
+
+
+def test_all_tests():
+    test_funcs = {f for name, f in globals().items() if name.startswith("test_")}
+    untested = test_funcs - set(all_tests)
+    assert not untested, f"Untested functions: {untested}"
+
 
 all_tests = [
+
     test_pyflint,
+    test_showgood,
+
     test_fmpz,
     test_fmpz_factor,
     test_fmpz_functions,
@@ -2114,16 +3251,53 @@ all_tests = [
     test_fmpz_mat,
     test_fmpz_mpoly,
     test_fmpz_series,
+
     test_fmpq,
     test_fmpq_poly,
     test_fmpq_mat,
     test_fmpq_mpoly,
     test_fmpq_series,
+
     test_nmod,
     test_nmod_poly,
     test_nmod_mat,
-    test_arb,
+    test_nmod_series,
+
     test_fmpz_mod,
     test_fmpz_mod_dlog,
+    test_fmpz_mod_poly,
+    test_fmpz_mod_mat,
+
+    test_division_scalar,
+    test_division_poly,
+    test_division_matrix,
+
     test_polys,
+
+    test_matrices_eq,
+    test_matrices_constructor,
+    test_matrices_strrepr,
+    test_matrices_getitem,
+    test_matrices_setitem,
+    test_matrices_bool,
+    test_matrices_transpose,
+    test_matrices_pos_neg,
+    test_matrices_add,
+    test_matrices_sub,
+    test_matrices_mul,
+    test_matrices_pow,
+    test_matrices_div,
+    test_matrices_inv,
+    test_matrices_det,
+    test_matrices_charpoly,
+    test_matrices_minpoly,
+    test_matrices_rank,
+    test_matrices_rref,
+    test_matrices_solve,
+
+    test_arb,
+
+    test_pickling,
+
+    test_all_tests,
 ]

@@ -17,3 +17,4 @@ MANIFEST
 *.swp
 .python-version
 *.DS_Store
+.venv

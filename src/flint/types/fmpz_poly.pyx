@@ -19,7 +19,7 @@ from flint.types.arb cimport arb
 from flint.types.acb cimport any_as_acb_or_notimplemented
 cimport libc.stdlib
 from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear, fmpz_set
-from flint.flintlib.fmpz cimport fmpz_is_one, fmpz_equal_si, fmpz_equal
+from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_is_one, fmpz_equal_si, fmpz_equal
 from flint.flintlib.acb_modular cimport *
 from flint.flintlib.ulong_extras cimport n_is_prime
 from flint.flintlib.fmpz_poly cimport *
@@ -28,6 +28,9 @@ from flint.flintlib.arith cimport *
 from flint.flintlib.acb cimport *
 from flint.flintlib.arb_poly cimport *
 from flint.flintlib.arb_fmpz_poly cimport *
+
+from flint.utils.flint_exceptions import DomainError
+
 
 cdef any_as_fmpz_poly(x):
     cdef fmpz_poly res
@@ -226,6 +229,34 @@ cdef class fmpz_poly(flint_poly):
 
     def __rmul__(self, other):
         return self._mul_(other)
+
+    def __truediv__(fmpz_poly self, other):
+        cdef fmpz_poly res
+        o = any_as_fmpz(other)
+        if o is NotImplemented:
+            o = any_as_fmpz_poly(other)
+            if o is NotImplemented:
+                return NotImplemented
+            if fmpz_poly_is_zero((<fmpz_poly>o).val):
+                raise ZeroDivisionError("fmpz_poly division by 0")
+            res, r = self._divmod_(o)
+            if r:
+                raise DomainError("fmpz_poly division is not exact")
+        else:
+            if fmpz_is_zero((<fmpz>o).val):
+                raise ZeroDivisionError("fmpz_poly division by 0")
+            res = fmpz_poly.__new__(fmpz_poly)
+            fmpz_poly_scalar_divexact_fmpz(res.val, self.val, (<fmpz>o).val)
+            # Check division is exact - there should be a better way to do this
+            if res * o != self:
+                raise DomainError("fmpz_poly division is not exact")
+        return res
+
+    def __rtruediv__(fmpz_poly self, other):
+        o = any_as_fmpz_poly(other)
+        if o is NotImplemented:
+            return NotImplemented
+        return o / self
 
     def _floordiv_(self, other):
         cdef fmpz_poly res
@@ -512,7 +543,7 @@ cdef class fmpz_poly(flint_poly):
         if fmpz_poly_sqrt(v.val, self.val):
             return v
         else:
-            return None
+            raise ValueError(f"Cannot compute square root of {self}")
 
     def deflation(self):
         cdef fmpz_poly v

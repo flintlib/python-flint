@@ -63,7 +63,7 @@ cdef class FlintContext:
                "prec = %-8s    # real/complex precision (in bits)\n"   \
                "dps = %-8s     # real/complex precision (in digits)\n"    \
                "cap = %-8s     # power series precision\n"    \
-               "threads = %-8s # max number of threads used internally\n" % \
+               "threads = %-8s # max number of threads used internally" % \
             (self.pretty, self.unicode, self.prec, self.dps, self.cap, self.threads)
 
     def cleanup(self):

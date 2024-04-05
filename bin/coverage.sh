@@ -31,6 +31,9 @@ source bin/activate
 
 export PYTHON_FLINT_COVERAGE=true
 
+# Force a rebuild of everything with coverage tracing enabled:
+# touch src/flint/flintlib/*
+
 python setup.py build_ext --inplace
 
 coverage run -m flint.test $@

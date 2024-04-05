@@ -44,7 +44,7 @@ fi
 PYTHON=$PYTHONDIR/python
 VER="${PYTHONVER//./}"
 
-WHEELNAME=python_flint-0.4.4-cp$VER-cp$VER-win_amd64.whl
+WHEELNAME=python_flint-0.6.0-cp$VER-cp$VER-win_amd64.whl
 
 $PYTHON -c 'print("hello world")'
 
@@ -90,7 +90,7 @@ wheel pack python_flint-*
 cd ..
 
 # Make the wheel relocatable
-delvewheel repair dist/python_flint-0.4.4-cp$VER-cp$VER-win_amd64.whl \
+delvewheel repair dist/python_flint-0.6.0-cp$VER-cp$VER-win_amd64.whl \
         --add-path .local/bin:.local/lib/
 
 # Make a virtual enironment to test the wheel

@@ -15,7 +15,7 @@ cirrus_wheels_macos_arm64_task:
     - which python
     - python --version
   install_cibuildwheel_script:
-    - python -m pip install cibuildwheel==2.11.4
+    - python -m pip install cibuildwheel==2.16.2
   run_cibuildwheel_script:
     - bin/cibw.sh
   wheels_artifacts:

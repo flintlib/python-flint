@@ -1,5 +1,16 @@
+from flint.flintlib.flint cimport (
+    FLINT_BITS as _FLINT_BITS,
+    FLINT_VERSION as _FLINT_VERSION,
+    __FLINT_RELEASE as _FLINT_RELEASE,
+)
 from flint.flint_base.flint_context cimport thectx
 cimport libc.stdlib
+
+
+FLINT_BITS = _FLINT_BITS
+FLINT_VERSION = _FLINT_VERSION.decode("ascii")
+FLINT_RELEASE = _FLINT_RELEASE
+
 
 cdef class flint_elem:
     def __repr__(self):
@@ -28,6 +39,14 @@ cdef class flint_poly(flint_elem):
             yield self[i]
 
     def coeffs(self):
+        """
+        Returns the coefficients of ``self`` as a list
+
+            >>> from flint import fmpz_poly
+            >>> f = fmpz_poly([1,2,3,4,5])
+            >>> f.coeffs()
+            [1, 2, 3, 4, 5]
+        """
         return list(self)
 
     def str(self, bint ascending=False):
@@ -171,8 +190,6 @@ cdef class flint_mat(flint_elem):
     """
 
     def repr(self):
-        if thectx.pretty:
-            return str(self)
         # XXX
         return "%s(%i, %i, [%s])" % (type(self).__name__,
             self.nrows(), self.ncols(), (", ".join(map(str, self.entries()))))
