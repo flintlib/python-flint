@@ -656,7 +656,7 @@ def test_fmpz_mat():
 
 def test_fmpz_mpoly():
     Zp = flint.fmpz_mpoly
-    getctx = flint.get_fmpz_mpoly_context
+    getctx = flint.fmpz_mpoly_ctx.get_context
     ctx = getctx(4)
     assert ctx.nvars() == 4
     assert ctx.ordering() == "lex"
@@ -1192,7 +1192,7 @@ def test_fmpq_mat():
 
 def test_fmpq_mpoly():
     Zp = flint.fmpq_mpoly
-    getctx = flint.get_fmpq_mpoly_context
+    getctx = flint.fmpq_mpoly_ctx.get_context
     ctx = getctx(4)
     assert ctx.nvars() == 4
     assert ctx.ordering() == "lex"

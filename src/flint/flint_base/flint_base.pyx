@@ -2,9 +2,11 @@ from flint.flintlib.flint cimport (
     FLINT_BITS as _FLINT_BITS,
     FLINT_VERSION as _FLINT_VERSION,
     __FLINT_RELEASE as _FLINT_RELEASE,
+    slong
 )
 from flint.flint_base.flint_context cimport thectx
 cimport libc.stdlib
+from typing import Optional
 
 
 FLINT_BITS = _FLINT_BITS
@@ -125,8 +127,10 @@ cdef class flint_mpoly_context(flint_elem):
     Base class for multivariate ring contexts
     """
 
+    _ctx_cache = None
+
     def __cinit__(self):
-       self._init = False
+        self._init = False
 
     def __init__(self, long nvars, names):
         assert nvars >= 1
@@ -149,6 +153,41 @@ cdef class flint_mpoly_context(flint_elem):
     def gens(self):
         return tuple(self.gen(i) for i in range(self.nvars()))
 
+    @staticmethod
+    def create_cache_key(slong nvars, ordering: str, names: str):
+        nametup = tuple(name.strip() for name in names.split(','))
+        if len(nametup) != nvars:
+            if len(nametup) != 1:
+                raise ValueError("Number of variables does not equal number of names")
+            nametup = tuple(nametup[0] + str(i) for i in range(nvars))
+        return nvars, ordering, nametup
+
+    @classmethod
+    def get_context(cls, slong nvars=1, ordering: str = "lex", names: Optional[str] = "x", nametup: Optional[tuple] = None):
+        if nvars <= 0:
+            nvars = 1
+
+        if nametup is None and names is not None:
+            key = cls.create_cache_key(nvars, ordering, names)
+        elif len(nametup) != nvars:
+            raise ValueError("Number of variables does not equal number of names")
+        else:
+            key = (nvars, ordering, nametup)
+
+        ctx = cls._ctx_cache.get(key)
+        if ctx is None:
+            ctx = cls(*key)
+            cls._ctx_cache[key] = ctx
+        return ctx
+
+    @classmethod
+    def from_context(cls, ctx: flint_mpoly_context):
+        return cls.get_context(
+            nvars=ctx.nvars(),
+            ordering=ctx.ordering(),
+            names=None,
+            nametup=tuple(str(s, 'utf-8') for s in ctx.py_names)
+        )
 
 
 cdef class flint_mpoly(flint_elem):

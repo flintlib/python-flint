@@ -100,6 +100,9 @@ ext_files = [
     ("flint.types.fmpz_mod_poly", ["src/flint/types/fmpz_mod_poly.pyx"]),
     ("flint.types.fmpz_mod_mat", ["src/flint/types/fmpz_mod_mat.pyx"]),
 
+    ("flint.types.fmpq_mpoly", ["src/flint/types/fmpq_mpoly.pyx"]),
+    ("flint.types.fmpz_mpoly_q", ["src/flint/types/fmpz_mpoly_q.pyx"]),
+
     ("flint.types.arf", ["src/flint/types/arf.pyx"]),
     ("flint.types.arb", ["src/flint/types/arb.pyx"]),
     ("flint.types.arb_poly", ["src/flint/types/arb_poly.pyx"]),
@@ -109,13 +112,6 @@ ext_files = [
     ("flint.types.acb_poly", ["src/flint/types/acb_poly.pyx"]),
     ("flint.types.acb_mat", ["src/flint/types/acb_mat.pyx"]),
     ("flint.types.acb_series", ["src/flint/types/acb_series.pyx"]),
-
-    ("flint.types.fmpz_mpoly", ["src/flint/types/fmpz_mpoly.pyx"]),
-    ("flint.types.fmpq_mpoly", ["src/flint/types/fmpq_mpoly.pyx"]),
-    ("flint.types.fmpz_mpoly_q", ["src/flint/types/fmpz_mpoly_q.pyx"]),
-    ("flint.types.fmpz_mod", ["src/flint/types/fmpz_mod.pyx"]),
-    ("flint.flint_base.flint_base", ["src/flint/flint_base/flint_base.pyx"]),
-    ("flint.flint_base.flint_context", ["src/flint/flint_base/flint_context.pyx"]),
 
     ("flint.types.dirichlet", ["src/flint/types/dirichlet.pyx"]),
 

@@ -19,8 +19,6 @@ cdef inline create_fmpq_mpoly(fmpq_mpoly_ctx ctx):
     var._init = True
     return var
 
-cdef fmpq_mpoly_ctx create_fmpq_mpoly_ctx_from_fmpz_mpoly_ctx(fmpz_mpoly_ctx ctx)
-
 cdef class fmpq_mpoly_ctx(flint_mpoly_context):
     cdef fmpq_mpoly_ctx_t val
     cpdef slong nvars(self)

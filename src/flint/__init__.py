@@ -20,6 +20,9 @@ from .types.fmpz_mod import *
 from .types.fmpz_mod_poly import *
 from .types.fmpz_mod_mat import fmpz_mod_mat
 
+from .types.fmpq_mpoly import *
+from .types.fmpz_mpoly_q import *
+
 from .types.arf import *
 from .types.arb import *
 from .types.arb_poly import *
@@ -29,11 +32,6 @@ from .types.acb import *
 from .types.acb_poly import *
 from .types.acb_mat import *
 from .types.acb_series import *
-
-from .types.fmpz_mpoly import *
-from .types.fmpq_mpoly import *
-from .types.fmpz_mod import *
-from .types.fmpz_mpoly_q import *
 
 from .types.dirichlet import *
 from .functions.showgood import good, showgood
