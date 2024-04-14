@@ -135,7 +135,7 @@ cdef class flint_mpoly_context(flint_elem):
     def __init__(self, long nvars, names):
         assert nvars >= 1
         assert len(names) == nvars
-        self.py_names = tuple(bytes(name, 'utf-8') for name in names)
+        self.py_names = tuple(bytes(name, 'utf-8') if not isinstance(name, bytes) else name for name in names)
         self.c_names = <char**>libc.stdlib.malloc(nvars * sizeof(char *))
         self._init = True
         for i in range(nvars):
@@ -146,9 +146,15 @@ cdef class flint_mpoly_context(flint_elem):
             libc.stdlib.free(self.c_names)
         self._init = False
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.nvars()}, '{self.ordering()}', {self.names()})"
+
     def name(self, long i):
         assert i >= 0 and i < len(self.py_names)
         return self.py_names[i].decode('utf-8')
+
+    def names(self):
+        return tuple(name.decode('utf-8') for name in self.py_names)
 
     def gens(self):
         return tuple(self.gen(i) for i in range(self.nvars()))
@@ -188,6 +194,11 @@ cdef class flint_mpoly_context(flint_elem):
             names=None,
             nametup=tuple(str(s, 'utf-8') for s in ctx.py_names)
         )
+
+    @classmethod
+    def joint_context(cls, ctxs):
+        vars = {x: i for i, x in enumerate({var for ctx in ctxs for var in ctx.py_names})}
+        return cls.get_context(nvars=len(vars), nametup=tuple(vars.keys())), vars
 
 
 cdef class flint_mpoly(flint_elem):
