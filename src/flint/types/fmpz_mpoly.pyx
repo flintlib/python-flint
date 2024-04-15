@@ -227,46 +227,6 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         return res
 
 
-def coerce_fmpz_mpolys(args):
-    cdef:
-        fmpz_mpoly_ctx ctx
-        fmpz_mpoly inpoly, outpoly
-        slong *C
-        slong i
-
-    if not args:
-        return ctx, []
-
-    # If all arguments are fmpz_mpolys and share the same context then nothing needs to be done
-    if typecheck(args[0], fmpz_mpoly):
-        ctx = (<fmpz_mpoly> args[0]).ctx
-        if all(typecheck(args[i], fmpz_mpoly) and (<fmpz_mpoly> args[i]).ctx is ctx for i in range(1, len(args))):
-            return ctx, list(args)
-
-    for i in range(len(args)):
-        if not typecheck(args[i], fmpz_mpoly):
-            args[i] = fmpz_mpoly(args[i])
-
-    ctx, vars = fmpz_mpoly_ctx.joint_context((<fmpz_mpoly>inpoly).ctx for inpoly in args)
-
-    out = [fmpz_mpoly.__new__(fmpz_mpoly) for _ in range(len(args))]
-
-    nvars = max((<fmpz_mpoly>inpoly).ctx.nvars() for inpoly in args)
-    C = <slong *> libc.stdlib.malloc(nvars * sizeof(slong *))
-    for inpoly, outpoly in zip(args, out):
-        inpoly = <fmpz_mpoly>inpoly
-        outpoly = <fmpz_mpoly>outpoly
-
-        init_fmpz_mpoly(outpoly, ctx)
-        for i, var in enumerate(inpoly.ctx.py_names):
-            C[i] = <slong>vars[var]
-
-        fmpz_mpoly_compose_fmpz_mpoly_gen(outpoly.val, inpoly.val, C, inpoly.ctx.val, ctx.val)
-
-    libc.stdlib.free(C)
-    return ctx, out
-
-
 cdef class fmpz_mpoly(flint_mpoly):
     """
     The *fmpz_poly* type represents sparse multivariate polynomials over
@@ -878,3 +838,28 @@ cdef class fmpz_mpoly(flint_mpoly):
         fmpz_set((<fmpz>c).val, fac.constant)
         fmpz_mpoly_factor_clear(fac, self.ctx.val)
         return c, res
+
+    def coerce_to_context(self, ctx):
+        cdef:
+            fmpz_mpoly outpoly
+            slong *C
+            slong i
+
+        if not typecheck(ctx, fmpz_mpoly_ctx):
+            raise ValueError("provided context is not a fmpz_mpoly_ctx")
+
+        if self.ctx is ctx:
+            return self
+
+        C = <slong *> libc.stdlib.malloc(self.ctx.val.minfo.nvars * sizeof(slong *))
+        outpoly = fmpz_mpoly.__new__(fmpz_mpoly)
+        init_fmpz_mpoly(outpoly, ctx)
+
+        vars = {x: i for i, x in enumerate(ctx.py_names)}
+        for i, var in enumerate(self.ctx.py_names):
+            C[i] = <slong>vars[var]
+
+        fmpz_mpoly_compose_fmpz_mpoly_gen(outpoly.val, self.val, C, self.ctx.val, (<fmpz_mpoly_ctx>ctx).val)
+
+        libc.stdlib.free(C)
+        return outpoly

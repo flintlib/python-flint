@@ -5,7 +5,9 @@ from flint.flintlib.flint cimport (
     slong
 )
 from flint.flint_base.flint_context cimport thectx
+from flint.utils.typecheck cimport typecheck
 cimport libc.stdlib
+
 from typing import Optional
 
 
@@ -146,6 +148,9 @@ cdef class flint_mpoly_context(flint_elem):
             libc.stdlib.free(self.c_names)
         self._init = False
 
+    def __str__(self):
+        return self.__repr__()
+
     def __repr__(self):
         return f"{self.__class__.__name__}({self.nvars()}, '{self.ordering()}', {self.names()})"
 
@@ -196,9 +201,15 @@ cdef class flint_mpoly_context(flint_elem):
         )
 
     @classmethod
-    def joint_context(cls, ctxs):
-        vars = {x: i for i, x in enumerate({var for ctx in ctxs for var in ctx.py_names})}
-        return cls.get_context(nvars=len(vars), nametup=tuple(vars.keys())), vars
+    def joint_context(cls, *ctxs):
+        vars = set()
+        for ctx in ctxs:
+            if not typecheck(ctx, cls):
+                raise ValueError(f"{ctx} is not a {cls}")
+            else:
+                for var in ctx.py_names:
+                    vars.add(var)
+        return cls.get_context(nvars=len(vars), nametup=tuple(vars))
 
 
 cdef class flint_mpoly(flint_elem):

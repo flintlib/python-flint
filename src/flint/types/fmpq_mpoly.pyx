@@ -81,6 +81,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
             return "deglex"
         if self.val.zctx.minfo.ord == ordering_t.ORD_DEGREVLEX:
             return "degrevlex"
+
     def gen(self, slong i):
         """
         Return the `i`th generator of the polynomial ring
