@@ -680,17 +680,19 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz vres
             fmpz_mpoly_struct ** C
             ulong *exponents
-            slong i, prev_i, nvars = self.ctx.nvars(), nargs = len(args)
+            slong i, nvars = self.ctx.nvars(), nargs = len(args)
 
-        if args and kwargs:
-            raise ValueError("only supply positional or keyword arguments")
-        elif not args and not kwargs:
+        if not args and not kwargs:
             return self
+        elif args and kwargs:
+            raise ValueError("only supply positional or keyword arguments")
+        elif len(args) < nvars and not kwargs:
+            raise ValueError("partial application requires keyword arguments")
 
         if kwargs:
             # Sort and filter the provided keyword args to only valid ones
-            args = tuple((i, kwargs[x]) for i, x in enumerate(self.ctx.names()) if x in kwargs)
-            nargs = len(args)
+            partial_args = tuple((i, kwargs[x]) for i, x in enumerate(self.ctx.names()) if x in kwargs)
+            nargs = len(partial_args)
 
             # If we've been provided with an invalid keyword arg then the length of our filter
             # args will be less than what we've been provided with.
@@ -699,25 +701,20 @@ cdef class fmpz_mpoly(flint_mpoly):
             if nargs < len(kwargs):
                 raise ValueError("unknown keyword argument provided")
             elif nargs == nvars:
-                args = tuple(x for _, x in args)
-                partial = False
-            else:
-                partial = True
+                args = tuple(arg for _, arg in partial_args)
+                kwargs = None
         elif nargs > nvars:
             raise ValueError("more arguments provided than variables")
-        elif nargs < nvars:
-            # Positional partial application
-            args = tuple((i, x) for i, x in enumerate(args))
-            partial = True
 
-        if partial:
-            args_fmpz = tuple(any_as_fmpz(v) for _, v in args)
+        if kwargs:
+            args_fmpz = tuple(any_as_fmpz(v) for _, v in partial_args)
         else:
             args_fmpz = tuple(any_as_fmpz(v) for v in args)
 
         all_fmpz = NotImplemented not in args_fmpz
 
-        if not partial and all_fmpz:
+        if args and all_fmpz:
+            # Normal evaluation
             try:
                 V = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
                 for i in range(nvars):
@@ -728,19 +725,21 @@ cdef class fmpz_mpoly(flint_mpoly):
                 return vres
             finally:
                 libc.stdlib.free(V)
-        elif partial and all_fmpz:
+        elif kwargs and all_fmpz:
+            # Partial application with args in Z. We evaluate the polynomial one variable at a time
             res = fmpz_mpoly.__new__(fmpz_mpoly)
             res2 = fmpz_mpoly.__new__(fmpz_mpoly)
             res.ctx = self.ctx
             res2.ctx = self.ctx
 
             fmpz_mpoly_set(res2.val, self.val, self.ctx.val)
-            for (i, _), arg in zip(args, args_fmpz):
+            for (i, _), arg in zip(partial_args, args_fmpz):
                 if fmpz_mpoly_evaluate_one_fmpz(res.val, res2.val, i, (<fmpz>arg).val, self.ctx.val) == 0:
                     raise ValueError("unreasonably large polynomial")
                 fmpz_mpoly_set(res2.val, res.val, self.ctx.val)
             return res
-        elif not partial and not all_fmpz:
+        elif args and not all_fmpz:
+            # Complete function composition
             res_ctx = (<fmpz_mpoly> args[0]).ctx
             if not all(typecheck(args[i], fmpz_mpoly) and (<fmpz_mpoly> args[i]).ctx is res_ctx for i in range(1, len(args))):
                 raise ValueError("all arguments must share the same context")
@@ -757,11 +756,15 @@ cdef class fmpz_mpoly(flint_mpoly):
             finally:
                 libc.stdlib.free(C)
         else:
+            # Partial function composition. We do this by composing with all arguments, however the ones
+            # that have not be provided are set to the trivial monomial. This is why we require all the
+            # polynomial itself, and all arguments exist in the same context, otherwise we have no way of
+            # finding the correct monomial to use.
             if not all(typecheck(arg, fmpz_mpoly) and (<fmpz_mpoly> arg).ctx is self.ctx for _, arg in args):
                 raise ValueError("the mpoly and all arguments must share the same context")
 
             polys = [None] * nvars
-            for i, poly in args:
+            for i, poly in partial_args:
                 polys[i] = poly
 
             for i in range(nvars):
