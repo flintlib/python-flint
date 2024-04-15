@@ -18,7 +18,6 @@ from flint.types.fmpq cimport any_as_fmpq, fmpq_set_any_ref
 from flint.types.fmpq_mpoly cimport fmpq_mpoly
 from flint.types.fmpz_mpoly_q cimport fmpz_mpoly_q
 
-
 cimport cython
 cimport libc.stdlib
 from flint.flintlib.fmpz cimport fmpz_set
@@ -680,10 +679,13 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_struct ** V
             fmpz vres
             fmpz_mpoly_struct ** C
-            slong i, nvars = self.ctx.nvars(), nargs = len(args)
+            ulong *exponents
+            slong i, prev_i, nvars = self.ctx.nvars(), nargs = len(args)
 
         if args and kwargs:
             raise ValueError("only supply positional or keyword arguments")
+        elif not args and not kwargs:
+            return self
 
         if kwargs:
             # Sort and filter the provided keyword args to only valid ones
@@ -714,8 +716,6 @@ cdef class fmpz_mpoly(flint_mpoly):
             args_fmpz = tuple(any_as_fmpz(v) for v in args)
 
         all_fmpz = NotImplemented not in args_fmpz
-        # if NotImplemented in args_fmpz:
-        #     raise NotImplementedError("an argument was unable to be coerced to fmpz")
 
         if not partial and all_fmpz:
             try:
@@ -741,31 +741,50 @@ cdef class fmpz_mpoly(flint_mpoly):
                 fmpz_mpoly_set(res2.val, res.val, self.ctx.val)
             return res
         elif not partial and not all_fmpz:
-            res_ctx, args = coerce_fmpz_mpolys(args)
+            res_ctx = (<fmpz_mpoly> args[0]).ctx
+            if not all(typecheck(args[i], fmpz_mpoly) and (<fmpz_mpoly> args[i]).ctx is res_ctx for i in range(1, len(args))):
+                raise ValueError("all arguments must share the same context")
+
             C = <fmpz_mpoly_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_mpoly_struct *))
             try:
                 for i in range(nvars):
                     C[i] = &((<fmpz_mpoly> args[i]).val[0])
                 res = fmpz_mpoly.__new__(fmpz_mpoly)
-                res.ctx = res_ctx
-                fmpz_mpoly_init(res.val, res.ctx.val)
-                res._init = True
+                init_fmpz_mpoly(res, res_ctx)
                 if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C, self.ctx.val, res_ctx.val) == 0:
                     raise ValueError("unreasonably large polynomial")
                 return res
             finally:
                 libc.stdlib.free(C)
         else:
-            raise NotImplemented("partial composition not implemented")
-            # res_ctx, new_args = coerce_fmpz_mpolys(tuple(x for _, x in args))
+            if not all(typecheck(arg, fmpz_mpoly) and (<fmpz_mpoly> arg).ctx is self.ctx for _, arg in args):
+                raise ValueError("the mpoly and all arguments must share the same context")
 
-            # polys = [None] * nvars
-            # for (i, _), poly in zip(args, new_args):
-            #     polys[i] = poly
+            polys = [None] * nvars
+            for i, poly in args:
+                polys[i] = poly
 
-            # for i in range(nvars):
-            #     if polys[i] is None:
-            #         polys[i] = fmpz_mpoly({ : })
+            for i in range(nvars):
+                if polys[i] is None:
+                    res = fmpz_mpoly.__new__(fmpz_mpoly)
+                    init_fmpz_mpoly(res, self.ctx)
+                    exponents = <ulong *> libc.stdlib.calloc(nvars, sizeof(ulong))
+                    exponents[i] = 1
+                    fmpz_mpoly_push_term_ui_ui(res.val, <ulong>1, exponents, self.ctx.val)
+
+                    polys[i] = res
+
+            C = <fmpz_mpoly_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_mpoly_struct *))
+            try:
+                for i in range(len(polys)):
+                    C[i] = &((<fmpz_mpoly> polys[i]).val[0])
+                res = fmpz_mpoly.__new__(fmpz_mpoly)
+                init_fmpz_mpoly(res, self.ctx)
+                if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C, self.ctx.val, self.ctx.val) == 0:
+                    raise ValueError("unreasonably large polynomial")
+                return res
+            finally:
+                libc.stdlib.free(C)
 
     def factor(self):
         """
