@@ -1,9 +1,9 @@
 from cpython.version cimport PY_MAJOR_VERSION
 from cpython.dict cimport PyDict_Size, PyDict_Check, PyDict_Next
 from cpython.tuple cimport PyTuple_Check, PyTuple_GET_SIZE
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear, fmpz_is_zero
 from flint.flintlib.fmpq_mpoly cimport fmpq_mpoly_t, fmpq_mpoly_add_fmpq, fmpq_mpoly_sub_fmpq, fmpq_mpoly_scalar_mul_fmpq
-from flint.flintlib.fmpq_mpoly cimport fmpq_mpoly_scalar_div_fmpq
 from flint.flintlib.flint cimport *
 from flint.flintlib.fmpq cimport fmpq_numref, fmpq_denref
 from flint.flintlib.fmpz_mpoly_q cimport  fmpz_mpoly_q_div_fmpz
@@ -17,6 +17,8 @@ from flint.types.fmpz cimport fmpz, fmpz_set_any_ref
 from flint.types.fmpq cimport any_as_fmpq, fmpq_set_any_ref
 from flint.types.fmpq_mpoly cimport fmpq_mpoly
 from flint.types.fmpz_mpoly_q cimport fmpz_mpoly_q
+
+from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
 cimport cython
 cimport libc.stdlib
@@ -155,15 +157,15 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         fmpz_mpoly_set_fmpz(res.val, (<fmpz>z).val, res.ctx.val)
         return res
 
-    def fmpz_mpoly_from_dict(self, d):
+    def from_dict(self, d):
         """
-        Create a fmpz_mpoly from a dictionary.
+        Create a fmpz_mpoly from a dictionary in this context.
 
         The dictionary's keys are tuples of ints (or anything that implicitly converts
         to fmpz) representing exponents, and corresponding values of fmpz.
 
             >>> ctx = fmpz_mpoly_ctx.get_context(2,'lex','x,y')
-            >>> ctx.fmpz_mpoly_from_dict({(1,0):2, (1,1):3, (0,1):1})
+            >>> ctx.from_dict({(1,0):2, (1,1):3, (0,1):1})
             3*x*y + 2*x + y
         """
         cdef long n
@@ -255,7 +257,7 @@ cdef class fmpz_mpoly(flint_mpoly):
                 if not isinstance(k, tuple):
                     raise ValueError("Dict should be keyed with tuples of integers")
                 ctx = fmpz_mpoly_ctx.get_context(len(k))
-            x = ctx.fmpz_mpoly_from_dict(val)
+            x = ctx.from_dict(val)
             #XXX this copy is silly, have a ctx function that assigns an fmpz_mpoly_t
             init_fmpz_mpoly(self, ctx)
             fmpz_mpoly_set(self.val, (<fmpz_mpoly>x).val, self.ctx.val)
@@ -278,9 +280,6 @@ cdef class fmpz_mpoly(flint_mpoly):
     def context(self):
         return self.ctx
 
-    def __nonzero__(self):
-        return not fmpz_mpoly_is_zero(self.val, self.ctx.val)
-
     def __bool__(self):
         return not fmpz_mpoly_is_zero(self.val, self.ctx.val)
 
@@ -288,26 +287,80 @@ cdef class fmpz_mpoly(flint_mpoly):
         return fmpz_mpoly_is_one(self.val, self.ctx.val)
 
     def __richcmp__(self, other, int op):
-        if op != 2 and op != 3:
+        if not (op == Py_EQ or op == Py_NE):
             return NotImplemented
-        if typecheck(self, fmpz_mpoly) and typecheck(other, fmpz_mpoly):
+        elif other is None:
+            return op == Py_NE
+        elif typecheck(self, fmpz_mpoly) and typecheck(other, fmpz_mpoly):
             if (<fmpz_mpoly>self).ctx is (<fmpz_mpoly>other).ctx:
-                if op == 2:
-                    return bool(fmpz_mpoly_equal((<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, (<fmpz_mpoly>self).ctx.val))
-                else:
-                    return not bool(fmpz_mpoly_equal((<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, (<fmpz_mpoly>self).ctx.val))
+                return (op == Py_NE) ^ bool(fmpz_mpoly_equal((<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, (<fmpz_mpoly>self).ctx.val))
             else:
-                if op == 2:
-                    return False
-                else:
-                    return True
-        if op == 2:
-            return not bool(self - other)
+                return op == Py_NE
         else:
-            return bool(self - other)
+            return NotImplemented
 
     def __len__(self):
         return fmpz_mpoly_length(self.val, self.ctx.val)
+
+    def __getitem__(self, x):
+        cdef:
+            fmpz_struct ** tmp
+            slong nvars = self.ctx.nvars()
+
+        if isinstance(x, int):
+            if not 0 <= x < fmpz_mpoly_length(self.val, self.ctx.val):
+                raise IndexError("term index out of range")
+            res = fmpz_mpoly.__new__(fmpz_mpoly)
+            init_fmpz_mpoly(res, self.ctx)
+            fmpz_mpoly_get_term((<fmpz_mpoly> res).val, self.val, x, self.ctx.val)
+            return res
+        elif isinstance(x, tuple):
+            if len(x) != nvars:
+                raise ValueError("exponent vector provided does not match number of variables")
+            res = fmpz()
+            try:
+                tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
+                for i in range(nvars):
+                    exp = any_as_fmpz(x[i])
+                    if exp is NotImplemented:
+                        raise TypeError("exponent not coercible to fmpz")
+                    tmp[i] = &((<fmpz>exp).val[0])
+                fmpz_mpoly_get_coeff_fmpz_fmpz((<fmpz>res).val, self.val, tmp, self.ctx.val)
+                return res
+            finally:
+                libc.stdlib.free(tmp)
+        else:
+            raise TypeError("index is not integer or tuple")
+
+    def __setitem__(self, x, y):
+        cdef:
+            fmpz_struct ** tmp
+            slong nvars = self.ctx.nvars()
+
+        coeff = any_as_fmpz(y)
+        if coeff is NotImplemented:
+            raise TypeError("provided coefficient not coercible to fmpz")
+
+        if isinstance(x, int):
+            if not 0 <= x < fmpz_mpoly_length(self.val, self.ctx.val):
+                raise IndexError("term index out of range")
+            fmpz_mpoly_set_term_coeff_fmpz(self.val, x, (<fmpz>coeff).val, self.ctx.val)
+        elif isinstance(x, tuple):
+            if len(x) != nvars:
+                raise ValueError("exponent vector provided does not match number of variables")
+
+            try:
+                tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
+                for i in range(nvars):
+                    exp = any_as_fmpz(x[i])
+                    if exp is NotImplemented:
+                        raise TypeError("exponent not coercible to fmpz")
+                    tmp[i] = &((<fmpz>exp).val[0])
+                fmpz_mpoly_set_coeff_fmpz_fmpz(self.val, (<fmpz>coeff).val, tmp, self.ctx.val)
+            finally:
+                libc.stdlib.free(tmp)
+        else:
+            raise TypeError("index is not integer or tuple")
 
     def coefficient(self, slong i):
         cdef fmpz v
@@ -322,16 +375,35 @@ cdef class fmpz_mpoly(flint_mpoly):
         cdef slong j, nvars
         cdef fmpz_struct ** tmp
         if i < 0 or i >= fmpz_mpoly_length(self.val, self.ctx.val):
-            raise ValueError
+            raise IndexError("term index out of range")
         nvars = self.ctx.nvars()
         res = tuple(fmpz() for j in range(nvars))
-        tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct **))
+        tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
         try:
             for j in range(nvars):
                 tmp[j] = &((<fmpz> (res[j])).val[0])
             fmpz_mpoly_get_term_exp_fmpz(tmp, self.val, i, self.ctx.val)
         finally:
             libc.stdlib.free(tmp)
+        return res
+
+    def degrees(self):
+        cdef:
+            fmpz_struct ** tmp
+            slong i, nvars = self.ctx.nvars()
+
+        res = tuple(fmpz() for _ in range(nvars))
+        tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
+
+        for i in range(nvars):
+            tmp[i] = &((<fmpz> res[i]).val[0])
+        fmpz_mpoly_degrees_fmpz(tmp, self.val, self.ctx.val)
+        libc.stdlib.free(tmp)
+        return dict(zip(self.ctx.names(), res))
+
+    def total_degree(self):
+        cdef fmpz res = fmpz()
+        fmpz_mpoly_total_degree_fmpz((<fmpz> res).val, self.val, self.ctx.val)
         return res
 
     def repr(self):
@@ -349,6 +421,9 @@ cdef class fmpz_mpoly(flint_mpoly):
             res = "-" + res[3:]
         return res
 
+    def __pos__(self):
+        return self
+
     def __neg__(self):
         cdef fmpz_mpoly res
         res = create_fmpz_mpoly(self.ctx)
@@ -363,7 +438,7 @@ cdef class fmpz_mpoly(flint_mpoly):
         cdef int xtype
         if typecheck(other, fmpz_mpoly):
             if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                return NotImplemented
+                raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
             res = create_fmpz_mpoly(self.ctx)
             fmpz_mpoly_add(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
             return res
@@ -402,7 +477,7 @@ cdef class fmpz_mpoly(flint_mpoly):
     def __iadd__(self, other):
         if typecheck(other, fmpz_mpoly):
             if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                return NotImplemented
+                raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
             fmpz_mpoly_add((<fmpz_mpoly>self).val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, self.ctx.val)
             return self
         else:
@@ -420,7 +495,7 @@ cdef class fmpz_mpoly(flint_mpoly):
         cdef int xtype
         if typecheck(other, fmpz_mpoly):
             if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                return NotImplemented
+                raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
             res = create_fmpz_mpoly(self.ctx)
             fmpz_mpoly_sub(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
             return res
@@ -459,7 +534,7 @@ cdef class fmpz_mpoly(flint_mpoly):
     def __isub__(self, other):
         if typecheck(other, fmpz_mpoly):
             if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                return NotImplemented
+                raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
             fmpz_mpoly_sub((<fmpz_mpoly>self).val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, self.ctx.val)
             return self
         else:
@@ -478,7 +553,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
         if typecheck(other, fmpz_mpoly):
             if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                return NotImplemented
+                raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
             res = create_fmpz_mpoly(self.ctx)
             fmpz_mpoly_mul(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
             return res
@@ -517,7 +592,7 @@ cdef class fmpz_mpoly(flint_mpoly):
     def __imul__(self, other):
         if typecheck(other, fmpz_mpoly):
             if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                return NotImplemented
+                raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
             fmpz_mpoly_mul((<fmpz_mpoly>self).val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, self.ctx.val)
             return self
         else:
@@ -550,7 +625,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             if not other:
                 raise ZeroDivisionError("fmpz_mpoly_divison by zero")
             if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                return NotImplemented
+                raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
             res = create_fmpz_mpoly(self.ctx)
             res2 = create_fmpz_mpoly(self.ctx)
             fmpz_mpoly_divrem(res.val, res2.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
@@ -577,7 +652,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             res = create_fmpz_mpoly(self.ctx)
             res2 = create_fmpz_mpoly(self.ctx)
             fmpz_mpoly_divrem(res.val, res2.val, (<fmpz_mpoly>other).val, (<fmpz_mpoly>self).val, res.ctx.val)
-            return res
+            return (res, res2)
         return NotImplemented
 
     def __floordiv__(self, other):
@@ -586,7 +661,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             if not other:
                 raise ZeroDivisionError("fmpz_mpoly division by zero")
             if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                return NotImplemented
+                raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
             res = create_fmpz_mpoly(self.ctx)
             fmpz_mpoly_div(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
             return res
@@ -614,62 +689,80 @@ cdef class fmpz_mpoly(flint_mpoly):
         return NotImplemented
 
     def __truediv__(self, other):
-        cdef fmpq_mpoly qres
-        cdef fmpq_t q_other
-        cdef int xtype
+        cdef:
+            fmpz_mpoly res
+            int xtype
 
         if typecheck(other, fmpz_mpoly):
             if not other:
                 raise ZeroDivisionError("fmpz_mpoly division by zero")
             if self.ctx is not (<fmpz_mpoly> other).ctx:
+                raise IncompatibleContextError(f"{self.ctx} is not {(<fmpz_mpoly>other).ctx}")
+            res, r = divmod(self, other)
+            if not r:
+                return res
+            else:
+                raise DomainError("fmpz_mpoly division is not exact")
+        else:
+            o = any_as_fmpz(other)
+            if o is NotImplemented:
                 return NotImplemented
-            return fmpz_mpoly_q(self, other)
-        xtype = fmpq_set_any_ref(q_other, other)
-        if xtype != FMPZ_UNKNOWN:
-            if not other:
+            elif not o:
                 raise ZeroDivisionError("fmpz_mpoly division by zero")
-            qres = fmpq_mpoly(self)
-            fmpq_mpoly_scalar_div_fmpq(qres.val, qres.val, q_other, qres.ctx.val)
-            return qres
+            res = fmpz_mpoly.__new__(fmpz_mpoly)
+            init_fmpz_mpoly(res, self.ctx)
+            if fmpz_mpoly_scalar_divides_fmpz(res.val, self.val, (<fmpz>o).val, self.ctx.val):
+                return res
+            else:
+                raise DomainError("fmpz_mpoly division is not exact")
 
     def __rtruediv__(self, other):
-        cdef fmpz_mpoly num
-        cdef fmpz_mpoly_q ret
-        cdef fmpz_t z_other
-        cdef fmpq_t q_other
-        cdef int xtype
+        cdef fmpz_mpoly res
+
+        # If other was a fmpz_mpoly then __truediv__ would have already been called
+        # and it only reflects when other was not a fmpz_mpoly nor a fmpz. If other
+        # was not a fmpz_mpoly so our __truediv__ was not called then it should
+        # handle having a fmpz_mpoly as the divisor if it's part of python-flint and
+        # it's reasonable for the domain. Otherwise it is something outside of
+        # python-flint. We attempt to construct a fmpz out of it, then convert that to
+        # fmpz_mpoly
 
         if not self:
             raise ZeroDivisionError("fmpz_mpoly division by zero")
-        if typecheck(other, fmpz_mpoly):
-            if self.ctx is not (<fmpz_mpoly> other).ctx:
-                return NotImplemented
-            return fmpz_mpoly_q(other, self)
-        xtype = fmpz_set_any_ref(z_other, other)
-        if xtype != FMPZ_UNKNOWN:
-            num = create_fmpz_mpoly(self.ctx)
-            fmpz_mpoly_set_fmpz(num.val, z_other, self.ctx.val)
-            return fmpz_mpoly_q(num, self)
-        xtype = fmpq_set_any_ref(q_other, other)
-        if xtype != FMPZ_UNKNOWN:
-            num = create_fmpz_mpoly(self.ctx)
-            fmpz_mpoly_set_fmpz(num.val, fmpq_numref(q_other),self.ctx.val)
-            ret = fmpz_mpoly_q(num, self)
-            fmpz_mpoly_q_div_fmpz(ret.fraction, ret.fraction, fmpq_denref(q_other), self.ctx.val)
-            return ret
-        return NotImplemented
+
+        o = any_as_fmpz(other)
+        if o is NotImplemented:
+            return NotImplemented
+        res = fmpz_mpoly.__new__(fmpz_mpoly)
+        init_fmpz_mpoly(res, self.ctx)
+        fmpz_mpoly_set_fmpz(res.val, (<fmpz>o).val, self.ctx.val)
+        return res / self
 
     def __mod__(self, other):
         return divmod(self, other)[1]
 
+    def __rmod__(self, other):
+        return divmod(other, self)[1]
+
     def gcd(self, other):
         cdef fmpz_mpoly res
-        assert isinstance(other, fmpz_mpoly)
+        if not typecheck(other, fmpz_mpoly):
+            raise TypeError("argument must be a fmpz_mpoly")
         if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-            return NotImplemented
+            raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
         res = create_fmpz_mpoly(self.ctx)
         fmpz_mpoly_gcd(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
         return res
+
+    def sqrt(self, assume_perfect_square: bool = False):
+        cdef fmpz_mpoly res
+        res = fmpz_mpoly.__new__(fmpz_mpoly)
+        init_fmpz_mpoly(res, self.ctx)
+
+        if fmpz_mpoly_sqrt_heap(res.val, self.val, self.ctx.val, not assume_perfect_square):
+            return res
+        else:
+            raise ValueError("polynomial is not a perfect square")
 
     def __call__(self, *args, **kwargs):
         cdef:
@@ -740,8 +833,10 @@ cdef class fmpz_mpoly(flint_mpoly):
             return res
         elif args and not all_fmpz:
             # Complete function composition
+            if not all(typecheck(arg, fmpz_mpoly) for arg in args):
+                raise TypeError("all arguments must be fmpz_mpolys")
             res_ctx = (<fmpz_mpoly> args[0]).ctx
-            if not all(typecheck(args[i], fmpz_mpoly) and (<fmpz_mpoly> args[i]).ctx is res_ctx for i in range(1, len(args))):
+            if not all((<fmpz_mpoly> args[i]).ctx is res_ctx for i in range(1, len(args))):
                 raise ValueError("all arguments must share the same context")
 
             C = <fmpz_mpoly_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_mpoly_struct *))
@@ -760,8 +855,10 @@ cdef class fmpz_mpoly(flint_mpoly):
             # that have not be provided are set to the trivial monomial. This is why we require all the
             # polynomial itself, and all arguments exist in the same context, otherwise we have no way of
             # finding the correct monomial to use.
-            if not all(typecheck(arg, fmpz_mpoly) and (<fmpz_mpoly> arg).ctx is self.ctx for _, arg in args):
-                raise ValueError("the mpoly and all arguments must share the same context")
+            if not all(typecheck(arg, fmpz_mpoly) for _, arg in partial_args):
+                raise TypeError("all arguments must be fmpz_mpolys for partial composition")
+            if not all((<fmpz_mpoly> arg).ctx is self.ctx for _, arg in partial_args):
+                raise ValueError("all arguments must share the same context")
 
             polys = [None] * nvars
             for i, poly in partial_args:
@@ -885,3 +982,50 @@ cdef class fmpz_mpoly(flint_mpoly):
 
         libc.stdlib.free(C)
         return outpoly
+
+    def derivative(self, var):
+        cdef:
+            fmpz_mpoly res
+            slong i
+
+        if isinstance(var, str):
+            vars = {x: i for i, x in enumerate(self.ctx.names())}
+            if var not in vars:
+                raise ValueError("variable not in context")
+            else:
+                i = vars[var]
+        elif isinstance(var, int):
+            i = <slong>var
+        else:
+            raise TypeError("invalid variable type")
+
+        res = fmpz_mpoly.__new__(fmpz_mpoly)
+        init_fmpz_mpoly(res, self.ctx)
+
+        fmpz_mpoly_derivative(res.val, self.val, i, self.ctx.val)
+        return res
+
+    def integral(self, var):
+        cdef:
+            fmpz_mpoly res
+            fmpz scale
+            slong i
+
+        if isinstance(var, str):
+            vars = {x: i for i, x in enumerate(self.ctx.names())}
+            if var not in vars:
+                raise ValueError("variable not in context")
+            else:
+                i = vars[var]
+        elif isinstance(var, int):
+            i = <slong>var
+        else:
+            raise TypeError("invalid variable type")
+
+        res = fmpz_mpoly.__new__(fmpz_mpoly)
+        init_fmpz_mpoly(res, self.ctx)
+
+        scale = fmpz()
+
+        fmpz_mpoly_integral(res.val, scale.val, self.val, i, self.ctx.val)
+        return scale, res
