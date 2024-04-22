@@ -134,11 +134,9 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
             z1
         """
         cdef fmpz_mpoly res
-        assert i >= 0 and i < self.val.minfo.nvars
-        res = fmpz_mpoly.__new__(fmpz_mpoly)
-        res.ctx = self
-        fmpz_mpoly_init(res.val, res.ctx.val)
-        res._init = True
+        if not 0 <= i < self.val.minfo.nvars:
+            raise IndexError("generator index out of range")
+        res = create_fmpz_mpoly(self)
         fmpz_mpoly_gen(res.val, i, res.ctx.val)
         return res
 
@@ -149,11 +147,8 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         cdef fmpz_mpoly res
         z = any_as_fmpz(z)
         if z is NotImplemented:
-            raise ValueError("A constant fmpz_mpoly is a fmpz")
-        res = fmpz_mpoly.__new__(fmpz_mpoly)
-        res.ctx = self
-        fmpz_mpoly_init(res.val, res.ctx.val)
-        res._init = True
+            raise TypeError("cannot coerce argument to fmpz")
+        res = create_fmpz_mpoly(self)
         fmpz_mpoly_set_fmpz(res.val, (<fmpz>z).val, res.ctx.val)
         return res
 
@@ -187,10 +182,7 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         for i in range(nvars):
             fmpz_init(exponents + i)
         fmpz_init(coefficient)
-        res = fmpz_mpoly.__new__(fmpz_mpoly)
-        res.ctx = self
-        fmpz_mpoly_init(res.val, res.ctx.val)
-        res._init = True
+        res = create_fmpz_mpoly(self)
         count = 0
         for k, v in d.items():
             xtype = fmpz_set_any_ref(coefficient, v)
@@ -310,8 +302,7 @@ cdef class fmpz_mpoly(flint_mpoly):
         if isinstance(x, int):
             if not 0 <= x < fmpz_mpoly_length(self.val, self.ctx.val):
                 raise IndexError("term index out of range")
-            res = fmpz_mpoly.__new__(fmpz_mpoly)
-            init_fmpz_mpoly(res, self.ctx)
+            res = create_fmpz_mpoly(self.ctx)
             fmpz_mpoly_get_term((<fmpz_mpoly> res).val, self.val, x, self.ctx.val)
             return res
         elif isinstance(x, tuple):
@@ -709,8 +700,7 @@ cdef class fmpz_mpoly(flint_mpoly):
                 return NotImplemented
             elif not o:
                 raise ZeroDivisionError("fmpz_mpoly division by zero")
-            res = fmpz_mpoly.__new__(fmpz_mpoly)
-            init_fmpz_mpoly(res, self.ctx)
+            res = create_fmpz_mpoly(self.ctx)
             if fmpz_mpoly_scalar_divides_fmpz(res.val, self.val, (<fmpz>o).val, self.ctx.val):
                 return res
             else:
@@ -733,8 +723,7 @@ cdef class fmpz_mpoly(flint_mpoly):
         o = any_as_fmpz(other)
         if o is NotImplemented:
             return NotImplemented
-        res = fmpz_mpoly.__new__(fmpz_mpoly)
-        init_fmpz_mpoly(res, self.ctx)
+        res = create_fmpz_mpoly(self.ctx)
         fmpz_mpoly_set_fmpz(res.val, (<fmpz>o).val, self.ctx.val)
         return res / self
 
@@ -756,8 +745,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def sqrt(self, assume_perfect_square: bool = False):
         cdef fmpz_mpoly res
-        res = fmpz_mpoly.__new__(fmpz_mpoly)
-        init_fmpz_mpoly(res, self.ctx)
+        res = create_fmpz_mpoly(self.ctx)
 
         if fmpz_mpoly_sqrt_heap(res.val, self.val, self.ctx.val, not assume_perfect_square):
             return res
@@ -820,10 +808,8 @@ cdef class fmpz_mpoly(flint_mpoly):
                 libc.stdlib.free(V)
         elif kwargs and all_fmpz:
             # Partial application with args in Z. We evaluate the polynomial one variable at a time
-            res = fmpz_mpoly.__new__(fmpz_mpoly)
-            res2 = fmpz_mpoly.__new__(fmpz_mpoly)
-            res.ctx = self.ctx
-            res2.ctx = self.ctx
+            res = create_fmpz_mpoly(self.ctx)
+            res2 = create_fmpz_mpoly(self.ctx)
 
             fmpz_mpoly_set(res2.val, self.val, self.ctx.val)
             for (i, _), arg in zip(partial_args, args_fmpz):
@@ -843,8 +829,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             try:
                 for i in range(nvars):
                     C[i] = &((<fmpz_mpoly> args[i]).val[0])
-                res = fmpz_mpoly.__new__(fmpz_mpoly)
-                init_fmpz_mpoly(res, res_ctx)
+                    res = create_fmpz_mpoly(self.ctx)
                 if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C, self.ctx.val, res_ctx.val) == 0:
                     raise ValueError("unreasonably large polynomial")
                 return res
@@ -866,8 +851,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
             for i in range(nvars):
                 if polys[i] is None:
-                    res = fmpz_mpoly.__new__(fmpz_mpoly)
-                    init_fmpz_mpoly(res, self.ctx)
+                    res = create_fmpz_mpoly(self.ctx)
                     exponents = <ulong *> libc.stdlib.calloc(nvars, sizeof(ulong))
                     exponents[i] = 1
                     fmpz_mpoly_push_term_ui_ui(res.val, <ulong>1, exponents, self.ctx.val)
@@ -878,8 +862,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             try:
                 for i in range(len(polys)):
                     C[i] = &((<fmpz_mpoly> polys[i]).val[0])
-                res = fmpz_mpoly.__new__(fmpz_mpoly)
-                init_fmpz_mpoly(res, self.ctx)
+                    res = create_fmpz_mpoly(self.ctx)
                 if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C, self.ctx.val, self.ctx.val) == 0:
                     raise ValueError("unreasonably large polynomial")
                 return res
@@ -960,7 +943,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def coerce_to_context(self, ctx):
         cdef:
-            fmpz_mpoly outpoly
+            fmpz_mpoly res
             slong *C
             slong i
 
@@ -971,17 +954,16 @@ cdef class fmpz_mpoly(flint_mpoly):
             return self
 
         C = <slong *> libc.stdlib.malloc(self.ctx.val.minfo.nvars * sizeof(slong *))
-        outpoly = fmpz_mpoly.__new__(fmpz_mpoly)
-        init_fmpz_mpoly(outpoly, ctx)
+        res = create_fmpz_mpoly(self.ctx)
 
         vars = {x: i for i, x in enumerate(ctx.py_names)}
         for i, var in enumerate(self.ctx.py_names):
             C[i] = <slong>vars[var]
 
-        fmpz_mpoly_compose_fmpz_mpoly_gen(outpoly.val, self.val, C, self.ctx.val, (<fmpz_mpoly_ctx>ctx).val)
+        fmpz_mpoly_compose_fmpz_mpoly_gen(res.val, self.val, C, self.ctx.val, (<fmpz_mpoly_ctx>ctx).val)
 
         libc.stdlib.free(C)
-        return outpoly
+        return res
 
     def derivative(self, var):
         cdef:
@@ -999,8 +981,7 @@ cdef class fmpz_mpoly(flint_mpoly):
         else:
             raise TypeError("invalid variable type")
 
-        res = fmpz_mpoly.__new__(fmpz_mpoly)
-        init_fmpz_mpoly(res, self.ctx)
+        res = create_fmpz_mpoly(self.ctx)
 
         fmpz_mpoly_derivative(res.val, self.val, i, self.ctx.val)
         return res
@@ -1022,8 +1003,7 @@ cdef class fmpz_mpoly(flint_mpoly):
         else:
             raise TypeError("invalid variable type")
 
-        res = fmpz_mpoly.__new__(fmpz_mpoly)
-        init_fmpz_mpoly(res, self.ctx)
+        res = create_fmpz_mpoly(self.ctx)
 
         scale = fmpz()
 

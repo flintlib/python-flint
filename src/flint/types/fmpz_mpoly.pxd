@@ -10,7 +10,7 @@ cdef inline init_fmpz_mpoly(fmpz_mpoly var, fmpz_mpoly_ctx ctx):
     fmpz_mpoly_init(var.val, ctx.val)
     var._init = True
 
-cdef inline create_fmpz_mpoly(fmpz_mpoly_ctx ctx):
+cdef inline fmpz_mpoly create_fmpz_mpoly(fmpz_mpoly_ctx ctx):
     cdef fmpz_mpoly var
     var = fmpz_mpoly.__new__(fmpz_mpoly)
     var.ctx = ctx
