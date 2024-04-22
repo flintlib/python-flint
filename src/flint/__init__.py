@@ -15,12 +15,12 @@ from .types.nmod_poly import *
 from .types.nmod_mat import *
 from .types.nmod_series import *
 
-from .types.fmpz_mpoly import *
+from .types.fmpz_mpoly import fmpz_mpoly_ctx, fmpz_mpoly
 from .types.fmpz_mod import *
 from .types.fmpz_mod_poly import *
 from .types.fmpz_mod_mat import fmpz_mod_mat
 
-from .types.fmpq_mpoly import *
+from .types.fmpq_mpoly import fmpq_mpoly_ctx, fmpq_mpoly
 from .types.fmpz_mpoly_q import *
 
 from .types.arf import *
