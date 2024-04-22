@@ -2743,19 +2743,19 @@ def test_mpolys():
         assert raises(lambda: p[-1], IndexError)
         assert raises(lambda: p[4], IndexError)
 
-        # assert p[(2, 2)] == 4
-        # assert p[(0, 0)] == 1
-        # assert raises(lambda: p[(1,)], ValueError)
-        # assert raises(lambda: p[(1, "bad")], TypeError)
-        # assert raises(lambda: p["bad"], TypeError)
+        assert p[(2, 2)] == 4
+        assert p[(0, 0)] == 1
+        assert raises(lambda: p[(1,)], ValueError)
+        assert raises(lambda: p[(1, "bad")], TypeError)
+        assert raises(lambda: p["bad"], TypeError)
 
-        # p = quick_poly()
-        # p[1] = S(10)
-        # assert p == mpoly({(0, 0): 1, (0, 1): 2, (1, 0): 10, (2, 2): 4})
+        p = quick_poly()
+        p[1] = S(10)
+        assert p == mpoly({(0, 0): 1, (0, 1): 2, (1, 0): 10, (2, 2): 4})
 
-        # p = quick_poly()
-        # p[(1, 0)] = S(10)
-        # assert p == mpoly({(0, 0): 1, (0, 1): 2, (1, 0): 10, (2, 2): 4})
+        p = quick_poly()
+        p[(1, 0)] = S(10)
+        assert p == mpoly({(0, 0): 1, (0, 1): 2, (1, 0): 10, (2, 2): 4})
 
         assert raises(lambda: p.__setitem__(-1, 1), IndexError)
         assert raises(lambda: p.__setitem__(4, 1), IndexError)
