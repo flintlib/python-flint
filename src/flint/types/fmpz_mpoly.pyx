@@ -1,12 +1,8 @@
-from cpython.version cimport PY_MAJOR_VERSION
-from cpython.dict cimport PyDict_Size, PyDict_Check, PyDict_Next
+from cpython.dict cimport PyDict_Size, PyDict_Check
 from cpython.tuple cimport PyTuple_Check, PyTuple_GET_SIZE
-from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.object cimport Py_EQ, Py_NE
 from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear, fmpz_is_zero
-from flint.flintlib.fmpq_mpoly cimport fmpq_mpoly_t, fmpq_mpoly_add_fmpq, fmpq_mpoly_sub_fmpq, fmpq_mpoly_scalar_mul_fmpq
 from flint.flintlib.flint cimport *
-from flint.flintlib.fmpq cimport fmpq_numref, fmpq_denref
-from flint.flintlib.fmpz_mpoly_q cimport  fmpz_mpoly_q_div_fmpz
 
 from flint.utils.conversion cimport str_from_chars
 from flint.utils.typecheck cimport typecheck
@@ -14,9 +10,7 @@ from flint.flint_base.flint_base cimport flint_mpoly
 from flint.flint_base.flint_base cimport flint_mpoly_context
 from flint.types.fmpz cimport any_as_fmpz
 from flint.types.fmpz cimport fmpz, fmpz_set_any_ref
-from flint.types.fmpq cimport any_as_fmpq, fmpq_set_any_ref
 from flint.types.fmpq_mpoly cimport fmpq_mpoly
-from flint.types.fmpz_mpoly_q cimport fmpz_mpoly_q
 
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
@@ -426,9 +420,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def __add__(self, other):
         cdef fmpz_mpoly res
-        cdef fmpq_mpoly qres
         cdef fmpz_t z_other
-        cdef fmpq_t q_other
         cdef int xtype
         if typecheck(other, fmpz_mpoly):
             if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
@@ -442,18 +434,11 @@ cdef class fmpz_mpoly(flint_mpoly):
                 res = create_fmpz_mpoly(self.ctx)
                 fmpz_mpoly_add_fmpz(res.val, (<fmpz_mpoly>self).val, z_other, res.ctx.val)
                 return res
-            xtype = fmpq_set_any_ref(q_other, other)
-            if xtype != FMPZ_UNKNOWN:
-                qres = fmpq_mpoly(self)
-                fmpq_mpoly_add_fmpq(qres.val, qres.val, q_other, qres.ctx.val)
-                return qres
         return NotImplemented
 
     def __radd__(self, other):
         cdef fmpz_mpoly res
-        cdef fmpq_mpoly qres
         cdef fmpz_t z_other
-        cdef fmpq_t q_other
         cdef int xtype
 
         xtype = fmpz_set_any_ref(z_other, other)
@@ -461,11 +446,6 @@ cdef class fmpz_mpoly(flint_mpoly):
             res = create_fmpz_mpoly(self.ctx)
             fmpz_mpoly_add_fmpz(res.val, (<fmpz_mpoly>self).val, z_other, res.ctx.val)
             return res
-        xtype = fmpq_set_any_ref(q_other, other)
-        if xtype != FMPZ_UNKNOWN:
-            qres = fmpq_mpoly(self)
-            fmpq_mpoly_add_fmpq(qres.val, qres.val, q_other, qres.ctx.val)
-            return qres
         return NotImplemented
 
     def __iadd__(self, other):
@@ -483,9 +463,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def __sub__(self, other):
         cdef fmpz_mpoly res
-        cdef fmpq_mpoly qres
         cdef fmpz_t z_other
-        cdef fmpq_t q_other
         cdef int xtype
         if typecheck(other, fmpz_mpoly):
             if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
@@ -499,18 +477,11 @@ cdef class fmpz_mpoly(flint_mpoly):
                 res = create_fmpz_mpoly(self.ctx)
                 fmpz_mpoly_sub_fmpz(res.val, (<fmpz_mpoly>self).val, z_other, res.ctx.val)
                 return res
-            xtype = fmpq_set_any_ref(q_other, other)
-            if xtype != FMPZ_UNKNOWN:
-                qres = fmpq_mpoly(self)
-                fmpq_mpoly_sub_fmpq(qres.val, qres.val, q_other, qres.ctx.val)
-                return qres
         return NotImplemented
 
     def __rsub__(self, other):
         cdef fmpz_mpoly res
-        cdef fmpq_mpoly qres
         cdef fmpz_t z_other
-        cdef fmpq_t q_other
         cdef int xtype
 
         xtype = fmpz_set_any_ref(z_other, other)
@@ -518,11 +489,6 @@ cdef class fmpz_mpoly(flint_mpoly):
             res = create_fmpz_mpoly(self.ctx)
             fmpz_mpoly_sub_fmpz(res.val, (<fmpz_mpoly>self).val, z_other, res.ctx.val)
             return -res
-        xtype = fmpq_set_any_ref(q_other, other)
-        if xtype != FMPZ_UNKNOWN:
-            qres = fmpq_mpoly(self)
-            fmpq_mpoly_sub_fmpq(qres.val, qres.val, q_other, qres.ctx.val)
-            return -qres
         return NotImplemented
 
     def __isub__(self, other):
@@ -540,9 +506,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def __mul__(self, other):
         cdef fmpz_mpoly res
-        cdef fmpq_mpoly qres
         cdef fmpz_t z_other
-        cdef fmpq_t q_other
         cdef int xtype
 
         if typecheck(other, fmpz_mpoly):
@@ -557,18 +521,11 @@ cdef class fmpz_mpoly(flint_mpoly):
                 res = create_fmpz_mpoly(self.ctx)
                 fmpz_mpoly_scalar_mul_fmpz(res.val, (<fmpz_mpoly>self).val, z_other, res.ctx.val)
                 return res
-            xtype = fmpq_set_any_ref(q_other, other)
-            if xtype != FMPZ_UNKNOWN:
-                qres = fmpq_mpoly(self)
-                fmpq_mpoly_scalar_mul_fmpq(qres.val, qres.val, q_other, qres.ctx.val)
-                return qres
         return NotImplemented
 
     def __rmul__(self, other):
         cdef fmpz_mpoly res
-        cdef fmpq_mpoly qres
         cdef fmpz_t z_other
-        cdef fmpq_t q_other
         cdef int xtype
 
         xtype = fmpz_set_any_ref(z_other, other)
@@ -576,11 +533,6 @@ cdef class fmpz_mpoly(flint_mpoly):
             res = create_fmpz_mpoly(self.ctx)
             fmpz_mpoly_scalar_mul_fmpz(res.val, (<fmpz_mpoly>self).val, z_other, res.ctx.val)
             return res
-        xtype = fmpq_set_any_ref(q_other, other)
-        if xtype != FMPZ_UNKNOWN:
-            qres = fmpq_mpoly(self)
-            fmpq_mpoly_scalar_mul_fmpq(qres.val, qres.val, q_other, qres.ctx.val)
-            return qres
         return NotImplemented
 
     def __imul__(self, other):
@@ -594,9 +546,6 @@ cdef class fmpz_mpoly(flint_mpoly):
             if other is not NotImplemented:
                 fmpz_mpoly_scalar_mul_fmpz(self.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, self.ctx.val)
                 return self
-            other = any_as_fmpq(other)
-            if other is not NotImplemented:
-                return fmpq_mpoly(self) * other
         return NotImplemented
 
     def __pow__(self, other, modulus):
@@ -685,7 +634,6 @@ cdef class fmpz_mpoly(flint_mpoly):
     def __truediv__(self, other):
         cdef:
             fmpz_mpoly res
-            int xtype
 
         if typecheck(other, fmpz_mpoly):
             if not other:
