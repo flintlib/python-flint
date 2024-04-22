@@ -299,7 +299,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def __getitem__(self, x):
         cdef:
-            fmpz_struct ** tmp
+            fmpz_struct ** tmp = NULL
             slong nvars = self.ctx.nvars()
 
         if isinstance(x, int):
@@ -328,7 +328,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def __setitem__(self, x, y):
         cdef:
-            fmpz_struct ** tmp
+            fmpz_struct ** tmp = NULL
             slong nvars = self.ctx.nvars()
 
         coeff = any_as_fmpz(y)
@@ -971,7 +971,7 @@ cdef class fmpz_mpoly(flint_mpoly):
     def derivative(self, var):
         cdef:
             fmpz_mpoly res
-            slong i
+            slong i = 0
 
         if isinstance(var, str):
             vars = {x: i for i, x in enumerate(self.ctx.names())}
@@ -995,7 +995,7 @@ cdef class fmpz_mpoly(flint_mpoly):
         cdef:
             fmpz_mpoly res
             fmpz scale
-            slong i
+            slong i = 0
 
         if isinstance(var, str):
             vars = {x: i for i, x in enumerate(self.ctx.names())}
