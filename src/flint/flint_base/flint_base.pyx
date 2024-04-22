@@ -134,9 +134,11 @@ cdef class flint_mpoly_context(flint_elem):
     def __cinit__(self):
         self._init = False
 
-    def __init__(self, long nvars, names):
-        assert nvars >= 1
-        assert len(names) == nvars
+    def __init__(self, int nvars, names):
+        if nvars < 0:
+            raise ValueError("cannot have a negative amount of variables")
+        elif len(names) != nvars:
+            raise ValueError("number of variables must match lens of variable names")
         self.py_names = tuple(bytes(name, 'utf-8') if not isinstance(name, bytes) else name for name in names)
         self.c_names = <char**>libc.stdlib.malloc(nvars * sizeof(char *))
         self._init = True
@@ -155,7 +157,8 @@ cdef class flint_mpoly_context(flint_elem):
         return f"{self.__class__.__name__}({self.nvars()}, '{self.ordering()}', {self.names()})"
 
     def name(self, long i):
-        assert i >= 0 and i < len(self.py_names)
+        if not 0 <= i < len(self.py_names):
+            raise IndexError("variable name index out of range")
         return self.py_names[i].decode('utf-8')
 
     def names(self):
