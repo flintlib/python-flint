@@ -120,10 +120,13 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         """
         if self.val.minfo.ord == ordering_t.ORD_LEX:
             return "lex"
-        if self.val.minfo.ord == ordering_t.ORD_DEGLEX:
+        elif self.val.minfo.ord == ordering_t.ORD_DEGLEX:
             return "deglex"
-        if self.val.minfo.ord == ordering_t.ORD_DEGREVLEX:
+        elif self.val.minfo.ord == ordering_t.ORD_DEGREVLEX:
             return "degrevlex"
+        else:
+            # This should be unreachable
+            raise ValueError("unknown ordering")
 
     def gen(self, slong i):
         """
