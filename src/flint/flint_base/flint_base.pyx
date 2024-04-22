@@ -178,8 +178,8 @@ cdef class flint_mpoly_context(flint_elem):
 
     @classmethod
     def get_context(cls, slong nvars=1, ordering: str = "lex", names: Optional[str] = "x", nametup: Optional[tuple] = None):
-        if nvars <= 0:
-            nvars = 1
+        if nvars < 0:
+            raise ValueError("cannot have a negative amount of variables")
 
         if nametup is None and names is not None:
             key = cls.create_cache_key(nvars, ordering, names)

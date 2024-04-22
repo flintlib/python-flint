@@ -980,6 +980,8 @@ cdef class fmpz_mpoly(flint_mpoly):
             else:
                 i = vars[var]
         elif isinstance(var, int):
+            if not 0 <= i < self.ctx.nvars():
+                raise IndexError("generator index out of range")
             i = <slong>var
         else:
             raise TypeError("invalid variable type")
@@ -1002,6 +1004,8 @@ cdef class fmpz_mpoly(flint_mpoly):
             else:
                 i = vars[var]
         elif isinstance(var, int):
+            if not 0 <= i < self.ctx.nvars():
+                raise IndexError("generator index out of range")
             i = <slong>var
         else:
             raise TypeError("invalid variable type")

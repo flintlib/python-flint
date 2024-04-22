@@ -2653,7 +2653,9 @@ def test_mpolys():
         ctx = C.get_context(nvars=2)
 
         assert raises(lambda: C.get_context(nvars=2, ordering="bad"), ValueError)
-        assert raises(lambda: ctx.constant("bad"), ValueError)
+        assert raises(lambda: C.get_context(nvars=-1), ValueError)
+        assert raises(lambda: C(-1, "lex", []), ValueError)
+        assert raises(lambda: ctx.constant("bad"), TypeError)
         assert raises(lambda: ctx.from_dict("bad"), ValueError)
         assert raises(lambda: ctx.from_dict({(0, 0): "bad"}), TypeError)
         assert raises(lambda: ctx.from_dict({(0, "bad"): 1}), TypeError)
