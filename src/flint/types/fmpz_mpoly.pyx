@@ -308,11 +308,11 @@ cdef class fmpz_mpoly(flint_mpoly):
             res = fmpz()
             try:
                 tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
+                exp_vec = tuple(any_as_fmpz(exp) for exp in x)
                 for i in range(nvars):
-                    exp = any_as_fmpz(x[i])
-                    if exp is NotImplemented:
+                    if exp_vec[i] is NotImplemented:
                         raise TypeError("exponent not coercible to fmpz")
-                    tmp[i] = &((<fmpz>exp).val[0])
+                    tmp[i] = &((<fmpz>exp_vec[i]).val[0])
                 fmpz_mpoly_get_coeff_fmpz_fmpz((<fmpz>res).val, self.val, tmp, self.ctx.val)
                 return res
             finally:
@@ -339,11 +339,11 @@ cdef class fmpz_mpoly(flint_mpoly):
 
             try:
                 tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
+                exp_vec = tuple(any_as_fmpz(exp) for exp in x)
                 for i in range(nvars):
-                    exp = any_as_fmpz(x[i])
-                    if exp is NotImplemented:
+                    if exp_vec[i] is NotImplemented:
                         raise TypeError("exponent not coercible to fmpz")
-                    tmp[i] = &((<fmpz>exp).val[0])
+                    tmp[i] = &((<fmpz>exp_vec[i]).val[0])
                 fmpz_mpoly_set_coeff_fmpz_fmpz(self.val, (<fmpz>coeff).val, tmp, self.ctx.val)
             finally:
                 libc.stdlib.free(tmp)
