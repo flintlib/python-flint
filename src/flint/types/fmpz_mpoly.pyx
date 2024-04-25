@@ -175,7 +175,7 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         fmpz_init(coefficient)
         exponents = <fmpz_struct *> libc.stdlib.calloc(nvars, sizeof(fmpz_struct))
         if exponents == NULL:
-            raise MemoryError()
+            raise MemoryError("malloc returned a null pointer")
         for i in range(nvars):
             fmpz_init(exponents + i)
         fmpz_init(coefficient)
@@ -308,6 +308,8 @@ cdef class fmpz_mpoly(flint_mpoly):
             res = fmpz()
             try:
                 tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
+                if tmp is NULL:
+                    raise MemoryError("malloc returned a null pointer")
                 exp_vec = tuple(any_as_fmpz(exp) for exp in x)
                 for i in range(nvars):
                     if exp_vec[i] is NotImplemented:
@@ -339,6 +341,8 @@ cdef class fmpz_mpoly(flint_mpoly):
 
             try:
                 tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
+                if tmp is NULL:
+                    raise MemoryError("malloc returned a null pointer")
                 exp_vec = tuple(any_as_fmpz(exp) for exp in x)
                 for i in range(nvars):
                     if exp_vec[i] is NotImplemented:
@@ -367,6 +371,8 @@ cdef class fmpz_mpoly(flint_mpoly):
         nvars = self.ctx.nvars()
         res = tuple(fmpz() for j in range(nvars))
         tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
+        if tmp is NULL:
+            raise MemoryError("malloc returned a null pointer")
         try:
             for j in range(nvars):
                 tmp[j] = &((<fmpz> (res[j])).val[0])
@@ -382,6 +388,8 @@ cdef class fmpz_mpoly(flint_mpoly):
 
         res = tuple(fmpz() for _ in range(nvars))
         tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
+        if tmp is NULL:
+            raise MemoryError("malloc returned a null pointer")
 
         for i in range(nvars):
             tmp[i] = &((<fmpz> res[i]).val[0])
@@ -749,6 +757,8 @@ cdef class fmpz_mpoly(flint_mpoly):
             # Normal evaluation
             try:
                 V = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
+                if V is NULL:
+                    raise MemoryError("malloc returned a null pointer")
                 for i in range(nvars):
                     V[i] = &((<fmpz> args_fmpz[i]).val[0])
                 vres = fmpz.__new__(fmpz)
@@ -777,6 +787,8 @@ cdef class fmpz_mpoly(flint_mpoly):
                 raise ValueError("all arguments must share the same context")
 
             C = <fmpz_mpoly_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_mpoly_struct *))
+            if C is NULL:
+                raise MemoryError("malloc returned a null pointer")
             try:
                 for i in range(nvars):
                     C[i] = &((<fmpz_mpoly> args[i]).val[0])
@@ -810,6 +822,8 @@ cdef class fmpz_mpoly(flint_mpoly):
                     polys[i] = res
 
             C = <fmpz_mpoly_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_mpoly_struct *))
+            if C is NULL:
+                raise MemoryError("malloc returned a null pointer")
             try:
                 for i in range(len(polys)):
                     C[i] = &((<fmpz_mpoly> polys[i]).val[0])
@@ -905,6 +919,8 @@ cdef class fmpz_mpoly(flint_mpoly):
             return self
 
         C = <slong *> libc.stdlib.malloc(self.ctx.val.minfo.nvars * sizeof(slong *))
+        if C is NULL:
+            raise MemoryError("malloc returned a null pointer")
         res = create_fmpz_mpoly(self.ctx)
 
         vars = {x: i for i, x in enumerate(ctx.py_names)}
