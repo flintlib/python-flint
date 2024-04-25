@@ -39,6 +39,8 @@ exts = [
   'dirichlet',
 
   'fmpz_mpoly',
+  'fmpq_mpoly',
+  'fmpz_mpoly_q',
 ]
 
 py.install_sources(
