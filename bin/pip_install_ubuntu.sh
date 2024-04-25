@@ -35,7 +35,7 @@ PYTHON_FLINT=$1
 
 # First install their dependencies and build dependencies
 sudo apt-get update
-sudo apt-get install libgmp-dev libmpfr-dev xz-utils
+sudo apt-get install libgmp-dev libmpfr-dev xz-utils ninja-build
 
 if [ -z "$FLINT_GIT" ]; then
     # Install from release tarball

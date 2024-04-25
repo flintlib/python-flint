@@ -10,7 +10,7 @@ import traceback
 import argparse
 
 import flint
-from flint.test.test import all_tests
+from flint.test.test_all import all_tests
 
 
 def run_tests(verbose=None):
