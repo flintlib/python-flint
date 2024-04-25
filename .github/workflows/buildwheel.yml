@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-12]
+        os: [ubuntu-20.04, windows-2019, macos-13]
 
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +31,16 @@ jobs:
           path-type: inherit
         if: ${{ matrix.os == 'windows-2019' }}
 
+        # Install pkgconfig on Windows from choco rather than from msys and
+        # avoid using the Strawberry one.
+      - run: choco install -y --stoponfirstfailure --checksum 6004DF17818F5A6DBF19CB335CC92702 pkgconfiglite
+        if: ${{ matrix.os == 'windows-2019' }}
+
+        # We have to set this here rather than in the cibuildwheel config
+        # This is probably something to do with \ vs / in paths...
+      - run: echo "PKG_CONFIG_PATH=${{ github.workspace }}/.local/lib/pkgconfig" >> $env:GITHUB_ENV
+        if: ${{ matrix.os == 'windows-2019' }}
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
@@ -45,7 +55,7 @@ jobs:
 
   build_sdist:
     name: Build sdist
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +64,11 @@ jobs:
         with:
           python-version: '3.12'
 
+      - run: sudo apt-get update
+      - run: sudo apt-get install libgmp-dev libmpfr-dev xz-utils ninja-build
+      - run: curl -O -L https://www.flintlib.org/flint-3.1.0.tar.gz
+      - run: tar -xzf flint-3.1.0.tar.gz
+      - run: cd flint-3.1.0 && ./configure --disable-static && make -j4 && sudo make install
       - run: pip install build
       - run: python -m build --sdist
 
@@ -91,7 +106,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-12]
+        os: [ubuntu-20.04, windows-2019, macos-13]
         python-version: ['3.9', '3.10', '3.11', '3.12']
 
     steps:
