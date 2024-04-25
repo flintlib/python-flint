@@ -2660,66 +2660,66 @@ def test_mpolys():
         assert raises(lambda: ctx.from_dict({(0, 0): "bad"}), TypeError)
         assert raises(lambda: ctx.from_dict({(0, "bad"): 1}), TypeError)
         assert raises(lambda: ctx.from_dict({(0,): 1}), TypeError)
-        print("mpoly test section: 1", flush=True)
+
         assert raises(lambda: P(val=C.get_context(nvars=1).constant(0), ctx=ctx), ValueError)
         assert raises(lambda: P(val={}, ctx=None), ValueError)
         assert raises(lambda: P(val={"bad": 1}, ctx=None), ValueError)
         assert raises(lambda: P(val="1", ctx=None), ValueError)
-        print("mpoly test section: 2", flush=True)
+
         assert P(val={(0, 0): 1}, ctx=ctx) == ctx.from_dict({(0, 0): 1})
         assert P(ctx=ctx).context() == ctx
         assert P(1, ctx=ctx).is_one()
-        print("mpoly test section: 3", flush=True)
+
         def mpoly(x):
             return ctx.from_dict(x)
-        print("mpoly test section: 4", flush=True)
+
         def quick_poly():
             return mpoly({(0, 0): 1, (0, 1): 2, (1, 0): 3, (2, 2): 4})
-        print("mpoly test section: 5", flush=True)
+
         assert ctx.nvars() == 2
         assert ctx.ordering() == "lex"
-        print("mpoly test section: 6", flush=True)
+
         ctx1 = C.get_context(4)
         assert [ctx1.name(i) for i in range(4)] == ['x0', 'x1', 'x2', 'x3']
         for order in ['lex', 'deglex', 'degrevlex']:
             ctx1 = C.get_context(4, order)
             assert ctx1.ordering() == order
-        print("mpoly test section: 7", flush=True)
+
         assert ctx.constant(1) == mpoly({(0, 0): 1}) == P(1, ctx=ctx)
-        print("mpoly test section: 8", flush=True)
+
         assert raises(lambda: P([None]), TypeError)
         assert raises(lambda: P(object()), TypeError), f"{P(object()) = }"
         assert raises(lambda: P(None), TypeError)
         assert raises(lambda: P(None, None), TypeError)
         assert raises(lambda: P([1,2], None), TypeError)
         assert raises(lambda: P(1, None), ValueError)
-        print("mpoly test section: 9", flush=True)
+
         assert len(P(ctx=ctx)) == len(mpoly({(0, 0): 0})) == 0
         assert len(P(1, ctx=ctx)) == len(mpoly({(0, 0): 1})) == 1
         assert len(mpoly({(0, 0): 1, (0, 1): 1})) == 2
         assert len(mpoly({(0, 0): 1, (0, 1): 1, (1, 0): 1})) == 3
-        print("mpoly test section: 10", flush=True)
+
         # degree is -1 when 0 poly
         assert P(ctx=ctx).degrees() == mpoly({(0, 0): 0}).degrees() == {"x0": -1, "x1": -1}
         assert P(1, ctx=ctx).degrees() == mpoly({(0, 0): 1}).degrees() == {"x0": 0, "x1": 0}
         assert mpoly({(0, 0): 1, (0, 1): 1}).degrees() == {"x0": 0, "x1": 1}
         assert mpoly({(0, 0): 1, (0, 1): 1, (1, 0): 1}).degrees() == {"x0": 1, "x1": 1}
         assert mpoly({(0, 0): 1, (0, 1): 1, (1, 0): 1, (2, 2): 2}).degrees() == {"x0": 2, "x1": 2}
-        print("mpoly test section: 11", flush=True)
+
         assert (P(1, ctx=ctx) == P(1, ctx=ctx)) is True
         assert (P(1, ctx=ctx) != P(1, ctx=ctx)) is False
         assert (P(1, ctx=ctx) == P(2, ctx=ctx)) is False
         assert (P(1, ctx=ctx) != P(2, ctx=ctx)) is True
-        print("mpoly test section: 12", flush=True)
+
         ctx1 = C.get_context(1)
         assert (P(1, ctx=ctx) == P(1, ctx=ctx1)) is False
         assert (P(1, ctx=ctx) != P(1, ctx=ctx1)) is True
-        print("mpoly test section: 13", flush=True)
+
         assert (P(1, ctx=ctx) == None) is False
         assert (P(1, ctx=ctx) != None) is True
         assert (None == P(1, ctx=ctx)) is False
         assert (None != P(1, ctx=ctx)) is True
-        print("mpoly test section: 14", flush=True)
+
         assert raises(lambda: P(ctx=ctx) < P(ctx=ctx), TypeError)
         assert raises(lambda: P(ctx=ctx) <= P(ctx=ctx), TypeError)
         assert raises(lambda: P(ctx=ctx) > P(ctx=ctx), TypeError)
@@ -2732,54 +2732,54 @@ def test_mpolys():
         assert raises(lambda: None <= P(ctx=ctx), TypeError)
         assert raises(lambda: None > P(ctx=ctx), TypeError)
         assert raises(lambda: None >= P(ctx=ctx), TypeError)
-        print("mpoly test section: 15", flush=True)
+
         p = quick_poly()
         assert p.coefficient(2) == S(2)
         assert p.coefficient(-1) == S(0)
         assert p.coefficient(10) == S(0)
-        print("mpoly test section: 16", flush=True)
+
         assert p[0] == mpoly({(2, 2): 4})
         assert p[3] == mpoly({(0, 0): 1})
         assert raises(lambda: p[-1], IndexError)
         assert raises(lambda: p[4], IndexError)
-        print("mpoly test section: 17", flush=True)
+
         assert p[(2, 2)] == 4
         assert p[(0, 0)] == 1
         assert raises(lambda: p[(1,)], ValueError)
         assert raises(lambda: p[(1, "bad")], TypeError)
         assert raises(lambda: p["bad"], TypeError)
-        print("mpoly test section: 18", flush=True)
+
         p = quick_poly()
         p[1] = S(10)
         assert p == mpoly({(0, 0): 1, (0, 1): 2, (1, 0): 10, (2, 2): 4})
-        print("mpoly test section: 19", flush=True)
+
         p = quick_poly()
         p[(1, 0)] = S(10)
         assert p == mpoly({(0, 0): 1, (0, 1): 2, (1, 0): 10, (2, 2): 4})
-        print("mpoly test section: 20", flush=True)
+
         assert raises(lambda: p.__setitem__(-1, 1), IndexError)
         assert raises(lambda: p.__setitem__(4, 1), IndexError)
-        print("mpoly test section: 21", flush=True)
+
         assert raises(lambda: p.__setitem__((1,), 1), ValueError)
         assert raises(lambda: p.__setitem__((1, "bad"), 1), TypeError)
         assert raises(lambda: p.__setitem__("bad", 1), TypeError)
-        print("mpoly test section: 22", flush=True)
+
         assert raises(lambda: p.__setitem__(2, None), TypeError)
         assert raises(lambda: p.__setitem__(-1, 1), IndexError)
-        print("mpoly test section: 23", flush=True)
+
         assert repr(P(ctx=ctx)) == '0'
         assert repr(P(1, ctx=ctx)) == '1'
         assert repr(quick_poly()) == '4*x0^2*x1^2 + 3*x0 + 2*x1 + 1'
-        print("mpoly test section: 24", flush=True)
+
         assert p.exponent_tuple(0) == (2, 2)
         assert p.exponent_tuple(3) == (0, 0)
         assert raises(lambda: p.exponent_tuple(-1), IndexError)
         assert raises(lambda: p.exponent_tuple(4), IndexError)
-        print("mpoly test section: 25", flush=True)
+
         assert p.total_degree() == 4
         assert P(ctx=ctx).total_degree() == -1
         assert P(1, ctx=ctx).total_degree() == 0
-        print("mpoly test section: 26", flush=True)
+
         p = quick_poly()
         assert p(0, 0) == p(0, S(0)) == p(S(0), S(0)) == p(x1=S(0), x0=S(0)) == S(1) == 1
         assert p(1, 1) == p(x1=S(1), x0=S(1)) == S(10) == 10
@@ -2792,42 +2792,42 @@ def test_mpolys():
             (0, 0): 4
         })
         assert raises(lambda: p(x0=None), TypeError)
-        print("mpoly test section: 27", flush=True)
+
         assert bool(P(ctx=ctx)) is False
         assert bool(P(1, ctx=ctx)) is True
-        print("mpoly test section: 28", flush=True)
+
         assert +quick_poly() \
             == quick_poly()
         assert -quick_poly() \
             == mpoly({(0, 0): -1, (0, 1): -2, (1, 0): -3, (2, 2): -4})
-        print("mpoly test section: 29", flush=True)
+
         assert quick_poly() \
             + mpoly({(0, 0): 5, (0, 1): 6, (1, 0): 7, (2, 2): 8}) \
             == mpoly({(0, 0): 6, (0, 1): 8, (1, 0): 10, (2, 2): 12})
-        print("mpoly test section: 30", flush=True)
+
         for T in [int, S, flint.fmpz]:
             assert quick_poly() + T(1) \
                 == mpoly({(0, 0): 2, (0, 1): 2, (1, 0): 3, (2, 2): 4})
             assert T(1) + quick_poly() \
                 == mpoly({(0, 0): 2, (0, 1): 2, (1, 0): 3, (2, 2): 4})
-        print("mpoly test section: 31", flush=True)
+
         assert raises(lambda: mpoly({(0, 0): 2, (0, 1): 2, (1, 0): 3, (2, 2): 4}) + None, TypeError)
         assert raises(lambda: None + mpoly({(0, 0): 2, (0, 1): 2, (1, 0): 3, (2, 2): 4}), TypeError)
         assert raises(lambda: quick_poly() + P(ctx=ctx1), IncompatibleContextError)
         assert raises(lambda: quick_poly().__iadd__(P(ctx=ctx1)), IncompatibleContextError)
-        print("mpoly test section: 32", flush=True)
+
         assert quick_poly() - mpoly({(0, 0): 5, (0, 1): 6, (1, 0): 7, (2, 2): 8}) \
             == mpoly({(0, 0): -4, (0, 1): -4, (1, 0): -4, (2, 2): -4})
-        print("mpoly test section: 33", flush=True)
+
         for T in [int, S, flint.fmpz]:
             assert quick_poly() - T(1) == mpoly({(0, 1): 2, (1, 0): 3, (2, 2): 4})
             assert T(1) - quick_poly() == mpoly({(0, 1): -2, (1, 0): -3, (2, 2): -4})
-        print("mpoly test section: 34", flush=True)
+
         assert raises(lambda: quick_poly() - None, TypeError)
         assert raises(lambda: None - quick_poly(), TypeError)
         assert raises(lambda: quick_poly() - P(ctx=ctx1), IncompatibleContextError)
         assert raises(lambda: quick_poly().__isub__(P(ctx=ctx1)), IncompatibleContextError)
-        print("mpoly test section: 35", flush=True)
+
         assert quick_poly() * mpoly({(1, 0): 5, (0, 1): 6}) \
             == mpoly({
                 (3, 2): 20,
@@ -2838,26 +2838,26 @@ def test_mpolys():
                 (0, 2): 12,
                 (0, 1): 6
             })
-        print("mpoly test section: 36", flush=True)
+
         for T in [int, S, flint.fmpz]:
             assert quick_poly() * T(2) == mpoly({(0, 0): 2, (0, 1): 4, (1, 0): 6, (2, 2): 8})
             assert T(2) * quick_poly() == mpoly({(0, 0): 2, (0, 1): 4, (1, 0): 6, (2, 2): 8})
-        print("mpoly test section: 37", flush=True)
+
         assert raises(lambda: quick_poly() * None, TypeError)
         assert raises(lambda: None * quick_poly(), TypeError)
         assert raises(lambda: quick_poly() * P(ctx=ctx1), IncompatibleContextError)
         assert raises(lambda: quick_poly().__imul__(P(ctx=ctx1)), IncompatibleContextError)
-        print("mpoly test section: 38", flush=True)
+
         assert quick_poly() // mpoly({(1, 1): 1}) == mpoly({(1, 1): 4})
         assert quick_poly() % mpoly({(1, 1): 1}) \
             == mpoly({(1, 0): 3, (0, 1): 2, (0, 0): 1})
         assert divmod(quick_poly(), mpoly({(1, 1): 1})) \
             == (mpoly({(1, 1): 4}), mpoly({(1, 0): 3, (0, 1): 2, (0, 0): 1}))
-        print("mpoly test section: 39", flush=True)
+
         assert quick_poly() // 1 == quick_poly()
         assert quick_poly() % 1 == P(ctx=ctx)
         assert divmod(quick_poly(), 1) == (quick_poly(), P(ctx=ctx))
-        print("mpoly test section: 40", flush=True)
+
         # TODO FIXME
         # if is_field:
         #     assert P([1, 1]) // 2 == P([S(1)/2, S(1)/2])
@@ -2865,31 +2865,31 @@ def test_mpolys():
         # else:
         #     assert P([1, 1]) // 2 == P([0, 0])
         #     assert P([1, 1]) % 2 == P([1, 1])
-        print("mpoly test section: 41", flush=True)
+
         assert 1 // quick_poly() == P(ctx=ctx)
         assert 1 % quick_poly() == P(1, ctx=ctx)
         assert divmod(1, quick_poly()) == (P(ctx=ctx), P(1, ctx=ctx))
-        print("mpoly test section: 42", flush=True)
+
         assert raises(lambda: quick_poly() // None, TypeError)
         assert raises(lambda: quick_poly() % None, TypeError)
         assert raises(lambda: divmod(quick_poly(), None), TypeError)
-        print("mpoly test section: 43", flush=True)
+
         assert raises(lambda: None // quick_poly(), TypeError)
         assert raises(lambda: None % quick_poly(), TypeError)
         assert raises(lambda: divmod(None, quick_poly()), TypeError)
-        print("mpoly test section: 44", flush=True)
+
         assert raises(lambda: quick_poly() // 0, ZeroDivisionError)
         assert raises(lambda: quick_poly() % 0, ZeroDivisionError)
         assert raises(lambda: divmod(quick_poly(), 0), ZeroDivisionError)
-        print("mpoly test section: 45", flush=True)
+
         assert raises(lambda: quick_poly() // P(ctx=ctx), ZeroDivisionError)
         assert raises(lambda: quick_poly() % P(ctx=ctx), ZeroDivisionError)
         assert raises(lambda: divmod(quick_poly(), P(ctx=ctx)), ZeroDivisionError)
-        print("mpoly test section: 46", flush=True)
+
         assert raises(lambda: quick_poly() // P(1, ctx=ctx1), IncompatibleContextError)
         assert raises(lambda: quick_poly() % P(1, ctx=ctx1), IncompatibleContextError)
         assert raises(lambda: divmod(quick_poly(), P(1, ctx=ctx1)), IncompatibleContextError)
-        print("mpoly test section: 47", flush=True)
+
 
         # TODO FIXME
         # # Exact/field scalar division
@@ -2900,7 +2900,7 @@ def test_mpolys():
         #     assert P([2, 2]) / 2 == P([1, 1])
         #     assert raises(lambda: P([1, 2]) / 2, DomainError)
         # assert raises(lambda: P([1, 2]) / 0, ZeroDivisionError)
-        print("mpoly test section: 48", flush=True)
+
         f = mpoly({(1, 1): 4, (0, 0): 1})
         g = mpoly({(0, 1): 2, (1, 0): 2})
         assert f \
@@ -2909,7 +2909,7 @@ def test_mpolys():
             == mpoly({(1, 1): 8, (0, 0): 2})
         assert raises(lambda: 1 / quick_poly(), DomainError)
         assert raises(lambda: quick_poly() / P(2, ctx=ctx), DomainError)
-        print("mpoly test section: 49", flush=True)
+
         assert quick_poly() ** 0 == P(1, ctx=ctx)
         assert quick_poly() ** 1 == quick_poly()
         assert quick_poly() ** 2 == mpoly({
@@ -2926,14 +2926,14 @@ def test_mpolys():
         })
         assert raises(lambda: P(ctx=ctx) ** -1, ValueError)
         assert raises(lambda: P(ctx=ctx) ** None, TypeError)
-        print("mpoly test section: 50", flush=True)
+
         # # XXX: Not sure what this should do in general:
         assert raises(lambda: pow(P(1, ctx=ctx), 2, 3), NotImplementedError)
-        print("mpoly test section: 51", flush=True)
+
         assert (f * g).gcd(f) == f
         assert raises(lambda: quick_poly().gcd(None), TypeError)
         assert raises(lambda: quick_poly().gcd(P(ctx=ctx1)), IncompatibleContextError)
-        print("mpoly test section: 52", flush=True)
+
         # TODO FIXME
         # if is_field:
         #     p1 = P([1, 0, 1])
@@ -2941,30 +2941,30 @@ def test_mpolys():
         #     g, s, t = P([1]), P([1])/5, P([2, -1])/5
         #     assert p1.xgcd(p2) == (g, s, t)
         #     assert raises(lambda: p1.xgcd(None), TypeError)
-        print("mpoly test section: 53", flush=True)
+
         assert (f * g).factor() == (S(2), [(mpoly({(0, 1): 1, (1, 0): 1}), 1), (f, 1)])
-        print("mpoly test section: 54", flush=True)
+
         assert (f * f).sqrt() == f
         assert (f * f).sqrt(assume_perfect_square=True) == f
         assert raises(lambda: quick_poly().sqrt(), ValueError)
-        print("mpoly test section: 55", flush=True)
+
         # TODO FIXME
         # if P == flint.fmpq_mpoly:
         #     assert raises(lambda: P([1, 2, 1], 3).sqrt(), ValueError)
         #     assert P([1, 2, 1], 4).sqrt() == P([1, 1], 2)
-        print("mpoly test section: 56", flush=True)
+
         # assert P(ctx=C).deflation() == (P(ctx=C), 1)
         # assert P([1, 2]).deflation() == (P([1, 2]), 1)
         # assert P([1, 0, 2]).deflation() == (P([1, 2]), 2)
-        print("mpoly test section: 57", flush=True)
+
         assert quick_poly().derivative(0) == quick_poly().derivative("x0") == mpoly({(0, 0): 3, (1, 2): 8})
         assert quick_poly().derivative(1) == quick_poly().derivative("x1") == mpoly({(0, 0): 2, (2, 1): 8})
-        print("mpoly test section: 58", flush=True)
+
         assert quick_poly().integral(0) == quick_poly().integral("x0") == \
             (6, mpoly({(3, 2): 8, (2, 0): 9, (1, 1): 12, (1, 0): 6}))
         assert quick_poly().integral(1) == quick_poly().integral("x1") == \
             (3, mpoly({(2, 3): 4, (1, 1): 9, (0, 2): 3, (0, 1): 3}))
-        print("mpoly test section: 59", flush=True)
+
         # if is_field:
         #     assert P([1, 2, 1]).integral() == P([0, 1, 1, S(1)/3])
 
