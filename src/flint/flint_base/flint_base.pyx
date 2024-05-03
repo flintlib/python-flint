@@ -139,8 +139,8 @@ cdef class flint_mpoly_context(flint_elem):
             raise ValueError("cannot have a negative amount of variables")
         elif len(names) != nvars:
             raise ValueError("number of variables must match lens of variable names")
-        self.py_names = tuple(bytes(name, 'utf-8') if not isinstance(name, bytes) else name for name in names)
-        self.c_names = <char**>libc.stdlib.malloc(nvars * sizeof(char *))
+        self.py_names = tuple(name.encode("ascii") if not isinstance(name, bytes) else name for name in names)
+        self.c_names = <const char**> libc.stdlib.malloc(nvars * sizeof(const char *))
         self._init = True
         for i in range(nvars):
             self.c_names[i] = self.py_names[i]

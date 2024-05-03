@@ -9,7 +9,7 @@ cdef class flint_poly(flint_elem):
 
 cdef class flint_mpoly_context(flint_elem):
     cdef public object py_names
-    cdef char ** c_names
+    cdef const char ** c_names
     cdef bint _init
 
 cdef class flint_mpoly(flint_elem):
