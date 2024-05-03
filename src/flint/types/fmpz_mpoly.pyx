@@ -11,6 +11,7 @@ from flint.flint_base.flint_base cimport flint_mpoly_context
 from flint.types.fmpz cimport any_as_fmpz
 from flint.types.fmpz cimport fmpz, fmpz_set_any_ref
 from flint.types.fmpq_mpoly cimport fmpq_mpoly
+from flint.types.fmpz_vec cimport fmpz_vec
 
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
@@ -305,20 +306,13 @@ cdef class fmpz_mpoly(flint_mpoly):
         elif isinstance(x, tuple):
             if len(x) != nvars:
                 raise ValueError("exponent vector provided does not match number of variables")
-            res = fmpz()
             try:
-                tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
-                if tmp is NULL:
-                    raise MemoryError("malloc returned a null pointer")
-                exp_vec = tuple(any_as_fmpz(exp) for exp in x)
-                for i in range(nvars):
-                    if exp_vec[i] is NotImplemented:
-                        raise TypeError("exponent not coercible to fmpz")
-                    tmp[i] = &((<fmpz>exp_vec[i]).val[0])
-                fmpz_mpoly_get_coeff_fmpz_fmpz((<fmpz>res).val, self.val, tmp, self.ctx.val)
-                return res
+                res = fmpz()
+                exp_vec = <fmpz_vec>fmpz_vec.from_iterable(x, double_indirect=True)
+                fmpz_mpoly_get_coeff_fmpz_fmpz((<fmpz>res).val, self.val, exp_vec.double_indirect, self.ctx.val)
             finally:
                 libc.stdlib.free(tmp)
+            return res
         else:
             raise TypeError("index is not integer or tuple")
 
@@ -340,15 +334,9 @@ cdef class fmpz_mpoly(flint_mpoly):
                 raise ValueError("exponent vector provided does not match number of variables")
 
             try:
-                tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
-                if tmp is NULL:
-                    raise MemoryError("malloc returned a null pointer")
-                exp_vec = tuple(any_as_fmpz(exp) for exp in x)
-                for i in range(nvars):
-                    if exp_vec[i] is NotImplemented:
-                        raise TypeError("exponent not coercible to fmpz")
-                    tmp[i] = &((<fmpz>exp_vec[i]).val[0])
-                fmpz_mpoly_set_coeff_fmpz_fmpz(self.val, (<fmpz>coeff).val, tmp, self.ctx.val)
+                res = fmpz()
+                exp_vec = <fmpz_vec>fmpz_vec.from_iterable(x, double_indirect=True)
+                fmpz_mpoly_set_coeff_fmpz_fmpz(self.val, (<fmpz>coeff).val, exp_vec.double_indirect, self.ctx.val)
             finally:
                 libc.stdlib.free(tmp)
         else:
@@ -364,38 +352,24 @@ cdef class fmpz_mpoly(flint_mpoly):
             return v
 
     def exponent_tuple(self, slong i):
-        cdef slong j, nvars
-        cdef fmpz_struct ** tmp
+        cdef:
+            fmpz_struct ** tmp
+            slong j, nvars = self.ctx.nvars()
+
         if i < 0 or i >= fmpz_mpoly_length(self.val, self.ctx.val):
             raise IndexError("term index out of range")
-        nvars = self.ctx.nvars()
-        res = tuple(fmpz() for j in range(nvars))
-        tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
-        if tmp is NULL:
-            raise MemoryError("malloc returned a null pointer")
-        try:
-            for j in range(nvars):
-                tmp[j] = &((<fmpz> (res[j])).val[0])
-            fmpz_mpoly_get_term_exp_fmpz(tmp, self.val, i, self.ctx.val)
-        finally:
-            libc.stdlib.free(tmp)
-        return res
+        res = fmpz_vec(nvars, double_indirect=True)
+        fmpz_mpoly_get_term_exp_fmpz(res.double_indirect, self.val, i, self.ctx.val)
+        return res.to_tuple()
 
     def degrees(self):
         cdef:
             fmpz_struct ** tmp
             slong i, nvars = self.ctx.nvars()
 
-        res = tuple(fmpz() for _ in range(nvars))
-        tmp = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
-        if tmp is NULL:
-            raise MemoryError("malloc returned a null pointer")
-
-        for i in range(nvars):
-            tmp[i] = &((<fmpz> res[i]).val[0])
-        fmpz_mpoly_degrees_fmpz(tmp, self.val, self.ctx.val)
-        libc.stdlib.free(tmp)
-        return dict(zip(self.ctx.names(), res))
+        res = fmpz_vec(nvars, double_indirect=True)
+        fmpz_mpoly_degrees_fmpz(res.double_indirect, self.val, self.ctx.val)
+        return dict(zip(self.ctx.names(), res.to_tuple()))
 
     def total_degree(self):
         cdef fmpz res = fmpz()
@@ -716,7 +690,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_mpoly res
             fmpz_mpoly res2
             fmpz_mpoly_ctx res_ctx
-            fmpz_struct ** V
+            fmpz_vec V
             fmpz vres
             fmpz_mpoly_struct ** C
             ulong *exponents
@@ -755,18 +729,11 @@ cdef class fmpz_mpoly(flint_mpoly):
 
         if args and all_fmpz:
             # Normal evaluation
-            try:
-                V = <fmpz_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_struct *))
-                if V is NULL:
-                    raise MemoryError("malloc returned a null pointer")
-                for i in range(nvars):
-                    V[i] = &((<fmpz> args_fmpz[i]).val[0])
-                vres = fmpz.__new__(fmpz)
-                if fmpz_mpoly_evaluate_all_fmpz(vres.val, self.val, V, self.ctx.val) == 0:
-                    raise ValueError("unreasonably large polynomial")
-                return vres
-            finally:
-                libc.stdlib.free(V)
+            V = fmpz_vec.from_iterable(args_fmpz, double_indirect=True)
+            vres = fmpz.__new__(fmpz)
+            if fmpz_mpoly_evaluate_all_fmpz(vres.val, self.val, V.double_indirect, self.ctx.val) == 0:
+                raise ValueError("unreasonably large polynomial")
+            return vres
         elif kwargs and all_fmpz:
             # Partial application with args in Z. We evaluate the polynomial one variable at a time
             res = create_fmpz_mpoly(self.ctx)
@@ -792,7 +759,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             try:
                 for i in range(nvars):
                     C[i] = &((<fmpz_mpoly> args[i]).val[0])
-                    res = create_fmpz_mpoly(self.ctx)
+                res = create_fmpz_mpoly(self.ctx)
                 if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C, self.ctx.val, res_ctx.val) == 0:
                     raise ValueError("unreasonably large polynomial")
                 return res

@@ -4,6 +4,7 @@ from .types.fmpz import *
 from .types.fmpz_poly import *
 from .types.fmpz_mat import *
 from .types.fmpz_series import *
+from .types.fmpz_vec import fmpz_vec
 
 from .types.fmpq import *
 from .types.fmpq_poly import *

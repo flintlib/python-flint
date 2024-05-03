@@ -9,6 +9,7 @@ exts = [
   'fmpz_poly',
   'fmpz_mat',
   'fmpz_series',
+  'fmpz_vec',
 
   'fmpq',
   'fmpq_poly',
