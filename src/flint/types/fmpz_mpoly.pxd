@@ -1,8 +1,6 @@
-from flint.flint_base.flint_base cimport flint_mpoly
-from flint.flint_base.flint_base cimport flint_mpoly_context
+from flint.flint_base.flint_base cimport flint_mpoly, flint_mpoly_context
 
-from flint.flintlib.fmpz_mpoly cimport fmpz_mpoly_ctx_t
-from flint.flintlib.fmpz_mpoly cimport fmpz_mpoly_t, fmpz_mpoly_init
+from flint.flintlib.fmpz_mpoly cimport fmpz_mpoly_ctx_t, fmpz_mpoly_vec_t, fmpz_mpoly_t, fmpz_mpoly_init, fmpz_mpoly_struct
 from flint.flintlib.flint cimport slong
 
 cdef inline init_fmpz_mpoly(fmpz_mpoly var, fmpz_mpoly_ctx ctx):
@@ -27,3 +25,8 @@ cdef class fmpz_mpoly(flint_mpoly):
     cdef fmpz_mpoly_t val
     cdef fmpz_mpoly_ctx ctx
     cdef bint _init
+
+cdef class fmpz_mpoly_vec:
+    cdef fmpz_mpoly_vec_t val
+    cdef fmpz_mpoly_ctx ctx
+    cdef fmpz_mpoly_struct **double_indirect

@@ -7,18 +7,28 @@ from flint.types.fmpz cimport fmpz, any_as_fmpz
 cimport libc.stdlib
 
 cdef class fmpz_vec:
-    def __cinit__(self, slong length, bint double_indirect=False):
-        self.val = _fmpz_vec_init(length)
-        self.length = length
+    def __cinit__(self, iterable_or_len, bint double_indirect=False):
+        if isinstance(iterable_or_len, int):
+            self.length = iterable_or_len
+        else:
+            self.length = len(iterable_or_len)
+
+        self.val = _fmpz_vec_init(self.length)
+
         if double_indirect:
-            self.double_indirect = <fmpz_struct **> libc.stdlib.malloc(length * sizeof(fmpz_struct *))
+            self.double_indirect = <fmpz_struct **> libc.stdlib.malloc(self.length * sizeof(fmpz_struct *))
             if self.double_indirect is NULL:
                 raise MemoryError("malloc returned a null pointer")
 
-            for i in range(length):
+            for i in range(self.length):
                 self.double_indirect[i] = &self.val[i]
         else:
             self.double_indirect = NULL
+
+    def __init__(self, iterable_or_len, double_indirect: bool = False):
+        if not isinstance(iterable_or_len, int):
+            for i, x in enumerate(iterable_or_len):
+                self[i] = x
 
     def __dealloc__(self):
         libc.stdlib.free(self.double_indirect)
@@ -49,6 +59,12 @@ cdef class fmpz_vec:
     def __len__(self):
         return self.length
 
+    def __str__(self):
+        return self.str()
+
+    def __repr__(self):
+        return self.repr()
+
     def str(self, *args):
         s = [None] * self.length
         for i in range(self.length):
@@ -60,21 +76,5 @@ cdef class fmpz_vec:
     def repr(self, *args):
         return f"fmpz_vec({self.str(*args)}, {self.length})"
 
-    @staticmethod
-    def from_iterable(iterable, double_indirect: bool = False):
-        length = len(iterable)
-
-        vec = fmpz_vec(length, double_indirect)
-        for i, x in enumerate(iterable):
-            x = any_as_fmpz(x)
-            if x is NotImplemented:
-                raise TypeError("argument is not coercible to fmpz")
-
-            fmpz_set(&vec.val[i], (<fmpz>x).val)
-        return vec
-
     def to_tuple(self):
-        t = tuple(fmpz.__new__(fmpz) for _ in range(self.length))
-        for i in range(self.length):
-            fmpz_init_set((<fmpz>t[i]).val, &self.val[i])
-        return t
+        return tuple(self[i] for i in range(self.length))

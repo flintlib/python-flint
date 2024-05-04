@@ -308,7 +308,7 @@ cdef class fmpz_mpoly(flint_mpoly):
                 raise ValueError("exponent vector provided does not match number of variables")
             try:
                 res = fmpz()
-                exp_vec = <fmpz_vec>fmpz_vec.from_iterable(x, double_indirect=True)
+                exp_vec = fmpz_vec(x, double_indirect=True)
                 fmpz_mpoly_get_coeff_fmpz_fmpz((<fmpz>res).val, self.val, exp_vec.double_indirect, self.ctx.val)
             finally:
                 libc.stdlib.free(tmp)
@@ -335,7 +335,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
             try:
                 res = fmpz()
-                exp_vec = <fmpz_vec>fmpz_vec.from_iterable(x, double_indirect=True)
+                exp_vec = fmpz_vec(x, double_indirect=True)
                 fmpz_mpoly_set_coeff_fmpz_fmpz(self.val, (<fmpz>coeff).val, exp_vec.double_indirect, self.ctx.val)
             finally:
                 libc.stdlib.free(tmp)
@@ -692,7 +692,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_mpoly_ctx res_ctx
             fmpz_vec V
             fmpz vres
-            fmpz_mpoly_struct ** C
+            fmpz_mpoly_vec C
             ulong *exponents
             slong i, nvars = self.ctx.nvars(), nargs = len(args)
 
@@ -729,7 +729,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
         if args and all_fmpz:
             # Normal evaluation
-            V = fmpz_vec.from_iterable(args_fmpz, double_indirect=True)
+            V = fmpz_vec(args_fmpz, double_indirect=True)
             vres = fmpz.__new__(fmpz)
             if fmpz_mpoly_evaluate_all_fmpz(vres.val, self.val, V.double_indirect, self.ctx.val) == 0:
                 raise ValueError("unreasonably large polynomial")
@@ -751,20 +751,14 @@ cdef class fmpz_mpoly(flint_mpoly):
                 raise TypeError("all arguments must be fmpz_mpolys")
             res_ctx = (<fmpz_mpoly> args[0]).ctx
             if not all((<fmpz_mpoly> args[i]).ctx is res_ctx for i in range(1, len(args))):
-                raise ValueError("all arguments must share the same context")
+                raise IncompatibleContextError("all arguments must share the same context")
 
-            C = <fmpz_mpoly_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_mpoly_struct *))
-            if C is NULL:
-                raise MemoryError("malloc returned a null pointer")
-            try:
-                for i in range(nvars):
-                    C[i] = &((<fmpz_mpoly> args[i]).val[0])
-                res = create_fmpz_mpoly(self.ctx)
-                if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C, self.ctx.val, res_ctx.val) == 0:
-                    raise ValueError("unreasonably large polynomial")
-                return res
-            finally:
-                libc.stdlib.free(C)
+
+            C = fmpz_mpoly_vec(args, self.ctx, double_indirect=True)
+            res = create_fmpz_mpoly(self.ctx)
+            if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C.double_indirect, self.ctx.val, res_ctx.val) == 0:
+                raise ValueError("unreasonably large polynomial")
+            return res
         else:
             # Partial function composition. We do this by composing with all arguments, however the ones
             # that have not be provided are set to the trivial monomial. This is why we require all the
@@ -773,7 +767,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             if not all(typecheck(arg, fmpz_mpoly) for _, arg in partial_args):
                 raise TypeError("all arguments must be fmpz_mpolys for partial composition")
             if not all((<fmpz_mpoly> arg).ctx is self.ctx for _, arg in partial_args):
-                raise ValueError("all arguments must share the same context")
+                raise IncompatibleContextError("all arguments must share the same context")
 
             polys = [None] * nvars
             for i, poly in partial_args:
@@ -781,25 +775,15 @@ cdef class fmpz_mpoly(flint_mpoly):
 
             for i in range(nvars):
                 if polys[i] is None:
-                    res = create_fmpz_mpoly(self.ctx)
-                    exponents = <ulong *> libc.stdlib.calloc(nvars, sizeof(ulong))
-                    exponents[i] = 1
-                    fmpz_mpoly_push_term_ui_ui(res.val, <ulong>1, exponents, self.ctx.val)
+                    l = [0] * nvars
+                    l[i] = 1
+                    polys[i] = self.ctx.from_dict({tuple(l): 1})
 
-                    polys[i] = res
-
-            C = <fmpz_mpoly_struct **> libc.stdlib.malloc(nvars * sizeof(fmpz_mpoly_struct *))
-            if C is NULL:
-                raise MemoryError("malloc returned a null pointer")
-            try:
-                for i in range(len(polys)):
-                    C[i] = &((<fmpz_mpoly> polys[i]).val[0])
-                    res = create_fmpz_mpoly(self.ctx)
-                if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C, self.ctx.val, self.ctx.val) == 0:
-                    raise ValueError("unreasonably large polynomial")
-                return res
-            finally:
-                libc.stdlib.free(C)
+            C = fmpz_mpoly_vec(polys, self.ctx, double_indirect=True)
+            res = create_fmpz_mpoly(self.ctx)
+            if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C.double_indirect, self.ctx.val, self.ctx.val) == 0:
+                raise ValueError("unreasonably large polynomial")
+            return res
 
     def factor(self):
         """
@@ -947,3 +931,78 @@ cdef class fmpz_mpoly(flint_mpoly):
 
         fmpz_mpoly_integral(res.val, scale.val, self.val, i, self.ctx.val)
         return scale, res
+
+
+cdef class fmpz_mpoly_vec:
+    def __cinit__(self, iterable_or_len, fmpz_mpoly_ctx ctx, bint double_indirect=False):
+        if isinstance(iterable_or_len, int):
+            l = iterable_or_len
+        else:
+            l = len(iterable_or_len)
+
+        self.ctx = ctx
+        fmpz_mpoly_vec_init(self.val, l, self.ctx.val)
+
+        if double_indirect:
+            self.double_indirect = <fmpz_mpoly_struct **> libc.stdlib.malloc(l * sizeof(fmpz_mpoly_struct *))
+            if self.double_indirect is NULL:
+                raise MemoryError("malloc returned a null pointer")
+
+            for i in range(l):
+                self.double_indirect[i] = fmpz_mpoly_vec_entry(self.val, i)
+        else:
+            self.double_indirect = NULL
+
+    def __init__(self, iterable_or_len, _, double_indirect: bool =False):
+        if not isinstance(iterable_or_len, int):
+            for i, x in enumerate(iterable_or_len):
+                self[i] = x
+
+    def __dealloc__(self):
+        libc.stdlib.free(self.double_indirect)
+        fmpz_mpoly_vec_clear(self.val, self.ctx.val)
+
+    def __getitem__(self, x):
+        if not isinstance(x, int):
+            raise TypeError("index is not integer")
+        elif not 0 <= x < self.val.length:
+            raise IndexError("index out of range")
+
+        cdef fmpz_mpoly z = create_fmpz_mpoly(self.ctx)
+        fmpz_mpoly_set(z.val, fmpz_mpoly_vec_entry(self.val, x), self.ctx.val)
+        return z
+
+    def __setitem__(self, x, y):
+        if not isinstance(x, int):
+            raise TypeError("index is not integer")
+        elif not 0 <= x < self.val.length:
+            raise IndexError("index out of range")
+        elif not typecheck(y, fmpz_mpoly):
+            raise TypeError("argument is not fmpz_mpoly")
+        elif (<fmpz_mpoly>y).ctx is not self.ctx:
+            raise IncompatibleContextError(f"{(<fmpz_mpoly>y).ctx} is not {self.ctx}")
+
+        fmpz_mpoly_set(fmpz_mpoly_vec_entry(self.val, x), (<fmpz_mpoly>y).val, self.ctx.val)
+
+    def __len__(self):
+        return self.val.length
+
+    def __str__(self):
+        return self.str()
+
+    def __repr__(self):
+        return self.repr()
+
+    def str(self, *args):
+        s = [None] * self.val.length
+        for i in range(self.val.length):
+            x = create_fmpz_mpoly(self.ctx)
+            fmpz_mpoly_set(x.val, fmpz_mpoly_vec_entry(self.val, i), self.ctx.val)
+            s[i] = x.str(*args)
+        return str(s)
+
+    def repr(self, *args):
+        return f"fmpz_mpoly_vec({self.str(*args)}, {self.val.length})"
+
+    def to_tuple(self):
+        return tuple(self[i] for i in range(self.val.length))
