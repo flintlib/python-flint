@@ -179,9 +179,7 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
             elif len(k) != nvars:
                 raise ValueError(f"expected {nvars} exponents, got {len(k)}")
 
-            exp_vec = fmpz_vec(nvars)
-            for j, exponent in enumerate(k):
-                exp_vec[j] = exponent
+            exp_vec = fmpz_vec(k)
 
             # TODO: lobby for fmpz_mpoly_push_term_fmpz_ffmpz
             if v:
