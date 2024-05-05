@@ -22,7 +22,7 @@ from flint.flintlib.arb_hypgeom cimport *
 ctx = thectx
 
 cdef arb_series_coerce_operands(x, y):
-    if isinstance(y, (int, long, float, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly, fmpq_series, arb, arb_poly)):
+    if isinstance(y, (int, float, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly, fmpq_series, arb, arb_poly)):
         return x, arb_series(y)
     if isinstance(y, (complex, acb, acb_poly, acb_series)):
         return acb_series(x), acb_series(y)

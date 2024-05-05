@@ -54,7 +54,7 @@ cdef arb_set_mpmath_mpf(arb_t x, obj):
         else:
             arb_indeterminate(x)
     else:
-        man = fmpz(long(man))
+        man = fmpz(int(man))
         exp = fmpz(exp)
 
         arb_set_fmpz(x, (<fmpz>man).val)
@@ -368,15 +368,15 @@ cdef class arb(flint_scalar):
             import mpmath
             mpmath_mpz = mpmath.libmp.MPZ
         except ImportError:
-            mpmath_mpz = long
+            mpmath_mpz = int
         if not self.is_finite():
             return (0, mpmath_mpz(0), -123, -1)
         man, exp = self.mid().man_exp()
-        man = mpmath_mpz(long(man))
+        man = mpmath_mpz(int(man))
         if man < 0:
-            return (1, -man, long(exp), man.bit_length())
+            return (1, -man, int(exp), man.bit_length())
         else:
-            return (0, man, long(exp), man.bit_length())
+            return (0, man, int(exp), man.bit_length())
 
     def repr(self):
         mid = self.mid()

@@ -9,9 +9,6 @@ from flint.utils.flint_exceptions import DomainError
 
 import flint
 
-if sys.version_info[0] >= 3:
-    long = int
-
 PYPY = platform.python_implementation() == "PyPy"
 
 ctx = flint.ctx
@@ -95,8 +92,8 @@ def test_fmpz():
     assert raises(lambda: flint.fmpz([]), TypeError)
     for s in L:
         for t in L:
-            for ltype in (flint.fmpz, int, long):
-                for rtype in (flint.fmpz, int, long):
+            for ltype in (flint.fmpz, int):
+                for rtype in (flint.fmpz, int):
 
                     assert (ltype(s) == rtype(t)) == (s == t)
                     assert (ltype(s) != rtype(t)) == (s != t)
@@ -370,7 +367,7 @@ def test_fmpz_poly():
     assert raises(lambda: Z({}), TypeError)
     # XXX: This should probably be made to work:
     assert raises(lambda: Z((1,2,3)), TypeError)
-    for ztype in [int, long, flint.fmpz]:
+    for ztype in [int, flint.fmpz]:
         assert Z([1,2,3]) + ztype(5) == Z([6,2,3])
         assert ztype(5) + Z([1,2,3]) == Z([6,2,3])
         assert Z([1,2,3]) - ztype(5) == Z([-4,2,3])
@@ -526,8 +523,6 @@ def test_fmpz_mat():
     assert raises(lambda: a + c, ValueError)
     assert (a * 3).entries() == [3,6,9,12,15,18]
     assert (3 * a).entries() == [3,6,9,12,15,18]
-    assert (a * long(3)).entries() == [3,6,9,12,15,18]
-    assert (long(3) * a).entries() == [3,6,9,12,15,18]
     assert (a * flint.fmpz(3)).entries() == [3,6,9,12,15,18]
     assert (flint.fmpz(3) * a).entries() == [3,6,9,12,15,18]
     assert M.randrank(5,7,3,10).rank() == 3
@@ -756,7 +751,7 @@ def test_fmpq():
     assert 1 != Q(2)
     assert Q(1) != ()
     assert Q(1,2) != 1
-    assert Q(2,3) == Q(flint.fmpz(2),long(3))
+    assert Q(2,3) == Q(flint.fmpz(2),3)
     assert Q(-2,-4) == Q(1,2)
     assert Q("1") == Q(1)
     assert Q("1/2") == Q(1,2)
@@ -1481,8 +1476,6 @@ def test_nmod_mat():
     assert raises(lambda: a + c, ValueError)
     assert (a * 3).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
     assert (3 * a).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
-    assert (a * long(3)).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
-    assert (long(3) * a).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
     assert (a * flint.fmpz(3)).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
     assert (flint.fmpz(3) * a).entries() == [G(x,17) for x in [3,6,9,12,15,18]]
     assert M(2,2,[1,1,2,2],17).rank() == 1

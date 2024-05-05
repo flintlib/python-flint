@@ -18,7 +18,7 @@ from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_is_pm1
 from flint.flintlib.fmpz_poly cimport *
 
 cdef fmpz_series_coerce_operands(x, y):
-    if isinstance(y, (int, long, fmpz, fmpz_poly)):
+    if isinstance(y, (int, fmpz, fmpz_poly)):
         return x, fmpz_series(y)
     if isinstance(y, (fmpq, fmpq_poly, fmpq_series)):
         return fmpq_series(x), fmpq_series(y)
