@@ -161,59 +161,33 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
             >>> ctx.from_dict({(1,0):2, (1,1):3, (0,1):1})
             3*x*y + 2*x + y
         """
-        cdef long n
-        cdef fmpz_t coefficient
-        cdef fmpz_struct *exponents
-        cdef int xtype
-        cdef int nvars = self.nvars()
-        cdef int i,j
-        cdef int count
-        cdef fmpz_mpoly res
+        cdef:
+            fmpz_vec exp_vec
+            slong i, j, nvars = self.nvars()
+            fmpz_mpoly res
 
-        if not PyDict_Check(d):
+        if not isinstance(d, dict):
             raise ValueError("expected a dictionary")
-        n = PyDict_Size(d)
-        fmpz_init(coefficient)
-        exponents = <fmpz_struct *> libc.stdlib.calloc(nvars, sizeof(fmpz_struct))
-        if exponents == NULL:
-            raise MemoryError("malloc returned a null pointer")
-        for i in range(nvars):
-            fmpz_init(exponents + i)
-        fmpz_init(coefficient)
+
+        exp_vec = fmpz_vec(nvars)
         res = create_fmpz_mpoly(self)
-        count = 0
-        for k, v in d.items():
-            xtype = fmpz_set_any_ref(coefficient, v)
-            if xtype == FMPZ_UNKNOWN:
-                for i in range(nvars):
-                    fmpz_clear(exponents + i)
-                libc.stdlib.free(exponents)
-                raise TypeError("invalid coefficient type %s" % type(v))
-            if not PyTuple_Check(k):
-                for i in range(nvars):
-                    fmpz_clear(exponents + i)
-                libc.stdlib.free(exponents)
-                raise TypeError("Expected tuple of ints as key not %s" % type(k))
-            if PyTuple_GET_SIZE(k) != nvars:
-                for i in range(nvars):
-                    fmpz_clear(exponents + i)
-                libc.stdlib.free(exponents)
-                raise TypeError("Expected exponent tuple of length %d" % nvars)
-            for i, tup in enumerate(k):
-                xtype = fmpz_set_any_ref(exponents + i, tup)
-                if xtype == FMPZ_UNKNOWN:
-                    for i in range(nvars):
-                        fmpz_clear(exponents + i)
-                    libc.stdlib.free(exponents)
-                    raise TypeError("Invalid exponent type %s" % type(tup))
-            #Todo lobby for fmpz_mpoly_push_term_fmpz_ffmpz
-            if not fmpz_is_zero(coefficient):
-                _fmpz_mpoly_push_exp_ffmpz(res.val, exponents, self.val)
-                fmpz_mpoly_set_term_coeff_fmpz(res.val, count, coefficient, self.val)
-                count += 1
-        for i in range(nvars):
-            fmpz_clear(exponents + i)
-        fmpz_clear(coefficient)
+
+        for i, (k, v) in enumerate(d.items()):
+            v = any_as_fmpz(v)
+            if v is NotImplemented:
+                raise TypeError(f"cannot coerce coefficient '{v}' to fmpz")
+            elif len(k) != nvars:
+                raise ValueError(f"expected {nvars} exponents, got {len(k)}")
+
+            exp_vec = fmpz_vec(nvars)
+            for j, exponent in enumerate(k):
+                exp_vec[j] = exponent
+
+            # TODO: lobby for fmpz_mpoly_push_term_fmpz_ffmpz
+            if v:
+                _fmpz_mpoly_push_exp_ffmpz(res.val, exp_vec.val, self.val)
+                fmpz_mpoly_set_term_coeff_fmpz(res.val, i, (<fmpz> v).val, self.val)
+
         fmpz_mpoly_sort_terms(res.val, self.val)
         return res
 
@@ -268,6 +242,14 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_mpoly_set_fmpz(self.val, (<fmpz>v).val, self.ctx.val)
 
     def context(self):
+        """
+        Return the context object for this polynomials.
+
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> p = ctx.from_dict({(0, 1): 2})
+            >>> ctx is p.context()
+            True
+        """
         return self.ctx
 
     def __bool__(self):
@@ -293,8 +275,19 @@ cdef class fmpz_mpoly(flint_mpoly):
         return fmpz_mpoly_length(self.val, self.ctx.val)
 
     def __getitem__(self, x):
+        """
+        Return the term at index `x` if `x` is an `int`, or the term with the exponent
+        vector `x` if `x` is a tuple of `int`s or `fmpz`s.
+
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
+            >>> p[1]
+            2*x1
+            >>> p[1, 1]
+            3*x0*x1
+
+        """
         cdef:
-            fmpz_struct ** tmp = NULL
             slong nvars = self.ctx.nvars()
 
         if isinstance(x, int):
@@ -306,19 +299,27 @@ cdef class fmpz_mpoly(flint_mpoly):
         elif isinstance(x, tuple):
             if len(x) != nvars:
                 raise ValueError("exponent vector provided does not match number of variables")
-            try:
-                res = fmpz()
-                exp_vec = fmpz_vec(x, double_indirect=True)
-                fmpz_mpoly_get_coeff_fmpz_fmpz((<fmpz>res).val, self.val, exp_vec.double_indirect, self.ctx.val)
-            finally:
-                libc.stdlib.free(tmp)
+            res = fmpz()
+            exp_vec = fmpz_vec(x, double_indirect=True)
+            fmpz_mpoly_get_coeff_fmpz_fmpz((<fmpz>res).val, self.val, exp_vec.double_indirect, self.ctx.val)
             return res
         else:
             raise TypeError("index is not integer or tuple")
 
     def __setitem__(self, x, y):
+        """
+        Set the coefficient at index `x` to `y` if `x` is an `int`, or the term with
+        the exponent vector `x` if `x` is a tuple of `int`s or `fmpz`s.
+
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
+            >>> p[1] = 10
+            >>> p[1, 1] = 20
+            >>> p
+            20*x0*x1 + 10*x1
+
+        """
         cdef:
-            fmpz_struct ** tmp = NULL
             slong nvars = self.ctx.nvars()
 
         coeff = any_as_fmpz(y)
@@ -332,17 +333,20 @@ cdef class fmpz_mpoly(flint_mpoly):
         elif isinstance(x, tuple):
             if len(x) != nvars:
                 raise ValueError("exponent vector provided does not match number of variables")
-
-            try:
-                res = fmpz()
-                exp_vec = fmpz_vec(x, double_indirect=True)
-                fmpz_mpoly_set_coeff_fmpz_fmpz(self.val, (<fmpz>coeff).val, exp_vec.double_indirect, self.ctx.val)
-            finally:
-                libc.stdlib.free(tmp)
+            exp_vec = fmpz_vec(x, double_indirect=True)
+            fmpz_mpoly_set_coeff_fmpz_fmpz(self.val, (<fmpz>coeff).val, exp_vec.double_indirect, self.ctx.val)
         else:
             raise TypeError("index is not integer or tuple")
 
     def coefficient(self, slong i):
+        """
+        Return the coefficient at index `i`.
+
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
+            >>> p.coefficient(1)
+            2
+        """
         cdef fmpz v
         if i < 0 or i >= fmpz_mpoly_length(self.val, self.ctx.val):
             return fmpz(0)
@@ -352,9 +356,16 @@ cdef class fmpz_mpoly(flint_mpoly):
             return v
 
     def exponent_tuple(self, slong i):
+        """
+        Return the exponent vector at index `i` as a tuple.
+
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
+            >>> p.exponent_tuple(1)
+            (0, 1)
+        """
         cdef:
-            fmpz_struct ** tmp
-            slong j, nvars = self.ctx.nvars()
+            slong nvars = self.ctx.nvars()
 
         if i < 0 or i >= fmpz_mpoly_length(self.val, self.ctx.val):
             raise IndexError("term index out of range")
@@ -363,15 +374,30 @@ cdef class fmpz_mpoly(flint_mpoly):
         return res.to_tuple()
 
     def degrees(self):
+        """
+        Return a dictionary of variable name to degree.
+
+            >>> ctx = fmpz_mpoly_ctx.get_context(4, "lex", 'x')
+            >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
+            >>> p.degrees()
+            {'x0': 1, 'x1': 2, 'x2': 3, 'x3': 0}
+        """
         cdef:
-            fmpz_struct ** tmp
-            slong i, nvars = self.ctx.nvars()
+            slong nvars = self.ctx.nvars()
 
         res = fmpz_vec(nvars, double_indirect=True)
         fmpz_mpoly_degrees_fmpz(res.double_indirect, self.val, self.ctx.val)
         return dict(zip(self.ctx.names(), res.to_tuple()))
 
     def total_degree(self):
+        """
+        Return the total degree.
+
+            >>> ctx = fmpz_mpoly_ctx.get_context(4, "lex", 'x')
+            >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
+            >>> p.total_degree()
+            3
+        """
         cdef fmpz res = fmpz()
         fmpz_mpoly_total_degree_fmpz((<fmpz> res).val, self.val, self.ctx.val)
         return res
@@ -601,7 +627,7 @@ cdef class fmpz_mpoly(flint_mpoly):
                 return res
         return NotImplemented
 
-    def __rfloordiv__(self,other):
+    def __rfloordiv__(self, other):
         cdef fmpz_mpoly res
         if not self:
             raise ZeroDivisionError("fmpz_mpoly division by zero")
@@ -693,7 +719,6 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_vec V
             fmpz vres
             fmpz_mpoly_vec C
-            ulong *exponents
             slong i, nvars = self.ctx.nvars(), nargs = len(args)
 
         if not args and not kwargs:
@@ -774,9 +799,9 @@ cdef class fmpz_mpoly(flint_mpoly):
 
             for i in range(nvars):
                 if polys[i] is None:
-                    l = [0] * nvars
-                    l[i] = 1
-                    polys[i] = self.ctx.from_dict({tuple(l): 1})
+                    vec = [0] * nvars
+                    vec[i] = 1
+                    polys[i] = self.ctx.from_dict({tuple(vec): 1})
 
             C = fmpz_mpoly_vec(polys, self.ctx, double_indirect=True)
             res = create_fmpz_mpoly(self.ctx)
@@ -799,22 +824,24 @@ cdef class fmpz_mpoly(flint_mpoly):
             >>> (p2 * p1 * p2).factor()
             (18, [(z + 1, 2), (x + 2, 1), (x + 1, 2)])
         """
-        cdef fmpz_mpoly_factor_t fac
-        cdef int i
-        cdef fmpz c
-        cdef fmpz_mpoly u
+        cdef:
+            fmpz_mpoly_factor_t fac
+            fmpz c
+            fmpz_mpoly u
+
         fmpz_mpoly_factor_init(fac, self.ctx.val)
         fmpz_mpoly_factor(fac, self.val, self.ctx.val)
         res = [0] * fac.num
-        for 0 <= i < fac.num:
-            u = fmpz_mpoly.__new__(fmpz_mpoly)
-            u.ctx = self.ctx
-            fmpz_mpoly_init(u.val, u.ctx.val)
-            u._init = True
+
+        for i in range(fac.num):
+            u = create_fmpz_mpoly(self.ctx)
             fmpz_mpoly_set((<fmpz_mpoly>u).val, &fac.poly[i], self.ctx.val)
+
             c = fmpz.__new__(fmpz)
             fmpz_set((<fmpz>c).val, &fac.exp[i])
+
             res[i] = (u, c)
+
         c = fmpz.__new__(fmpz)
         fmpz_set((<fmpz>c).val, fac.constant)
         fmpz_mpoly_factor_clear(fac, self.ctx.val)
@@ -835,22 +862,25 @@ cdef class fmpz_mpoly(flint_mpoly):
             >>> (p1 * p2 * p1).factor_squarefree()
             (12, [(y + 1, 1), (x + 1, 1), (x + 2, 2)])
         """
-        cdef fmpz_mpoly_factor_t fac
-        cdef int i
-        cdef fmpz c
-        cdef fmpz_mpoly u
+        cdef:
+            fmpz_mpoly_factor_t fac
+            fmpz c
+            fmpz_mpoly u
+
         fmpz_mpoly_factor_init(fac, self.ctx.val)
         fmpz_mpoly_factor_squarefree(fac, self.val, self.ctx.val)
         res = [0] * fac.num
-        for 0 <= i < fac.num:
-            u = fmpz_mpoly.__new__(fmpz_mpoly)
-            u.ctx = self.ctx
+
+        for i in range(fac.num):
+            u = create_fmpz_mpoly(self.ctx)
             fmpz_mpoly_init(u.val, u.ctx.val)
-            u._init = True
             fmpz_mpoly_set((<fmpz_mpoly>u).val, &fac.poly[i], self.ctx.val)
+
             c = fmpz.__new__(fmpz)
             fmpz_set((<fmpz>c).val, &fac.exp[i])
+
             res[i] = (u, c)
+
         c = fmpz.__new__(fmpz)
         fmpz_set((<fmpz>c).val, fac.constant)
         fmpz_mpoly_factor_clear(fac, self.ctx.val)
@@ -883,6 +913,20 @@ cdef class fmpz_mpoly(flint_mpoly):
         return res
 
     def derivative(self, var):
+        """
+        Return the derivative of this polynomial with respect to the provided variable.
+        The argument and either be the variable as a string, or the index of the
+        variable in the context.
+
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> p = ctx.from_dict({(0, 3): 2, (2, 1): 3})
+            3*x0^2*x1 + 2*x1^3
+            >>> p.derivative("x0")
+            6*x0*x1
+            >>> p.derivative(1)
+            3*x0^2 + 6*x1^2
+
+        """
         cdef:
             fmpz_mpoly res
             slong i = 0
@@ -906,6 +950,20 @@ cdef class fmpz_mpoly(flint_mpoly):
         return res
 
     def integral(self, var):
+        """
+        Return the integral of this polynomial*B with respect to the provided variable
+        where B is minimal. The argument and either be the variable as a string, or
+        the index of the variable in the context.
+
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> p = ctx.from_dict({(0, 3): 2, (2, 1): 3})
+            3*x0^2*x1 + 2*x1^3
+            >>> p.integral("x0")
+            (1, x0^3*x1 + 2*x0*x1^3)
+            >>> p.integral(1)
+            (2, 3*x0^2*x1^2 + x1^4)
+
+        """
         cdef:
             fmpz_mpoly res
             fmpz scale
@@ -933,26 +991,30 @@ cdef class fmpz_mpoly(flint_mpoly):
 
 
 cdef class fmpz_mpoly_vec:
-    def __cinit__(self, iterable_or_len, fmpz_mpoly_ctx ctx, bint double_indirect=False):
+    """
+    A class representing a vector of fmpz_mpolys.
+    """
+
+    def __cinit__(self, iterable_or_len, fmpz_mpoly_ctx ctx, bint double_indirect = False):
         if isinstance(iterable_or_len, int):
-            l = iterable_or_len
+            length = iterable_or_len
         else:
-            l = len(iterable_or_len)
+            length = len(iterable_or_len)
 
         self.ctx = ctx
-        fmpz_mpoly_vec_init(self.val, l, self.ctx.val)
+        fmpz_mpoly_vec_init(self.val, length, self.ctx.val)
 
         if double_indirect:
-            self.double_indirect = <fmpz_mpoly_struct **> libc.stdlib.malloc(l * sizeof(fmpz_mpoly_struct *))
+            self.double_indirect = <fmpz_mpoly_struct **> libc.stdlib.malloc(length * sizeof(fmpz_mpoly_struct *))
             if self.double_indirect is NULL:
                 raise MemoryError("malloc returned a null pointer")
 
-            for i in range(l):
+            for i in range(length):
                 self.double_indirect[i] = fmpz_mpoly_vec_entry(self.val, i)
         else:
             self.double_indirect = NULL
 
-    def __init__(self, iterable_or_len, _, double_indirect: bool =False):
+    def __init__(self, iterable_or_len, _, double_indirect: bool = False):
         if not isinstance(iterable_or_len, int):
             for i, x in enumerate(iterable_or_len):
                 self[i] = x

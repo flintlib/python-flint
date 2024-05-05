@@ -2659,7 +2659,7 @@ def test_mpolys():
         assert raises(lambda: ctx.from_dict("bad"), ValueError)
         assert raises(lambda: ctx.from_dict({(0, 0): "bad"}), TypeError)
         assert raises(lambda: ctx.from_dict({(0, "bad"): 1}), TypeError)
-        assert raises(lambda: ctx.from_dict({(0,): 1}), TypeError)
+        assert raises(lambda: ctx.from_dict({(0,): 1}), ValueError)
 
         assert raises(lambda: P(val=C.get_context(nvars=1).constant(0), ctx=ctx), ValueError)
         assert raises(lambda: P(val={}, ctx=None), ValueError)
