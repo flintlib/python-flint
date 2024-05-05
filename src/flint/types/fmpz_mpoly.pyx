@@ -753,7 +753,6 @@ cdef class fmpz_mpoly(flint_mpoly):
             if not all((<fmpz_mpoly> args[i]).ctx is res_ctx for i in range(1, len(args))):
                 raise IncompatibleContextError("all arguments must share the same context")
 
-
             C = fmpz_mpoly_vec(args, self.ctx, double_indirect=True)
             res = create_fmpz_mpoly(self.ctx)
             if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C.double_indirect, self.ctx.val, res_ctx.val) == 0:

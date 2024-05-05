@@ -1,0 +1,1 @@
+option('coverage', type : 'boolean', value : false, description : 'enable coverage build')
