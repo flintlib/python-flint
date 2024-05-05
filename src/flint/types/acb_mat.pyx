@@ -25,12 +25,12 @@ cimport cython
 cdef acb_mat_coerce_operands(x, y):
     if isinstance(y, (fmpz_mat, fmpq_mat, arb_mat)):
         return x, acb_mat(y)
-    if isinstance(y, (int, long, float, complex, fmpz, fmpq, arb, acb)):
+    if isinstance(y, (int, float, complex, fmpz, fmpq, arb, acb)):
         return x, acb_mat(x.nrows(), x.ncols(), y)
     return NotImplemented, NotImplemented
 
 cdef acb_mat_coerce_scalar(x, y):
-    if isinstance(y, (int, long, float, complex, fmpz, fmpq, arb, acb)):
+    if isinstance(y, (int, float, complex, fmpz, fmpq, arb, acb)):
         return x, any_as_acb(y)
     return NotImplemented, NotImplemented
 
@@ -134,7 +134,7 @@ cdef class acb_mat(flint_mat):
         elif len(args) == 3:
             m, n, entries = args
             acb_mat_init(self.val, m, n)
-            if isinstance(entries, (int, long, float, complex, fmpz, fmpq, arb, acb)):
+            if isinstance(entries, (int, float, complex, fmpz, fmpq, arb, acb)):
                 c = entries
                 entries = [0] * (m * n)
                 for i in range(min(m,n)):

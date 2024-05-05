@@ -20,7 +20,7 @@ from flint.flintlib.acb_poly cimport *
 cimport libc.stdlib
 
 cdef acb_poly_coerce_operands(x, y):
-    if isinstance(y, (int, long, float, complex, fmpz, fmpq, arb, acb, fmpz_poly, fmpq_poly, arb_poly)):
+    if isinstance(y, (int, float, complex, fmpz, fmpq, arb, acb, fmpz_poly, fmpq_poly, arb_poly)):
         return x, acb_poly(y)
     return NotImplemented, NotImplemented
 
@@ -328,7 +328,7 @@ cdef class acb_poly(flint_poly):
             u = acb.__new__(acb)
             acb_poly_evaluate((<acb>u).val, (<acb_poly>s).val, (<acb>t).val, getprec())
             return u
-        if isinstance(t, (int, long, float, complex, fmpz, fmpq, arb)):
+        if isinstance(t, (int, float, complex, fmpz, fmpq, arb)):
             return s(acb(t))
         if isinstance(t, (fmpz_poly, fmpq_poly, arb_poly)):
             return s(acb_poly(t))
