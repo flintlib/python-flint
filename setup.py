@@ -81,6 +81,7 @@ ext_files = [
     ("flint.flint_base.flint_context", ["src/flint/flint_base/flint_context.pyx"]),
 
     ("flint.types.fmpz", ["src/flint/types/fmpz.pyx"]),
+    ("flint.types.fmpz_vec", ["src/flint/types/fmpz_vec.pyx"]),
     ("flint.types.fmpz_poly", ["src/flint/types/fmpz_poly.pyx"]),
     ("flint.types.fmpz_mpoly", ["src/flint/types/fmpz_mpoly.pyx"]),
     ("flint.types.fmpz_mat", ["src/flint/types/fmpz_mat.pyx"]),
