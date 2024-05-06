@@ -28,3 +28,9 @@ cdef class fmpq_mpoly(flint_mpoly):
     cdef fmpq_mpoly_t val
     cdef fmpq_mpoly_ctx ctx
     cdef bint _init
+
+cdef class fmpq_mpoly_vec:
+    cdef fmpq_mpoly_struct *val
+    cdef slong length
+    cdef fmpq_mpoly_ctx ctx
+    cdef fmpq_mpoly_struct **double_indirect

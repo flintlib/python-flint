@@ -14,12 +14,6 @@ from flint.flintlib.fmpz cimport fmpz_clear
 from flint.flintlib.fmpq cimport *
 from flint.flintlib.bernoulli cimport *
 
-cdef extern from *:
-    """
-    /* An ugly hack to get around the ugly hack of renaming fmpq to avoid a c/python name collision */
-    typedef fmpq fmpq_struct;
-    """
-
 cdef int fmpq_set_any_ref(fmpq_t x, obj):
     cdef int status
     fmpq_init(x)

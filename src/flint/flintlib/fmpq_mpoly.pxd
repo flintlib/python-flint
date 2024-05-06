@@ -1,16 +1,16 @@
-from flint.flintlib.flint cimport flint_rand_t, ulong, slong, mp_limb_t, flint_bitcnt_t, fmpz_struct
-from flint.flintlib.fmpq_poly cimport fmpq_poly_struct, fmpq_poly_t
+from flint.flintlib.fmpq_poly cimport fmpq_poly_t, fmpq_poly_struct
+from flint.flintlib.flint cimport slong, mp_limb_t, ulong, flint_bitcnt_t, fmpz_struct, flint_rand_t
 from flint.flintlib.fmpz cimport fmpz_t
-from flint.flintlib.fmpq cimport fmpq_t, fmpq_struct
-from flint.flintlib.mpoly cimport ordering_t
 from flint.flintlib.fmpz_mpoly cimport fmpz_mpoly_ctx_t, fmpz_mpoly_t, fmpz_mpoly_struct
+from flint.flintlib.fmpq cimport fmpq_struct, fmpq_t
+from flint.flintlib.mpoly cimport ordering_t
 
 
 # unimported types  {'fmpq_mpoly_univar_t'}
 
 cdef extern from "flint/fmpq_mpoly.h":
     ctypedef struct fmpq_mpoly_ctx_struct:
-        fmpz_mpoly_ctx_t zctx;
+        fmpz_mpoly_ctx_t zctx
 
     ctypedef fmpq_mpoly_ctx_struct fmpq_mpoly_ctx_t[1]
 
@@ -19,6 +19,14 @@ cdef extern from "flint/fmpq_mpoly.h":
         fmpz_mpoly_t zpoly
 
     ctypedef fmpq_mpoly_struct fmpq_mpoly_t[1]
+
+    ctypedef struct fmpq_mpoly_univar_struct:
+        fmpq_mpoly_struct *coeffs
+        fmpz_struct * exps
+        slong alloc
+        slong length
+
+    ctypedef fmpq_mpoly_univar_struct fmpq_mpoly_univar_t[1]
 
     void fmpq_mpoly_ctx_init(fmpq_mpoly_ctx_t ctx, slong nvars, const ordering_t ord)
     slong fmpq_mpoly_ctx_nvars(const fmpq_mpoly_ctx_t ctx)
@@ -38,7 +46,7 @@ cdef extern from "flint/fmpq_mpoly.h":
     void fmpq_mpoly_gen(fmpq_mpoly_t A, slong var, const fmpq_mpoly_ctx_t ctx)
     int fmpq_mpoly_is_gen(const fmpq_mpoly_t A, slong var, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_set(fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpq_mpoly_ctx_t ctx)
-    int fmpq_mpoly_equal(fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpq_mpoly_ctx_t ctx)
+    int fmpq_mpoly_equal(const fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_swap(fmpq_mpoly_t A, fmpq_mpoly_t B, const fmpq_mpoly_ctx_t ctx)
     int fmpq_mpoly_is_fmpq(const fmpq_mpoly_t A, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_get_fmpq(fmpq_t c, const fmpq_mpoly_t A, const fmpq_mpoly_ctx_t ctx)
@@ -48,8 +56,8 @@ cdef extern from "flint/fmpq_mpoly.h":
     void fmpq_mpoly_set_si(fmpq_mpoly_t A, slong c, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_zero(fmpq_mpoly_t A, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_one(fmpq_mpoly_t A, const fmpq_mpoly_ctx_t ctx)
-    int fmpq_mpoly_equal_fmpq(const fmpq_mpoly_t A, fmpq_t c, const fmpq_mpoly_ctx_t ctx)
-    int fmpq_mpoly_equal_fmpz(const fmpq_mpoly_t A, fmpz_t c, const fmpq_mpoly_ctx_t ctx)
+    int fmpq_mpoly_equal_fmpq(const fmpq_mpoly_t A, const fmpq_t c, const fmpq_mpoly_ctx_t ctx)
+    int fmpq_mpoly_equal_fmpz(const fmpq_mpoly_t A, const fmpz_t c, const fmpq_mpoly_ctx_t ctx)
     int fmpq_mpoly_equal_ui(const fmpq_mpoly_t A, ulong c, const fmpq_mpoly_ctx_t ctx)
     int fmpq_mpoly_equal_si(const fmpq_mpoly_t A, slong c, const fmpq_mpoly_ctx_t ctx)
     int fmpq_mpoly_is_zero(const fmpq_mpoly_t A, const fmpq_mpoly_ctx_t ctx)
@@ -67,9 +75,9 @@ cdef extern from "flint/fmpq_mpoly.h":
     void fmpq_mpoly_get_coeff_fmpq_monomial(fmpq_t c, const fmpq_mpoly_t A, const fmpq_mpoly_t M, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_set_coeff_fmpq_monomial(fmpq_mpoly_t A, const fmpq_t c, const fmpq_mpoly_t M, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_get_coeff_fmpq_fmpz(fmpq_t c, const fmpq_mpoly_t A, fmpz_struct * const * exp, const fmpq_mpoly_ctx_t ctx)
-    void fmpq_mpoly_get_coeff_fmpq_ui(fmpq_t c, const fmpq_mpoly_t A, ulong * exp, const fmpq_mpoly_ctx_t ctx)
-    void fmpq_mpoly_set_coeff_fmpq_fmpz(fmpq_mpoly_t A, const fmpq_t c, fmpz_struct * const * exp, fmpq_mpoly_ctx_t ctx)
-    void fmpq_mpoly_set_coeff_fmpq_ui(fmpq_mpoly_t A, const fmpq_t c, ulong * exp, fmpq_mpoly_ctx_t ctx)
+    void fmpq_mpoly_get_coeff_fmpq_ui(fmpq_t c, const fmpq_mpoly_t A, const ulong * exp, const fmpq_mpoly_ctx_t ctx)
+    void fmpq_mpoly_set_coeff_fmpq_fmpz(fmpq_mpoly_t A, const fmpq_t c, fmpz_struct * const * exp, const fmpq_mpoly_ctx_t ctx)
+    void fmpq_mpoly_set_coeff_fmpq_ui(fmpq_mpoly_t A, const fmpq_t c, const ulong * exp, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_get_coeff_vars_ui(fmpq_mpoly_t C, const fmpq_mpoly_t A, const slong * vars, const ulong * exps, slong length, const fmpq_mpoly_ctx_t ctx)
     int fmpq_mpoly_cmp(const fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpq_mpoly_ctx_t ctx)
     fmpq_struct * fmpq_mpoly_content_ref(fmpq_mpoly_t A, const fmpq_mpoly_ctx_t ctx)
@@ -129,7 +137,7 @@ cdef extern from "flint/fmpq_mpoly.h":
     void fmpq_mpoly_scalar_div_fmpz(fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpz_t c, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_scalar_div_ui(fmpq_mpoly_t A, const fmpq_mpoly_t B, ulong c, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_scalar_div_si(fmpq_mpoly_t A, const fmpq_mpoly_t B, slong c, const fmpq_mpoly_ctx_t ctx)
-    void fmpq_mpoly_make_monic(fmpq_mpoly_t A, fmpq_mpoly_t B, const fmpq_mpoly_ctx_t ctx)
+    void fmpq_mpoly_make_monic(fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_derivative(fmpq_mpoly_t A, const fmpq_mpoly_t B, slong var, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_integral(fmpq_mpoly_t A, const fmpq_mpoly_t B, slong var, const fmpq_mpoly_ctx_t ctx)
     int fmpq_mpoly_evaluate_all_fmpq(fmpq_t ev, const fmpq_mpoly_t A, fmpq_struct * const * vals, const fmpq_mpoly_ctx_t ctx)
@@ -158,13 +166,13 @@ cdef extern from "flint/fmpq_mpoly.h":
     int fmpq_mpoly_discriminant(fmpq_mpoly_t D, const fmpq_mpoly_t A, slong var, const fmpq_mpoly_ctx_t ctx)
     int fmpq_mpoly_sqrt(fmpq_mpoly_t Q, const fmpq_mpoly_t A, const fmpq_mpoly_ctx_t ctx)
     int fmpq_mpoly_is_square(const fmpq_mpoly_t A, const fmpq_mpoly_ctx_t ctx)
-    # void fmpq_mpoly_univar_init(fmpq_mpoly_univar_t A, const fmpq_mpoly_ctx_t ctx)
-    # void fmpq_mpoly_univar_clear(fmpq_mpoly_univar_t A, const fmpq_mpoly_ctx_t ctx)
-    # void fmpq_mpoly_univar_swap(fmpq_mpoly_univar_t A, fmpq_mpoly_univar_t B, const fmpq_mpoly_ctx_t ctx)
-    # void fmpq_mpoly_to_univar(fmpq_mpoly_univar_t A, const fmpq_mpoly_t B, slong var, const fmpq_mpoly_ctx_t ctx)
-    # void fmpq_mpoly_from_univar(fmpq_mpoly_t A, const fmpq_mpoly_univar_t B, slong var, const fmpq_mpoly_ctx_t ctx)
-    # int fmpq_mpoly_univar_degree_fits_si(const fmpq_mpoly_univar_t A, const fmpq_mpoly_ctx_t ctx)
-    # slong fmpq_mpoly_univar_length(const fmpq_mpoly_univar_t A, const fmpq_mpoly_ctx_t ctx)
-    # slong fmpq_mpoly_univar_get_term_exp_si(fmpq_mpoly_univar_t A, slong i, const fmpq_mpoly_ctx_t ctx)
-    # void fmpq_mpoly_univar_get_term_coeff(fmpq_mpoly_t c, const fmpq_mpoly_univar_t A, slong i, const fmpq_mpoly_ctx_t ctx)
-    # void fmpq_mpoly_univar_swap_term_coeff(fmpq_mpoly_t c, fmpq_mpoly_univar_t A, slong i, const fmpq_mpoly_ctx_t ctx)
+    void fmpq_mpoly_univar_init(fmpq_mpoly_univar_t A, const fmpq_mpoly_ctx_t ctx)
+    void fmpq_mpoly_univar_clear(fmpq_mpoly_univar_t A, const fmpq_mpoly_ctx_t ctx)
+    void fmpq_mpoly_univar_swap(fmpq_mpoly_univar_t A, fmpq_mpoly_univar_t B, const fmpq_mpoly_ctx_t ctx)
+    void fmpq_mpoly_to_univar(fmpq_mpoly_univar_t A, const fmpq_mpoly_t B, slong var, const fmpq_mpoly_ctx_t ctx)
+    void fmpq_mpoly_from_univar(fmpq_mpoly_t A, const fmpq_mpoly_univar_t B, slong var, const fmpq_mpoly_ctx_t ctx)
+    int fmpq_mpoly_univar_degree_fits_si(const fmpq_mpoly_univar_t A, const fmpq_mpoly_ctx_t ctx)
+    slong fmpq_mpoly_univar_length(const fmpq_mpoly_univar_t A, const fmpq_mpoly_ctx_t ctx)
+    slong fmpq_mpoly_univar_get_term_exp_si(fmpq_mpoly_univar_t A, slong i, const fmpq_mpoly_ctx_t ctx)
+    void fmpq_mpoly_univar_get_term_coeff(fmpq_mpoly_t c, const fmpq_mpoly_univar_t A, slong i, const fmpq_mpoly_ctx_t ctx)
+    void fmpq_mpoly_univar_swap_term_coeff(fmpq_mpoly_t c, fmpq_mpoly_univar_t A, slong i, const fmpq_mpoly_ctx_t ctx)

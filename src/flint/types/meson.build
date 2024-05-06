@@ -15,6 +15,7 @@ exts = [
   'fmpq_poly',
   'fmpq_mat',
   'fmpq_series',
+  'fmpq_vec',
 
   'nmod',
   'nmod_poly',

@@ -88,6 +88,7 @@ ext_files = [
     ("flint.types.fmpz_series", ["src/flint/types/fmpz_series.pyx"]),
 
     ("flint.types.fmpq", ["src/flint/types/fmpq.pyx"]),
+    ("flint.types.fmpq_vec", ["src/flint/types/fmpq_vec.pyx"]),
     ("flint.types.fmpq_poly", ["src/flint/types/fmpq_poly.pyx"]),
     ("flint.types.fmpq_mat", ["src/flint/types/fmpq_mat.pyx"]),
     ("flint.types.fmpq_series", ["src/flint/types/fmpq_series.pyx"]),

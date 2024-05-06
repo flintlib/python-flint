@@ -10,6 +10,7 @@ from .types.fmpq import *
 from .types.fmpq_poly import *
 from .types.fmpq_mat import *
 from .types.fmpq_series import *
+from .types.fmpq_vec import fmpq_vec
 
 from .types.nmod import *
 from .types.nmod_poly import *
@@ -21,7 +22,7 @@ from .types.fmpz_mod import *
 from .types.fmpz_mod_poly import *
 from .types.fmpz_mod_mat import fmpz_mod_mat
 
-from .types.fmpq_mpoly import fmpq_mpoly_ctx, fmpq_mpoly
+from .types.fmpq_mpoly import fmpq_mpoly_ctx, fmpq_mpoly, fmpq_mpoly_vec
 from .types.fmpz_mpoly_q import *
 
 from .types.arf import *

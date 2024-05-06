@@ -1,53 +1,22 @@
 from flint.flintlib.flint cimport ulong, flint_rand_t, mp_bitcnt_t, slong, flint_bitcnt_t
 from flint.flintlib.fmpz cimport fmpz_struct, fmpz_t
 
+cdef extern from *:
+    """
+    /* An ugly hack to get around the ugly hack of renaming fmpq to avoid a c/python name collision */
+    typedef fmpq fmpq_struct;
+    """
+
 cdef extern from "flint/fmpq.h":
     ctypedef struct fmpq_struct:
         fmpz_struct num
         fmpz_struct den
 
     ctypedef fmpq_struct fmpq_t[1]
+
     fmpz_struct * fmpq_numref(fmpq_t x)
     fmpz_struct * fmpq_denref(fmpq_t x)
 
-# from here on is parsed
-    void fmpq_init(fmpq_t x)
-    void fmpq_clear(fmpq_t x)
-    void fmpq_canonicalise(fmpq_t res)
-    void _fmpq_canonicalise(fmpz_t num, fmpz_t den)
-    int fmpq_is_canonical(const fmpq_t x)
-    int _fmpq_is_canonical(const fmpz_t num, const fmpz_t den)
-    void fmpq_set(fmpq_t dest, const fmpq_t src)
-    void fmpq_swap(fmpq_t op1, fmpq_t op2)
-    void fmpq_neg(fmpq_t dest, const fmpq_t src)
-    void fmpq_abs(fmpq_t dest, const fmpq_t src)
-    void fmpq_zero(fmpq_t res)
-    void fmpq_one(fmpq_t res)
-    int fmpq_is_zero(const fmpq_t res)
-    int fmpq_is_one(const fmpq_t res)
-    int fmpq_is_pm1(const fmpq_t res)
-    int fmpq_equal(const fmpq_t x, const fmpq_t y)
-    int fmpq_sgn(const fmpq_t x)
-    int fmpq_cmp(const fmpq_t x, const fmpq_t y)
-    int fmpq_cmp_fmpz(const fmpq_t x, const fmpz_t y)
-    int fmpq_cmp_ui(const fmpq_t x, ulong y)
-    int fmpq_cmp_si(const fmpq_t x, slong y)
-    int fmpq_equal_ui(const fmpq_t x, ulong y)
-    int fmpq_equal_si(const fmpq_t x, slong y)
-    void fmpq_height(fmpz_t height, const fmpq_t x)
-    flint_bitcnt_t fmpq_height_bits(const fmpq_t x)
-    void fmpq_set_fmpz_frac(fmpq_t res, const fmpz_t p, const fmpz_t q)
-    # void fmpq_get_mpz_frac(mpz_t a, mpz_t b, fmpq_t c)
-    void fmpq_set_si(fmpq_t res, slong p, ulong q)
-    void _fmpq_set_si(fmpz_t rnum, fmpz_t rden, slong p, ulong q)
-    void fmpq_set_ui(fmpq_t res, ulong p, ulong q)
-    void _fmpq_set_ui(fmpz_t rnum, fmpz_t rden, ulong p, ulong q)
-    # void fmpq_set_mpq(fmpq_t dest, const mpq_t src)
-    void fmpq_set_str(fmpq_t dest, const char * s, int base)
-    # void fmpq_init_set_mpz_frac_readonly(fmpq_t z, const mpz_t p, const mpz_t q)
-    double fmpq_get_d(const fmpq_t f)
-    # void fmpq_get_mpq(mpq_t dest, const fmpq_t src)
-    # int fmpq_get_mpfr(mpfr_t dest, const fmpq_t src, mpfr_rnd_t rnd)
 # from here on is parsed
     void fmpq_init(fmpq_t x)
     void fmpq_clear(fmpq_t x)
