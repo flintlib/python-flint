@@ -126,7 +126,6 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         if not isinstance(d, dict):
             raise ValueError("expected a dictionary")
 
-        exp_vec = fmpz_vec(nvars)
         res = create_fmpz_mpoly(self)
 
         for i, (k, v) in enumerate(d.items()):
@@ -149,7 +148,7 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
 
 cdef class fmpz_mpoly(flint_mpoly):
     """
-    The *fmpz_poly* type represents sparse multivariate polynomials over
+    The *fmpz_mpoly* type represents sparse multivariate polynomials over
     the integers.
     """
 
@@ -167,7 +166,7 @@ cdef class fmpz_mpoly(flint_mpoly):
                 init_fmpz_mpoly(self, (<fmpz_mpoly>val).ctx)
                 fmpz_mpoly_set(self.val, (<fmpz_mpoly>val).val, self.ctx.val)
             else:
-                raise ValueError("Cannot automatically coerce contexts")
+                raise IncompatibleContextError(f"{ctx} is not {val.ctx}")
         elif isinstance(val, dict):
             if ctx is None:
                 if len(val) == 0:
@@ -196,22 +195,8 @@ cdef class fmpz_mpoly(flint_mpoly):
             init_fmpz_mpoly(self, ctx)
             fmpz_mpoly_set_fmpz(self.val, (<fmpz>v).val, self.ctx.val)
 
-    def context(self):
-        """
-        Return the context object for this polynomials.
-
-            >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
-            >>> p = ctx.from_dict({(0, 1): 2})
-            >>> ctx is p.context()
-            True
-        """
-        return self.ctx
-
     def __bool__(self):
         return not fmpz_mpoly_is_zero(self.val, self.ctx.val)
-
-    def is_one(self):
-        return fmpz_mpoly_is_one(self.val, self.ctx.val)
 
     def __richcmp__(self, other, int op):
         if not (op == Py_EQ or op == Py_NE):
@@ -294,80 +279,6 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_mpoly_set_coeff_fmpz_fmpz(self.val, (<fmpz>coeff).val, exp_vec.double_indirect, self.ctx.val)
         else:
             raise TypeError("index is not integer or tuple")
-
-    def coefficient(self, slong i):
-        """
-        Return the coefficient at index `i`.
-
-            >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
-            >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
-            >>> p.coefficient(1)
-            2
-        """
-        cdef fmpz v
-        if i < 0 or i >= fmpz_mpoly_length(self.val, self.ctx.val):
-            return fmpz(0)
-        else:
-            v = fmpz.__new__(fmpz)
-            fmpz_mpoly_get_term_coeff_fmpz(v.val, self.val, i, self.ctx.val)
-            return v
-
-    def exponent_tuple(self, slong i):
-        """
-        Return the exponent vector at index `i` as a tuple.
-
-            >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
-            >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
-            >>> p.exponent_tuple(1)
-            (0, 1)
-        """
-        cdef:
-            slong nvars = self.ctx.nvars()
-
-        if i < 0 or i >= fmpz_mpoly_length(self.val, self.ctx.val):
-            raise IndexError("term index out of range")
-        res = fmpz_vec(nvars, double_indirect=True)
-        fmpz_mpoly_get_term_exp_fmpz(res.double_indirect, self.val, i, self.ctx.val)
-        return res.to_tuple()
-
-    def degrees(self):
-        """
-        Return a dictionary of variable name to degree.
-
-            >>> ctx = fmpz_mpoly_ctx.get_context(4, "lex", 'x')
-            >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
-            >>> p.degrees()
-            {'x0': 1, 'x1': 2, 'x2': 3, 'x3': 0}
-        """
-        cdef:
-            slong nvars = self.ctx.nvars()
-
-        res = fmpz_vec(nvars, double_indirect=True)
-        fmpz_mpoly_degrees_fmpz(res.double_indirect, self.val, self.ctx.val)
-        return dict(zip(self.ctx.names(), res.to_tuple()))
-
-    def total_degree(self):
-        """
-        Return the total degree.
-
-            >>> ctx = fmpz_mpoly_ctx.get_context(4, "lex", 'x')
-            >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
-            >>> p.total_degree()
-            3
-        """
-        cdef fmpz res = fmpz()
-        fmpz_mpoly_total_degree_fmpz((<fmpz> res).val, self.val, self.ctx.val)
-        return res
-
-    def repr(self):
-        return f"{self.ctx}.from_dict({self.to_dict()})"
-
-    def str(self):
-        cdef bytes s = <bytes> fmpz_mpoly_get_str_pretty(self.val, self.ctx.c_names, self.ctx.val)
-        res = s.decode().replace("+", " + ").replace("-", " - ")
-        if res.startswith(" - "):
-            res = "-" + res[3:]
-        return res
 
     def __pos__(self):
         return self
@@ -644,25 +555,6 @@ cdef class fmpz_mpoly(flint_mpoly):
     def __rmod__(self, other):
         return divmod(other, self)[1]
 
-    def gcd(self, other):
-        cdef fmpz_mpoly res
-        if not typecheck(other, fmpz_mpoly):
-            raise TypeError("argument must be a fmpz_mpoly")
-        if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-            raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
-        res = create_fmpz_mpoly(self.ctx)
-        fmpz_mpoly_gcd(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
-        return res
-
-    def sqrt(self, assume_perfect_square: bool = False):
-        cdef fmpz_mpoly res
-        res = create_fmpz_mpoly(self.ctx)
-
-        if fmpz_mpoly_sqrt_heap(res.val, self.val, self.ctx.val, not assume_perfect_square):
-            return res
-        else:
-            raise ValueError("polynomial is not a perfect square")
-
     def __call__(self, *args, **kwargs):
         cdef:
             fmpz_mpoly res
@@ -760,6 +652,113 @@ cdef class fmpz_mpoly(flint_mpoly):
             if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C.double_indirect, self.ctx.val, self.ctx.val) == 0:
                 raise ValueError("unreasonably large polynomial")  # pragma: no cover
             return res
+
+    def context(self):
+        """
+        Return the context object for this polynomials.
+
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> p = ctx.from_dict({(0, 1): 2})
+            >>> ctx is p.context()
+            True
+        """
+        return self.ctx
+
+    def is_one(self):
+        return fmpz_mpoly_is_one(self.val, self.ctx.val)
+
+    def coefficient(self, slong i):
+        """
+        Return the coefficient at index `i`.
+
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
+            >>> p.coefficient(1)
+            2
+        """
+        cdef fmpz v
+        if i < 0 or i >= fmpz_mpoly_length(self.val, self.ctx.val):
+            return fmpz(0)
+        else:
+            v = fmpz.__new__(fmpz)
+            fmpz_mpoly_get_term_coeff_fmpz(v.val, self.val, i, self.ctx.val)
+            return v
+
+    def exponent_tuple(self, slong i):
+        """
+        Return the exponent vector at index `i` as a tuple.
+
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
+            >>> p.exponent_tuple(1)
+            (0, 1)
+        """
+        cdef:
+            slong nvars = self.ctx.nvars()
+
+        if i < 0 or i >= fmpz_mpoly_length(self.val, self.ctx.val):
+            raise IndexError("term index out of range")
+        res = fmpz_vec(nvars, double_indirect=True)
+        fmpz_mpoly_get_term_exp_fmpz(res.double_indirect, self.val, i, self.ctx.val)
+        return res.to_tuple()
+
+    def degrees(self):
+        """
+        Return a dictionary of variable name to degree.
+
+            >>> ctx = fmpz_mpoly_ctx.get_context(4, "lex", 'x')
+            >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
+            >>> p.degrees()
+            {'x0': 1, 'x1': 2, 'x2': 3, 'x3': 0}
+        """
+        cdef:
+            slong nvars = self.ctx.nvars()
+
+        res = fmpz_vec(nvars, double_indirect=True)
+        fmpz_mpoly_degrees_fmpz(res.double_indirect, self.val, self.ctx.val)
+        return dict(zip(self.ctx.names(), res.to_tuple()))
+
+    def total_degree(self):
+        """
+        Return the total degree.
+
+            >>> ctx = fmpz_mpoly_ctx.get_context(4, "lex", 'x')
+            >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
+            >>> p.total_degree()
+            3
+        """
+        cdef fmpz res = fmpz()
+        fmpz_mpoly_total_degree_fmpz((<fmpz> res).val, self.val, self.ctx.val)
+        return res
+
+    def repr(self):
+        return f"{self.ctx}.from_dict({self.to_dict()})"
+
+    def str(self):
+        cdef bytes s = <bytes> fmpz_mpoly_get_str_pretty(self.val, self.ctx.c_names, self.ctx.val)
+        res = s.decode().replace("+", " + ").replace("-", " - ")
+        if res.startswith(" - "):
+            res = "-" + res[3:]
+        return res
+
+    def gcd(self, other):
+        cdef fmpz_mpoly res
+        if not typecheck(other, fmpz_mpoly):
+            raise TypeError("argument must be a fmpz_mpoly")
+        if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
+            raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
+        res = create_fmpz_mpoly(self.ctx)
+        fmpz_mpoly_gcd(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
+        return res
+
+    def sqrt(self, assume_perfect_square: bool = False):
+        cdef fmpz_mpoly res
+        res = create_fmpz_mpoly(self.ctx)
+
+        if fmpz_mpoly_sqrt_heap(res.val, self.val, self.ctx.val, not assume_perfect_square):
+            return res
+        else:
+            raise ValueError("polynomial is not a perfect square")
 
     def factor(self):
         """
