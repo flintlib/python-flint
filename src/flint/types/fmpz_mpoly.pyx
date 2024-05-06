@@ -1,71 +1,28 @@
-from cpython.dict cimport PyDict_Size, PyDict_Check
-from cpython.tuple cimport PyTuple_Check, PyTuple_GET_SIZE
-from cpython.object cimport Py_EQ, Py_NE
-from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear, fmpz_is_zero
-from flint.flintlib.flint cimport *
+from flint.flint_base.flint_base cimport flint_mpoly
+from flint.flint_base.flint_base cimport flint_mpoly_context
 
 from flint.utils.conversion cimport str_from_chars
 from flint.utils.typecheck cimport typecheck
-from flint.flint_base.flint_base cimport flint_mpoly
-from flint.flint_base.flint_base cimport flint_mpoly_context
-from flint.types.fmpz cimport any_as_fmpz
-from flint.types.fmpz cimport fmpz, fmpz_set_any_ref
-from flint.types.fmpq_mpoly cimport fmpq_mpoly
-from flint.types.fmpz_vec cimport fmpz_vec
-
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
-cimport cython
-cimport libc.stdlib
+from flint.types.fmpz cimport any_as_fmpz
+from flint.types.fmpz cimport fmpz, fmpz_set_any_ref
+from flint.types.fmpz_vec cimport fmpz_vec
+
+from flint.flintlib.flint cimport *
 from flint.flintlib.fmpz cimport fmpz_set
 from flint.flintlib.fmpz_mpoly cimport *
 from flint.flintlib.fmpz_mpoly_factor cimport *
+
+from cpython.object cimport Py_EQ, Py_NE
+cimport cython
+cimport libc.stdlib
 
 cdef extern from *:
     """
     /* An ugly hack to get around the ugly hack of renaming fmpq to avoid a c/python name collision */
     typedef fmpq fmpq_struct;
     """
-
-
-cdef any_as_fmpz_mpoly(x):
-    cdef fmpz_mpoly res
-    """
-    if typecheck(x, fmpz_poly):
-        return x
-    elif typecheck(x, fmpz):
-        res = fmpz_poly.__new__(fmpz_poly)
-        fmpz_poly_set_fmpz(res.val, (<fmpz>x).val)
-        return res
-    elif PY_MAJOR_VERSION < 3 and PyInt_Check(<PyObject*>x):
-        res = fmpz_poly.__new__(fmpz_poly)
-        fmpz_poly_set_si(res.val, PyInt_AS_LONG(<PyObject*>x))
-        return res
-    elif PyLong_Check(<PyObject*>x):
-        res = fmpz_poly.__new__(fmpz_poly)
-        t = fmpz(x)
-        fmpz_poly_set_fmpz(res.val, (<fmpz>t).val)
-        return res
-    """
-    return NotImplemented
-
-"""
-cdef fmpz_poly_set_list(fmpz_poly_t poly, list val):
-    cdef long i, n
-    cdef fmpz_t x
-    n = PyList_GET_SIZE(<PyObject*>val)
-    fmpz_poly_fit_length(poly, n)
-    fmpz_init(x)
-    for i from 0 <= i < n:
-        if typecheck(val[i], fmpz):
-            fmpz_poly_set_coeff_fmpz(poly, i, (<fmpz>(val[i])).val)
-        elif fmpz_set_python(x, val[i]):
-            fmpz_poly_set_coeff_fmpz(poly, i, x)
-        else:
-            fmpz_clear(x)
-            raise TypeError("unsupported coefficient in list")
-    fmpz_clear(x)
-"""
 
 cdef dict _fmpz_mpoly_ctx_cache = {}
 
@@ -121,7 +78,7 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
             return "degrevlex"
         else:
             # This should be unreachable
-            raise ValueError("unknown ordering")
+            raise ValueError("unknown ordering")  # pragma: no cover
 
     def gen(self, slong i):
         """
@@ -163,7 +120,7 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         """
         cdef:
             fmpz_vec exp_vec
-            slong i, j, nvars = self.nvars()
+            slong i, nvars = self.nvars()
             fmpz_mpoly res
 
         if not isinstance(d, dict):
@@ -220,7 +177,7 @@ cdef class fmpz_mpoly(flint_mpoly):
                     raise ValueError("Dict should be keyed with tuples of integers")
                 ctx = fmpz_mpoly_ctx.get_context(len(k))
             x = ctx.from_dict(val)
-            #XXX this copy is silly, have a ctx function that assigns an fmpz_mpoly_t
+            # XXX: this copy is silly, have a ctx function that assigns an fmpz_mpoly_t
             init_fmpz_mpoly(self, ctx)
             fmpz_mpoly_set(self.val, (<fmpz_mpoly>x).val, self.ctx.val)
         elif isinstance(val, str):
@@ -263,7 +220,9 @@ cdef class fmpz_mpoly(flint_mpoly):
             return op == Py_NE
         elif typecheck(self, fmpz_mpoly) and typecheck(other, fmpz_mpoly):
             if (<fmpz_mpoly>self).ctx is (<fmpz_mpoly>other).ctx:
-                return (op == Py_NE) ^ bool(fmpz_mpoly_equal((<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, (<fmpz_mpoly>self).ctx.val))
+                return (op == Py_NE) ^ bool(
+                    fmpz_mpoly_equal((<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, (<fmpz_mpoly>self).ctx.val)
+                )
             else:
                 return op == Py_NE
         else:
@@ -401,16 +360,11 @@ cdef class fmpz_mpoly(flint_mpoly):
         return res
 
     def repr(self):
-        return self.str() + "  (nvars=%s, ordering=%s names=%s)" % (self.ctx.nvars(), self.ctx.ordering(), self.ctx.py_names)
+        return f"{self.ctx}.from_dict({self.to_dict()})"
 
     def str(self):
-        cdef char * s = fmpz_mpoly_get_str_pretty(self.val, self.ctx.c_names, self.ctx.val)
-        try:
-            res = str_from_chars(s)
-        finally:
-            libc.stdlib.free(s)
-        res = res.replace("+", " + ")
-        res = res.replace("-", " - ")
+        cdef bytes s = <bytes> fmpz_mpoly_get_str_pretty(self.val, self.ctx.c_names, self.ctx.val)
+        res = s.decode().replace("+", " + ").replace("-", " - ")
         if res.startswith(" - "):
             res = "-" + res[3:]
         return res
@@ -565,7 +519,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             raise ValueError("cannot raise fmpz_mpoly to negative power")
         res = create_fmpz_mpoly(self.ctx)
         if fmpz_mpoly_pow_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val) == 0:
-            raise ValueError("unreasonably large polynomial")
+            raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return res
 
     def __divmod__(self, other):
@@ -755,7 +709,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             V = fmpz_vec(args_fmpz, double_indirect=True)
             vres = fmpz.__new__(fmpz)
             if fmpz_mpoly_evaluate_all_fmpz(vres.val, self.val, V.double_indirect, self.ctx.val) == 0:
-                raise ValueError("unreasonably large polynomial")
+                raise ValueError("unreasonably large polynomial")  # pragma: no cover
             return vres
         elif kwargs and all_fmpz:
             # Partial application with args in Z. We evaluate the polynomial one variable at a time
@@ -765,7 +719,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_mpoly_set(res2.val, self.val, self.ctx.val)
             for (i, _), arg in zip(partial_args, args_fmpz):
                 if fmpz_mpoly_evaluate_one_fmpz(res.val, res2.val, i, (<fmpz>arg).val, self.ctx.val) == 0:
-                    raise ValueError("unreasonably large polynomial")
+                    raise ValueError("unreasonably large polynomial")  # pragma: no cover
                 fmpz_mpoly_set(res2.val, res.val, self.ctx.val)
             return res
         elif args and not all_fmpz:
@@ -779,7 +733,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             C = fmpz_mpoly_vec(args, self.ctx, double_indirect=True)
             res = create_fmpz_mpoly(self.ctx)
             if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C.double_indirect, self.ctx.val, res_ctx.val) == 0:
-                raise ValueError("unreasonably large polynomial")
+                raise ValueError("unreasonably large polynomial")  # pragma: no cover
             return res
         else:
             # Partial function composition. We do this by composing with all arguments, however the ones
@@ -804,7 +758,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             C = fmpz_mpoly_vec(polys, self.ctx, double_indirect=True)
             res = create_fmpz_mpoly(self.ctx)
             if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C.double_indirect, self.ctx.val, self.ctx.val) == 0:
-                raise ValueError("unreasonably large polynomial")
+                raise ValueError("unreasonably large polynomial")  # pragma: no cover
             return res
 
     def factor(self):
@@ -884,31 +838,32 @@ cdef class fmpz_mpoly(flint_mpoly):
         fmpz_mpoly_factor_clear(fac, self.ctx.val)
         return c, res
 
-    def coerce_to_context(self, ctx):
-        cdef:
-            fmpz_mpoly res
-            slong *C
-            slong i
+    # TODO: Rethink context conversions, particularly the proposed methods in #132
+    # def coerce_to_context(self, ctx):
+    #     cdef:
+    #         fmpz_mpoly res
+    #         slong *C
+    #         slong i
 
-        if not typecheck(ctx, fmpz_mpoly_ctx):
-            raise ValueError("provided context is not a fmpz_mpoly_ctx")
+    #     if not typecheck(ctx, fmpz_mpoly_ctx):
+    #         raise ValueError("provided context is not a fmpz_mpoly_ctx")
 
-        if self.ctx is ctx:
-            return self
+    #     if self.ctx is ctx:
+    #         return self
 
-        C = <slong *> libc.stdlib.malloc(self.ctx.val.minfo.nvars * sizeof(slong *))
-        if C is NULL:
-            raise MemoryError("malloc returned a null pointer")
-        res = create_fmpz_mpoly(self.ctx)
+    #     C = <slong *> libc.stdlib.malloc(self.ctx.val.minfo.nvars * sizeof(slong *))
+    #     if C is NULL:
+    #         raise MemoryError("malloc returned a null pointer")
+    #     res = create_fmpz_mpoly(self.ctx)
 
-        vars = {x: i for i, x in enumerate(ctx.py_names)}
-        for i, var in enumerate(self.ctx.py_names):
-            C[i] = <slong>vars[var]
+    #     vars = {x: i for i, x in enumerate(ctx.py_names)}
+    #     for i, var in enumerate(self.ctx.py_names):
+    #         C[i] = <slong>vars[var]
 
-        fmpz_mpoly_compose_fmpz_mpoly_gen(res.val, self.val, C, self.ctx.val, (<fmpz_mpoly_ctx>ctx).val)
+    #     fmpz_mpoly_compose_fmpz_mpoly_gen(res.val, self.val, C, self.ctx.val, (<fmpz_mpoly_ctx>ctx).val)
 
-        libc.stdlib.free(C)
-        return res
+    #     libc.stdlib.free(C)
+    #     return res
 
     def derivative(self, var):
         """
@@ -937,7 +892,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             else:
                 i = vars[var]
         elif isinstance(var, int):
-            if not 0 <= i < self.ctx.nvars():
+            if not 0 <= var < self.ctx.nvars():
                 raise IndexError("generator index out of range")
             i = <slong>var
         else:
@@ -976,7 +931,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             else:
                 i = vars[var]
         elif isinstance(var, int):
-            if not 0 <= i < self.ctx.nvars():
+            if not 0 <= var < self.ctx.nvars():
                 raise IndexError("generator index out of range")
             i = <slong>var
         else:
@@ -1007,7 +962,7 @@ cdef class fmpz_mpoly_vec:
         if double_indirect:
             self.double_indirect = <fmpz_mpoly_struct **> libc.stdlib.malloc(length * sizeof(fmpz_mpoly_struct *))
             if self.double_indirect is NULL:
-                raise MemoryError("malloc returned a null pointer")
+                raise MemoryError("malloc returned a null pointer")  # pragma: no cover
 
             for i in range(length):
                 self.double_indirect[i] = fmpz_mpoly_vec_entry(self.val, i)
@@ -1049,21 +1004,15 @@ cdef class fmpz_mpoly_vec:
         return self.val.length
 
     def __str__(self):
-        return self.str()
-
-    def __repr__(self):
-        return self.repr()
-
-    def str(self, *args):
         s = [None] * self.val.length
         for i in range(self.val.length):
             x = create_fmpz_mpoly(self.ctx)
             fmpz_mpoly_set(x.val, fmpz_mpoly_vec_entry(self.val, i), self.ctx.val)
-            s[i] = x.str(*args)
-        return str(s)
+            s[i] = str(x)
+        return f"[{', '.join(s)}]"
 
-    def repr(self, *args):
-        return f"fmpz_mpoly_vec({self.str(*args)}, {self.val.length})"
+    def __repr__(self):
+        return f"fmpz_mpoly_vec({self}, ctx={self.ctx})"
 
     def to_tuple(self):
         return tuple(self[i] for i in range(self.val.length))
