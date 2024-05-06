@@ -282,7 +282,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             >>> p[1]
             2*x1
             >>> p[1, 1]
-            3*x0*x1
+            3
 
         """
         cdef:
@@ -918,6 +918,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
             >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
             >>> p = ctx.from_dict({(0, 3): 2, (2, 1): 3})
+            >>> p
             3*x0^2*x1 + 2*x1^3
             >>> p.derivative("x0")
             6*x0*x1
@@ -955,6 +956,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
             >>> ctx = fmpz_mpoly_ctx.get_context(2, "lex", 'x')
             >>> p = ctx.from_dict({(0, 3): 2, (2, 1): 3})
+            >>> p
             3*x0^2*x1 + 2*x1^3
             >>> p.integral("x0")
             (1, x0^3*x1 + 2*x0*x1^3)
