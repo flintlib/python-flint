@@ -130,9 +130,12 @@ jobs:
         os: [ubuntu-24.04]
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - run: sudo apt-get update
-      - run: sudo apt-get install libflint-dev python3-pip
-      - run: pip install --user .
+      - run: sudo apt-get install libflint-dev
+      - run: pip install .
       - run: python -m flint.test --verbose
 
   # For older Ubuntu we have to build Flint >= 3.0.0
@@ -146,6 +149,9 @@ jobs:
         flint-tag: ['v3.0.0', 'v3.0.1', 'v3.1.0', 'v3.1.1', 'v3.1.2', 'main']
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - run: bin/install_flint_ubuntu.sh ${{ matrix.flint-tag }}
-      - run: pip install --user .
+      - run: pip install .
       - run: python -m flint.test --verbose
