@@ -122,12 +122,12 @@ jobs:
 
   # On new enough Ubuntu we can build against the system deb.
   test_pip_flint_deb:
-    name: Build on {{ matrix.ubuntu-version }}
-    runs-on: {{ matrix.os-version }}
+    name: Build on {{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os-version: [ubuntu-24.04]
+        os: [ubuntu-24.04]
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update
