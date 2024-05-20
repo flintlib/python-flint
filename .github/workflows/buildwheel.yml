@@ -120,36 +120,32 @@ jobs:
       - run: pip install --no-index --find-links wheelhouse python_flint
       - run: python -m flint.test --verbose
 
-  test_pip_vcs_sdist:
-    name: pip install ${{ matrix.target }} on ${{ matrix.python-version }}
-    runs-on: ubuntu-22.04
+  # On new enough Ubuntu we can build against the system deb.
+  test_pip_flint_deb:
+    name: Build on {{ matrix.ubuntu-version }}
+    runs-on: {{ matrix.os-version }}
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.11', '3.12', '3.13-dev']
-        # '.' means install from python-flint git checkout
-        # 'python-flint' means install from PyPI sdist
-        target: ['.', 'python-flint']
+        os-version: [ubuntu-24.04]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - run: bin/pip_install_ubuntu.sh ${{ matrix.target }}
+      - run: sudo apt-get update
+      - run: sudo apt-get install libflint-dev python3-pip
+      - run: pip install --user .
       - run: python -m flint.test --verbose
 
+  # For older Ubuntu we have to build Flint >= 3.0.0
   test_flint_versions:
-    name: Test flint ${{ matrix.flinttag }}
+    name: Test flint ${{ matrix.flint-tag }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         # Supported versions and latest git
-        flinttag: ['v3.0.0', 'v3.0.1', 'v3.1.0', 'main']
+        flint-tag: ['v3.0.0', 'v3.0.1', 'v3.1.0', 'v3.1.1', 'v3.1.2', 'main']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.12
-      - run: bin/pip_install_ubuntu.sh . ${{ matrix.flinttag }}
+      - run: bin/install_flint_ubuntu.sh ${{ matrix.flint-tag }}
+      - run: pip install --user .
       - run: python -m flint.test --verbose

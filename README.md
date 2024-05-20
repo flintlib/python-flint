@@ -40,9 +40,19 @@ First install FLINT 3. Starting with python-flint 0.5.0 older versions of Flint
 such as 2.9 are not supported any more. Note that as of Flint 3 Arb no longer
 needs to be built separately as it is now merged into Flint.
 
-See here for instructions on building FLINT:
+As of e.g. Ubuntu 24.04 a new enough version of FLINT (at least version 3) can
+be installed from the Ubuntu repos like
+
+    sudo apt-get install libflint-dev
+
+For older distros the version in the repos is too old and a newer version of
+FLINT needs to be built. See here for instructions on building FLINT:
 
 * http://flintlib.org/
+
+A script that builds and installs FLINT on Ubuntu can be found here:
+
+* https://github.com/flintlib/python-flint/blob/master/bin/install_flint_ubuntu.sh
 
 The latest release of Python-FLINT can then be built from source and installed
 using:
@@ -53,11 +63,6 @@ Python-FLINT can also be installed from a git checkout or a source archive
 as follows:
 
     pip install .
-
-A script that builds and installs FLINT and python-flint that is tested on
-Ubuntu can be found in the git repo here:
-
-* https://github.com/flintlib/python-flint/blob/master/bin/pip_install_ubuntu.sh
 
 See the documentation for further notes on building and installing
 python-flint:
