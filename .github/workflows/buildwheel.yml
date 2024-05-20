@@ -122,7 +122,7 @@ jobs:
 
   # On new enough Ubuntu we can build against the system deb.
   test_pip_flint_deb:
-    name: Build on {{ matrix.os }}
+    name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
