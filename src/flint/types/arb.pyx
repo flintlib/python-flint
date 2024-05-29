@@ -1856,6 +1856,30 @@ cdef class arb(flint_scalar):
         arb_hypgeom_erfc((<arb>u).val, (<arb>s).val, getprec())
         return u
 
+    def erfinv(s):
+        r"""
+        Inverse error function `\operatorname{erfinv}(s)`.
+
+            >>> from flint import showgood
+            >>> showgood(lambda: arb(.25).erfinv(), dps=25)
+            0.2253120550121781047250140
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_erfinv((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def erfcinv(s):
+        r"""
+        Inverse complementary error function `\operatorname{erfcinv}(s)`.
+
+            >>> from flint import showgood
+            >>> showgood(lambda: arb(.25).erfcinv(), dps=25)
+            0.8134198475976185416902894
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_erfcinv((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
     def erfi(s):
         r"""
         Imaginary error function `\operatorname{erfi}(s)`.
