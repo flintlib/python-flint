@@ -1,0 +1,1 @@
+option('add_flint_rpath', type : 'boolean', value : false)

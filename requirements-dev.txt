@@ -1,0 +1,7 @@
+cython
+spin
+meson
+meson-python
+pytest
+coverage
+pytest-cov
