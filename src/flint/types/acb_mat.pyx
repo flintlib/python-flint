@@ -19,6 +19,7 @@ from flint.flintlib.arb_mat cimport *
 from flint.flintlib.arf cimport *
 from flint.flintlib.acb cimport *
 from flint.flintlib.acb_mat cimport *
+from flint.flintlib.acb_theta cimport *
 
 cimport cython
 
@@ -814,3 +815,35 @@ cdef class acb_mat(flint_mat):
         if left:
             return Elist, L
         return Elist, R
+
+    def theta(tau, z, square=False):
+        r"""
+        FIXME
+        """
+        g = tau.nrows()
+        assert g > 1
+        assert tau.ncols() == g
+        assert z.nrows() == g
+        assert z.ncols() == 1
+
+        # convert input
+        cdef acb_ptr zvec
+        zvec = _acb_vec_init(g)
+        cdef long i
+        for i in range(g):
+            acb_set(zvec + i, acb_mat_entry((<acb_mat>z).val, i, 0))
+
+        # initialize the output
+        cdef slong nb = 1 << (2 * g)
+        cdef acb_ptr theta = _acb_vec_init(nb)
+
+        acb_theta_all(theta, zvec, tau.val, square, getprec())
+        _acb_vec_clear(zvec, g)
+        # copy the output
+        res = tuple()
+        for i in range(nb):
+            r = acb.__new__(acb)
+            acb_set((<acb>r).val, theta + i)
+            res += (r,)
+        _acb_vec_clear(theta, nb)
+        return res

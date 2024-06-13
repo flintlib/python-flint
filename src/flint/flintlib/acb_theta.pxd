@@ -2,15 +2,30 @@ from flint.flintlib.acb cimport acb_t, acb_srcptr, acb_ptr
 from flint.flintlib.acb_poly cimport acb_poly_struct, acb_poly_t
 from flint.flintlib.arb cimport arb_t, arb_ptr, arb_srcptr
 from flint.flintlib.flint cimport ulong, slong, flint_rand_t
-from flint.flintlib.fmpz_mat cimport fmpz_mat_t
+from flint.flintlib.fmpz_mat cimport fmpz_mat_t, fmpz_mat_struct
 from flint.flintlib.acb_mat cimport acb_mat_t
 from flint.flintlib.arb_mat cimport arb_mat_t
 from flint.flintlib.arf cimport arf_t
 
 
-# unimported types  {'acb_theta_eld_t', 'acb_theta_naive_worker_t', 'acb_theta_ql_worker_t'}
-
 cdef extern from "flint/acb_theta.h":
+    ctypedef struct acb_theta_eld_struct:
+        slong dim
+        slong ambient_dim
+        slong * last_coords
+        slong min
+        slong mid
+        slong max
+        slong nr
+        slong nl
+        acb_theta_eld_struct * rchildren
+        acb_theta_eld_struct * lchildren
+        slong nb_pts, nb_border
+        slong * box
+    ctypedef acb_theta_eld_struct acb_theta_eld_t[1]
+    ctypedef void (*acb_theta_naive_worker_t)(acb_ptr, acb_srcptr, acb_srcptr, const slong *, slong, const acb_t, const slong *, slong, slong, slong, slong)
+    ctypedef int (*acb_theta_ql_worker_t)(acb_ptr, acb_srcptr, acb_srcptr, arb_srcptr, arb_srcptr, const acb_mat_t, slong, slong)
+
     void acb_theta_all(acb_ptr th, acb_srcptr z, const acb_mat_t tau, int sqr, slong prec)
     void acb_theta_naive_fixed_ab(acb_ptr th, ulong ab, acb_srcptr zs, slong nb, const acb_mat_t tau, slong prec)
     void acb_theta_naive_all(acb_ptr th, acb_srcptr zs, slong nb, const acb_mat_t tau, slong prec)
