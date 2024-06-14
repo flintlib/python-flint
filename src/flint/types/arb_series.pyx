@@ -88,9 +88,9 @@ cdef class arb_series(flint_series):
     def repr(self, **kwargs):
         return "arb_series([%s], prec=%s)" % (", ".join(map(str, self)), self.prec)
 
-    def str(self, **kwargs):
+    def str(self, *args, **kwargs):
         if self.prec > 0:
-            s = arb_poly(list(self)).str(ascending=True)
+            s = arb_poly(list(self)).str(ascending=True, *args, **kwargs)
             return s + (" + O(x^%s)" % self.prec)
         elif self.prec == 0:
             return "O(x^0)"

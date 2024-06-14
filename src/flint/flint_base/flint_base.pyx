@@ -48,7 +48,7 @@ cdef class flint_poly(flint_elem):
         """
         return list(self)
 
-    def str(self, bint ascending=False):
+    def str(self, bint ascending=False, *args, **kwargs):
         """
         Convert to a human-readable string (generic implementation for
         all polynomial types).
@@ -56,7 +56,7 @@ cdef class flint_poly(flint_elem):
         If *ascending* is *True*, the monomials are output from low degree to
         high, otherwise from high to low.
         """
-        coeffs = [str(c) for c in self]
+        coeffs = [c.str(*args, **kwargs) for c in self]
         if not coeffs:
             return "0"
         s = []
