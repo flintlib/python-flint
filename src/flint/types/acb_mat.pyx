@@ -818,10 +818,25 @@ cdef class acb_mat(flint_mat):
 
     def theta(tau, z, square=False):
         r"""
-        FIXME
+        Computes the vector valued Riemann theta function `(\theta_{a,b}{z, tau) : a, b \in \{0,1\}^{g}\)` or its squares.
+        This is a wrapper for the function `acb_theta_all` and it follows the same conventions for the ordering of the theta characteristics.
+
+            >>> from flint import acb, acb_mat, showgood
+            >>> z = acb(1+1j); tau = acb(1.25+3j)
+            >>> t0, t1, t2, t3 = acb_mat([[tau]]).theta(acb_mat([[z]]))
+            >>> sum([abs(x) for x in acb_mat([z.modular_theta(tau)]) - acb_mat([[-t3,t2,t0,t1]])])
+            [+/- 3.82e-14]
+            >>> for i in range(4):showgood(lambda: acb_mat([[tau]]).theta(acb_mat([[z]]))[i], dps=25)
+            ...
+            0.9694430387796704100046143 - 0.03055696120816803328582847j
+            1.030556961196006476576271 + 0.03055696120816803328582847j
+            -1.220790267576967690128359 - 1.827055516791154669091679j
+            -1.820235910124989594900076 + 1.216251950154477951760042j
+            >>> acb_mat([[1j,0],[0,2*1j]]).theta(acb_mat([[0],[0]]))
+            ([1.09049252082308 +/- 3.59e-15] + [+/- 2.43e-16]j, [1.08237710165638 +/- 4.15e-15] + [+/- 2.43e-16]j, [0.916991251621117 +/- 6.30e-16] + [+/- 2.43e-16]j, [0.910167024735558 +/- 7.93e-16] + [+/- 2.43e-16]j, [0.451696791791346 +/- 5.46e-16] + [+/- 2.43e-16]j, [+/- 2.43e-16] + [+/- 2.43e-16]j, [0.379830212998946 +/- 4.47e-16] + [+/- 2.43e-16]j, [+/- 2.43e-16] + [+/- 2.43e-16]j, [0.916991251621117 +/- 6.30e-16] + [+/- 2.43e-16]j, [0.910167024735558 +/- 7.93e-16] + [+/- 2.43e-16]j, [+/- 2.43e-16] + [+/- 2.43e-16]j, [+/- 2.43e-16] + [+/- 2.43e-16]j, [0.379830212998946 +/- 4.47e-16] + [+/- 2.43e-16]j, [+/- 2.43e-16] + [+/- 2.43e-16]j, [+/- 2.43e-16] + [+/- 2.43e-16]j, [+/- 2.43e-16] + [+/- 2.43e-16]j)
+
         """
         g = tau.nrows()
-        assert g > 1
         assert tau.ncols() == g
         assert z.nrows() == g
         assert z.ncols() == 1
