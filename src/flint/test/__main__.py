@@ -80,11 +80,14 @@ def run_doctests(verbose=None):
                flint.types.acb_series,
                flint.types.dirichlet,
                flint.functions.showgood]
-    if hasattr(flint.types, 'acb_theta'):
-        modules.append(flint.types.acb_theta)
+    try:
+        from flint.types import acb_theta
+        modules.append(acb_theta)
+    except ImportError:
+        pass
     results = [doctest.testmod(x) for x in modules]
 #    ffmpz, tfmpz = doctest.testmod(flint._fmpz, verbose=verbose)
- #   failed, total = doctest.testmod(flint.pyflint, verbose=verbose)
+#    failed, total = doctest.testmod(flint.pyflint, verbose=verbose)
     return tuple(sum(res) for res in zip(*results))
 
 
