@@ -61,6 +61,7 @@ def acb_theta(acb_mat z, acb_mat tau, ulong square=False):
         [                          [+/- 1.23e-3010] + [+/- 1.23e-3010]j]
         [                          [+/- 1.23e-3010] + [+/- 1.23e-3010]j]
         [                          [+/- 1.23e-3010] + [+/- 1.23e-3010]j]
+        >>> ctx.default()
 
     """
     g = tau.nrows()
