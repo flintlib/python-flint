@@ -1400,6 +1400,9 @@ cdef class acb(flint_scalar):
     def rel_accuracy_bits(self):
         return acb_rel_accuracy_bits(self.val)
 
+    def rel_one_accuracy_bits(self):
+        return acb_rel_one_accuracy_bits(self.val)
+
     def ei(s):
         r"""
         Exponential integral `\operatorname{Ei}(s)`.

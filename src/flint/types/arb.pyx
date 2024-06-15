@@ -2413,6 +2413,9 @@ cdef class arb(flint_scalar):
     def rel_accuracy_bits(self):
         return arb_rel_accuracy_bits(self.val)
 
+    def rel_one_accuracy_bits(self):
+        return arb_rel_one_accuracy_bits(self.val)
+
     def lambertw(s, int branch=0):
         r"""
         Lambert *W* function, `W_k(s)`. Either the principal
