@@ -16,7 +16,7 @@ def acb_theta(acb_mat z, acb_mat tau, ulong square=False):
 
     This should be used via the method :meth:`.acb_mat.theta`, explicitly ``tau.theta(z)``.
 
-        >>> from flint import acb, acb_mat, showgood
+        >>> from flint import acb, acb_mat, showgood, ctx
         >>> z = acb(1+1j); tau = acb(1.25+3j)
         >>> t0, t1, t2, t3 = acb_mat([[tau]]).theta(acb_mat([[z]])).entries()
         >>> sum([abs(x) for x in acb_mat([z.modular_theta(tau)]) - acb_mat([[-t3,t2,t0,t1]])])
