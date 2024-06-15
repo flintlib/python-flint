@@ -5,12 +5,16 @@ from flint.flintlib.acb cimport *
 from flint.flintlib.acb_mat cimport *
 from flint.flintlib.acb_theta cimport *
 
-def acb_mat_theta(acb_mat z, acb_mat tau, ulong square=False):
+def acb_theta(acb_mat z, acb_mat tau, ulong square=False):
     r"""
-    Computes the vector valued Riemann theta function `(\theta_{a,b}{z, tau) : a, b \in \{0,1\}^{g}\)` or its squares.
-    This is a wrapper for the function `acb_theta_all` and it follows the same conventions for the ordering of the theta characteristics.
+    Computes the vector valued Riemann theta function
+    `(\theta_{a,b}(z, \tau) : a, b \in \{0,1\}^{g})` or its squares.
 
-    This should be used via method `acb_mat.theta` with the order of `z` and `tau` swapped,
+    This is a wrapper for the C-function
+    `acb_theta_all <https://flintlib.org/doc/acb_theta.html#c.acb_theta_all>`_
+    and it follows the same conventions for the ordering of the theta characteristics.
+
+    This should be used via the method :meth:`.acb_mat.theta`, explicitly ``tau.theta(z)``.
 
         >>> from flint import acb, acb_mat, showgood
         >>> z = acb(1+1j); tau = acb(1.25+3j)
