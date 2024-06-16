@@ -814,3 +814,22 @@ cdef class acb_mat(flint_mat):
         if left:
             return Elist, L
         return Elist, R
+
+    def theta(tau, z, square=False):
+        r"""
+        Computes the vector valued Riemann theta function
+        `(\theta_{a,b}(z, \tau) : a, b \in \{0,1\}^{g})` or its squares,
+        where `\tau` is given by ``self``.
+
+        This is a wrapper for :func:`.acb_theta.acb_theta`; see the
+        documentation for that method for details and examples.
+        This follows the same conventions of the C-function
+        `acb_theta_all <https://flintlib.org/doc/acb_theta.html#c.acb_theta_all>`_
+        for the ordering of the theta characteristics.
+
+        """
+        try:
+            from .acb_theta import acb_theta
+        except ImportError:
+            raise NotImplementedError("acb_mat.theta needs Flint >= 3.1.0")
+        return acb_theta(z, tau, square=square)

@@ -41,6 +41,10 @@ exts = [
   'fmpz_mpoly',
 ]
 
+if have_acb_theta
+  exts += ['acb_theta']
+endif
+
 py.install_sources(
   pyfiles,
   pure: false,
