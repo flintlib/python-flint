@@ -281,12 +281,11 @@ curl -O -L https://github.com/flintlib/flint/releases/download/v$FLINTVER/flint-
 tar xf flint-$FLINTVER.tar.gz
 cd flint-$FLINTVER
   ./bootstrap.sh
-  ./configure --prefix=$PREFIX\
+  CFLAGS='-Wl,--strip-all' ./configure --prefix=$PREFIX\
     $FLINTARB_WITHGMP\
     --with-mpfr=$PREFIX\
     --disable-static
   make -j6
-  strip libflint.so
   make install
 cd ..
 
