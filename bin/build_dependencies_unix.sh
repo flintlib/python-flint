@@ -286,6 +286,7 @@ cd flint-$FLINTVER
     --with-mpfr=$PREFIX\
     --disable-static
   make -j6
+  strip libflint.so
   make install
 cd ..
 
