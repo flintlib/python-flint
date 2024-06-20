@@ -168,16 +168,16 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
         res = create_fmpq_mpoly(self)
 
         for i, (k, v) in enumerate(d.items()):
-            v = any_as_fmpq(v)
-            if v is NotImplemented:
+            o = any_as_fmpq(v)
+            if o is NotImplemented:
                 raise TypeError(f"cannot coerce coefficient '{v}' to fmpq")
             elif len(k) != nvars:
                 raise ValueError(f"expected {nvars} exponents, got {len(k)}")
 
             exp_vec = fmpz_vec(k)
 
-            if v:
-                fmpq_mpoly_push_term_fmpq_ffmpz(res.val, (<fmpq>v).val, exp_vec.val, self.val)
+            if o:
+                fmpq_mpoly_push_term_fmpq_ffmpz(res.val, (<fmpq>o).val, exp_vec.val, self.val)
 
         fmpq_mpoly_sort_terms(res.val, self.val)
         fmpq_mpoly_reduce(res.val, self.val)
