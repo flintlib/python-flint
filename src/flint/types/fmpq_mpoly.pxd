@@ -26,8 +26,6 @@ cdef inline create_fmpq_mpoly(fmpq_mpoly_ctx ctx):
 
 cdef class fmpq_mpoly_ctx(flint_mpoly_context):
     cdef fmpq_mpoly_ctx_t val
-    cpdef slong nvars(self)
-    cpdef ordering(self)
 
 cdef class fmpq_mpoly(flint_mpoly):
     cdef fmpq_mpoly_t val

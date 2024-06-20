@@ -4,7 +4,9 @@ from flint.flintlib.flint cimport (
     __FLINT_RELEASE as _FLINT_RELEASE,
     slong
 )
+from flint.flintlib.mpoly cimport ordering_t
 from flint.flint_base.flint_context cimport thectx
+from flint.flint_base.flint_base cimport Ordering
 from flint.utils.typecheck cimport typecheck
 cimport libc.stdlib
 
@@ -149,7 +151,7 @@ cdef class flint_mpoly_context(flint_elem):
         return self.__repr__()
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.nvars()}, '{self.ordering()}', {self.names()})"
+        return f"{self.__class__.__name__}({self.nvars()}, '{repr(self.ordering())}', {self.names()})"
 
     def name(self, long i):
         if not 0 <= i < len(self.py_names):
@@ -169,8 +171,8 @@ cdef class flint_mpoly_context(flint_elem):
 
         If `names` contains a single value, and `nvars` > 1, then the variables are numbered, e.g.
 
-            >>> create_variable_names(3, "x")
-            ("x0", "x1", "x2")
+            >>> flint_mpoly_context.create_variable_names(3, "x")
+            ('x0', 'x1', 'x2')
 
         """
         nametup = tuple(name.strip() for name in names.split(','))
@@ -182,11 +184,17 @@ cdef class flint_mpoly_context(flint_elem):
         return nametup
 
     @classmethod
-    def get_context(cls, slong nvars=1, ordering: str = "lex", names: Optional[str] = "x", nametup: Optional[tuple] = None):
+    def get_context(cls, slong nvars=1, ordering=Ordering.lex, names: Optional[str] = "x", nametup: Optional[tuple] = None):
         """
         Retrieve a context via the number of variables, `nvars`, the ordering, `ordering`, and either a variable
         name string, `names`, or a tuple of variable names, `nametup`.
         """
+
+        # A type hint of `ordering: Ordering` results in the error "TypeError: an integer is required" if a Ordering
+        # object is not provided. This is pretty obtuse so we check it's type ourselves
+        if not isinstance(ordering, Ordering):
+            raise TypeError(f"`ordering` ('{ordering}') is not an instance of flint.Ordering")
+
         if nametup is not None:
             key = nvars, ordering, nametup
         elif nametup is None and names is not None:
@@ -295,3 +303,26 @@ cdef class flint_mat(flint_elem):
 
 cdef class flint_rational_function(flint_elem):
     pass
+
+
+cdef ordering_t ordering_py_to_c(ordering):  # Cython does not like an "Ordering" type hint here
+    if not isinstance(ordering, Ordering):
+        raise TypeError(f"`ordering` ('{ordering}') is not an instance of flint.Ordering")
+
+    if ordering == Ordering.lex:
+        return ordering_t.ORD_LEX
+    elif ordering == Ordering.deglex:
+        return ordering_t.ORD_DEGLEX
+    elif ordering == Ordering.degrevlex:
+        return ordering_t.ORD_DEGREVLEX
+
+
+cdef ordering_c_to_py(ordering_t ordering):
+    if ordering == ordering_t.ORD_LEX:
+        return Ordering.lex
+    elif ordering == ordering_t.ORD_DEGLEX:
+        return Ordering.deglex
+    elif ordering == ordering_t.ORD_DEGREVLEX:
+        return Ordering.degrevlex
+    else:
+        raise ValueError("Unimplemented term order %d" % ordering)

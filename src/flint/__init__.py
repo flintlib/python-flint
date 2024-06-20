@@ -41,6 +41,7 @@ from .functions.showgood import good, showgood
 from .flint_base.flint_base import (
     FLINT_VERSION as __FLINT_VERSION__,
     FLINT_RELEASE as __FLINT_RELEASE__,
+    Ordering,
 )
 
 __version__ = '0.6.0'

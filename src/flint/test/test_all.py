@@ -2645,9 +2645,9 @@ def test_mpolys():
 
         ctx = C.get_context(nvars=2)
 
-        assert raises(lambda: C.get_context(nvars=2, ordering="bad"), ValueError)
+        assert raises(lambda: C.get_context(nvars=2, ordering="bad"), TypeError)
         assert raises(lambda: C.get_context(nvars=-1), ValueError)
-        assert raises(lambda: C(-1, "lex", []), ValueError)
+        assert raises(lambda: C(-1, flint.Ordering.lex, []), ValueError)
         assert raises(lambda: ctx.constant("bad"), TypeError)
         assert raises(lambda: ctx.from_dict("bad"), ValueError)
         assert raises(lambda: ctx.from_dict({(0, 0): "bad"}), TypeError)
@@ -2673,11 +2673,11 @@ def test_mpolys():
             return mpoly({(0, 0): 1, (0, 1): 2, (1, 0): 3, (2, 2): 4})
 
         assert ctx.nvars() == 2
-        assert ctx.ordering() == "lex"
+        assert ctx.ordering() == flint.Ordering.lex
 
         ctx1 = C.get_context(4)
         assert [ctx1.name(i) for i in range(4)] == ['x0', 'x1', 'x2', 'x3']
-        for order in ['lex', 'deglex', 'degrevlex']:
+        for order in list(flint.Ordering):
             ctx1 = C.get_context(4, order)
             assert ctx1.ordering() == order
 
@@ -2775,8 +2775,8 @@ def test_mpolys():
         assert raises(lambda: p.__setitem__(2, None), TypeError)
         assert raises(lambda: p.__setitem__(-1, 1), IndexError)
 
-        assert P(ctx=ctx).repr() == f"{ctx.__class__.__name__}(2, 'lex', ('x0', 'x1')).from_dict({{}})"
-        assert P(1, ctx=ctx).repr() == f"{ctx.__class__.__name__}(2, 'lex', ('x0', 'x1')).from_dict({{(0, 0): 1}})"
+        assert P(ctx=ctx).repr() == f"{ctx.__class__.__name__}(2, '<Ordering.lex: 0>', ('x0', 'x1')).from_dict({{}})"
+        assert P(1, ctx=ctx).repr() == f"{ctx.__class__.__name__}(2, '<Ordering.lex: 0>', ('x0', 'x1')).from_dict({{(0, 0): 1}})"
         assert str(quick_poly()) == repr(quick_poly()) == '4*x0^2*x1^2 + 3*x0 + 2*x1 + 1'
 
         assert p.exponent_tuple(0) == (2, 2)

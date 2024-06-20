@@ -1,5 +1,10 @@
-from flint.flint_base.flint_base cimport flint_mpoly
-from flint.flint_base.flint_base cimport flint_mpoly_context
+from flint.flint_base.flint_base cimport (
+    flint_mpoly,
+    flint_mpoly_context,
+    Ordering,
+    ordering_py_to_c,
+    ordering_c_to_py,
+)
 
 from flint.utils.typecheck cimport typecheck
 from flint.utils.flint_exceptions import IncompatibleContextError
@@ -86,50 +91,37 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
     _ctx_cache = _fmpq_mpoly_ctx_cache
 
     def __init__(self, slong nvars, ordering, names):
-        if ordering == "lex":
-            fmpq_mpoly_ctx_init(self.val, nvars, ordering_t.ORD_LEX)
-        elif ordering == "deglex":
-            fmpq_mpoly_ctx_init(self.val, nvars, ordering_t.ORD_DEGLEX)
-        elif ordering == "degrevlex":
-            fmpq_mpoly_ctx_init(self.val, nvars, ordering_t.ORD_DEGREVLEX)
-        else:
-            raise ValueError("Unimplemented term order %s" % ordering)
-
+        fmpq_mpoly_ctx_init(self.val, nvars, ordering_py_to_c(ordering))
         super().__init__(nvars, names)
 
-    cpdef slong nvars(self):
+    def nvars(self):
         """
         Return the number of variables in the context
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(4, "lex", 'x')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(4, Ordering.lex, 'x')
             >>> ctx.nvars()
             4
         """
         return self.val.zctx.minfo.nvars
 
-    cpdef ordering(self):
+    def ordering(self):
         """
         Return the term order of the context object.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(4, "deglex", 'w')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(4, Ordering.deglex, 'w')
             >>> ctx.ordering()
-            'deglex'
+            <Ordering.deglex: 1>
         """
-        if self.val.zctx.minfo.ord == ordering_t.ORD_LEX:
-            return "lex"
-        elif self.val.zctx.minfo.ord == ordering_t.ORD_DEGLEX:
-            return "deglex"
-        elif self.val.zctx.minfo.ord == ordering_t.ORD_DEGREVLEX:
-            return "degrevlex"
-        else:
-            # This should be unreachable
-            raise ValueError("unknown ordering")  # pragma: no cover
+        return ordering_c_to_py(self.val.zctx.minfo.ord)
 
     def gen(self, slong i):
         """
         Return the `i`th generator of the polynomial ring
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(3, 'degrevlex', 'z')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(3, Ordering.degrevlex, 'z')
             >>> ctx.gen(1)
             z1
         """
@@ -159,7 +151,8 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
         The dictionary's keys are tuples of ints (or anything that implicitly converts
         to fmpz) representing exponents, and corresponding coefficient values of fmpq.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(2,'lex','x,y')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x,y')
             >>> ctx.from_dict({(1,0):2, (1,1):3, (0,1):1})
             3*x*y + 2*x + y
         """
@@ -274,7 +267,8 @@ cdef class fmpq_mpoly(flint_mpoly):
         Return the term at index `x` if `x` is an `int`, or the term with the exponent
         vector `x` if `x` is a tuple of `int`s or `fmpq`s.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p[1]
             2*x1
@@ -306,7 +300,8 @@ cdef class fmpq_mpoly(flint_mpoly):
         Set the coefficient at index `x` to `y` if `x` is an `int`, or the term with
         the exponent vector `x` if `x` is a tuple of `int`s or `fmpq`s.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p[1] = 10
             >>> p[1, 1] = 20
@@ -675,7 +670,8 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the context object for this polynomials.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(0, 1): 2})
             >>> ctx is p.context()
             True
@@ -689,7 +685,8 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the coefficient at index `i`.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p.coefficient(1)
             2
@@ -706,7 +703,8 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the exponent vector at index `i` as a tuple.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p.exponent_tuple(1)
             (0, 1)
@@ -724,7 +722,8 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return a dictionary of variable name to degree.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(4, "lex", 'x')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(4, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
             >>> p.degrees()
             {'x0': 1, 'x1': 2, 'x2': 3, 'x3': 0}
@@ -740,7 +739,8 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the total degree.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(4, "lex", 'x')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(4, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
             >>> p.total_degree()
             3
@@ -764,7 +764,8 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the gcd of self and other.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> f = ctx.from_dict({(1, 1): 4, (0, 0): 1})
             >>> g = ctx.from_dict({(0, 1): 2, (1, 0): 2})
             >>> (f * g).gcd(f)
@@ -784,7 +785,8 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the square root of self.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> f = ctx.from_dict({(1, 1): 4, (0, 0): 1})
             >>> (f * f).sqrt()
             4*x0*x1 + 1
@@ -803,8 +805,9 @@ cdef class fmpq_mpoly(flint_mpoly):
         (c, factors) where c is the content of the coefficients and
         factors is a list of (poly, exp) pairs.
 
+            >>> from flint import Ordering
             >>> Zm = fmpq_mpoly
-            >>> ctx = fmpq_mpoly_ctx.get_context(3, 'lex', 'x,y,z')
+            >>> ctx = fmpq_mpoly_ctx.get_context(3, Ordering.lex, 'x,y,z')
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*z +  + 3*x + 3*z + 3", ctx)
             >>> (p1 * p2).factor()
@@ -840,8 +843,9 @@ cdef class fmpq_mpoly(flint_mpoly):
         (c, factors) where c is the content of the coefficients and
         factors is a list of (poly, exp) pairs.
 
+            >>> from flint import Ordering
             >>> Zm = fmpq_mpoly
-            >>> ctx = fmpq_mpoly_ctx.get_context(3, 'lex', 'x,y,z')
+            >>> ctx = fmpq_mpoly_ctx.get_context(3, Ordering.lex, 'x,y,z')
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*y + 3*x + 3*y + 3", ctx)
             >>> (p1 * p2).factor_squarefree()
@@ -878,7 +882,8 @@ cdef class fmpq_mpoly(flint_mpoly):
         The argument and either be the variable as a string, or the index of the
         variable in the context.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(0, 3): 2, (2, 1): 3})
             >>> p
             3*x0^2*x1 + 2*x1^3
@@ -916,7 +921,8 @@ cdef class fmpq_mpoly(flint_mpoly):
         where B is minimal. The argument and either be the variable as a string, or
         the index of the variable in the context.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, "lex", 'x')
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(0, 3): 2, (2, 1): 3})
             >>> p
             3*x0^2*x1 + 2*x1^3
