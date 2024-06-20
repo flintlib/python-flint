@@ -284,7 +284,8 @@ cd flint-$FLINTVER
   ./configure --prefix=$PREFIX\
     $FLINTARB_WITHGMP\
     --with-mpfr=$PREFIX\
-    --disable-static
+    --disable-static\
+    --disable-debug
   make -j6
   make install
 cd ..

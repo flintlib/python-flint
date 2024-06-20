@@ -79,6 +79,7 @@ cdef extern from "flint/arb.h":
     void arb_nonnegative_part(arb_t u, const arb_t x)
     slong arb_rel_error_bits(const arb_t x)
     slong arb_rel_accuracy_bits(const arb_t x)
+    slong arb_rel_one_accuracy_bits(const arb_t x)
     long arb_bits(const arb_t x)
     void arb_randtest_exact(arb_t x, flint_rand_t state, long prec, long mag_bits)
     void arb_randtest_wide(arb_t x, flint_rand_t state, long prec, long mag_bits)

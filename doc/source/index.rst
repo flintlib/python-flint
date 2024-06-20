@@ -61,6 +61,7 @@ Matrix types
    fmpz_mod_mat.rst
    arb_mat.rst
    acb_mat.rst
+   acb_theta.rst
 
 Polynomial types
 ................

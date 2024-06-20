@@ -32,11 +32,9 @@ cdef goodstr(x):
         return "(" + ", ".join(goodstr(y) for y in x) + ")"
     if isinstance(x, list):
         return "[" + ", ".join(goodstr(y) for y in x) + "]"
-    if isinstance(x, arb):
+    if isinstance(x, (arb, acb, arb_mat, acb_mat, arb_poly, acb_poly, arb_series, acb_series)):
         return x.str(radius=False)
-    if isinstance(x, acb):
-        return x.str(radius=False)
-    raise TypeError("must have arb or acb")
+    raise TypeError("must be a element/tuple/list of arb, acb, arb_mat, acb_mat, arb_poly, acb_poly, arb_series, or acb_series")
 
 def good(func, slong prec=0, slong maxprec=0, slong dps=0,
         slong maxdps=0, slong padding=10, bint verbose=False, bint show=False, bint parts=True, metric=None):

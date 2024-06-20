@@ -54,7 +54,7 @@ cdef arb_set_mpmath_mpf(arb_t x, obj):
         else:
             arb_indeterminate(x)
     else:
-        man = fmpz(long(man))
+        man = fmpz(int(man))
         exp = fmpz(exp)
 
         arb_set_fmpz(x, (<fmpz>man).val)
@@ -368,15 +368,15 @@ cdef class arb(flint_scalar):
             import mpmath
             mpmath_mpz = mpmath.libmp.MPZ
         except ImportError:
-            mpmath_mpz = long
+            mpmath_mpz = int
         if not self.is_finite():
             return (0, mpmath_mpz(0), -123, -1)
         man, exp = self.mid().man_exp()
-        man = mpmath_mpz(long(man))
+        man = mpmath_mpz(int(man))
         if man < 0:
-            return (1, -man, long(exp), man.bit_length())
+            return (1, -man, int(exp), man.bit_length())
         else:
-            return (0, man, long(exp), man.bit_length())
+            return (0, man, int(exp), man.bit_length())
 
     def repr(self):
         mid = self.mid()
@@ -1856,6 +1856,30 @@ cdef class arb(flint_scalar):
         arb_hypgeom_erfc((<arb>u).val, (<arb>s).val, getprec())
         return u
 
+    def erfinv(s):
+        r"""
+        Inverse error function `\operatorname{erfinv}(s)`.
+
+            >>> from flint import showgood
+            >>> showgood(lambda: arb(.25).erfinv(), dps=25)
+            0.2253120550121781047250140
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_erfinv((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
+    def erfcinv(s):
+        r"""
+        Inverse complementary error function `\operatorname{erfcinv}(s)`.
+
+            >>> from flint import showgood
+            >>> showgood(lambda: arb(.25).erfcinv(), dps=25)
+            0.8134198475976185416902894
+        """
+        u = arb.__new__(arb)
+        arb_hypgeom_erfcinv((<arb>u).val, (<arb>s).val, getprec())
+        return u
+
     def erfi(s):
         r"""
         Imaginary error function `\operatorname{erfi}(s)`.
@@ -2388,6 +2412,9 @@ cdef class arb(flint_scalar):
 
     def rel_accuracy_bits(self):
         return arb_rel_accuracy_bits(self.val)
+
+    def rel_one_accuracy_bits(self):
+        return arb_rel_one_accuracy_bits(self.val)
 
     def lambertw(s, int branch=0):
         r"""
