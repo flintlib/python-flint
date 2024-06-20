@@ -209,17 +209,6 @@ cdef class flint_mpoly_context(flint_elem):
             nametup=tuple(str(s, 'utf-8') for s in ctx.py_names)
         )
 
-    @classmethod
-    def joint_context(cls, *ctxs):
-        vars = set()
-        for ctx in ctxs:
-            if not typecheck(ctx, cls):
-                raise ValueError(f"{ctx} is not a {cls}")
-            else:
-                for var in ctx.py_names:
-                    vars.add(var)
-        return cls.get_context(nvars=len(vars), nametup=tuple(vars))
-
 
 cdef class flint_mpoly(flint_elem):
     """
