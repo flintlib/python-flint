@@ -31,7 +31,9 @@ cdef class fmpq_vec:
 
     def __dealloc__(self):
         libc.stdlib.free(self.double_indirect)
-        _fmpq_vec_clear(self.val, self.length)
+        if self.val is not NULL:
+            _fmpq_vec_clear(self.val, self.length)
+            self.val = NULL
 
     def __getitem__(self, x):
         if not isinstance(x, int):
