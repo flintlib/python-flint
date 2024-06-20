@@ -899,7 +899,7 @@ cdef class fmpz_mpoly(flint_mpoly):
     def derivative(self, var):
         """
         Return the derivative of this polynomial with respect to the provided variable.
-        The argument and either be the variable as a string, or the index of the
+        The argument can either be the variable as a string, or the index of the
         variable in the context.
 
             >>> from flint import Ordering
