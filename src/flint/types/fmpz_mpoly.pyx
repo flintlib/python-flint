@@ -19,7 +19,6 @@ cimport libc.stdlib
 cdef dict _fmpz_mpoly_ctx_cache = {}
 
 
-@cython.auto_pickle(False)
 cdef class fmpz_mpoly_ctx(flint_mpoly_context):
     """
     A class for storing the polynomial context
