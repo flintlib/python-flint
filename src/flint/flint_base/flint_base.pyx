@@ -131,9 +131,6 @@ cdef class flint_mpoly_context(flint_elem):
 
     _ctx_cache = None
 
-    def __cinit__(self):
-        self._init = False
-
     def __init__(self, int nvars, names):
         if nvars < 0:
             raise ValueError("cannot have a negative amount of variables")
@@ -141,14 +138,12 @@ cdef class flint_mpoly_context(flint_elem):
             raise ValueError("number of variables must match lens of variable names")
         self.py_names = tuple(name.encode("ascii") if not isinstance(name, bytes) else name for name in names)
         self.c_names = <const char**> libc.stdlib.malloc(nvars * sizeof(const char *))
-        self._init = True
         for i in range(nvars):
             self.c_names[i] = self.py_names[i]
 
     def __dealloc__(self):
-        if self._init:
-            libc.stdlib.free(self.c_names)
-        self._init = False
+        libc.stdlib.free(self.c_names)
+        self.c_names = NULL
 
     def __str__(self):
         return self.__repr__()
