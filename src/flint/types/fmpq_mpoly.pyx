@@ -11,16 +11,62 @@ from flint.types.fmpq_vec cimport fmpq_vec
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 from flint.types.fmpz_mpoly cimport fmpz_mpoly
 
-from flint.flintlib.flint cimport *
 from flint.flintlib.fmpq cimport fmpq_set, fmpq_one
-from flint.flintlib.fmpq_mpoly cimport *
-from flint.flintlib.fmpq_mpoly_factor cimport *
+from flint.flintlib.mpoly cimport ordering_t
+from flint.flintlib.fmpq_mpoly cimport (
+    fmpq_mpoly_add,
+    fmpq_mpoly_add_fmpq,
+    fmpq_mpoly_clear,
+    fmpq_mpoly_compose_fmpq_mpoly,
+    fmpq_mpoly_ctx_init,
+    fmpq_mpoly_degrees_fmpz,
+    fmpq_mpoly_derivative,
+    fmpq_mpoly_div,
+    fmpq_mpoly_divrem,
+    fmpq_mpoly_equal,
+    fmpq_mpoly_evaluate_all_fmpq,
+    fmpq_mpoly_evaluate_one_fmpq,
+    fmpq_mpoly_gcd,
+    fmpq_mpoly_gen,
+    fmpq_mpoly_get_coeff_fmpq_fmpz,
+    fmpq_mpoly_get_str_pretty,
+    fmpq_mpoly_get_term,
+    fmpq_mpoly_get_term_coeff_fmpq,
+    fmpq_mpoly_get_term_exp_fmpz,
+    fmpq_mpoly_integral,
+    fmpq_mpoly_is_one,
+    fmpq_mpoly_is_zero,
+    fmpq_mpoly_length,
+    fmpq_mpoly_mul,
+    fmpq_mpoly_neg,
+    fmpq_mpoly_pow_fmpz,
+    fmpq_mpoly_push_term_fmpq_ffmpz,
+    fmpq_mpoly_reduce,
+    fmpq_mpoly_scalar_div_fmpq,
+    fmpq_mpoly_scalar_mul_fmpq,
+    fmpq_mpoly_set,
+    fmpq_mpoly_set_coeff_fmpq_fmpz,
+    fmpq_mpoly_set_fmpq,
+    fmpq_mpoly_set_str_pretty,
+    fmpq_mpoly_set_term_coeff_fmpq,
+    fmpq_mpoly_sort_terms,
+    fmpq_mpoly_sqrt,
+    fmpq_mpoly_sub,
+    fmpq_mpoly_sub_fmpq,
+    fmpq_mpoly_total_degree_fmpz,
+)
+from flint.flintlib.fmpq_mpoly_factor cimport (
+    fmpq_mpoly_factor,
+    fmpq_mpoly_factor_clear,
+    fmpq_mpoly_factor_init,
+    fmpq_mpoly_factor_squarefree,
+    fmpq_mpoly_factor_t,
+)
 
 from flint.flintlib.fmpz cimport fmpz_init_set
 from flint.flintlib.fmpz_mpoly cimport fmpz_mpoly_set
 
 from cpython.object cimport Py_EQ, Py_NE
-cimport cython
 cimport libc.stdlib
 
 cdef dict _fmpq_mpoly_ctx_cache = {}

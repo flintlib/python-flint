@@ -7,10 +7,59 @@ from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 from flint.types.fmpz cimport any_as_fmpz, fmpz
 from flint.types.fmpz_vec cimport fmpz_vec
 
-from flint.flintlib.flint cimport *
 from flint.flintlib.fmpz cimport fmpz_set
-from flint.flintlib.fmpz_mpoly cimport *
-from flint.flintlib.fmpz_mpoly_factor cimport *
+from flint.flintlib.mpoly cimport ordering_t
+from flint.flintlib.fmpz_mpoly cimport (
+    fmpz_mpoly_add,
+    fmpz_mpoly_add_fmpz,
+    fmpz_mpoly_clear,
+    fmpz_mpoly_compose_fmpz_mpoly,
+    fmpz_mpoly_ctx_init,
+    fmpz_mpoly_degrees_fmpz,
+    fmpz_mpoly_derivative,
+    fmpz_mpoly_div,
+    fmpz_mpoly_divrem,
+    fmpz_mpoly_equal,
+    fmpz_mpoly_evaluate_all_fmpz,
+    fmpz_mpoly_evaluate_one_fmpz,
+    fmpz_mpoly_gcd,
+    fmpz_mpoly_gen,
+    fmpz_mpoly_get_coeff_fmpz_fmpz,
+    fmpz_mpoly_get_str_pretty,
+    fmpz_mpoly_get_term,
+    fmpz_mpoly_get_term_coeff_fmpz,
+    fmpz_mpoly_get_term_exp_fmpz,
+    fmpz_mpoly_integral,
+    fmpz_mpoly_is_one,
+    fmpz_mpoly_is_zero,
+    fmpz_mpoly_length,
+    fmpz_mpoly_mul,
+    fmpz_mpoly_neg,
+    fmpz_mpoly_pow_fmpz,
+    fmpz_mpoly_push_term_fmpz_ffmpz,
+    fmpz_mpoly_scalar_divides_fmpz,
+    fmpz_mpoly_scalar_mul_fmpz,
+    fmpz_mpoly_set,
+    fmpz_mpoly_set_coeff_fmpz_fmpz,
+    fmpz_mpoly_set_fmpz,
+    fmpz_mpoly_set_str_pretty,
+    fmpz_mpoly_set_term_coeff_fmpz,
+    fmpz_mpoly_sort_terms,
+    fmpz_mpoly_sqrt_heap,
+    fmpz_mpoly_sub,
+    fmpz_mpoly_sub_fmpz,
+    fmpz_mpoly_total_degree_fmpz,
+    fmpz_mpoly_vec_clear,
+    fmpz_mpoly_vec_entry,
+    fmpz_mpoly_vec_init,
+)
+from flint.flintlib.fmpz_mpoly_factor cimport (
+    fmpz_mpoly_factor,
+    fmpz_mpoly_factor_clear,
+    fmpz_mpoly_factor_init,
+    fmpz_mpoly_factor_squarefree,
+    fmpz_mpoly_factor_t,
+)
 
 from cpython.object cimport Py_EQ, Py_NE
 cimport cython
