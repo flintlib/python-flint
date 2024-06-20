@@ -903,20 +903,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         cdef:
             fmpq_mpoly res
-            slong i = 0
-
-        if isinstance(var, str):
-            vars = {x: i for i, x in enumerate(self.ctx.names())}
-            if var not in vars:
-                raise ValueError("variable not in context")
-            else:
-                i = vars[var]
-        elif isinstance(var, int):
-            if not 0 <= var < self.ctx.nvars():
-                raise IndexError("generator index out of range")
-            i = <slong>var
-        else:
-            raise TypeError("invalid variable type")
+            slong i = self.ctx.variable_to_index(var)
 
         res = create_fmpq_mpoly(self.ctx)
 
@@ -942,20 +929,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         cdef:
             fmpq_mpoly res
-            slong i = 0
-
-        if isinstance(var, str):
-            vars = {x: i for i, x in enumerate(self.ctx.names())}
-            if var not in vars:
-                raise ValueError("variable not in context")
-            else:
-                i = vars[var]
-        elif isinstance(var, int):
-            if not 0 <= var < self.ctx.nvars():
-                raise IndexError("generator index out of range")
-            i = <slong>var
-        else:
-            raise TypeError("invalid variable type")
+            slong i = self.ctx.variable_to_index(var)
 
         res = create_fmpq_mpoly(self.ctx)
 
