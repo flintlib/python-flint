@@ -22,6 +22,7 @@ from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_degrees_fmpz,
     fmpz_mpoly_derivative,
     fmpz_mpoly_div,
+    fmpz_mpoly_divides,
     fmpz_mpoly_divrem,
     fmpz_mpoly_equal,
     fmpz_mpoly_evaluate_all_fmpz,
@@ -519,8 +520,13 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_mpoly res
 
         if typecheck(other, fmpz_mpoly):
-            res, r = divmod(self, other)
-            if not r:
+            if not other:
+                raise ZeroDivisionError("fmpz_mpoly division by zero")
+            elif self.ctx is not (<fmpz_mpoly>other).ctx:
+                raise IncompatibleContextError(f"{self.ctx} is not {(<fmpz_mpoly>other).ctx}")
+
+            res = create_fmpz_mpoly(self.ctx)
+            if fmpz_mpoly_divides(res.val, self.val, (<fmpz_mpoly>other).val, self.ctx.val):
                 return res
             else:
                 raise DomainError("fmpz_mpoly division is not exact")

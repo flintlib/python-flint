@@ -7,7 +7,7 @@ from flint.flint_base.flint_base cimport (
 )
 
 from flint.utils.typecheck cimport typecheck
-from flint.utils.flint_exceptions import IncompatibleContextError
+from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
 from flint.types.fmpq cimport fmpq, any_as_fmpq
 from flint.types.fmpz_vec cimport fmpz_vec
@@ -27,6 +27,7 @@ from flint.flintlib.fmpq_mpoly cimport (
     fmpq_mpoly_degrees_fmpz,
     fmpq_mpoly_derivative,
     fmpq_mpoly_div,
+    fmpq_mpoly_divides,
     fmpq_mpoly_divrem,
     fmpq_mpoly_equal,
     fmpq_mpoly_evaluate_all_fmpq,
@@ -538,8 +539,16 @@ cdef class fmpq_mpoly(flint_mpoly):
             fmpq_mpoly res
 
         if typecheck(other, fmpq_mpoly):
-            res, r = divmod(self, other)
-            return res + r
+            if not other:
+                raise ZeroDivisionError("fmpq_mpoly division by zero")
+            elif self.ctx is not (<fmpq_mpoly>other).ctx:
+                raise IncompatibleContextError(f"{self.ctx} is not {(<fmpq_mpoly>other).ctx}")
+
+            res = create_fmpq_mpoly(self.ctx)
+            if fmpq_mpoly_divides(res.val, self.val, (<fmpq_mpoly>other).val, self.ctx.val):
+                return res
+            else:
+                raise DomainError("fmpq_mpoly division is not exact")
         else:
             o = any_as_fmpq(other)
             if o is NotImplemented:
