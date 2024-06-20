@@ -23,7 +23,6 @@ from .types.fmpz_mod_poly import *
 from .types.fmpz_mod_mat import fmpz_mod_mat
 
 from .types.fmpq_mpoly import fmpq_mpoly_ctx, fmpq_mpoly, fmpq_mpoly_vec
-from .types.fmpz_mpoly_q import *
 
 from .types.arf import *
 from .types.arb import *
