@@ -2721,12 +2721,12 @@ def test_mpolys():
         assert (None != P(1, ctx=ctx)) is True
 
         assert P(ctx.from_dict({(0, 1): 3})) == ctx.from_dict({(0, 1): 3})
-        assert P({(0, 1): 3}) == ctx.from_dict({(0, 1): 3})
+        assert P({(0, 1): 3}, ctx=ctx) == ctx.from_dict({(0, 1): 3})
 
         if P is flint.fmpq_mpoly:
             ctx_z = flint.fmpz_mpoly_ctx.get_context(2)
             assert quick_poly() == P(ctx_z.from_dict({(0, 0): 1, (0, 1): 2, (1, 0): 3, (2, 2): 4}))
-            assert raises(lambda: P(ctx_z.from_dict({(0, 0): 1}), ctx=ctx), TypeError)
+            assert P(ctx_z.from_dict({(0, 0): 1}), ctx=ctx) == P({(0, 0): 1}, ctx=ctx)
 
         assert raises(lambda: P(ctx=ctx) < P(ctx=ctx), TypeError)
         assert raises(lambda: P(ctx=ctx) <= P(ctx=ctx), TypeError)

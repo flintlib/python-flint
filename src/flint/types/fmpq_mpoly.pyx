@@ -207,20 +207,19 @@ cdef class fmpq_mpoly(flint_mpoly):
         elif typecheck(val, fmpz_mpoly):
             if ctx is None:
                 ctx = fmpq_mpoly_ctx.from_context((<fmpz_mpoly>val).ctx)
-            elif not typecheck(ctx, fmpz_mpoly_ctx):
-                raise TypeError(f"{ctx} is not a fmpz_mpoly_ctx")
+            elif not typecheck(ctx, fmpq_mpoly_ctx) and not typecheck(ctx, fmpz_mpoly_ctx):
+                raise TypeError(f"{ctx} is not a fmpq_mpoly_ctx or fmpz_mpoly_ctx")
+            elif ctx.nvars() != val.context().nvars():
+                raise ValueError(
+                    f"Provided context ('{ctx}') and provided fmpz_mpoly ('{val}') don't share the same number of variables"
+                )
             init_fmpq_mpoly(self, ctx)
             fmpz_mpoly_set(self.val.zpoly, (<fmpz_mpoly>val).val, (<fmpz_mpoly> val).ctx.val)
             fmpq_one(self.val.content)
             fmpq_mpoly_reduce(self.val, self.ctx.val)
         elif isinstance(val, dict):
             if ctx is None:
-                if len(val) == 0:
-                    raise ValueError("Need context for zero polynomial")
-                k = list(val.keys())[0]
-                if not isinstance(k, tuple):
-                    raise ValueError("Dict should be keyed with tuples of integers")
-                ctx = fmpq_mpoly_ctx.get_context(len(k))
+                raise ValueError("A context is required to create a fmpq_mpoly from a dict")
             x = ctx.from_dict(val)
             # XXX: this copy is silly, have a ctx function that assigns an fmpz_mpoly_t
             init_fmpq_mpoly(self, ctx)

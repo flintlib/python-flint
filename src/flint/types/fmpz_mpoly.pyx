@@ -200,12 +200,7 @@ cdef class fmpz_mpoly(flint_mpoly):
                 raise IncompatibleContextError(f"{ctx} is not {(<fmpz_mpoly>val).ctx}")
         elif isinstance(val, dict):
             if ctx is None:
-                if len(val) == 0:
-                    raise ValueError("Need context for zero polynomial")
-                k = list(val.keys())[0]
-                if not isinstance(k, tuple):
-                    raise ValueError("Dict should be keyed with tuples of integers")
-                ctx = fmpz_mpoly_ctx.get_context(len(k))
+                raise ValueError("A context is required to create a fmpz_mpoly from a dict")
             x = ctx.from_dict(val)
             # XXX: this copy is silly, have a ctx function that assigns an fmpz_mpoly_t
             init_fmpz_mpoly(self, ctx)
@@ -220,7 +215,7 @@ cdef class fmpz_mpoly(flint_mpoly):
         else:
             v = any_as_fmpz(val)
             if v is NotImplemented:
-                raise TypeError("cannot create fmpz_mpoly from type %s" % type(val))
+                raise TypeError("Cannot create fmpz_mpoly from type %s" % type(val))
             if ctx is None:
                 raise ValueError("Need context to convert  fmpz to fmpz_mpoly")
             init_fmpz_mpoly(self, ctx)
