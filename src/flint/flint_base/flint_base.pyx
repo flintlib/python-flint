@@ -133,9 +133,9 @@ cdef class flint_mpoly_context(flint_elem):
 
     def __init__(self, int nvars, names):
         if nvars < 0:
-            raise ValueError("cannot have a negative amount of variables")
+            raise ValueError("Cannot have a negative amount of variables")
         elif len(names) != nvars:
-            raise ValueError("number of variables must match lens of variable names")
+            raise ValueError("Number of variables must match number of variable names")
         self.py_names = tuple(name.encode("ascii") if not isinstance(name, bytes) else name for name in names)
         self.c_names = <const char**> libc.stdlib.malloc(nvars * sizeof(const char *))
         for i in range(nvars):
@@ -163,25 +163,36 @@ cdef class flint_mpoly_context(flint_elem):
         return tuple(self.gen(i) for i in range(self.nvars()))
 
     @staticmethod
-    def create_cache_key(slong nvars, ordering: str, names: str):
+    def create_variable_names(slong nvars, names: str):
+        """
+        Create a tuple of variable names based on the comma separated `names` string.
+
+        If `names` contains a single value, and `nvars` > 1, then the variables are numbered, e.g.
+
+            >>> create_variable_names(3, "x")
+            ("x0", "x1", "x2")
+
+        """
         nametup = tuple(name.strip() for name in names.split(','))
         if len(nametup) != nvars:
-            if len(nametup) != 1:
+            if len(nametup) == 1:
+                nametup = tuple(nametup[0] + str(i) for i in range(nvars))
+            else:
                 raise ValueError("Number of variables does not equal number of names")
-            nametup = tuple(nametup[0] + str(i) for i in range(nvars))
-        return nvars, ordering, nametup
+        return nametup
 
     @classmethod
     def get_context(cls, slong nvars=1, ordering: str = "lex", names: Optional[str] = "x", nametup: Optional[tuple] = None):
-        if nvars < 0:
-            raise ValueError("cannot have a negative amount of variables")
-
-        if nametup is None and names is not None:
-            key = cls.create_cache_key(nvars, ordering, names)
-        elif len(nametup) != nvars:
-            raise ValueError("Number of variables does not equal number of names")
+        """
+        Retrieve a context via the number of variables, `nvars`, the ordering, `ordering`, and either a variable
+        name string, `names`, or a tuple of variable names, `nametup`.
+        """
+        if nametup is not None:
+            key = nvars, ordering, nametup
+        elif nametup is None and names is not None:
+            key = nvars, ordering, cls.create_variable_names(nvars, names)
         else:
-            key = (nvars, ordering, nametup)
+            raise ValueError("Must provide either `names` or `nametup`")
 
         ctx = cls._ctx_cache.get(key)
         if ctx is None:
