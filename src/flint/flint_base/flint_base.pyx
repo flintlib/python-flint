@@ -155,11 +155,11 @@ cdef class flint_mpoly_context(flint_elem):
 
     def name(self, long i):
         if not 0 <= i < len(self.py_names):
-            raise IndexError("variable name index out of range")
-        return self.py_names[i].decode('utf-8')
+            raise IndexError("Variable name index out of range")
+        return self.py_names[i].decode("ascii")
 
     def names(self):
-        return tuple(name.decode('utf-8') for name in self.py_names)
+        return tuple(name.decode("ascii") for name in self.py_names)
 
     def gens(self):
         return tuple(self.gen(i) for i in range(self.nvars()))
@@ -230,7 +230,7 @@ cdef class flint_mpoly_context(flint_elem):
             nvars=ctx.nvars(),
             ordering=ctx.ordering(),
             names=None,
-            nametup=tuple(str(s, 'utf-8') for s in ctx.py_names)
+            nametup=ctx.names()
         )
 
 
