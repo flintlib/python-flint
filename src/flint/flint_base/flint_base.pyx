@@ -316,10 +316,6 @@ cdef class flint_mat(flint_elem):
     tolist = table
 
 
-cdef class flint_rational_function(flint_elem):
-    pass
-
-
 cdef ordering_t ordering_py_to_c(ordering):  # Cython does not like an "Ordering" type hint here
     if not isinstance(ordering, Ordering):
         raise TypeError(f"`ordering` ('{ordering}') is not an instance of flint.Ordering")

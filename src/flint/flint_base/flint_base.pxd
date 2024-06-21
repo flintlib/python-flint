@@ -22,9 +22,6 @@ cdef class flint_mat(flint_elem):
 cdef class flint_series(flint_elem):
     pass
 
-cdef class flint_rational_function(flint_elem):
-    pass
-
 cpdef enum Ordering:
     lex, deglex, degrevlex
 
