@@ -221,8 +221,7 @@ cdef class flint_mpoly_context(flint_elem):
 
         ctx = cls._ctx_cache.get(key)
         if ctx is None:
-            ctx = cls(*key)
-            cls._ctx_cache[key] = ctx
+            ctx = cls._ctx_cache.setdefault(key, cls(*key))
         return ctx
 
     @classmethod
