@@ -159,20 +159,20 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
         """
         cdef:
             fmpz_vec exp_vec
-            slong i, nvars = self.nvars()
+            slong nvars = self.nvars()
             fmpq_mpoly res
 
         if not isinstance(d, dict):
-            raise ValueError("expected a dictionary")
+            raise ValueError("Expected a dictionary")
 
         res = create_fmpq_mpoly(self)
 
-        for i, (k, v) in enumerate(d.items()):
+        for k, v in d.items():
             o = any_as_fmpq(v)
             if o is NotImplemented:
-                raise TypeError(f"cannot coerce coefficient '{v}' to fmpq")
+                raise TypeError(f"Cannot coerce coefficient '{v}' to fmpq")
             elif len(k) != nvars:
-                raise ValueError(f"expected {nvars} exponents, got {len(k)}")
+                raise ValueError(f"Expected {nvars} exponents, got {len(k)}")
 
             exp_vec = fmpz_vec(k)
 
