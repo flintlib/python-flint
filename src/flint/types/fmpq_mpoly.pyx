@@ -913,7 +913,7 @@ cdef class fmpq_mpoly(flint_mpoly):
     def integral(self, var):
         """
         Return the integral of this polynomial*B with respect to the provided variable
-        where B is minimal. The argument and either be the variable as a string, or
+        where B is minimal. The argument can either be the variable as a string, or
         the index of the variable in the context.
 
             >>> from flint import Ordering

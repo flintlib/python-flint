@@ -165,7 +165,7 @@ cdef class flint_mpoly_context(flint_elem):
         return tuple(self.gen(i) for i in range(self.nvars()))
 
     def variable_to_index(self, var: Union[int, str]):
-        """Convert a variable name string or possible index to it's index in the context."""
+        """Convert a variable name string or possible index to its index in the context."""
         if isinstance(var, str):
             vars = {x: i for i, x in enumerate(self.names())}
             if var not in vars:
