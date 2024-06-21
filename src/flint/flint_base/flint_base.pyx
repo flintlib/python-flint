@@ -167,11 +167,10 @@ cdef class flint_mpoly_context(flint_elem):
     def variable_to_index(self, var: Union[int, str]):
         """Convert a variable name string or possible index to its index in the context."""
         if isinstance(var, str):
-            vars = {x: i for i, x in enumerate(self.names())}
-            if var not in vars:
+            try:
+                i = self.names().index(var)
+            except ValueError:
                 raise ValueError("Variable not in context")
-            else:
-                i = vars[var]
         elif isinstance(var, int):
             if not 0 <= var < self.nvars():
                 raise IndexError("Generator index out of range")
