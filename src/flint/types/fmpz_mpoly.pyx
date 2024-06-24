@@ -210,7 +210,8 @@ cdef class fmpz_mpoly(flint_mpoly):
                 raise ValueError("Cannot parse a polynomial without context")
             val = bytes(val, 'utf-8')
             init_fmpz_mpoly(self, ctx)
-            fmpz_mpoly_set_str_pretty(self.val, val, self.ctx.c_names, self.ctx.val)
+            if fmpz_mpoly_set_str_pretty(self.val, val, self.ctx.c_names, self.ctx.val) == -1:
+                raise ValueError("Unable to parse fmpz_mpoly from string")
             fmpz_mpoly_sort_terms(self.val, self.ctx.val)
         else:
             v = any_as_fmpz(val)
