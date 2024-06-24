@@ -2789,9 +2789,11 @@ def test_mpolys():
         assert P(1, ctx=ctx).total_degree() == 0
 
         p = quick_poly()
-        assert p(0, 0) == p(0, S(0)) == p(S(0), S(0)) == p(x1=S(0), x0=S(0)) == S(1) == 1
-        assert p(1, 1) == p(x1=S(1), x0=S(1)) == S(10) == 10
-        assert p(x0=p(x1=0)) == mpoly({
+        assert p(0, 0) == p(0, S(0)) == p(S(0), S(0)) == S(1) == 1
+        assert p(1, 1) == S(10) == 10
+
+        assert p.subs({"x1": S(0), "x0": S(0)}) == ctx.from_dict({(0, 0): 1})
+        assert p.compose(p.subs({"x1": 0}), ctx.from_dict({(0, 1): 1})) == mpoly({
             (2, 2): 36,
             (1, 2): 24,
             (1, 0): 9,
@@ -2799,18 +2801,18 @@ def test_mpolys():
             (0, 1): 2,
             (0, 0): 4
         })
-        assert p() == p
-        assert p(x0=ctx.from_dict({(1, 0): 1}), x1=ctx.from_dict({(0, 1): 1})) == p
+        assert p.compose(ctx.from_dict({(1, 0): 1}), ctx.from_dict({(0, 1): 1})) == p
 
-        assert raises(lambda: p(x0=None), TypeError)
-        assert raises(lambda: p(x0=None, x1=None), TypeError)
+        assert raises(lambda: p(None, None), TypeError)
         assert raises(lambda: p(1), ValueError)
-        assert raises(lambda: p(1, x1=1), ValueError)
-        assert raises(lambda: p(a=1), ValueError)
         assert raises(lambda: p(0, 1, 2), ValueError)
-        assert raises(lambda: p(x0=0, x1=1, x2=2), ValueError)
-        assert raises(lambda: p(x0=p, x1=P(ctx=ctx1)), IncompatibleContextError)
-        assert raises(lambda: P(ctx=ctx1)(x0=p), IncompatibleContextError)
+
+        assert raises(lambda: p.subs({"x0": None}), TypeError)
+        assert raises(lambda: p.subs({"x0": None, "x1": None}), TypeError)
+        assert raises(lambda: p.subs({"a": 1}), ValueError)
+        assert raises(lambda: p.subs({"x0": 0, "x1": 1, "x2": 2}), ValueError)
+
+        assert raises(lambda: p.compose(p, P(ctx=ctx1)), IncompatibleContextError)
 
         assert bool(P(ctx=ctx)) is False
         assert bool(P(1, ctx=ctx)) is True

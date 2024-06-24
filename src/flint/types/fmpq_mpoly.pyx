@@ -576,103 +576,89 @@ cdef class fmpq_mpoly(flint_mpoly):
     def __rmod__(self, other):
         return divmod(other, self)[1]
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args) -> fmpq:
+        cdef:
+            fmpq_vec V
+            fmpq vres
+            slong nvars = self.ctx.nvars(), nargs = len(args)
+
+        if nargs < nvars:
+            raise ValueError("Not enough arguments provided")
+        elif nargs > nvars:
+            raise ValueError("More arguments provided than variables")
+
+        args_fmpq = tuple(any_as_fmpq(v) for v in args)
+        for arg in args_fmpq:
+            if arg is NotImplemented:
+                raise TypeError(f"Cannot coerce argument ('{arg}') to fmpq")
+
+        V = fmpq_vec(args_fmpq, double_indirect=True)
+        vres = fmpq.__new__(fmpq)
+        if fmpq_mpoly_evaluate_all_fmpq(vres.val, self.val, V.double_indirect, self.ctx.val) == 0:
+            raise ValueError("Unreasonably large polynomial")  # pragma: no cover
+        return vres
+
+    def subs(self, dict_args) -> fmpq_mpoly:
+        """
+        Partial evaluate this polynomial.
+        """
         cdef:
             fmpq_mpoly res
             fmpq_mpoly res2
+            slong i, nargs
+
+        partial_args = tuple((i, dict_args[x]) for i, x in enumerate(self.ctx.names()) if x in dict_args)
+        nargs = len(partial_args)
+
+        # If we've been provided with an invalid keyword arg then the length of our filter
+        # args will be less than what we've been provided with.
+        # If the length is equal to the number of variables then all arguments have been provided
+        # otherwise we need to do partial application
+        if nargs < len(dict_args):
+            raise ValueError("Unknown keyword argument provided")
+
+        args_fmpq = tuple(any_as_fmpq(v) for _, v in partial_args)
+        for arg in args_fmpq:
+            if arg is NotImplemented:
+                raise TypeError(f"Cannot coerce argument ('{arg}') to fmpq")
+
+        # Partial application with args in Z. We evaluate the polynomial one variable at a time
+        res = create_fmpq_mpoly(self.ctx)
+        res2 = create_fmpq_mpoly(self.ctx)
+
+        fmpq_mpoly_set(res2.val, self.val, self.ctx.val)
+        for (i, _), arg in zip(partial_args, args_fmpq):
+            if fmpq_mpoly_evaluate_one_fmpq(res.val, res2.val, i, (<fmpq>arg).val, self.ctx.val) == 0:
+                raise ValueError("Unreasonably large polynomial")  # pragma: no cover
+            fmpq_mpoly_set(res2.val, res.val, self.ctx.val)
+        return res
+
+    def compose(self, *args) -> fmpq_mpoly:
+        """
+        Compose this polynomial with other fmpq_mpolys. Takes positional arguments.
+        """
+        cdef:
+            fmpq_mpoly res
             fmpq_mpoly_ctx res_ctx
-            fmpq_vec V
-            fmpq vres
             fmpq_mpoly_vec C
             slong i, nvars = self.ctx.nvars(), nargs = len(args)
 
-        if not args and not kwargs:
-            return self
-        elif args and kwargs:
-            raise ValueError("only supply positional or keyword arguments")
-        elif len(args) < nvars and not kwargs:
-            raise ValueError("partial application requires keyword arguments")
-
-        if kwargs:
-            # Sort and filter the provided keyword args to only valid ones
-            partial_args = tuple((i, kwargs[x]) for i, x in enumerate(self.ctx.names()) if x in kwargs)
-            nargs = len(partial_args)
-
-            # If we've been provided with an invalid keyword arg then the length of our filter
-            # args will be less than what we've been provided with.
-            # If the length is equal to the number of variables then all arguments have been provided
-            # otherwise we need to do partial application
-            if nargs < len(kwargs):
-                raise ValueError("unknown keyword argument provided")
-            elif nargs == nvars:
-                args = tuple(arg for _, arg in partial_args)
-                kwargs = None
+        if nargs < nvars:
+            raise ValueError("Not enough arguments provided")
         elif nargs > nvars:
-            raise ValueError("more arguments provided than variables")
+            raise ValueError("More arguments provided than variables")
+        elif not all(typecheck(arg, fmpq_mpoly) for arg in args):
+            raise TypeError("All arguments must be fmpq_mpolys")
 
-        if kwargs:
-            args_fmpq = tuple(any_as_fmpq(v) for _, v in partial_args)
-        else:
-            args_fmpq = tuple(any_as_fmpq(v) for v in args)
+        res_ctx = (<fmpq_mpoly> args[0]).ctx
+        if not all((<fmpq_mpoly> args[i]).ctx is res_ctx for i in range(1, len(args))):
+            raise IncompatibleContextError("All arguments must share the same context")
 
-        all_fmpq = NotImplemented not in args_fmpq
-
-        if args and all_fmpq:
-            # Normal evaluation
-            V = fmpq_vec(args_fmpq, double_indirect=True)
-            vres = fmpq.__new__(fmpq)
-            if fmpq_mpoly_evaluate_all_fmpq(vres.val, self.val, V.double_indirect, self.ctx.val) == 0:
-                raise ValueError("unreasonably large polynomial")  # pragma: no cover
-            return vres
-        elif kwargs and all_fmpq:
-            # Partial application with args in Z. We evaluate the polynomial one variable at a time
-            res = create_fmpq_mpoly(self.ctx)
-            res2 = create_fmpq_mpoly(self.ctx)
-
-            fmpq_mpoly_set(res2.val, self.val, self.ctx.val)
-            for (i, _), arg in zip(partial_args, args_fmpq):
-                if fmpq_mpoly_evaluate_one_fmpq(res.val, res2.val, i, (<fmpq>arg).val, self.ctx.val) == 0:
-                    raise ValueError("unreasonably large polynomial")  # pragma: no cover
-                fmpq_mpoly_set(res2.val, res.val, self.ctx.val)
-            return res
-        elif args and not all_fmpq:
-            # Complete function composition
-            if not all(typecheck(arg, fmpq_mpoly) for arg in args):
-                raise TypeError("all arguments must be fmpq_mpolys")
-            res_ctx = (<fmpq_mpoly> args[0]).ctx
-            if not all((<fmpq_mpoly> args[i]).ctx is res_ctx for i in range(1, len(args))):
-                raise IncompatibleContextError("all arguments must share the same context")
-
-            C = fmpq_mpoly_vec(args, self.ctx, double_indirect=True)
-            res = create_fmpq_mpoly(self.ctx)
-            if fmpq_mpoly_compose_fmpq_mpoly(res.val, self.val, C.double_indirect, self.ctx.val, res_ctx.val) == 0:
-                raise ValueError("unreasonably large polynomial")  # pragma: no cover
-            return res
-        else:
-            # Partial function composition. We do this by composing with all arguments, however the ones
-            # that have not be provided are set to the trivial monomial. This is why we require all the
-            # polynomial itself, and all arguments exist in the same context, otherwise we have no way of
-            # finding the correct monomial to use.
-            if not all(typecheck(arg, fmpq_mpoly) for _, arg in partial_args):
-                raise TypeError("all arguments must be fmpq_mpolys for partial composition")
-            if not all((<fmpq_mpoly> arg).ctx is self.ctx for _, arg in partial_args):
-                raise IncompatibleContextError("all arguments must share the same context")
-
-            polys = [None] * nvars
-            for i, poly in partial_args:
-                polys[i] = poly
-
-            for i in range(nvars):
-                if polys[i] is None:
-                    vec = [0] * nvars
-                    vec[i] = 1
-                    polys[i] = self.ctx.from_dict({tuple(vec): 1})
-
-            C = fmpq_mpoly_vec(polys, self.ctx, double_indirect=True)
-            res = create_fmpq_mpoly(self.ctx)
-            if fmpq_mpoly_compose_fmpq_mpoly(res.val, self.val, C.double_indirect, self.ctx.val, self.ctx.val) == 0:
-                raise ValueError("unreasonably large polynomial")  # pragma: no cover
-            return res
+        C = fmpq_mpoly_vec(args, self.ctx, double_indirect=True)
+        res = create_fmpq_mpoly(self.ctx)
+        if fmpq_mpoly_compose_fmpq_mpoly(res.val, self.val, C.double_indirect, self.ctx.val, res_ctx.val) == 0:
+            raise ValueError("Unreasonably large polynomial")  # pragma: no cover
+        return res
 
     def context(self):
         """
