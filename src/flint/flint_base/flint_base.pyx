@@ -241,10 +241,6 @@ cdef class flint_mpoly(flint_elem):
     def leading_coefficient(self):
         return self.coefficient(0)
 
-    def __hash__(self):
-        s = repr(self)
-        return hash(s)
-
     def to_dict(self):
         return {self.exponent_tuple(i): self.coefficient(i) for i in range(len(self))}
 
