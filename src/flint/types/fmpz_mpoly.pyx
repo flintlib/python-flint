@@ -924,9 +924,10 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def integral(self, var):
         """
-        Return the integral of this polynomial*B with respect to the provided variable
-        where B is minimal. The argument can either be the variable as a string, or
-        the index of the variable in the context.
+        Return the integral of this polynomial*B with respect to the provided variable where B is minimal. That is,
+        given p this method returns (B, P) such that P' = B*p or P/B is the formal integral of p.
+
+        The argument can either be the variable as a string, or the index of the variable in the context.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
