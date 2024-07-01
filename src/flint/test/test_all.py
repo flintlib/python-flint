@@ -2746,10 +2746,8 @@ def test_mpolys():
         assert raises(lambda: p.coefficient(-1), IndexError)
         assert raises(lambda: p.coefficient(10), IndexError)
 
-        assert p[0] == mpoly({(2, 2): 4})
-        assert p[3] == mpoly({(0, 0): 1})
-        assert raises(lambda: p[-1], IndexError)
-        assert raises(lambda: p[4], IndexError)
+        assert raises(lambda: p[-1], TypeError)
+        assert raises(lambda: p[4], TypeError)
 
         assert p[(2, 2)] == 4
         assert p[(0, 0)] == 1
@@ -2758,22 +2756,22 @@ def test_mpolys():
         assert raises(lambda: p["bad"], TypeError)
 
         p = quick_poly()
-        p[1] = S(10)
-        assert p == mpoly({(0, 0): 1, (0, 1): 2, (1, 0): 10, (2, 2): 4})
-
-        p = quick_poly()
         p[(1, 0)] = S(10)
         assert p == mpoly({(0, 0): 1, (0, 1): 2, (1, 0): 10, (2, 2): 4})
 
-        assert raises(lambda: p.__setitem__(-1, 1), IndexError)
-        assert raises(lambda: p.__setitem__(4, 1), IndexError)
+        p = quick_poly()
+        p[(1, 0)] = p[(1, 0)]
+        assert p == quick_poly()
+        assert (1, 0) in p
+        assert (100, 100) not in p
+
+        assert raises(lambda: p.__setitem__((4,), 1), ValueError)
 
         assert raises(lambda: p.__setitem__((1,), 1), ValueError)
         assert raises(lambda: p.__setitem__((1, "bad"), 1), TypeError)
-        assert raises(lambda: p.__setitem__("bad", 1), TypeError)
+        assert raises(lambda: p.__setitem__(("bad", 1), 1), TypeError)
 
-        assert raises(lambda: p.__setitem__(2, None), TypeError)
-        assert raises(lambda: p.__setitem__(-1, 1), IndexError)
+        assert raises(lambda: p.__setitem__((2, 1), None), TypeError)
 
         assert P(ctx=ctx).repr() == f"{ctx.__class__.__name__}(2, '<Ordering.lex: 0>', ('x0', 'x1')).from_dict({{}})"
         assert P(1, ctx=ctx).repr() == f"{ctx.__class__.__name__}(2, '<Ordering.lex: 0>', ('x0', 'x1')).from_dict({{(0, 0): 1}})"

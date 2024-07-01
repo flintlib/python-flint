@@ -265,14 +265,13 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def __getitem__(self, x):
         """
-        Return the term at index `x` if `x` is an `int`, or the term with the exponent
-        vector `x` if `x` is a tuple of `int`s or `fmpq`s.
+        Return the coefficient of the term with the exponent vector `x`.
+        Always returns a value, missing keys will return `0`.
+        Negative exponents are made positive.
 
             >>> from flint import Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
-            >>> p[1]
-            2*x1
             >>> p[1, 1]
             3
 
@@ -280,34 +279,28 @@ cdef class fmpq_mpoly(flint_mpoly):
         cdef:
             slong nvars = self.ctx.nvars()
 
-        if isinstance(x, int):
-            if not 0 <= x < fmpq_mpoly_length(self.val, self.ctx.val):
-                raise IndexError("term index out of range")
-            res = create_fmpq_mpoly(self.ctx)
-            fmpq_mpoly_get_term((<fmpq_mpoly> res).val, self.val, x, self.ctx.val)
-            return res
-        elif isinstance(x, tuple):
-            if len(x) != nvars:
-                raise ValueError("exponent vector provided does not match number of variables")
-            res = fmpq()
-            exp_vec = fmpz_vec(x, double_indirect=True)
-            fmpq_mpoly_get_coeff_fmpq_fmpz((<fmpq>res).val, self.val, exp_vec.double_indirect, self.ctx.val)
-            return res
-        else:
-            raise TypeError("index is not integer or tuple")
+        if not isinstance(x, tuple):
+            raise TypeError("Exponent vector index is not a tuple")
+        elif len(x) != nvars:
+            raise ValueError("Exponent vector provided does not match number of variables")
+
+        res = fmpq()
+        exp_vec = fmpz_vec(x, double_indirect=True)
+        fmpq_mpoly_get_coeff_fmpq_fmpz((<fmpq>res).val, self.val, exp_vec.double_indirect, self.ctx.val)
+        return res
 
     def __setitem__(self, x, y):
         """
-        Set the coefficient at index `x` to `y` if `x` is an `int`, or the term with
-        the exponent vector `x` if `x` is a tuple of `int`s or `fmpq`s.
+        Set the coefficient of the term with the exponent vector `x` to `y`.
+        Will always set a value, missing keys will create a new term.
+        Negative exponents are made positive.
 
             >>> from flint import Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
-            >>> p[1] = 10
             >>> p[1, 1] = 20
             >>> p
-            20*x0*x1 + 10*x1
+            20*x0*x1 + 2*x1
 
         """
         cdef:
@@ -315,19 +308,14 @@ cdef class fmpq_mpoly(flint_mpoly):
 
         coeff = any_as_fmpq(y)
         if coeff is NotImplemented:
-            raise TypeError("provided coefficient not coercible to fmpq")
+            raise TypeError("Provided coefficient not coercible to fmpq")
+        elif not isinstance(x, tuple):
+            raise TypeError("Exponent vector index is not a tuple")
+        elif len(x) != nvars:
+            raise ValueError("Exponent vector provided does not match number of variables")
 
-        if isinstance(x, int):
-            if not 0 <= x < fmpq_mpoly_length(self.val, self.ctx.val):
-                raise IndexError("term index out of range")
-            fmpq_mpoly_set_term_coeff_fmpq(self.val, x, (<fmpq>coeff).val, self.ctx.val)
-        elif isinstance(x, tuple):
-            if len(x) != nvars:
-                raise ValueError("exponent vector provided does not match number of variables")
-            exp_vec = fmpz_vec(x, double_indirect=True)
-            fmpq_mpoly_set_coeff_fmpq_fmpz(self.val, (<fmpq>coeff).val, exp_vec.double_indirect, self.ctx.val)
-        else:
-            raise TypeError("index is not integer or tuple")
+        exp_vec = fmpz_vec(x, double_indirect=True)
+        fmpq_mpoly_set_coeff_fmpq_fmpz(self.val, (<fmpq>coeff).val, exp_vec.double_indirect, self.ctx.val)
 
     def __pos__(self):
         return self

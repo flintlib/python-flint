@@ -244,6 +244,21 @@ cdef class flint_mpoly(flint_elem):
     def to_dict(self):
         return {self.exponent_tuple(i): self.coefficient(i) for i in range(len(self))}
 
+    def __contains__(self, x):
+        """
+        Returns True if `self` contains a term with exponent vector `x` and a non-zero coefficient.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
+            >>> (1, 1) in p
+            True
+            >>> (5, 1) in p
+            False
+
+        """
+        return bool(self[x])
+
 
 cdef class flint_series(flint_elem):
     """

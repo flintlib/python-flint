@@ -245,14 +245,13 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def __getitem__(self, x):
         """
-        Return the term at index `x` if `x` is an `int`, or the term with the exponent
-        vector `x` if `x` is a tuple of `int`s or `fmpz`s.
+        Return the coefficient of the term with the exponent vector `x`.
+        Always returns a value, missing keys will return `0`.
+        Negative exponents are made positive.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
-            >>> p[1]
-            2*x1
             >>> p[1, 1]
             3
 
@@ -260,34 +259,28 @@ cdef class fmpz_mpoly(flint_mpoly):
         cdef:
             slong nvars = self.ctx.nvars()
 
-        if isinstance(x, int):
-            if not 0 <= x < fmpz_mpoly_length(self.val, self.ctx.val):
-                raise IndexError("term index out of range")
-            res = create_fmpz_mpoly(self.ctx)
-            fmpz_mpoly_get_term((<fmpz_mpoly> res).val, self.val, x, self.ctx.val)
-            return res
-        elif isinstance(x, tuple):
-            if len(x) != nvars:
-                raise ValueError("exponent vector provided does not match number of variables")
-            res = fmpz()
-            exp_vec = fmpz_vec(x, double_indirect=True)
-            fmpz_mpoly_get_coeff_fmpz_fmpz((<fmpz>res).val, self.val, exp_vec.double_indirect, self.ctx.val)
-            return res
-        else:
-            raise TypeError("index is not integer or tuple")
+        if not isinstance(x, tuple):
+            raise TypeError("exponent vector index is not a tuple")
+        elif len(x) != nvars:
+            raise ValueError("exponent vector provided does not match number of variables")
+
+        res = fmpz()
+        exp_vec = fmpz_vec(x, double_indirect=True)
+        fmpz_mpoly_get_coeff_fmpz_fmpz((<fmpz>res).val, self.val, exp_vec.double_indirect, self.ctx.val)
+        return res
 
     def __setitem__(self, x, y):
         """
-        Set the coefficient at index `x` to `y` if `x` is an `int`, or the term with
-        the exponent vector `x` if `x` is a tuple of `int`s or `fmpz`s.
+        Set the coefficient of the term with the exponent vector `x` to `y`.
+        Will always set a value, missing keys will create a new term.
+        Negative exponents are made positive.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
-            >>> p[1] = 10
             >>> p[1, 1] = 20
             >>> p
-            20*x0*x1 + 10*x1
+            20*x0*x1 + 2*x1
 
         """
         cdef:
@@ -296,18 +289,13 @@ cdef class fmpz_mpoly(flint_mpoly):
         coeff = any_as_fmpz(y)
         if coeff is NotImplemented:
             raise TypeError("provided coefficient not coercible to fmpz")
+        elif not isinstance(x, tuple):
+            raise TypeError("exponent vector index is not a tuple")
+        elif len(x) != nvars:
+            raise ValueError("exponent vector provided does not match number of variables")
 
-        if isinstance(x, int):
-            if not 0 <= x < fmpz_mpoly_length(self.val, self.ctx.val):
-                raise IndexError("term index out of range")
-            fmpz_mpoly_set_term_coeff_fmpz(self.val, x, (<fmpz>coeff).val, self.ctx.val)
-        elif isinstance(x, tuple):
-            if len(x) != nvars:
-                raise ValueError("exponent vector provided does not match number of variables")
-            exp_vec = fmpz_vec(x, double_indirect=True)
-            fmpz_mpoly_set_coeff_fmpz_fmpz(self.val, (<fmpz>coeff).val, exp_vec.double_indirect, self.ctx.val)
-        else:
-            raise TypeError("index is not integer or tuple")
+        exp_vec = fmpz_vec(x, double_indirect=True)
+        fmpz_mpoly_set_coeff_fmpz_fmpz(self.val, (<fmpz>coeff).val, exp_vec.double_indirect, self.ctx.val)
 
     def __pos__(self):
         return self
