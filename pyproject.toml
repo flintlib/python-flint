@@ -5,7 +5,7 @@ build-backend = "mesonpy"
 [project]
 name = "python-flint"
 description = "Bindings for FLINT and Arb"
-version = "0.7.0a1"
+version = "0.7.0a2"
 urls = {Homepage = "https://github.com/flintlib/python-flint"}
 authors = [
     {name = "Fredrik Johansson", email = "fredrik.johansson@gmail.com"},

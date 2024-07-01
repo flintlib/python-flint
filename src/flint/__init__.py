@@ -38,4 +38,4 @@ from .flint_base.flint_base import (
     FLINT_RELEASE as __FLINT_RELEASE__,
 )
 
-__version__ = '0.7.0a1'
+__version__ = '0.7.0a2'
