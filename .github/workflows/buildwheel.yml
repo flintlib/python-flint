@@ -162,7 +162,7 @@ jobs:
     name: Publish to PyPI
     needs: [build_wheels, build_sdist]
     # Run only when a tag is pushed to the flintlib/python-flint repo
-    if: "github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && github.owner == flintlib"
+    if: "github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && github.owner == 'flintlib'"
     environment:
       name: pypi
       url: https://pypi.org/p/sympy
