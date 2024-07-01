@@ -133,8 +133,19 @@ CHANGELOG
 
 Next release:
 
+- [gh-148](https://github.com/flintlib/python-flint/pull/148)
+  Remove debug symbols to make smaller Linux binaries.
+- [gh-144](https://github.com/flintlib/python-flint/pull/144)
+  Add `rel_one_ccuracy_bits` to `arb` and `acb`.
+- [gh-142](https://github.com/flintlib/python-flint/pull/142)
+  Add `acb_theta` (only available for Flint >= 3.1).
+- [gh-137](https://github.com/flintlib/python-flint/pull/137)
+  Add `erfinv` and `erfcinv` for `arb`.
+- [gh-129](https://github.com/flintlib/python-flint/pull/129)
+  Use meson-python instead of setuptools as the build backend.
 - [gh-125](https://github.com/flintlib/python-flint/pull/125)
-  Bump Flint version to 3.1.0
+  Bump Flint version to 3.1.2 (Flint 3.0.0 - 3.1.2 is supported but the wheels
+  are built with 3.1.2).
 
 0.6.0
 
