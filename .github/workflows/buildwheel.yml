@@ -10,7 +10,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-13, macos-14]
+        #os: [ubuntu-20.04, windows-2019, macos-13, macos-14]
+        os: [macos-14]
 
     steps:
       - uses: actions/checkout@v4
@@ -176,6 +177,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: wheelhouse
+          merge-multiple: true
 
       - name: Copy the PyPI files into dist
         run: mkdir dist && cp wheelhouse/*.whl wheelhouse/*.tar.gz dist
