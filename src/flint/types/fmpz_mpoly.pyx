@@ -594,7 +594,6 @@ cdef class fmpz_mpoly(flint_mpoly):
         """
         cdef:
             fmpz_mpoly res
-            fmpz_mpoly res2
             slong i, nargs
 
         partial_args = tuple((i, dict_args[x]) for i, x in enumerate(self.ctx.names()) if x in dict_args)
@@ -614,13 +613,11 @@ cdef class fmpz_mpoly(flint_mpoly):
 
         # Partial application with args in Z. We evaluate the polynomial one variable at a time
         res = create_fmpz_mpoly(self.ctx)
-        res2 = create_fmpz_mpoly(self.ctx)
 
-        fmpz_mpoly_set(res2.val, self.val, self.ctx.val)
+        fmpz_mpoly_set(res.val, self.val, self.ctx.val)
         for (i, _), arg in zip(partial_args, args_fmpz):
-            if fmpz_mpoly_evaluate_one_fmpz(res.val, res2.val, i, (<fmpz>arg).val, self.ctx.val) == 0:
+            if fmpz_mpoly_evaluate_one_fmpz(res.val, res.val, i, (<fmpz>arg).val, self.ctx.val) == 0:
                 raise ValueError("Unreasonably large polynomial")  # pragma: no cover
-            fmpz_mpoly_set(res2.val, res.val, self.ctx.val)
         return res
 
     def compose(self, *args) -> fmpz_mpoly:
