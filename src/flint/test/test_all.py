@@ -2790,6 +2790,11 @@ def test_mpolys():
         assert p(0, 0) == p(0, S(0)) == p(S(0), S(0)) == S(1) == 1
         assert p(1, 1) == S(10) == 10
 
+        p = quick_poly()
+        assert p.keys() == [(2, 2), (1, 0), (0, 1), (0, 0)]
+        assert p.values() == [4, 3, 2, 1]
+        assert list(p.items()) == list(zip([(2, 2), (1, 0), (0, 1), (0, 0)], [4, 3, 2, 1]))
+
         assert p.subs({"x1": S(0), "x0": S(0)}) == ctx.from_dict({(0, 0): 1})
         assert p.compose(p.subs({"x1": 0}), ctx.from_dict({(0, 1): 1})) == mpoly({
             (2, 2): 36,

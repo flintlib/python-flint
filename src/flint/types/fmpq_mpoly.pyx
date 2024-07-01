@@ -317,9 +317,6 @@ cdef class fmpq_mpoly(flint_mpoly):
         exp_vec = fmpz_vec(x, double_indirect=True)
         fmpq_mpoly_set_coeff_fmpq_fmpz(self.val, (<fmpq>coeff).val, exp_vec.double_indirect, self.ctx.val)
 
-    def __pos__(self):
-        return self
-
     def __neg__(self):
         cdef fmpq_mpoly res
         res = create_fmpq_mpoly(self.ctx)
@@ -586,6 +583,51 @@ cdef class fmpq_mpoly(flint_mpoly):
         if fmpq_mpoly_evaluate_all_fmpq(vres.val, self.val, V.double_indirect, self.ctx.val) == 0:
             raise ValueError("Unreasonably large polynomial")  # pragma: no cover
         return vres
+
+    def keys(self):
+        """
+        Return the exponent vectors of each term as a tuple of fmpz.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
+            >>> f.keys()
+            [(1, 1), (1, 0), (0, 1), (0, 0)]
+
+        """
+        cdef:
+            slong i, nvars = self.ctx.nvars()
+            fmpz_vec vec = fmpz_vec(nvars, double_indirect=True)
+
+        res = []
+        for i in range(len(self)):
+            fmpq_mpoly_get_term_exp_fmpz(vec.double_indirect, self.val, i, self.ctx.val)
+            res.append(vec.to_tuple())
+
+        return res
+
+    def values(self):
+        """
+        Return the coefficients of each term as a fmpq.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
+            >>> f.values()
+            [4, 2, 3, 1]
+
+        """
+        cdef:
+            fmpq coeff
+            slong i
+
+        res = []
+        for i in range(len(self)):
+            coeff = fmpq.__new__(fmpq)
+            fmpq_mpoly_get_term_coeff_fmpq(coeff.val, self.val, i, self.ctx.val)
+            res.append(coeff)
+
+        return res
 
     def subs(self, dict_args) -> fmpq_mpoly:
         """

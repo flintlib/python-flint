@@ -248,7 +248,7 @@ cdef class flint_mpoly(flint_elem):
         """
         Returns True if `self` contains a term with exponent vector `x` and a non-zero coefficient.
 
-            >>> from flint import Ordering
+            >>> from flint import fmpq_mpoly_ctx, Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> (1, 1) in p
@@ -258,6 +258,25 @@ cdef class flint_mpoly(flint_elem):
 
         """
         return bool(self[x])
+
+    def __iter__(self):
+        return iter(self.keys())
+
+    def __pos__(self):
+        return self
+
+    def items(self):
+        """
+        Return the exponent vectors and coefficient of each term.
+
+            >>> from flint import fmpq_mpoly_ctx, Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
+            >>> list(f.items())
+            [((1, 1), 4), ((1, 0), 2), ((0, 1), 3), ((0, 0), 1)]
+
+        """
+        return zip(self.keys(), self.values())
 
 
 cdef class flint_series(flint_elem):
