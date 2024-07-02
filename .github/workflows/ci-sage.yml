@@ -44,7 +44,7 @@ on:
 
 env:
   # Ubuntu packages to install so that the project's "make dist" can succeed
-  DIST_PREREQ:
+  DIST_PREREQ:      libmpfr-dev
   # Name of this project in the Sage distribution
   SPKG:             python_flint
   # Standard setting: Test the current beta release of Sage:
