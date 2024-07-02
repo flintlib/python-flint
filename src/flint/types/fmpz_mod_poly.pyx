@@ -9,7 +9,7 @@ from flint.flintlib.fmpz cimport(
     fmpz_clear,
     fmpz_is_one
 )
-from flint.flintlib.fmpz_vec cimport _fmpz_vec_init, _fmpz_vec_clear
+from flint.types.fmpz_vec cimport fmpz_vec
 
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 from flint.types.fmpz_mod cimport fmpz_mod_ctx, fmpz_mod
@@ -291,17 +291,15 @@ cdef class fmpz_mod_poly_ctx:
             raise ValueError("Input must be a list or tuple of points")
 
         n = len(vals)
-        xs = _fmpz_vec_init(n)
+        xs = fmpz_vec(n)
         for i in range(n):
-            check = self.mod.set_any_as_fmpz_mod(&xs[i], vals[i])
+            check = self.mod.set_any_as_fmpz_mod(&xs.val[i], vals[i])
             if check is NotImplemented:
-                _fmpz_vec_clear(xs, n)
                 raise ValueError(f"Unable to cast {vals[i]} to an `fmpz_mod`")
         
         res = self.new_ctype_poly()
-        fmpz_mod_poly_minpoly(res.val, xs, n, self.mod.val)
+        fmpz_mod_poly_minpoly(res.val, xs.val, n, self.mod.val)
 
-        _fmpz_vec_clear(xs, n)
         return res
 
 cdef class fmpz_mod_poly(flint_poly):
@@ -759,28 +757,24 @@ cdef class fmpz_mod_poly(flint_poly):
             raise ValueError("Input must be a list of points")
         
         n = len(vals)
-        xs = _fmpz_vec_init(n)
+        xs = fmpz_vec(n)
         for i in range(n):
-            check = self.ctx.mod.set_any_as_fmpz_mod(&xs[i], vals[i])
+            check = self.ctx.mod.set_any_as_fmpz_mod(&xs.val[i], vals[i])
             if check is NotImplemented:
-                _fmpz_vec_clear(xs, n)
                 raise ValueError(f"Unable to cast {vals[i]} to an `fmpz_mod`")
         
         # Call for multipoint eval, iterative horner will be used
         # for small arrays (len < 32) and a fast eval for larger ones
         # using a subproduct tree
-        ys = _fmpz_vec_init(n)
-        fmpz_mod_poly_evaluate_fmpz_vec(ys, self.val, xs, n, self.ctx.mod.val)
+        ys = fmpz_vec(n)
+        fmpz_mod_poly_evaluate_fmpz_vec(ys.val, self.val, xs.val, n, self.ctx.mod.val)
 
         evaluations = []
         for i in range(n):
             f = fmpz_mod.__new__(fmpz_mod)
             f.ctx = self.ctx.mod
-            fmpz_mod_set_fmpz(f.val, &ys[i], self.ctx.mod.val)
+            fmpz_mod_set_fmpz(f.val, &ys.val[i], self.ctx.mod.val)
             evaluations.append(f)
-
-        _fmpz_vec_clear(xs, n)
-        _fmpz_vec_clear(ys, n)
 
         return evaluations
 

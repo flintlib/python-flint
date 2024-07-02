@@ -5,7 +5,7 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 
 from flint.flintlib.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
-from flint.flintlib.fmpz cimport fmpz_set, fmpz_one
+from flint.flintlib.fmpz cimport fmpz_set, fmpz_one, fmpz_t
 from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_sgn
 from flint.flintlib.fmpz cimport fmpz_fdiv_q, fmpz_bits
 from flint.flintlib.fmpz cimport fmpz_cdiv_q
@@ -13,12 +13,6 @@ from flint.flintlib.fmpz cimport fmpz_tdiv_q
 from flint.flintlib.fmpz cimport fmpz_clear
 from flint.flintlib.fmpq cimport *
 from flint.flintlib.bernoulli cimport *
-
-cdef extern from *:
-    """
-    /* An ugly hack to get around the ugly hack of renaming fmpq to avoid a c/python name collision */
-    typedef fmpq fmpq_struct;
-    """
 
 cdef int fmpq_set_any_ref(fmpq_t x, obj):
     cdef int status

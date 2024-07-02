@@ -1,4 +1,3 @@
-
 from flint.flint_base.flint_base cimport flint_poly
 
 from flint.flintlib.fmpz_poly cimport fmpz_poly_t

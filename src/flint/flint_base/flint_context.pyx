@@ -18,7 +18,7 @@ cdef class FlintContext:
         self.threads = 1
         self.cap = 10
 
-    @property 
+    @property
     def prec(self):
         return self._prec
 

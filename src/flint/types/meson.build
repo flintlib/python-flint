@@ -9,11 +9,13 @@ exts = [
   'fmpz_poly',
   'fmpz_mat',
   'fmpz_series',
+  'fmpz_vec',
 
   'fmpq',
   'fmpq_poly',
   'fmpq_mat',
   'fmpq_series',
+  'fmpq_vec',
 
   'nmod',
   'nmod_poly',
@@ -39,6 +41,7 @@ exts = [
   'dirichlet',
 
   'fmpz_mpoly',
+  'fmpq_mpoly',
 ]
 
 if have_acb_theta

@@ -1,1 +1,2 @@
+option('coverage', type : 'boolean', value : false, description : 'enable coverage build')
 option('add_flint_rpath', type : 'boolean', value : false)
