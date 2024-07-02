@@ -2794,6 +2794,8 @@ def test_mpolys():
         assert p.keys() == [(2, 2), (1, 0), (0, 1), (0, 0)]
         assert p.values() == [4, 3, 2, 1]
         assert list(p.items()) == list(zip([(2, 2), (1, 0), (0, 1), (0, 0)], [4, 3, 2, 1]))
+        assert sum(ctx.from_dict({exp_vec: coeff}) for exp_vec, coeff in p.items()) == p
+        assert sum(p.terms()) == p
 
         assert p.subs({"x1": S(0), "x0": S(0)}) == ctx.from_dict({(0, 0): 1})
         assert p.compose(p.subs({"x1": 0}), ctx.from_dict({(0, 1): 1})) == mpoly({

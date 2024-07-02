@@ -265,6 +265,12 @@ cdef class flint_mpoly(flint_elem):
     def __pos__(self):
         return self
 
+    def keys(self):
+        return self.monoms()
+
+    def values(self):
+        return self.coeffs()
+
     def items(self):
         """
         Return the exponent vectors and coefficient of each term.

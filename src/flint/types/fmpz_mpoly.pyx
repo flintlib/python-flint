@@ -566,7 +566,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             raise ValueError("Unreasonably large polynomial")  # pragma: no cover
         return vres
 
-    def keys(self):
+    def monoms(self):
         """
         Return the exponent vectors of each term as a tuple of fmpz.
 
@@ -588,7 +588,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
         return res
 
-    def values(self):
+    def coeffs(self):
         """
         Return the coefficients of each term as a fmpz
 
@@ -608,6 +608,29 @@ cdef class fmpz_mpoly(flint_mpoly):
             coeff = fmpz.__new__(fmpz)
             fmpz_mpoly_get_term_coeff_fmpz(coeff.val, self.val, i, self.ctx.val)
             res.append(coeff)
+
+        return res
+
+    def terms(self):
+        """
+        Return the terms of this polynomial as a list of fmpz_mpolys.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
+            >>> f.terms()
+            [4*x0*x1, 2*x0, 3*x1, 1]
+
+        """
+        cdef:
+            fmpz_mpoly term
+            slong i
+
+        res = []
+        for i in range(len(self)):
+            term = create_fmpz_mpoly(self.ctx)
+            fmpz_mpoly_get_term(term.val, self.val, i, self.ctx.val)
+            res.append(term)
 
         return res
 
