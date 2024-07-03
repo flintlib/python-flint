@@ -138,7 +138,7 @@ Next release:
 - [gh-144](https://github.com/flintlib/python-flint/pull/144)
   Add `rel_one_ccuracy_bits` to `arb` and `acb`.
 - [gh-142](https://github.com/flintlib/python-flint/pull/142)
-  Add `acb_theta` (only available for Flint >= 3.1).
+  Add `acb_theta` module for the numerical evaluation of [theta functions](https://flintlib.org/doc/acb_theta.html) (only available for Flint >= 3.1).
 - [gh-137](https://github.com/flintlib/python-flint/pull/137)
   Add `erfinv` and `erfcinv` for `arb`.
 - [gh-129](https://github.com/flintlib/python-flint/pull/129)
