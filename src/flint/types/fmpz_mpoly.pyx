@@ -597,7 +597,8 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def subs(self, dict_args) -> fmpz_mpoly:
         """
-        Partial evaluate this polynomial with select constants. All arguments must be fmpz.
+        Partial evaluate this polynomial with select constants. Keys must be generator names,
+        all values must be fmpz.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
@@ -610,28 +611,26 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_mpoly res
             slong i, nargs
 
-        partial_args = tuple((i, dict_args[x]) for i, x in enumerate(self.ctx.names()) if x in dict_args)
-        nargs = len(partial_args)
+        args = tuple((i, dict_args[x]) for i, x in enumerate(self.ctx.names()) if x in dict_args)
+        nargs = len(args)
 
         # If we've been provided with an invalid keyword arg then the length of our filter
         # args will be less than what we've been provided with.
-        # If the length is equal to the number of variables then all arguments have been provided
-        # otherwise we need to do partial application
         if nargs < len(dict_args):
-            raise ValueError("Unknown keyword argument provided")
+            raise ValueError("unknown generator name provided")
 
-        args_fmpz = tuple(any_as_fmpz(v) for _, v in partial_args)
+        args_fmpz = tuple(any_as_fmpz(v) for _, v in args)
         for arg in args_fmpz:
             if arg is NotImplemented:
-                raise TypeError(f"Cannot coerce argument ('{arg}') to fmpz")
+                raise TypeError(f"cannot coerce argument ('{arg}') to fmpz")
 
         # Partial application with args in Z. We evaluate the polynomial one variable at a time
         res = create_fmpz_mpoly(self.ctx)
 
         fmpz_mpoly_set(res.val, self.val, self.ctx.val)
-        for (i, _), arg in zip(partial_args, args_fmpz):
+        for (i, _), arg in zip(args, args_fmpz):
             if fmpz_mpoly_evaluate_one_fmpz(res.val, res.val, i, (<fmpz>arg).val, self.ctx.val) == 0:
-                raise ValueError("Unreasonably large polynomial")  # pragma: no cover
+                raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return res
 
     def compose(self, *args) -> fmpz_mpoly:

@@ -615,39 +615,59 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def subs(self, dict_args) -> fmpq_mpoly:
         """
-        Partial evaluate this polynomial.
+        Partial evaluate this polynomial with select constants. Keys must be generator names,
+        all values must be fmpq.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
+            >>> f.subs({"x1": 0})
+            2*x0 + 1
+
         """
         cdef:
             fmpq_mpoly res
             slong i, nargs
 
-        partial_args = tuple((i, dict_args[x]) for i, x in enumerate(self.ctx.names()) if x in dict_args)
-        nargs = len(partial_args)
+        args = tuple((i, dict_args[x]) for i, x in enumerate(self.ctx.names()) if x in dict_args)
+        nargs = len(args)
 
-        # If we've been provided with an invalid keyword arg then the length of our filter
+        # If we've been provided with an invalid generator name then the length of our filter
         # args will be less than what we've been provided with.
-        # If the length is equal to the number of variables then all arguments have been provided
-        # otherwise we need to do partial application
         if nargs < len(dict_args):
-            raise ValueError("Unknown keyword argument provided")
+            raise ValueError("unknown generator name provided")
 
-        args_fmpq = tuple(any_as_fmpq(v) for _, v in partial_args)
+        args_fmpq = tuple(any_as_fmpq(v) for _, v in args)
         for arg in args_fmpq:
             if arg is NotImplemented:
-                raise TypeError(f"Cannot coerce argument ('{arg}') to fmpq")
+                raise TypeError(f"cannot coerce argument ('{arg}') to fmpq")
 
-        # Partial application with args in Z. We evaluate the polynomial one variable at a time
+        # Partial application with args in Q. We evaluate the polynomial one variable at a time
         res = create_fmpq_mpoly(self.ctx)
 
         fmpq_mpoly_set(res.val, self.val, self.ctx.val)
-        for (i, _), arg in zip(partial_args, args_fmpq):
+        for (i, _), arg in zip(args, args_fmpq):
             if fmpq_mpoly_evaluate_one_fmpq(res.val, res.val, i, (<fmpq>arg).val, self.ctx.val) == 0:
-                raise ValueError("Unreasonably large polynomial")  # pragma: no cover
+                raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return res
 
     def compose(self, *args) -> fmpq_mpoly:
         """
-        Compose this polynomial with other fmpq_mpolys. Takes positional arguments.
+        Compose this polynomial with other fmpq_mpolys. All arguments must share the same context, it may different
+        from this polynomials context.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(1, Ordering.lex, 'x')
+            >>> ctx1 = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'y')
+            >>> f = ctx.from_dict({(2,): 1})
+            >>> g = ctx1.from_dict({(1, 0): 1, (0, 1): 1})
+            >>> f
+            x^2
+            >>> g
+            y0 + y1
+            >>> f.compose(g)
+            y0^2 + 2*y0*y1 + y1^2
+
         """
         cdef:
             fmpq_mpoly res
@@ -666,8 +686,8 @@ cdef class fmpq_mpoly(flint_mpoly):
         if not all((<fmpq_mpoly> args[i]).ctx is res_ctx for i in range(1, len(args))):
             raise IncompatibleContextError("All arguments must share the same context")
 
-        C = fmpq_mpoly_vec(args, self.ctx, double_indirect=True)
-        res = create_fmpq_mpoly(self.ctx)
+        C = fmpq_mpoly_vec(args, res_ctx, double_indirect=True)
+        res = create_fmpq_mpoly(res_ctx)
         if fmpq_mpoly_compose_fmpq_mpoly(res.val, self.val, C.double_indirect, self.ctx.val, res_ctx.val) == 0:
             raise ValueError("Unreasonably large polynomial")  # pragma: no cover
         return res
