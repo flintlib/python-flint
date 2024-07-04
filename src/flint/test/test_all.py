@@ -2696,11 +2696,11 @@ def test_mpolys():
         assert len(mpoly({(0, 0): 1, (0, 1): 1, (1, 0): 1})) == 3
 
         # degree is -1 when empty poly
-        assert P(ctx=ctx).degrees() == mpoly({(0, 0): 0}).degrees() == {"x0": -1, "x1": -1}
-        assert P(1, ctx=ctx).degrees() == mpoly({(0, 0): 1}).degrees() == {"x0": 0, "x1": 0}
-        assert mpoly({(0, 0): 1, (0, 1): 1}).degrees() == {"x0": 0, "x1": 1}
-        assert mpoly({(0, 0): 1, (0, 1): 1, (1, 0): 1}).degrees() == {"x0": 1, "x1": 1}
-        assert mpoly({(0, 0): 1, (0, 1): 1, (1, 0): 1, (2, 2): 2}).degrees() == {"x0": 2, "x1": 2}
+        assert P(ctx=ctx).degrees() == mpoly({(0, 0): 0}).degrees() == (-1, -1)
+        assert P(1, ctx=ctx).degrees() == mpoly({(0, 0): 1}).degrees() == (0, 0)
+        assert mpoly({(0, 0): 1, (0, 1): 1}).degrees() == (0, 1)
+        assert mpoly({(0, 0): 1, (0, 1): 1, (1, 0): 1}).degrees() == (1, 1)
+        assert mpoly({(0, 0): 1, (0, 1): 1, (1, 0): 1, (2, 2): 2}).degrees() == (2, 2)
 
         assert (P(1, ctx=ctx) == P(1, ctx=ctx)) is True
         assert (P(1, ctx=ctx) != P(1, ctx=ctx)) is False

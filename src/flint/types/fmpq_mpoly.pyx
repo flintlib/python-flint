@@ -752,14 +752,14 @@ cdef class fmpq_mpoly(flint_mpoly):
             >>> ctx = fmpq_mpoly_ctx.get_context(4, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
             >>> p.degrees()
-            {'x0': 1, 'x1': 2, 'x2': 3, 'x3': 0}
+            (1, 2, 3, 0)
         """
         cdef:
             slong nvars = self.ctx.nvars()
 
         res = fmpz_vec(nvars, double_indirect=True)
         fmpq_mpoly_degrees_fmpz(res.double_indirect, self.val, self.ctx.val)
-        return dict(zip(self.ctx.names(), res.to_tuple()))
+        return res.to_tuple()
 
     def total_degree(self):
         """
