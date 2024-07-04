@@ -1,7 +1,6 @@
 from flint.flint_base.flint_base cimport (
     flint_mpoly,
     flint_mpoly_context,
-    Ordering,
     ordering_py_to_c,
     ordering_c_to_py,
 )
@@ -17,7 +16,6 @@ from flint.types.fmpz cimport fmpz, any_as_fmpz
 from flint.types.fmpz_mpoly cimport fmpz_mpoly
 
 from flint.flintlib.fmpq cimport fmpq_set, fmpq_one
-from flint.flintlib.mpoly cimport ordering_t
 from flint.flintlib.fmpq_mpoly cimport (
     fmpq_mpoly_add,
     fmpq_mpoly_add_fmpq,
@@ -54,7 +52,6 @@ from flint.flintlib.fmpq_mpoly cimport (
     fmpq_mpoly_set_coeff_fmpq_fmpz,
     fmpq_mpoly_set_fmpq,
     fmpq_mpoly_set_str_pretty,
-    fmpq_mpoly_set_term_coeff_fmpq,
     fmpq_mpoly_sort_terms,
     fmpq_mpoly_sqrt,
     fmpq_mpoly_sub,
@@ -163,16 +160,16 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
             fmpq_mpoly res
 
         if not isinstance(d, dict):
-            raise ValueError("Expected a dictionary")
+            raise ValueError("expected a dictionary")
 
         res = create_fmpq_mpoly(self)
 
         for k, v in d.items():
             o = any_as_fmpq(v)
             if o is NotImplemented:
-                raise TypeError(f"Cannot coerce coefficient '{v}' to fmpq")
+                raise TypeError(f"cannot coerce coefficient '{v}' to fmpq")
             elif len(k) != nvars:
-                raise ValueError(f"Expected {nvars} exponents, got {len(k)}")
+                raise ValueError(f"expected {nvars} exponents, got {len(k)}")
 
             exp_vec = fmpz_vec(k)
 
@@ -212,7 +209,8 @@ cdef class fmpq_mpoly(flint_mpoly):
                 raise TypeError(f"{ctx} is not a fmpq_mpoly_ctx or fmpz_mpoly_ctx")
             elif ctx.nvars() != val.context().nvars():
                 raise ValueError(
-                    f"Provided context ('{ctx}') and provided fmpz_mpoly ('{val}') don't share the same number of variables"
+                    f"Provided context ('{ctx}') and provided fmpz_mpoly ('{val}') don't share the same number of "
+                    "variables"
                 )
             init_fmpq_mpoly(self, ctx)
             fmpz_mpoly_set(self.val.zpoly, (<fmpz_mpoly>val).val, (<fmpz_mpoly> val).ctx.val)
@@ -220,25 +218,25 @@ cdef class fmpq_mpoly(flint_mpoly):
             fmpq_mpoly_reduce(self.val, self.ctx.val)
         elif isinstance(val, dict):
             if ctx is None:
-                raise ValueError("A context is required to create a fmpq_mpoly from a dict")
+                raise ValueError("a context is required to create a fmpq_mpoly from a dict")
             x = ctx.from_dict(val)
             # XXX: this copy is silly, have a ctx function that assigns an fmpz_mpoly_t
             init_fmpq_mpoly(self, ctx)
             fmpq_mpoly_set(self.val, (<fmpq_mpoly>x).val, self.ctx.val)
         elif isinstance(val, str):
             if ctx is None:
-                raise ValueError("Cannot parse a polynomial without context")
+                raise ValueError("cannot parse a polynomial without context")
             val = val.encode("ascii")
             init_fmpq_mpoly(self, ctx)
             if fmpq_mpoly_set_str_pretty(self.val, val, self.ctx.c_names, self.ctx.val) == -1:
-                raise ValueError("Unable to parse fmpq_mpoly from string")
+                raise ValueError("unable to parse fmpq_mpoly from string")
             fmpq_mpoly_sort_terms(self.val, self.ctx.val)
         else:
             v = any_as_fmpq(val)
             if v is NotImplemented:
                 raise TypeError("cannot create fmpz_mpoly from type %s" % type(val))
             if ctx is None:
-                raise ValueError("Need context to convert  fmpz to fmpq_mpoly")
+                raise ValueError("need context to convert  fmpz to fmpq_mpoly")
             init_fmpq_mpoly(self, ctx)
             fmpq_mpoly_set_fmpq(self.val, (<fmpq>v).val, self.ctx.val)
 
@@ -280,9 +278,9 @@ cdef class fmpq_mpoly(flint_mpoly):
             slong nvars = self.ctx.nvars()
 
         if not isinstance(x, tuple):
-            raise TypeError("Exponent vector index is not a tuple")
+            raise TypeError("exponent vector index is not a tuple")
         elif len(x) != nvars:
-            raise ValueError("Exponent vector provided does not match number of variables")
+            raise ValueError("exponent vector provided does not match number of variables")
 
         res = fmpq()
         exp_vec = fmpz_vec(x, double_indirect=True)
@@ -308,11 +306,11 @@ cdef class fmpq_mpoly(flint_mpoly):
 
         coeff = any_as_fmpq(y)
         if coeff is NotImplemented:
-            raise TypeError("Provided coefficient not coercible to fmpq")
+            raise TypeError("provided coefficient not coercible to fmpq")
         elif not isinstance(x, tuple):
-            raise TypeError("Exponent vector index is not a tuple")
+            raise TypeError("exponent vector index is not a tuple")
         elif len(x) != nvars:
-            raise ValueError("Exponent vector provided does not match number of variables")
+            raise ValueError("exponent vector provided does not match number of variables")
 
         exp_vec = fmpz_vec(x, double_indirect=True)
         fmpq_mpoly_set_coeff_fmpq_fmpz(self.val, (<fmpq>coeff).val, exp_vec.double_indirect, self.ctx.val)
@@ -530,19 +528,19 @@ cdef class fmpq_mpoly(flint_mpoly):
             slong nvars = self.ctx.nvars(), nargs = len(args)
 
         if nargs < nvars:
-            raise ValueError("Not enough arguments provided")
+            raise ValueError("not enough arguments provided")
         elif nargs > nvars:
-            raise ValueError("More arguments provided than variables")
+            raise ValueError("more arguments provided than variables")
 
         args_fmpq = tuple(any_as_fmpq(v) for v in args)
         for arg in args_fmpq:
             if arg is NotImplemented:
-                raise TypeError(f"Cannot coerce argument ('{arg}') to fmpq")
+                raise TypeError(f"cannot coerce argument ('{arg}') to fmpq")
 
         V = fmpq_vec(args_fmpq, double_indirect=True)
         vres = fmpq.__new__(fmpq)
         if fmpq_mpoly_evaluate_all_fmpq(vres.val, self.val, V.double_indirect, self.ctx.val) == 0:
-            raise ValueError("Unreasonably large polynomial")  # pragma: no cover
+            raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return vres
 
     def monoms(self):
@@ -676,20 +674,20 @@ cdef class fmpq_mpoly(flint_mpoly):
             slong i, nvars = self.ctx.nvars(), nargs = len(args)
 
         if nargs < nvars:
-            raise ValueError("Not enough arguments provided")
+            raise ValueError("not enough arguments provided")
         elif nargs > nvars:
-            raise ValueError("More arguments provided than variables")
+            raise ValueError("more arguments provided than variables")
         elif not all(typecheck(arg, fmpq_mpoly) for arg in args):
-            raise TypeError("All arguments must be fmpq_mpolys")
+            raise TypeError("all arguments must be fmpq_mpolys")
 
         res_ctx = (<fmpq_mpoly> args[0]).ctx
         if not all((<fmpq_mpoly> args[i]).ctx is res_ctx for i in range(1, len(args))):
-            raise IncompatibleContextError("All arguments must share the same context")
+            raise IncompatibleContextError("all arguments must share the same context")
 
         C = fmpq_mpoly_vec(args, res_ctx, double_indirect=True)
         res = create_fmpq_mpoly(res_ctx)
         if fmpq_mpoly_compose_fmpq_mpoly(res.val, self.val, C.double_indirect, self.ctx.val, res_ctx.val) == 0:
-            raise ValueError("Unreasonably large polynomial")  # pragma: no cover
+            raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return res
 
     def context(self):

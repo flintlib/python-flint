@@ -1,7 +1,6 @@
 from flint.flint_base.flint_base cimport (
     flint_mpoly,
     flint_mpoly_context,
-    Ordering,
     ordering_py_to_c,
     ordering_c_to_py,
 )
@@ -48,7 +47,6 @@ from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_set_coeff_fmpz_fmpz,
     fmpz_mpoly_set_fmpz,
     fmpz_mpoly_set_str_pretty,
-    fmpz_mpoly_set_term_coeff_fmpz,
     fmpz_mpoly_sort_terms,
     fmpz_mpoly_sqrt_heap,
     fmpz_mpoly_sub,
@@ -200,25 +198,25 @@ cdef class fmpz_mpoly(flint_mpoly):
                 raise IncompatibleContextError(f"{ctx} is not {(<fmpz_mpoly>val).ctx}")
         elif isinstance(val, dict):
             if ctx is None:
-                raise ValueError("A context is required to create a fmpz_mpoly from a dict")
+                raise ValueError("a context is required to create a fmpz_mpoly from a dict")
             x = ctx.from_dict(val)
             # XXX: this copy is silly, have a ctx function that assigns an fmpz_mpoly_t
             init_fmpz_mpoly(self, ctx)
             fmpz_mpoly_set(self.val, (<fmpz_mpoly>x).val, self.ctx.val)
         elif isinstance(val, str):
             if ctx is None:
-                raise ValueError("Cannot parse a polynomial without context")
+                raise ValueError("cannot parse a polynomial without context")
             val = bytes(val, 'utf-8')
             init_fmpz_mpoly(self, ctx)
             if fmpz_mpoly_set_str_pretty(self.val, val, self.ctx.c_names, self.ctx.val) == -1:
-                raise ValueError("Unable to parse fmpz_mpoly from string")
+                raise ValueError("unable to parse fmpz_mpoly from string")
             fmpz_mpoly_sort_terms(self.val, self.ctx.val)
         else:
             v = any_as_fmpz(val)
             if v is NotImplemented:
-                raise TypeError("Cannot create fmpz_mpoly from type %s" % type(val))
+                raise TypeError("cannot create fmpz_mpoly from type %s" % type(val))
             if ctx is None:
-                raise ValueError("Need context to convert  fmpz to fmpz_mpoly")
+                raise ValueError("need context to convert  fmpz to fmpz_mpoly")
             init_fmpz_mpoly(self, ctx)
             fmpz_mpoly_set_fmpz(self.val, (<fmpz>v).val, self.ctx.val)
 
@@ -512,19 +510,19 @@ cdef class fmpz_mpoly(flint_mpoly):
             slong nvars = self.ctx.nvars(), nargs = len(args)
 
         if nargs < nvars:
-            raise ValueError("Not enough arguments provided")
+            raise ValueError("not enough arguments provided")
         elif nargs > nvars:
-            raise ValueError("More arguments provided than variables")
+            raise ValueError("more arguments provided than variables")
 
         args_fmpz = tuple(any_as_fmpz(v) for v in args)
         for arg in args_fmpz:
             if arg is NotImplemented:
-                raise TypeError(f"Cannot coerce argument ('{arg}') to fmpz")
+                raise TypeError(f"cannot coerce argument ('{arg}') to fmpz")
 
         V = fmpz_vec(args_fmpz, double_indirect=True)
         vres = fmpz.__new__(fmpz)
         if fmpz_mpoly_evaluate_all_fmpz(vres.val, self.val, V.double_indirect, self.ctx.val) == 0:
-            raise ValueError("Unreasonably large polynomial")  # pragma: no cover
+            raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return vres
 
     def monoms(self):
@@ -658,20 +656,20 @@ cdef class fmpz_mpoly(flint_mpoly):
             slong i, nvars = self.ctx.nvars(), nargs = len(args)
 
         if nargs < nvars:
-            raise ValueError("Not enough arguments provided")
+            raise ValueError("not enough arguments provided")
         elif nargs > nvars:
-            raise ValueError("More arguments provided than variables")
+            raise ValueError("more arguments provided than variables")
         elif not all(typecheck(arg, fmpz_mpoly) for arg in args):
-            raise TypeError("All arguments must be fmpz_mpolys")
+            raise TypeError("all arguments must be fmpz_mpolys")
 
         res_ctx = (<fmpz_mpoly> args[0]).ctx
         if not all((<fmpz_mpoly> args[i]).ctx is res_ctx for i in range(1, len(args))):
-            raise IncompatibleContextError("All arguments must share the same context")
+            raise IncompatibleContextError("all arguments must share the same context")
 
         C = fmpz_mpoly_vec(args, res_ctx, double_indirect=True)
         res = create_fmpz_mpoly(res_ctx)
         if fmpz_mpoly_compose_fmpz_mpoly(res.val, self.val, C.double_indirect, self.ctx.val, res_ctx.val) == 0:
-            raise ValueError("Unreasonably large polynomial")  # pragma: no cover
+            raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return res
 
     def context(self):
