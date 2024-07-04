@@ -328,19 +328,6 @@ cdef class fmpz_mpoly(flint_mpoly):
             return res
         return NotImplemented
 
-    def __iadd__(self, other):
-        if typecheck(other, fmpz_mpoly):
-            if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
-            fmpz_mpoly_add((<fmpz_mpoly>self).val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, self.ctx.val)
-            return self
-        else:
-            zval = any_as_fmpz(other)
-            if zval is not NotImplemented:
-                fmpz_mpoly_add_fmpz((<fmpz_mpoly>self).val, (<fmpz_mpoly>self).val, (<fmpz>zval).val, self.ctx.val)
-                return self
-        return NotImplemented
-
     def __sub__(self, other):
         cdef fmpz_mpoly res
         if typecheck(other, fmpz_mpoly):
@@ -366,19 +353,6 @@ cdef class fmpz_mpoly(flint_mpoly):
             return -res
         return NotImplemented
 
-    def __isub__(self, other):
-        if typecheck(other, fmpz_mpoly):
-            if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
-            fmpz_mpoly_sub((<fmpz_mpoly>self).val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, self.ctx.val)
-            return self
-        else:
-            other = any_as_fmpz(other)
-            if other is not NotImplemented:
-                fmpz_mpoly_sub_fmpz((<fmpz_mpoly>self).val, (<fmpz_mpoly>self).val, (<fmpz>other).val, self.ctx.val)
-                return self
-        return NotImplemented
-
     def __mul__(self, other):
         cdef fmpz_mpoly res
         if typecheck(other, fmpz_mpoly):
@@ -402,19 +376,6 @@ cdef class fmpz_mpoly(flint_mpoly):
             res = create_fmpz_mpoly(self.ctx)
             fmpz_mpoly_scalar_mul_fmpz(res.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, res.ctx.val)
             return res
-        return NotImplemented
-
-    def __imul__(self, other):
-        if typecheck(other, fmpz_mpoly):
-            if (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
-            fmpz_mpoly_mul((<fmpz_mpoly>self).val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, self.ctx.val)
-            return self
-        else:
-            other = any_as_fmpz(other)
-            if other is not NotImplemented:
-                fmpz_mpoly_scalar_mul_fmpz(self.val, (<fmpz_mpoly>self).val, (<fmpz>other).val, self.ctx.val)
-                return self
         return NotImplemented
 
     def __pow__(self, other, modulus):
