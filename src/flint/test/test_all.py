@@ -2777,10 +2777,10 @@ def test_mpolys():
         assert P(1, ctx=ctx).repr() == f"{ctx.__class__.__name__}(2, '<Ordering.lex: 0>', ('x0', 'x1')).from_dict({{(0, 0): 1}})"
         assert str(quick_poly()) == repr(quick_poly()) == '4*x0^2*x1^2 + 3*x0 + 2*x1 + 1'
 
-        assert p.exponent_tuple(0) == (2, 2)
-        assert p.exponent_tuple(3) == (0, 0)
-        assert raises(lambda: p.exponent_tuple(-1), IndexError)
-        assert raises(lambda: p.exponent_tuple(4), IndexError)
+        assert p.monomial(0) == (2, 2)
+        assert p.monomial(3) == (0, 0)
+        assert raises(lambda: p.monomial(-1), IndexError)
+        assert raises(lambda: p.monomial(4), IndexError)
 
         assert p.total_degree() == 4
         assert P(ctx=ctx).total_degree() == -1
@@ -2791,11 +2791,9 @@ def test_mpolys():
         assert p(1, 1) == S(10) == 10
 
         p = quick_poly()
-        assert p.keys() == [(2, 2), (1, 0), (0, 1), (0, 0)]
-        assert p.values() == [4, 3, 2, 1]
-        assert list(p.items()) == list(zip([(2, 2), (1, 0), (0, 1), (0, 0)], [4, 3, 2, 1]))
-        assert sum(ctx.from_dict({exp_vec: coeff}) for exp_vec, coeff in p.items()) == p
-        assert sum(p.terms()) == p
+        assert p.monoms() == [(2, 2), (1, 0), (0, 1), (0, 0)]
+        assert p.coeffs() == [4, 3, 2, 1]
+        assert list(p.terms()) == list(zip([(2, 2), (1, 0), (0, 1), (0, 0)], [4, 3, 2, 1]))
 
         assert p.subs({"x1": S(0), "x0": S(0)}) == ctx.from_dict({(0, 0): 1})
         assert p.compose(p.subs({"x1": 0}), ctx.from_dict({(0, 1): 1})) == mpoly({

@@ -242,7 +242,7 @@ cdef class flint_mpoly(flint_elem):
         return self.coefficient(0)
 
     def to_dict(self):
-        return {self.exponent_tuple(i): self.coefficient(i) for i in range(len(self))}
+        return {self.monomial(i): self.coefficient(i) for i in range(len(self))}
 
     def __contains__(self, x):
         """
@@ -265,24 +265,18 @@ cdef class flint_mpoly(flint_elem):
     def __pos__(self):
         return self
 
-    def keys(self):
-        return self.monoms()
-
-    def values(self):
-        return self.coeffs()
-
-    def items(self):
+    def terms(self):
         """
         Return the exponent vectors and coefficient of each term.
 
             >>> from flint import fmpq_mpoly_ctx, Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
-            >>> list(f.items())
+            >>> list(f.terms())
             [((1, 1), 4), ((1, 0), 2), ((0, 1), 3), ((0, 0), 1)]
 
         """
-        return zip(self.keys(), self.values())
+        return zip(self.monoms(), self.coeffs())
 
 
 cdef class flint_series(flint_elem):

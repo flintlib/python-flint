@@ -591,7 +591,7 @@ cdef class fmpq_mpoly(flint_mpoly):
             >>> from flint import Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
-            >>> f.keys()
+            >>> f.monoms()
             [(1, 1), (1, 0), (0, 1), (0, 0)]
 
         """
@@ -613,7 +613,7 @@ cdef class fmpq_mpoly(flint_mpoly):
             >>> from flint import Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
-            >>> f.values()
+            >>> f.coeffs()
             [4, 2, 3, 1]
 
         """
@@ -629,28 +629,28 @@ cdef class fmpq_mpoly(flint_mpoly):
 
         return res
 
-    def terms(self):
-        """
-        Return the terms of this polynomial as a list of fmpq_mpolys.
+    # def terms(self):
+    #     """
+    #     Return the terms of this polynomial as a list of fmpq_mpolys.
 
-            >>> from flint import Ordering
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
-            >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
-            >>> f.terms()
-            [4*x0*x1, 2*x0, 3*x1, 1]
+    #         >>> from flint import Ordering
+    #         >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+    #         >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
+    #         >>> f.terms()
+    #         [4*x0*x1, 2*x0, 3*x1, 1]
 
-        """
-        cdef:
-            fmpq_mpoly term
-            slong i
+    #     """
+    #     cdef:
+    #         fmpq_mpoly term
+    #         slong i
 
-        res = []
-        for i in range(len(self)):
-            term = create_fmpq_mpoly(self.ctx)
-            fmpq_mpoly_get_term(term.val, self.val, i, self.ctx.val)
-            res.append(term)
+    #     res = []
+    #     for i in range(len(self)):
+    #         term = create_fmpq_mpoly(self.ctx)
+    #         fmpq_mpoly_get_term(term.val, self.val, i, self.ctx.val)
+    #         res.append(term)
 
-        return res
+    #     return res
 
     def subs(self, dict_args) -> fmpq_mpoly:
         """
@@ -744,14 +744,14 @@ cdef class fmpq_mpoly(flint_mpoly):
             fmpq_mpoly_get_term_coeff_fmpq(v.val, self.val, i, self.ctx.val)
             return v
 
-    def exponent_tuple(self, slong i):
+    def monomial(self, slong i):
         """
         Return the exponent vector at index `i` as a tuple.
 
             >>> from flint import Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
-            >>> p.exponent_tuple(1)
+            >>> p.monomial(1)
             (0, 1)
         """
         cdef:
