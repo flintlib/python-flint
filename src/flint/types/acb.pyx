@@ -1404,6 +1404,11 @@ cdef class acb(flint_scalar):
         return acb_rel_one_accuracy_bits(self.val)
 
     def bits(self):
+        r"""Returns maximum of :meth:`.arb.bits` called on real and imaginary part.
+        
+            >>> acb("2047/2048").bits()
+            11
+        """
         return acb_bits(self.val)
 
     def ei(s):

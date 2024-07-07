@@ -809,10 +809,10 @@ cdef class arb(flint_scalar):
         arb_log1p((<arb>u).val, (<arb>s).val, getprec())
         return u
 
-    def log_base_ui(s, ulong b):
+    def log_base(s, ulong b):
         r"""Returns `\log_b(s)`, computed exactly when possible.
         
-            >>> arb(2048).log_base_ui(2)
+            >>> arb(2048).log_base(2)
             11.0000000000000
         """
         u = arb.__new__(arb)
@@ -2427,6 +2427,11 @@ cdef class arb(flint_scalar):
         return arb_rel_one_accuracy_bits(self.val)
 
     def bits(self):
+        r"""Returns number of bits needed to represent absolute value of mantissa of the midpoint; returns 0 if midpoint is special value.
+        
+            >>> arb("2047/2048").bits()
+            11
+        """
         return arb_bits(self.val)
 
     def lambertw(s, int branch=0):
