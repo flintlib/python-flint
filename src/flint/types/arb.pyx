@@ -809,6 +809,16 @@ cdef class arb(flint_scalar):
         arb_log1p((<arb>u).val, (<arb>s).val, getprec())
         return u
 
+    def log_base_ui(s, ulong b):
+        r"""Returns `\log_b(s)`, computed exactly when possible.
+        
+            >>> arb(2048).log_base_ui(2)
+            11.0000000000000
+        """
+        u = arb.__new__(arb)
+        arb_log_base_ui((<arb>u).val, (<arb>s).val, b, getprec())
+        return u
+
     def sin(s):
         r"""
         Sine function `\sin(s)`.
