@@ -132,21 +132,25 @@ CHANGELOG
 -------------
 
 Next release:
+- [gh-161](https://github.com/flintlib/python-flint/pull/161)
+  Add `acb.lerch_phi` to compute the Lerch transcendent.
 - [gh-160](https://github.com/flintlib/python-flint/pull/160)
   Add `bits` to `arb` and `acb`, add `log_base` to `arb`.
+- [gh-149](https://github.com/flintlib/python-flint/pull/149)
+  Bump Flint version to 3.1.3-p1 (Flint 3.0.0 - 3.1.3-p1 is supported but the
+  wheels are built with 3.1.3-p1).
 - [gh-148](https://github.com/flintlib/python-flint/pull/148)
   Remove debug symbols to make smaller Linux binaries.
 - [gh-144](https://github.com/flintlib/python-flint/pull/144)
   Add `rel_one_ccuracy_bits` to `arb` and `acb`.
 - [gh-142](https://github.com/flintlib/python-flint/pull/142)
-  Add `acb_theta` module for the numerical evaluation of [theta functions](https://flintlib.org/doc/acb_theta.html) (only available for Flint >= 3.1).
+  Add `acb_theta` module for the numerical evaluation of [theta
+  functions](https://flintlib.org/doc/acb_theta.html) (only available for Flint
+  >= 3.1).
 - [gh-137](https://github.com/flintlib/python-flint/pull/137)
   Add `erfinv` and `erfcinv` for `arb`.
 - [gh-129](https://github.com/flintlib/python-flint/pull/129)
   Use meson-python instead of setuptools as the build backend.
-- [gh-125](https://github.com/flintlib/python-flint/pull/125)
-  Bump Flint version to 3.1.2 (Flint 3.0.0 - 3.1.2 is supported but the wheels
-  are built with 3.1.2).
 
 0.6.0
 
