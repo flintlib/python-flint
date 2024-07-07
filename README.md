@@ -132,7 +132,7 @@ CHANGELOG
 -------------
 
 Next release:
-- [gh-160](https://github.com/flintlib/python-flint/pull/148)
+- [gh-160](https://github.com/flintlib/python-flint/pull/160)
   Add `bits` to `arb` and `acb`, add `log_base` to `arb`.
 - [gh-148](https://github.com/flintlib/python-flint/pull/148)
   Remove debug symbols to make smaller Linux binaries.
