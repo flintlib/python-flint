@@ -9,6 +9,17 @@ gmp_dep = dependency('gmp')
 mpfr_dep = dependency('mpfr')
 flint_dep = dependency('flint')
 
+add_project_arguments(
+    '-X', 'embedsignature=True',
+    '-X', 'emit_code_comments=True',
+    language : 'cython'
+)
+
+if get_option('coverage')
+   add_project_arguments('-X', 'linetrace=True', language : 'cython')
+   add_project_arguments('-DCYTHON_TRACE=1', language : 'c')
+endif
+
 # Add rpaths for a local build of flint found via pkgconfig
 #   https://github.com/mesonbuild/meson/issues/13046
 if get_option('add_flint_rpath')

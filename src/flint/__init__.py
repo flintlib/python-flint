@@ -4,21 +4,25 @@ from .types.fmpz import *
 from .types.fmpz_poly import *
 from .types.fmpz_mat import *
 from .types.fmpz_series import *
+from .types.fmpz_vec import fmpz_vec
 
 from .types.fmpq import *
 from .types.fmpq_poly import *
 from .types.fmpq_mat import *
 from .types.fmpq_series import *
+from .types.fmpq_vec import fmpq_vec
 
 from .types.nmod import *
 from .types.nmod_poly import *
 from .types.nmod_mat import *
 from .types.nmod_series import *
 
-from .types.fmpz_mpoly import *
+from .types.fmpz_mpoly import fmpz_mpoly_ctx, fmpz_mpoly, fmpz_mpoly_vec
 from .types.fmpz_mod import *
 from .types.fmpz_mod_poly import *
 from .types.fmpz_mod_mat import fmpz_mod_mat
+
+from .types.fmpq_mpoly import fmpq_mpoly_ctx, fmpq_mpoly, fmpq_mpoly_vec
 
 from .types.arf import *
 from .types.arb import *
@@ -36,6 +40,7 @@ from .functions.showgood import good, showgood
 from .flint_base.flint_base import (
     FLINT_VERSION as __FLINT_VERSION__,
     FLINT_RELEASE as __FLINT_RELEASE__,
+    Ordering,
 )
 
 __version__ = '0.7.0a2'
