@@ -260,7 +260,7 @@ cdef class flint_mpoly(flint_elem):
         return bool(self[x])
 
     def __iter__(self):
-        return iter(self.keys())
+        return iter(self.monoms())
 
     def __pos__(self):
         return self
