@@ -2845,6 +2845,8 @@ def test_mpolys():
         assert raises(lambda: mpoly({(0, 0): 2, (0, 1): 2, (1, 0): 3, (2, 2): 4}) + None, TypeError)
         assert raises(lambda: None + mpoly({(0, 0): 2, (0, 1): 2, (1, 0): 3, (2, 2): 4}), TypeError)
         assert raises(lambda: quick_poly() + P(ctx=ctx1), IncompatibleContextError)
+        assert raises(lambda: quick_poly().__iadd__(P(ctx=ctx1)), IncompatibleContextError)
+        assert quick_poly().__iadd__(None) is NotImplemented
 
         assert quick_poly() - mpoly({(0, 0): 5, (0, 1): 6, (1, 0): 7, (2, 2): 8}) \
             == mpoly({(0, 0): -4, (0, 1): -4, (1, 0): -4, (2, 2): -4})
@@ -2858,6 +2860,8 @@ def test_mpolys():
         assert raises(lambda: quick_poly() - None, TypeError)
         assert raises(lambda: None - quick_poly(), TypeError)
         assert raises(lambda: quick_poly() - P(ctx=ctx1), IncompatibleContextError)
+        assert raises(lambda: quick_poly().__isub__(P(ctx=ctx1)), IncompatibleContextError)
+        assert quick_poly().__isub__(None) is NotImplemented
 
         assert quick_poly() * mpoly({(1, 0): 5, (0, 1): 6}) \
             == mpoly({
@@ -2879,6 +2883,8 @@ def test_mpolys():
         assert raises(lambda: quick_poly() * None, TypeError)
         assert raises(lambda: None * quick_poly(), TypeError)
         assert raises(lambda: quick_poly() * P(ctx=ctx1), IncompatibleContextError)
+        assert raises(lambda: quick_poly().__imul__(P(ctx=ctx1)), IncompatibleContextError)
+        assert quick_poly().__imul__(None) is NotImplemented
 
         assert quick_poly() // mpoly({(1, 1): 1}) == mpoly({(1, 1): 4})
         assert quick_poly() % mpoly({(1, 1): 1}) \

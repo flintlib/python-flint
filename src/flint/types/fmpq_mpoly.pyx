@@ -346,6 +346,19 @@ cdef class fmpq_mpoly(flint_mpoly):
             return res
         return NotImplemented
 
+    def __iadd__(self, other):
+        if typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
+            fmpq_mpoly_add((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
+            return self
+        else:
+            other = any_as_fmpq(other)
+            if other is not NotImplemented:
+                fmpq_mpoly_add_fmpq((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
+                return self
+        return NotImplemented
+
     def __sub__(self, other):
         cdef fmpq_mpoly res
         if typecheck(other, fmpq_mpoly):
@@ -371,6 +384,19 @@ cdef class fmpq_mpoly(flint_mpoly):
             return -res
         return NotImplemented
 
+    def __isub__(self, other):
+        if typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
+            fmpq_mpoly_sub((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
+            return self
+        else:
+            other = any_as_fmpq(other)
+            if other is not NotImplemented:
+                fmpq_mpoly_sub_fmpq((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
+                return self
+        return NotImplemented
+
     def __mul__(self, other):
         cdef fmpq_mpoly res
         if typecheck(other, fmpq_mpoly):
@@ -394,6 +420,19 @@ cdef class fmpq_mpoly(flint_mpoly):
             res = create_fmpq_mpoly(self.ctx)
             fmpq_mpoly_scalar_mul_fmpq(res.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, res.ctx.val)
             return res
+        return NotImplemented
+
+    def __imul__(self, other):
+        if typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
+            fmpq_mpoly_mul((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
+            return self
+        else:
+            other = any_as_fmpq(other)
+            if other is not NotImplemented:
+                fmpq_mpoly_scalar_mul_fmpq(self.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
+                return self
         return NotImplemented
 
     def __pow__(self, other, modulus):
