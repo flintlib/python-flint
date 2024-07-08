@@ -132,8 +132,12 @@ CHANGELOG
 -------------
 
 Next release:
+
 - [gh-161](https://github.com/flintlib/python-flint/pull/161)
   Add `acb.lerch_phi` to compute the Lerch transcendent.
+- [gh-132](https://github.com/flintlib/python-flint/pull/132)
+  Add `fmpz_mpoly` and `fmpq_mpoly` types for multivariate polynomials with
+  integer or rational coefficients.
 - [gh-160](https://github.com/flintlib/python-flint/pull/160)
   Add `bits` to `arb` and `acb`, add `log_base` to `arb`.
 - [gh-149](https://github.com/flintlib/python-flint/pull/149)
@@ -145,8 +149,8 @@ Next release:
   Add `rel_one_ccuracy_bits` to `arb` and `acb`.
 - [gh-142](https://github.com/flintlib/python-flint/pull/142)
   Add `acb_theta` module for the numerical evaluation of [theta
-  functions](https://flintlib.org/doc/acb_theta.html) (only available for Flint
-  >= 3.1).
+  functions](https://flintlib.org/doc/acb_theta.html) (only available for
+  `Flint >= 3.1`).
 - [gh-137](https://github.com/flintlib/python-flint/pull/137)
   Add `erfinv` and `erfcinv` for `arb`.
 - [gh-129](https://github.com/flintlib/python-flint/pull/129)
