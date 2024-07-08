@@ -2815,6 +2815,11 @@ def test_mpolys():
         assert raises(lambda: p.subs({"a": 1}), ValueError)
         assert raises(lambda: p.subs({"x0": 0, "x1": 1, "x2": 2}), ValueError)
 
+        no_gens_ctx = C.get_context(0)
+        no_gens_p = P("2", no_gens_ctx)
+        assert no_gens_p.compose(ctx=ctx1).context() is ctx1
+        assert raises(lambda: no_gens_p.compose(), ValueError)
+
         assert raises(lambda: p.compose(p, P(ctx=ctx1)), IncompatibleContextError)
 
         assert bool(P(ctx=ctx)) is False

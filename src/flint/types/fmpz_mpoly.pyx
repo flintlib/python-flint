@@ -631,7 +631,7 @@ cdef class fmpz_mpoly(flint_mpoly):
                 raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return res
 
-    def compose(self, *args) -> fmpz_mpoly:
+    def compose(self, *args, ctx=None) -> fmpz_mpoly:
         """
         Compose this polynomial with other fmpz_mpolys. All arguments must share the same context, it may different
         from this polynomials context.
@@ -659,12 +659,22 @@ cdef class fmpz_mpoly(flint_mpoly):
             raise ValueError("not enough arguments provided")
         elif nargs > nvars:
             raise ValueError("more arguments provided than variables")
+        elif self.ctx.nvars() == 0 and ctx is None:
+            raise ValueError("a context must be provided when composing a polynomial with no generators")
         elif not all(typecheck(arg, fmpz_mpoly) for arg in args):
             raise TypeError("all arguments must be fmpz_mpolys")
 
-        res_ctx = (<fmpz_mpoly> args[0]).ctx
-        if not all((<fmpz_mpoly> args[i]).ctx is res_ctx for i in range(1, len(args))):
-            raise IncompatibleContextError("all arguments must share the same context")
+        if ctx is None:
+            res_ctx = (<fmpz_mpoly> args[0]).ctx
+        elif typecheck(ctx, fmpz_mpoly_ctx):
+            res_ctx = <fmpz_mpoly_ctx>ctx
+        else:
+            raise TypeError(f"provided context ({ctx}) is not a fmpz_mpoly_ctx")
+
+        if not all((<fmpz_mpoly> arg).ctx is res_ctx for arg in args):
+            raise IncompatibleContextError(
+                "all arguments must share the " + ("same" if ctx is not None else "provided") + " context"
+            )
 
         C = fmpz_mpoly_vec(args, res_ctx, double_indirect=True)
         res = create_fmpz_mpoly(res_ctx)

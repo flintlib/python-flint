@@ -649,7 +649,7 @@ cdef class fmpq_mpoly(flint_mpoly):
                 raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return res
 
-    def compose(self, *args) -> fmpq_mpoly:
+    def compose(self, *args, ctx=None) -> fmpq_mpoly:
         """
         Compose this polynomial with other fmpq_mpolys. All arguments must share the same context, it may different
         from this polynomials context.
@@ -677,12 +677,22 @@ cdef class fmpq_mpoly(flint_mpoly):
             raise ValueError("not enough arguments provided")
         elif nargs > nvars:
             raise ValueError("more arguments provided than variables")
+        elif self.ctx.nvars() == 0 and ctx is None:
+            raise ValueError("a context must be provided when composing a polynomial with no generators")
         elif not all(typecheck(arg, fmpq_mpoly) for arg in args):
             raise TypeError("all arguments must be fmpq_mpolys")
 
-        res_ctx = (<fmpq_mpoly> args[0]).ctx
-        if not all((<fmpq_mpoly> args[i]).ctx is res_ctx for i in range(1, len(args))):
-            raise IncompatibleContextError("all arguments must share the same context")
+        if ctx is None:
+            res_ctx = (<fmpq_mpoly> args[0]).ctx
+        elif typecheck(ctx, fmpq_mpoly_ctx):
+            res_ctx = <fmpq_mpoly_ctx>ctx
+        else:
+            raise TypeError(f"provided context ({ctx}) is not a fmpq_mpoly_ctx")
+
+        if not all((<fmpq_mpoly> arg).ctx is res_ctx for arg in args):
+            raise IncompatibleContextError(
+                "all arguments must share the " + ("same" if ctx is not None else "provided") + " context"
+            )
 
         C = fmpq_mpoly_vec(args, res_ctx, double_indirect=True)
         res = create_fmpq_mpoly(res_ctx)
