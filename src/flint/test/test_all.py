@@ -2795,7 +2795,7 @@ def test_mpolys():
         assert p.coeffs() == [4, 3, 2, 1]
         assert list(p.terms()) == list(zip([(2, 2), (1, 0), (0, 1), (0, 0)], [4, 3, 2, 1]))
 
-        assert p.subs({"x1": S(0), "x0": S(0)}) == ctx.from_dict({(0, 0): 1})
+        assert p.subs({"x1": S(0), 0: S(0)}) == ctx.from_dict({(0, 0): 1})
         assert p.compose(p.subs({"x1": 0}), ctx.from_dict({(0, 1): 1})) == mpoly({
             (2, 2): 36,
             (1, 2): 24,
@@ -2858,7 +2858,6 @@ def test_mpolys():
             p -= T(1)
             q = quick_poly()
             assert q.isub(T(1)) is None
-            breakpoint()
             assert quick_poly() - T(1) == p == q == mpoly({(0, 1): 2, (1, 0): 3, (2, 2): 4})
             assert T(1) - quick_poly() == mpoly({(0, 1): -2, (1, 0): -3, (2, 2): -4})
 
