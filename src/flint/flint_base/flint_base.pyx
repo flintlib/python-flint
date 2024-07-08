@@ -135,9 +135,9 @@ cdef class flint_mpoly_context(flint_elem):
 
     def __init__(self, int nvars, names):
         if nvars < 0:
-            raise ValueError("Cannot have a negative amount of variables")
+            raise ValueError("cannot have a negative amount of variables")
         elif len(names) != nvars:
-            raise ValueError("Number of variables must match number of variable names")
+            raise ValueError("number of variables must match number of variable names")
         self.py_names = tuple(name.encode("ascii") if not isinstance(name, bytes) else name for name in names)
         self.c_names = <const char**> libc.stdlib.malloc(nvars * sizeof(const char *))
         for i in range(nvars):
@@ -155,7 +155,7 @@ cdef class flint_mpoly_context(flint_elem):
 
     def name(self, long i):
         if not 0 <= i < len(self.py_names):
-            raise IndexError("Variable name index out of range")
+            raise IndexError("variable name index out of range")
         return self.py_names[i].decode("ascii")
 
     def names(self):
@@ -170,13 +170,13 @@ cdef class flint_mpoly_context(flint_elem):
             try:
                 i = self.names().index(var)
             except ValueError:
-                raise ValueError("Variable not in context")
+                raise ValueError("variable not in context")
         elif isinstance(var, int):
             if not 0 <= var < self.nvars():
-                raise IndexError("Generator index out of range")
+                raise IndexError("generator index out of range")
             i = var
         else:
-            raise TypeError("Invalid variable type")
+            raise TypeError("invalid variable type")
 
         return i
 
@@ -196,7 +196,7 @@ cdef class flint_mpoly_context(flint_elem):
             if len(nametup) == 1:
                 nametup = tuple(nametup[0] + str(i) for i in range(nvars))
             else:
-                raise ValueError("Number of variables does not equal number of names")
+                raise ValueError("number of variables does not equal number of names")
         return nametup
 
     @classmethod
@@ -216,7 +216,7 @@ cdef class flint_mpoly_context(flint_elem):
         elif nametup is None and names is not None:
             key = nvars, ordering, cls.create_variable_names(nvars, names)
         else:
-            raise ValueError("Must provide either `names` or `nametup`")
+            raise ValueError("must provide either `names` or `nametup`")
 
         ctx = cls._ctx_cache.get(key)
         if ctx is None:
@@ -366,4 +366,4 @@ cdef ordering_c_to_py(ordering_t ordering):
     elif ordering == ordering_t.ORD_DEGREVLEX:
         return Ordering.degrevlex
     else:
-        raise ValueError("Unimplemented term order %d" % ordering)
+        raise ValueError("unimplemented term order %d" % ordering)
