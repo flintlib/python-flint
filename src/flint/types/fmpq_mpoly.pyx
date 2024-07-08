@@ -691,7 +691,7 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def subs(self, dict_args) -> fmpq_mpoly:
         """
-        Partial evaluate this polynomial with select constants. Keys must be generator names,
+        Partial evaluate this polynomial with select constants. Keys must be generator names or generator indices,
         all values must be fmpq.
 
             >>> from flint import Ordering
@@ -703,26 +703,18 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         cdef:
             fmpq_mpoly res
-            slong i, nargs
+            slong i
 
-        args = tuple((i, dict_args[x]) for i, x in enumerate(self.ctx.names()) if x in dict_args)
-        nargs = len(args)
-
-        # If we've been provided with an invalid generator name then the length of our filter
-        # args will be less than what we've been provided with.
-        if nargs < len(dict_args):
-            raise ValueError("unknown generator name provided")
-
-        args_fmpq = tuple(any_as_fmpq(v) for _, v in args)
-        for arg in args_fmpq:
-            if arg is NotImplemented:
-                raise TypeError(f"cannot coerce argument ('{arg}') to fmpq")
+        args = tuple((self.ctx.variable_to_index(k), any_as_fmpq(v)) for k, v in dict_args.items())
+        for _, v in args:
+            if v is NotImplemented:
+                raise TypeError(f"cannot coerce argument ('{v}') to fmpq")
 
         # Partial application with args in Q. We evaluate the polynomial one variable at a time
         res = create_fmpq_mpoly(self.ctx)
 
         fmpq_mpoly_set(res.val, self.val, self.ctx.val)
-        for (i, _), arg in zip(args, args_fmpq):
+        for i, arg in args:
             if fmpq_mpoly_evaluate_one_fmpq(res.val, res.val, i, (<fmpq>arg).val, self.ctx.val) == 0:
                 raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return res
