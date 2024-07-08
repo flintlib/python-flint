@@ -2837,16 +2837,18 @@ def test_mpolys():
         for T in [int, S, flint.fmpz, lambda x: P(x, ctx=ctx)]:
             p = quick_poly()
             p += T(1)
+            q = quick_poly()
+            assert q.iadd(T(1)) is None
             assert quick_poly() + T(1) \
-                == p == mpoly({(0, 0): 2, (0, 1): 2, (1, 0): 3, (2, 2): 4})
+                == p == q == mpoly({(0, 0): 2, (0, 1): 2, (1, 0): 3, (2, 2): 4})
             assert T(1) + quick_poly() \
                 == mpoly({(0, 0): 2, (0, 1): 2, (1, 0): 3, (2, 2): 4})
 
         assert raises(lambda: mpoly({(0, 0): 2, (0, 1): 2, (1, 0): 3, (2, 2): 4}) + None, TypeError)
         assert raises(lambda: None + mpoly({(0, 0): 2, (0, 1): 2, (1, 0): 3, (2, 2): 4}), TypeError)
         assert raises(lambda: quick_poly() + P(ctx=ctx1), IncompatibleContextError)
-        assert raises(lambda: quick_poly().__iadd__(P(ctx=ctx1)), IncompatibleContextError)
-        assert quick_poly().__iadd__(None) is NotImplemented
+        assert raises(lambda: quick_poly().iadd(P(ctx=ctx1)), IncompatibleContextError)
+        assert raises(lambda: quick_poly().iadd(None), NotImplementedError)
 
         assert quick_poly() - mpoly({(0, 0): 5, (0, 1): 6, (1, 0): 7, (2, 2): 8}) \
             == mpoly({(0, 0): -4, (0, 1): -4, (1, 0): -4, (2, 2): -4})
@@ -2854,14 +2856,17 @@ def test_mpolys():
         for T in [int, S, flint.fmpz, lambda x: P(x, ctx=ctx)]:
             p = quick_poly()
             p -= T(1)
-            assert quick_poly() - T(1) == p == mpoly({(0, 1): 2, (1, 0): 3, (2, 2): 4})
+            q = quick_poly()
+            assert q.isub(T(1)) is None
+            breakpoint()
+            assert quick_poly() - T(1) == p == q == mpoly({(0, 1): 2, (1, 0): 3, (2, 2): 4})
             assert T(1) - quick_poly() == mpoly({(0, 1): -2, (1, 0): -3, (2, 2): -4})
 
         assert raises(lambda: quick_poly() - None, TypeError)
         assert raises(lambda: None - quick_poly(), TypeError)
         assert raises(lambda: quick_poly() - P(ctx=ctx1), IncompatibleContextError)
-        assert raises(lambda: quick_poly().__isub__(P(ctx=ctx1)), IncompatibleContextError)
-        assert quick_poly().__isub__(None) is NotImplemented
+        assert raises(lambda: quick_poly().isub(P(ctx=ctx1)), IncompatibleContextError)
+        assert raises(lambda: quick_poly().isub(None), NotImplementedError)
 
         assert quick_poly() * mpoly({(1, 0): 5, (0, 1): 6}) \
             == mpoly({
@@ -2877,14 +2882,16 @@ def test_mpolys():
         for T in [int, S, flint.fmpz, lambda x: P(x, ctx=ctx)]:
             p = quick_poly()
             p *= T(2)
-            assert quick_poly() * T(2) == p == mpoly({(0, 0): 2, (0, 1): 4, (1, 0): 6, (2, 2): 8})
+            q = quick_poly()
+            assert q.imul(T(2)) is None
+            assert quick_poly() * T(2) == p == q == mpoly({(0, 0): 2, (0, 1): 4, (1, 0): 6, (2, 2): 8})
             assert T(2) * quick_poly() == mpoly({(0, 0): 2, (0, 1): 4, (1, 0): 6, (2, 2): 8})
 
         assert raises(lambda: quick_poly() * None, TypeError)
         assert raises(lambda: None * quick_poly(), TypeError)
         assert raises(lambda: quick_poly() * P(ctx=ctx1), IncompatibleContextError)
-        assert raises(lambda: quick_poly().__imul__(P(ctx=ctx1)), IncompatibleContextError)
-        assert quick_poly().__imul__(None) is NotImplemented
+        assert raises(lambda: quick_poly().imul(P(ctx=ctx1)), IncompatibleContextError)
+        assert raises(lambda: quick_poly().imul(None), NotImplementedError)
 
         assert quick_poly() // mpoly({(1, 1): 1}) == mpoly({(1, 1): 4})
         assert quick_poly() % mpoly({(1, 1): 1}) \

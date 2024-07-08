@@ -346,19 +346,6 @@ cdef class fmpq_mpoly(flint_mpoly):
             return res
         return NotImplemented
 
-    def __iadd__(self, other):
-        if typecheck(other, fmpq_mpoly):
-            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
-            fmpq_mpoly_add((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
-            return self
-        else:
-            other = any_as_fmpq(other)
-            if other is not NotImplemented:
-                fmpq_mpoly_add_fmpq((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
-                return self
-        return NotImplemented
-
     def __sub__(self, other):
         cdef fmpq_mpoly res
         if typecheck(other, fmpq_mpoly):
@@ -384,19 +371,6 @@ cdef class fmpq_mpoly(flint_mpoly):
             return -res
         return NotImplemented
 
-    def __isub__(self, other):
-        if typecheck(other, fmpq_mpoly):
-            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
-            fmpq_mpoly_sub((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
-            return self
-        else:
-            other = any_as_fmpq(other)
-            if other is not NotImplemented:
-                fmpq_mpoly_sub_fmpq((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
-                return self
-        return NotImplemented
-
     def __mul__(self, other):
         cdef fmpq_mpoly res
         if typecheck(other, fmpq_mpoly):
@@ -420,19 +394,6 @@ cdef class fmpq_mpoly(flint_mpoly):
             res = create_fmpq_mpoly(self.ctx)
             fmpq_mpoly_scalar_mul_fmpq(res.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, res.ctx.val)
             return res
-        return NotImplemented
-
-    def __imul__(self, other):
-        if typecheck(other, fmpq_mpoly):
-            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
-            fmpq_mpoly_mul((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
-            return self
-        else:
-            other = any_as_fmpq(other)
-            if other is not NotImplemented:
-                fmpq_mpoly_scalar_mul_fmpq(self.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
-                return self
         return NotImplemented
 
     def __pow__(self, other, modulus):
@@ -581,6 +542,84 @@ cdef class fmpq_mpoly(flint_mpoly):
         if fmpq_mpoly_evaluate_all_fmpq(vres.val, self.val, V.double_indirect, self.ctx.val) == 0:
             raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return vres
+
+    def iadd(self, other):
+        """
+        In-place addition, mutates self.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
+            >>> f
+            4*x0*x1 + 2*x0 + 3*x1
+            >>> f.iadd(5)
+            >>> f
+            4*x0*x1 + 2*x0 + 3*x1 + 5
+
+        """
+        if typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
+            fmpq_mpoly_add((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
+            return
+        else:
+            other = any_as_fmpq(other)
+            if other is not NotImplemented:
+                fmpq_mpoly_add_fmpq((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
+                return
+        raise NotImplementedError(f"in-place addition not implemented between {type(self)} and {type(other)}")
+
+    def isub(self, other):
+        """
+        In-place subtraction, mutates self.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
+            >>> f
+            4*x0*x1 + 2*x0 + 3*x1
+            >>> f.isub(5)
+            >>> f
+            4*x0*x1 + 2*x0 + 3*x1 - 5
+
+        """
+        if typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
+            fmpq_mpoly_sub((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
+            return
+        else:
+            other = any_as_fmpq(other)
+            if other is not NotImplemented:
+                fmpq_mpoly_sub_fmpq((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
+                return
+        raise NotImplementedError(f"in-place subtraction not implemented between {type(self)} and {type(other)}")
+
+    def imul(self, other):
+        """
+        In-place multiplication, mutates self.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
+            >>> f
+            4*x0*x1 + 2*x0 + 3*x1
+            >>> f.imul(2)
+            >>> f
+            8*x0*x1 + 4*x0 + 6*x1
+
+        """
+        if typecheck(other, fmpq_mpoly):
+            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
+            fmpq_mpoly_mul((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
+            return
+        else:
+            other = any_as_fmpq(other)
+            if other is not NotImplemented:
+                fmpq_mpoly_scalar_mul_fmpq(self.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
+                return
+        raise NotImplementedError(f"in-place multiplication not implemented between {type(self)} and {type(other)}")
 
     def monoms(self):
         """
