@@ -64,10 +64,6 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install $DIST_PREREQ
         if: env.DIST_PREREQ != ''
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      - run: pip install build
       - name: Run make dist, prepare upstream artifact
         run: |
           (cd build/pkgs/${{ env.SPKG }}/src && git archive --format=tar.gz --prefix=${{ env.SPKG }}-git/ HEAD > ${{ env.SPKG }}-git.tar.gz) \
