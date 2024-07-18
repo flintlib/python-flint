@@ -924,7 +924,8 @@ cdef class fmpq_mpoly(flint_mpoly):
             fmpq_mpoly u
 
         fmpq_mpoly_factor_init(fac, self.ctx.val)
-        fmpq_mpoly_factor(fac, self.val, self.ctx.val)
+        if not fmpq_mpoly_factor(fac, self.val, self.ctx.val):
+            raise RuntimeError("factorisation failed")
         res = [0] * fac.num
 
         for i in range(fac.num):
