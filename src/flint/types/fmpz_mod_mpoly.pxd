@@ -23,6 +23,7 @@ cdef inline fmpz_mod_mpoly create_fmpz_mod_mpoly(fmpz_mod_mpoly_ctx ctx):
 
 cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
     cdef fmpz_mod_mpoly_ctx_t val
+    cdef readonly object __prime_modulus
 
 cdef class fmpz_mod_mpoly(flint_mpoly):
     cdef fmpz_mod_mpoly_t val
@@ -30,6 +31,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
     cdef bint _init
 
 cdef class fmpz_mod_mpoly_vec:
-    cdef fmpz_mod_mpoly_t *val
+    cdef fmpz_mod_mpoly_struct *val
+    cdef slong length
     cdef fmpz_mod_mpoly_ctx ctx
     cdef fmpz_mod_mpoly_struct **double_indirect

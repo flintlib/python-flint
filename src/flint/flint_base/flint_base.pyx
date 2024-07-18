@@ -200,14 +200,13 @@ cdef class flint_mpoly_context(flint_elem):
         return nametup
 
     @classmethod
-    def get_context(cls, slong nvars=1, ordering=Ordering.lex, names: Optional[str] = "x", nametup: Optional[tuple] = None):
+    def create_context_key(cls, slong nvars=1, ordering=Ordering.lex, names: Optional[str] = "x", nametup: Optional[tuple] = None):
         """
-        Retrieve a context via the number of variables, `nvars`, the ordering, `ordering`, and either a variable
-        name string, `names`, or a tuple of variable names, `nametup`.
+        Create a key for the context cache via the number of variables, the ordering, and
+        either a variable name string, or a tuple of variable names.
         """
-
         # A type hint of `ordering: Ordering` results in the error "TypeError: an integer is required" if a Ordering
-        # object is not provided. This is pretty obtuse so we check it's type ourselves
+        # object is not provided. This is pretty obtuse so we check its type ourselves
         if not isinstance(ordering, Ordering):
             raise TypeError(f"`ordering` ('{ordering}') is not an instance of flint.Ordering")
 
@@ -217,6 +216,15 @@ cdef class flint_mpoly_context(flint_elem):
             key = nvars, ordering, cls.create_variable_names(nvars, names)
         else:
             raise ValueError("must provide either `names` or `nametup`")
+        return key
+
+    @classmethod
+    def get_context(cls, *args, **kwargs):
+        """
+        Retrieve a context via the number of variables, `nvars`, the ordering, `ordering`, and either a variable
+        name string, `names`, or a tuple of variable names, `nametup`.
+        """
+        key = cls.create_context_key(*args, **kwargs)
 
         ctx = cls._ctx_cache.get(key)
         if ctx is None:

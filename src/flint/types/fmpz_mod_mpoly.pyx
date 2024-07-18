@@ -4,6 +4,7 @@ from flint.flint_base.flint_base cimport (
     ordering_py_to_c,
     ordering_c_to_py,
 )
+from flint.flint_base.flint_base import Ordering
 
 from flint.utils.typecheck cimport typecheck
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
@@ -17,6 +18,7 @@ from flint.flintlib.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_add_fmpz,
     fmpz_mod_mpoly_clear,
     fmpz_mod_mpoly_compose_fmpz_mod_mpoly,
+    fmpz_mod_mpoly_ctx_get_modulus,
     fmpz_mod_mpoly_ctx_init,
     fmpz_mod_mpoly_degrees_fmpz,
     fmpz_mod_mpoly_derivative,
@@ -49,6 +51,7 @@ from flint.flintlib.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_sub,
     fmpz_mod_mpoly_sub_fmpz,
     fmpz_mod_mpoly_total_degree_fmpz,
+    fmpz_mod_mpoly_sqrt,
 )
 from flint.flintlib.fmpz_mod_mpoly_factor cimport (
     fmpz_mod_mpoly_factor,
@@ -77,9 +80,49 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
 
     _ctx_cache = _fmpz_mod_mpoly_ctx_cache
 
-    def __init__(self, slong nvars, ordering, names):
-        fmpz_mod_mpoly_ctx_init(self.val, nvars, ordering_py_to_c(ordering))
+    def __init__(self, slong nvars, ordering, names, modulus):
+        cdef fmpz m
+        if not typecheck(modulus, fmpz):
+            m = any_as_fmpz(modulus)
+            if m is NotImplemented:
+                raise TypeError(f"modulus ({modulus}) is not coercible to fmpz")
+        else:
+            m = modulus
+        fmpz_mod_mpoly_ctx_init(self.val, nvars, ordering_py_to_c(ordering), m.val)
+        self.__prime_modulus = None
         super().__init__(nvars, names)
+
+    @classmethod
+    def create_context_key(
+            cls,
+            slong nvars=1,
+            ordering=Ordering.lex,
+            modulus = None,
+            names: Optional[str] = "x",
+            nametup: Optional[tuple] = None,
+    ):
+        """
+        Create a key for the context cache via the number of variables, the ordering, the modulus, and either a
+        variable name string, or a tuple of variable names.
+        """
+        # A type hint of `ordering: Ordering` results in the error "TypeError: an integer is required" if a Ordering
+        # object is not provided. This is pretty obtuse so we check its type ourselves
+        if not isinstance(ordering, Ordering):
+            raise TypeError(f"`ordering` ('{ordering}') is not an instance of flint.Ordering")
+        elif not typecheck(modulus, fmpz):
+            m = any_as_fmpz(modulus)
+            if m is NotImplemented:
+                raise TypeError(f"`modulus` ('{modulus}') is not coercible to fmpz")
+            else:
+                modulus = m
+
+        if nametup is not None:
+            key = nvars, ordering, nametup, modulus
+        elif nametup is None and names is not None:
+            key = nvars, ordering, cls.create_variable_names(nvars, names), modulus
+        else:
+            raise ValueError("must provide either `names` or `nametup`")
+        return key
 
     def nvars(self):
         """
@@ -102,6 +145,36 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
             <Ordering.deglex: 1>
         """
         return ordering_c_to_py(self.val.minfo.ord)
+
+    def modulus(self):
+        """
+        Return the modulus of the context object.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.deglex, 2, 'w')
+            >>> ctx.modulus()
+            2
+
+        """
+        cdef fmpz m = fmpz.__new__(fmpz)
+        fmpz_mod_mpoly_ctx_get_modulus(m.val, self.val)
+        return m
+
+    def is_prime(self):
+        """
+        Return whether the modulus is prime
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2**127, Ordering.degrevlex, 'z')
+            >>> ctx.is_prime()
+            False
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2**127 - 1, Ordering.degrevlex, 'z')
+            >>> ctx.is_prime()
+            True
+        """
+        if self.__prime_modulus is None:
+            self.__prime_modulus = self.modulus().is_prime()
+        return self.__prime_modulus
 
     def gen(self, slong i):
         """
@@ -386,7 +459,10 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
     def __divmod__(self, other):
         cdef fmpz_mod_mpoly res, res2
-        if typecheck(other, fmpz_mod_mpoly):
+
+        if not self.ctx.is_prime():
+            raise DomainError("division with non-prime modulus is not supported")
+        elif typecheck(other, fmpz_mod_mpoly):
             if not other:
                 raise ZeroDivisionError("fmpz_mod_mpoly division by zero")
             elif (<fmpz_mod_mpoly>self).ctx is not (<fmpz_mod_mpoly>other).ctx:
@@ -409,7 +485,9 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
     def __rdivmod__(self, other):
         cdef fmpz_mod_mpoly res, res2
-        if not self:
+        if not self.ctx.is_prime():
+            raise DomainError("division with non-prime modulus is not supported")
+        elif not self:
             raise ZeroDivisionError("fmpz_mod_mpoly division by zero")
         other = any_as_fmpz(other)
         if other is not NotImplemented:
@@ -422,7 +500,9 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
     def __floordiv__(self, other):
         cdef fmpz_mod_mpoly res
-        if typecheck(other, fmpz_mod_mpoly):
+        if not self.ctx.is_prime():
+            raise DomainError("division with non-prime modulus is not supported")
+        elif typecheck(other, fmpz_mod_mpoly):
             if not other:
                 raise ZeroDivisionError("fmpz_mod_mpoly division by zero")
             elif (<fmpz_mod_mpoly>self).ctx is not (<fmpz_mod_mpoly>other).ctx:
@@ -443,7 +523,9 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
     def __rfloordiv__(self, other):
         cdef fmpz_mod_mpoly res
-        if not self:
+        if not self.ctx.is_prime():
+            raise DomainError("division with non-prime modulus is not supported")
+        elif not self:
             raise ZeroDivisionError("fmpz_mod_mpoly division by zero")
         other = any_as_fmpz(other)
         if other is not NotImplemented:
@@ -457,7 +539,9 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         cdef:
             fmpz_mod_mpoly res, div
 
-        if typecheck(other, fmpz_mod_mpoly):
+        if not self.ctx.is_prime():
+            raise DomainError("division with non-prime modulus is not supported")
+        elif typecheck(other, fmpz_mod_mpoly):
             if not other:
                 raise ZeroDivisionError("fmpz_mod_mpoly division by zero")
             elif self.ctx is not (<fmpz_mod_mpoly>other).ctx:
@@ -484,7 +568,9 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
     def __rtruediv__(self, other):
         cdef fmpz_mod_mpoly res
-        if not self:
+        if not self.ctx.is_prime():
+            raise DomainError("division with non-prime modulus is not supported")
+        elif not self:
             raise ZeroDivisionError("fmpz_mod_mpoly division by zero")
         o = any_as_fmpz(other)
         if o is NotImplemented:
@@ -517,8 +603,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
         V = fmpz_vec(args_fmpz, double_indirect=True)
         vres = fmpz.__new__(fmpz)
-        if fmpz_mod_mpoly_evaluate_all_fmpz(vres.val, self.val, V.double_indirect, self.ctx.val) == 0:
-            raise ValueError("unreasonably large polynomial")  # pragma: no cover
+        fmpz_mod_mpoly_evaluate_all_fmpz(vres.val, self.val, V.double_indirect, self.ctx.val)
         return vres
 
     def iadd(self, other):
@@ -693,8 +778,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
         fmpz_mod_mpoly_set(res.val, self.val, self.ctx.val)
         for i, arg in args:
-            if fmpz_mod_mpoly_evaluate_one_fmpz(res.val, res.val, i, (<fmpz>arg).val, self.ctx.val) == 0:
-                raise ValueError("unreasonably large polynomial")  # pragma: no cover
+            fmpz_mod_mpoly_evaluate_one_fmpz(res.val, res.val, i, (<fmpz>arg).val, self.ctx.val)
         return res
 
     def compose(self, *args, ctx=None) -> fmpz_mod_mpoly:
@@ -853,7 +937,9 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             4*x0*x1 + 1
         """
         cdef fmpz_mod_mpoly res
-        if not typecheck(other, fmpz_mod_mpoly):
+        if not self.ctx.is_prime():
+            raise DomainError("gcd with non-prime modulus is not supported")
+        elif not typecheck(other, fmpz_mod_mpoly):
             raise TypeError("argument must be a fmpz_mod_mpoly")
         elif (<fmpz_mod_mpoly>self).ctx is not (<fmpz_mod_mpoly>other).ctx:
             raise IncompatibleContextError(f"{(<fmpz_mod_mpoly>self).ctx} is not {(<fmpz_mod_mpoly>other).ctx}")
@@ -872,6 +958,9 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             4*x0*x1 + 1
         """
         cdef fmpz_mod_mpoly res
+        if not self.ctx.is_prime():
+            raise DomainError("square root with non-prime modulus is not supported")
+
         res = create_fmpz_mod_mpoly(self.ctx)
 
         if fmpz_mod_mpoly_sqrt(res.val, self.val, self.ctx.val):
@@ -901,7 +990,8 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             fmpz_mod_mpoly u
 
         fmpz_mod_mpoly_factor_init(fac, self.ctx.val)
-        fmpz_mod_mpoly_factor(fac, self.val, self.ctx.val)
+        if not fmpz_mod_mpoly_factor(fac, self.val, self.ctx.val):
+            raise RuntimeError("factorisation failed")
         res = [0] * fac.num
 
         for i in range(fac.num):
@@ -940,7 +1030,8 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             fmpz_mod_mpoly u
 
         fmpz_mod_mpoly_factor_init(fac, self.ctx.val)
-        fmpz_mod_mpoly_factor_squarefree(fac, self.val, self.ctx.val)
+        if not fmpz_mod_mpoly_factor_squarefree(fac, self.val, self.ctx.val):
+            raise RuntimeError("factorisation failed")
         res = [0] * fac.num
 
         for i in range(fac.num):
@@ -1019,20 +1110,23 @@ cdef class fmpz_mod_mpoly_vec:
 
     def __cinit__(self, iterable_or_len, fmpz_mod_mpoly_ctx ctx, bint double_indirect = False):
         if isinstance(iterable_or_len, int):
-            length = iterable_or_len
+            self.length = iterable_or_len
         else:
-            length = len(iterable_or_len)
+            self.length = len(iterable_or_len)
 
         self.ctx = ctx
-        fmpz_mod_mpoly_vec_init(self.val, length, self.ctx.val)
+
+        self.val = <fmpz_mod_mpoly_struct *> libc.stdlib.malloc(self.length * sizeof(fmpz_mod_mpoly_struct))
+        for i in range(self.length):
+            fmpz_mod_mpoly_init(&self.val[i], self.ctx.val)
 
         if double_indirect:
-            self.double_indirect = <fmpz_mod_mpoly_struct **> libc.stdlib.malloc(length * sizeof(fmpz_mod_mpoly_struct *))
+            self.double_indirect = <fmpz_mod_mpoly_struct **> libc.stdlib.malloc(self.length * sizeof(fmpz_mod_mpoly_struct *))
             if self.double_indirect is NULL:
                 raise MemoryError("malloc returned a null pointer")  # pragma: no cover
 
-            for i in range(length):
-                self.double_indirect[i] = fmpz_mod_mpoly_vec_entry(self.val, i)
+            for i in range(self.length):
+                self.double_indirect[i] = &self.val[i]
         else:
             self.double_indirect = NULL
 
@@ -1050,17 +1144,17 @@ cdef class fmpz_mod_mpoly_vec:
     def __getitem__(self, x):
         if not isinstance(x, int):
             raise TypeError("index is not integer")
-        elif not 0 <= x < self.val.length:
+        elif not 0 <= x < self.length:
             raise IndexError("index out of range")
 
         cdef fmpz_mod_mpoly z = create_fmpz_mod_mpoly(self.ctx)
-        fmpz_mod_mpoly_set(z.val, f&self.val[x], self.ctx.val)
+        fmpz_mod_mpoly_set(z.val, &self.val[x], self.ctx.val)
         return z
 
     def __setitem__(self, x, y):
         if not isinstance(x, int):
             raise TypeError("index is not integer")
-        elif not 0 <= x < self.val.length:
+        elif not 0 <= x < self.length:
             raise IndexError("index out of range")
         elif not typecheck(y, fmpz_mod_mpoly):
             raise TypeError("argument is not fmpz_mod_mpoly")
@@ -1073,8 +1167,8 @@ cdef class fmpz_mod_mpoly_vec:
         return self.val.length
 
     def __str__(self):
-        s = [None] * self.val.length
-        for i in range(self.val.length):
+        s = [None] * self.length
+        for i in range(self.length):
             x = create_fmpz_mod_mpoly(self.ctx)
             fmpz_mod_mpoly_set(x.val, &self.val[x], self.ctx.val)
             s[i] = str(x)
