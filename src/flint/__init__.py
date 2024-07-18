@@ -14,7 +14,7 @@ from .types.fmpq_vec import fmpq_vec
 
 from .types.nmod import *
 from .types.nmod_poly import *
-from .types.nmod_mpoly import nmod_mpoly_ctx, nmod_mpoly, fmpz_mod_mpoly_vec
+from .types.nmod_mpoly import nmod_mpoly_ctx, nmod_mpoly, nmod_mpoly_vec
 from .types.nmod_mat import *
 from .types.nmod_series import *
 
