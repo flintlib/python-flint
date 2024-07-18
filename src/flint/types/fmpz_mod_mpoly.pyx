@@ -129,7 +129,7 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
         Return the number of variables in the context
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.lex, 11, 'x')
             >>> ctx.nvars()
             4
         """
@@ -140,7 +140,7 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
         Return the term order of the context object.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.deglex, 'w')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.deglex, 11, 'w')
             >>> ctx.ordering()
             <Ordering.deglex: 1>
         """
@@ -165,10 +165,10 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
         Return whether the modulus is prime
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2**127, Ordering.degrevlex, 'z')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.degrevlex, 2**127, 'z')
             >>> ctx.is_prime()
             False
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2**127 - 1, Ordering.degrevlex, 'z')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.degrevlex, 2**127 - 1, 'z')
             >>> ctx.is_prime()
             True
         """
@@ -181,7 +181,7 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
         Return the `i`th generator of the polynomial ring
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(3, Ordering.degrevlex, 'z')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(3, Ordering.degrevlex, 11, 'z')
             >>> ctx.gen(1)
             z1
         """
@@ -212,7 +212,7 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
         to fmpz) representing exponents, and corresponding values of fmpz.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x,y')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x,y')
             >>> ctx.from_dict({(1,0):2, (1,1):3, (0,1):1})
             3*x*y + 2*x + y
         """
@@ -315,7 +315,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         Negative exponents are made positive.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p[1, 1]
             3
@@ -341,7 +341,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         Negative exponents are made positive.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p[1, 1] = 20
             >>> p
@@ -611,7 +611,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         In-place addition, mutates self.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
             >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f
             4*x0*x1 + 2*x0 + 3*x1
@@ -637,7 +637,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         In-place subtraction, mutates self.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
             >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f
             4*x0*x1 + 2*x0 + 3*x1
@@ -663,7 +663,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         In-place multiplication, mutates self.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
             >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f
             4*x0*x1 + 2*x0 + 3*x1
@@ -689,7 +689,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         Return the exponent vectors of each term as a tuple of fmpz.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
             >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f.monoms()
             [(1, 1), (1, 0), (0, 1), (0, 0)]
@@ -711,7 +711,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         Return the coefficients of each term as a fmpz
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
             >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f.coeffs()
             [4, 2, 3, 1]
@@ -734,7 +734,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
     #     Return the terms of this polynomial as a list of fmpz_mod_mpolys.
 
     #         >>> from flint import Ordering
-    #         >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+    #         >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
     #         >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
     #         >>> f.terms()
     #         [4*x0*x1, 2*x0, 3*x1, 1]
@@ -758,7 +758,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         all values must be fmpz.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
             >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f.subs({"x1": 0})
             2*x0 + 1
@@ -787,8 +787,8 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         from this polynomials context.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(1, Ordering.lex, 'x')
-            >>> ctx1 = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'y')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(1, Ordering.lex, 11, 'x')
+            >>> ctx1 = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'y')
             >>> f = ctx.from_dict({(2,): 1})
             >>> g = ctx1.from_dict({(1, 0): 1, (0, 1): 1})
             >>> f
@@ -837,7 +837,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         Return the context object for this polynomials.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
             >>> p = ctx.from_dict({(0, 1): 2})
             >>> ctx is p.context()
             True
@@ -852,7 +852,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         Return the coefficient at index `i`.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p.coefficient(1)
             2
@@ -870,7 +870,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         Return the exponent vector at index `i` as a tuple.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p.monomial(1)
             (0, 1)
@@ -889,7 +889,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         Return a dictionary of variable name to degree.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.lex, 11, 'x')
             >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
             >>> p.degrees()
             (1, 2, 3, 0)
@@ -906,7 +906,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         Return the total degree.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.lex, 11, 'x')
             >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
             >>> p.total_degree()
             3
@@ -930,7 +930,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         Return the gcd of self and other.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
             >>> f = ctx.from_dict({(1, 1): 4, (0, 0): 1})
             >>> g = ctx.from_dict({(0, 1): 2, (1, 0): 2})
             >>> (f * g).gcd(f)
@@ -952,7 +952,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         Return the square root of self.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
             >>> f = ctx.from_dict({(1, 1): 4, (0, 0): 1})
             >>> (f * f).sqrt()
             4*x0*x1 + 1
@@ -976,7 +976,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
             >>> from flint import Ordering
             >>> Zm = fmpz_mod_mpoly
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(3, Ordering.lex, 'x,y,z')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(3, Ordering.lex, 11, 'x,y,z')
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*z +  + 3*x + 3*z + 3", ctx)
             >>> (p1 * p2).factor()
@@ -1016,7 +1016,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
             >>> from flint import Ordering
             >>> Zm = fmpz_mod_mpoly
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(3, Ordering.lex, 'x,y,z')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(3, Ordering.lex, 11, 'x,y,z')
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*y + 3*x + 3*y + 3", ctx)
             >>> (p1 * p2).factor_squarefree()
@@ -1083,7 +1083,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         variable in the context.
 
             >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
             >>> p = ctx.from_dict({(0, 3): 2, (2, 1): 3})
             >>> p
             3*x0^2*x1 + 2*x1^3
