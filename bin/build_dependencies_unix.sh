@@ -257,6 +257,7 @@ else
   tar xf mpfr-$MPFRVER.tar.gz
   cd mpfr-$MPFRVER
     ./configure --prefix=$PREFIX\
+      --host=$HOST_ARG\
       --with-gmp=$PREFIX\
       --enable-shared=yes\
       --enable-static=no
@@ -282,6 +283,7 @@ tar xf flint-$FLINTVER.tar.gz
 cd flint-$FLINTVER
   ./bootstrap.sh
   ./configure --prefix=$PREFIX\
+    --host=$HOST_ARG\
     $FLINTARB_WITHGMP\
     --with-mpfr=$PREFIX\
     --disable-static\
