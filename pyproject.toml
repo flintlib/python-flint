@@ -49,16 +49,20 @@ test-command = "python -c \"import flint; print(str(flint.fmpz(2)))\""
 
 [tool.cibuildwheel.linux.environment]
 # LD_LIBRARY_PATH is needed by auditwheel
+C_INCLUDE_PATH= "$(pwd)/.local/include"
+LIBRARY_PATH= "$(pwd)/.local/lib"
 LD_LIBRARY_PATH = "$(pwd)/.local/lib:$LD_LIBRARY_PATH"
 PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig"
 
 [tool.cibuildwheel.macos.environment]
+C_INCLUDE_PATH= "$(pwd)/.local/include"
+LIBRARY_PATH= "$(pwd)/.local/lib"
 PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig"
 
 [tool.cibuildwheel.windows.environment]
 # Setting PKG_CONFIG_PATH here breaks pkgconfig for some reason...
 # We set it in the CI workflow instead.
-# PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig:$PKG_CONFIG_PATH"
+PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 [tool.cibuildwheel.linux]
 before-all = "bin/cibw_before_all_linux.sh"
