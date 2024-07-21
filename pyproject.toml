@@ -60,9 +60,12 @@ LIBRARY_PATH= "$(pwd)/.local/lib"
 PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig"
 
 [tool.cibuildwheel.windows.environment]
+C_INCLUDE_PATH= "$(pwd)/.local/include"
+LIBRARY_PATH= "$(pwd)/.local/lib"
+PATH = "$(pwd)/.local/lib:$:PATH"
 # Setting PKG_CONFIG_PATH here breaks pkgconfig for some reason...
-# We set it in the CI workflow instead.
-PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig:$PKG_CONFIG_PATH"
+# We set it in buildwheels.yml instead.
+#PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 [tool.cibuildwheel.linux]
 before-all = "bin/cibw_before_all_linux.sh"
