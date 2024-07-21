@@ -284,6 +284,9 @@ cd flint-$FLINTVER
   ./bootstrap.sh
   ./configure --prefix=$PREFIX\
     --host=$HOST_ARG\
+    --disable-assembly\
+    --disable-avx2\
+    --disable-avx512\
     $FLINTARB_WITHGMP\
     --with-mpfr=$PREFIX\
     --disable-static\
