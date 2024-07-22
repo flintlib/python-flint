@@ -285,7 +285,8 @@ cd flint-$FLINTVER
     $FLINTARB_WITHGMP\
     --with-mpfr=$PREFIX\
     --disable-static\
-    --disable-debug
+    --disable-debug\
+    --host=$HOST_ARG
   make -j6
   make install
 cd ..
