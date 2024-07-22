@@ -186,7 +186,7 @@ cdef class fmpq(flint_scalar):
     def __trunc__(self):
         return self.trunc()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return not fmpq_is_zero(self.val)
 
     def __round__(self, ndigits=None):
