@@ -1604,7 +1604,7 @@ def test_pickling():
 
 def test_fmpz_mod():
     from flint import fmpz_mod_ctx, fmpz, fmpz_mod
-    
+
     p_sml = 163
     p_med = 2**127 - 1
     p_big = 2**255 - 19
@@ -1754,7 +1754,7 @@ def test_fmpz_mod():
         assert raises(lambda: F_test(test_x) * "AAA", TypeError)
         assert raises(lambda: F_test(test_x) * F_other(test_x), ValueError)
 
-        # Exponentiation 
+        # Exponentiation
 
         assert F_test(0)**0 == pow(0, 0, test_mod)
         assert F_test(0)**1 == pow(0, 1, test_mod)
@@ -1804,7 +1804,7 @@ def test_fmpz_mod():
 
         assert fmpz(test_y) / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
         assert test_y / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
-            
+
 def test_fmpz_mod_dlog():
     from flint import fmpz, fmpz_mod_ctx
 
@@ -1826,7 +1826,7 @@ def test_fmpz_mod_dlog():
     F = fmpz_mod_ctx(163)
     g = F(2)
     a = g**123
-    
+
     assert 123 == g.discrete_log(a)
 
     a_int = pow(2, 123, 163)
@@ -1877,7 +1877,7 @@ def test_fmpz_mod_poly():
     assert repr(R3) == "fmpz_mod_poly_ctx(13)"
 
     assert R1.modulus() == 11
-    
+
     assert R1.is_prime()
     assert R1.zero() == 0
     assert R1.one() == 1
@@ -1946,7 +1946,7 @@ def test_fmpz_mod_poly():
     assert str(f) == "8*x^3 + 7*x^2 + 6*x + 7"
 
     # TODO: currently repr does pretty printing
-    # just like str, we should address this. Mainly, 
+    # just like str, we should address this. Mainly,
     # the issue is we want nice `repr` behaviour in
     # interactive shells, which currently is why this
     # choice has been made
@@ -1992,7 +1992,7 @@ def test_fmpz_mod_poly():
     F_sml = fmpz_mod_ctx(p_sml)
     F_med = fmpz_mod_ctx(p_med)
     F_big = fmpz_mod_ctx(p_big)
-    
+
     R_sml = fmpz_mod_poly_ctx(F_sml)
     R_med = fmpz_mod_poly_ctx(F_med)
     R_big = fmpz_mod_poly_ctx(F_big)
@@ -2003,14 +2003,14 @@ def test_fmpz_mod_poly():
     f_bad = R_cmp([2,2,2,2,2])
 
     for (F_test, R_test) in [(F_sml, R_sml), (F_med, R_med), (F_big, R_big)]:
-        
+
         f = R_test([-1,-2])
         g = R_test([-3,-4])
 
         # pos, neg
         assert f is +f
         assert -f == R_test([1,2])
-        
+
         # add
         assert raises(lambda: f + f_cmp, ValueError)
         assert raises(lambda: f + "AAA", TypeError)
@@ -2063,7 +2063,7 @@ def test_fmpz_mod_poly():
         assert raises(lambda: f / "AAA", TypeError)
         assert raises(lambda: f / 0, ZeroDivisionError)
         assert raises(lambda: f_cmp / 2, ZeroDivisionError)
-    
+
         assert (f + f) / 2  ==  f
         assert (f + f) / fmpz(2)  ==  f
         assert (f + f) / F_test(2)  ==  f
@@ -2077,7 +2077,7 @@ def test_fmpz_mod_poly():
         assert (f + f) // 2  ==  f
         assert (f + f) // fmpz(2)  ==  f
         assert (f + f) // F_test(2)  ==  f
-        assert 2 // R_test(2) == 1        
+        assert 2 // R_test(2) == 1
         assert (f + 1) // f == 1
 
         # pow
@@ -2171,7 +2171,7 @@ def test_fmpz_mod_poly():
         f1 = R_test([-3, 1])
         f2 = R_test([-5, 1])
         assert f1.resultant(f2) == (3 - 5)
-        assert raises(lambda: f.resultant("AAA"), TypeError)        
+        assert raises(lambda: f.resultant("AAA"), TypeError)
 
         # sqrt
         f1 = R_test.random_element(irreducible=True)
@@ -2428,14 +2428,14 @@ def _all_polys():
         (flint.fmpz_poly, flint.fmpz, False),
         (flint.fmpq_poly, flint.fmpq, True),
         (lambda *a: flint.nmod_poly(*a, 17), lambda x: flint.nmod(x, 17), True),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(163)), 
-         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(163)), 
+        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(163)),
+         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(163)),
          True),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**127 - 1)), 
-         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**127 - 1)), 
+        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**127 - 1)),
+         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**127 - 1)),
          True),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255 - 19)), 
-         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255 - 19)), 
+        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255 - 19)),
+         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255 - 19)),
          True),
     ]
 
@@ -2466,6 +2466,28 @@ def test_polys():
         assert (P([1]) != P([1])) is False
         assert (P([1]) == P([2])) is False
         assert (P([1]) != P([2])) is True
+
+        assert (P([1]) == 1) is True
+        assert (P([1]) != 1) is False
+        assert (P([1]) == 2) is False
+        assert (P([1]) != 2) is True
+
+        assert (1 == P([1])) is True
+        assert (1 != P([1])) is False
+        assert (2 == P([1])) is False
+        assert (2 != P([1])) is True
+
+        s1, s2 = S(1), S(2)
+
+        assert (P([s1]) == s1) is True
+        assert (P([s1]) != s1) is False
+        assert (P([s1]) == s2) is False
+        assert (P([s1]) != s2) is True
+
+        assert (s1 == P([s1])) is True
+        assert (s1 != P([s1])) is False
+        assert (s1 == P([s2])) is False
+        assert (s1 != P([s2])) is True
 
         assert (P([1]) == None) is False
         assert (P([1]) != None) is True
@@ -2500,12 +2522,17 @@ def test_polys():
         assert raises(lambda: setbad(p, -1, 1), ValueError)
 
         for v in [], [1], [1, 2]:
-            if P == flint.fmpz_poly:
+            p = P(v)
+            if type(p) == flint.fmpz_poly:
                 assert P(v).repr() == f'fmpz_poly({v!r})'
-            elif P == flint.fmpq_poly:
+            elif type(p) == flint.fmpq_poly:
                 assert P(v).repr() == f'fmpq_poly({v!r})'
-            elif P == flint.nmod_poly:
+            elif type(p) == flint.nmod_poly:
                 assert P(v).repr() == f'nmod_poly({v!r}, 17)'
+            elif type(p) == flint.fmpz_mod_poly:
+                pass # fmpz_mod_poly does not have .repr() ...
+            else:
+                assert False
 
         assert repr(P([])) == '0'
         assert repr(P([1])) == '1'
@@ -2520,6 +2547,12 @@ def test_polys():
 
         assert bool(P([])) is False
         assert bool(P([1])) is True
+
+        assert P([]).is_zero() is True
+        assert P([1]).is_zero() is False
+
+        assert P([]).is_one() is False
+        assert P([1]).is_one() is True
 
         assert +P([1, 2, 3]) == P([1, 2, 3])
         assert -P([1, 2, 3]) == P([-1, -2, -3])
@@ -2600,7 +2633,7 @@ def test_polys():
         assert P([1, 1]) ** 2 == P([1, 2, 1])
         assert raises(lambda: P([1, 1]) ** -1, ValueError)
         assert raises(lambda: P([1, 1]) ** None, TypeError)
-        
+
         # # XXX: Not sure what this should do in general:
         assert raises(lambda: pow(P([1, 1]), 2, 3), NotImplementedError)
 
@@ -2824,6 +2857,12 @@ def test_mpolys():
 
         assert bool(P(ctx=ctx)) is False
         assert bool(P(1, ctx=ctx)) is True
+
+        assert P(ctx=ctx).is_zero() is True
+        assert P(1, ctx=ctx).is_zero() is False
+
+        assert P(ctx=ctx).is_one() is False
+        assert P(1, ctx=ctx).is_one() is True
 
         assert +quick_poly() \
             == quick_poly()

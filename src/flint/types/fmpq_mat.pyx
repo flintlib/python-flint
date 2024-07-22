@@ -92,7 +92,7 @@ cdef class fmpq_mat(flint_mat):
         else:
             raise TypeError("fmpq_mat: expected 1-3 arguments")
 
-    def __nonzero__(self):
+    def __bool__(self):
         return not fmpq_mat_is_zero(self.val)
 
     def __richcmp__(s, t, int op):

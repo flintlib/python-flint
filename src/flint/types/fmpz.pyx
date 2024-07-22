@@ -168,7 +168,7 @@ cdef class fmpz(flint_scalar):
     def repr(self):
         return "fmpz(%s)" % self.str()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return not fmpz_is_zero(self.val)
 
     def __pos__(self):

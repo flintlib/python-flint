@@ -303,7 +303,7 @@ cdef class fmpz_mod_mat(flint_mat):
         e = self.ctx.any_as_fmpz_mod(value)
         self._setitem(i, j, e.val)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """Return ``True`` if the matrix has any nonzero entries."""
         cdef bint zero
         zero = compat_fmpz_mod_mat_is_zero(self.val, self.ctx.val)

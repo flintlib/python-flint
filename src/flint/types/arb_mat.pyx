@@ -148,7 +148,7 @@ cdef class arb_mat(flint_mat):
         else:
             raise ValueError("arb_mat: expected 1-3 arguments")
 
-    def __nonzero__(self):
+    def __bool__(self):
         raise NotImplementedError
 
     cpdef long nrows(s):

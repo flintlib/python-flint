@@ -137,8 +137,14 @@ cdef class fmpz_poly(flint_poly):
     def repr(self):
         return "fmpz_poly([%s])" % (", ".join(map(str, self.coeffs())))
 
-    def __nonzero__(self):
+    def __bool__(self):
         return not fmpz_poly_is_zero(self.val)
+
+    def is_zero(self):
+        return <bint>fmpz_poly_is_zero(self.val)
+
+    def is_one(self):
+        return <bint>fmpz_poly_is_one(self.val)
 
     def __call__(self, other):
         t = any_as_fmpz(other)
