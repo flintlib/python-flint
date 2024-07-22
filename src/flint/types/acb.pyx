@@ -733,6 +733,21 @@ cdef class acb(flint_scalar):
             acb_hurwitz_zeta((<acb>u).val, (<acb>s).val, (<acb>a).val, getprec())
             return u
 
+    def lerch_phi(z, s, a):
+        """
+        Lerch transcendent `\Phi(z,s,a)`.
+
+            >>> from flint import showgood
+            >>> showgood(lambda: acb(1,2).lerch_phi(3, 4), dps=25)
+            0.006872751459699249251487346 + 0.01112535314686351879432212j
+        """
+        s = any_as_acb(s)
+        a = any_as_acb(a)
+        u = acb.__new__(acb)
+        acb_dirichlet_lerch_phi((<acb>u).val, (<acb>z).val, (<acb>s).val, (<acb>a).val, getprec())
+        return u
+
+
     def dirichlet_l(s, chi):
         cdef dirichlet_char cchar
         if isinstance(chi, dirichlet_char):
