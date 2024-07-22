@@ -283,7 +283,8 @@ tar xf flint-$FLINTVER.tar.gz
 cd flint-$FLINTVER
   ./bootstrap.sh
   ./configure --prefix=$PREFIX\
-    --host=$HOST_ARG\
+    # --host=$HOST_ARG\ # host is ignored
+    --enable-arch=${HOST_ARG%%-*}\ # works on 3.1.3p1, not available  on HEAD
     --disable-assembly\
     --disable-avx2\
     --disable-avx512\
