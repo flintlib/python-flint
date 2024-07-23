@@ -287,6 +287,7 @@ cd flint-$FLINTVER
     --disable-assembly\
     --disable-avx2\
     --disable-avx512\
+    --disable-arch\
     $FLINTARB_WITHGMP\
     --with-mpfr=$PREFIX\
     --disable-static\
