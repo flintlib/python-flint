@@ -6,7 +6,7 @@ from flint.flintlib.nmod_mpoly cimport (
     nmod_mpoly_init,
     nmod_mpoly_struct
 )
-from flint.flintlib.flint cimport slong
+from flint.flintlib.flint cimport slong, ulong
 
 cdef inline init_nmod_mpoly(nmod_mpoly var, nmod_mpoly_ctx ctx):
     var.ctx = ctx
@@ -23,6 +23,7 @@ cdef inline nmod_mpoly create_nmod_mpoly(nmod_mpoly_ctx ctx):
 
 cdef class nmod_mpoly_ctx(flint_mpoly_context):
     cdef nmod_mpoly_ctx_t val
+    cdef readonly object __prime_modulus
 
 cdef class nmod_mpoly(flint_mpoly):
     cdef nmod_mpoly_t val
@@ -30,6 +31,7 @@ cdef class nmod_mpoly(flint_mpoly):
     cdef bint _init
 
 cdef class nmod_mpoly_vec:
-    cdef nmod_mpoly_t *val
+    cdef nmod_mpoly_struct *val
+    cdef slong length
     cdef nmod_mpoly_ctx ctx
     cdef nmod_mpoly_struct **double_indirect
