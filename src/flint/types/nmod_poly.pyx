@@ -117,7 +117,7 @@ cdef class nmod_poly(flint_poly):
         cdef mp_limb_t v
         cdef bint res
         if op != 2 and op != 3:
-            raise TypeError("nmod_polyss cannot be ordered")
+            raise TypeError("nmod_polys cannot be ordered")
         if typecheck(s, nmod_poly) and typecheck(t, nmod_poly):
             if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
                 res = False
@@ -127,6 +127,22 @@ cdef class nmod_poly(flint_poly):
                 return res
             if op == 3:
                 return not res
+        else:
+            if not typecheck(s, nmod_poly):
+                s, t = t, s
+            try:
+                t = nmod_poly([t], (<nmod_poly>s).val.mod.n)
+            except TypeError:
+                pass
+            if typecheck(s, nmod_poly) and typecheck(t, nmod_poly):
+                if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
+                    res = False
+                else:
+                    res = nmod_poly_equal((<nmod_poly>s).val, (<nmod_poly>t).val)
+                if op == 2:
+                    return res
+                if op == 3:
+                    return not res
         return NotImplemented
 
     def __iter__(self):
@@ -166,8 +182,14 @@ cdef class nmod_poly(flint_poly):
         else:
             raise TypeError("cannot set element of type %s" % type(x))
 
-    def __nonzero__(self):
+    def __bool__(self):
         return not nmod_poly_is_zero(self.val)
+
+    def is_zero(self):
+        return <bint>nmod_poly_is_zero(self.val)
+
+    def is_one(self):
+        return <bint>nmod_poly_is_one(self.val)
 
     def __call__(self, other):
         cdef mp_limb_t c

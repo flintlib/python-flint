@@ -136,7 +136,7 @@ cdef class nmod_mat(flint_mat):
         else:
             raise TypeError("nmod_mat: expected 1-3 arguments plus modulus")
 
-    def __nonzero__(self):
+    def __bool__(self):
         return not nmod_mat_is_zero(self.val)
 
     def __richcmp__(s, t, int op):
