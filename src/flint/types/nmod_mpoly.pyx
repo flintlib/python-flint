@@ -270,6 +270,12 @@ cdef class nmod_mpoly(flint_mpoly):
     def __bool__(self):
         return not nmod_mpoly_is_zero(self.val, self.ctx.val)
 
+    def is_zero(self):
+        return <bint>nmod_mpoly_is_zero(self.val, self.ctx.val)
+
+    def is_one(self):
+        return <bint>nmod_mpoly_is_one(self.val, self.ctx.val)
+
     def __richcmp__(self, other, int op):
         if not (op == Py_EQ or op == Py_NE):
             return NotImplemented
@@ -810,9 +816,6 @@ cdef class nmod_mpoly(flint_mpoly):
             True
         """
         return self.ctx
-
-    def is_one(self):
-        return nmod_mpoly_is_one(self.val, self.ctx.val)
 
     def coefficient(self, slong i):
         """
