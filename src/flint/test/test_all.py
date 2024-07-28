@@ -2854,14 +2854,18 @@ def test_mpolys():
 
         assert +quick_poly() \
             == quick_poly()
-        # assert -quick_poly() \
-        #     == mpoly({(0, 0): -1, (0, 1): -2, (1, 0): -3, (2, 2): -4})
+
+        assert -quick_poly() \
+            == mpoly(
+                {(0, 0): -1, (0, 1): -2, (1, 0): -3, (2, 2): -4} if P is not flint.nmod_mpoly
+                else {k: ctx.modulus() + v for k, v in {(0, 0): -1, (0, 1): -2, (1, 0): -3, (2, 2): -4}.items()}
+        )
 
         assert quick_poly() \
             + mpoly({(0, 0): 5, (0, 1): 6, (1, 0): 7, (2, 2): 8}) \
             == mpoly({(0, 0): 6, (0, 1): 8, (1, 0): 10, (2, 2): 12})
 
-        for T in [int, S, flint.fmpz, lambda x: P(x, ctx=ctx)]:
+        for T in [int, S, lambda x: P(x, ctx=ctx)]:
             p = quick_poly()
             p += T(1)
             q = quick_poly()
@@ -2875,24 +2879,31 @@ def test_mpolys():
         assert raises(lambda: None + mpoly({(0, 0): 2, (0, 1): 2, (1, 0): 3, (2, 2): 4}), TypeError)
         assert raises(lambda: quick_poly() + P(ctx=ctx1), IncompatibleContextError)
         assert raises(lambda: quick_poly().iadd(P(ctx=ctx1)), IncompatibleContextError)
-        # assert raises(lambda: quick_poly().iadd(None), NotImplementedError)
+        assert raises(lambda: quick_poly().iadd(None), NotImplementedError)
 
-        # assert quick_poly() - mpoly({(0, 0): 5, (0, 1): 6, (1, 0): 7, (2, 2): 8}) \
-        #     == mpoly({(0, 0): -4, (0, 1): -4, (1, 0): -4, (2, 2): -4})
+        assert quick_poly() - mpoly({(0, 0): 5, (0, 1): 6, (1, 0): 7, (2, 2): 8}) \
+            == mpoly(
+                {(0, 0): -4, (0, 1): -4, (1, 0): -4, (2, 2): -4} if P is not flint.nmod_mpoly
+                else {k: ctx.modulus() + v for k, v in {(0, 0): -4, (0, 1): -4, (1, 0): -4, (2, 2): -4}.items()}
+        )
 
-        for T in [int, S, flint.fmpz, lambda x: P(x, ctx=ctx)]:
+        for T in [int, S, lambda x: P(x, ctx=ctx)]:
             p = quick_poly()
             p -= T(1)
             q = quick_poly()
             assert q.isub(T(1)) is None
             assert quick_poly() - T(1) == p == q == mpoly({(0, 1): 2, (1, 0): 3, (2, 2): 4})
-            # assert T(1) - quick_poly() == mpoly({(0, 1): -2, (1, 0): -3, (2, 2): -4})
+            assert T(1) - quick_poly() == \
+                mpoly(
+                    {(0, 1): -2, (1, 0): -3, (2, 2): -4} if P is not flint.nmod_mpoly
+                else {k: ctx.modulus() + v for k, v in {(0, 1): -2, (1, 0): -3, (2, 2): -4}.items()}
+            )
 
         assert raises(lambda: quick_poly() - None, TypeError)
         assert raises(lambda: None - quick_poly(), TypeError)
         assert raises(lambda: quick_poly() - P(ctx=ctx1), IncompatibleContextError)
         assert raises(lambda: quick_poly().isub(P(ctx=ctx1)), IncompatibleContextError)
-        # assert raises(lambda: quick_poly().isub(None), NotImplementedError)
+        assert raises(lambda: quick_poly().isub(None), NotImplementedError)
 
         assert quick_poly() * mpoly({(1, 0): 5, (0, 1): 6}) \
             == mpoly({
@@ -2905,7 +2916,7 @@ def test_mpolys():
                 (0, 1): 6
             })
 
-        for T in [int, S, flint.fmpz, lambda x: P(x, ctx=ctx)]:
+        for T in [int, S, lambda x: P(x, ctx=ctx)]:
             p = quick_poly()
             p *= T(2)
             q = quick_poly()
@@ -2917,7 +2928,7 @@ def test_mpolys():
         assert raises(lambda: None * quick_poly(), TypeError)
         assert raises(lambda: quick_poly() * P(ctx=ctx1), IncompatibleContextError)
         assert raises(lambda: quick_poly().imul(P(ctx=ctx1)), IncompatibleContextError)
-        # assert raises(lambda: quick_poly().imul(None), NotImplementedError)
+        assert raises(lambda: quick_poly().imul(None), NotImplementedError)
 
         if (P is flint.fmpz_mod_mpoly or P is flint.nmod_mpoly) and not ctx.is_prime():
             assert raises(lambda: quick_poly() // mpoly({(1, 1): 1}), DomainError)
@@ -3023,7 +3034,11 @@ def test_mpolys():
         else:
             assert raises(lambda: (f * g).gcd(f), DomainError)
 
-        # assert (f * g).factor() == (S(2), [(mpoly({(0, 1): 1, (1, 0): 1}), 1), (f, 1)])
+        if P is flint.fmpz_mod_mpoly or P is flint.nmod_mpoly:
+            if is_field:
+                assert (f * g).factor() == (S(8), [(mpoly({(0, 1): 1, (1, 0): 1}), 1), (f / 4, 1)])
+        else:
+            assert (f * g).factor() == (S(2), [(mpoly({(0, 1): 1, (1, 0): 1}), 1), (f, 1)])
 
         if (P is not flint.fmpz_mod_mpoly and P is not flint.nmod_mpoly) or f.context().is_prime():
             assert (f * f).sqrt() == f
