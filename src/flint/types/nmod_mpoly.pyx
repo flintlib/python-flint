@@ -64,7 +64,6 @@ from flint.flintlib.ulong_extras cimport n_is_prime
 
 from cpython.object cimport Py_EQ, Py_NE
 cimport libc.stdlib
-import numpy as np
 
 cdef dict _nmod_mpoly_ctx_cache = {}
 
@@ -578,8 +577,20 @@ cdef class nmod_mpoly(flint_mpoly):
         elif nargs > nvars:
             raise ValueError("more arguments provided than variables")
 
-        cdef ulong[::1] V = np.asarray(args, dtype=np.uint)
-        return nmod_mpoly_evaluate_all_ui(self.val, &(V[0]), self.ctx.val)
+        cdef:
+            ulong res
+            ulong *V = <ulong *>libc.stdlib.malloc(len(args) * sizeof(ulong))
+        if V is NULL:
+            raise MemoryError("malloc returned a null pointer")  # pragma: no cover
+
+        try:
+            for i in range(len(args)):
+                V[i] = args[i]
+            res = nmod_mpoly_evaluate_all_ui(self.val, V, self.ctx.val)
+        finally:
+            libc.stdlib.free(V)
+
+        return res
 
     def iadd(self, other):
         """
