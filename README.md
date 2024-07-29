@@ -133,6 +133,8 @@ CHANGELOG
 
 Next release:
 
+- [gh-172](https://github.com/flintlib/python-flint/pull/161)
+  Add `fmpz_is_square`.
 - [gh-161](https://github.com/flintlib/python-flint/pull/161)
   Add `acb.lerch_phi` to compute the Lerch transcendent.
 - [gh-132](https://github.com/flintlib/python-flint/pull/132)
