@@ -684,7 +684,8 @@ cdef class fmpz(flint_scalar):
 
     def is_perfect_power(self):
         r"""
-        Return True if this integer is of the form `r^k`, False otherwise.
+        Return True if this integer is of the form `r^k` with `k>1`, False otherwise.
+        `0, 1, -1` are considered perfect powers.
  
             >>> fmpz(81).is_perfect_power()
             True
