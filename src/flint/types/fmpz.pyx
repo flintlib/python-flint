@@ -688,6 +688,17 @@ cdef class fmpz(flint_scalar):
         k = fmpz_is_perfect_power(v.val, self.val)
         return k != 0
 
+    def is_square(self):
+        r"""
+        Return True if perfect square and False otherwise.
+
+            >>> fmpz(25).is_square()
+            True
+            >>> fmpz(101).is_square()
+            False
+        """
+        return fmpz_is_square(self.val) != 0
+
     def partitions_p(n):
         r"""
         Returns `p(n)`, the number of partitions of `n`, as an *fmpz*.
