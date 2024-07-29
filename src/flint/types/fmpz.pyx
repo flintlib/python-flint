@@ -683,6 +683,14 @@ cdef class fmpz(flint_scalar):
         return fmpz_is_probabprime(self.val)
 
     def is_perfect_power(self):
+        r"""
+        Return True if this integer is of the form `r^k`, False otherwise.
+ 
+            >>> fmpz(81).is_perfect_power()
+            True
+            >>> fmpz(1234).is_perfect_power()
+            False
+        """
         cdef int k
         cdef fmpz v = fmpz()
         k = fmpz_is_perfect_power(v.val, self.val)
