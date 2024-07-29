@@ -294,6 +294,8 @@ def test_fmpz_functions():
             [0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0]),
         (lambda n: flint.fmpz(n).is_perfect_power(),
             [T, T, T, F, F, T, F, F, F, T, T, F]),
+        (lambda n: flint.fmpz(n).is_square(),
+            [F, T, T, F, F, T, F, F, F, F, T, F]),
         (lambda n: flint.fmpz(n).partitions_p(),
             [0, 1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42]),
         (lambda n: flint.fmpz(n).moebius_mu(),
