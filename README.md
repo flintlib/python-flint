@@ -146,7 +146,7 @@ Next release:
 - [gh-148](https://github.com/flintlib/python-flint/pull/148)
   Remove debug symbols to make smaller Linux binaries.
 - [gh-144](https://github.com/flintlib/python-flint/pull/144)
-  Add `rel_one_ccuracy_bits` to `arb` and `acb`.
+  Add `rel_one_accuracy_bits` to `arb` and `acb`.
 - [gh-142](https://github.com/flintlib/python-flint/pull/142)
   Add `acb_theta` module for the numerical evaluation of [theta
   functions](https://flintlib.org/doc/acb_theta.html) (only available for
