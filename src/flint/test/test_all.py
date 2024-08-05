@@ -1422,7 +1422,15 @@ def test_nmod_poly():
     assert raises(lambda: [] * s, TypeError)
     assert raises(lambda: [] // s, TypeError)
     assert raises(lambda: [] % s, TypeError)
-    assert raises(lambda: pow(P([1,2],3), 3, 4), NotImplementedError)
+    assert raises(lambda: [] % s, TypeError)
+    assert raises(lambda: s.reverse(-1), ValueError)
+    assert raises(lambda: s.compose("A"), TypeError)
+    assert raises(lambda: s.compose_mod(s, "A"), TypeError)
+    assert raises(lambda: s.compose_mod("A", P([3,6,9],17)), TypeError)
+    assert raises(lambda: s.compose_mod(s, P([0], 17)), ZeroDivisionError)
+    assert raises(lambda: pow(s, -1, P([3,6,9],17)), ValueError)
+    assert raises(lambda: pow(s, 1, "A"), TypeError)
+    assert raises(lambda: pow(s, "A", P([3,6,9],17)), TypeError)
     assert str(P([1,2,3],17)) == "3*x^2 + 2*x + 1"
     assert P([1,2,3],17).repr() == "nmod_poly([1, 2, 3], 17)"
     p = P([3,4,5],17)

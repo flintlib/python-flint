@@ -1182,7 +1182,7 @@ cdef class fmpz_mod_poly(flint_poly):
         # For larger exponents we need to cast e to an fmpz first
         e_fmpz = any_as_fmpz(e)
         if e_fmpz is NotImplemented:
-            raise ValueError(f"exponent cannot be cast to an fmpz type: {e = }")
+            raise TypeError(f"exponent cannot be cast to an fmpz type: {e = }")
 
         # To optimise powering, we precompute the inverse of the reverse of the modulus
         if mod_rev_inv is not None:
