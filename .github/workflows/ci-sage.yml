@@ -64,14 +64,10 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install $DIST_PREREQ
         if: env.DIST_PREREQ != ''
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      - run: pip install build
       - name: Run make dist, prepare upstream artifact
         run: |
-          (cd build/pkgs/${{ env.SPKG }}/src && python -m build --sdist) \
-          && mkdir -p upstream && cp build/pkgs/${{ env.SPKG }}/src/dist/*.tar.gz upstream/${{ env.SPKG }}-git.tar.gz \
+          (cd build/pkgs/${{ env.SPKG }}/src && git archive --format=tar.gz --prefix=${{ env.SPKG }}-git/ HEAD > ${{ env.SPKG }}-git.tar.gz) \
+          && mkdir -p upstream && cp build/pkgs/${{ env.SPKG }}/src/*.tar.gz upstream/${{ env.SPKG }}-git.tar.gz \
           && echo "sage-package create ${{ env.SPKG }} --version git --tarball ${{ env.SPKG }}-git.tar.gz --type=standard" > upstream/update-pkgs.sh \
           && if [ -n "${{ env.REMOVE_PATCHES }}" ]; then echo "(cd ../build/pkgs/${{ env.SPKG }}/patches && rm -f ${{ env.REMOVE_PATCHES }}; :)" >> upstream/update-pkgs.sh; fi \
           && ls -l upstream/
@@ -87,7 +83,7 @@ jobs:
       targets:                  SAGE_CHECK=no SAGE_CHECK_flint=warn SAGE_CHECK_python_flint=yes python_flint
       # Standard setting: Test the current beta release of Sage:
       sage_repo:                sagemath/sage
-      sage_ref:                 refs/pull/37224/head
+      sage_ref:                 refs/pull/38340/head
       #sage_ref:                 develop
       upstream_artifact:        upstream
       # Docker targets (stages) to tag
@@ -106,7 +102,7 @@ jobs:
       targets:                  SAGE_CHECK=no SAGE_CHECK_flint=warn SAGE_CHECK_python_flint=yes python_flint
       # Standard setting: Test the current beta release of Sage:
       sage_repo:                sagemath/sage
-      sage_ref:                 refs/pull/37224/head
+      sage_ref:                 refs/pull/38340/head
       #sage_ref:                 develop
       upstream_artifact:        upstream
     needs: [dist]

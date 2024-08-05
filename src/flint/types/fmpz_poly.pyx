@@ -137,8 +137,14 @@ cdef class fmpz_poly(flint_poly):
     def repr(self):
         return "fmpz_poly([%s])" % (", ".join(map(str, self.coeffs())))
 
-    def __nonzero__(self):
+    def __bool__(self):
         return not fmpz_poly_is_zero(self.val)
+
+    def is_zero(self):
+        return <bint>fmpz_poly_is_zero(self.val)
+
+    def is_one(self):
+        return <bint>fmpz_poly_is_one(self.val)
 
     def __call__(self, other):
         t = any_as_fmpz(other)
@@ -391,13 +397,13 @@ cdef class fmpz_poly(flint_poly):
             >>> fmpz_poly([2,0,1]).complex_roots()
             [([1.41421356237310 +/- 4.96e-15]j, 1), ([-1.41421356237310 +/- 4.96e-15]j, 1)]
             >>> for c, m in (fmpz_poly([2,3,4]) * fmpz_poly([5,6,7,11])**3).complex_roots():
-            ...     print((c,m))
+            ...     print(f'{float(c.real)} + {float(c.imag)}*j : {m}')
             ...
-            ([-0.375000000000000 +/- 1.0e-19] + [0.599478940414090 +/- 5.75e-17]j, 1)
-            ([-0.375000000000000 +/- 1.0e-19] + [-0.599478940414090 +/- 5.75e-17]j, 1)
-            ([-0.735284727404843 +/- 4.11e-16], 3)
-            ([0.0494605455206031 +/- 1.33e-17] + [0.784693167647185 +/- 2.85e-16]j, 3)
-            ([0.0494605455206031 +/- 1.33e-17] + [-0.784693167647185 +/- 2.85e-16]j, 3)
+            -0.375 + 0.5994789404140899*j : 1
+            -0.375 + -0.5994789404140899*j : 1
+            -0.7352847274048426 + 0.0*j : 3
+            0.04946054552060311 + 0.7846931676471847*j : 3
+            0.04946054552060311 + -0.7846931676471847*j : 3
 
         """
         cdef fmpz_poly_factor_t fac

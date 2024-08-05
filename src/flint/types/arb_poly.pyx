@@ -18,7 +18,7 @@ cimport cython
 cimport libc.stdlib
 
 cdef arb_poly_coerce_operands(x, y):
-    if isinstance(y, (int, long, float, fmpz, fmpq, arb, fmpz_poly, fmpq_poly)):
+    if isinstance(y, (int, float, fmpz, fmpq, arb, fmpz_poly, fmpq_poly)):
         return x, arb_poly(y)
     if isinstance(y, (complex, acb)):
         return acb_poly(x), acb_poly(y)
@@ -330,7 +330,7 @@ cdef class arb_poly(flint_poly):
             u = acb.__new__(acb)
             arb_poly_evaluate_acb((<acb>u).val, (<arb_poly>s).val, (<acb>t).val, getprec())
             return u
-        if isinstance(t, (int, long, float, fmpz, fmpq)):
+        if isinstance(t, (int, float, fmpz, fmpq)):
             return s(arb(t))
         if isinstance(t, (fmpz_poly, fmpq_poly)):
             return s(arb_poly(t))

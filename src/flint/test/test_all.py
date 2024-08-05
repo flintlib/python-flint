@@ -1994,7 +1994,7 @@ def test_fmpz_mod_poly():
     F_sml = fmpz_mod_ctx(p_sml)
     F_med = fmpz_mod_ctx(p_med)
     F_big = fmpz_mod_ctx(p_big)
-    
+
     R_sml = fmpz_mod_poly_ctx(F_sml)
     R_med = fmpz_mod_poly_ctx(F_med)
     R_big = fmpz_mod_poly_ctx(F_big)
@@ -2093,7 +2093,7 @@ def test_fmpz_mod_poly():
         assert pow(f, 2**60, g) == pow(pow(f, 2**30, g), 2**30, g)
         assert pow(R_gen, 2**60, g) == pow(pow(R_gen, 2**30, g), 2**30, g)
 
-        # Check other typechecks
+        # Check other typechecks for powmod 
         assert raises(lambda: pow(f, -2, g), ValueError)
         assert raises(lambda: pow(f, 1, "A"), TypeError)
         assert raises(lambda: pow(f, "A", g), TypeError)
@@ -2686,8 +2686,6 @@ def test_polys():
 
         if is_field:
             assert P([1, 2, 1]).integral() == P([0, 1, 1, S(1)/3])
-
-
 
 def _all_mpolys():
     return [

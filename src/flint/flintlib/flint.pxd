@@ -36,13 +36,26 @@ cdef extern from "flint/fmpz.h":
 
 ctypedef slong fmpz_struct
 
+cdef extern from *:
+    """
+    /*
+     * Functions renamed in Flint 3.2.0
+     */
+    #if __FLINT_RELEASE < 30200 /* Flint < 3.2.0 */
+
+    #define flint_rand_init flint_randinit
+    #define flint_rand_clear flint_randclear
+
+    #endif
+    """
+
 cdef extern from "flint/flint.h":
     const char * FLINT_VERSION
     const int __FLINT_RELEASE
     const int FLINT_BITS
     ctypedef void * flint_rand_t
-    void flint_randinit(flint_rand_t state)
-    void flint_randclear(flint_rand_t state)
+    void flint_rand_init(flint_rand_t state)
+    void flint_rand_clear(flint_rand_t state)
     void flint_set_num_threads(long)
     long flint_get_num_threads()
     void flint_cleanup()

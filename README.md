@@ -40,9 +40,19 @@ First install FLINT 3. Starting with python-flint 0.5.0 older versions of Flint
 such as 2.9 are not supported any more. Note that as of Flint 3 Arb no longer
 needs to be built separately as it is now merged into Flint.
 
-See here for instructions on building FLINT:
+As of e.g. Ubuntu 24.04 a new enough version of FLINT (at least version 3) can
+be installed from the Ubuntu repos like
+
+    sudo apt-get install libflint-dev
+
+For older distros the version in the repos is too old and a newer version of
+FLINT needs to be built. See here for instructions on building FLINT:
 
 * http://flintlib.org/
+
+A script that builds and installs FLINT on Ubuntu can be found here:
+
+* https://github.com/flintlib/python-flint/blob/master/bin/install_flint_ubuntu.sh
 
 The latest release of Python-FLINT can then be built from source and installed
 using:
@@ -53,11 +63,6 @@ Python-FLINT can also be installed from a git checkout or a source archive
 as follows:
 
     pip install .
-
-A script that builds and installs FLINT and python-flint that is tested on
-Ubuntu can be found in the git repo here:
-
-* https://github.com/flintlib/python-flint/blob/master/bin/pip_install_ubuntu.sh
 
 See the documentation for further notes on building and installing
 python-flint:
@@ -125,6 +130,33 @@ To do
 
 CHANGELOG
 -------------
+
+Next release:
+
+- [gh-172](https://github.com/flintlib/python-flint/pull/161)
+  Add `fmpz_is_square`.
+- [gh-161](https://github.com/flintlib/python-flint/pull/161)
+  Add `acb.lerch_phi` to compute the Lerch transcendent.
+- [gh-132](https://github.com/flintlib/python-flint/pull/132)
+  Add `fmpz_mpoly` and `fmpq_mpoly` types for multivariate polynomials with
+  integer or rational coefficients.
+- [gh-160](https://github.com/flintlib/python-flint/pull/160)
+  Add `bits` to `arb` and `acb`, add `log_base` to `arb`.
+- [gh-149](https://github.com/flintlib/python-flint/pull/149)
+  Bump Flint version to 3.1.3-p1 (Flint 3.0.0 - 3.1.3-p1 is supported but the
+  wheels are built with 3.1.3-p1).
+- [gh-148](https://github.com/flintlib/python-flint/pull/148)
+  Remove debug symbols to make smaller Linux binaries.
+- [gh-144](https://github.com/flintlib/python-flint/pull/144)
+  Add `rel_one_accuracy_bits` to `arb` and `acb`.
+- [gh-142](https://github.com/flintlib/python-flint/pull/142)
+  Add `acb_theta` module for the numerical evaluation of [theta
+  functions](https://flintlib.org/doc/acb_theta.html) (only available for
+  `Flint >= 3.1`).
+- [gh-137](https://github.com/flintlib/python-flint/pull/137)
+  Add `erfinv` and `erfcinv` for `arb`.
+- [gh-129](https://github.com/flintlib/python-flint/pull/129)
+  Use meson-python instead of setuptools as the build backend.
 
 0.6.0
 
