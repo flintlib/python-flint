@@ -168,7 +168,7 @@ cdef class fmpz(flint_scalar):
     def repr(self):
         return "fmpz(%s)" % self.str()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return not fmpz_is_zero(self.val)
 
     def __pos__(self):
@@ -683,10 +683,30 @@ cdef class fmpz(flint_scalar):
         return fmpz_is_probabprime(self.val)
 
     def is_perfect_power(self):
+        r"""
+        Return True if this integer is of the form `r^k` with `k>1`, False otherwise.
+        `0, 1, -1` are considered perfect powers.
+ 
+            >>> fmpz(81).is_perfect_power()
+            True
+            >>> fmpz(1234).is_perfect_power()
+            False
+        """
         cdef int k
         cdef fmpz v = fmpz()
         k = fmpz_is_perfect_power(v.val, self.val)
         return k != 0
+
+    def is_square(self):
+        r"""
+        Return True if perfect square and False otherwise.
+
+            >>> fmpz(25).is_square()
+            True
+            >>> fmpz(101).is_square()
+            False
+        """
+        return fmpz_is_square(self.val) != 0
 
     def partitions_p(n):
         r"""

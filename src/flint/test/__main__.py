@@ -10,7 +10,7 @@ import traceback
 import argparse
 
 import flint
-from flint.test.test import all_tests
+from flint.test.test_all import all_tests
 
 
 def run_tests(verbose=None):
@@ -57,6 +57,7 @@ def run_doctests(verbose=None):
                flint.types.fmpz,
                flint.types.fmpz_poly,
                flint.types.fmpz_mat,
+               flint.types.fmpz_mpoly,
                flint.types.fmpz_series,
                flint.types.fmpz_mod,
                flint.types.fmpz_mod_poly,
@@ -64,6 +65,7 @@ def run_doctests(verbose=None):
                flint.types.fmpq,
                flint.types.fmpq_poly,
                flint.types.fmpq_mat,
+               flint.types.fmpq_mpoly,
                flint.types.fmpq_series,
                flint.types.nmod,
                flint.types.nmod_poly,
@@ -80,9 +82,14 @@ def run_doctests(verbose=None):
                flint.types.acb_series,
                flint.types.dirichlet,
                flint.functions.showgood]
+    try:
+        from flint.types import acb_theta
+        modules.append(acb_theta)
+    except ImportError:
+        pass
     results = [doctest.testmod(x) for x in modules]
 #    ffmpz, tfmpz = doctest.testmod(flint._fmpz, verbose=verbose)
- #   failed, total = doctest.testmod(flint.pyflint, verbose=verbose)
+#    failed, total = doctest.testmod(flint.pyflint, verbose=verbose)
     return tuple(sum(res) for res in zip(*results))
 
 

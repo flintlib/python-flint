@@ -131,7 +131,7 @@ cdef class fmpz_mat(flint_mat):
         else:
             raise TypeError("fmpz_mat: expected 1-3 arguments")
 
-    def __nonzero__(self):
+    def __bool__(self):
         return not fmpz_mat_is_zero(self.val)
 
     def __richcmp__(fmpz_mat s, t, int op):

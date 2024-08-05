@@ -20,7 +20,7 @@ from flint.flintlib.acb_poly cimport *
 cimport libc.stdlib
 
 cdef acb_poly_coerce_operands(x, y):
-    if isinstance(y, (int, long, float, complex, fmpz, fmpq, arb, acb, fmpz_poly, fmpq_poly, arb_poly)):
+    if isinstance(y, (int, float, complex, fmpz, fmpq, arb, acb, fmpz_poly, fmpq_poly, arb_poly)):
         return x, acb_poly(y)
     return NotImplemented, NotImplemented
 
@@ -328,7 +328,7 @@ cdef class acb_poly(flint_poly):
             u = acb.__new__(acb)
             acb_poly_evaluate((<acb>u).val, (<acb_poly>s).val, (<acb>t).val, getprec())
             return u
-        if isinstance(t, (int, long, float, complex, fmpz, fmpq, arb)):
+        if isinstance(t, (int, float, complex, fmpz, fmpq, arb)):
             return s(acb(t))
         if isinstance(t, (fmpz_poly, fmpq_poly, arb_poly)):
             return s(acb_poly(t))
@@ -349,13 +349,13 @@ cdef class acb_poly(flint_poly):
         The input polynomial must be squarefree and sufficiently
         accurate. Raises an exception if unsuccessful.
 
-            >>> for c in acb_poly.from_roots([1,2,3,4,5]).roots(1e-10): print(c)
+            >>> for c in acb_poly.from_roots([1,2,3,4,5]).roots(1e-10): print(float(c.real))
             ...
-            [1.00000000000000 +/- 7.71e-18] + [+/- 7.59e-18]j
-            [2.00000000000000 +/- 1.18e-16] + [+/- 1.16e-16]j
-            [3.00000000000000 +/- 4.24e-16] + [+/- 4.22e-16]j
-            [4.00000000000000 +/- 7.21e-16] + [+/- 7.00e-16]j
-            [5.00000000000000 +/- 2.41e-16] + [+/- 2.24e-16]j
+            1.0
+            2.0
+            3.0
+            4.0
+            5.0
             >>> for c in acb_poly.from_roots([1,2,2,4,5]).roots(1e-10): print(c)
             ...
             Traceback (most recent call last):

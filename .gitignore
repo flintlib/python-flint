@@ -1,4 +1,5 @@
 build/*
+build-install/*
 dist/*
 src/flint/**/*.c
 src/flint/*.html
@@ -18,3 +19,4 @@ MANIFEST
 .python-version
 *.DS_Store
 .venv
+.hypothesis

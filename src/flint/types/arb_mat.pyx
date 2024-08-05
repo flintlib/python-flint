@@ -22,14 +22,14 @@ cimport cython
 cdef arb_mat_coerce_operands(x, y):
     if isinstance(y, (fmpz_mat, fmpq_mat)):
         return x, arb_mat(y)
-    if isinstance(y, (int, long, float, fmpz, fmpq, arb)):
+    if isinstance(y, (int, float, fmpz, fmpq, arb)):
         return x, arb_mat(x.nrows(), x.ncols(), y)
     if isinstance(y, (complex, acb)):
         return acb_mat(x), acb_mat(x.nrows(), x.ncols(), y)
     return NotImplemented, NotImplemented
 
 cdef arb_mat_coerce_scalar(x, y):
-    if isinstance(y, (int, long, float, fmpz, fmpq, arb)):
+    if isinstance(y, (int, float, fmpz, fmpq, arb)):
         return x, any_as_arb(y)
     if isinstance(y, (complex, acb)):
         return acb_mat(x), any_as_acb(y)
@@ -132,7 +132,7 @@ cdef class arb_mat(flint_mat):
         elif len(args) == 3:
             m, n, entries = args
             arb_mat_init(self.val, m, n)
-            if isinstance(entries, (int, long, float, fmpz, fmpq, arb)):
+            if isinstance(entries, (int, float, fmpz, fmpq, arb)):
                 c = entries
                 entries = [0] * (m * n)
                 for i in range(min(m,n)):
@@ -148,7 +148,7 @@ cdef class arb_mat(flint_mat):
         else:
             raise ValueError("arb_mat: expected 1-3 arguments")
 
-    def __nonzero__(self):
+    def __bool__(self):
         raise NotImplementedError
 
     cpdef long nrows(s):

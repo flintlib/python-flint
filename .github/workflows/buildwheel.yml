@@ -10,14 +10,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-12]
+        os: [ubuntu-20.04, windows-2019, macos-13, macos-14]
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
       - uses: msys2/setup-msys2@v2
         with:
@@ -31,8 +31,18 @@ jobs:
           path-type: inherit
         if: ${{ matrix.os == 'windows-2019' }}
 
+        # Install pkgconfig on Windows from choco rather than from msys and
+        # avoid using the Strawberry one.
+      - run: choco install -y --stoponfirstfailure --checksum 6004DF17818F5A6DBF19CB335CC92702 pkgconfiglite
+        if: ${{ matrix.os == 'windows-2019' }}
+
+        # We have to set this here rather than in the cibuildwheel config
+        # This is probably something to do with \ vs / in paths...
+      - run: echo "PKG_CONFIG_PATH=${{ github.workspace }}/.local/lib/pkgconfig" >> $env:GITHUB_ENV
+        if: ${{ matrix.os == 'windows-2019' }}
+
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.19.2
         env:
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
@@ -45,7 +55,7 @@ jobs:
 
   build_sdist:
     name: Build sdist
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +64,11 @@ jobs:
         with:
           python-version: '3.12'
 
+      - run: sudo apt-get update
+      - run: sudo apt-get install libgmp-dev libmpfr-dev xz-utils ninja-build
+      - run: curl -O -L https://www.flintlib.org/flint-3.1.0.tar.gz
+      - run: tar -xzf flint-3.1.0.tar.gz
+      - run: cd flint-3.1.0 && ./configure --disable-static && make -j4 && sudo make install
       - run: pip install build
       - run: python -m build --sdist
 
@@ -91,7 +106,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-12]
+        os: [ubuntu-20.04, windows-2019, macos-13, macos-14]
         python-version: ['3.9', '3.10', '3.11', '3.12']
 
     steps:
@@ -105,36 +120,69 @@ jobs:
       - run: pip install --no-index --find-links wheelhouse python_flint
       - run: python -m flint.test --verbose
 
-  test_pip_vcs_sdist:
-    name: pip install ${{ matrix.target }} on ${{ matrix.python-version }}
-    runs-on: ubuntu-22.04
+  # On new enough Ubuntu we can build against the system deb.
+  test_pip_flint_deb:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.11', '3.12', '3.13-dev']
-        # '.' means install from python-flint git checkout
-        # 'python-flint' means install from PyPI sdist
-        target: ['.', 'python-flint']
+        os: [ubuntu-24.04]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      - run: bin/pip_install_ubuntu.sh ${{ matrix.target }}
+          python-version: '3.12'
+      - run: sudo apt-get update
+      - run: sudo apt-get install libflint-dev
+      - run: pip install .
       - run: python -m flint.test --verbose
 
+  # For older Ubuntu we have to build Flint >= 3.0.0
   test_flint_versions:
-    name: Test flint ${{ matrix.flinttag }}
+    name: Test flint ${{ matrix.flint-tag }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-        # minimum supported version and latest git
-        flinttag: ['v3.0.0', 'main']
+        # Supported versions and latest git
+        flint-tag: ['v3.0.0', 'v3.0.1', 'v3.1.0', 'v3.1.1', 'v3.1.2', 'main']
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: 3.12
-      - run: bin/pip_install_ubuntu.sh . ${{ matrix.flinttag }}
+          python-version: '3.12'
+      - run: bin/install_flint_ubuntu.sh ${{ matrix.flint-tag }}
+      - run: pip install .
       - run: python -m flint.test --verbose
+
+  # Deploy wheels and sdist to PyPI
+
+  pypi_release:
+    name: Publish to PyPI
+    needs: [build_wheels, build_sdist]
+    # Run only when a tag is pushed to the flintlib/python-flint repo
+    if: "github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && github.repository_owner == 'flintlib'"
+    environment:
+      name: pypi
+      url: https://pypi.org/p/sympy
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+
+    steps:
+        # Downloads all artifacts
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: wheelhouse
+          merge-multiple: true
+
+      - name: Copy the PyPI files into dist
+        run: mkdir dist && cp wheelhouse/*.whl wheelhouse/*.tar.gz dist
+
+      - name: Publish package on PyPI
+        # It is recommended to pin a commit hash here for security but it
+        # should be kept up to date. Possibly all actions and dependencies used
+        # by the build script should be pinned...
+        uses: pypa/gh-action-pypi-publish@ec4db0b4ddc65acdf4bff5fa45ac92d78b56bdf0  # v1.9.0

@@ -257,6 +257,7 @@ else
   tar xf mpfr-$MPFRVER.tar.gz
   cd mpfr-$MPFRVER
     ./configure --prefix=$PREFIX\
+      --host=$HOST_ARG\
       --with-gmp=$PREFIX\
       --enable-shared=yes\
       --enable-static=no
@@ -281,10 +282,17 @@ curl -O -L https://github.com/flintlib/flint/releases/download/v$FLINTVER/flint-
 tar xf flint-$FLINTVER.tar.gz
 cd flint-$FLINTVER
   ./bootstrap.sh
+  # --host=$HOST_ARG\ # host is ignored
+  # --enable-arch works on 3.1.3p1, not available  on HEAD
   ./configure --prefix=$PREFIX\
+    --enable-arch=${HOST_ARG%%-*}\
+    --disable-assembly\
+    --disable-avx2\
+    --disable-avx512\
     $FLINTARB_WITHGMP\
     --with-mpfr=$PREFIX\
-    --disable-static
+    --disable-static\
+    --disable-debug
   make -j6
   make install
 cd ..
