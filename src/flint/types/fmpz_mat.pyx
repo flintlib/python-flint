@@ -18,6 +18,9 @@ from flint.flintlib.fmpq_mat cimport fmpq_mat_init
 from flint.flintlib.fmpq_mat cimport fmpq_mat_set_fmpz_mat_div_fmpz
 from flint.flintlib.fmpq_mat cimport fmpq_mat_solve_fmpz_mat
 
+from flint.utils.flint_exceptions import DomainError
+
+
 cdef any_as_fmpz_mat(obj):
     if typecheck(obj, fmpz_mat):
         return obj
@@ -131,13 +134,10 @@ cdef class fmpz_mat(flint_mat):
     def __nonzero__(self):
         return not fmpz_mat_is_zero(self.val)
 
-    def __richcmp__(s, t, int op):
+    def __richcmp__(fmpz_mat s, t, int op):
         cdef bint r
         if op != 2 and op != 3:
             raise TypeError("matrices cannot be ordered")
-        s = any_as_fmpz_mat(s)
-        if t is NotImplemented:
-            return s
         t = any_as_fmpz_mat(t)
         if t is NotImplemented:
             return t
@@ -282,15 +282,22 @@ cdef class fmpz_mat(flint_mat):
             return fmpq_mat(s) * t
         return NotImplemented
 
-    @staticmethod
-    def _div_(fmpz_mat s, t):
-        return s * (1 / fmpq(t))
-
-    def __truediv__(s, t):
-        return fmpz_mat._div_(s, t)
-
-    def __div__(s, t):
-        return fmpz_mat._div_(s, t)
+    def __truediv__(fmpz_mat s, t):
+        cdef fmpz_mat u
+        cdef fmpz_mat_struct *sval
+        t = any_as_fmpz(t)
+        if t is NotImplemented:
+            return t
+        if fmpz_is_zero((<fmpz>t).val):
+            raise ZeroDivisionError("division by zero")
+        sval = &(<fmpz_mat>s).val[0]
+        u = fmpz_mat.__new__(fmpz_mat)
+        fmpz_mat_init(u.val, fmpz_mat_nrows(sval), fmpz_mat_ncols(sval))
+        fmpz_mat_scalar_divexact_fmpz(u.val, sval, (<fmpz>t).val)
+        # XXX: check for exact division - there should be a better way!
+        if u * t != s:
+            raise DomainError("fmpz_mat division is not exact")
+        return u
 
     def __pow__(self, e, m):
         cdef fmpz_mat t
