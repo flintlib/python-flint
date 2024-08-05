@@ -471,7 +471,7 @@ cdef class nmod_poly(flint_poly):
     def __rmod__(s, t):
         return divmod(t, s)[1]      # XXX
 
-    def __pow__(nmod_poly self, exp, mod):
+    def __pow__(nmod_poly self, exp, mod=None):
         cdef nmod_poly res
         if mod is not None:
             return self.powmod(exp, mod)
