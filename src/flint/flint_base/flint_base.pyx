@@ -30,7 +30,78 @@ cdef class flint_elem:
 
 
 cdef class flint_scalar(flint_elem):
-    pass
+    # =================================================
+    # These are the functions a new class should define
+    # assumes that addition and multiplication are
+    # commutative
+    # =================================================
+    def _neg_(self):
+        return NotImplemented
+
+    def _add_(self, other):
+        return NotImplemented
+
+    @staticmethod
+    def _sub_(left, right):
+        return NotImplemented
+
+    def _mul_(self, other):
+        return NotImplemented
+
+    @staticmethod
+    def _div_(left, right):
+        return NotImplemented
+
+    @staticmethod
+    def _floordiv_(left, right):
+        return NotImplemented
+
+    def _invert_(self):
+        return NotImplemented
+
+    # =================================================
+    # Generic arithmetic using the above functions
+    # =================================================   
+    
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        return self._neg_()
+
+    def __add__(self, other):
+        return self._add_(other)
+
+    def __radd__(self, other):
+        return self._add_(other)
+
+    def __sub__(self, other):
+        return self._sub_(self, other)
+
+    def __rsub__(self, other):
+        return self._sub_(other, self)
+
+    def __mul__(self, other):
+        return self._mul_(other)
+
+    def __rmul__(self, other):
+        return self._mul_(other)
+
+    def __truediv__(self, other):
+        return self._div_(self, other)
+
+    def __rtruediv__(self, other):
+        return self._div_(other, self)
+
+    def __floordiv__(self, other):
+        return self._floordiv_(self, other)
+
+    def __rfloordiv__(self, other):
+        return self._floordiv_(other, self)
+
+    def __invert__(self):
+        return self._invert_()
+
 
 
 cdef class flint_poly(flint_elem):

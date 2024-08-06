@@ -12,13 +12,14 @@ cpdef enum fq_default_type:
 cdef class fq_default_ctx:
     cdef fq_default_ctx_t val
     cdef readonly char *var
-    cdef bint initialized
+    cdef bint _initialized
 
+    cdef new_ctype_fq_default(self)
     cdef set_any_as_fq_default(self, fq_default_t val, obj)
-    cdef any_as_fmpz_mod(self, obj)
     
     @staticmethod
     cdef fq_default_ctx c_from_order(fmpz p, int d, char *var, fq_default_type type=*)
+
     @staticmethod
     cdef fq_default_ctx c_from_modulus(modulus, char *var, fq_default_type type=*)
 
