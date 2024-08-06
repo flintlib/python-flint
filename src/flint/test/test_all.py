@@ -2664,8 +2664,12 @@ def test_polys():
         assert raises(lambda: P([1, 1]) ** None, TypeError)
         
         # XXX: Not sure what this should do in general:
-        # TODO: this now fails as fmpz_mod_poly allows modulus
-        # assert raises(lambda: pow(P([1, 1]), 2, 3), NotImplementedError)
+        p = P([1, 1])
+        mod = P([1, 1])
+        if type(p) not in [flint.fmpz_mod_poly, flint.nmod_poly]:
+            assert raises(lambda: pow(p, 2, mod), NotImplementedError)
+        else:
+            assert p * p % mod == pow(p, 2, mod)
 
         assert P([1, 2, 1]).gcd(P([1, 1])) == P([1, 1])
         assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
