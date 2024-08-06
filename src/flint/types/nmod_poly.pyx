@@ -233,9 +233,23 @@ cdef class nmod_poly(flint_poly):
         nmod_poly_reverse(res.val, self.val, length)
         return res
 
+    def leading_coefficient(self):
+        """
+        Return the leading coefficient of this polynomial.
+
+            >>> f = nmod_poly([123, 129, 63, 14, 51, 76, 133], 163)
+            >>> f.leading_coefficient()
+            133
+        """
+        d = self.degree()
+        if d < 0:
+            return 0
+        return nmod_poly_get_coeff_ui(self.val, d)
+
     def inverse_series_trunc(self, slong n):
         """
-        Returns the inverse of ``self`` modulo `x^n`.
+        Returns the inverse of ``self`` modulo `x^n`. Assumes the leading
+        coefficient of the polynomial is invertible.
 
             >>> f = nmod_poly([123, 129, 63, 14, 51, 76, 133], 163)
             >>> f.inverse_series_trunc(3)
@@ -245,6 +259,9 @@ cdef class nmod_poly(flint_poly):
             >>> f.inverse_series_trunc(5)
             45*x^4 + 23*x^3 + 159*x^2 + 151*x + 110
         """
+        if n <= 0:
+            raise ValueError("n must be positive")
+
         cdef nmod_poly res
         res = nmod_poly.__new__(nmod_poly)
         nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
