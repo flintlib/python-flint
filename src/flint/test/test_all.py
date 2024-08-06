@@ -1422,7 +1422,15 @@ def test_nmod_poly():
     assert raises(lambda: [] * s, TypeError)
     assert raises(lambda: [] // s, TypeError)
     assert raises(lambda: [] % s, TypeError)
-    assert raises(lambda: pow(P([1,2],3), 3, 4), NotImplementedError)
+    assert raises(lambda: [] % s, TypeError)
+    assert raises(lambda: s.reverse(-1), ValueError)
+    assert raises(lambda: s.compose("A"), TypeError)
+    assert raises(lambda: s.compose_mod(s, "A"), TypeError)
+    assert raises(lambda: s.compose_mod("A", P([3,6,9],17)), TypeError)
+    assert raises(lambda: s.compose_mod(s, P([0], 17)), ZeroDivisionError)
+    assert raises(lambda: pow(s, -1, P([3,6,9],17)), ValueError)
+    assert raises(lambda: pow(s, 1, "A"), TypeError)
+    assert raises(lambda: pow(s, "A", P([3,6,9],17)), TypeError)
     assert str(P([1,2,3],17)) == "3*x^2 + 2*x + 1"
     assert P([1,2,3],17).repr() == "nmod_poly([1, 2, 3], 17)"
     p = P([3,4,5],17)
@@ -2087,6 +2095,18 @@ def test_fmpz_mod_poly():
         assert f*f == f**2
         assert f*f == f**fmpz(2)
 
+        # pow_mod
+        # assert ui and fmpz exp agree for polynomials and generators
+        R_gen = R_test.gen()
+        assert pow(f, 2**60, g) == pow(pow(f, 2**30, g), 2**30, g)
+        assert pow(R_gen, 2**60, g) == pow(pow(R_gen, 2**30, g), 2**30, g)
+
+        # Check other typechecks for pow_mod 
+        assert raises(lambda: pow(f, -2, g), ValueError)
+        assert raises(lambda: pow(f, 1, "A"), TypeError)
+        assert raises(lambda: pow(f, "A", g), TypeError)
+        assert raises(lambda: f.pow_mod(2**32, g, mod_rev_inv="A"), TypeError)
+
         # Shifts
         assert raises(lambda: R_test([1,2,3]).left_shift(-1), ValueError)
         assert raises(lambda: R_test([1,2,3]).right_shift(-1), ValueError)
@@ -2118,6 +2138,13 @@ def test_fmpz_mod_poly():
         # compose
         assert raises(lambda: h.compose("AAA"), TypeError)
 
+        # compose mod
+        mod = R_test([1,2,3,4])
+        assert f.compose(h) % mod == f.compose_mod(h, mod)
+        assert raises(lambda: h.compose_mod("AAA", mod), TypeError)
+        assert raises(lambda: h.compose_mod(f, "AAA"), TypeError)
+        assert raises(lambda: h.compose_mod(f, R_test(0)), ZeroDivisionError)
+
         # Reverse
         assert raises(lambda: h.reverse(degree=-100), ValueError)
         assert R_test([-1,-2,-3]).reverse() == R_test([-3,-2,-1])
@@ -2135,9 +2162,9 @@ def test_fmpz_mod_poly():
         assert raises(lambda: f.mulmod(f, "AAA"), TypeError)
         assert raises(lambda: f.mulmod("AAA", g), TypeError)
 
-        # powmod
-        assert f.powmod(2, g) == (f*f) % g
-        assert raises(lambda: f.powmod(2, "AAA"), TypeError)
+        # pow_mod
+        assert f.pow_mod(2, g) == (f*f) % g
+        assert raises(lambda: f.pow_mod(2, "AAA"), TypeError)
 
         # divmod
         S, T = f.divmod(g)
@@ -2635,9 +2662,14 @@ def test_polys():
         assert P([1, 1]) ** 2 == P([1, 2, 1])
         assert raises(lambda: P([1, 1]) ** -1, ValueError)
         assert raises(lambda: P([1, 1]) ** None, TypeError)
-
-        # # XXX: Not sure what this should do in general:
-        assert raises(lambda: pow(P([1, 1]), 2, 3), NotImplementedError)
+        
+        # XXX: Not sure what this should do in general:
+        p = P([1, 1])
+        mod = P([1, 1])
+        if type(p) not in [flint.fmpz_mod_poly, flint.nmod_poly]:
+            assert raises(lambda: pow(p, 2, mod), NotImplementedError)
+        else:
+            assert p * p % mod == pow(p, 2, mod)
 
         assert P([1, 2, 1]).gcd(P([1, 1])) == P([1, 1])
         assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
@@ -2666,7 +2698,6 @@ def test_polys():
 
         if is_field:
             assert P([1, 2, 1]).integral() == P([0, 1, 1, S(1)/3])
-
 
 def _all_mpolys():
     return [

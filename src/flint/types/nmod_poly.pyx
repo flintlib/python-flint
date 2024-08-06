@@ -1,6 +1,7 @@
 from cpython.list cimport PyList_GET_SIZE
 from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
+from flint.types.fmpz cimport fmpz, any_as_fmpz
 from flint.types.fmpz_poly cimport any_as_fmpz_poly
 from flint.types.fmpz_poly cimport fmpz_poly
 from flint.types.nmod cimport any_as_nmod
@@ -182,6 +183,12 @@ cdef class nmod_poly(flint_poly):
         else:
             raise TypeError("cannot set element of type %s" % type(x))
 
+    def degree(self):
+        return nmod_poly_degree(self.val)
+
+    def length(self):
+        return nmod_poly_length(self.val)
+
     def __bool__(self):
         return not nmod_poly_is_zero(self.val)
 
@@ -190,6 +197,135 @@ cdef class nmod_poly(flint_poly):
 
     def is_one(self):
         return <bint>nmod_poly_is_one(self.val)
+
+    def is_gen(self):
+        return <bint>nmod_poly_is_gen(self.val)
+
+    def reverse(self, degree=None):
+        """
+        Return a polynomial with the coefficients of this polynomial
+        reversed.
+
+        If ``degree`` is not None, the output polynomial will be zero-padded
+        or truncated before being reversed. NOTE: degree must be non-negative.
+
+            >>> f = nmod_poly([1,2,3,4,5], 163)
+            >>> f.reverse()
+            x^4 + 2*x^3 + 3*x^2 + 4*x + 5
+            >>> f.reverse(degree=1)
+            x + 2
+            >>> f.reverse(degree=100)
+            x^100 + 2*x^99 + 3*x^98 + 4*x^97 + 5*x^96
+        """
+        cdef nmod_poly res
+        cdef slong d
+        
+        if degree is not None:
+            d = degree
+            if d != degree or d < 0:
+                raise ValueError(f"degree argument must be a non-negative integer, got {degree}")
+            length = d + 1
+        else:
+            length = nmod_poly_length(self.val)
+
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        nmod_poly_reverse(res.val, self.val, length)
+        return res
+
+    def leading_coefficient(self):
+        """
+        Return the leading coefficient of this polynomial.
+
+            >>> f = nmod_poly([123, 129, 63, 14, 51, 76, 133], 163)
+            >>> f.leading_coefficient()
+            133
+        """
+        d = self.degree()
+        if d < 0:
+            return 0
+        return nmod_poly_get_coeff_ui(self.val, d)
+
+    def inverse_series_trunc(self, slong n):
+        """
+        Returns the inverse of ``self`` modulo `x^n`. Assumes the leading
+        coefficient of the polynomial is invertible.
+
+            >>> f = nmod_poly([123, 129, 63, 14, 51, 76, 133], 163)
+            >>> f.inverse_series_trunc(3)
+            159*x^2 + 151*x + 110
+            >>> f.inverse_series_trunc(4)
+            23*x^3 + 159*x^2 + 151*x + 110
+            >>> f.inverse_series_trunc(5)
+            45*x^4 + 23*x^3 + 159*x^2 + 151*x + 110
+        """
+        if n <= 0:
+            raise ValueError(f"{n = } must be positive")
+        
+        if self.is_zero():
+            raise ValueError(f"cannot invert the zero element")
+
+        cdef nmod_poly res
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        nmod_poly_inv_series(res.val, self.val, n)
+        return res
+
+    def compose(self, other):
+        """
+        Returns the composition of two polynomials
+
+        To be precise about the order of composition, given ``self``, and ``other`` 
+        by `f(x)`, `g(x)`, returns `f(g(x))`.
+
+            >>> f = nmod_poly([1,2,3], 163)
+            >>> g = nmod_poly([0,0,1], 163)
+            >>> f.compose(g)
+            3*x^4 + 2*x^2 + 1
+            >>> g.compose(f)
+            9*x^4 + 12*x^3 + 10*x^2 + 4*x + 1
+        """
+        cdef nmod_poly res
+        other = any_as_nmod_poly(other, (<nmod_poly>self).val.mod)
+        if other is NotImplemented:
+            raise TypeError("cannot convert input to nmod_poly")
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        nmod_poly_compose(res.val, self.val, (<nmod_poly>other).val) 
+        return res  
+
+    def compose_mod(self, other, modulus):
+        """
+        Returns the composition of two polynomials modulo a third.
+
+        To be precise about the order of composition, given ``self``, and ``other`` 
+        and ``modulus`` by `f(x)`, `g(x)` and `h(x)`, returns `f(g(x)) \mod h(x)`. 
+        We require that `h(x)` is non-zero.
+
+            >>> f = nmod_poly([1,2,3,4,5], 163)
+            >>> g = nmod_poly([3,2,1], 163)
+            >>> h = nmod_poly([1,0,1,0,1], 163)
+            >>> f.compose_mod(g, h)
+            63*x^3 + 100*x^2 + 17*x + 63
+            >>> g.compose_mod(f, h)
+            147*x^3 + 159*x^2 + 4*x + 7
+        """
+        cdef nmod_poly res
+        g = any_as_nmod_poly(other, self.val.mod)
+        if g is NotImplemented:
+            raise TypeError(f"cannot convert {other = } to nmod_poly")
+    
+        h = any_as_nmod_poly(modulus, self.val.mod)
+        if h is NotImplemented:
+            raise TypeError(f"cannot convert {modulus = } to nmod_poly")
+        
+        if modulus.is_zero():
+            raise ZeroDivisionError("cannot reduce modulo zero")
+
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        nmod_poly_compose_mod(res.val, self.val, (<nmod_poly>other).val, (<nmod_poly>modulus).val) 
+        return res 
 
     def __call__(self, other):
         cdef mp_limb_t c
@@ -355,15 +491,83 @@ cdef class nmod_poly(flint_poly):
     def __rmod__(s, t):
         return divmod(t, s)[1]      # XXX
 
-    def __pow__(nmod_poly self, exp, mod):
+    def __pow__(nmod_poly self, exp, mod=None):
         cdef nmod_poly res
         if mod is not None:
-            raise NotImplementedError("nmod_poly modular exponentiation")
+            return self.pow_mod(exp, mod)
         if exp < 0:
             raise ValueError("negative exponent")
         res = nmod_poly.__new__(nmod_poly)
         nmod_poly_init_preinv(res.val, (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
         nmod_poly_pow(res.val, self.val, <ulong>exp)
+        return res
+
+    def pow_mod(self, e, modulus, mod_rev_inv=None):
+        """
+        Returns ``self`` raised to the power ``e`` modulo ``modulus``:
+        :math:`f^e \mod g`/
+
+        ``mod_rev_inv`` is the inverse of the reverse of the modulus,
+        precomputing it and passing it to ``pow_mod()`` can optimise
+        powering of polynomials with large exponents.
+
+            >>> x = nmod_poly([0,1], 163)
+            >>> f = 30*x**6 + 104*x**5 + 76*x**4 + 33*x**3 + 70*x**2 + 44*x + 65
+            >>> g = 43*x**6 + 91*x**5 + 77*x**4 + 113*x**3 + 71*x**2 + 132*x + 60
+            >>> mod = x**4 + 93*x**3 + 78*x**2 + 72*x + 149
+            >>> 
+            >>> f.pow_mod(123, mod) 
+            3*x^3 + 25*x^2 + 115*x + 161
+            >>> f.pow_mod(2**64, mod)
+            52*x^3 + 96*x^2 + 136*x + 9
+            >>> mod_rev_inv = mod.reverse().inverse_series_trunc(4)
+            >>> f.pow_mod(2**64, mod, mod_rev_inv)
+            52*x^3 + 96*x^2 + 136*x + 9
+        """
+        cdef nmod_poly res
+
+        if e < 0:
+            raise ValueError("Exponent must be non-negative")
+
+        modulus = any_as_nmod_poly(modulus, (<nmod_poly>self).val.mod)
+        if modulus is NotImplemented:
+            raise TypeError("cannot convert input to nmod_poly")
+
+        # Output polynomial
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        
+        # For small exponents, use a simple binary exponentiation method
+        if e.bit_length() < 32:
+            nmod_poly_powmod_ui_binexp(
+                res.val, self.val, <ulong>e, (<nmod_poly>modulus).val
+            )
+            return res
+
+        # For larger exponents we need to cast e to an fmpz first
+        e_fmpz = any_as_fmpz(e)
+        if e_fmpz is NotImplemented:
+            raise TypeError(f"exponent cannot be cast to an fmpz type: {e = }")
+
+        # To optimise powering, we precompute the inverse of the reverse of the modulus
+        if mod_rev_inv is not None:
+            mod_rev_inv = any_as_nmod_poly(mod_rev_inv, (<nmod_poly>self).val.mod)
+            if mod_rev_inv is NotImplemented:
+                raise TypeError(f"Cannot interpret {mod_rev_inv} as a polynomial")
+        else:
+            mod_rev_inv = modulus.reverse().inverse_series_trunc(modulus.length())
+
+        # Use windowed exponentiation optimisation when self = x
+        if self.is_gen():
+            nmod_poly_powmod_x_fmpz_preinv(
+                res.val, (<fmpz>e_fmpz).val, (<nmod_poly>modulus).val, (<nmod_poly>mod_rev_inv).val
+            )
+            return res
+
+        # Otherwise using binary exponentiation for all other inputs
+        nmod_poly_powmod_fmpz_binexp_preinv(
+                res.val, self.val, (<fmpz>e_fmpz).val, (<nmod_poly>modulus).val, (<nmod_poly>mod_rev_inv).val
+            )
         return res
 
     def gcd(self, other):
