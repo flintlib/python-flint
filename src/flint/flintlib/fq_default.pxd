@@ -12,21 +12,8 @@ from flint.flintlib.fq_nmod cimport fq_nmod_t, fq_nmod_ctx_t
 from flint.flintlib.fq_zech cimport fq_zech_t, fq_zech_ctx_t
 
 cdef extern from "flint/fq_default.h":
-    """
-    TODO: how best to handle union
-    https://stackoverflow.com/questions/12452210/cython-nesting-a-union-within-a-struct
-
-    typedef union fq_default_struct
-    {
-        fq_t fq;
-        fq_nmod_t fq_nmod;
-        fq_zech_t fq_zech;
-        ulong nmod;
-        fmpz_t fmpz_mod;
-    } fq_default_struct;
-
-    typedef fq_default_struct fq_default_t[1];
-    """
+    # TODO: how best to handle union
+    # https://stackoverflow.com/questions/12452210/cython-nesting-a-union-within-a-struct
     ctypedef struct fq_default_struct:
         fq_t fq
         fq_nmod_t fq_nmod
@@ -34,30 +21,6 @@ cdef extern from "flint/fq_default.h":
         ulong nmod
         fmpz_t fmpz_mod
     ctypedef fq_default_struct fq_default_t[1]
-
-    """
-    TODO: how best to handle union
-    https://stackoverflow.com/questions/12452210/cython-nesting-a-union-within-a-struct
-
-    typedef struct
-    {
-        int type;
-        union ctx
-        {
-            fq_ctx_t fq;
-            fq_nmod_ctx_t fq_nmod;
-            fq_zech_ctx_t fq_zech;
-            struct {
-                nmod_t mod;
-                mp_limb_t a;    /* minpoly is x - a */
-            } nmod;
-            struct {
-                fmpz_mod_ctx_t mod;
-                fmpz_t a;       /* minpoly is x - a */
-            } fmpz_mod;
-        } ctx;
-    } fq_default_ctx_struct;
-    """
 
     ctypedef struct fq_default_fmpz_mod_ctx_struct:
         fmpz_mod_ctx_t mod

@@ -55,7 +55,7 @@ cdef class flint_poly(flint_elem):
         """
         return list(self)
 
-    def str(self, bint ascending=False, *args, **kwargs):
+    def str(self, bint ascending=False, var="x", *args, **kwargs):
         """
         Convert to a human-readable string (generic implementation for
         all polynomial types).
@@ -80,14 +80,14 @@ cdef class flint_poly(flint_elem):
                     s.append("%s" % c)
                 elif i == 1:
                     if c == "1":
-                        s.append("x")
+                        s.append(var)
                     else:
-                        s.append("%s*x" % c)
+                        s.append(f"{c}*{var}")
                 else:
                     if c == "1":
-                        s.append("x^%s" % i)
+                        s.append(f"{var}^{i}")
                     else:
-                        s.append("%s*x^%s" % (c, i))
+                        s.append(f"{c}*{var}^{i}")
         return " + ".join(s)
 
     def roots(self):
