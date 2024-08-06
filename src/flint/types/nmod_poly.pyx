@@ -260,7 +260,10 @@ cdef class nmod_poly(flint_poly):
             45*x^4 + 23*x^3 + 159*x^2 + 151*x + 110
         """
         if n <= 0:
-            raise ValueError("n must be positive")
+            raise ValueError(f"{n = } must be positive")
+        
+        if self.is_zero():
+            raise ValueError(f"cannot invert the zero element")
 
         cdef nmod_poly res
         res = nmod_poly.__new__(nmod_poly)
