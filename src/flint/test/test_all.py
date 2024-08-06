@@ -2095,17 +2095,17 @@ def test_fmpz_mod_poly():
         assert f*f == f**2
         assert f*f == f**fmpz(2)
 
-        # powmod
+        # pow_mod
         # assert ui and fmpz exp agree for polynomials and generators
         R_gen = R_test.gen()
         assert pow(f, 2**60, g) == pow(pow(f, 2**30, g), 2**30, g)
         assert pow(R_gen, 2**60, g) == pow(pow(R_gen, 2**30, g), 2**30, g)
 
-        # Check other typechecks for powmod 
+        # Check other typechecks for pow_mod 
         assert raises(lambda: pow(f, -2, g), ValueError)
         assert raises(lambda: pow(f, 1, "A"), TypeError)
         assert raises(lambda: pow(f, "A", g), TypeError)
-        assert raises(lambda: f.powmod(2**32, g, mod_rev_inv="A"), TypeError)
+        assert raises(lambda: f.pow_mod(2**32, g, mod_rev_inv="A"), TypeError)
 
         # Shifts
         assert raises(lambda: R_test([1,2,3]).left_shift(-1), ValueError)
@@ -2162,9 +2162,9 @@ def test_fmpz_mod_poly():
         assert raises(lambda: f.mulmod(f, "AAA"), TypeError)
         assert raises(lambda: f.mulmod("AAA", g), TypeError)
 
-        # powmod
-        assert f.powmod(2, g) == (f*f) % g
-        assert raises(lambda: f.powmod(2, "AAA"), TypeError)
+        # pow_mod
+        assert f.pow_mod(2, g) == (f*f) % g
+        assert raises(lambda: f.pow_mod(2, "AAA"), TypeError)
 
         # divmod
         S, T = f.divmod(g)

@@ -536,7 +536,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
     def __pow__(self, e, mod=None):
         if mod is not None:
-            return self.powmod(e, mod)
+            return self.pow_mod(e, mod)
 
         cdef fmpz_mod_poly res
         if e < 0:
@@ -1137,13 +1137,13 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         return res
 
-    def powmod(self, e, modulus, mod_rev_inv=None):
+    def pow_mod(self, e, modulus, mod_rev_inv=None):
         """
         Returns ``self`` raised to the power ``e`` modulo ``modulus``:
         :math:`f^e \mod g`/
 
         ``mod_rev_inv`` is the inverse of the reverse of the modulus,
-        precomputing it and passing it to ``powmod()`` can optimise
+        precomputing it and passing it to ``pow_mod()`` can optimise
         powering of polynomials with large exponents.
 
             >>> R = fmpz_mod_poly_ctx(163)
@@ -1152,12 +1152,12 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> g = 43*x**6 + 91*x**5 + 77*x**4 + 113*x**3 + 71*x**2 + 132*x + 60
             >>> mod = x**4 + 93*x**3 + 78*x**2 + 72*x + 149
             >>> 
-            >>> f.powmod(123, mod) 
+            >>> f.pow_mod(123, mod) 
             3*x^3 + 25*x^2 + 115*x + 161
-            >>> f.powmod(2**64, mod)
+            >>> f.pow_mod(2**64, mod)
             52*x^3 + 96*x^2 + 136*x + 9
             >>> mod_rev_inv = mod.reverse().inverse_series_trunc(4)
-            >>> f.powmod(2**64, mod, mod_rev_inv)
+            >>> f.pow_mod(2**64, mod, mod_rev_inv)
             52*x^3 + 96*x^2 + 136*x + 9
         """
         cdef fmpz_mod_poly res
