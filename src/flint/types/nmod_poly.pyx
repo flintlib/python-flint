@@ -4,7 +4,7 @@ from flint.utils.typecheck cimport typecheck
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 from flint.types.fmpz_poly cimport any_as_fmpz_poly
 from flint.types.fmpz_poly cimport fmpz_poly
-from flint.types.nmod cimport any_as_nmod
+from flint.types.nmod cimport any_as_nmod_ctx
 from flint.types.nmod cimport nmod
 
 from flint.flintlib.nmod_vec cimport *
