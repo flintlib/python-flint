@@ -2994,6 +2994,12 @@ def test_mpolys():
             assert quick_poly() % 1 == P(ctx=ctx)
             assert divmod(quick_poly(), 1) == (quick_poly(), P(ctx=ctx))
 
+            assert S(1) / P(1, ctx=ctx) == P(1, ctx=ctx)
+            assert quick_poly() / S(1) == quick_poly()
+            assert quick_poly() // S(1) == quick_poly()
+            assert quick_poly() % S(1) == P(ctx=ctx)
+            assert divmod(quick_poly(), S(1)) == (quick_poly(), P(ctx=ctx))
+
         if is_field:
             if (P is flint.fmpz_mod_mpoly or P is flint.nmod_mpoly):
                 assert quick_poly() / 3 == mpoly({(0, 0): S(34), (0, 1): S(68), (1, 0): S(1), (2, 2): S(35)})
@@ -3010,6 +3016,10 @@ def test_mpolys():
             assert 1 // quick_poly() == P(ctx=ctx)
             assert 1 % quick_poly() == P(1, ctx=ctx)
             assert divmod(1, quick_poly()) == (P(ctx=ctx), P(1, ctx=ctx))
+
+            assert S(1) // quick_poly() == P(ctx=ctx)
+            assert S(1) % quick_poly() == P(1, ctx=ctx)
+            assert divmod(S(1), quick_poly()) == (P(ctx=ctx), P(1, ctx=ctx))
 
             assert raises(lambda: quick_poly() / None, TypeError)
             assert raises(lambda: quick_poly() // None, TypeError)
