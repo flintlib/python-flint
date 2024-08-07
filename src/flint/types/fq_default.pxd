@@ -19,8 +19,8 @@ cdef class fq_default_ctx:
     cdef set_any_as_fq_default(self, fq_default_t val, obj)
     cdef any_as_fq_default(self, obj)
 
-    cdef _c_set_from_order(self, fmpz p, int d, char *var, fq_default_type type=*)
-    cdef _c_set_from_modulus(self, modulus, char *var, fq_default_type type=*)
+    cdef _c_set_from_order(self, fmpz p, int d, char *var, fq_default_type fq_type=*)
+    cdef _c_set_from_modulus(self, modulus, char *var, fq_default_type fq_type=*)
 
 
 cdef class fq_default(flint_scalar):

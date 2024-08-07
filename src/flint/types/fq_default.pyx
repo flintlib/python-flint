@@ -33,14 +33,38 @@ cdef class fq_default_ctx:
         if self._initialized:
             fq_default_ctx_clear(self.val)
 
-    def __init__(self, p=None, degree=None, var=None, modulus=None, type=fq_default_type.DEFAULT):
+    def __init__(self, p=None, degree=None, var=None, modulus=None, fq_type=fq_default_type.DEFAULT):
         # If no variable is given, use x
         if var is None:
             var = "x"
+
+        # Allow the type to be denoted by strings or integers
+        FQ_TYPES = {
+            "FQ_ZECH" : 1,
+            "FQ_NMOD" : 2,
+            "FQ" : 3,
+        }
+        if typecheck(fq_type, str):
+            fq_type = FQ_TYPES.get(typecheck, None)
+            if fq_type is None:
+                raise ValueError("invalid fq_type, must be one of FQ_ZECH, FQ_NMOD or FQ")
+        if not typecheck(fq_type, int):
+            raise ValueError(f"{fq_type = } is invalid")
         
         # If a modulus is given, attempt to construct from this
         if modulus is not None:
-            self.set_from_modulus(modulus, var, type)
+            # If the polynomial has no known characteristic, we can try and create one
+            # using the supplied prime
+            if not typecheck(modulus, [fmpz_mod_poly, nmod_poly]):
+                if p is None:
+                    raise ValueError("cannot create from modulus if no characteristic is known")
+
+                ring_ctx = fmpz_mod_poly_ctx(p)
+                modulus = ring_ctx.any_as_fmpz_mod_poly(modulus)
+                if modulus is NotImplemented:
+                    raise TypeError("modulus cannot be cast to fmpz_mod_poly")
+
+            self.set_from_modulus(modulus, var, fq_type)
             return
 
         # If there's no modulus and no prime, we can't continue
@@ -52,14 +76,14 @@ cdef class fq_default_ctx:
             degree = 1
 
         # Construct the field from the prime and degree GF(p^d)
-        self.set_from_order(p, degree, var, type)
+        self.set_from_order(p, degree, var, fq_type)
 
-    cdef _c_set_from_order(self, fmpz p, int d, char *var, fq_default_type type=fq_default_type.DEFAULT):
+    cdef _c_set_from_order(self, fmpz p, int d, char *var, fq_default_type fq_type=fq_default_type.DEFAULT):
         self.var = var
-        fq_default_ctx_init_type(self.val, p.val, d, self.var, type)
+        fq_default_ctx_init_type(self.val, p.val, d, self.var, fq_type)
         self._initialized = True
 
-    def set_from_order(self, p, d, var, type=fq_default_type.DEFAULT, check_prime=True):
+    def set_from_order(self, p, d, var, fq_type=fq_default_type.DEFAULT, check_prime=True):
         """
         Construct a context for the finite field GF(p^d).
 
@@ -93,21 +117,21 @@ cdef class fq_default_ctx:
             raise ValueError
         
         # Cython type conversion and context initalisation
-        self._c_set_from_order(prime, d, var, type)
+        self._c_set_from_order(prime, d, var, fq_type)
 
-    cdef _c_set_from_modulus(self, modulus, char *var, fq_default_type type=fq_default_type.DEFAULT): 
+    cdef _c_set_from_modulus(self, modulus, char *var, fq_default_type fq_type=fq_default_type.DEFAULT): 
         self.var = var
         if typecheck(modulus, fmpz_mod_poly):
             fq_default_ctx_init_modulus_type(self.val, (<fmpz_mod_poly>modulus).val,
-                                             (<fmpz_mod_poly>modulus).ctx.mod.val, self.var, type)
+                                             (<fmpz_mod_poly>modulus).ctx.mod.val, self.var, fq_type)
         elif typecheck(modulus, nmod_poly):
             fq_default_ctx_init_modulus_nmod_type(self.val, (<nmod_poly>modulus).val,
-                                                  self.var, type)
+                                                  self.var, fq_type)
         else:
             raise TypeError(f"modulus must be fmpz_mod_poly or nmod_poly, got {modulus!r}")
         self._initialized = True
 
-    def set_from_modulus(self, modulus, var, type=fq_default_type.DEFAULT, check_modulus=True):
+    def set_from_modulus(self, modulus, var, fq_type=fq_default_type.DEFAULT, check_modulus=True):
         """
         Construct a context for a finite field from an irreducible polynomial.
 
@@ -130,18 +154,34 @@ cdef class fq_default_ctx:
             raise ValueError("modulus must be irreducible")
 
         # Cython type conversion and context initalisation
-        self._c_set_from_modulus(modulus, var, type)
+        self._c_set_from_modulus(modulus, var, fq_type)
     
     @property
-    def type(self):
+    def fq_type(self):
         """
         Return the implementation of this context. It is one of:
+        
+        - 1: `fq_default_ctx.FQ_ZECH`: Using `fq_zech_t`,
+        - 2: `fq_default_ctx.FQ_NMOD`: Using `fq_nmod_t`,
+        - 3: `fq_default_ctx.FQ`: Using `fq_t`.
+        """
+        return fq_default_type(fq_default_ctx_type(self.val))
+
+    @property
+    def fq_type_str(self):
+        """
+        Return the string implementation of this context. It is one of:
         
         - `fq_default_ctx.FQ_ZECH`: Using `fq_zech_t`,
         - `fq_default_ctx.FQ_NMOD`: Using `fq_nmod_t`,
         - `fq_default_ctx.FQ`: Using `fq_t`.
         """
-        return fq_default_type(fq_default_ctx_type(self.val))
+        FQ_TYPES = {
+            1 : "FQ_ZECH",
+            2 : "FQ_NMOD",
+            3 : "FQ",
+        }
+        return FQ_TYPES[self.fq_type]
 
     def degree(self):
         """
@@ -339,7 +379,7 @@ cdef class fq_default_ctx:
             return True
         
         if typecheck(other, fq_default_ctx):
-            return (self.type == other.type
+            return (self.fq_type == other.fq_type
                     and self.var == other.var
                     and self.prime() == other.prime()
                     and self.modulus() == other.modulus())
@@ -356,8 +396,8 @@ cdef class fq_default_ctx:
 
     def __repr__(self):
         if self.degree() == 1:
-            return f"fq_default_ctx({self.prime()}, var='{self.var.decode()}' type={self.type})"
-        return f"fq_default_ctx({self.prime()}, {self.degree()}, '{self.var.decode()}', {self.modulus()!r}, {self.type})"
+            return f"fq_default_ctx({self.prime()}, var='{self.var.decode()}' type='{self.fq_type_str}')"
+        return f"fq_default_ctx({self.prime()}, {self.degree()}, '{self.var.decode()}', {self.modulus()!r}, '{self.fq_type_str}')"
 
     def __call__(self, val):
         return fq_default(val, self)
