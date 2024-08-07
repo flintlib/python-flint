@@ -3585,6 +3585,74 @@ def test_matrices_transpose():
         assert M1234.transpose() == M([[1, 4], [2, 5], [3, 6]])
 
 
+def test_fq_default():
+    # test fq_default context creation
+    # TODO
+
+    # GF(5)
+    gf_5 = flint.fq_default_ctx(5)
+
+    # GF(5^2)
+    gf_5_2 = flint.fq_default_ctx(5, 2)
+
+    # GF((2**127 - 1)^2)
+    gf_127_2 = flint.fq_default_ctx(2**127 - 1, 2)
+
+    assert gf_5.prime() == gf_5_2.prime() == 5
+    assert gf_5_2.order() == 5*5
+    assert gf_5_2.multiplicative_order() == 5*5 - 1
+    assert gf_127_2.prime() == 2**127 - 1
+
+    assert gf_5_2(0) == gf_5_2.zero()
+    assert gf_5_2(1) == gf_5_2.one()
+    assert gf_5_2.gen() == gf_5_2([0, 1])
+
+    assert str(gf_5) == "Context for fq_default in GF(5)"
+    assert str(gf_5_2) == "Context for fq_default in GF(5^2)[x]/(x^2 + 4*x + 2)"
+
+    # test fq_default element arithemtic
+
+    for gf in [gf_5, gf_5_2, gf_127_2]:
+
+        assert gf.zero().is_zero() is True
+        assert gf.one().is_zero() is False
+
+        assert gf.zero().is_one() is False
+        assert gf.one().is_one() is True
+
+        a = gf.random_element(not_zero=True)
+        b = gf.random_element(not_zero=True)
+        c = gf.random_element(not_zero=True)
+
+        assert a + (-a) == gf.zero()
+        assert a + a == 2*a
+        assert a * a == a**2
+        assert a * a == a.square()
+        assert a * a * a == pow(a, 3)
+
+        assert (a + b) + c == a + (b + c)
+        assert (a - b) - c == a - (b + c)
+        assert (a * b) * c == a * (b * c)
+        assert (a / b) / c == a / (b * c)
+
+        assert a + 0 == 0 + a == a
+        assert a + gf.zero() == a
+        assert a * 1 == 1 * a == a
+        assert a * gf.one() == a
+        assert a * gf.zero() == gf.zero()
+        assert a / a == gf.one()
+
+        assert raises(lambda: a / 0, ZeroDivisionError)
+        assert raises(lambda: ~gf.zero(), ZeroDivisionError)
+        assert raises(lambda: pow(gf.zero(), -1), ZeroDivisionError)
+
+        assert 1/a == pow(a, -1) == ~a
+        assert gf.one() == pow(a, 0)
+        assert gf.zero() == pow(gf.zero(), 2**64)
+        assert a == pow(a, 1)
+
+        assert (a*a).is_square()
+
 def test_all_tests():
     test_funcs = {f for name, f in globals().items() if name.startswith("test_")}
     untested = test_funcs - set(all_tests)
@@ -3649,6 +3717,8 @@ all_tests = [
     test_matrices_rank,
     test_matrices_rref,
     test_matrices_solve,
+
+    test_fq_default,
 
     test_arb,
 

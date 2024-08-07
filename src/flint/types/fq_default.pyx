@@ -421,7 +421,7 @@ cdef class fq_default(flint_scalar):
         return 1 == fq_default_is_zero(self.val, self.ctx.val)
 
     def is_one(self):
-        return 1 == fq_default_is_zero(self.val, self.ctx.val)
+        return 1 == fq_default_is_one(self.val, self.ctx.val)
 
     def __richcmp__(self, other, int op):
         cdef bint res
@@ -515,6 +515,9 @@ cdef class fq_default(flint_scalar):
             if left is NotImplemented:
                 return NotImplemented
 
+        if right.is_zero():
+            raise ZeroDivisionError
+
         # Now perform division
         cdef fq_default res
         res = (<fq_default>left).ctx.new_ctype_fq_default()
@@ -522,6 +525,9 @@ cdef class fq_default(flint_scalar):
         return res
 
     def _invert_(self):
+        if self.is_zero():
+            raise ZeroDivisionError
+
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
         fq_default_inv(res.val, self.val, self.ctx.val)
