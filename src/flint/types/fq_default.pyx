@@ -472,12 +472,29 @@ cdef class fq_default(flint_scalar):
 
         return pol
 
+    def to_list(self):
+        """
+        Returns self as a list of fmpz types corresponding to a
+        list of coefficients
+
+            >>> gf = fq_default_ctx(163, 3)
+            >>> gf([-1,2,1]).to_list()
+            [162, 2, 1]
+            >>> gf.one().to_list()
+            [1, 0, 0]
+        """
+        coeffs = [None for _ in range(self.ctx.degree())]
+        for i in range(self.ctx.degree()):
+            c = fmpz.__new__(fmpz)
+            fq_default_get_coeff_fmpz((<fmpz>c).val, self.val, <slong>i, self.ctx.val)
+            coeffs[i] = c
+        return coeffs
+
     def str(self):
         return self.polynomial().str(var=self.ctx.var.decode())
 
-    def __repr__(self):
-        # TODO: what do we want here?
-        return str(self)
+    def repr(self):
+        return f"fq_default({self.to_list(), self.ctx.__repr__()})"
 
     # =================================================
     # Comparisons
