@@ -22,13 +22,13 @@ cdef class fq_default_ctx:
         >>> mod = fmpz_mod_poly_ctx(11)([1,0,1])
         >>> fq_default_ctx(modulus=mod, fq_type=2)
         fq_default_ctx(11, 2, 'x', x^2 + 1, 'FQ_NMOD')
-    
+
     For more details, see the documentation of :method:`~.from_order`
     and :method:`~.from_modulus`.
     """
     def __cinit__(self):
         pass
-    
+
     def __dealloc__(self):
         if self._initialized:
             fq_default_ctx_clear(self.val)
@@ -50,7 +50,7 @@ cdef class fq_default_ctx:
                 raise ValueError("invalid fq_type, must be one of FQ_ZECH, FQ_NMOD or FQ")
         if not typecheck(fq_type, int):
             raise ValueError(f"{fq_type = } is invalid")
-        
+
         # If a modulus is given, attempt to construct from this
         if modulus is not None:
             # If the polynomial has no known characteristic, we can try and create one
@@ -70,7 +70,7 @@ cdef class fq_default_ctx:
         # If there's no modulus and no prime, we can't continue
         if p is None:
             raise ValueError("either a prime or modulus must be passed for construction")
-        
+
         # If we're not given a degree, construct GF(p)
         if degree is None:
             degree = 1
@@ -101,7 +101,7 @@ cdef class fq_default_ctx:
         prime = any_as_fmpz(p)
         if prime is NotImplemented:
             raise TypeError(f"cannot coerce {p = } to type fmpz")
-        
+
         if check_prime and not prime.is_prime():
             raise ValueError("characteristic is not prime")
 
@@ -115,11 +115,11 @@ cdef class fq_default_ctx:
         # TODO: Flint only wants one-character inputs
         if len(var) > 1:
             raise ValueError
-        
+
         # Cython type conversion and context initalisation
         self._c_set_from_order(prime, d, var, fq_type)
 
-    cdef _c_set_from_modulus(self, modulus, char *var, fq_default_type fq_type=fq_default_type.DEFAULT): 
+    cdef _c_set_from_modulus(self, modulus, char *var, fq_default_type fq_type=fq_default_type.DEFAULT):
         self.var = var
         if typecheck(modulus, fmpz_mod_poly):
             fq_default_ctx_init_modulus_type(self.val, (<fmpz_mod_poly>modulus).val,
@@ -136,7 +136,7 @@ cdef class fq_default_ctx:
         Construct a context for a finite field from an irreducible polynomial.
 
         `modulus` may be of type :class:`~.fmpz_mod_poly` or :class:`~.nmod_poly`.
-        
+
         `var` is a name for the ring generator of this field over the prime field.
 
         The optional parameter `type` select the implementation. The
@@ -155,12 +155,12 @@ cdef class fq_default_ctx:
 
         # Cython type conversion and context initalisation
         self._c_set_from_modulus(modulus, var, fq_type)
-    
+
     @property
     def fq_type(self):
         """
         Return the implementation of this context. It is one of:
-        
+
         - 1: `fq_default_ctx.FQ_ZECH`: Using `fq_zech_t`,
         - 2: `fq_default_ctx.FQ_NMOD`: Using `fq_nmod_t`,
         - 3: `fq_default_ctx.FQ`: Using `fq_t`.
@@ -171,7 +171,7 @@ cdef class fq_default_ctx:
     def fq_type_str(self):
         """
         Return the string implementation of this context. It is one of:
-        
+
         - `fq_default_ctx.FQ_ZECH`: Using `fq_zech_t`,
         - `fq_default_ctx.FQ_NMOD`: Using `fq_nmod_t`,
         - `fq_default_ctx.FQ`: Using `fq_t`.
@@ -207,7 +207,7 @@ cdef class fq_default_ctx:
         return p
 
     prime = characteristic
-    
+
     def order(self):
         """
         Return the order of the finite field
@@ -246,7 +246,7 @@ cdef class fq_default_ctx:
         pol = ctx.new_ctype_poly()
         fq_default_ctx_modulus(pol.val, self.val)
         return pol
-    
+
     def zero(self):
         """
         Return the zero element
@@ -260,7 +260,7 @@ cdef class fq_default_ctx:
         res.ctx = self
         fq_default_zero(res.val, self.val)
         return res
-    
+
     def one(self):
         """
         Return the unit element
@@ -317,7 +317,7 @@ cdef class fq_default_ctx:
         cdef fmpz_poly poly
         poly = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_set_list(poly.val, obj)
-        
+
         # Now set the value from the fmpz_poly
         fq_default_set_fmpz_poly(fq_ele, poly.val, self.val)
 
@@ -331,7 +331,7 @@ cdef class fq_default_ctx:
         # For small integers we can convert directly
         if typecheck(obj, int) and obj.bit_length() < 32:
             fq_default_set_si(fq_ele, <slong>obj, self.val)
-            return 0        
+            return 0
 
         # Assumes that the modulus of the polynomial matches
         # the context for the fq_default
@@ -365,14 +365,14 @@ cdef class fq_default_ctx:
         res = self.new_ctype_fq_default()
         check = self.set_any_as_fq_default(res.val, obj)
         if check is NotImplemented:
-            return NotImplemented        
+            return NotImplemented
         return res
 
     def __eq__(self, other):
         """
         Two finite field context compare equal if they have same
         characteristic, modulus, type and variable
-        
+
             >>> from flint import fmpz_mod_poly_ctx
             >>> modulus = fmpz_mod_poly_ctx(5)([2,4,1])
             >>> gf = fq_default_ctx(5, 2)
@@ -385,7 +385,7 @@ cdef class fq_default_ctx:
         """
         if self is other:
             return True
-        
+
         if typecheck(other, fq_default_ctx):
             return (self.fq_type == other.fq_type
                     and self.var == other.var
@@ -476,11 +476,11 @@ cdef class fq_default(flint_scalar):
 
     # =================================================
     # Comparisons
-    # =================================================  
+    # =================================================
     def is_zero(self):
         """
         Returns true is self is zero and false otherwise
-        
+
             >>> gf = fq_default_ctx(163, 3)
             >>> gf(0).is_zero()
             True
@@ -492,7 +492,7 @@ cdef class fq_default(flint_scalar):
     def is_one(self):
         """
         Returns true is self is one and false otherwise
-        
+
             >>> gf = fq_default_ctx(163, 3)
             >>> gf(-1).is_one()
             False
@@ -521,7 +521,7 @@ cdef class fq_default(flint_scalar):
 
     # =================================================
     # Generic arithmetic required by flint_scalar
-    # =================================================   
+    # =================================================
 
     def _neg_(self):
         cdef fq_default res
@@ -627,7 +627,7 @@ cdef class fq_default(flint_scalar):
 
     # =================================================
     # Additional arithmetic
-    # ================================================= 
+    # =================================================
 
     def square(self):
         """
@@ -648,7 +648,7 @@ cdef class fq_default(flint_scalar):
     def __pow__(self, e):
         """
         Compute `a^e` for `a` equal to ``self``.
-    
+
             >>> gf = fq_default_ctx(163, 3)
             >>> a = gf([1,2,3])
             >>> pow(a, -1) == 1/a
@@ -697,7 +697,7 @@ cdef class fq_default(flint_scalar):
             >>> a.is_square()
             True
             >>> b = a.sqrt()
-            >>> b 
+            >>> b
             95*x^2 + 36*x + 34
             >>> b**2 in [a, -a]
             True
@@ -725,9 +725,9 @@ cdef class fq_default(flint_scalar):
     def pth_root(self):
         """
         Returns the pth root of the element.
-        
-        This is computed by  raising ``self`` to the `p^(d-1)` power, 
-        `p` is the characteristic of the field and `d` is the degree 
+
+        This is computed by  raising ``self`` to the `p^(d-1)` power,
+        `p` is the characteristic of the field and `d` is the degree
         of the extension.
 
             >>> gf = fq_default_ctx(163, 3)
@@ -742,12 +742,12 @@ cdef class fq_default(flint_scalar):
 
     # =================================================
     # Special functions
-    # ================================================= 
+    # =================================================
 
     def trace(self):
         """
         Returns the trace of self
-               
+
             >>> gf = fq_default_ctx(163, 3)
             >>> a = gf([1,2,3])
             >>> a.trace()
