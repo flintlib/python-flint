@@ -263,7 +263,7 @@ cdef class fq_default_ctx:
     
     def one(self):
         """
-        Return the one element
+        Return the unit element
 
             >>> gf = fq_default_ctx(5)
             >>> gf.one()
@@ -292,6 +292,14 @@ cdef class fq_default_ctx:
     def random_element(self, not_zero=False):
         r"""
         Return a random element of the finite field
+
+            >>> gf = fq_default_ctx(163, 3)
+            >>> a = gf.random_element()
+            >>> type(a) is fq_default
+            True
+            >>> a = gf.random_element(not_zero=True)
+            >>> not a.is_zero()
+            True
         """
         cdef fq_default res
         res = self.new_ctype_fq_default()
@@ -426,6 +434,11 @@ cdef class fq_default(flint_scalar):
     def __int__(self):
         """
         Attempts to lift self to an integer of type fmpz in [0, p-1]
+
+            >>> gf = fq_default_ctx(163, 3)
+            >>> a = gf([1,2,3])
+            >>> int(gf(123))
+            123
         """
         cdef fmpz x = fmpz.__new__(fmpz)
         res = fq_default_get_fmpz(x.val, self.val, self.ctx.val)
@@ -437,6 +450,13 @@ cdef class fq_default(flint_scalar):
         """
         Returns a representative of ``self`` as a polynomial in `(Z/pZ)[x] / h(x)`
         where `h(x)` is the defining polynomial of the finite field.
+
+            >>> gf = fq_default_ctx(163, 3)
+            >>> a = gf([1,2,3])
+            >>> a.polynomial()
+            3*x^2 + 2*x + 1
+            >>> gf(123).polynomial()
+            123
         """
         cdef fmpz_mod_poly_ctx ctx
         cdef fmpz_mod_poly pol
@@ -458,9 +478,27 @@ cdef class fq_default(flint_scalar):
     # Comparisons
     # =================================================  
     def is_zero(self):
+        """
+        Returns true is self is zero and false otherwise
+        
+            >>> gf = fq_default_ctx(163, 3)
+            >>> gf(0).is_zero()
+            True
+            >>> gf(-1).is_zero()
+            False
+        """
         return 1 == fq_default_is_zero(self.val, self.ctx.val)
 
     def is_one(self):
+        """
+        Returns true is self is one and false otherwise
+        
+            >>> gf = fq_default_ctx(163, 3)
+            >>> gf(-1).is_one()
+            False
+            >>> gf(1).is_one()
+            True
+        """
         return 1 == fq_default_is_one(self.val, self.ctx.val)
 
     def __richcmp__(self, other, int op):
@@ -573,6 +611,20 @@ cdef class fq_default(flint_scalar):
         fq_default_inv(res.val, self.val, self.ctx.val)
         return res
 
+    def inverse(self):
+        """
+        Computes the inverse of self
+
+            >>> gf = fq_default_ctx(163, 3)
+            >>> a = gf([1,2,3])
+            >>> b = a.inverse()
+            >>> b
+            68*x^2 + 17*x + 116
+            >>> a*b == gf.one()
+            True
+        """
+        return self._invert_()
+
     # =================================================
     # Additional arithmetic
     # ================================================= 
@@ -580,6 +632,13 @@ cdef class fq_default(flint_scalar):
     def square(self):
         """
         Computes the square of ``self``
+
+            >>> gf = fq_default_ctx(163, 3)
+            >>> a = gf([1,2,3])
+            >>> a.square() == a*a
+            True
+            >>> a.square()
+            110*x^2 + 101*x + 25
         """
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
@@ -588,6 +647,19 @@ cdef class fq_default(flint_scalar):
 
     def __pow__(self, e):
         """
+        Compute `a^e` for `a` equal to ``self``.
+    
+            >>> gf = fq_default_ctx(163, 3)
+            >>> a = gf([1,2,3])
+            >>> pow(a, -1) == 1/a
+            True
+            >>> pow(a, 2) == a * a
+            True
+            >>> pow(a, 2**128) == pow(a, 2**128 % (163**3 - 1))
+            True
+            >>> pow(a, 123)
+            46*x^2 + 110*x + 155
+
         """
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
@@ -619,6 +691,16 @@ cdef class fq_default(flint_scalar):
         """
         Returns the square root of the element, if not square root exists,
         throws a ValueError.
+
+            >>> gf = fq_default_ctx(163, 3)
+            >>> a = gf([3,2,1])
+            >>> a.is_square()
+            True
+            >>> b = a.sqrt()
+            >>> b 
+            95*x^2 + 36*x + 34
+            >>> b**2 in [a, -a]
+            True
         """
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
@@ -630,6 +712,13 @@ cdef class fq_default(flint_scalar):
     def is_square(self):
         """
         Returns if the element is a square in the field
+
+            >>> gf = fq_default_ctx(163, 3)
+            >>> a = gf([1,2,3])
+            >>> a.is_square()
+            False
+            >>> (a*a).is_square()
+            True
         """
         return 1 == fq_default_is_square(self.val, self.ctx.val)
 
@@ -640,6 +729,11 @@ cdef class fq_default(flint_scalar):
         This is computed by  raising ``self`` to the `p^(d-1)` power, 
         `p` is the characteristic of the field and `d` is the degree 
         of the extension.
+
+            >>> gf = fq_default_ctx(163, 3)
+            >>> a = gf([1,2,3])
+            >>> a.pth_root()
+            5*x^2 + 152*x + 119
         """
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
@@ -653,6 +747,11 @@ cdef class fq_default(flint_scalar):
     def trace(self):
         """
         Returns the trace of self
+               
+            >>> gf = fq_default_ctx(163, 3)
+            >>> a = gf([1,2,3])
+            >>> a.trace()
+            124
         """
         cdef fmpz tr = fmpz.__new__(fmpz)
         fq_default_trace(tr.val, self.val, self.ctx.val)
@@ -664,6 +763,8 @@ cdef class fq_default(flint_scalar):
 
             >>> gf = fq_default_ctx(163, 3)
             >>> a = gf([1,2,3])
+            >>> a.norm()
+            116
         """
         cdef fmpz nrm = fmpz.__new__(fmpz)
         fq_default_norm(nrm.val, self.val, self.ctx.val)
@@ -672,6 +773,17 @@ cdef class fq_default(flint_scalar):
     def frobenius(self, e=1):
         """
         Evaluates the homomorphism `\Sigma^e` on ``self``.
+
+            >>> gf = fq_default_ctx(163, 3)
+            >>> a = gf([1,2,3])
+            >>> a.frobenius()
+            155*x^2 + 9*x + 4
+            >>> a.frobenius(2)
+            5*x^2 + 152*x + 119
+            >>> a == a.frobenius(3)
+            True
+            >>> a.frobenius(2) == a.frobenius(-1)
+            True
         """
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
