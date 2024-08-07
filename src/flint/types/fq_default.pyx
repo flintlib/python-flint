@@ -12,14 +12,16 @@ cdef class fq_default_ctx:
     Finite fields can be initialized in one of two possible ways. The
     first is by providing characteristic and degree:
 
-        >>> fq_default_ctx.from_order(fmpz(5), 2, 'y')
-        fq_default_ctx.from_modulus(x^2 + 4*x + 2, b'y', 1)
+        >>> fq_default_ctx.from_order(5, 2, 'y')
+        fq_default_ctx.from_modulus(x^2 + 4*x + 2, 'y', 1)
 
     The second is by giving an irreducible polynomial of type
     :class:`~.nmod_poly` or :class:`~.fmpz_mod_poly`:
 
-        >>> fq_default_ctx.from_modulus(fmpz_mod_poly([1,0,1], fmpz_mod_poly_ctx(11)), 'x')
-        fq_default_ctx.from_modulus(x^2 + 1, b'x', 2)
+        >>> from flint import fmpz_mod_poly_ctx
+        >>> modulus = fmpz_mod_poly_ctx(11)([1,0,1])
+        >>> fq_default_ctx.from_modulus(modulus, 'x')
+        fq_default_ctx.from_modulus(x^2 + 1, 'x', 2)
     
     For more details, see the documentation of :method:`~.from_order`
     and :method:`~.from_modulus`.
@@ -58,15 +60,15 @@ cdef class fq_default_ctx:
         - `fq_default_ctx.FQ_NMOD`: Use `fq_nmod_t`,
         - `fq_default_ctx.FQ`: Use `fq_t`.
 
-            >>> gf = fq_default_ctx.from_order(fmpz(5), 2, 'y')
+            >>> gf = fq_default_ctx.from_order(5, 2, 'y')
             >>> gf
-            fq_default_ctx.from_modulus(x^2 + 4*x + 2, b'y', 1)
+            fq_default_ctx.from_modulus(x^2 + 4*x + 2, 'y', 1)
             >>> gf.type
             <fq_default_type.FQ_ZECH: 1>
         
-            >>> gf = fq_default_ctx.from_order(fmpz(5), 2, 'y', fq_default_type.FQ_NMOD)
+            >>> gf = fq_default_ctx.from_order(5, 2, 'y', fq_default_type.FQ_NMOD)
             >>> gf
-            fq_default_ctx.from_modulus(x^2 + 4*x + 2, b'y', 2)
+            fq_default_ctx.from_modulus(x^2 + 4*x + 2, 'y', 2)
             >>> gf.type
             <fq_default_type.FQ_NMOD: 2>
         """
@@ -99,7 +101,7 @@ cdef class fq_default_ctx:
                                                   ctx.var, type)
         else:
             raise TypeError(f"modulus must be fmpz_mod_poly or nmod_poly, got {modulus!r}")
-        ctx.initialized = True
+        ctx._initialized = True
 
         return ctx
 
@@ -120,18 +122,19 @@ cdef class fq_default_ctx:
         - `fq_default_ctx.FQ_NMOD`: Use `fq_nmod_t`,
         - `fq_default_ctx.FQ`: Use `fq_t`.
 
-            >>> gf = fq_default_ctx.from_modulus(fmpz_mod_poly([1,0,1], fmpz_mod_poly_ctx(11)), 'x')
+            >>> from flint import fmpz_mod_poly_ctx
+            >>> modulus = fmpz_mod_poly_ctx(11)([1,0,1])
+            >>> gf = fq_default_ctx.from_modulus(modulus, 'x')
             >>> gf
-            fq_default_ctx.from_modulus(x^2 + 1, b'x', 2)
+            fq_default_ctx.from_modulus(x^2 + 1, 'x', 2)
             >>> gf.type
             <fq_default_type.FQ_NMOD: 2>
         
-            >>> gf = fq_default_ctx.from_modulus(fmpz_mod_poly([1,0,1], fmpz_mod_poly_ctx(11)), 'x', fq_default_type.FQ)
+            >>> gf = fq_default_ctx.from_modulus(modulus, 'x', fq_default_type.FQ)
             >>> gf
-            fq_default_ctx.from_modulus(x^2 + 1, b'x', 2)
+            fq_default_ctx.from_modulus(x^2 + 1, 'x', 3)
             >>> gf.type
             <fq_default_type.FQ: 3>
-
         """
         if isinstance(var, str):
             var = var.encode()
@@ -150,7 +153,7 @@ cdef class fq_default_ctx:
 
     def degree(self):
         """
-            >>> gf = fq_default_ctx.from_order(fmpz(5), 2, 'y')
+            >>> gf = fq_default_ctx.from_order(5, 2, 'y')
             >>> gf.degree()
             2
         """
@@ -158,7 +161,7 @@ cdef class fq_default_ctx:
 
     def prime(self):
         """
-            >>> gf = fq_default_ctx.from_order(fmpz(5), 2, 'y')
+            >>> gf = fq_default_ctx.from_order(5, 2, 'y')
             >>> gf.prime()
             5
         """
@@ -171,8 +174,8 @@ cdef class fq_default_ctx:
     
     def order(self):
         """
-            >>> gf = fq_default_ctx.from_order(fmpz(5), 2, 'y')
-            >>> gf.prime()
+            >>> gf = fq_default_ctx.from_order(5, 2, 'y')
+            >>> gf.order()
             25
         """
         cdef fmpz q
@@ -184,7 +187,7 @@ cdef class fq_default_ctx:
         """
         Return the modulus from the context as an fmpz_mod_poly type
 
-            >>> gf = fq_default_ctx.from_order(fmpz(5), 2, 'y')
+            >>> gf = fq_default_ctx.from_order(5, 2, 'y')
             >>> gf.modulus()
             x^2 + 4*x + 2
 
@@ -200,9 +203,9 @@ cdef class fq_default_ctx:
         """
         Return the zero element
 
-            >>> Fq = fq_default_ctx.from_order(5, 1, "x")
-            >>> Fq.zero()
-            fmpz_mod(0, 163)
+            >>> gf = fq_default_ctx.from_order(5, 1, "x")
+            >>> gf.zero()
+            0
         """
         cdef fq_default res
         res = self.new_ctype_fq_default()
@@ -214,9 +217,9 @@ cdef class fq_default_ctx:
         """
         Return the one element
 
-            >>> F = fmpz_mod_ctx(163)
-            >>> F.one()
-            fmpz_mod(1, 163)
+            >>> gf = fq_default_ctx.from_order(5, 1, "x")
+            >>> gf.one()
+            1
         """
         cdef fq_default res
         res = self.new_ctype_fq_default()
@@ -251,14 +254,16 @@ cdef class fq_default_ctx:
         Two finite field context compare equal if they have same
         characteristic, modulus, type and variable
         
-            >>> gf = fq_default_ctx.from_order(fmpz(5), 2, 'y')
-            >>> gf2 = fq_default_ctx.from_modulus(fmpz_mod_poly([2,4,1], fmpz_mod_poly_ctx(5)), 'y', 1)
+            >>> from flint import fmpz_mod_poly_ctx
+            >>> R = fmpz_mod_poly_ctx(5)
+            >>> modulus = R([2,4,1])
+            >>> gf = fq_default_ctx.from_order(5, 2, 'y')
+            >>> gf2 = fq_default_ctx.from_modulus(modulus, 'y', 1)
             >>> gf2 == gf
             True
-            >>> gf3 = fq_default_ctx.from_modulus(fmpz_mod_poly([2,4,1], fmpz_mod_poly_ctx(5)), 'x', 1)
+            >>> gf3 = fq_default_ctx.from_modulus(modulus, 'x', 1)
             >>> gf3 == gf
             False
-
         """
         if self is other:
             return True
@@ -278,7 +283,7 @@ cdef class fq_default_ctx:
         return f"Context for fq_default in GF({self.prime()}^{self.degree()})[{self.var.decode()}]/({self.modulus().str(var=self.var.decode())})"
 
     def __repr__(self):
-        return f"fq_default_ctx.from_modulus({self.modulus()!r}, {self.var.decode()}, {self.type})"
+        return f"fq_default_ctx.from_modulus({self.modulus()!r}, '{self.var.decode()}', {self.type})"
 
     def __call__(self, val):
         return fq_default(val, self)
@@ -328,11 +333,12 @@ cdef class fq_default(flint_scalar):
 
         return pol
 
-    def __repr__(self):
-        return f"fq_default({self.polynomial()}, {self.ctx.__repr__()})"
-    
     def str(self):
-        return self.polynomial().__str__()
+        return self.polynomial().str(var=self.ctx.var)
+
+    def __repr__(self):
+        # TODO: what do we want here?
+        return str(self)
 
     # =================================================
     # Comparisons
