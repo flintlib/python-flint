@@ -458,7 +458,6 @@ cdef class fq_default(flint_scalar):
             >>> gf(123).polynomial()
             123
         """
-        cdef fmpz_mod_poly_ctx ctx
         cdef fmpz_mod_poly pol
 
         ring_ctx = fmpz_mod_poly_ctx(self.ctx.prime())
@@ -771,7 +770,7 @@ cdef class fq_default(flint_scalar):
         return nrm
 
     def frobenius(self, e=1):
-        """
+        r"""
         Evaluates the homomorphism `\Sigma^e` on ``self``.
 
             >>> gf = fq_default_ctx(163, 3)
