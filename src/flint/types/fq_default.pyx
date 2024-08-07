@@ -526,6 +526,9 @@ cdef class fq_default(flint_scalar):
     # Generic arithmetic required by flint_scalar
     # =================================================
 
+    def _any_as_self(self, other):
+        return self.ctx.any_as_fq_default(other)
+
     def _neg_(self):
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
@@ -533,82 +536,50 @@ cdef class fq_default(flint_scalar):
         return res
 
     def _add_(self, other):
-        other = self.ctx.any_as_fq_default(other)
-        if other is NotImplemented:
-            return NotImplemented
-
+        """
+        Assumes that __add__() has ensured other is of type self
+        """
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
         fq_default_add(res.val, self.val, (<fq_default>other).val, self.ctx.val)
         return res
 
-    @staticmethod
-    def _sub_(left, right):
-        # Case when left and right are already fq_default
-        if typecheck(left, fq_default) and typecheck(right, fq_default):
-            if not (<fq_default>left).ctx == (<fq_default>right).ctx:
-                raise ValueError("moduli must match")
-
-        # Otherwise, exactly one of these values is fq_default, if it's left
-        # convert the right
-        elif typecheck(left, fq_default):
-            right = (<fq_default>left).ctx.any_as_fq_default(right)
-            if right is NotImplemented:
-                return NotImplemented
-        # Otherwise convert the left
-        else:
-            left = (<fq_default>right).ctx.any_as_fq_default(left)
-            if left is NotImplemented:
-                return NotImplemented
-
-        # Now perform subtraction
+    def _sub_(self, other, swap=False):
+        """
+        Assumes that __sub__() has ensured other is of type self
+        """
         cdef fq_default res
-        res = (<fq_default>left).ctx.new_ctype_fq_default()
-        fq_default_sub(res.val, (<fq_default>left).val, (<fq_default>right).val, res.ctx.val)
+        res = self.ctx.new_ctype_fq_default()
+        if swap:
+            fq_default_sub(res.val, (<fq_default>other).val, self.val, res.ctx.val)
+        else:
+            fq_default_sub(res.val, self.val, (<fq_default>other).val, res.ctx.val)
         return res
 
     def _mul_(self, other):
-        other = self.ctx.any_as_fq_default(other)
-        if other is NotImplemented:
-            return NotImplemented
+        """
+        Assumes that __mul__() has ensured other is of type self
 
+        TODO: this could be optimised by using mul_si and others
+        """
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
         fq_default_mul(res.val, self.val, (<fq_default>other).val, self.ctx.val)
         return res
 
-    @staticmethod
-    def _div_(left, right):
-        # Case when left and right are already fq_default
-        if typecheck(left, fq_default) and typecheck(right, fq_default):
-            if not (<fq_default>left).ctx == (<fq_default>right).ctx:
-                raise ValueError("moduli must match")
-
-        # Otherwise, exactly one of these values is fq_default, if it's left
-        # convert the right
-        elif typecheck(left, fq_default):
-            right = (<fq_default>left).ctx.any_as_fq_default(right)
-            if right is NotImplemented:
-                return NotImplemented
-        # Otherwise convert the left
-        else:
-            left = (<fq_default>right).ctx.any_as_fq_default(left)
-            if left is NotImplemented:
-                return NotImplemented
-
-        if right.is_zero():
-            raise ZeroDivisionError
-
-        # Now perform division
+    def _div_(self, other, swap=False):
+        """
+        Assumes that __div__() has ensured other is of type self
+        """
         cdef fq_default res
-        res = (<fq_default>left).ctx.new_ctype_fq_default()
-        fq_default_div(res.val, (<fq_default>left).val, (<fq_default>right).val, res.ctx.val)
+        res = self.ctx.new_ctype_fq_default()
+        if swap:
+            fq_default_div(res.val, (<fq_default>other).val, self.val, res.ctx.val)
+        else:
+            fq_default_div(res.val, self.val, (<fq_default>other).val, res.ctx.val)
         return res
 
     def _invert_(self):
-        if self.is_zero():
-            raise ZeroDivisionError
-
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
         fq_default_inv(res.val, self.val, self.ctx.val)

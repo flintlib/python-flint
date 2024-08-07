@@ -35,25 +35,28 @@ cdef class flint_scalar(flint_elem):
     # assumes that addition and multiplication are
     # commutative
     # =================================================
+    def is_zero(self):
+        return False
+
+    def _any_as_self(self):
+        return NotImplemented
+
     def _neg_(self):
         return NotImplemented
 
     def _add_(self, other):
         return NotImplemented
 
-    @staticmethod
-    def _sub_(left, right):
+    def _sub_(self, other, swap=False):
         return NotImplemented
 
     def _mul_(self, other):
         return NotImplemented
 
-    @staticmethod
-    def _div_(left, right):
+    def _div_(self, other, swap=False):
         return NotImplemented
 
-    @staticmethod
-    def _floordiv_(left, right):
+    def _floordiv_(self, other, swap=False):
         return NotImplemented
 
     def _invert_(self):
@@ -61,8 +64,8 @@ cdef class flint_scalar(flint_elem):
 
     # =================================================
     # Generic arithmetic using the above functions
-    # =================================================   
-    
+    # =================================================
+
     def __pos__(self):
         return self
 
@@ -70,36 +73,82 @@ cdef class flint_scalar(flint_elem):
         return self._neg_()
 
     def __add__(self, other):
+        other = self._any_as_self(other)
+        if other is NotImplemented:
+            return NotImplemented
         return self._add_(other)
 
     def __radd__(self, other):
+        other = self._any_as_self(other)
+        if other is NotImplemented:
+            return NotImplemented
         return self._add_(other)
 
     def __sub__(self, other):
-        return self._sub_(self, other)
+        other = self._any_as_self(other)
+        if other is NotImplemented:
+            return NotImplemented
+        return self._sub_(other)
 
     def __rsub__(self, other):
-        return self._sub_(other, self)
+        other = self._any_as_self(other)
+        if other is NotImplemented:
+            return NotImplemented
+        return self._sub_(other, swap=True)
 
     def __mul__(self, other):
+        other = self._any_as_self(other)
+        if other is NotImplemented:
+            return NotImplemented
         return self._mul_(other)
 
     def __rmul__(self, other):
+        other = self._any_as_self(other)
+        if other is NotImplemented:
+            return NotImplemented
         return self._mul_(other)
 
     def __truediv__(self, other):
+        other = self._any_as_self(other)
+        if other is NotImplemented:
+            return NotImplemented
+
+        if other.is_zero():
+            raise ZeroDivisionError
+
         return self._div_(self, other)
 
     def __rtruediv__(self, other):
-        return self._div_(other, self)
+        if self.is_zero():
+            raise ZeroDivisionError
+
+        other = self._any_as_self(other)
+        if other is NotImplemented:
+            return NotImplemented
+        return self._div_(other, swap=True)
 
     def __floordiv__(self, other):
+        other = self._any_as_self(other)
+        if other is NotImplemented:
+            return NotImplemented
+
+        if other.is_zero():
+            raise ZeroDivisionError
+
         return self._floordiv_(self, other)
 
     def __rfloordiv__(self, other):
-        return self._floordiv_(other, self)
+        if self.is_zero():
+            raise ZeroDivisionError
+
+        other = self._any_as_self(other)
+        if other is NotImplemented:
+            return NotImplemented
+        return self._floordiv_(other, swap=True)
 
     def __invert__(self):
+        if self.is_zero():
+            raise ZeroDivisionError
         return self._invert_()
 
 
@@ -164,7 +213,7 @@ cdef class flint_poly(flint_elem):
     def roots(self):
         """
         Computes all the roots in the base ring of the polynomial.
-        Returns a list of all pairs (*v*, *m*) where *v* is the 
+        Returns a list of all pairs (*v*, *m*) where *v* is the
         integer root and *m* is the multiplicity of the root.
 
         To compute complex roots of a polynomial, instead use
