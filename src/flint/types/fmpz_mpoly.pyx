@@ -24,13 +24,13 @@ from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_divides,
     fmpz_mpoly_divrem,
     fmpz_mpoly_equal,
+    fmpz_mpoly_equal_fmpz,
     fmpz_mpoly_evaluate_all_fmpz,
     fmpz_mpoly_evaluate_one_fmpz,
     fmpz_mpoly_gcd,
     fmpz_mpoly_gen,
     fmpz_mpoly_get_coeff_fmpz_fmpz,
     fmpz_mpoly_get_str_pretty,
-    fmpz_mpoly_get_term,
     fmpz_mpoly_get_term_coeff_fmpz,
     fmpz_mpoly_get_term_exp_fmpz,
     fmpz_mpoly_integral,
@@ -234,13 +234,18 @@ cdef class fmpz_mpoly(flint_mpoly):
             return NotImplemented
         elif other is None:
             return op == Py_NE
-        elif typecheck(self, fmpz_mpoly) and typecheck(other, fmpz_mpoly):
+        elif typecheck(other, fmpz_mpoly):
             if (<fmpz_mpoly>self).ctx is (<fmpz_mpoly>other).ctx:
-                return (op == Py_NE) ^ bool(
-                    fmpz_mpoly_equal((<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, (<fmpz_mpoly>self).ctx.val)
-                )
+                return (op == Py_NE) ^ <bint>fmpz_mpoly_equal(self.val, (<fmpz_mpoly>other).val, self.ctx.val)
             else:
                 return op == Py_NE
+        elif typecheck(other, fmpz):
+            return (op == Py_NE) ^ <bint>fmpz_mpoly_equal_fmpz(self.val, (<fmpz>other).val, self.ctx.val)
+        elif isinstance(other, int):
+            other = any_as_fmpz(other)
+            if other is NotImplemented:
+                return NotImplemented
+            return (op == Py_NE) ^ <bint>fmpz_mpoly_equal_fmpz(self.val, (<fmpz>other).val, self.ctx.val)
         else:
             return NotImplemented
 

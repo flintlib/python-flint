@@ -28,6 +28,8 @@ from flint.flintlib.fmpq_mpoly cimport (
     fmpq_mpoly_divides,
     fmpq_mpoly_divrem,
     fmpq_mpoly_equal,
+    fmpq_mpoly_equal_fmpq,
+    fmpq_mpoly_equal_fmpz,
     fmpq_mpoly_evaluate_all_fmpq,
     fmpq_mpoly_evaluate_one_fmpq,
     fmpq_mpoly_gcd,
@@ -256,11 +258,18 @@ cdef class fmpq_mpoly(flint_mpoly):
             return op == Py_NE
         elif typecheck(self, fmpq_mpoly) and typecheck(other, fmpq_mpoly):
             if (<fmpq_mpoly>self).ctx is (<fmpq_mpoly>other).ctx:
-                return (op == Py_NE) ^ bool(
-                    fmpq_mpoly_equal((<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, (<fmpq_mpoly>self).ctx.val)
-                )
+                return (op == Py_NE) ^ <bint>fmpq_mpoly_equal(self.val, (<fmpq_mpoly>other).val, self.ctx.val)
             else:
                 return op == Py_NE
+        elif typecheck(other, fmpq):
+            return (op == Py_NE) ^ <bint>fmpq_mpoly_equal_fmpq(self.val, (<fmpq>other).val, self.ctx.val)
+        elif typecheck(other, fmpz):
+            return (op == Py_NE) ^ <bint>fmpq_mpoly_equal_fmpz(self.val, (<fmpz>other).val, self.ctx.val)
+        elif isinstance(other, int):
+            other = any_as_fmpz(other)
+            if other is NotImplemented:
+                return NotImplemented
+            return (op == Py_NE) ^ <bint>fmpq_mpoly_equal_fmpz(self.val, (<fmpz>other).val, self.ctx.val)
         else:
             return NotImplemented
 

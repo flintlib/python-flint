@@ -2685,13 +2685,13 @@ def _all_mpolys():
         (
             flint.nmod_mpoly,
             lambda *args, **kwargs: flint.nmod_mpoly_ctx.get_context(*args, **kwargs, modulus=101),
-            int,
+            lambda x: flint.nmod(x, 101),
             True,
         ),
         (
             flint.nmod_mpoly,
             lambda *args, **kwargs: flint.nmod_mpoly_ctx.get_context(*args, **kwargs, modulus=100),
-            int,
+            lambda x: flint.nmod(x, 100),
             False,
         ),
     ]
@@ -2767,10 +2767,15 @@ def test_mpolys():
         assert (P(1, ctx=ctx) == P(2, ctx=ctx)) is False
         assert (P(1, ctx=ctx) != P(2, ctx=ctx)) is True
 
-        assert (P(1, ctx=ctx) == 1) is False
-        assert (P(1, ctx=ctx) != 1) is True
-        assert (1 == P(1, ctx=ctx)) is False
-        assert (1 != P(1, ctx=ctx)) is True
+        assert (P(1, ctx=ctx) == 1) is True
+        assert (P(1, ctx=ctx) != 1) is False
+        assert (1 == P(1, ctx=ctx)) is True
+        assert (1 != P(1, ctx=ctx)) is False
+
+        assert (P(1, ctx=ctx) == S(1)) is True
+        assert (P(1, ctx=ctx) != S(1)) is False
+        assert (S(1) == P(1, ctx=ctx)) is True
+        assert (S(1) != P(1, ctx=ctx)) is False
 
         assert (P(1, ctx=ctx) == P(1, ctx=ctx1)) is False
         assert (P(1, ctx=ctx) != P(1, ctx=ctx1)) is True
@@ -2926,7 +2931,7 @@ def test_mpolys():
                 else {k: ctx.modulus() + v for k, v in {(0, 0): -4, (0, 1): -4, (1, 0): -4, (2, 2): -4}.items()}
         )
 
-        for T in [int, S, lambda x: P(x, ctx=ctx)]:
+        for T in [int, S, int, lambda x: P(x, ctx=ctx)]:
             p = quick_poly()
             p -= T(1)
             q = quick_poly()
@@ -2955,7 +2960,7 @@ def test_mpolys():
                 (0, 1): 6
             })
 
-        for T in [int, S, lambda x: P(x, ctx=ctx)]:
+        for T in [int, S, int, lambda x: P(x, ctx=ctx)]:
             p = quick_poly()
             p *= T(2)
             q = quick_poly()

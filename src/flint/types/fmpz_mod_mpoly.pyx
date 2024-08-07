@@ -26,6 +26,7 @@ from flint.flintlib.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_divides,
     fmpz_mod_mpoly_divrem,
     fmpz_mod_mpoly_equal,
+    fmpz_mod_mpoly_equal_fmpz,
     fmpz_mod_mpoly_evaluate_all_fmpz,
     fmpz_mod_mpoly_evaluate_one_fmpz,
     fmpz_mod_mpoly_gcd,
@@ -308,6 +309,13 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
                 )
             else:
                 return op == Py_NE
+        elif typecheck(other, fmpz):
+            return (op == Py_NE) ^ <bint>fmpz_mod_mpoly_equal_fmpz(self.val, (<fmpz>other).val, self.ctx.val)
+        elif isinstance(other, int):
+            other = any_as_fmpz(other)
+            if other is NotImplemented:
+                return NotImplemented
+            return (op == Py_NE) ^ <bint>fmpz_mod_mpoly_equal_fmpz(self.val, (<fmpz>other).val, self.ctx.val)
         else:
             return NotImplemented
 

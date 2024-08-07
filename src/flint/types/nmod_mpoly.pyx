@@ -12,6 +12,8 @@ from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 from flint.types.fmpz cimport any_as_fmpz, fmpz
 from flint.types.fmpz_vec cimport fmpz_vec
 
+from flint.types.nmod cimport nmod
+
 from flint.flintlib.fmpz cimport fmpz_set
 from flint.flintlib.nmod_mpoly cimport (
     nmod_mpoly_add,
@@ -26,6 +28,7 @@ from flint.flintlib.nmod_mpoly cimport (
     nmod_mpoly_divides,
     nmod_mpoly_divrem,
     nmod_mpoly_equal,
+    nmod_mpoly_equal_ui,
     nmod_mpoly_evaluate_all_ui,
     nmod_mpoly_evaluate_one_ui,
     nmod_mpoly_gcd,
@@ -283,11 +286,15 @@ cdef class nmod_mpoly(flint_mpoly):
             return op == Py_NE
         elif typecheck(self, nmod_mpoly) and typecheck(other, nmod_mpoly):
             if (<nmod_mpoly>self).ctx is (<nmod_mpoly>other).ctx:
-                return (op == Py_NE) ^ bool(
-                    nmod_mpoly_equal((<nmod_mpoly>self).val, (<nmod_mpoly>other).val, (<nmod_mpoly>self).ctx.val)
-                )
+                return (op == Py_NE) ^ <bint>nmod_mpoly_equal(self.val, (<nmod_mpoly>other).val, self.ctx.val)
             else:
                 return op == Py_NE
+        elif typecheck(other, nmod):
+            if other.modulus() != self.ctx.modulus():
+                raise ValueError(f"cannot compare different modulus {other.modulus()} vs {self.ctx.modulus()}")
+            return (op == Py_NE) ^ <bint>nmod_mpoly_equal_ui(self.val, int(other), self.ctx.val)
+        elif isinstance(other, int):
+            return (op == Py_NE) ^ <bint>nmod_mpoly_equal_ui(self.val, other, self.ctx.val)
         else:
             return NotImplemented
 
