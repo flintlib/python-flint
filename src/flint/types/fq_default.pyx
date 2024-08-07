@@ -43,9 +43,11 @@ cdef class fq_default_ctx:
             "FQ_ZECH" : 1,
             "FQ_NMOD" : 2,
             "FQ" : 3,
+            "NMOD" : 4,
+            "FMPZ_MOD" : 5
         }
         if typecheck(fq_type, str):
-            fq_type = FQ_TYPES.get(typecheck, None)
+            fq_type = FQ_TYPES.get(fq_type, None)
             if fq_type is None:
                 raise ValueError("invalid fq_type, must be one of FQ_ZECH, FQ_NMOD or FQ")
         if not typecheck(fq_type, int):
@@ -165,7 +167,7 @@ cdef class fq_default_ctx:
         - 2: `fq_default_ctx.FQ_NMOD`: Using `fq_nmod_t`,
         - 3: `fq_default_ctx.FQ`: Using `fq_t`.
         """
-        return fq_default_type(fq_default_ctx_type(self.val))
+        return fq_default_ctx_type(self.val)
 
     @property
     def fq_type_str(self):
@@ -180,6 +182,8 @@ cdef class fq_default_ctx:
             1 : "FQ_ZECH",
             2 : "FQ_NMOD",
             3 : "FQ",
+            4 : "NMOD",
+            5 : "FMPZ_MOD",
         }
         return FQ_TYPES[self.fq_type]
 

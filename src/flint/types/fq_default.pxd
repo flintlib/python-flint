@@ -4,10 +4,12 @@ from flint.types.fmpz cimport fmpz
 from flint.flint_base.flint_base cimport flint_scalar
 
 cpdef enum fq_default_type:
-    DEFAULT = 0
-    FQ_ZECH = 1
-    FQ_NMOD = 2
-    FQ      = 3
+    DEFAULT  = 0
+    FQ_ZECH  = 1
+    FQ_NMOD  = 2
+    FQ       = 3
+    NMOD     = 4
+    FMPZ_MOD = 5
 
 cdef class fq_default_ctx:
     cdef fq_default_ctx_t val

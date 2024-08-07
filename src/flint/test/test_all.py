@@ -3591,12 +3591,18 @@ def test_fq_default():
 
     # GF(5)
     gf_5 = flint.fq_default_ctx(5)
+    gf_5_ = flint.fq_default_ctx(5)
 
     # GF(5^2)
     gf_5_2 = flint.fq_default_ctx(5, 2)
 
     # GF((2**127 - 1)^2)
     gf_127_2 = flint.fq_default_ctx(2**127 - 1, 2)
+
+    assert (gf_5 == gf_5_) is True
+    assert (gf_5 != gf_5_) is False
+    assert (gf_5 == gf_5_2) is False
+    assert (gf_5 != gf_5_2) is True
 
     assert gf_5.prime() == gf_5_2.prime() == 5
     assert gf_5_2.order() == 5*5
@@ -3613,6 +3619,15 @@ def test_fq_default():
     # test fq_default element arithemtic
 
     for gf in [gf_5, gf_5_2, gf_127_2]:
+
+        assert (gf(0) == gf.zero()) is True
+        assert (gf(0) != gf.zero()) is False
+        assert (gf(1) == gf.zero()) is False
+        assert (gf(1) != gf.zero()) is True
+        assert raises(lambda: gf.zero() > gf.zero(), TypeError)
+        assert raises(lambda: gf.zero() >= gf.zero(), TypeError)
+        assert raises(lambda: gf.zero() < gf.zero(), TypeError)
+        assert raises(lambda: gf.zero() <=  gf.zero(), TypeError)
 
         assert gf.zero().is_zero() is True
         assert gf.one().is_zero() is False
