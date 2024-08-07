@@ -23,8 +23,8 @@ cdef class fq_default_ctx:
         >>> fq_default_ctx(modulus=mod, fq_type=2)
         fq_default_ctx(11, 2, 'x', x^2 + 1, 'FQ_NMOD')
 
-    For more details, see the documentation of :method:`~.from_order`
-    and :method:`~.from_modulus`.
+    For more details, see the documentation of :method:`~.set_from_order`
+    and :method:`~.set_from_modulus`.
     """
     def __cinit__(self):
         pass
@@ -33,11 +33,8 @@ cdef class fq_default_ctx:
         if self._initialized:
             fq_default_ctx_clear(self.val)
 
-    def __init__(self, p=None, degree=None, var=None, modulus=None, fq_type=fq_default_type.DEFAULT):
-        # If no variable is given, use x
-        if var is None:
-            var = "x"
-
+    @staticmethod
+    def _parse_input_fq_type(fq_type):
         # Allow the type to be denoted by strings or integers
         FQ_TYPES = {
             "FQ_ZECH" : 1,
@@ -49,9 +46,40 @@ cdef class fq_default_ctx:
         if typecheck(fq_type, str):
             fq_type = FQ_TYPES.get(fq_type, None)
             if fq_type is None:
-                raise ValueError("invalid fq_type, must be one of FQ_ZECH, FQ_NMOD or FQ")
+                raise ValueError("invalid fq_type string")
+
+        # Now fq_type should be an int between 0, 5
         if not typecheck(fq_type, int):
-            raise ValueError(f"{fq_type = } is invalid")
+            raise TypeError(f"{fq_type = } is invalid")
+        if fq_type < 0 or fq_type > 5:
+            raise ValueError(f"{fq_type = } should be between 0 and 5")
+
+        return fq_type
+
+    @staticmethod
+    def _parse_input_var(var):
+        # If no variable is given, use x
+        if var is None:
+            var = b"x"
+
+        # Encode to bytes for cython to parse
+        if isinstance(var, str):
+            var = var.encode()
+
+        # TODO: Flint only wants one-character inputs
+        if len(var) > 1:
+            raise ValueError("variable for GF(p^k) generator can only be one character")
+
+        return var
+
+    def __init__(self, p=None, degree=None, var=None, modulus=None, fq_type=fq_default_type.DEFAULT):
+        # Ensure the var used for the generator of GF(p^d) is a single byte
+        # TODO: this var is meaningless for GF(p) -- we could handle this somehow?
+        var = self._parse_input_var(var)
+
+        # Ensure the fq_type is an integer between 0, 5 -- we allow users to
+        # input a string which is converted as an enum
+        fq_type = self._parse_input_fq_type(fq_type)
 
         # If a modulus is given, attempt to construct from this
         if modulus is not None:
@@ -80,12 +108,14 @@ cdef class fq_default_ctx:
         # Construct the field from the prime and degree GF(p^d)
         self.set_from_order(p, degree, var, fq_type)
 
-    cdef _c_set_from_order(self, fmpz p, int d, char *var, fq_default_type fq_type=fq_default_type.DEFAULT):
+    cdef _c_set_from_order(self, fmpz p, int d, char *var,
+                           fq_default_type fq_type=fq_default_type.DEFAULT):
         self.var = var
         fq_default_ctx_init_type(self.val, p.val, d, self.var, fq_type)
         self._initialized = True
 
-    def set_from_order(self, p, d, var, fq_type=fq_default_type.DEFAULT, check_prime=True):
+    def set_from_order(self, p, d, var,
+                       fq_type=fq_default_type.DEFAULT, check_prime=True):
         """
         Construct a context for the finite field GF(p^d).
 
@@ -111,17 +141,11 @@ cdef class fq_default_ctx:
         if d < 1:
             raise ValueError(f"the degree must be positive, got {d = }")
 
-        if isinstance(var, str):
-            var = var.encode()
-
-        # TODO: Flint only wants one-character inputs
-        if len(var) > 1:
-            raise ValueError
-
         # Cython type conversion and context initalisation
         self._c_set_from_order(prime, d, var, fq_type)
 
-    cdef _c_set_from_modulus(self, modulus, char *var, fq_default_type fq_type=fq_default_type.DEFAULT):
+    cdef _c_set_from_modulus(self, modulus, char *var,
+                             fq_default_type fq_type=fq_default_type.DEFAULT):
         self.var = var
         if typecheck(modulus, fmpz_mod_poly):
             fq_default_ctx_init_modulus_type(self.val, (<fmpz_mod_poly>modulus).val,
@@ -133,7 +157,8 @@ cdef class fq_default_ctx:
             raise TypeError(f"modulus must be fmpz_mod_poly or nmod_poly, got {modulus!r}")
         self._initialized = True
 
-    def set_from_modulus(self, modulus, var, fq_type=fq_default_type.DEFAULT, check_modulus=True):
+    def set_from_modulus(self, modulus, var,
+                         fq_type=fq_default_type.DEFAULT, check_modulus=True):
         """
         Construct a context for a finite field from an irreducible polynomial.
 
@@ -149,9 +174,6 @@ cdef class fq_default_ctx:
         - `fq_default_ctx.FQ_NMOD`: Use `fq_nmod_t`,
         - `fq_default_ctx.FQ`: Use `fq_t`.
         """
-        if isinstance(var, str):
-            var = var.encode()
-
         if check_modulus and not modulus.is_irreducible():
             raise ValueError("modulus must be irreducible")
 
@@ -242,7 +264,6 @@ cdef class fq_default_ctx:
             >>> gf = fq_default_ctx(5, 2)
             >>> gf.modulus()
             x^2 + 4*x + 2
-
         """
         cdef fmpz_mod_poly_ctx ctx
         cdef fmpz_mod_poly pol
@@ -504,6 +525,9 @@ cdef class fq_default(flint_scalar):
     def repr(self):
         return f"fq_default({self.to_list(), self.ctx.__repr__()})"
 
+    def __hash__(self):
+        return hash((self.to_polynomial(), hash(self.ctx)))
+
     # =================================================
     # Comparisons
     # =================================================
@@ -612,6 +636,10 @@ cdef class fq_default(flint_scalar):
         fq_default_inv(res.val, self.val, self.ctx.val)
         return res
 
+    # =================================================
+    # Additional arithmetic
+    # =================================================
+
     def inverse(self):
         """
         Computes the inverse of self
@@ -625,10 +653,6 @@ cdef class fq_default(flint_scalar):
             True
         """
         return self._invert_()
-
-    # =================================================
-    # Additional arithmetic
-    # =================================================
 
     def square(self):
         """
