@@ -330,7 +330,15 @@ cdef class fq_default_ctx:
     cdef set_any_as_fq_default(self, fq_default_t fq_ele, obj):
         # For small integers we can convert directly
         if typecheck(obj, int) and obj.bit_length() < 32:
-            fq_default_set_si(fq_ele, <slong>obj, self.val)
+            if obj < 0:
+                fq_default_set_si(fq_ele, <slong>obj, self.val)
+            else:
+                fq_default_set_ui(fq_ele, <ulong>obj, self.val)
+            return 0
+
+        # For fmpz we can also convert directly
+        if typecheck(obj, fmpz):
+            fq_default_set_fmpz(fq_ele, (<fmpz>obj).val, self.val)
             return 0
 
         # Assumes that the modulus of the polynomial matches

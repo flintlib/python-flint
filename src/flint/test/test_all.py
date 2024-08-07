@@ -3597,6 +3597,7 @@ def test_fq_default():
     gf_5_2 = flint.fq_default_ctx(5, 2)
 
     # GF((2**127 - 1)^2)
+    gf_127 = flint.fq_default_ctx(2**127 - 1, 2)
     gf_127_2 = flint.fq_default_ctx(2**127 - 1, 2)
 
     assert (gf_5 == gf_5_) is True
@@ -3616,9 +3617,16 @@ def test_fq_default():
     assert str(gf_5) == "Context for fq_default in GF(5)"
     assert str(gf_5_2) == "Context for fq_default in GF(5^2)[x]/(x^2 + 4*x + 2)"
 
+    # coercision
+    assert gf_5(1) == gf_5(flint.fmpz(1)) == gf_5.one()
+    assert gf_5(-1) == gf_5(flint.fmpz(-1)) == -gf_5.one()
+    assert gf_5([0, 1]) == gf_5(flint.fmpz_poly([0, 1])) == gf_5.gen()
+    R = flint.fmpz_mod_poly_ctx(5)
+    assert gf_5.gen() == gf_5(R.gen()) == gf_5(flint.nmod_poly([0, 1], 5))
+
     # test fq_default element arithemtic
 
-    for gf in [gf_5, gf_5_2, gf_127_2]:
+    for gf in [gf_5, gf_5_2, gf_127, gf_127_2]:
 
         assert (gf(0) == gf.zero()) is True
         assert (gf(0) != gf.zero()) is False
