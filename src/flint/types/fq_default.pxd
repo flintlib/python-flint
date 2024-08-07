@@ -15,8 +15,10 @@ cdef class fq_default_ctx:
     cdef bint _initialized
 
     cdef new_ctype_fq_default(self)
+    cdef set_list_as_fq_default(self, fq_default_t val, obj)
     cdef set_any_as_fq_default(self, fq_default_t val, obj)
-    
+    cdef any_as_fq_default(self, obj)
+
     @staticmethod
     cdef fq_default_ctx c_from_order(fmpz p, int d, char *var, fq_default_type type=*)
 

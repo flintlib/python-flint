@@ -101,7 +101,7 @@ cdef extern from "flint/fq_default.h":
     void fq_default_get_fmpz_mod_poly(fmpz_mod_poly_t poly, const fq_default_t op, const fq_default_ctx_t ctx)
     void fq_default_set_fmpz_mod_poly(fq_default_t op, const fmpz_mod_poly_t poly, const fq_default_ctx_t ctx)
     void fq_default_get_fmpz_poly(fmpz_poly_t a, const fq_default_t b, const fq_default_ctx_t ctx)
-    void fq_default_set_fmpz_poly(fq_default_struct a, const fmpz_poly_t b, const fq_default_ctx_t ctx)
+    void fq_default_set_fmpz_poly(fq_default_t a, const fmpz_poly_t b, const fq_default_ctx_t ctx)
     int fq_default_is_zero(const fq_default_t op, const fq_default_ctx_t ctx)
     int fq_default_is_one(const fq_default_t op, const fq_default_ctx_t ctx)
     int fq_default_equal(const fq_default_t op1, const fq_default_t op2, const fq_default_ctx_t ctx)

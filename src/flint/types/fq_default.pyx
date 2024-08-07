@@ -1,9 +1,19 @@
 from flint.pyflint cimport global_random_state
 from flint.types.fmpz cimport fmpz, any_as_fmpz
-from flint.types.fmpz_poly cimport fmpz_poly
+from flint.types.fmpz_poly cimport fmpz_poly, any_as_fmpz_poly, fmpz_poly_set_list
 from flint.types.fmpz_mod_poly cimport fmpz_mod_poly, fmpz_mod_poly_ctx
 from flint.types.nmod_poly cimport nmod_poly
 from flint.utils.typecheck cimport typecheck
+
+"""
+TODO:
+
+- be able to call from __init__
+- allow the variable name to be None if the degree is 1
+- allow the variable name to be as long as we want
+- print the context differently for degree = 1
+- decide on __repr__ of elements 
+"""
 
 cdef class fq_default_ctx:
     r"""
@@ -84,6 +94,10 @@ cdef class fq_default_ctx:
         # TODO: we should allow var to be None when d == 1
         if isinstance(var, str):
             var = var.encode()
+
+        # TODO: Flint only wants one-character inputs
+        if len(var) > 1:
+            raise ValueError
         
         return fq_default_ctx.c_from_order(order, d, var, type)
 
@@ -243,11 +257,55 @@ cdef class fq_default_ctx:
     cdef new_ctype_fq_default(self):
         return fq_default.__new__(fq_default, None, self)
 
-    cdef set_any_as_fq_default(self, fq_default_t val, obj):
-        if typecheck(obj, fmpz):
-            fq_default_set_fmpz(val, (<fmpz>obj).val, self.val)
+    cdef set_list_as_fq_default(self, fq_default_t fq_ele, obj):
+        cdef fmpz_poly poly
+        poly = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_set_list(poly.val, obj)
+        
+        # Now set the value from the fmpz_poly
+        fq_default_set_fmpz_poly(fq_ele, poly.val, self.val)
+
+        return 0
+
+    cdef set_any_as_fq_default(self, fq_default_t fq_ele, obj):
+        # Converts the list to an fmpz_poly and then sets from this
+        if typecheck(obj, list):
+            return self.set_list_as_fq_default(fq_ele, obj)
+
+        # Assumes that the modulus of the polynomial matches
+        # the context for the fq_default
+        if typecheck(obj, fmpz_mod_poly):
+            fq_default_set_fmpz_mod_poly(fq_ele, (<fmpz_mod_poly>obj).val, self.val)
             return 0
-        return NotImplemented
+
+        # Assumes that the modulus of the polynomial matches
+        # the context for the fq_default
+        if typecheck(obj, nmod_poly):
+            fq_default_set_nmod_poly(fq_ele, (<nmod_poly>obj).val, self.val)
+            return 0
+
+        # If the input is not fmpz_mod_poly or nmod_poly or a list, we cast the
+        # input to an fmpz_poly and then set from this
+        poly = any_as_fmpz_poly(obj)
+        if poly is NotImplemented:
+            return NotImplemented
+
+        fq_default_set_fmpz_poly(fq_ele, (<fmpz_poly>poly).val, self.val)
+        return 0
+
+    cdef any_as_fq_default(self, obj):
+        # convert from fq_default
+        if typecheck(obj, fq_default):
+            if self != (<fq_default>obj).ctx:
+                raise ValueError("contexts dont match")
+            return obj
+
+        cdef fq_default res
+        res = self.new_ctype_fq_default()
+        check = self.set_any_as_fq_default(res.val, obj)
+        if check is NotImplemented:
+            return NotImplemented        
+        return res
 
     def __eq__(self, other):
         """
@@ -334,7 +392,7 @@ cdef class fq_default(flint_scalar):
         return pol
 
     def str(self):
-        return self.polynomial().str(var=self.ctx.var)
+        return self.polynomial().str(var=self.ctx.var.decode())
 
     def __repr__(self):
         # TODO: what do we want here?
@@ -348,6 +406,24 @@ cdef class fq_default(flint_scalar):
 
     def is_one(self):
         return 1 == fq_default_is_zero(self.val, self.ctx.val)
+
+    def __richcmp__(self, other, int op):
+        cdef bint res
+        if op != 2 and op != 3:
+            raise TypeError("fq_default cannot be ordered")
+
+        if not typecheck(other, fq_default):
+            other = self.ctx.any_as_fq_default(other)
+
+        if typecheck(other, fq_default):
+            res = (self.ctx == (<fq_default>other).ctx) and \
+                  fq_default_equal(self.val, (<fq_default>other).val, self.ctx.val)
+            if op == 2:
+                return res
+            else:
+                return not res
+        else:
+            return NotImplemented
 
     # =================================================
     # Generic arithmetic required by flint_scalar
@@ -374,6 +450,8 @@ cdef class fq_default(flint_scalar):
         return NotImplemented
 
     def _invert_(self):
+        """
+        """
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
         fq_default_inv(res.val, self.val, self.ctx.val)
@@ -384,12 +462,16 @@ cdef class fq_default(flint_scalar):
     # ================================================= 
 
     def square(self):
+        """
+        """
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
         fq_default_sqr(res.val, self.val, self.ctx.val)
         return res
 
     def __pow__(self, e):
+        """
+        """
         return NotImplemented
 
     def sqrt(self):
@@ -401,9 +483,13 @@ cdef class fq_default(flint_scalar):
         raise ValueError("element is not a square")
 
     def is_square(self):
+        """
+        """
         return 1 == fq_default_is_square(self.val, self.ctx.val)
 
     def pth_root(self):
+        """
+        """
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
         fq_default_pth_root(res.val, self.val, self.ctx.val)
@@ -414,10 +500,16 @@ cdef class fq_default(flint_scalar):
     # ================================================= 
 
     def trace(self):
+        """
+        """
         return NotImplemented
 
     def norm(self):
+        """
+        """
         return NotImplemented
 
     def frobenius(self):
+        """
+        """
         return NotImplemented
