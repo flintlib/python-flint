@@ -12,16 +12,16 @@ cdef class fq_default_ctx:
     Finite fields can be initialized in one of two possible ways. The
     first is by providing characteristic and degree:
 
-        >>> fq_default_ctx(5, 2, 'y')
-        fq_default_ctx(5, 2, 'y', x^2 + 4*x + 2, 1)
+        >>> fq_default_ctx(5, 2, 'y', fq_type=1)
+        fq_default_ctx(5, 2, 'y', x^2 + 4*x + 2, 'FQ_ZECH')
 
     The second is by giving an irreducible polynomial of type
     :class:`~.nmod_poly` or :class:`~.fmpz_mod_poly`:
 
         >>> from flint import fmpz_mod_poly_ctx
         >>> mod = fmpz_mod_poly_ctx(11)([1,0,1])
-        >>> fq_default_ctx(modulus=mod)
-        fq_default_ctx(11, 2, 'x', x^2 + 1, 2)
+        >>> fq_default_ctx(modulus=mod, fq_type=2)
+        fq_default_ctx(11, 2, 'x', x^2 + 1, 'FQ_NMOD')
     
     For more details, see the documentation of :method:`~.from_order`
     and :method:`~.from_modulus`.
@@ -55,7 +55,7 @@ cdef class fq_default_ctx:
         if modulus is not None:
             # If the polynomial has no known characteristic, we can try and create one
             # using the supplied prime
-            if not typecheck(modulus, [fmpz_mod_poly, nmod_poly]):
+            if not (typecheck(modulus, fmpz_mod_poly) or typecheck(modulus, nmod_poly)):
                 if p is None:
                     raise ValueError("cannot create from modulus if no characteristic is known")
 
@@ -661,12 +661,15 @@ cdef class fq_default(flint_scalar):
     def norm(self):
         """
         Returns the norm of self
+
+            >>> gf = fq_default_ctx(163, 3)
+            >>> a = gf([1,2,3])
         """
         cdef fmpz nrm = fmpz.__new__(fmpz)
         fq_default_norm(nrm.val, self.val, self.ctx.val)
         return nrm
 
-    def frobenius(self, e):
+    def frobenius(self, e=1):
         """
         Evaluates the homomorphism `\Sigma^e` on ``self``.
         """
