@@ -84,25 +84,25 @@ cdef class fmpq(flint_scalar):
                     p = fmpz(p)
                     q = fmpz(1)
             else:
-                p = any_as_fmpq(p)
-                if p is NotImplemented:
+                p2 = any_as_fmpq(p)
+                if p2 is NotImplemented:
                     raise TypeError("cannot create fmpq from object of type %s" % type(p))
-                fmpq_set(self.val, (<fmpq>p).val)
+                fmpq_set(self.val, (<fmpq>p2).val)
                 return
         else:
             raise TypeError("fmpq() takes at most 2 arguments (%d given)" % len(args))
 
-        p = any_as_fmpz(p)
-        if p is NotImplemented:
+        p2 = any_as_fmpz(p)
+        if p2 is NotImplemented:
             raise TypeError("cannot create fmpq from object of type %s" % type(p))
-        q = any_as_fmpz(q)
-        if q is NotImplemented:
+        q2 = any_as_fmpz(q)
+        if q2 is NotImplemented:
             raise TypeError("cannot create fmpq from object of type %s" % type(q))
-        if fmpz_is_zero((<fmpz>q).val):
+        if fmpz_is_zero((<fmpz>q2).val):
             raise ZeroDivisionError("cannot create rational number with zero denominator")
 
-        fmpz_set(fmpq_numref(self.val), (<fmpz>p).val)
-        fmpz_set(fmpq_denref(self.val), (<fmpz>q).val)
+        fmpz_set(fmpq_numref(self.val), (<fmpz>p2).val)
+        fmpz_set(fmpq_denref(self.val), (<fmpz>q2).val)
         fmpq_canonicalise(self.val)
 
     def __richcmp__(s, t, int op):
