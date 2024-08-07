@@ -328,10 +328,6 @@ cdef class fq_default_ctx:
         return 0
 
     cdef set_any_as_fq_default(self, fq_default_t fq_ele, obj):
-        # Converts the list to an fmpz_poly and then sets from this
-        if typecheck(obj, list):
-            return self.set_list_as_fq_default(fq_ele, obj)
-
         # For small integers we can convert directly
         if typecheck(obj, int) and obj.bit_length() < 32:
             fq_default_set_si(fq_ele, <slong>obj, self.val)
@@ -431,6 +427,12 @@ cdef class fq_default(flint_scalar):
             raise TypeError
         self.ctx = ctx
 
+        # Converts the list to an fmpz_poly and then sets from this
+        if typecheck(val, list):
+            self.ctx.set_list_as_fq_default(self.val, val)
+            return
+
+        # Otherwise cascades through types to convert
         check = self.ctx.set_any_as_fq_default(self.val, val)
         if check is NotImplemented:
             raise TypeError
