@@ -3,6 +3,7 @@ from flint.utils.typecheck cimport typecheck
 from flint.types.fmpq cimport any_as_fmpq
 from flint.types.fmpz cimport any_as_fmpz
 from flint.types.fmpz cimport fmpz
+from flint.types.fmpz_mod cimport fmpz_mod
 from flint.types.fmpq cimport fmpq
 
 from flint.flintlib.flint cimport ulong
@@ -66,25 +67,28 @@ cdef class nmod(flint_scalar):
     def modulus(self):
         return self.mod.n
 
-    def __richcmp__(s, t, int op):
-        cdef mp_limb_t v
+    def __richcmp__(self, other, int op):
         cdef bint res
+
         if op != 2 and op != 3:
             raise TypeError("nmods cannot be ordered")
-        if typecheck(s, nmod) and typecheck(t, nmod):
-            res = ((<nmod>s).val == (<nmod>t).val) and \
-                  ((<nmod>s).mod.n == (<nmod>t).mod.n)
-            if op == 2:
-                return res
-            else:
-                return not res
-        elif typecheck(s, nmod) and typecheck(t, int):
-            res = s.val == (t % s.mod.n)
-            if op == 2:
-                return res
-            else:
-                return not res
-        return NotImplemented
+        
+        if typecheck(other, nmod):
+            res = self.val == (<nmod>other).val and \
+                  self.mod.n == (<nmod>other).mod.n
+        elif typecheck(other, int):
+            res = self.val == (other % self.mod.n)
+        elif typecheck(other, fmpz):
+            res = self.val == (int(other) % self.mod.n)
+        elif typecheck(other, fmpz_mod):
+            res = self.mod.n == (<fmpz_mod>other).ctx.modulus() and \
+                  self.val == int(other)
+        else:
+            return NotImplemented
+
+        if op == 2:
+            return res
+        return not res
 
     def __hash__(self):
         return hash((int(self.val), self.modulus))

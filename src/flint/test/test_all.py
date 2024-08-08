@@ -1357,6 +1357,24 @@ def test_nmod():
     assert str(G(3,5)) == "3"
     assert G(3,5).repr() == "nmod(3, 5)"
 
+    # We can compare to int and fmpz types
+    assert G(1, 5) == int(1)
+    assert G(4, 5) == int(-1)
+    assert G(1, 5) == flint.fmpz(1)
+    assert G(4, 5) == flint.fmpz(-1)
+
+    # When the modulus matches, we can compare fmpz_mod
+    R = flint.fmpz_mod_ctx(5)
+    assert G(1, 5) == R(1)
+    assert G(1, 5) != R(-1)
+    assert G(4, 5) == R(4)
+    assert G(4, 5) == R(-1)
+    # when the modulus doesnt match, everything fails
+    assert G(1, 7) != R(1)
+    assert G(1, 7) != R(-1)
+    assert G(4, 7) != R(4)
+    assert G(4, 7) != R(-1)
+
 def test_nmod_poly():
     N = flint.nmod
     P = flint.nmod_poly
