@@ -1,7 +1,5 @@
-from cpython.int cimport PyInt_AS_LONG
 from cpython.list cimport PyList_GET_SIZE
 from cpython.long cimport PyLong_Check
-from cpython.int cimport PyInt_Check
 
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_poly

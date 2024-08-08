@@ -1,8 +1,5 @@
 from cpython.float cimport PyFloat_AS_DOUBLE
-from cpython.version cimport PY_MAJOR_VERSION
-from cpython.int cimport PyInt_AS_LONG
 from cpython.long cimport PyLong_Check
-from cpython.int cimport PyInt_Check
 
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_context cimport thectx
@@ -84,10 +81,6 @@ cdef int arb_set_python(arb_t x, obj, bint allow_conversion) except -1:
 
     if typecheck(obj, fmpq):
         arb_set_fmpq(x, (<fmpq>obj).val, getprec())
-        return 1
-
-    if PY_MAJOR_VERSION < 3 and PyInt_Check(obj):
-        arb_set_si(x, PyInt_AS_LONG(obj))
         return 1
 
     if PyLong_Check(obj):

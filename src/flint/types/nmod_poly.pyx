@@ -183,12 +183,6 @@ cdef class nmod_poly(flint_poly):
         else:
             raise TypeError("cannot set element of type %s" % type(x))
 
-    def degree(self):
-        return nmod_poly_degree(self.val)
-
-    def length(self):
-        return nmod_poly_length(self.val)
-
     def __bool__(self):
         return not nmod_poly_is_zero(self.val)
 
