@@ -4,8 +4,6 @@ from flint.flintlib.flint cimport slong, fmpz_struct
 from flint.flintlib.fmpq cimport fmpq_t
 
 
-# unimported types  set()
-
 cdef extern from "flint/fmpz_mpoly_factor.h":
 
     ctypedef struct fmpz_mpoly_factor_struct:

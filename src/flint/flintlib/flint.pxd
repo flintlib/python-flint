@@ -60,6 +60,11 @@ cdef extern from "flint/flint.h":
     long flint_get_num_threads()
     void flint_cleanup()
 
+    ctypedef struct nmod_t:
+        mp_limb_t n
+        mp_limb_t ninv
+        flint_bitcnt_t norm
+
 cdef extern from *:
     """
     /* FLINT_BITS is not known until C compile time. We need to check if long

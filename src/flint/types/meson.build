@@ -19,6 +19,7 @@ exts = [
 
   'nmod',
   'nmod_poly',
+  'nmod_mpoly',
   'nmod_mat',
   'nmod_series',
 
@@ -41,6 +42,7 @@ exts = [
   'dirichlet',
 
   'fmpz_mpoly',
+  'fmpz_mod_mpoly',
   'fmpq_mpoly',
 ]
 
