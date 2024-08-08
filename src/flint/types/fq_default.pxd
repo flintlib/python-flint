@@ -18,6 +18,7 @@ cdef class fq_default_ctx:
 
     cdef new_ctype_fq_default(self)
     cdef set_list_as_fq_default(self, fq_default_t val, obj)
+    cdef set_any_scalar_as_fq_default(self, fq_default_t fq_ele, obj)
     cdef set_any_as_fq_default(self, fq_default_t val, obj)
     cdef any_as_fq_default(self, obj)
 

@@ -1,5 +1,7 @@
 from flint.pyflint cimport global_random_state
 from flint.types.fmpz cimport fmpz, any_as_fmpz
+from flint.types.nmod cimport nmod
+from flint.types.fmpz_mod cimport fmpz_mod
 from flint.types.fmpz_poly cimport fmpz_poly, any_as_fmpz_poly, fmpz_poly_set_list
 from flint.types.fmpz_mod_poly cimport fmpz_mod_poly, fmpz_mod_poly_ctx
 from flint.types.nmod_poly cimport nmod_poly
@@ -348,18 +350,43 @@ cdef class fq_default_ctx:
 
         return 0
 
-    cdef set_any_as_fq_default(self, fq_default_t fq_ele, obj):
-        # For small integers we can convert directly
-        if typecheck(obj, int) and obj.bit_length() < 32:
-            if obj < 0:
+    cdef set_any_scalar_as_fq_default(self, fq_default_t fq_ele, obj):
+        if typecheck(obj, int):
+            # For small integers we can convert directly
+            if obj < 0 and obj.bit_length() < 31:
                 fq_default_set_si(fq_ele, <slong>obj, self.val)
-            else:
+            elif obj.bit_length() < 32:
                 fq_default_set_ui(fq_ele, <ulong>obj, self.val)
+            # For larger integers we first convert to fmpz
+            else:
+                obj_fmpz = any_as_fmpz(obj)
+                fq_default_set_fmpz(fq_ele, (<fmpz>obj_fmpz).val, self.val)
             return 0
 
         # For fmpz we can also convert directly
         if typecheck(obj, fmpz):
             fq_default_set_fmpz(fq_ele, (<fmpz>obj).val, self.val)
+            return 0
+
+        # For nmod we can convert by taking it as an int
+        # Ignores the modulus of nmod
+        if typecheck(obj, nmod):
+            fq_default_set_ui(fq_ele, <ulong>(<nmod>obj).val, self.val)
+            return 0
+
+        # For fmpz_mod we can also convert directly
+        # Assumes that the modulus of the ring matches the context
+        if typecheck(obj, fmpz_mod):
+            fq_default_set_fmpz(fq_ele, (<fmpz_mod>obj).val, self.val)
+            return 0
+
+        # Otherwise the object wasn't a scalar we convert from
+        return NotImplemented
+
+    cdef set_any_as_fq_default(self, fq_default_t fq_ele, obj):
+        # First try and convert from scalars
+        check = self.set_any_scalar_as_fq_default(fq_ele, obj)
+        if check is not NotImplemented:
             return 0
 
         # Assumes that the modulus of the polynomial matches
@@ -560,18 +587,57 @@ cdef class fq_default(flint_scalar):
         if op != 2 and op != 3:
             raise TypeError("fq_default cannot be ordered")
 
+        # If other is not an fq_default element, we attempt to convert to fq_default
         if not typecheck(other, fq_default):
-            other = self.ctx.any_as_fq_default(other)
+            # For nmod and fmpz_mod if the modulus does not match the characteristic
+            # then we return false.
+            if typecheck(other, nmod) and self.ctx.characteristic() != (<nmod>other).modulus():
+                    res = False
 
-        if typecheck(other, fq_default):
-            res = (self.ctx == (<fq_default>other).ctx) and \
-                  fq_default_equal(self.val, (<fq_default>other).val, self.ctx.val)
+            elif typecheck(other, fmpz_mod) and self.ctx.characteristic() != (<fmpz_mod>other).ctx.modulus():
+                    res = False
+
+            else:
+                # Convert from int, fmpz, fmpz_mod and nmod to fq_default
+                cmp = self.ctx.new_ctype_fq_default()
+                check = self.ctx.set_any_scalar_as_fq_default((<fq_default>cmp).val, other)
+
+                # Conversion failed, element was not a compatible scalar
+                if check is NotImplemented:
+                    res = False
+                else:
+                    # We now have an fq_default element with the same context, so compare value only
+                    res = fq_default_equal(self.val, (<fq_default>cmp).val, self.ctx.val)
+
+            # Flip the result of res if we're doing not equals
             if op == 2:
                 return res
-            else:
-                return not res
+            return not res
+
+        # Otherwise we're in the case where other is also an fq_default but may have a
+        # different context.
+
+        # If the contexts match exactly, only check values
+        if self.ctx == (<fq_default>other).ctx:
+            res = fq_default_equal(self.val, (<fq_default>other).val, self.ctx.val)
+
+        # Otherwise if both contexts have the same characteristic check
+        # if both fq_default lift to the same integer
+        elif self.ctx.characteristic() == (<fq_default>other).ctx.characteristic():
+            try:
+                res = int(self) == int(other)
+            # One or both lifts failed, so values are not equal
+            except ValueError:
+                res = False
+
+        # Otherwise, values are considered not equal
         else:
-            return NotImplemented
+            res = False
+
+        # Flip the result of res if we're doing not equals
+        if op == 2:
+            return res
+        return not res
 
     # =================================================
     # Generic arithmetic required by flint_scalar

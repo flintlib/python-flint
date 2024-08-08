@@ -3595,6 +3595,7 @@ def test_fq_default():
 
     # GF(5^2)
     gf_5_2 = flint.fq_default_ctx(5, 2)
+    gf_5_2_ = flint.fq_default_ctx(5, 2)
 
     # GF((2**127 - 1)^2)
     gf_127 = flint.fq_default_ctx(2**127 - 1, 2)
@@ -3618,11 +3619,76 @@ def test_fq_default():
     assert str(gf_5_2) == "Context for fq_default in GF(5^2)[x]/(x^2 + 4*x + 2)"
 
     # coercision
-    assert gf_5(1) == gf_5(flint.fmpz(1)) == gf_5.one()
-    assert gf_5(-1) == gf_5(flint.fmpz(-1)) == -gf_5.one()
-    assert gf_5([0, 1]) == gf_5(flint.fmpz_poly([0, 1])) == gf_5.gen()
+    assert gf_5(1) == gf_5.one()
+    assert gf_5(flint.fmpz(1)) == gf_5.one()
+    assert gf_5(-1) == -gf_5.one()
+    assert gf_5(flint.fmpz(-1)) == -gf_5.one()
+    R = flint.fmpz_mod_ctx(5)
+    assert gf_5(R(1)) == gf_5.one()
+    assert gf_5(R(-1)) == -gf_5.one()
+    assert gf_5(flint.nmod(1, 5)) == gf_5.one()
+    assert gf_5(flint.nmod(-1, 5)) == -gf_5.one()
+    assert gf_5([0, 1]) == gf_5.gen()
+    assert gf_5(flint.fmpz_poly([0, 1])) == gf_5.gen()
     R = flint.fmpz_mod_poly_ctx(5)
-    assert gf_5.gen() == gf_5(R.gen()) == gf_5(flint.nmod_poly([0, 1], 5))
+    assert gf_5.gen() == gf_5(R.gen())
+    assert gf_5.gen() == gf_5(flint.nmod_poly([0, 1], 5))
+
+
+    # testing various equalties between types
+
+    # integers are the same if charactersitic is the same
+    # even with extensions
+    assert gf_5.one() == gf_5_.one()
+    assert gf_5.one() == gf_5_2.one()
+    assert gf_5.one() != gf_127.one()
+
+    # the generators for different extensions
+    assert gf_5_2([0, 1]) != gf_5([0, 1])
+    assert gf_5_2([0, 1]) == gf_5_2_([0, 1])
+    assert gf_5_2([0, 1]) != gf_127_2([0, 1])
+
+    # integers are reduced modulo p before comparison
+    for int_type in [int, flint.fmpz]:
+        assert gf_5(1) == int_type(1)
+        assert gf_5(-1) == int_type(-1)
+        assert gf_5(-1) == int_type(4)
+        assert gf_5(4) == int_type(4)
+        assert gf_5(4) == int_type(-1)
+
+    # integers modulo n also can be compared when they match
+    assert gf_5(1) == flint.nmod(1, 5)
+    assert gf_5(-1) == flint.nmod(-1, 5)
+    assert gf_5(-1) == flint.nmod(4, 5)
+    assert gf_5_2(1) == flint.nmod(1, 5)
+    assert gf_5_2(-1) == flint.nmod(-1, 5)
+    assert gf_5_2(-1) == flint.nmod(4, 5)
+
+    # when the moduli dont match, comparison is always false
+    assert gf_5(1) != flint.nmod(1, 7)
+    assert gf_5(-1) != flint.nmod(-1, 7)
+    assert gf_5(-1) != flint.nmod(4, 7)
+    assert gf_5_2(1) != flint.nmod(1, 7)
+    assert gf_5_2(-1) != flint.nmod(-1, 7)
+    assert gf_5_2(-1) != flint.nmod(4, 7)
+
+    # integers modulo n also can be compared when they match
+    R5 = flint.fmpz_mod_ctx(5)
+    assert gf_5(1) == R5(1)
+    assert gf_5(-1) == R5(-1)
+    assert gf_5(-1) == R5(4)
+    assert gf_5_2(1) == R5(1)
+    assert gf_5_2(-1) == R5(-1)
+    assert gf_5_2(-1) == R5(4)
+
+    # when the moduli dont match, comparison is always false
+    R7 = flint.fmpz_mod_ctx(7)
+    assert gf_5(1) != R7(1)
+    assert gf_5(-1) != R7(-1)
+    assert gf_5(-1) != R7(4)
+    assert gf_5_2(1) != R7(1)
+    assert gf_5_2(-1) != R7(-1)
+    assert gf_5_2(-1) != R7(4)
 
     # test fq_default element arithemtic
 
