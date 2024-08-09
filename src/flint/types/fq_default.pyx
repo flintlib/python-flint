@@ -880,3 +880,15 @@ cdef class fq_default(flint_scalar):
         res = self.ctx.new_ctype_fq_default()
         fq_default_frobenius(res.val, self.val, <slong>e, self.ctx.val)
         return res
+
+    def is_primitive(self):
+        """
+        """
+        if self.ctx.fq_type == 1:
+            return 1 == fq_zech_is_primitive(<fq_zech_t>self.val, <fq_zech_ctx_t>self.ctx.val)
+        elif self.ctx.fq_type in [2, 4]:
+            return 1 == fq_nmod_is_primitive(<fq_nmod_t>self.val, <fq_nmod_ctx_t>self.ctx.val)
+        elif self.ctx.fq_type in [3, 5]:
+            return 1 == fq_is_primitive(<fq_t>self.val, <fq_ctx_t>self.ctx.val)
+        else:
+            return NotImplemented
