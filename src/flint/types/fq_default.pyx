@@ -14,7 +14,7 @@ cdef class fq_default_ctx:
     Finite fields can be initialized in one of two possible ways. The
     first is by providing characteristic and degree:
 
-        >>> fq_default_ctx(5, 2, 'y', fq_type=1)
+        >>> fq_default_ctx(5, 2, 'y', fq_type='FQ_ZECH')
         fq_default_ctx(5, 2, 'y', x^2 + 4*x + 2, 'FQ_ZECH')
 
     The second is by giving an irreducible polynomial of type
@@ -22,7 +22,7 @@ cdef class fq_default_ctx:
 
         >>> from flint import fmpz_mod_poly_ctx
         >>> mod = fmpz_mod_poly_ctx(11)([1,0,1])
-        >>> fq_default_ctx(modulus=mod, fq_type=2)
+        >>> fq_default_ctx(modulus=mod, fq_type='FQ_NMOD')
         fq_default_ctx(11, 2, 'x', x^2 + 1, 'FQ_NMOD')
 
     For more details, see the documentation of :method:`~.set_from_order`
@@ -34,6 +34,7 @@ cdef class fq_default_ctx:
     def __dealloc__(self):
         if self._initialized:
             fq_default_ctx_clear(self.val)
+            self._initialized = False
 
     @staticmethod
     def _parse_input_fq_type(fq_type):
@@ -96,7 +97,7 @@ cdef class fq_default_ctx:
                 if modulus is NotImplemented:
                     raise TypeError("modulus cannot be cast to fmpz_mod_poly")
 
-            self.set_from_modulus(modulus, var, fq_type)
+            self._set_from_modulus(modulus, var, fq_type)
             return
 
         # If there's no modulus and no prime, we can't continue
@@ -108,7 +109,7 @@ cdef class fq_default_ctx:
             degree = 1
 
         # Construct the field from the prime and degree GF(p^d)
-        self.set_from_order(p, degree, var, fq_type)
+        self._set_from_order(p, degree, var, fq_type)
 
     cdef _c_set_from_order(self, fmpz p, int d, char *var,
                            fq_default_type fq_type=fq_default_type.DEFAULT):
@@ -116,7 +117,7 @@ cdef class fq_default_ctx:
         fq_default_ctx_init_type(self.val, p.val, d, self.var, fq_type)
         self._initialized = True
 
-    def set_from_order(self, p, d, var,
+    cdef _set_from_order(self, p, d, var,
                        fq_type=fq_default_type.DEFAULT, check_prime=True):
         """
         Construct a context for the finite field GF(p^d).
@@ -159,7 +160,7 @@ cdef class fq_default_ctx:
             raise TypeError(f"modulus must be fmpz_mod_poly or nmod_poly, got {modulus!r}")
         self._initialized = True
 
-    def set_from_modulus(self, modulus, var,
+    cdef _set_from_modulus(self, modulus, var,
                          fq_type=fq_default_type.DEFAULT, check_modulus=True):
         """
         Construct a context for a finite field from an irreducible polynomial.
@@ -191,25 +192,7 @@ cdef class fq_default_ctx:
         - 2: `fq_default_ctx.FQ_NMOD`: Using `fq_nmod_t`,
         - 3: `fq_default_ctx.FQ`: Using `fq_t`.
         """
-        return fq_default_ctx_type(self.val)
-
-    @property
-    def fq_type_str(self):
-        """
-        Return the string implementation of this context. It is one of:
-
-        - `fq_default_ctx.FQ_ZECH`: Using `fq_zech_t`,
-        - `fq_default_ctx.FQ_NMOD`: Using `fq_nmod_t`,
-        - `fq_default_ctx.FQ`: Using `fq_t`.
-        """
-        FQ_TYPES = {
-            1 : "FQ_ZECH",
-            2 : "FQ_NMOD",
-            3 : "FQ",
-            4 : "NMOD",
-            5 : "FMPZ_MOD",
-        }
-        return FQ_TYPES[self.fq_type]
+        return fq_default_type(fq_default_ctx_type(self.val))
 
     def degree(self):
         """
@@ -355,7 +338,7 @@ cdef class fq_default_ctx:
             # For small integers we can convert directly
             if obj < 0 and obj.bit_length() < 31:
                 fq_default_set_si(fq_ele, <slong>obj, self.val)
-            elif obj.bit_length() < 32:
+            elif obj > 0 and obj.bit_length() < 32:
                 fq_default_set_ui(fq_ele, <ulong>obj, self.val)
             # For larger integers we first convert to fmpz
             else:
@@ -447,8 +430,7 @@ cdef class fq_default_ctx:
                     and self.var == other.var
                     and self.prime() == other.prime()
                     and self.modulus() == other.modulus())
-        else:
-            raise TypeError(f"Cannot compare fq_default_ctx with {type(other)}")
+        return False
 
     def __hash__(self):
         return hash((self.type, self.var, self.prime(), self.modulus()))
@@ -460,8 +442,8 @@ cdef class fq_default_ctx:
 
     def __repr__(self):
         if self.degree() == 1:
-            return f"fq_default_ctx({self.prime()}, var='{self.var.decode()}' type='{self.fq_type_str}')"
-        return f"fq_default_ctx({self.prime()}, {self.degree()}, '{self.var.decode()}', {self.modulus()!r}, '{self.fq_type_str}')"
+            return f"fq_default_ctx({self.prime()}, var='{self.var.decode()}' type='{self.fq_type._name_}')"
+        return f"fq_default_ctx({self.prime()}, {self.degree()}, '{self.var.decode()}', {self.modulus()!r}, '{self.fq_type._name_}')"
 
     def __call__(self, val):
         return fq_default(val, self)
@@ -553,7 +535,7 @@ cdef class fq_default(flint_scalar):
         return f"fq_default({self.to_list(), self.ctx.__repr__()})"
 
     def __hash__(self):
-        return hash((self.to_polynomial(), hash(self.ctx)))
+        return hash((self.polynomial(), hash(self.ctx)))
 
     # =================================================
     # Comparisons
