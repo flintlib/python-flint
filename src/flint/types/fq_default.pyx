@@ -362,15 +362,11 @@ cdef class fq_default_ctx:
         if check is not NotImplemented:
             return 0
 
-        # Assumes that the modulus of the polynomial matches
-        # the context for the fq_default
-        if typecheck(obj, fmpz_mod_poly):
+        if typecheck(obj, fmpz_mod_poly) and self.prime() == (<fmpz_mod_poly>obj).ctx.mod.modulus():
             fq_default_set_fmpz_mod_poly(fq_ele, (<fmpz_mod_poly>obj).val, self.val)
             return 0
 
-        # Assumes that the modulus of the polynomial matches
-        # the context for the fq_default
-        if typecheck(obj, nmod_poly):
+        if typecheck(obj, nmod_poly) and self.prime() == obj.modulus():
             fq_default_set_nmod_poly(fq_ele, (<nmod_poly>obj).val, self.val)
             return 0
 
