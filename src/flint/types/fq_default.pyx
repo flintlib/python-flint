@@ -25,8 +25,8 @@ cdef class fq_default_ctx:
         >>> fq_default_ctx(modulus=mod, fq_type='FQ_NMOD')
         fq_default_ctx(11, 2, 'x', x^2 + 1, 'FQ_NMOD')
 
-    For more details, see the documentation of :method:`~.set_from_order`
-    and :method:`~.set_from_modulus`.
+    For more details, see the documentation of :method:`~._set_from_order`
+    and :method:`~._set_from_modulus`.
     """
     def __cinit__(self):
         pass
@@ -124,13 +124,8 @@ cdef class fq_default_ctx:
 
         `var` is a name for the ring generator of this field over GF(p).
 
-        The optional parameter `type` select the implementation. The
-        possible values are:
-
-        - `fq_default_ctx.DEFAULT`: implementation automatically decided by Flint (default),
-        - `fq_default_ctx.FQ_ZECH`: Use `fq_zech_t`,
-        - `fq_default_ctx.FQ_NMOD`: Use `fq_nmod_t`,
-        - `fq_default_ctx.FQ`: Use `fq_t`.
+        The optional parameter `type` select the implementation. For more 
+        information about the types available, see :method:`~.fq_type`.
         """
         # c_from_order expects the characteristic to be fmpz type
         prime = any_as_fmpz(p)
@@ -169,13 +164,8 @@ cdef class fq_default_ctx:
 
         `var` is a name for the ring generator of this field over the prime field.
 
-        The optional parameter `type` select the implementation. The
-        possible values are:
-
-        - `fq_default_ctx.DEFAULT`: implementation automatically decided by Flint (default),
-        - `fq_default_ctx.FQ_ZECH`: Use `fq_zech_t`,
-        - `fq_default_ctx.FQ_NMOD`: Use `fq_nmod_t`,
-        - `fq_default_ctx.FQ`: Use `fq_t`.
+        The optional parameter `type` select the implementation. For more 
+        information about the types available, see :method:`~.fq_type`.
         """
         if check_modulus and not modulus.is_irreducible():
             raise ValueError("modulus must be irreducible")
@@ -188,9 +178,14 @@ cdef class fq_default_ctx:
         """
         Return the implementation of this context. It is one of:
 
-        - 1: `fq_default_ctx.FQ_ZECH`: Using `fq_zech_t`,
-        - 2: `fq_default_ctx.FQ_NMOD`: Using `fq_nmod_t`,
-        - 3: `fq_default_ctx.FQ`: Using `fq_t`.
+        - 1. `fq_default_ctx.FQ_ZECH`: Use `fq_zech_t`,
+        - 2. `fq_default_ctx.FQ_NMOD`: Use `fq_nmod_t`,
+        - 3. `fq_default_ctx.FQ`: Use `fq_t`.
+        - 4. `fq_default_ctx.NMOD`: Use `nmod` for degree = 1,
+        - 5. `fq_default_ctx.FMPZ_MOD`: Use `fmpz_mod` for degree = 1.
+
+        These can be manually selected, or type: `fq_default_ctx.DEFAULT` can be used
+        for the implementation to be automatically decided by Flint (default),
         """
         return fq_default_type(fq_default_ctx_type(self.val))
 
