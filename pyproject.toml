@@ -19,6 +19,11 @@ classifiers = [
 file = "README.md"
 content-type = "text/markdown"
 
+[tool.meson-python.args]
+setup = [
+    "-Dadd_flint_rpath=true",
+]
+
 [tool.spin]
 package = "flint"
 
