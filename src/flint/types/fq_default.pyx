@@ -881,14 +881,15 @@ cdef class fq_default(flint_scalar):
         fq_default_frobenius(res.val, self.val, <slong>e, self.ctx.val)
         return res
 
-    def is_primitive(self):
-        """
-        """
-        if self.ctx.fq_type == 1:
-            return 1 == fq_zech_is_primitive((<fq_default>self).val.fq_zech, (<fq_default_ctx>self.ctx).val.fq_zech)
-        elif self.ctx.fq_type == 2:
-            return 1 == fq_nmod_is_primitive((<fq_default>self).val.fq_nmod, (<fq_default_ctx>self.ctx).val.fq_nmod)
-        elif self.ctx.fq_type == 3:
-            return 1 == fq_is_primitive((<fq_default>self).val.fq, (<fq_default_ctx>self.ctx).val.fq)
-        else:
-            return NotImplemented
+    # TODO: this crashes as the context cannot be found during compile time.
+    # def is_primitive(self):
+    #     """
+    #     """
+    #     if self.ctx.fq_type == 1:
+    #         return 1 == fq_zech_is_primitive((<fq_default>self).val.fq_zech, (<fq_default_ctx>self.ctx).val.fq_zech)
+    #     elif self.ctx.fq_type == 2:
+    #         return 1 == fq_nmod_is_primitive((<fq_default>self).val.fq_nmod, (<fq_default_ctx>self.ctx).val.fq_nmod)
+    #     elif self.ctx.fq_type == 3:
+    #         return 1 == fq_is_primitive((<fq_default>self).val.fq, (<fq_default_ctx>self.ctx).val.fq)
+    #     else:
+    #         return NotImplemented
