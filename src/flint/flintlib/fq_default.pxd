@@ -12,9 +12,7 @@ from flint.flintlib.fq_nmod cimport fq_nmod_t, fq_nmod_ctx_t
 from flint.flintlib.fq_zech cimport fq_zech_t, fq_zech_ctx_t
 
 cdef extern from "flint/fq_default.h":
-    # TODO: how best to handle union
-    # https://stackoverflow.com/questions/12452210/cython-nesting-a-union-within-a-struct
-    ctypedef struct fq_default_struct:
+    ctypedef union fq_default_struct:
         fq_t fq
         fq_nmod_t fq_nmod
         fq_zech_t fq_zech
@@ -30,7 +28,7 @@ cdef extern from "flint/fq_default.h":
         nmod_t mod
         mp_limb_t a    # minpoly is x - a
 
-    ctypedef struct fq_default_ctx_struct:
+    ctypedef union fq_default_ctx_struct:
         fq_ctx_t fq
         fq_nmod_ctx_t fq_nmod
         fq_zech_ctx_t fq_zech
