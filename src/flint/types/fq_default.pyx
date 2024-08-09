@@ -646,71 +646,63 @@ cdef class fq_default(flint_scalar):
     def _any_as_self(self, other):
         return self.ctx.any_as_fq_default(other)
 
-    def _neg_(self):
-        cdef fq_default res
-        res = self.ctx.new_ctype_fq_default()
+    cpdef fq_default _neg_(fq_default self):
+        cdef fq_default res = self.ctx.new_ctype_fq_default()
         fq_default_neg(res.val, self.val, self.ctx.val)
         return res
 
-    def _add_(self, other):
+    cpdef fq_default _add_(fq_default self, fq_default other):
         """
         Assumes that __add__() has ensured other is of type self
         """
-        cdef fq_default res
-        res = self.ctx.new_ctype_fq_default()
-        fq_default_add(res.val, self.val, (<fq_default>other).val, self.ctx.val)
+        cdef fq_default res = self.ctx.new_ctype_fq_default()
+        fq_default_add(res.val, self.val, other.val, self.ctx.val)
         return res
 
-    def _sub_(self, other):
+    cpdef fq_default _sub_(fq_default self, fq_default other):
         """
         Assumes that __sub__() has ensured other is of type self
         """
-        cdef fq_default res
-        res = self.ctx.new_ctype_fq_default()
-        fq_default_sub(res.val, self.val, (<fq_default>other).val, res.ctx.val)
+        cdef fq_default res = self.ctx.new_ctype_fq_default()
+        fq_default_sub(res.val, self.val, other.val, res.ctx.val)
         return res
 
-    def _rsub_(self, other):
+    cpdef fq_default _rsub_(fq_default self, fq_default other):
         """
         Assumes that __rsub__() has ensured other is of type self
         """
-        cdef fq_default res
-        res = self.ctx.new_ctype_fq_default()
-        fq_default_sub(res.val, (<fq_default>other).val, self.val, res.ctx.val)
+        cdef fq_default res = self.ctx.new_ctype_fq_default()
+        fq_default_sub(res.val, other.val, self.val, res.ctx.val)
         return res
 
-    def _mul_(self, other):
+    cpdef fq_default _mul_(fq_default self, fq_default other):
         """
         Assumes that __mul__() has ensured other is of type self
 
         TODO: this could be optimised by using mul_si and others
         """
-        cdef fq_default res
-        res = self.ctx.new_ctype_fq_default()
-        fq_default_mul(res.val, self.val, (<fq_default>other).val, self.ctx.val)
+        cdef fq_default res = self.ctx.new_ctype_fq_default()
+        fq_default_mul(res.val, self.val, other.val, self.ctx.val)
         return res
 
-    def _div_(self, other):
+    cpdef fq_default _div_(fq_default self, fq_default other):
         """
         Assumes that __div__() has ensured other is of type self
         """
-        cdef fq_default res
-        res = self.ctx.new_ctype_fq_default()
-        fq_default_div(res.val, self.val, (<fq_default>other).val, res.ctx.val)
+        cdef fq_default res = self.ctx.new_ctype_fq_default()
+        fq_default_div(res.val, self.val, other.val, res.ctx.val)
         return res
 
-    def _rdiv_(self, other):
+    cpdef fq_default _rdiv_(fq_default self, fq_default other):
         """
         Assumes that __div__() has ensured other is of type self
         """
-        cdef fq_default res
-        res = self.ctx.new_ctype_fq_default()
-        fq_default_div(res.val, (<fq_default>other).val, self.val, res.ctx.val)
+        cdef fq_default res = self.ctx.new_ctype_fq_default()
+        fq_default_div(res.val, other.val, self.val, res.ctx.val)
         return res
 
-    def _invert_(self):
-        cdef fq_default res
-        res = self.ctx.new_ctype_fq_default()
+    cpdef fq_default _invert_(fq_default self):
+        cdef fq_default res = self.ctx.new_ctype_fq_default()
         fq_default_inv(res.val, self.val, self.ctx.val)
         return res
 

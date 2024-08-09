@@ -30,3 +30,13 @@ cdef class fq_default_ctx:
 cdef class fq_default(flint_scalar):
     cdef fq_default_ctx ctx
     cdef fq_default_t val
+
+    # Arithmetic for flint_scalar base class
+    cpdef fq_default _neg_(fq_default self)
+    cpdef fq_default _add_(fq_default self, fq_default other)
+    cpdef fq_default _mul_(fq_default self, fq_default other)
+    cpdef fq_default _sub_(fq_default self, fq_default other)
+    cpdef fq_default _rsub_(fq_default self, fq_default other)
+    cpdef fq_default _div_(fq_default self, fq_default other)
+    cpdef fq_default _rdiv_(fq_default self, fq_default other)
+    cpdef fq_default _invert_(fq_default self)
