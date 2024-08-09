@@ -5,6 +5,18 @@ from flint.flintlib.fq cimport fq_is_primitive, fq_multiplicative_order
 from flint.types.fmpz cimport fmpz
 from flint.flint_base.flint_base cimport flint_scalar
 
+"""
+Enum for the fq_default context types:
+
+- 1. `fq_default_ctx.FQ_ZECH`: Use `fq_zech_t`,
+- 2. `fq_default_ctx.FQ_NMOD`: Use `fq_nmod_t`,
+- 3. `fq_default_ctx.FQ`: Use `fq_t`.
+- 4. `fq_default_ctx.NMOD`: Use `nmod` for degree = 1,
+- 5. `fq_default_ctx.FMPZ_MOD`: Use `fmpz_mod` for degree = 1.
+
+These can be manually selected, or type: `fq_default_ctx.DEFAULT` can be used
+for the implementation to be automatically decided by Flint (default),
+"""
 cpdef enum fq_default_type:
     DEFAULT  = 0
     FQ_ZECH  = 1

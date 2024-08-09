@@ -125,7 +125,8 @@ cdef class fq_default_ctx:
         `var` is a name for the ring generator of this field over GF(p).
 
         The optional parameter `type` select the implementation. For more
-        information about the types available, see :method:`~.fq_type`.
+        information about the types available, see :class:`~.fq_default_type` 
+        for possible types.
         """
         # c_from_order expects the characteristic to be fmpz type
         prime = any_as_fmpz(p)
@@ -165,7 +166,8 @@ cdef class fq_default_ctx:
         `var` is a name for the ring generator of this field over the prime field.
 
         The optional parameter `type` select the implementation. For more
-        information about the types available, see :method:`~.fq_type`.
+        information about the types available, see :class:`~.fq_default_type` 
+        for possible types.
         """
         if check_modulus and not modulus.is_irreducible():
             raise ValueError("modulus must be irreducible")
@@ -176,16 +178,7 @@ cdef class fq_default_ctx:
     @property
     def fq_type(self):
         """
-        Return the implementation of this context. It is one of:
-
-        - 1. `fq_default_ctx.FQ_ZECH`: Use `fq_zech_t`,
-        - 2. `fq_default_ctx.FQ_NMOD`: Use `fq_nmod_t`,
-        - 3. `fq_default_ctx.FQ`: Use `fq_t`.
-        - 4. `fq_default_ctx.NMOD`: Use `nmod` for degree = 1,
-        - 5. `fq_default_ctx.FMPZ_MOD`: Use `fmpz_mod` for degree = 1.
-
-        These can be manually selected, or type: `fq_default_ctx.DEFAULT` can be used
-        for the implementation to be automatically decided by Flint (default),
+        Return the implementation of this context
         """
         return fq_default_type(fq_default_ctx_type(self.val))
 
