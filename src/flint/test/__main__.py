@@ -71,6 +71,7 @@ def run_doctests(verbose=None):
                flint.types.nmod_poly,
                flint.types.nmod_mat,
                flint.types.nmod_series,
+               flint.types.fq_default,
                flint.types.arf,
                flint.types.arb,
                flint.types.arb_poly,
