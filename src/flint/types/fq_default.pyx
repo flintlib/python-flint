@@ -347,14 +347,12 @@ cdef class fq_default_ctx:
             return 0
 
         # For nmod we can convert by taking it as an int
-        # Ignores the modulus of nmod
-        if typecheck(obj, nmod):
+        if typecheck(obj, nmod) and self.prime() == obj.modulus():
             fq_default_set_ui(fq_ele, <ulong>(<nmod>obj).val, self.val)
             return 0
 
         # For fmpz_mod we can also convert directly
-        # Assumes that the modulus of the ring matches the context
-        if typecheck(obj, fmpz_mod):
+        if typecheck(obj, fmpz_mod) and self.prime() == (<fmpz_mod>obj).ctx.modulus():
             fq_default_set_fmpz(fq_ele, (<fmpz_mod>obj).val, self.val)
             return 0
 
