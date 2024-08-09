@@ -124,7 +124,7 @@ cdef class fq_default_ctx:
 
         `var` is a name for the ring generator of this field over GF(p).
 
-        The optional parameter `type` select the implementation. For more 
+        The optional parameter `type` select the implementation. For more
         information about the types available, see :method:`~.fq_type`.
         """
         # c_from_order expects the characteristic to be fmpz type
@@ -164,7 +164,7 @@ cdef class fq_default_ctx:
 
         `var` is a name for the ring generator of this field over the prime field.
 
-        The optional parameter `type` select the implementation. For more 
+        The optional parameter `type` select the implementation. For more
         information about the types available, see :method:`~.fq_type`.
         """
         if check_modulus and not modulus.is_irreducible():
@@ -329,16 +329,19 @@ cdef class fq_default_ctx:
         return 0
 
     cdef set_any_scalar_as_fq_default(self, fq_default_t fq_ele, obj):
+        cdef slong i
         if typecheck(obj, int):
             # For small integers we can convert directly
-            if obj < 0 and obj.bit_length() < 31:
-                fq_default_set_si(fq_ele, <slong>obj, self.val)
-            elif obj > 0 and obj.bit_length() < 32:
-                fq_default_set_ui(fq_ele, <ulong>obj, self.val)
-            # For larger integers we first convert to fmpz
-            else:
-                obj_fmpz = any_as_fmpz(obj)
-                fq_default_set_fmpz(fq_ele, (<fmpz>obj_fmpz).val, self.val)
+            try:
+                i = obj
+                fq_default_set_si(fq_ele, i, self.val)
+                return 0
+            # For larger integers fall through to conversion to fmpz
+            except OverflowError:
+                pass
+
+            obj_fmpz = any_as_fmpz(obj)
+            fq_default_set_fmpz(fq_ele, (<fmpz>obj_fmpz).val, self.val)
             return 0
 
         # For fmpz we can also convert directly
