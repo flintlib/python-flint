@@ -5,6 +5,11 @@ from flint.flintlib.fq cimport fq_is_primitive, fq_multiplicative_order
 from flint.types.fmpz cimport fmpz
 from flint.flint_base.flint_base cimport flint_scalar
 
+cdef extern from "flint/fq_default.h":
+    cdef fq_ctx_t FQ_DEFAULT_CTX_FQ(fq_default_ctx_t ctx)
+    cdef fq_zech_ctx_t FQ_DEFAULT_CTX_FQ_ZECH(fq_default_ctx_t ctx)
+    cdef fq_nmod_ctx_t FQ_DEFAULT_CTX_FQ_NMOD(fq_default_ctx_t ctx)
+
 cpdef enum fq_default_type:
     DEFAULT  = 0
     FQ_ZECH  = 1
@@ -27,6 +32,9 @@ cdef class fq_default_ctx:
     cdef _c_set_from_order(self, fmpz p, int d, char *var, fq_default_type fq_type=*)
     cdef _c_set_from_modulus(self, modulus, char *var, fq_default_type fq_type=*)
 
+    # cdef fq_zech_ctx_t get_fq_zech_ctx_t(self)
+    # cdef fq_nmod_ctx_t get_fq_nmod_ctx_t(self)
+    # cdef fq_ctx_t get_fq_ctx_t(self)
 
 cdef class fq_default(flint_scalar):
     cdef fq_default_ctx ctx

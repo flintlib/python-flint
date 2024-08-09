@@ -424,6 +424,30 @@ cdef class fq_default_ctx:
             return NotImplemented
         return res
 
+    # cdef get_fq_zech_ctx_t(self):
+    #     """
+    #     Return the fq_zech_ctx_t type from the context
+    #     """
+    #     cdef fq_default s
+    #     s = self
+    #     return FQ_DEFAULT_CTX_FQ_ZECH(s.ctx.val)
+
+    # cdef get_fq_nmod_ctx_t(self):
+    #     """
+    #     Return the fq_nmod_ctx_t type from the context
+    #     """
+    #     cdef fq_default s
+    #     s = self
+    #     return FQ_DEFAULT_CTX_FQ_NMOD(s.ctx.val)
+    
+    # cdef fq_ctx_t get_fq_ctx_t(self):
+    #     """
+    #     Return the fq_ctx_t type from the context
+    #     """
+    #     cdef fq_default s
+    #     s = self
+    #     return FQ_DEFAULT_CTX_FQ(s.ctx.val)
+
     def __eq__(self, other):
         """
         Two finite field context compare equal if they have same
@@ -881,15 +905,29 @@ cdef class fq_default(flint_scalar):
         fq_default_frobenius(res.val, self.val, <slong>e, self.ctx.val)
         return res
 
-    # TODO: this crashes as the context cannot be found during compile time.
-    # def is_primitive(self):
-    #     """
-    #     """
-    #     if self.ctx.fq_type == 1:
-    #         return 1 == fq_zech_is_primitive((<fq_default>self).val.fq_zech, (<fq_default_ctx>self.ctx).val.fq_zech)
-    #     elif self.ctx.fq_type == 2:
-    #         return 1 == fq_nmod_is_primitive((<fq_default>self).val.fq_nmod, (<fq_default_ctx>self.ctx).val.fq_nmod)
-    #     elif self.ctx.fq_type == 3:
-    #         return 1 == fq_is_primitive((<fq_default>self).val.fq, (<fq_default_ctx>self.ctx).val.fq)
-    #     else:
-    #         return NotImplemented
+    def is_primitive(self):
+        """
+        Returns whether ``self`` is primitive, i.e., whether it is a 
+        generator of the multiplicative group of the finite field.
+
+            >>> gf = fq_default_ctx(163, fq_type=1)
+            >>> gf(2).is_primitive()
+            True
+            >>> gf(5).is_primitive()
+            False
+            >>> gf = fq_default_ctx(163, 3, fq_type=2)
+            >>> gf.gen().is_primitive()
+            True
+            >>> gf = fq_default_ctx(2**127 - 1, fq_type=3)
+            >>> gf(43).is_primitive()
+            True
+        """
+        cdef fq_default s
+        s = self
+        if self.ctx.fq_type == 1:
+            return 1 == fq_zech_is_primitive(s.val.fq_zech, FQ_DEFAULT_CTX_FQ_ZECH(s.ctx.val))
+        elif self.ctx.fq_type == 2:
+            return 1 == fq_nmod_is_primitive(s.val.fq_nmod, FQ_DEFAULT_CTX_FQ_NMOD(s.ctx.val))
+        elif self.ctx.fq_type == 3:
+            return 1 == fq_is_primitive(s.val.fq, FQ_DEFAULT_CTX_FQ(s.ctx.val))
+        raise TypeError("Can only call is_primitive() for elements with context FQ, FQ_ZECH and FQ_NMOD")
