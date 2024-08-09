@@ -47,16 +47,25 @@ cdef class flint_scalar(flint_elem):
     def _add_(self, other):
         return NotImplemented
 
-    def _sub_(self, other, swap=False):
+    def _sub_(self, other):
+        return NotImplemented
+
+    def _rsub_(self, other):
         return NotImplemented
 
     def _mul_(self, other):
         return NotImplemented
 
-    def _div_(self, other, swap=False):
+    def _div_(self, other):
         return NotImplemented
 
-    def _floordiv_(self, other, swap=False):
+    def _rdiv_(self, other):
+        return NotImplemented
+
+    def _floordiv_(self, other):
+        return NotImplemented
+
+    def _rfloordiv_(self, other):
         return NotImplemented
 
     def _invert_(self):
@@ -94,7 +103,7 @@ cdef class flint_scalar(flint_elem):
         other = self._any_as_self(other)
         if other is NotImplemented:
             return NotImplemented
-        return self._sub_(other, swap=True)
+        return self._rsub_(other)
 
     def __mul__(self, other):
         other = self._any_as_self(other)
@@ -116,7 +125,7 @@ cdef class flint_scalar(flint_elem):
         if other.is_zero():
             raise ZeroDivisionError
 
-        return self._div_(self, other)
+        return self._div_(other)
 
     def __rtruediv__(self, other):
         if self.is_zero():
@@ -125,7 +134,7 @@ cdef class flint_scalar(flint_elem):
         other = self._any_as_self(other)
         if other is NotImplemented:
             return NotImplemented
-        return self._div_(other, swap=True)
+        return self._rdiv_(other)
 
     def __floordiv__(self, other):
         other = self._any_as_self(other)
@@ -135,7 +144,7 @@ cdef class flint_scalar(flint_elem):
         if other.is_zero():
             raise ZeroDivisionError
 
-        return self._floordiv_(self, other)
+        return self._floordiv_(other)
 
     def __rfloordiv__(self, other):
         if self.is_zero():
@@ -144,7 +153,7 @@ cdef class flint_scalar(flint_elem):
         other = self._any_as_self(other)
         if other is NotImplemented:
             return NotImplemented
-        return self._floordiv_(other, swap=True)
+        return self._rfloordiv_(other)
 
     def __invert__(self):
         if self.is_zero():

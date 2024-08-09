@@ -424,30 +424,6 @@ cdef class fq_default_ctx:
             return NotImplemented
         return res
 
-    cdef inline fq_zech_ctx_struct* get_fq_zech_ctx_t(self):
-        """
-        Return the fq_zech_ctx_t type from the context
-        """
-        cdef fq_default s
-        s = self
-        return FQ_DEFAULT_CTX_FQ_ZECH(s.ctx.val)
-
-    cdef inline fq_nmod_ctx_struct* get_fq_nmod_ctx_t(self):
-        """
-        Return the fq_nmod_ctx_t type from the context
-        """
-        cdef fq_default s
-        s = self
-        return FQ_DEFAULT_CTX_FQ_NMOD(s.ctx.val)
-    
-    cdef inline fq_ctx_struct* get_fq_ctx_t(self):
-        """
-        Return the fq_ctx_t type from the context
-        """
-        cdef fq_default s
-        s = self
-        return FQ_DEFAULT_CTX_FQ(s.ctx.val)
-
     def __eq__(self, other):
         """
         Two finite field context compare equal if they have same
@@ -685,16 +661,22 @@ cdef class fq_default(flint_scalar):
         fq_default_add(res.val, self.val, (<fq_default>other).val, self.ctx.val)
         return res
 
-    def _sub_(self, other, swap=False):
+    def _sub_(self, other):
         """
         Assumes that __sub__() has ensured other is of type self
         """
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
-        if swap:
-            fq_default_sub(res.val, (<fq_default>other).val, self.val, res.ctx.val)
-        else:
-            fq_default_sub(res.val, self.val, (<fq_default>other).val, res.ctx.val)
+        fq_default_sub(res.val, self.val, (<fq_default>other).val, res.ctx.val)
+        return res
+
+    def _rsub_(self, other):
+        """
+        Assumes that __rsub__() has ensured other is of type self
+        """
+        cdef fq_default res
+        res = self.ctx.new_ctype_fq_default()
+        fq_default_sub(res.val, (<fq_default>other).val, self.val, res.ctx.val)
         return res
 
     def _mul_(self, other):
@@ -708,16 +690,22 @@ cdef class fq_default(flint_scalar):
         fq_default_mul(res.val, self.val, (<fq_default>other).val, self.ctx.val)
         return res
 
-    def _div_(self, other, swap=False):
+    def _div_(self, other):
         """
         Assumes that __div__() has ensured other is of type self
         """
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
-        if swap:
-            fq_default_div(res.val, (<fq_default>other).val, self.val, res.ctx.val)
-        else:
-            fq_default_div(res.val, self.val, (<fq_default>other).val, res.ctx.val)
+        fq_default_div(res.val, self.val, (<fq_default>other).val, res.ctx.val)
+        return res
+
+    def _rdiv_(self, other):
+        """
+        Assumes that __div__() has ensured other is of type self
+        """
+        cdef fq_default res
+        res = self.ctx.new_ctype_fq_default()
+        fq_default_div(res.val, (<fq_default>other).val, self.val, res.ctx.val)
         return res
 
     def _invert_(self):
@@ -904,30 +892,3 @@ cdef class fq_default(flint_scalar):
         res = self.ctx.new_ctype_fq_default()
         fq_default_frobenius(res.val, self.val, <slong>e, self.ctx.val)
         return res
-
-    def is_primitive(self):
-        """
-        Returns whether ``self`` is primitive, i.e., whether it is a 
-        generator of the multiplicative group of the finite field.
-
-            >>> gf = fq_default_ctx(163, fq_type=1)
-            >>> gf(2).is_primitive()
-            True
-            >>> gf(5).is_primitive()
-            False
-            >>> gf = fq_default_ctx(163, 3, fq_type=2)
-            >>> gf.gen().is_primitive()
-            True
-            >>> gf = fq_default_ctx(2**127 - 1, fq_type=3)
-            >>> gf(43).is_primitive()
-            True
-        """
-        cdef fq_default s
-        s = self
-        if self.ctx.fq_type == 1:
-            return 1 == fq_zech_is_primitive(s.val.fq_zech, s.get_fq_zech_ctx_t())
-        elif self.ctx.fq_type == 2:
-            return 1 == fq_nmod_is_primitive(s.val.fq_nmod, s.get_fq_nmod_ctx_t())
-        elif self.ctx.fq_type == 3:
-            return 1 == fq_is_primitive(s.val.fq, self.get_fq_ctx_t())
-        raise TypeError("Can only call is_primitive() for elements with context FQ, FQ_ZECH and FQ_NMOD")
