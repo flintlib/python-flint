@@ -424,29 +424,29 @@ cdef class fq_default_ctx:
             return NotImplemented
         return res
 
-    # cdef get_fq_zech_ctx_t(self):
-    #     """
-    #     Return the fq_zech_ctx_t type from the context
-    #     """
-    #     cdef fq_default s
-    #     s = self
-    #     return FQ_DEFAULT_CTX_FQ_ZECH(s.ctx.val)
+    cdef inline fq_zech_ctx_struct* get_fq_zech_ctx_t(self):
+        """
+        Return the fq_zech_ctx_t type from the context
+        """
+        cdef fq_default s
+        s = self
+        return FQ_DEFAULT_CTX_FQ_ZECH(s.ctx.val)
 
-    # cdef get_fq_nmod_ctx_t(self):
-    #     """
-    #     Return the fq_nmod_ctx_t type from the context
-    #     """
-    #     cdef fq_default s
-    #     s = self
-    #     return FQ_DEFAULT_CTX_FQ_NMOD(s.ctx.val)
+    cdef inline fq_nmod_ctx_struct* get_fq_nmod_ctx_t(self):
+        """
+        Return the fq_nmod_ctx_t type from the context
+        """
+        cdef fq_default s
+        s = self
+        return FQ_DEFAULT_CTX_FQ_NMOD(s.ctx.val)
     
-    # cdef fq_ctx_t get_fq_ctx_t(self):
-    #     """
-    #     Return the fq_ctx_t type from the context
-    #     """
-    #     cdef fq_default s
-    #     s = self
-    #     return FQ_DEFAULT_CTX_FQ(s.ctx.val)
+    cdef inline fq_ctx_struct* get_fq_ctx_t(self):
+        """
+        Return the fq_ctx_t type from the context
+        """
+        cdef fq_default s
+        s = self
+        return FQ_DEFAULT_CTX_FQ(s.ctx.val)
 
     def __eq__(self, other):
         """
@@ -925,9 +925,9 @@ cdef class fq_default(flint_scalar):
         cdef fq_default s
         s = self
         if self.ctx.fq_type == 1:
-            return 1 == fq_zech_is_primitive(s.val.fq_zech, FQ_DEFAULT_CTX_FQ_ZECH(s.ctx.val))
+            return 1 == fq_zech_is_primitive(s.val.fq_zech, s.get_fq_zech_ctx_t())
         elif self.ctx.fq_type == 2:
-            return 1 == fq_nmod_is_primitive(s.val.fq_nmod, FQ_DEFAULT_CTX_FQ_NMOD(s.ctx.val))
+            return 1 == fq_nmod_is_primitive(s.val.fq_nmod, s.get_fq_nmod_ctx_t())
         elif self.ctx.fq_type == 3:
-            return 1 == fq_is_primitive(s.val.fq, FQ_DEFAULT_CTX_FQ(s.ctx.val))
+            return 1 == fq_is_primitive(s.val.fq, self.get_fq_ctx_t())
         raise TypeError("Can only call is_primitive() for elements with context FQ, FQ_ZECH and FQ_NMOD")
