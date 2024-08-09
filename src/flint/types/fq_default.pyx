@@ -7,6 +7,15 @@ from flint.types.fmpz_mod_poly cimport fmpz_mod_poly, fmpz_mod_poly_ctx
 from flint.types.nmod_poly cimport nmod_poly
 from flint.utils.typecheck cimport typecheck
 
+# Allow the type to be denoted by strings or integers
+FQ_TYPES = {
+    "FQ_ZECH" : 1,
+    "FQ_NMOD" : 2,
+    "FQ" : 3,
+    "NMOD" : 4,
+    "FMPZ_MOD" : 5
+}
+
 cdef class fq_default_ctx:
     r"""
     Context object for creating :class:`~.fq_default`.
@@ -38,14 +47,6 @@ cdef class fq_default_ctx:
 
     @staticmethod
     def _parse_input_fq_type(fq_type):
-        # Allow the type to be denoted by strings or integers
-        FQ_TYPES = {
-            "FQ_ZECH" : 1,
-            "FQ_NMOD" : 2,
-            "FQ" : 3,
-            "NMOD" : 4,
-            "FMPZ_MOD" : 5
-        }
         if typecheck(fq_type, str):
             fq_type = FQ_TYPES.get(fq_type, None)
             if fq_type is None:
