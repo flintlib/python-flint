@@ -1647,46 +1647,6 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         return res
 
-    def mul_high(self, other, slong start):
-        r"""
-        Returns from coefficients from ``start`` onwards of the multiplication of ``self`` with ``other``
-
-        # TODO!!!
-        #
-        # Is this expected behaviour? Seems weird.
-        #
-        >>> R = fmpz_mod_poly_ctx(163)
-        >>> f = R([2,3,5,7,11])
-        >>> g = R([1,2,4,8,16])
-        >>> f.mul_high(g, 0)
-        13*x^8 + 37*x^7 + 17*x^6 + 138*x^5 + 101*x^4 + 45*x^3 + 19*x^2 + 7*x + 2
-        >>> f.mul_high(g, 1)
-        13*x^8 + 37*x^7 + 17*x^6 + 138*x^5 + 101*x^4 + 45*x^3 + 19*x^2 + 7*x
-        >>> f.mul_high(g, 2)
-        13*x^8 + 37*x^7 + 17*x^6 + 138*x^5 + 101*x^4 + 45*x^3 + 19*x^2
-        >>> f.mul_high(g, 3)
-        13*x^8 + 37*x^7 + 17*x^6 + 138*x^5 + 101*x^4 + 45*x^3
-        >>> f.mul_high(g, 4)
-        13*x^8 + 37*x^7 + 17*x^6 + 138*x^5 + 101*x^4
-        >>> f.mul_high(g, 5)
-        13*x^8 + 37*x^7 + 17*x^6 + 138*x^5 + 101*x^4 + 45*x^3 + 19*x^2 + 7*x + 2
-        """
-        # Only allow multiplication with other fmpz_mod_poly
-        if not typecheck(other, fmpz_mod_poly):
-            raise TypeError("other polynomial must be of type fmpz_mod_poly")
-
-        # Ensure the contexts match
-        other_c = <fmpz_mod_poly>other
-        if self.ctx != other_c.ctx:
-            raise ValueError("other polynomial's context does not match")
-
-        cdef fmpz_mod_poly res
-        res = self.ctx.new_ctype_poly()
-        fmpz_mod_poly_mulhigh(
-            res.val, self.val, other_c.val, start, res.ctx.mod.val
-        )
-        return res
-
     def mul_mod(self, other, modulus):
         r"""
         Returns remainder of the product of ``self`` with ``other`` after reduction by ``modulus``
