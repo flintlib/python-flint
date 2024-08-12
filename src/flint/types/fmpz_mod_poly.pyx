@@ -22,7 +22,7 @@ from flint.utils.flint_exceptions import DomainError
 
 cdef class fmpz_mod_poly_ctx:
     r"""
-    Context object for creating :class:`~.fmpz_mod_poly` initalised 
+    Context object for creating :class:`~.fmpz_mod_poly` initalised
     with a modulus :math:`N`.
 
         >>> fmpz_mod_poly_ctx(2**127 - 1)
@@ -162,7 +162,7 @@ cdef class fmpz_mod_poly_ctx:
 
         n = PyList_GET_SIZE(val)
         fmpz_mod_poly_fit_length(poly, n, self.mod.val)
-        
+
         # TODO: should we support conversion from nmod?
         fmpz_init(x)
         for i in range(n):
@@ -191,7 +191,7 @@ cdef class fmpz_mod_poly_ctx:
         if typecheck(obj, list):
             return self.set_list_as_fmpz_mod_poly(poly, obj)
 
-        # Set val from fmpz_mod_poly 
+        # Set val from fmpz_mod_poly
         if typecheck(obj, fmpz_mod_poly):
             if self != (<fmpz_mod_poly>obj).ctx:
                 raise ValueError("moduli must match")
@@ -231,30 +231,30 @@ cdef class fmpz_mod_poly_ctx:
             if self != (<fmpz_mod_poly>obj).ctx:
                 raise ValueError("moduli must match")
             return obj
-        
+
         cdef fmpz_mod_poly res
         res = self.new_ctype_poly()
         check = self.set_any_as_fmpz_mod_poly(res.val, obj)
         if check is NotImplemented:
             return NotImplemented
-        
+
         return res
 
     cdef new_ctype_poly(self):
         return fmpz_mod_poly.__new__(fmpz_mod_poly, None, self)
 
     def __eq__(self, other):
-        # Most often, we expect both `fmpz_mod_poly` to be pointing 
+        # Most often, we expect both `fmpz_mod_poly` to be pointing
         # to the same ctx, so this seems the fastest way to check
         if self is other:
             return True
-        
+
         # If they're not the same object in memory, they may have the
         # same modulus, which is good enough
         if typecheck(other, fmpz_mod_poly_ctx):
             return self.mod == (<fmpz_mod_poly_ctx>other).mod
         return False
-    
+
     def __hash__(self):
         return hash(self.modulus())
 
@@ -271,7 +271,7 @@ cdef class fmpz_mod_poly_ctx:
         """
         Returns a minimal generating polynomial for sequence `vals`.
 
-        A minimal generating polynomial is a monic polynomial, of minimal degree `d`, 
+        A minimal generating polynomial is a monic polynomial, of minimal degree `d`,
         that annihilates any consecutive `d+1` terms in seq.
 
         Assumes that the modulus is prime.
@@ -296,7 +296,7 @@ cdef class fmpz_mod_poly_ctx:
             check = self.mod.set_any_as_fmpz_mod(&xs.val[i], vals[i])
             if check is NotImplemented:
                 raise ValueError(f"Unable to cast {vals[i]} to an `fmpz_mod`")
-        
+
         res = self.new_ctype_poly()
         fmpz_mod_poly_minpoly(res.val, xs.val, n, self.mod.val)
 
@@ -305,7 +305,7 @@ cdef class fmpz_mod_poly_ctx:
 cdef class fmpz_mod_poly(flint_poly):
     """
     The *fmpz_mod_poly* type represents univariate polynomials
-    over integer modulo an arbitrary-size modulus. 
+    over integer modulo an arbitrary-size modulus.
     For wordsize modulus, see :class:`~.nmod_poly`.
 
     An *fmpz_mod_poly* element is constructed from an :class:`~.fmpz_mod_poly_ctx`
@@ -361,7 +361,7 @@ cdef class fmpz_mod_poly(flint_poly):
     @staticmethod
     def _sub_(left, right):
         cdef fmpz_mod_poly res
-    
+
         # Case when left and right are already fmpz_mod_poly
         if typecheck(left, fmpz_mod_poly) and typecheck(right, fmpz_mod_poly):
             if not (<fmpz_mod_poly>left).ctx == (<fmpz_mod_poly>right).ctx:
@@ -406,13 +406,13 @@ cdef class fmpz_mod_poly(flint_poly):
         fmpz_mod_poly_scalar_mul_fmpz(
             res.val, self.val, (<fmpz_mod>other).val, self.ctx.mod.val
         )
-        return res   
+        return res
 
     def __mul__(self, other):
         cdef fmpz_mod_poly res
 
         # If input is a scalar, use fastwe multiplication
-        if (typecheck(other, fmpz) or typecheck(other, fmpz_mod) or typecheck(other, int)):
+        if (typecheck(other, int) or typecheck(other, fmpz) or typecheck(other, fmpz_mod)):
             return self.scalar_mul(other)
 
         # Otherwise perform polynomial multiplication
@@ -435,7 +435,7 @@ cdef class fmpz_mod_poly(flint_poly):
         other = self.ctx.mod.any_as_fmpz_mod(other)
         if other is NotImplemented:
             return NotImplemented
-        
+
         if other == 0:
             raise ZeroDivisionError(f"Cannot divide by zero")
 
@@ -526,7 +526,7 @@ cdef class fmpz_mod_poly(flint_poly):
         fmpz_mod_poly_div(
             res.val, (<fmpz_mod_poly>left).val, (<fmpz_mod_poly>right).val, res.ctx.mod.val
         )
-        return res 
+        return res
 
     def __floordiv__(self, other):
         return fmpz_mod_poly._floordiv_(self, other)
@@ -548,10 +548,10 @@ cdef class fmpz_mod_poly(flint_poly):
             res.val, self.val, e_ulong, self.ctx.mod.val
         )
         return res
-          
+
     def left_shift(self, slong n):
         """
-        Returns ``self`` shifted left by ``n`` coefficients by inserting 
+        Returns ``self`` shifted left by ``n`` coefficients by inserting
         zero coefficients. This is equivalent to multiplying the polynomial
         by x^n
 
@@ -584,7 +584,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
     def right_shift(self, slong n):
         """
-        Returns ``self`` shifted right by ``n`` coefficients. 
+        Returns ``self`` shifted right by ``n`` coefficients.
         This is equivalent to the floor division of the polynomial
         by x^n
 
@@ -657,7 +657,7 @@ cdef class fmpz_mod_poly(flint_poly):
         return fmpz_mod_poly._mod_(s, t)
 
     def __rmod__(s, t):
-        return fmpz_mod_poly._mod_(t, s)    
+        return fmpz_mod_poly._mod_(t, s)
 
     def __richcmp__(self, other, int op):
         cdef bint res
@@ -711,7 +711,7 @@ cdef class fmpz_mod_poly(flint_poly):
             return self.multipoint_evaluate(input)
         else:
             return self.evaluate(input)
-    
+
     def evaluate(self, input):
         """
         Evaluate ``self`` at a point in the base ring. This is
@@ -739,7 +739,7 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         Returns a list of values computed from evaluating
         ``self`` at the ``n`` values given in the vector ``val``
-        
+
         TODO: We could allow passing as an optional input the
         subproduct tree, which would allow for faster, repeated
         multipoint evaluations
@@ -755,14 +755,14 @@ cdef class fmpz_mod_poly(flint_poly):
 
         if not isinstance(vals, (list, tuple)):
             raise ValueError("Input must be a list of points")
-        
+
         n = len(vals)
         xs = fmpz_vec(n)
         for i in range(n):
             check = self.ctx.mod.set_any_as_fmpz_mod(&xs.val[i], vals[i])
             if check is NotImplemented:
                 raise ValueError(f"Unable to cast {vals[i]} to an `fmpz_mod`")
-        
+
         # Call for multipoint eval, iterative horner will be used
         # for small arrays (len < 32) and a fast eval for larger ones
         # using a subproduct tree
@@ -782,7 +782,7 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         Returns the composition of two polynomials
 
-        To be precise about the order of composition, given ``self``, and ``other`` 
+        To be precise about the order of composition, given ``self``, and ``other``
         by `f(x)`, `g(x)`, returns `f(g(x))`.
 
             >>> R = fmpz_mod_poly_ctx(163)
@@ -799,15 +799,15 @@ cdef class fmpz_mod_poly(flint_poly):
             raise TypeError(f"Cannot compose the polynomial with input: {other}")
 
         res = self.ctx.new_ctype_poly()
-        fmpz_mod_poly_compose(res.val, self.val, (<fmpz_mod_poly>val).val, self.ctx.mod.val) 
-        return res  
+        fmpz_mod_poly_compose(res.val, self.val, (<fmpz_mod_poly>val).val, self.ctx.mod.val)
+        return res
 
     def compose_mod(self, other, modulus):
         """
         Returns the composition of two polynomials modulo a third.
 
-        To be precise about the order of composition, given ``self``, and ``other`` 
-        and ``modulus`` by `f(x)`, `g(x)` and `h(x)`, returns `f(g(x)) \mod h(x)`. 
+        To be precise about the order of composition, given ``self``, and ``other``
+        and ``modulus`` by `f(x)`, `g(x)` and `h(x)`, returns `f(g(x)) \mod h(x)`.
         We require that `h(x)` is non-zero.
 
             >>> R = fmpz_mod_poly_ctx(163)
@@ -823,7 +823,7 @@ cdef class fmpz_mod_poly(flint_poly):
         val = self.ctx.any_as_fmpz_mod_poly(other)
         if val is NotImplemented:
             raise TypeError(f"cannot compose the polynomial with input: {other}")
-        
+
         h = self.ctx.any_as_fmpz_mod_poly(modulus)
         if h is NotImplemented:
             raise TypeError(f"cannot reduce the polynomial with input: {modulus}")
@@ -832,8 +832,8 @@ cdef class fmpz_mod_poly(flint_poly):
             raise ZeroDivisionError("cannot reduce modulo zero")
 
         res = self.ctx.new_ctype_poly()
-        fmpz_mod_poly_compose_mod(res.val, self.val, (<fmpz_mod_poly>val).val, (<fmpz_mod_poly>h).val, self.ctx.mod.val) 
-        return res    
+        fmpz_mod_poly_compose_mod(res.val, self.val, (<fmpz_mod_poly>val).val, (<fmpz_mod_poly>h).val, self.ctx.mod.val)
+        return res
 
     cpdef long length(self):
         """
@@ -843,7 +843,7 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> f = R([1,2,3])
             >>> f.length()
             3
-            
+
         """
         return fmpz_mod_poly_length(self.val, self.ctx.mod.val)
 
@@ -870,7 +870,7 @@ cdef class fmpz_mod_poly(flint_poly):
             True
         """
         return 0 != fmpz_mod_poly_is_zero(self.val, self.ctx.mod.val)
-    
+
     def is_one(self):
         """
         Return ``True`` if the polynomial is equal to one
@@ -882,7 +882,7 @@ cdef class fmpz_mod_poly(flint_poly):
             True
         """
         return 0 != fmpz_mod_poly_is_one(self.val, self.ctx.mod.val)
-    
+
     def is_gen(self):
         """
         Return ``True`` if the polynomial is the generator
@@ -958,7 +958,7 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         cdef fmpz_mod_poly res
         cdef slong d
-        
+
         if degree is not None:
             d = degree
             if d != degree or d < 0:
@@ -974,9 +974,9 @@ cdef class fmpz_mod_poly(flint_poly):
 
     def truncate(self, slong n):
         r"""
-        Notionally truncate the polynomial to have length ``n``. If 
+        Notionally truncate the polynomial to have length ``n``. If
         ``n`` is larger than the length of the input, then ``self`` is
-        returned. If ``n`` is not positive, then the zero polynomial 
+        returned. If ``n`` is not positive, then the zero polynomial
         is returned.
 
         Effectively returns this polynomial :math:`\mod x^n`.
@@ -1031,8 +1031,8 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         Return this polynomial divided by its leading coefficient.
 
-        If ``check`` is True, raises ValueError if the leading coefficient 
-        is not invertible modulo N. If ``check`` is False and the leading 
+        If ``check`` is True, raises ValueError if the leading coefficient
+        is not invertible modulo N. If ``check`` is False and the leading
         coefficient is not invertible, the output is undefined.
 
             >>> R = fmpz_mod_poly_ctx(163)
@@ -1049,7 +1049,7 @@ cdef class fmpz_mod_poly(flint_poly):
                 res.val, self.val, self.ctx.mod.val
             )
         else:
-            fmpz_init(f) 
+            fmpz_init(f)
             fmpz_mod_poly_make_monic_f(
                 f, res.val, self.val, self.ctx.mod.val
             )
@@ -1116,12 +1116,12 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> f = 30*x**6 + 104*x**5 + 76*x**4 + 33*x**3 + 70*x**2 + 44*x + 65
             >>> g = 43*x**6 + 91*x**5 + 77*x**4 + 113*x**3 + 71*x**2 + 132*x + 60
             >>> mod = x**4 + 93*x**3 + 78*x**2 + 72*x + 149
-            >>> 
+            >>>
             >>> f.mulmod(g, mod)
             106*x^3 + 44*x^2 + 53*x + 77
         """
         cdef fmpz_mod_poly res
-        
+
         other = self.ctx.any_as_fmpz_mod_poly(other)
         if other is NotImplemented:
             raise TypeError(f"Cannot interpret {other} as a polynomial")
@@ -1151,8 +1151,8 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> f = 30*x**6 + 104*x**5 + 76*x**4 + 33*x**3 + 70*x**2 + 44*x + 65
             >>> g = 43*x**6 + 91*x**5 + 77*x**4 + 113*x**3 + 71*x**2 + 132*x + 60
             >>> mod = x**4 + 93*x**3 + 78*x**2 + 72*x + 149
-            >>> 
-            >>> f.pow_mod(123, mod) 
+            >>>
+            >>> f.pow_mod(123, mod)
             3*x^3 + 25*x^2 + 115*x + 161
             >>> f.pow_mod(2**64, mod)
             52*x^3 + 96*x^2 + 136*x + 9
@@ -1171,7 +1171,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
         # Output polynomial
         res = self.ctx.new_ctype_poly()
-        
+
         # For small exponents, use a simple binary exponentiation method
         if e.bit_length() < 32:
             fmpz_mod_poly_powmod_ui_binexp(
@@ -1267,7 +1267,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
         if not self.ctx.is_prime():
             raise NotImplementedError("gcd algorithm assumes that the modulus is prime")
-                 
+
         other = self.ctx.any_as_fmpz_mod_poly(other)
         if other is NotImplemented:
             raise TypeError(f"Cannot interpret {other} as a polynomial")
@@ -1343,7 +1343,7 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> f.integral()
             111*x^4 + 58*x^3 + 98*x^2 + 117*x
 
-        """ 
+        """
         new_coeffs = [0] + [c/n for n, c in enumerate(self.coeffs(), 1)]
         return self.ctx(new_coeffs)
 
@@ -1399,7 +1399,7 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> f.inverse_mod(g)
             41*x^5 + 121*x^4 + 47*x^3 + 41*x^2 + 6*x + 5
         """
-        cdef fmpz_mod_poly res 
+        cdef fmpz_mod_poly res
         cdef fmpz_t f
 
         other = self.ctx.any_as_fmpz_mod_poly(other)
@@ -1433,7 +1433,7 @@ cdef class fmpz_mod_poly(flint_poly):
             45*x^4 + 23*x^3 + 159*x^2 + 151*x + 110
         """
         cdef fmpz_t f
-        cdef fmpz_mod_poly res 
+        cdef fmpz_mod_poly res
 
         res = self.ctx.new_ctype_poly()
         fmpz_init(f)
@@ -1458,7 +1458,7 @@ cdef class fmpz_mod_poly(flint_poly):
             fmpz_mod(57, 163)
 
         """
-        cdef fmpz_mod res 
+        cdef fmpz_mod res
 
         other = self.ctx.any_as_fmpz_mod_poly(other)
         if other is NotImplemented:
@@ -1534,6 +1534,213 @@ cdef class fmpz_mod_poly(flint_poly):
         fmpz_mod_poly_invsqrt_series(
             res.val, self.val, n, res.ctx.mod.val
         )
+        return res
+
+    def equal_trunc(self, other, slong n):
+        """
+        Returns if two polynomials are equal when truncated to the first ``n`` terms
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,2,3,4,5])
+            >>> h = R([1,2,3])
+            >>> f.equal_trunc(h, 3)
+            True
+            >>> f.equal_trunc(h, 4)
+            False
+        """
+        # Only allow comparison with other fmpz_mod_poly
+        if not typecheck(other, fmpz_mod_poly):
+            return False
+
+        # Ensure the contexts match
+        other_c = <fmpz_mod_poly>other
+        if self.ctx != other_c.ctx:
+            return False
+
+        return 1 == fmpz_mod_poly_equal_trunc(self.val, other_c.val, n, self.ctx.mod.val)
+
+    def add_trunc(self, other, slong n):
+        """
+        Truncate ``self`` and ``other`` to polynomials of length ``n`` and return their sum
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([1,2,3,4,5])
+            >>> h = R([1,2,3])
+            >>> f.add_trunc(h, 2)
+            4*x + 2
+            >>> f.add_trunc(h, 3)
+            6*x^2 + 4*x + 2
+        """
+        # Only allow addition with other fmpz_mod_poly
+        if not typecheck(other, fmpz_mod_poly):
+            raise TypeError("other polynomial must be of type fmpz_mod_poly")
+
+        # Ensure the contexts match
+        other_c = <fmpz_mod_poly>other
+        if self.ctx != other_c.ctx:
+            raise ValueError("other polynomial's context does not match")
+
+        cdef fmpz_mod_poly res
+        res = self.ctx.new_ctype_poly()
+        fmpz_mod_poly_add_series(
+            res.val, self.val, other_c.val, n, res.ctx.mod.val
+        )
+        return res
+
+    def sub_trunc(self, other, slong n):
+        """
+        Truncate ``self`` and ``other`` to polynomials of length ``n`` and return their difference
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([2,3,5,7,11])
+            >>> h = R([1,2,4,8,16])
+            >>> f.sub_trunc(h, 2)
+            x + 1
+            >>> f.sub_trunc(h, 4)
+            162*x^3 + x^2 + x + 1
+        """
+        # Only allow subtraction with other fmpz_mod_poly
+        if not typecheck(other, fmpz_mod_poly):
+            raise TypeError("other polynomial must be of type fmpz_mod_poly")
+
+        # Ensure the contexts match
+        other_c = <fmpz_mod_poly>other
+        if self.ctx != other_c.ctx:
+            raise ValueError("other polynomial's context does not match")
+
+        cdef fmpz_mod_poly res
+        res = self.ctx.new_ctype_poly()
+        fmpz_mod_poly_sub_series(
+            res.val, self.val, other_c.val, n, res.ctx.mod.val
+        )
+        return res
+
+    def mul_low(self, other, slong n):
+        r"""
+        Returns the lowest ``n`` coefficients of the multiplication of ``self`` with ``other``
+
+        Equivalent to computing `f(x) \cdot g(x) \mod x^n`
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> f = R([2,3,5,7,11])
+            >>> g = R([1,2,4,8,16])
+            >>> f.mul_low(g, 5)
+            101*x^4 + 45*x^3 + 19*x^2 + 7*x + 2
+            >>> f.mul_low(g, 3)
+            19*x^2 + 7*x + 2
+            >>> f.mul_low(g, 1)
+            2
+        """
+        # Only allow multiplication with other fmpz_mod_poly
+        if not typecheck(other, fmpz_mod_poly):
+            raise TypeError("other polynomial must be of type fmpz_mod_poly")
+
+        # Ensure the contexts match
+        other_c = <fmpz_mod_poly>other
+        if self.ctx != other_c.ctx:
+            raise ValueError("other polynomial's context does not match")
+
+        cdef fmpz_mod_poly res
+        res = self.ctx.new_ctype_poly()
+        fmpz_mod_poly_mullow(
+            res.val, self.val, other_c.val, n, res.ctx.mod.val
+        )
+        return res
+
+    def mul_high(self, other, slong start):
+        r"""
+        Returns from coefficients from ``start`` onwards of the multiplication of ``self`` with ``other``
+
+        # TODO!!!
+        #
+        # Is this expected behaviour? Seems weird.
+        #
+        >>> R = fmpz_mod_poly_ctx(163)
+        >>> f = R([2,3,5,7,11])
+        >>> g = R([1,2,4,8,16])
+        >>> f.mul_high(g, 0)
+        13*x^8 + 37*x^7 + 17*x^6 + 138*x^5 + 101*x^4 + 45*x^3 + 19*x^2 + 7*x + 2
+        >>> f.mul_high(g, 1)
+        13*x^8 + 37*x^7 + 17*x^6 + 138*x^5 + 101*x^4 + 45*x^3 + 19*x^2 + 7*x
+        >>> f.mul_high(g, 2)
+        13*x^8 + 37*x^7 + 17*x^6 + 138*x^5 + 101*x^4 + 45*x^3 + 19*x^2
+        >>> f.mul_high(g, 3)
+        13*x^8 + 37*x^7 + 17*x^6 + 138*x^5 + 101*x^4 + 45*x^3
+        >>> f.mul_high(g, 4)
+        13*x^8 + 37*x^7 + 17*x^6 + 138*x^5 + 101*x^4
+        >>> f.mul_high(g, 5)
+        13*x^8 + 37*x^7 + 17*x^6 + 138*x^5 + 101*x^4 + 45*x^3 + 19*x^2 + 7*x + 2
+        """
+        # Only allow multiplication with other fmpz_mod_poly
+        if not typecheck(other, fmpz_mod_poly):
+            raise TypeError("other polynomial must be of type fmpz_mod_poly")
+
+        # Ensure the contexts match
+        other_c = <fmpz_mod_poly>other
+        if self.ctx != other_c.ctx:
+            raise ValueError("other polynomial's context does not match")
+
+        cdef fmpz_mod_poly res
+        res = self.ctx.new_ctype_poly()
+        fmpz_mod_poly_mulhigh(
+            res.val, self.val, other_c.val, start, res.ctx.mod.val
+        )
+        return res
+
+    def mul_mod(self, other, modulus):
+        r"""
+        Returns remainder of the product of ``self`` with ``other`` after reduction by ``modulus``
+
+        Equivalent to computing `f(x) \cdot g(x) \mod x^n`
+
+        >>> R = fmpz_mod_poly_ctx(163)
+        >>> f = R([2,3,5,7,11])
+        >>> g = R([1,2,4,8,16])
+        >>> h = R([1,0,1])
+        >>> f.mul_mod(g, h) == (f * g) % h
+        True
+        >>> f.mul_mod(g, h)
+        63*x + 80
+        """
+        # Only allow multiplication and reduction with other fmpz_mod_poly
+        if not typecheck(other, fmpz_mod_poly) or not typecheck(modulus, fmpz_mod_poly):
+            raise TypeError("input polynomials must be of type fmpz_mod_poly")
+
+        # Ensure the contexts match
+        other_c = <fmpz_mod_poly>other
+        modulus_c = <fmpz_mod_poly>modulus
+        if (self.ctx != other_c.ctx) or (self.ctx != modulus_c.ctx):
+            raise ValueError("other polynomial's context does not match")
+
+        cdef fmpz_mod_poly res
+        res = self.ctx.new_ctype_poly()
+        fmpz_mod_poly_mulmod(
+            res.val, self.val, other_c.val, modulus_c.val, res.ctx.mod.val
+        )
+        return res
+
+    def pow_trunc(self, slong e, slong n):
+        """
+        Returns ``self`` raised to the power ``e`` modulo `x^n`:
+        :math:`f^e \mod x^n`/
+
+        Note: For exponents larger that 2^31 (which do not fit inside a ulong) use the
+        method :method:`~.pow_mod` with the explicit modulus `x^n`.
+
+            >>> R = fmpz_mod_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = 30*x**6 + 104*x**5 + 76*x**4 + 33*x**3 + 70*x**2 + 44*x + 65
+            >>> f.pow_trunc(2**20, 30) == pow(f, 2**20, x**30)
+            True
+            >>> f.pow_trunc(2**20, 5)
+            132*x^4 + 113*x^3 + 36*x^2 + 48*x + 6
+        """
+        if e < 0:
+            raise ValueError("Exponent must be non-negative")
+
+        cdef fmpz_mod_poly res
+        res = self.ctx.new_ctype_poly()
+        fmpz_mod_poly_pow_trunc(res.val, self.val, e, n, res.ctx.mod.val)
         return res
 
     def inflate(self, ulong n):
@@ -1661,7 +1868,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
         if not self.ctx.is_prime():
             raise NotImplementedError("factor algorithm assumes that the modulus is prime")
-                 
+
         fmpz_mod_poly_factor_init(fac, self.ctx.mod.val)
         if algorithm == None:
             fmpz_mod_poly_factor(fac, self.val, self.ctx.mod.val)
@@ -1673,7 +1880,7 @@ cdef class fmpz_mod_poly(flint_poly):
             fmpz_mod_poly_factor_berlekamp(fac, self.val, self.ctx.mod.val)
         else:
             raise ValueError("unknown algorithm")
-        
+
         res = [0] * fac.num
 
         cdef fmpz_mod_poly u
@@ -1706,7 +1913,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
         if not self.ctx.is_prime():
             raise NotImplementedError("factor algorithm assumes that the modulus is prime")
-                 
+
         fmpz_mod_poly_factor_init(fac, self.ctx.mod.val)
         fmpz_mod_poly_roots(fac, self.val, with_multiplicity, self.ctx.mod.val)
         res = [0] * fac.num
