@@ -103,7 +103,6 @@ ext_files = [
     ("flint.types.fmpz_mod_mat", ["src/flint/types/fmpz_mod_mat.pyx"]),
 
     ("flint.types.fmpq_mpoly", ["src/flint/types/fmpq_mpoly.pyx"]),
-    ("flint.types.fmpz_mpoly_q", ["src/flint/types/fmpz_mpoly_q.pyx"]),
 
     ("flint.types.fq_default", ["src/flint/types/fq_default.pyx"]),
 

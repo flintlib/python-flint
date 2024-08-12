@@ -138,6 +138,23 @@ jobs:
       - run: pip install .
       - run: python -m flint.test --verbose
 
+  # Test that we can still make a coverage build with setuptools.
+  test_coverage_setuptools:
+    name: Test coverage setuptools build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update
+      - run: sudo apt-get install libflint-dev
+      - run: pip install cython setuptools coverage
+      - run: bin/coverage.sh
+        env:
+          PYTHONPATH: src
+      - run: coverage report --sort=cover
+
   # Run SymPy test suite against python-flint master
   test_sympy:
     name: Test SymPy ${{ matrix.sympy-version }}
