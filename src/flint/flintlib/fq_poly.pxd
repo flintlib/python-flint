@@ -1,13 +1,19 @@
 from flint.flintlib.flint cimport ulong, slong, flint_rand_t
 from flint.flintlib.fq cimport fq_ctx_t, fq_t, fq_struct
+from flint.flintlib.fq_mat cimport fq_mat_t
 from flint.flintlib.fmpz_mod_poly cimport fmpz_mod_poly_t
 from flint.flintlib.nmod_poly cimport nmod_poly_t
 from flint.flintlib.fmpz cimport fmpz_t
 
-
-# unimported types  {'fq_mat_t', 'fq_poly_t'}
-
 cdef extern from "flint/fq_poly.h":
+    # Type definitions **********************************************/
+    ctypedef struct fq_poly_struct:
+        fq_struct * coeffs
+        slong alloc
+        slong length
+    ctypedef fq_poly_struct fq_poly_t[1]
+
+    # Parsed from here **********************************************/
     void fq_poly_init(fq_poly_t poly, const fq_ctx_t ctx)
     void fq_poly_init2(fq_poly_t poly, slong alloc, const fq_ctx_t ctx)
     void fq_poly_realloc(fq_poly_t poly, slong alloc, const fq_ctx_t ctx)

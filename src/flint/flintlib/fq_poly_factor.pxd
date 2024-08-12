@@ -1,10 +1,19 @@
 from flint.flintlib.flint cimport slong, flint_rand_t
 from flint.flintlib.fq cimport fq_t, fq_struct, fq_ctx_t
+from flint.flintlib.fq_poly cimport fq_poly_t
 
 
-# unimported types  {'fq_poly_t', 'fq_poly_factor_t'}
 
 cdef extern from "flint/fq_poly_factor.h":
+    # Type definitions **********************************************/
+    ctypedef struct fq_poly_factor_struct:
+        fq_poly_struct * poly
+        slong * exp
+        slong num
+        slong alloc
+    ctypedef fq_poly_factor_struct fq_poly_factor_t[1]
+
+    # Parsed from here **********************************************/
     void fq_poly_factor_init(fq_poly_factor_t fac, const fq_ctx_t ctx)
     void fq_poly_factor_clear(fq_poly_factor_t fac, const fq_ctx_t ctx)
     void fq_poly_factor_realloc(fq_poly_factor_t fac, slong alloc, const fq_ctx_t ctx)
