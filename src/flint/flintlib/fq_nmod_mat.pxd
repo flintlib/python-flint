@@ -2,11 +2,18 @@ from flint.flintlib.fq_nmod cimport fq_nmod_struct, fq_nmod_ctx_t, fq_nmod_t
 from flint.flintlib.flint cimport slong, flint_rand_t
 from flint.flintlib.fmpz_mod_mat cimport fmpz_mod_mat_t
 from flint.flintlib.nmod_mat cimport nmod_mat_t
-
-
-# unimported types  {'fq_nmod_mat_t', 'fq_nmod_poly_t'}
+from flint.flintlib.fq_nmod_poly cimport fq_nmod_poly_t
 
 cdef extern from "flint/fq_nmod_mat.h":
+    # Type definitions **********************************************/
+    ctypedef struct fq_nmod_mat_struct:
+        fq_nmod_struct * entries
+        slong r
+        slong s
+        fq_nmod_struct ** rows
+    ctypedef fq_nmod_mat_struct fq_nmod_mat_t[1]
+
+    # Parsed from here **********************************************/
     void fq_nmod_mat_init(fq_nmod_mat_t mat, slong rows, slong cols, const fq_nmod_ctx_t ctx)
     void fq_nmod_mat_init_set(fq_nmod_mat_t mat, const fq_nmod_mat_t src, const fq_nmod_ctx_t ctx)
     void fq_nmod_mat_clear(fq_nmod_mat_t mat, const fq_nmod_ctx_t ctx)
