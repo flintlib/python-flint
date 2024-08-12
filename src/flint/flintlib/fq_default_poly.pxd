@@ -4,11 +4,22 @@ from flint.flintlib.flint cimport slong, ulong, flint_rand_t
 from flint.flintlib.fmpz_poly cimport fmpz_poly_t
 from flint.flintlib.fmpz cimport fmpz_t
 from flint.flintlib.fmpz_mod_poly cimport fmpz_mod_poly_t
+from flint.flintlib.fq_poly cimport fq_poly_t
+from flint.flintlib.fq_nmod_poly cimport fq_nmod_poly_t
+from flint.flintlib.fq_zech_poly cimport fq_zech_poly_t
 
-
-# unimported types  {'fq_default_poly_t'}
 
 cdef extern from "flint/fq_default_poly.h":
+    # Type definitions **********************************************/
+    ctypedef union fq_default_poly_struct:
+        fq_poly_t fq
+        fq_nmod_poly_t fq_nmod
+        fq_zech_poly_t fq_zech
+        nmod_poly_t nmod
+        fmpz_mod_poly_t fmpz_mod
+    ctypedef fq_default_poly_struct fq_default_poly_t[1]
+
+    # Parsed from here **********************************************/
     void fq_default_poly_init(fq_default_poly_t poly, const fq_default_ctx_t ctx)
     void fq_default_poly_init2(fq_default_poly_t poly, slong alloc, const fq_default_ctx_t ctx)
     void fq_default_poly_realloc(fq_default_poly_t poly, slong alloc, const fq_default_ctx_t ctx)
