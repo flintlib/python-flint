@@ -2,11 +2,18 @@ from flint.flintlib.fmpz_mod_poly cimport fmpz_mod_poly_t
 from flint.flintlib.flint cimport flint_rand_t, slong, ulong
 from flint.flintlib.nmod_poly cimport nmod_poly_t
 from flint.flintlib.fmpz cimport fmpz_t
-
-
-# unimported types  {'fq_zech_struct', 'fq_zech_poly_t', 'fq_zech_t', 'fq_zech_ctx_t', 'fq_zech_mat_t'}
+from flint.flintlib.fq_zech cimport fq_zech_struct, fq_zech_t, fq_zech_ctx_t
+from flint.flintlib.fq_zech_mat cimport fq_zech_mat_t
 
 cdef extern from "flint/fq_zech_poly.h":
+    # Type definitions **********************************************/
+    ctypedef struct fq_zech_poly_struct:
+        fq_zech_struct * coeffs
+        slong alloc
+        slong length
+    ctypedef fq_zech_poly_struct fq_zech_poly_t[1]
+
+    # Parsed from here **********************************************/
     void fq_zech_poly_init(fq_zech_poly_t poly, const fq_zech_ctx_t ctx)
     void fq_zech_poly_init2(fq_zech_poly_t poly, slong alloc, const fq_zech_ctx_t ctx)
     void fq_zech_poly_realloc(fq_zech_poly_t poly, slong alloc, const fq_zech_ctx_t ctx)
