@@ -2247,6 +2247,37 @@ def test_fmpz_mod_poly():
         l = [-1,-2,-3,-4,-5]
         assert [f(x) for x in l] == f.multipoint_evaluate(l)
 
+        # truncate things
+
+        f = R_test.random_element()
+        g = R_test.random_element()
+        h = R_test.random_element()
+        x = R_test.gen()
+
+        f_trunc = f % x**3
+
+        assert f.equal_trunc(f_trunc, 3)
+        assert not f.equal_trunc("A", 3)
+        assert not f.equal_trunc(f_cmp, 3)
+
+        assert raises(lambda: f.add_trunc("A", 1), TypeError)
+        assert raises(lambda: f.add_trunc(f_cmp, 1), ValueError)
+        assert f.add_trunc(g, 3) == (f + g) % x**3
+
+        assert raises(lambda: f.sub_trunc("A", 1), TypeError)
+        assert raises(lambda: f.sub_trunc(f_cmp, 1), ValueError)
+        assert f.sub_trunc(g, 3) == (f - g) % x**3
+
+        assert raises(lambda: f.mul_low("A", h), TypeError)
+        assert raises(lambda: f.mul_low(g, "A"), TypeError)
+        assert f.mul_low(g, 3) == (f * g) % x**3
+
+        assert raises(lambda: f.mul_mod(f_cmp, h), ValueError)
+        assert raises(lambda: f.mul_mod(g, f_cmp), ValueError)
+        assert f.mul_mod(g, h) == (f * g) % h
+
+        assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
+
 
 def test_fmpz_mod_mat():
     c11 = flint.fmpz_mod_ctx(11)
