@@ -6,6 +6,7 @@ from flint.flintlib.fq_nmod cimport fq_nmod_t, fq_nmod_ctx_t, fq_nmod_ctx_struct
 
 
 cdef extern from "flint/fq_zech.h":
+    # Type definitions **********************************************/
     ctypedef struct fq_zech_struct:
         mp_limb_t value
     ctypedef fq_zech_struct fq_zech_t[1]
@@ -26,7 +27,20 @@ cdef extern from "flint/fq_zech.h":
         int is_conway # whether field was generated using Flint Conway tables (assures primitivity) 
     ctypedef fq_zech_ctx_struct fq_zech_ctx_t[1]
 
-    # PArsed from here
+    ctypedef struct fq_zech_mat_struct:
+        fq_zech_struct * entries
+        slong r
+        slong s
+        fq_zech_struct ** rows
+    ctypedef fq_zech_mat_struct fq_zech_mat_t[1]
+
+    ctypedef struct fq_zech_poly_struct:
+        fq_zech_struct * coeffs
+        slong alloc
+        slong length
+    ctypedef fq_zech_poly_struct fq_zech_poly_t[1]
+
+    # Parsed from here **********************************************/
     void fq_zech_ctx_init(fq_zech_ctx_t ctx, const fmpz_t p, slong d, const char *var)
     int _fq_zech_ctx_init_conway(fq_zech_ctx_t ctx, const fmpz_t p, slong d, const char *var)
     void fq_zech_ctx_init_conway(fq_zech_ctx_t ctx, const fmpz_t p, slong d, const char *var)

@@ -1,20 +1,9 @@
 from flint.flintlib.fmpz_mod_mat cimport fmpz_mod_mat_t
 from flint.flintlib.flint cimport slong, flint_rand_t
 from flint.flintlib.nmod_mat cimport nmod_mat_t
-from flint.flintlib.fq_zech cimport fq_zech_t, fq_zech_struct, fq_zech_ctx_t
-
-
-# unimported types  {'fq_zech_mat_t', 'fq_zech_poly_t'}
+from flint.flintlib.fq_zech cimport fq_zech_t, fq_zech_struct, fq_zech_ctx_t, fq_zech_mat_t, fq_zech_poly_t
 
 cdef extern from "flint/fq_zech_mat.h":
-    # Type definitions **********************************************/
-    ctypedef struct fq_zech_mat_struct:
-        fq_zech_struct * entries
-        slong r
-        slong s
-        fq_zech_struct ** rows
-    ctypedef fq_zech_mat_struct fq_zech_mat_t[1]
-
     # Parsed from here **********************************************/
     void fq_zech_mat_init(fq_zech_mat_t mat, slong rows, slong cols, const fq_zech_ctx_t ctx)
     void fq_zech_mat_init_set(fq_zech_mat_t mat, const fq_zech_mat_t src, const fq_zech_ctx_t ctx)

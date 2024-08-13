@@ -1,18 +1,10 @@
-from flint.flintlib.fq cimport fq_t, fq_struct, fq_ctx_t
+from flint.flintlib.fq cimport fq_t, fq_struct, fq_ctx_t, fq_mat_t, fq_poly_t
 from flint.flintlib.fq_poly cimport fq_poly_t
 from flint.flintlib.flint cimport flint_rand_t, slong
 from flint.flintlib.nmod_mat cimport nmod_mat_t
 from flint.flintlib.fmpz_mod_mat cimport fmpz_mod_mat_t
 
 cdef extern from "flint/fq_mat.h":
-    # Type definitions **********************************************/
-    ctypedef struct fq_mat_struct:
-        fq_struct * entries
-        slong r
-        slong s
-        fq_struct ** rows
-    ctypedef fq_mat_struct fq_mat_t[1]
-
     # Parsed from here **********************************************/
     void fq_mat_init(fq_mat_t mat, slong rows, slong cols, const fq_ctx_t ctx)
     void fq_mat_init_set(fq_mat_t mat, const fq_mat_t src, const fq_ctx_t ctx)

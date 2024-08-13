@@ -6,7 +6,7 @@ from flint.flintlib.fmpz_poly cimport fmpz_poly_t, fmpz_poly_struct
 from flint.flintlib.fmpz_mod_poly cimport fmpz_mod_poly_t, fmpz_mod_poly_struct
 
 cdef extern from "flint/fq.h":
-
+    # Type definitions **********************************************/
     ctypedef fmpz_poly_t fq_t
     ctypedef fmpz_poly_struct fq_struct
 
@@ -24,9 +24,22 @@ cdef extern from "flint/fq.h":
         fmpz_mod_poly_t inv
 
         char * var
-
     ctypedef fq_ctx_struct fq_ctx_t[1]
 
+    ctypedef struct fq_poly_struct:
+        fq_struct * coeffs
+        slong alloc
+        slong length
+    ctypedef fq_poly_struct fq_poly_t[1]
+
+    ctypedef struct fq_mat_struct:
+        fq_struct * entries
+        slong r
+        slong s
+        fq_struct ** rows
+    ctypedef fq_mat_struct fq_mat_t[1]
+
+    # Parsed from here **********************************************/
     void fq_ctx_init(fq_ctx_t ctx, const fmpz_t p, slong d, const char *var)
     int _fq_ctx_init_conway(fq_ctx_t ctx, const fmpz_t p, slong d, const char *var)
     void fq_ctx_init_conway(fq_ctx_t ctx, const fmpz_t p, slong d, const char *var)
