@@ -445,13 +445,9 @@ cdef class fq_default_poly(flint_poly):
             )
         return res
 
-    def monic(self, check=True):
+    def monic(self):
         """
         Return this polynomial divided by its leading coefficient.
-
-        If ``check`` is True, raises ValueError if the leading coefficient
-        is not invertible modulo N. If ``check`` is False and the leading
-        coefficient is not invertible, the output is undefined.
 
             >>> R = fq_default_poly_ctx(163)
             >>> f = R([1,2,3])
@@ -459,7 +455,6 @@ cdef class fq_default_poly(flint_poly):
             x^2 + 55*x + 109
         """
         cdef fq_default_poly res
-
         res =  self.ctx.new_ctype_poly()
         fq_default_poly_make_monic(
             res.val, self.val, self.ctx.field.val
@@ -1168,7 +1163,9 @@ cdef class fq_default_poly(flint_poly):
 
     def sqrt_trunc(self, slong n):
         """
-        Returns the squareroot of ``self`` modulo `x^n`.
+        Returns the square root of ``self`` modulo `x^n`.
+
+        Requires that the constant coefficient of the polynomial is one.
 
             >>> R = fq_default_poly_ctx(163, 3)
             >>> x = R.gen()
@@ -1182,10 +1179,9 @@ cdef class fq_default_poly(flint_poly):
         """
         cdef fq_default_poly res
 
-        # FLINT assumes the constant term is one
-        c = self.constant_coefficient()
-        if not c.is_one():
-            self = self / c
+        # FLINT requires the constant term is one
+        if not self.constant_coefficient().is_one():
+            raise ValueError("constant coefficient of the polynomial must be one")
 
         res = self.ctx.new_ctype_poly()
         fq_default_poly_sqrt_series(
@@ -1195,22 +1191,22 @@ cdef class fq_default_poly(flint_poly):
 
     def inv_sqrt_trunc(self, slong n):
         """
-        Returns the squareroot of ``self`` modulo `x^n`.
+        Returns the inverse of the square root of ``self`` modulo `x^n`.
+
+        Requires that the constant coefficient of the polynomial is one.
 
             >>> R = fq_default_poly_ctx(163, 3)
             >>> x = R.gen()
             >>> z = R.base_field().gen()
             >>> f = (37*z + 54)*x**3 + (8*z + 94)*x**2 + (52*z + 142)*x + 1
-            >>> h = f.sqrt_trunc(5)
-            >>> h
+            >>> f.sqrt_trunc(5)
             (60*z^2 + 17*z + 158)*x^4 + (7*z^2 + 17*z + 148)*x^3 + (151*z^2 + 114*z + 53)*x^2 + (26*z + 71)*x + 1
         """
         cdef fq_default_poly res
 
-        # FLINT assumes the constant term is one
-        c = self.constant_coefficient()
-        if not c.is_one():
-            self = self / c
+        # FLINT requires the constant term is one
+        if not self.constant_coefficient().is_one():
+            raise ValueError("constant coefficient of the polynomial must be one")
 
         res = self.ctx.new_ctype_poly()
         fq_default_poly_invsqrt_series(
