@@ -55,6 +55,7 @@ cdef extern from "flint/nmod_poly.h":
     int nmod_poly_equal_trunc(const nmod_poly_t poly1, const nmod_poly_t poly2, slong n)
     int nmod_poly_is_zero(const nmod_poly_t poly)
     int nmod_poly_is_one(const nmod_poly_t poly)
+    int nmod_poly_is_gen(const nmod_poly_t poly)
     void _nmod_poly_shift_left(mp_ptr res, mp_srcptr poly, slong len, slong k)
     void nmod_poly_shift_left(nmod_poly_t res, const nmod_poly_t poly, slong k)
     void _nmod_poly_shift_right(mp_ptr res, mp_srcptr poly, slong len, slong k)

@@ -45,6 +45,7 @@ Scalar types
    fmpq.rst
    fmpz_mod.rst
    nmod.rst
+   fq_default.rst
    arb.rst
    acb.rst
    dirichlet.rst

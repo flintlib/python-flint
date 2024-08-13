@@ -42,7 +42,7 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.19.1
+        uses: pypa/cibuildwheel@v2.19.2
         env:
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
@@ -137,6 +137,43 @@ jobs:
       - run: sudo apt-get install libflint-dev
       - run: pip install .
       - run: python -m flint.test --verbose
+
+  # Test that we can still make a coverage build with setuptools.
+  test_coverage_setuptools:
+    name: Test coverage setuptools build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update
+      - run: sudo apt-get install libflint-dev
+      - run: pip install cython setuptools coverage
+      - run: bin/coverage.sh
+        env:
+          PYTHONPATH: src
+      - run: coverage report --sort=cover
+
+  # Run SymPy test suite against python-flint master
+  test_sympy:
+    name: Test SymPy ${{ matrix.sympy-version }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        sympy-version: ['1.13.1']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update
+      - run: sudo apt-get install libflint-dev
+      - run: pip install .
+      - run: pip install pytest pytest-xdist hypothesis
+      - run: pip install sympy==${{ matrix.sympy-version }}
+      - run: python -c 'import sympy; sympy.test(parallel=True)'
 
   # For older Ubuntu we have to build Flint >= 3.0.0
   test_flint_versions:

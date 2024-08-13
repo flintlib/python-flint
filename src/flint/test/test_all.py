@@ -294,6 +294,8 @@ def test_fmpz_functions():
             [0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0]),
         (lambda n: flint.fmpz(n).is_perfect_power(),
             [T, T, T, F, F, T, F, F, F, T, T, F]),
+        (lambda n: flint.fmpz(n).is_square(),
+            [F, T, T, F, F, T, F, F, F, F, T, F]),
         (lambda n: flint.fmpz(n).partitions_p(),
             [0, 1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42]),
         (lambda n: flint.fmpz(n).moebius_mu(),
@@ -1420,7 +1422,15 @@ def test_nmod_poly():
     assert raises(lambda: [] * s, TypeError)
     assert raises(lambda: [] // s, TypeError)
     assert raises(lambda: [] % s, TypeError)
-    assert raises(lambda: pow(P([1,2],3), 3, 4), NotImplementedError)
+    assert raises(lambda: [] % s, TypeError)
+    assert raises(lambda: s.reverse(-1), ValueError)
+    assert raises(lambda: s.compose("A"), TypeError)
+    assert raises(lambda: s.compose_mod(s, "A"), TypeError)
+    assert raises(lambda: s.compose_mod("A", P([3,6,9],17)), TypeError)
+    assert raises(lambda: s.compose_mod(s, P([0], 17)), ZeroDivisionError)
+    assert raises(lambda: pow(s, -1, P([3,6,9],17)), ValueError)
+    assert raises(lambda: pow(s, 1, "A"), TypeError)
+    assert raises(lambda: pow(s, "A", P([3,6,9],17)), TypeError)
     assert str(P([1,2,3],17)) == "3*x^2 + 2*x + 1"
     assert P([1,2,3],17).repr() == "nmod_poly([1, 2, 3], 17)"
     p = P([3,4,5],17)
@@ -2085,6 +2095,18 @@ def test_fmpz_mod_poly():
         assert f*f == f**2
         assert f*f == f**fmpz(2)
 
+        # pow_mod
+        # assert ui and fmpz exp agree for polynomials and generators
+        R_gen = R_test.gen()
+        assert pow(f, 2**60, g) == pow(pow(f, 2**30, g), 2**30, g)
+        assert pow(R_gen, 2**60, g) == pow(pow(R_gen, 2**30, g), 2**30, g)
+
+        # Check other typechecks for pow_mod 
+        assert raises(lambda: pow(f, -2, g), ValueError)
+        assert raises(lambda: pow(f, 1, "A"), TypeError)
+        assert raises(lambda: pow(f, "A", g), TypeError)
+        assert raises(lambda: f.pow_mod(2**32, g, mod_rev_inv="A"), TypeError)
+
         # Shifts
         assert raises(lambda: R_test([1,2,3]).left_shift(-1), ValueError)
         assert raises(lambda: R_test([1,2,3]).right_shift(-1), ValueError)
@@ -2116,6 +2138,13 @@ def test_fmpz_mod_poly():
         # compose
         assert raises(lambda: h.compose("AAA"), TypeError)
 
+        # compose mod
+        mod = R_test([1,2,3,4])
+        assert f.compose(h) % mod == f.compose_mod(h, mod)
+        assert raises(lambda: h.compose_mod("AAA", mod), TypeError)
+        assert raises(lambda: h.compose_mod(f, "AAA"), TypeError)
+        assert raises(lambda: h.compose_mod(f, R_test(0)), ZeroDivisionError)
+
         # Reverse
         assert raises(lambda: h.reverse(degree=-100), ValueError)
         assert R_test([-1,-2,-3]).reverse() == R_test([-3,-2,-1])
@@ -2133,9 +2162,9 @@ def test_fmpz_mod_poly():
         assert raises(lambda: f.mulmod(f, "AAA"), TypeError)
         assert raises(lambda: f.mulmod("AAA", g), TypeError)
 
-        # powmod
-        assert f.powmod(2, g) == (f*f) % g
-        assert raises(lambda: f.powmod(2, "AAA"), TypeError)
+        # pow_mod
+        assert f.pow_mod(2, g) == (f*f) % g
+        assert raises(lambda: f.pow_mod(2, "AAA"), TypeError)
 
         # divmod
         S, T = f.divmod(g)
@@ -2217,6 +2246,37 @@ def test_fmpz_mod_poly():
         f = R_test([1,2,3])
         l = [-1,-2,-3,-4,-5]
         assert [f(x) for x in l] == f.multipoint_evaluate(l)
+
+        # truncate things
+
+        f = R_test.random_element()
+        g = R_test.random_element()
+        h = R_test.random_element()
+        x = R_test.gen()
+
+        f_trunc = f % x**3
+
+        assert f.equal_trunc(f_trunc, 3)
+        assert not f.equal_trunc("A", 3)
+        assert not f.equal_trunc(f_cmp, 3)
+
+        assert raises(lambda: f.add_trunc("A", 1), TypeError)
+        assert raises(lambda: f.add_trunc(f_cmp, 1), ValueError)
+        assert f.add_trunc(g, 3) == (f + g) % x**3
+
+        assert raises(lambda: f.sub_trunc("A", 1), TypeError)
+        assert raises(lambda: f.sub_trunc(f_cmp, 1), ValueError)
+        assert f.sub_trunc(g, 3) == (f - g) % x**3
+
+        assert raises(lambda: f.mul_low("A", h), TypeError)
+        assert raises(lambda: f.mul_low(g, "A"), TypeError)
+        assert f.mul_low(g, 3) == (f * g) % x**3
+
+        assert raises(lambda: f.mul_mod(f_cmp, h), ValueError)
+        assert raises(lambda: f.mul_mod(g, f_cmp), ValueError)
+        assert f.mul_mod(g, h) == (f * g) % h
+
+        assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
 
 
 def test_fmpz_mod_mat():
@@ -2633,9 +2693,14 @@ def test_polys():
         assert P([1, 1]) ** 2 == P([1, 2, 1])
         assert raises(lambda: P([1, 1]) ** -1, ValueError)
         assert raises(lambda: P([1, 1]) ** None, TypeError)
-
-        # # XXX: Not sure what this should do in general:
-        assert raises(lambda: pow(P([1, 1]), 2, 3), NotImplementedError)
+        
+        # XXX: Not sure what this should do in general:
+        p = P([1, 1])
+        mod = P([1, 1])
+        if type(p) not in [flint.fmpz_mod_poly, flint.nmod_poly]:
+            assert raises(lambda: pow(p, 2, mod), NotImplementedError)
+        else:
+            assert p * p % mod == pow(p, 2, mod)
 
         assert P([1, 2, 1]).gcd(P([1, 1])) == P([1, 1])
         assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
@@ -2664,7 +2729,6 @@ def test_polys():
 
         if is_field:
             assert P([1, 2, 1]).integral() == P([0, 1, 1, S(1)/3])
-
 
 def _all_mpolys():
     return [
@@ -3661,6 +3725,163 @@ def test_matrices_transpose():
         assert M1234.transpose() == M([[1, 4], [2, 5], [3, 6]])
 
 
+def test_fq_default():
+    # test fq_default context creation
+    # TODO
+
+    # GF(5)
+    gf_5 = flint.fq_default_ctx(5)
+    gf_5_ = flint.fq_default_ctx(5)
+
+    # GF(5^2)
+    gf_5_2 = flint.fq_default_ctx(5, 2)
+    gf_5_2_ = flint.fq_default_ctx(5, 2)
+
+    # GF((2**127 - 1)^2)
+    gf_127 = flint.fq_default_ctx(2**127 - 1, 2)
+    gf_127_2 = flint.fq_default_ctx(2**127 - 1, 2)
+
+    assert (gf_5 == gf_5_) is True
+    assert (gf_5 != gf_5_) is False
+    assert (gf_5 == gf_5_2) is False
+    assert (gf_5 != gf_5_2) is True
+
+    assert gf_5.prime() == gf_5_2.prime() == 5
+    assert gf_5_2.order() == 5*5
+    assert gf_5_2.multiplicative_order() == 5*5 - 1
+    assert gf_127_2.prime() == 2**127 - 1
+
+    assert gf_5_2(0) == gf_5_2.zero()
+    assert gf_5_2(1) == gf_5_2.one()
+    assert gf_5_2.gen() == gf_5_2([0, 1])
+
+    assert str(gf_5) == "Context for fq_default in GF(5)"
+    assert str(gf_5_2) == "Context for fq_default in GF(5^2)[x]/(x^2 + 4*x + 2)"
+
+    # coercision
+    assert gf_5(1) == gf_5.one()
+    assert gf_5(flint.fmpz(1)) == gf_5.one()
+    assert gf_5(-1) == -gf_5.one()
+    assert gf_5(flint.fmpz(-1)) == -gf_5.one()
+    R = flint.fmpz_mod_ctx(5)
+    assert gf_5(R(1)) == gf_5.one()
+    assert gf_5(R(-1)) == -gf_5.one()
+    assert gf_5(flint.nmod(1, 5)) == gf_5.one()
+    assert gf_5(flint.nmod(-1, 5)) == -gf_5.one()
+    assert gf_5([0, 1]) == gf_5.gen()
+    assert gf_5(flint.fmpz_poly([0, 1])) == gf_5.gen()
+    R = flint.fmpz_mod_poly_ctx(5)
+    assert gf_5.gen() == gf_5(R.gen())
+    assert gf_5.gen() == gf_5(flint.nmod_poly([0, 1], 5))
+
+
+    # testing various equalties between types
+
+    # integers are the same if charactersitic is the same
+    # even with extensions
+    assert gf_5.one() == gf_5_.one()
+    assert gf_5.one() == gf_5_2.one()
+    assert gf_5.one() != gf_127.one()
+
+    # the generators for different extensions
+    assert gf_5_2([0, 1]) != gf_5([0, 1])
+    assert gf_5_2([0, 1]) == gf_5_2_([0, 1])
+    assert gf_5_2([0, 1]) != gf_127_2([0, 1])
+
+    # integers are reduced modulo p before comparison
+    for int_type in [int, flint.fmpz]:
+        assert gf_5(1) == int_type(1)
+        assert gf_5(-1) == int_type(-1)
+        assert gf_5(-1) == int_type(4)
+        assert gf_5(4) == int_type(4)
+        assert gf_5(4) == int_type(-1)
+
+    # integers modulo n also can be compared when they match
+    assert gf_5(1) == flint.nmod(1, 5)
+    assert gf_5(-1) == flint.nmod(-1, 5)
+    assert gf_5(-1) == flint.nmod(4, 5)
+    assert gf_5_2(1) == flint.nmod(1, 5)
+    assert gf_5_2(-1) == flint.nmod(-1, 5)
+    assert gf_5_2(-1) == flint.nmod(4, 5)
+
+    # when the moduli dont match, comparison is always false
+    assert gf_5(1) != flint.nmod(1, 7)
+    assert gf_5(-1) != flint.nmod(-1, 7)
+    assert gf_5(-1) != flint.nmod(4, 7)
+    assert gf_5_2(1) != flint.nmod(1, 7)
+    assert gf_5_2(-1) != flint.nmod(-1, 7)
+    assert gf_5_2(-1) != flint.nmod(4, 7)
+
+    # integers modulo n also can be compared when they match
+    R5 = flint.fmpz_mod_ctx(5)
+    assert gf_5(1) == R5(1)
+    assert gf_5(-1) == R5(-1)
+    assert gf_5(-1) == R5(4)
+    assert gf_5_2(1) == R5(1)
+    assert gf_5_2(-1) == R5(-1)
+    assert gf_5_2(-1) == R5(4)
+
+    # when the moduli dont match, comparison is always false
+    R7 = flint.fmpz_mod_ctx(7)
+    assert gf_5(1) != R7(1)
+    assert gf_5(-1) != R7(-1)
+    assert gf_5(-1) != R7(4)
+    assert gf_5_2(1) != R7(1)
+    assert gf_5_2(-1) != R7(-1)
+    assert gf_5_2(-1) != R7(4)
+
+    # test fq_default element arithemtic
+
+    for gf in [gf_5, gf_5_2, gf_127, gf_127_2]:
+
+        assert (gf(0) == gf.zero()) is True
+        assert (gf(0) != gf.zero()) is False
+        assert (gf(1) == gf.zero()) is False
+        assert (gf(1) != gf.zero()) is True
+        assert raises(lambda: gf.zero() > gf.zero(), TypeError)
+        assert raises(lambda: gf.zero() >= gf.zero(), TypeError)
+        assert raises(lambda: gf.zero() < gf.zero(), TypeError)
+        assert raises(lambda: gf.zero() <=  gf.zero(), TypeError)
+
+        assert gf.zero().is_zero() is True
+        assert gf.one().is_zero() is False
+
+        assert gf.zero().is_one() is False
+        assert gf.one().is_one() is True
+
+        a = gf.random_element(not_zero=True)
+        b = gf.random_element(not_zero=True)
+        c = gf.random_element(not_zero=True)
+
+        assert a + (-a) == gf.zero()
+        assert a + a == 2*a
+        assert a * a == a**2
+        assert a * a == a.square()
+        assert a * a * a == pow(a, 3)
+
+        assert (a + b) + c == a + (b + c)
+        assert (a - b) - c == a - (b + c)
+        assert (a * b) * c == a * (b * c)
+        assert (a / b) / c == a / (b * c)
+
+        assert a + 0 == 0 + a == a
+        assert a + gf.zero() == a
+        assert a * 1 == 1 * a == a
+        assert a * gf.one() == a
+        assert a * gf.zero() == gf.zero()
+        assert a / a == gf.one()
+
+        assert raises(lambda: a / 0, ZeroDivisionError)
+        assert raises(lambda: ~gf.zero(), ZeroDivisionError)
+        assert raises(lambda: pow(gf.zero(), -1), ZeroDivisionError)
+
+        assert 1/a == pow(a, -1) == ~a
+        assert gf.one() == pow(a, 0)
+        assert gf.zero() == pow(gf.zero(), 2**64)
+        assert a == pow(a, 1)
+
+        assert (a*a).is_square()
+
 def test_all_tests():
     test_funcs = {f for name, f in globals().items() if name.startswith("test_")}
     untested = test_funcs - set(all_tests)
@@ -3725,6 +3946,8 @@ all_tests = [
     test_matrices_rank,
     test_matrices_rref,
     test_matrices_solve,
+
+    test_fq_default,
 
     test_arb,
 
