@@ -14,6 +14,7 @@ from flint.types.fmpz_vec cimport fmpz_vec
 
 from flint.types.nmod cimport nmod
 
+from flint.flintlib.flint cimport FLINT_BITS
 from flint.flintlib.fmpz cimport fmpz_set
 from flint.flintlib.nmod_mpoly cimport (
     nmod_mpoly_add,
@@ -690,18 +691,22 @@ cdef class nmod_mpoly(flint_mpoly):
         elif nargs > nvars:
             raise ValueError("more arguments provided than variables")
 
+        args = [int(x) for x in args]
+
         cdef:
+            # Using sizeof(ulong) here breaks on 64 windows machines because of the `ctypedef unsigned long ulong` in
+            # flintlib/flint.pxd. Cython will inline this definition and then allocate the wrong amount of memory.
+            ulong *vals = <ulong *>libc.stdlib.malloc(nargs * (FLINT_BITS // 4))
             ulong res
-            ulong *V = <ulong *>libc.stdlib.malloc(len(args) * sizeof(ulong))
-        if V is NULL:
+        if vals is NULL:
             raise MemoryError("malloc returned a null pointer")  # pragma: no cover
 
         try:
-            for i in range(len(args)):
-                V[i] = args[i]
-            res = nmod_mpoly_evaluate_all_ui(self.val, V, self.ctx.val)
+            for i in range(nargs):
+                vals[i] = args[i]
+            res = nmod_mpoly_evaluate_all_ui(self.val, vals, self.ctx.val)
         finally:
-            libc.stdlib.free(V)
+            libc.stdlib.free(vals)
 
         return res
 
@@ -895,7 +900,7 @@ cdef class nmod_mpoly(flint_mpoly):
             nmod_mpoly res
             nmod_mpoly_ctx res_ctx
             nmod_mpoly_vec C
-            slong i, nvars = self.ctx.nvars(), nargs = len(args)
+            slong nvars = self.ctx.nvars(), nargs = len(args)
 
         if nargs < nvars:
             raise ValueError("not enough arguments provided")
