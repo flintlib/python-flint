@@ -383,7 +383,7 @@ cdef class fq_default_ctx:
         # convert from fq_default
         if typecheck(obj, fq_default):
             if self != (<fq_default>obj).ctx:
-                raise ValueError("contexts dont match")
+                return NotImplemented
             return obj
 
         cdef fq_default res
