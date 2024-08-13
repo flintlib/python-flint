@@ -32,7 +32,7 @@ cdef class fq_default_ctx:
         >>> from flint import fmpz_mod_poly_ctx
         >>> mod = fmpz_mod_poly_ctx(11)([1,0,1])
         >>> fq_default_ctx(modulus=mod, fq_type='FQ_NMOD')
-        fq_default_ctx(11, 2, 'x', x^2 + 1, 'FQ_NMOD')
+        fq_default_ctx(11, 2, 'z', x^2 + 1, 'FQ_NMOD')
 
     For more details, see the documentation of :method:`~._set_from_order`
     and :method:`~._set_from_modulus`.
@@ -64,7 +64,7 @@ cdef class fq_default_ctx:
     def _parse_input_var(var):
         # If no variable is given, use x
         if var is None:
-            var = b"x"
+            var = b"z"
 
         # Encode to bytes for cython to parse
         if isinstance(var, str):
@@ -686,7 +686,7 @@ cdef class fq_default(flint_scalar):
             >>> a = gf([1,2,3])
             >>> b = a.inverse()
             >>> b
-            68*x^2 + 17*x + 116
+            68*z^2 + 17*z + 116
             >>> a*b == gf.one()
             True
         """
@@ -701,7 +701,7 @@ cdef class fq_default(flint_scalar):
             >>> a.square() == a*a
             True
             >>> a.square()
-            110*x^2 + 101*x + 25
+            110*z^2 + 101*z + 25
         """
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
@@ -721,7 +721,7 @@ cdef class fq_default(flint_scalar):
             >>> pow(a, 2**128) == pow(a, 2**128 % (163**3 - 1))
             True
             >>> pow(a, 123)
-            46*x^2 + 110*x + 155
+            46*z^2 + 110*z + 155
 
         """
         cdef fq_default res
@@ -761,7 +761,7 @@ cdef class fq_default(flint_scalar):
             True
             >>> b = a.sqrt()
             >>> b
-            95*x^2 + 36*x + 34
+            95*z^2 + 36*z + 34
             >>> b**2 in [a, -a]
             True
         """
@@ -796,7 +796,7 @@ cdef class fq_default(flint_scalar):
             >>> gf = fq_default_ctx(163, 3)
             >>> a = gf([1,2,3])
             >>> a.pth_root()
-            5*x^2 + 152*x + 119
+            5*z^2 + 152*z + 119
         """
         cdef fq_default res
         res = self.ctx.new_ctype_fq_default()
@@ -840,9 +840,9 @@ cdef class fq_default(flint_scalar):
             >>> gf = fq_default_ctx(163, 3)
             >>> a = gf([1,2,3])
             >>> a.frobenius()
-            155*x^2 + 9*x + 4
+            155*z^2 + 9*z + 4
             >>> a.frobenius(2)
-            5*x^2 + 152*x + 119
+            5*z^2 + 152*z + 119
             >>> a == a.frobenius(3)
             True
             >>> a.frobenius(2) == a.frobenius(-1)

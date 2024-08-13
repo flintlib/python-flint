@@ -3647,7 +3647,7 @@ def test_fq_default():
     assert gf_5_2.gen() == gf_5_2([0, 1])
 
     assert str(gf_5) == "Context for fq_default in GF(5)"
-    assert str(gf_5_2) == "Context for fq_default in GF(5^2)[x]/(x^2 + 4*x + 2)"
+    assert str(gf_5_2) == "Context for fq_default in GF(5^2)[z]/(z^2 + 4*z + 2)"
 
     # coercision
     assert gf_5(1) == gf_5.one()
