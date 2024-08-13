@@ -38,7 +38,7 @@ cdef class flint_scalar(flint_elem):
     def is_zero(self):
         return False
 
-    def _any_as_self(self):
+    def _any_as_self(self, other):
         return NotImplemented
 
     def _neg_(self):
