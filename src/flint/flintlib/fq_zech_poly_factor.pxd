@@ -1,6 +1,6 @@
-from flint.flintlib.flint cimport flint_rand_t, slong
+from flint.flintlib.flint cimport flint_rand_t, slong, ulong
 from flint.flintlib.fq_zech cimport fq_zech_ctx_t, fq_zech_t, fq_zech_struct
-from flint.flintlib.fq_zech_poly cimport fq_zech_poly_t
+from flint.flintlib.fq_zech cimport fq_zech_poly_struct, fq_zech_poly_t
 
 cdef extern from "flint/fq_zech_poly_factor.h":
     # Type definitions **********************************************/

@@ -1,11 +1,11 @@
 from flint.flintlib.fq_default cimport fq_default_t, fq_default_ctx_t
-from flint.flintlib.flint cimport slong
+from flint.flintlib.flint cimport ulong, slong
 from flint.flintlib.fq_default_poly cimport fq_default_poly_t
 from flint.flintlib.fq_poly_factor cimport fq_poly_factor_t
 from flint.flintlib.fq_nmod_poly_factor cimport fq_nmod_poly_factor_t
 from flint.flintlib.fq_zech_poly_factor cimport fq_zech_poly_factor_t
-from flintlib.nmod_poly_factor cimport nmod_poly_factor_t
-from flintlib.fmpz_mod_poly_factor cimport fmpz_mod_poly_factor_t
+from flint.flintlib.nmod_poly_factor cimport nmod_poly_factor_t
+from flint.flintlib.fmpz_mod_poly_factor cimport fmpz_mod_poly_factor_t
 
 cdef extern from "flint/fq_default_poly_factor.h":
     # Type definitions **********************************************/

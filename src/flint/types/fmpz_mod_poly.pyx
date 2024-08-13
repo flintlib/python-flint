@@ -1734,4 +1734,4 @@ cdef class fmpz_mod_poly(flint_poly):
         This method is not implemented for polynomials in
         :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
         """
-        raise DomainError("Cannot compute compex roots for polynomials over integers modulo N")
+        raise DomainError("Cannot compute complex roots for polynomials over integers modulo N")

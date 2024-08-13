@@ -48,7 +48,7 @@ cdef class fq_default_poly_ctx:
             # First coerce the list element as an fq_default type
             v = self.field.any_as_fq_default(val[i])
             if v is NotImplemented:
-                raise TypeError(f"unsupported coefficient in list: {val[i] = }")
+                raise TypeError(f"unsupported coefficient in list: {val[i] = }, {type(val[i]) = }")
 
             # Set the coefficient of the polynomial
             fq_default_poly_set_coeff(
@@ -57,6 +57,10 @@ cdef class fq_default_poly_ctx:
 
     cdef set_any_as_fq_default_poly(self, fq_default_poly_t poly, obj):
         # First try and coerce polynomials to polynomials
+        if typecheck(obj, fq_default_poly) and self == (<fq_default_poly>obj).ctx:
+            fq_default_poly_set(poly, (<fq_default_poly>obj).val, self.field.val)
+            return
+
         if typecheck(obj, fmpz_poly):
             fq_default_poly_set_fmpz_poly(poly, (<fmpz_poly>obj).val, self.field.val)
             return
@@ -180,6 +184,8 @@ cdef class fq_default_poly_ctx:
             >>> f.degree() <= 13
             True
             >>> f.is_monic()
+            True
+            >>> f.is_irreducible()
             True
         """
         cdef slong length
@@ -526,16 +532,34 @@ cdef class fq_default_poly(flint_poly):
 
     def is_irreducible(self):
         """
-        This method is not exposed with fq_default
+        Return whether this polynomial is irreducible.
+
+            >>> R = fq_default_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = x**2 + 5*x + 3
+            >>> f.is_irreducible()
+            True
+            >>> f = x**2 + x + 3
+            >>> f.is_irreducible()
+            False
         """
-        raise NotImplemented
+        return 1 == fq_default_poly_is_irreducible(self.val, self.ctx.field.val)
 
     def is_squarefree(self):
         """
-        This method is not exposed with fq_default
-        """
-        raise NotImplemented
+        Return whether this polynomial is squarefree.
 
+            >>> R = fq_default_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = (x + 1)**2 * (x + 3)
+            >>> f.is_squarefree()
+            False
+            >>> f = (x + 1) * (x + 3)
+            >>> f.is_squarefree()
+            True
+
+        """
+        return 1 == fq_default_poly_is_squarefree(self.val, self.ctx.field.val)
 
     # ====================================
     # Native Arithmetic
@@ -589,7 +613,7 @@ cdef class fq_default_poly(flint_poly):
             return NotImplemented
 
         res =  self.ctx.new_ctype_poly()
-        fq_default_poly_add(
+        fq_default_poly_sub(
             res.val, (<fq_default_poly>other).val, self.val, self.ctx.field.val
         )
         return res
@@ -769,6 +793,8 @@ cdef class fq_default_poly(flint_poly):
         return self.exact_division(other)
 
     def __rtruediv__(self, other):
+        if self.is_zero():
+            raise ZeroDivisionError(f"Cannot divide by zero")
         other = self.ctx.any_as_fq_default_poly(other)
         if other is NotImplemented:
             return other
@@ -813,7 +839,7 @@ cdef class fq_default_poly(flint_poly):
 
         # Do not divide by zero
         if self.is_zero():
-            raise ZeroDivisionError(f"Cannot divide by zero")
+            raise ZeroDivisionError("Cannot divide by zero")
 
         # Coerce right element to fq_default_poly
         other = self.ctx.any_as_fq_default_poly(other)
@@ -835,6 +861,9 @@ cdef class fq_default_poly(flint_poly):
         if other is NotImplemented:
             return NotImplemented
 
+        if other.is_zero():
+            raise ZeroDivisionError("Cannot compute remainder modulo 0")
+
         res =  self.ctx.new_ctype_poly()
         fq_default_poly_rem(
             res.val, self.val, (<fq_default_poly>other).val, self.ctx.field.val
@@ -843,6 +872,9 @@ cdef class fq_default_poly(flint_poly):
 
     def __rmod__(self, other):
         cdef fq_default_poly res
+
+        if self.is_zero():
+            raise ZeroDivisionError("Cannot compute remainder modulo 0")
 
         other = self.ctx.any_as_fq_default_poly(other)
         if other is NotImplemented:
@@ -974,12 +1006,12 @@ cdef class fq_default_poly(flint_poly):
             >>> f = 30*x**6 + 104*x**5 + 76*x**4 + 33*x**3 + 70*x**2 + 44*x + 65
             >>> g = 43*x**6 + 91*x**5 + 77*x**4 + 113*x**3 + 71*x**2 + 132*x + 60
             >>> mod = x**4 + 93*x**3 + 78*x**2 + 72*x + 149
-            >>> 
+            >>>
             >>> f.mul_mod(g, mod)
             106*x^3 + 44*x^2 + 53*x + 77
         """
         cdef fq_default_poly res
-        
+
         other = self.ctx.any_as_fq_default_poly(other)
         if other is NotImplemented:
             raise TypeError(f"Cannot interpret {other} as a polynomial")
@@ -1309,6 +1341,9 @@ cdef class fq_default_poly(flint_poly):
         """
         return self.exact_division(self.gcd(self.derivative()))
 
+    def integral(self):
+        raise NotImplementedError("fq_default_integral is not available from FLINT")
+
     # ====================================
     # Evaluation and Composition
     # ====================================
@@ -1329,8 +1364,21 @@ cdef class fq_default_poly(flint_poly):
         if val is NotImplemented:
             raise TypeError(f"Cannot evaluate the polynomial with input: {input}")
 
+        # When the fq_default type is FMPZ_MOD this function Segfaults for older
+        # FLINT versions
+        # See: https://github.com/flintlib/flint/issues/2046
+        # TODO:
+        # Hack for converting self to an fmpz_mod type, needs to be improved
+        # and could be done when we decide exactly how to handle fq_default to
+        # fq_type conversions more generally
+        if self.ctx.field.fq_type == 5:
+            from flint import fmpz_mod_poly_ctx
+            ring = fmpz_mod_poly_ctx(self.ctx.characteristic())
+            poly = ring([int(i) for i in self.coeffs()])
+            return poly(int(input))
+
         cdef fq_default res
-        res = <fq_default_ctx>self.ctx.field.new_ctype_fq_default()
+        res = self.ctx.field.new_ctype_fq_default()
         fq_default_poly_evaluate_fq_default(res.val, self.val, (<fq_default>val).val, self.ctx.field.val)
         return res
 
@@ -1399,6 +1447,126 @@ cdef class fq_default_poly(flint_poly):
     # ====================================
     # Factoring and Root Finding
     # ====================================
+
+    def factor_squarefree(self):
+        """
+        Factors self into irreducible, squarefree factors, returning a tuple
+        ``(c, factors)`` where `c` is the content of the coefficients and
+        factors is a list of ``(poly, exp)`` pairs.
+
+            >>> R = fq_default_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = (x + 1) * (x + 2)
+            >>> f.factor_squarefree()
+            (1, [(x^2 + 3*x + 2, 1)])
+            >>> f = (x + 1) * (x + 2)**5
+            >>> f.factor_squarefree()
+            (1, [(x + 1, 1), (x + 2, 5)])
+        """
+        cdef fq_default_poly_factor_t fac
+        cdef int i
+
+        fq_default_poly_factor_init(fac, self.ctx.field.val)
+        fq_default_poly_factor_squarefree(fac, self.val, self.ctx.field.val)
+
+        num = fq_default_poly_factor_length(fac, self.ctx.field.val)
+        res = [0] * num
+
+        cdef fq_default_poly u
+        for i in range(num):
+            u = self.ctx.new_ctype_poly()
+            fq_default_poly_factor_get_poly(u.val, fac, i, self.ctx.field.val)
+            exp = fq_default_poly_factor_exp(fac, i, self.ctx.field.val)
+            res[i] = (u, exp)
+        return self.leading_coefficient(), res
+
+    def factor(self):
+        """
+        Factors self into irreducible factors, returning a tuple
+        ``(c, factors)`` where `c` is the content of the coefficients and
+        factors is a list of ``(poly, exp)`` pairs.
+
+            >>> R = fq_default_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = 6*x**4 + 7*x**3 + 7*x**2 + 8*x + 6
+            >>> f.factor()
+            (6, [(x^4 + 137*x^3 + 137*x^2 + 110*x + 1, 1)])
+            >>> f = (x + 1)**3 * (x + 2)
+            >>> f.factor()
+            (1, [(x + 2, 1), (x + 1, 3)])
+        """
+        cdef fq_default_poly_factor_t fac
+        cdef int i
+
+        fq_default_poly_factor_init(fac, self.ctx.field.val)
+
+        lead = self.leading_coefficient()
+        fq_default_poly_factor(fac, (<fq_default>lead).val, self.val, self.ctx.field.val)
+
+        num = fq_default_poly_factor_length(fac, self.ctx.field.val)
+        res = [0] * num
+
+        cdef fq_default_poly u
+        for i in range(num):
+            u = self.ctx.new_ctype_poly()
+            fq_default_poly_factor_get_poly(u.val, fac, i, self.ctx.field.val)
+            exp = fq_default_poly_factor_exp(fac, i, self.ctx.field.val)
+            res[i] = (u, exp)
+        return self.leading_coefficient(), res
+
+    def roots(self, multiplicities=True):
+        r"""
+        Return the roots of the polynomial in the finite field
+
+            >>> R = fq_default_poly_ctx(163)
+            >>> x = R.gen()
+            >>> f = (x - 1) * (x - 2)**3 * (x - 3)**5
+            >>> f.roots()
+            [(1, 1), (2, 3), (3, 5)]
+            >>> f.roots(multiplicities=False)
+            [1, 2, 3]
+        """
+        cdef fq_default_poly_factor_t fac
+        cdef int i, with_multiplicity
+
+        with_multiplicity = 0
+        if multiplicities:
+            with_multiplicity = 1
+
+        fq_default_poly_factor_init(fac, self.ctx.field.val)
+        fq_default_poly_roots(fac, self.val, with_multiplicity, self.ctx.field.val)
+
+        num = fq_default_poly_factor_length(fac, self.ctx.field.val)
+        res = [0] * num
+
+        cdef fq_default_poly linear_factor
+        cdef fq_default root
+
+        for i in range(num):
+            # Get a factor of the form (x - a)
+            linear_factor = self.ctx.new_ctype_poly()
+            fq_default_poly_factor_get_poly(linear_factor.val, fac, i, self.ctx.field.val)
+
+            # Compute a from (x - a)
+            root = self.ctx.field.new_ctype_fq_default()
+            fq_default_poly_get_coeff(
+                root.val, linear_factor.val, 0, root.ctx.val
+            )
+            fq_default_neg(
+                root.val, root.val, root.ctx.val
+            )
+            if multiplicities:
+                mul = fq_default_poly_factor_exp(fac, i, self.ctx.field.val)
+                res[i] = (root, mul)
+            else:
+                res[i] = root
+        return res
+
+    def complex_roots(self):
+        """
+        This method is not implemented for polynomials in finite fields
+        """
+        raise DomainError("Cannot compute complex roots for polynomials over finite fields")
 
     # ====================================
     # Inflation and Deflation

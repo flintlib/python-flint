@@ -572,10 +572,10 @@ cdef class fq_default(flint_scalar):
 
                 # Conversion failed, element was not a compatible scalar
                 if check is NotImplemented:
-                    res = False
-                else:
-                    # We now have an fq_default element with the same context, so compare value only
-                    res = fq_default_equal(self.val, (<fq_default>cmp).val, self.ctx.val)
+                    return NotImplemented
+
+                # We now have an fq_default element with the same context, so compare value only
+                res = fq_default_equal(self.val, (<fq_default>cmp).val, self.ctx.val)
 
             # Flip the result of res if we're doing not equals
             if op == 2:

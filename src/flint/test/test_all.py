@@ -2466,12 +2466,29 @@ def _all_polys():
         (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255 - 19)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255 - 19)),
          True),
+        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(2**127 - 1)),
+         lambda x: flint.fq_default(x, flint.fq_default_ctx(2**127 - 1)),
+         True),
+        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(2**127 - 1, 2)),
+         lambda x: flint.fq_default(x, flint.fq_default_ctx(2**127 - 1, 2)),
+         True),
+        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(65537)),
+         lambda x: flint.fq_default(x, flint.fq_default_ctx(65537)),
+         True),
+        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(65537, 5)),
+         lambda x: flint.fq_default(x, flint.fq_default_ctx(65537, 5)),
+         True),
+        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(11)),
+         lambda x: flint.fq_default(x, flint.fq_default_ctx(11)),
+         True),
+        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(11, 5)),
+         lambda x: flint.fq_default(x, flint.fq_default_ctx(11, 5)),
+         True),
     ]
 
 
 def test_polys():
     for P, S, is_field in _all_polys():
-
         assert P([S(1)]) == P([1]) == P(P([1])) == P(1)
 
         assert raises(lambda: P([None]), TypeError)
@@ -2560,6 +2577,8 @@ def test_polys():
                 assert P(v).repr() == f'nmod_poly({v!r}, 17)'
             elif type(p) == flint.fmpz_mod_poly:
                 pass # fmpz_mod_poly does not have .repr() ...
+            elif type(p) == flint.fq_default_poly:
+                pass # fq_default_poly does not have .repr() ...
             else:
                 assert False
 
@@ -2599,7 +2618,7 @@ def test_polys():
 
         for T in [int, S, flint.fmpz]:
             assert P([1, 2, 3]) - T(1) == P([0, 2, 3])
-            assert T(1) - P([1, 2, 3]) == P([0, -2, -3])
+            assert T(1) - P([1, 2, 3]) == P([0, -2, -3]), f"{P([0, -2, -3]) = }, {T(1) - P([1, 2, 3]) = }"
 
         assert raises(lambda: P([1, 2, 3]) - None, TypeError)
         assert raises(lambda: None - P([1, 2, 3]), TypeError)
@@ -2666,7 +2685,7 @@ def test_polys():
         # XXX: Not sure what this should do in general:
         p = P([1, 1])
         mod = P([1, 1])
-        if type(p) not in [flint.fmpz_mod_poly, flint.nmod_poly]:
+        if type(p) not in [flint.fmpz_mod_poly, flint.nmod_poly, flint.fq_default_poly]:
             assert raises(lambda: pow(p, 2, mod), NotImplementedError)
         else:
             assert p * p % mod == pow(p, 2, mod)
@@ -2696,8 +2715,11 @@ def test_polys():
 
         assert P([1, 2, 1]).derivative() == P([2, 2])
 
-        if is_field:
-            assert P([1, 2, 1]).integral() == P([0, 1, 1, S(1)/3])
+        p = P([1, 2, 1])
+        if is_field and type(p) != flint.fq_default_poly:
+            assert p.integral() == P([0, 1, 1, S(1)/3])
+        if type(p) == flint.fq_default_poly:
+            assert raises(lambda: p.integral(), NotImplementedError)
 
 def _all_mpolys():
     return [

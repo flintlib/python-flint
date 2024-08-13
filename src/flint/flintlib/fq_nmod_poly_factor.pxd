@@ -1,6 +1,6 @@
-from flint.flintlib.flint cimport slong, flint_rand_t
+from flint.flintlib.flint cimport ulong, slong, flint_rand_t
 from flint.flintlib.fq_nmod cimport fq_nmod_ctx_t, fq_nmod_t, fq_nmod_struct
-from flint.flintlib.fq_nmod_poly cimport fq_nmod_poly_t
+from flint.flintlib.fq_nmod cimport fq_nmod_poly_struct, fq_nmod_poly_t
 
 cdef extern from "flint/fq_nmod_poly_factor.h":
     # Type definitions **********************************************/
