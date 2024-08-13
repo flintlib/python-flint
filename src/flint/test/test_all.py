@@ -2649,7 +2649,7 @@ def test_polys():
 
         for T in [int, S, flint.fmpz]:
             assert P([1, 2, 3]) - T(1) == P([0, 2, 3])
-            assert T(1) - P([1, 2, 3]) == P([0, -2, -3]), f"{P([0, -2, -3]) = }, {T(1) - P([1, 2, 3]) = }"
+            assert T(1) - P([1, 2, 3]) == P([0, -2, -3])
 
         assert raises(lambda: P([1, 2, 3]) - None, TypeError)
         assert raises(lambda: None - P([1, 2, 3]), TypeError)
