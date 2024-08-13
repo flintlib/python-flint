@@ -188,9 +188,6 @@ cdef class fmpz_mod_poly_ctx:
         return 0
 
     cdef set_any_as_fmpz_mod_poly(self, fmpz_mod_poly_t poly, obj):
-        if typecheck(obj, list):
-            return self.set_list_as_fmpz_mod_poly(poly, obj)
-
         # Set val from fmpz_mod_poly 
         if typecheck(obj, fmpz_mod_poly):
             if self != (<fmpz_mod_poly>obj).ctx:
@@ -330,6 +327,10 @@ cdef class fmpz_mod_poly(flint_poly):
             fmpz_mod_poly_clear(self.val, self.ctx.mod.val)
 
     def __init__(self, val, ctx):
+        if typecheck(val, list):
+            self.ctx.set_list_as_fmpz_mod_poly(self.val, val)
+            return
+
         check = self.ctx.set_any_as_fmpz_mod_poly(self.val, val)
         if check is NotImplemented:
             raise TypeError
