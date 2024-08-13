@@ -1179,15 +1179,17 @@ cdef class fq_default_poly(flint_poly):
         """
         cdef fq_default_poly res
 
-        # FLINT requires the constant term is one
-        if not self.constant_coefficient().is_one():
-            raise ValueError("constant coefficient of the polynomial must be one")
+        # FLINT requires the constant term is one, so we need to normalise
+        c = self.constant_coefficient()
+        if not c.is_square():
+            raise ValueError("constant coefficient of the polynomial must be a square")
+        self = self / c
 
         res = self.ctx.new_ctype_poly()
         fq_default_poly_sqrt_series(
             res.val, self.val, n, res.ctx.field.val
         )
-        return res
+        return res * c.sqrt()
 
     def inv_sqrt_trunc(self, slong n):
         """
@@ -1195,24 +1197,29 @@ cdef class fq_default_poly(flint_poly):
 
         Requires that the constant coefficient of the polynomial is one.
 
-            >>> R = fq_default_poly_ctx(163, 3)
+            >>> R = fq_default_poly_ctx(65537, 2)
             >>> x = R.gen()
             >>> z = R.base_field().gen()
-            >>> f = (37*z + 54)*x**3 + (8*z + 94)*x**2 + (52*z + 142)*x + 1
-            >>> f.sqrt_trunc(5)
-            (60*z^2 + 17*z + 158)*x^4 + (7*z^2 + 17*z + 148)*x^3 + (151*z^2 + 114*z + 53)*x^2 + (26*z + 71)*x + 1
+            >>> f = 28902*x**3 + (49416*z + 58229)*x**2 + 9441*z*x + (7944*z + 57534)
+            >>> h = f.inv_sqrt_trunc(3)
+            >>> h
+            (23030*z + 8965)*x^2 + (43656*z + 7173)*x + (27935*z + 28199)
+            >>> (h*h).mul_low(f, 3).is_one()
+            True
         """
         cdef fq_default_poly res
 
-        # FLINT requires the constant term is one
-        if not self.constant_coefficient().is_one():
-            raise ValueError("constant coefficient of the polynomial must be one")
+        # FLINT requires the constant term is one, so we need to normalise
+        c = self.constant_coefficient()
+        if not c.is_square():
+            raise ValueError("constant coefficient of the polynomial must be a square")
+        self = self / c
 
         res = self.ctx.new_ctype_poly()
         fq_default_poly_invsqrt_series(
             res.val, self.val, n, res.ctx.field.val
         )
-        return res
+        return res / c.sqrt()
 
     def inverse_series_trunc(self, slong n):
         """
@@ -1228,6 +1235,9 @@ cdef class fq_default_poly(flint_poly):
             (96*z^2 + 90*z + 21)*x^2 + (111*z + 21)*x + 1
             >>> f.inverse_series_trunc(4)
             (34*z^2 + z + 2)*x^3 + (96*z^2 + 90*z + 21)*x^2 + (111*z + 21)*x + 1
+            >>> h = f.inverse_series_trunc(4)
+            >>> f.mul_low(h, 4).is_one()
+            True
         """
         cdef fmpz_t f
         cdef fq_default_poly res
