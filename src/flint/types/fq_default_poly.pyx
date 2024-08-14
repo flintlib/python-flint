@@ -18,8 +18,8 @@ cdef class fq_default_poly_ctx:
     Context object for creating :class:`~.fq_default_poly` initalised
     with a finite field `GF(p^d)`.
 
-        >>> fq_default_poly_ctx(163, 3)
-        fq_default_poly_ctx(Context for fq_default in GF(163^3)[z]/(z^3 + 7*z + 161))
+        >>> fq_default_poly_ctx(163, 3, fq_type="FQ_NMOD")
+        fq_default_poly_ctx(fq_default_ctx(163, 3, 'z', x^3 + 7*x + 161, 'FQ_NMOD'))
     """
     def __cinit__(self):
         pass
