@@ -57,7 +57,9 @@ cdef class fq_default_poly_ctx:
 
     cdef set_any_as_fq_default_poly(self, fq_default_poly_t poly, obj):
         # First try and coerce polynomials to polynomials
-        if typecheck(obj, fq_default_poly) and self == (<fq_default_poly>obj).ctx:
+        if typecheck(obj, fq_default_poly):
+            if self != (<fq_default_poly>obj).ctx:
+                raise ValueError("fields must match")
             fq_default_poly_set(poly, (<fq_default_poly>obj).val, self.field.val)
             return
 
@@ -239,7 +241,7 @@ cdef class fq_default_poly_ctx:
         return f"Context for fq_default_poly with field: {self.field}"
 
     def __repr__(self):
-        return f"fq_default_poly_ctx({self.field})"
+        return f"fq_default_poly_ctx({repr(self.field)})"
 
     def __call__(self, val):
         return fq_default_poly(val, self)
@@ -1181,6 +1183,8 @@ cdef class fq_default_poly(flint_poly):
 
         # FLINT requires the constant term is one, so we need to normalise
         c = self.constant_coefficient()
+        if c.is_zero():
+            raise ZeroDivisionError("constant coefficient must be invertible (and a square in the field)")
         if not c.is_square():
             raise ValueError("constant coefficient of the polynomial must be a square")
         self = self / c
@@ -1211,6 +1215,8 @@ cdef class fq_default_poly(flint_poly):
 
         # FLINT requires the constant term is one, so we need to normalise
         c = self.constant_coefficient()
+        if c.is_zero():
+            raise ZeroDivisionError("constant coefficient must be invertible (and a square in the field)")
         if not c.is_square():
             raise ValueError("constant coefficient of the polynomial must be a square")
         self = self / c
@@ -1241,6 +1247,9 @@ cdef class fq_default_poly(flint_poly):
         """
         cdef fmpz_t f
         cdef fq_default_poly res
+
+        if self.constant_coefficient().is_zero():
+            raise ZeroDivisionError("constant coefficient must be invertible")
 
         res = self.ctx.new_ctype_poly()
         fq_default_poly_inv_series(

@@ -383,7 +383,7 @@ cdef class fq_default_ctx:
         # convert from fq_default
         if typecheck(obj, fq_default):
             if self != (<fq_default>obj).ctx:
-                return NotImplemented
+                raise ValueError("fields must match")
             return obj
 
         cdef fq_default res
@@ -419,7 +419,7 @@ cdef class fq_default_ctx:
         return False
 
     def __hash__(self):
-        return hash((self.type, self.var, self.prime(), self.modulus()))
+        return hash((self.fq_type, self.var, self.prime(), self.modulus()))
 
     def __str__(self):
         if self.degree() == 1:
