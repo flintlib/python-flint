@@ -1,11 +1,7 @@
-from flint.flintlib.flint cimport mp_limb_t, mp_bitcnt_t, ulong
+from flint.flintlib.flint cimport mp_limb_t, mp_bitcnt_t, ulong, nmod_t
 from flint.flintlib.fmpz cimport fmpz_t
 
 cdef extern from "flint/nmod.h":
-    ctypedef struct nmod_t:
-        mp_limb_t n
-        mp_limb_t ninv
-        mp_bitcnt_t norm
 # TODO add macros
 
 # from here on is parsed
