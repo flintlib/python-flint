@@ -1106,7 +1106,7 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         return res
 
-    def mulmod(self, other, modulus):
+    def mul_mod(self, other, modulus):
         """
         Computes the multiplication of ``self`` with ``other``
         modulo the polynomial ``modulus``
@@ -1117,7 +1117,7 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> g = 43*x**6 + 91*x**5 + 77*x**4 + 113*x**3 + 71*x**2 + 132*x + 60
             >>> mod = x**4 + 93*x**3 + 78*x**2 + 72*x + 149
             >>>
-            >>> f.mulmod(g, mod)
+            >>> f.mul_mod(g, mod)
             106*x^3 + 44*x^2 + 53*x + 77
         """
         cdef fmpz_mod_poly res
@@ -1504,7 +1504,7 @@ cdef class fmpz_mod_poly(flint_poly):
             >>> h = f.sqrt_trunc(5)
             >>> h
             82*x^4 + 162*x^3 + x^2 + x + 1
-            >>> h.mulmod(h, x**5) == f
+            >>> h.mul_mod(h, x**5) == f
             True
 
         """
@@ -1644,38 +1644,6 @@ cdef class fmpz_mod_poly(flint_poly):
         res = self.ctx.new_ctype_poly()
         fmpz_mod_poly_mullow(
             res.val, self.val, other_c.val, n, res.ctx.mod.val
-        )
-        return res
-
-    def mul_mod(self, other, modulus):
-        r"""
-        Returns remainder of the product of ``self`` with ``other`` after reduction by ``modulus``
-
-        Equivalent to computing `f(x) \cdot g(x) \mod x^n`
-
-        >>> R = fmpz_mod_poly_ctx(163)
-        >>> f = R([2,3,5,7,11])
-        >>> g = R([1,2,4,8,16])
-        >>> h = R([1,0,1])
-        >>> f.mul_mod(g, h) == (f * g) % h
-        True
-        >>> f.mul_mod(g, h)
-        63*x + 80
-        """
-        # Only allow multiplication and reduction with other fmpz_mod_poly
-        if not typecheck(other, fmpz_mod_poly) or not typecheck(modulus, fmpz_mod_poly):
-            raise TypeError("input polynomials must be of type fmpz_mod_poly")
-
-        # Ensure the contexts match
-        other_c = <fmpz_mod_poly>other
-        modulus_c = <fmpz_mod_poly>modulus
-        if (self.ctx != other_c.ctx) or (self.ctx != modulus_c.ctx):
-            raise ValueError("other polynomial's context does not match")
-
-        cdef fmpz_mod_poly res
-        res = self.ctx.new_ctype_poly()
-        fmpz_mod_poly_mulmod(
-            res.val, self.val, other_c.val, modulus_c.val, res.ctx.mod.val
         )
         return res
 

@@ -2158,9 +2158,9 @@ def test_fmpz_mod_poly():
         assert f*f == f**2 == f.square()
 
         # mulmod
-        assert f.mulmod(f, g) == (f*f) % g
-        assert raises(lambda: f.mulmod(f, "AAA"), TypeError)
-        assert raises(lambda: f.mulmod("AAA", g), TypeError)
+        assert f.mul_mod(f, g) == (f*f) % g
+        assert raises(lambda: f.mul_mod(f, "AAA"), TypeError)
+        assert raises(lambda: f.mul_mod("AAA", g), TypeError)
 
         # pow_mod
         assert f.pow_mod(2, g) == (f*f) % g
@@ -2271,10 +2271,6 @@ def test_fmpz_mod_poly():
         assert raises(lambda: f.mul_low("A", h), TypeError)
         assert raises(lambda: f.mul_low(g, "A"), TypeError)
         assert f.mul_low(g, 3) == (f * g) % x**3
-
-        assert raises(lambda: f.mul_mod(f_cmp, h), ValueError)
-        assert raises(lambda: f.mul_mod(g, f_cmp), ValueError)
-        assert f.mul_mod(g, h) == (f * g) % h
 
         assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
 
