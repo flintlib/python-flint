@@ -149,11 +149,9 @@ jobs:
           python-version: '3.12'
       - run: sudo apt-get update
       - run: sudo apt-get install libflint-dev
-      - run: pip install cython setuptools coverage
+      - run: pip install git+https://github.com/oscarbenjamin/cython.git@pr_relative_paths
+      - run: pip install -r requirements-dev.txt
       - run: bin/coverage.sh
-        env:
-          PYTHONPATH: src
-      - run: coverage report --sort=cover
 
   # Run SymPy test suite against python-flint master
   test_sympy:
