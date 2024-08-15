@@ -1,4 +1,5 @@
 cython
+ninja
 spin
 meson
 meson-python
