@@ -76,10 +76,11 @@ cdef class fq_default_ctx:
 
         return var
 
-    def __init__(self, p=None, degree=None, var=None, modulus=None, fq_type=fq_default_type.DEFAULT):
+    def __init__(self, p=None, degree=None, var=None, modulus=None, fq_type=fq_default_type.DEFAULT,
+                 check_prime=True, check_modulus=True):
         # Ensure the var used for the generator of GF(p^d) is a single byte
-        # TODO: this var is meaningless for GF(p) -- we could handle this somehow?
         var = self._parse_input_var(var)
+        self.var = var
 
         # Ensure the fq_type is an integer between 0, 5 -- we allow users to
         # input a string which is converted as an enum
@@ -89,16 +90,17 @@ cdef class fq_default_ctx:
         if modulus is not None:
             # If the polynomial has no known characteristic, we can try and create one
             # using the supplied prime
-            if not (typecheck(modulus, fmpz_mod_poly) or typecheck(modulus, nmod_poly)):
+            if not typecheck(modulus, fmpz_mod_poly):
                 if p is None:
                     raise ValueError("cannot create from modulus if no characteristic is known")
-
                 ring_ctx = fmpz_mod_poly_ctx(p)
+                if not ring_ctx.is_prime():
+                    raise ValueError("characteristic is not prime")
                 modulus = ring_ctx.any_as_fmpz_mod_poly(modulus)
                 if modulus is NotImplemented:
                     raise TypeError("modulus cannot be cast to fmpz_mod_poly")
 
-            self._set_from_modulus(modulus, var, fq_type)
+            self._set_from_modulus(modulus, var, fq_type, check_prime=check_prime, check_modulus=check_modulus)
             return
 
         # If there's no modulus and no prime, we can't continue
@@ -110,23 +112,16 @@ cdef class fq_default_ctx:
             degree = 1
 
         # Construct the field from the prime and degree GF(p^d)
-        self._set_from_order(p, degree, var, fq_type)
+        self._set_from_order(p, degree, var, fq_type, check_prime=check_prime)
 
-    cdef _c_set_from_order(self, fmpz p, int d, char *var,
-                           fq_default_type fq_type=fq_default_type.DEFAULT):
-        self.var = var
-        fq_default_ctx_init_type(self.val, p.val, d, self.var, fq_type)
-        self._initialized = True
-
-    cdef _set_from_order(self, p, d, var,
-                       fq_type=fq_default_type.DEFAULT, check_prime=True):
+    cdef _set_from_order(self, p, d, var, fq_type=fq_default_type.DEFAULT, check_prime=True):
         """
         Construct a context for the finite field GF(p^d).
 
         `var` is a name for the ring generator of this field over GF(p).
 
         The optional parameter `type` select the implementation. For more
-        information about the types available, see :class:`~.fq_default_type` 
+        information about the types available, see :class:`~.fq_default_type`
         for possible types.
         """
         # c_from_order expects the characteristic to be fmpz type
@@ -141,24 +136,11 @@ cdef class fq_default_ctx:
         if d < 1:
             raise ValueError(f"the degree must be positive, got {d = }")
 
-        # Cython type conversion and context initalisation
-        self._c_set_from_order(prime, d, var, fq_type)
-
-    cdef _c_set_from_modulus(self, modulus, char *var,
-                             fq_default_type fq_type=fq_default_type.DEFAULT):
-        self.var = var
-        if typecheck(modulus, fmpz_mod_poly):
-            fq_default_ctx_init_modulus_type(self.val, (<fmpz_mod_poly>modulus).val,
-                                             (<fmpz_mod_poly>modulus).ctx.mod.val, self.var, fq_type)
-        elif typecheck(modulus, nmod_poly):
-            fq_default_ctx_init_modulus_nmod_type(self.val, (<nmod_poly>modulus).val,
-                                                  self.var, fq_type)
-        else:
-            raise TypeError(f"modulus must be fmpz_mod_poly or nmod_poly, got {modulus!r}")
+        fq_default_ctx_init_type(self.val, (<fmpz>prime).val, d, self.var, <fq_default_type>fq_type)
         self._initialized = True
 
-    cdef _set_from_modulus(self, modulus, var,
-                         fq_type=fq_default_type.DEFAULT, check_modulus=True):
+    cdef _set_from_modulus(self, modulus, var, fq_type=fq_default_type.DEFAULT,
+                           check_prime=True, check_modulus=True):
         """
         Construct a context for a finite field from an irreducible polynomial.
 
@@ -167,14 +149,18 @@ cdef class fq_default_ctx:
         `var` is a name for the ring generator of this field over the prime field.
 
         The optional parameter `type` select the implementation. For more
-        information about the types available, see :class:`~.fq_default_type` 
+        information about the types available, see :class:`~.fq_default_type`
         for possible types.
         """
+        if check_prime and not (<fmpz_mod_poly>modulus).ctx.is_prime():
+            raise ValueError("characteristic is not prime")
+
         if check_modulus and not modulus.is_irreducible():
             raise ValueError("modulus must be irreducible")
 
-        # Cython type conversion and context initalisation
-        self._c_set_from_modulus(modulus, var, fq_type)
+        fq_default_ctx_init_modulus_type(self.val, (<fmpz_mod_poly>modulus).val,
+                                         (<fmpz_mod_poly>modulus).ctx.mod.val, self.var, <fq_default_type>fq_type)
+        self._initialized = True
 
     @property
     def fq_type(self):
@@ -517,9 +503,6 @@ cdef class fq_default(flint_scalar):
     def str(self):
         return self.polynomial().str(var=self.ctx.var.decode())
 
-    def repr(self):
-        return f"fq_default({self.to_list(), self.ctx.__repr__()})"
-
     def __hash__(self):
         return hash((self.polynomial(), hash(self.ctx)))
 
@@ -741,11 +724,8 @@ cdef class fq_default(flint_scalar):
             fq_default_pow_ui(res.val, res.val, <ulong>e, self.ctx.val)
             return res
 
-        # Attempt to cast the exponent to an fmpz type then exponentiate
+        # Cast the exponent to fmpz type
         e_fmpz = any_as_fmpz(e)
-        if e_fmpz is NotImplemented:
-            raise TypeError(f"exponent {e = } cannot be cast to fmpz")
-
         fq_default_pow(res.val, res.val, (<fmpz>e_fmpz).val, self.ctx.val)
 
         return res

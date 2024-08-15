@@ -3671,15 +3671,44 @@ def test_matrices_transpose():
 
 def test_fq_default():
     # test fq_default context creation
-    # TODO
+
+    # fq_type parsing
+    assert raises(lambda: flint.fq_default_ctx(5, fq_type="A"), ValueError)
+    assert raises(lambda: flint.fq_default_ctx(5, fq_type=[]), TypeError)
+    assert raises(lambda: flint.fq_default_ctx(5, fq_type=-1), ValueError)
+
+    # var must be one character
+    assert raises(lambda: flint.fq_default_ctx(5, var="XXX"), ValueError)
+
+    # p must be set if modulus has no characteristic / modulus
+    assert raises(lambda: flint.fq_default_ctx(modulus=[0,1,0]), ValueError)
+
+    # prime must be prime when setting from modulus
+    assert raises(lambda: flint.fq_default_ctx(10, modulus=[0,1,0]), ValueError)
+    mod_not_prime = flint.fmpz_mod_poly_ctx(10)([1,0,1])
+    assert raises(lambda: flint.fq_default_ctx(modulus=mod_not_prime), ValueError)
+    mod_not_irr = flint.fmpz_mod_poly_ctx(11)([0,0,1])
+    assert raises(lambda: flint.fq_default_ctx(modulus=mod_not_irr), ValueError)
+
+    # modulus must be able to be cast to fmpz_mod_poly
+    assert raises(lambda: flint.fq_default_ctx(11, modulus="AAA"), TypeError)
+
+    # either p or modulus must be set
+    assert raises(lambda: flint.fq_default_ctx(p=None, modulus=None), ValueError)
+
+    # p must be prime
+    assert raises(lambda: flint.fq_default_ctx(10), ValueError)
+    
+    # degree must be positive
+    assert raises(lambda: flint.fq_default_ctx(11, -1), ValueError)
 
     # GF(5)
-    gf_5 = flint.fq_default_ctx(5)
-    gf_5_ = flint.fq_default_ctx(5)
+    gf_5 = flint.fq_default_ctx(5, fq_type='NMOD')
+    gf_5_ = flint.fq_default_ctx(5, fq_type='NMOD')
 
     # GF(5^2)
-    gf_5_2 = flint.fq_default_ctx(5, 2)
-    gf_5_2_ = flint.fq_default_ctx(5, 2)
+    gf_5_2 = flint.fq_default_ctx(5, 2, fq_type='FQ_ZECH')
+    gf_5_2_ = flint.fq_default_ctx(5, 2, fq_type='FQ_ZECH')
 
     # GF((2**127 - 1)^2)
     gf_127 = flint.fq_default_ctx(2**127 - 1, 2)
@@ -3689,6 +3718,8 @@ def test_fq_default():
     assert (gf_5 != gf_5_) is False
     assert (gf_5 == gf_5_2) is False
     assert (gf_5 != gf_5_2) is True
+    assert (gf_5 == "a") is False
+    assert (gf_5 != "a") is True
 
     assert gf_5.prime() == gf_5_2.prime() == 5
     assert gf_5_2.order() == 5*5
@@ -3702,7 +3733,11 @@ def test_fq_default():
     assert str(gf_5) == "Context for fq_default in GF(5)"
     assert str(gf_5_2) == "Context for fq_default in GF(5^2)[z]/(z^2 + 4*z + 2)"
 
+    assert repr(gf_5) == "fq_default_ctx(5, var='z' type='NMOD')"
+    assert repr(gf_5_2) == "fq_default_ctx(5, 2, 'z', x^2 + 4*x + 2, 'FQ_ZECH')"
+
     # coercision
+    assert gf_5.one() == flint.fq_default(1, gf_5)
     assert gf_5(1) == gf_5.one()
     assert gf_5(flint.fmpz(1)) == gf_5.one()
     assert gf_5(-1) == -gf_5.one()
@@ -3717,7 +3752,10 @@ def test_fq_default():
     R = flint.fmpz_mod_poly_ctx(5)
     assert gf_5.gen() == gf_5(R.gen())
     assert gf_5.gen() == gf_5(flint.nmod_poly([0, 1], 5))
-
+    assert gf_5(flint.fmpz(2**64)) == gf_5(2**64)
+    assert raises(lambda: flint.fq_default(1, "AAA"), TypeError)
+    assert raises(lambda: flint.fq_default.__init__(1, "AAA"), TypeError)
+    assert raises(lambda: flint.fq_default("AAA", gf_5), TypeError)
 
     # testing various equalties between types
 
@@ -3809,6 +3847,7 @@ def test_fq_default():
         assert (a / b) / c == a / (b * c)
 
         assert a + 0 == 0 + a == a
+        assert a - 0 == -(0 - a) == a
         assert a + gf.zero() == a
         assert a * 1 == 1 * a == a
         assert a * gf.one() == a
@@ -3818,13 +3857,21 @@ def test_fq_default():
         assert raises(lambda: a / 0, ZeroDivisionError)
         assert raises(lambda: ~gf.zero(), ZeroDivisionError)
         assert raises(lambda: pow(gf.zero(), -1), ZeroDivisionError)
+        assert raises(lambda: pow(gf.zero(), "A"), TypeError)
 
         assert 1/a == pow(a, -1) == ~a
         assert gf.one() == pow(a, 0)
         assert gf.zero() == pow(gf.zero(), 2**64)
         assert a == pow(a, 1)
-
+        assert pow(a, flint.fmpz(2**64)) == pow(a, 2**64)
         assert (a*a).is_square()
+        assert (a*a).sqrt() in [a, -a]
+
+        while True:
+            nqr = gf.random_element()
+            if not nqr.is_square():
+                break
+        assert raises(lambda: nqr.sqrt(), ValueError)
 
 
 def test_fq_default_poly():
