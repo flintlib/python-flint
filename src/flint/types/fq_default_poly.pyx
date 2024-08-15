@@ -169,9 +169,6 @@ cdef class fq_default_poly_ctx:
         ``True``, ensures the output is monic. If ``irreducible`` is
         ``True``, ensures that the output is irreducible.
 
-        TODO: there is currently no fq_defualt_poly method for testing that
-        a polynomial is irreducible?!
-
             >>> R = fq_default_poly_ctx(163, 3)
             >>> f = R.random_element()
             >>> f.degree() <= 3
@@ -1315,6 +1312,23 @@ cdef class fq_default_poly(flint_poly):
         )
 
         return (G, S, T)
+
+    def inverse_mod(self, other):
+        """
+        Returns the inverse of ``self`` modulo ``other``
+
+            >>> R = fq_default_poly_ctx(163)
+            >>> f = R([123, 129, 63, 14, 51, 76, 133])
+            >>> h = R([139, 9, 35, 154, 87, 120, 24])
+            >>> g = f.inverse_mod(h)
+            >>> g
+            41*x^5 + 121*x^4 + 47*x^3 + 41*x^2 + 6*x + 5
+            >>> assert f.mul_mod(g, h).is_one()
+        """
+        G, S, _ = self.xgcd(other)
+        if not G.is_one():
+            raise ValueError(f"polynomial has no inverse modulo {other = }")
+        return S
 
     # ====================================
     # Derivative

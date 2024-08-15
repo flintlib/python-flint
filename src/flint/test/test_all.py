@@ -3986,7 +3986,6 @@ def test_fq_default_poly():
         # pow_mod
         assert f.pow_mod(2, g) == (f*f) % g
         assert raises(lambda: f.pow_mod(2, "AAA"), TypeError)
-
         assert raises(lambda: f.complex_roots(), DomainError)
 
         # compose errors
@@ -3994,6 +3993,16 @@ def test_fq_default_poly():
         assert raises(lambda: f.compose_mod("A", g), TypeError)
         assert raises(lambda: f.compose_mod(g, "A"), TypeError)
         assert raises(lambda: f.compose_mod(g, R_test.zero()), ZeroDivisionError)
+
+        # inverse_mod
+        f = R_test.random_element()
+        while True:
+            h = R_test.random_element()
+            if f.gcd(h).is_one():
+                break
+        g = f.inverse_mod(h)
+        assert f.mul_mod(g, h).is_one()
+        assert raises(lambda: f.inverse_mod(2*f), ValueError)
 
         # series
         f_non_square = R_test([nqr, 1, 1, 1])
