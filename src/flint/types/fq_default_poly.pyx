@@ -192,7 +192,7 @@ cdef class fq_default_poly_ctx:
         """
         cdef slong length
         if not (isinstance(monic, bool) and isinstance(irreducible, bool) and isinstance(not_zero, bool)):
-            raise ValueError("All of `not_zero`, `monic` and `irreducible` must be of type bool")
+            raise TypeError("All of `not_zero`, `monic` and `irreducible` must be of type bool")
 
         length = degree + 1
         if length <= 0:
@@ -692,9 +692,6 @@ cdef class fq_default_poly(flint_poly):
 
         # For larger exponents we need to cast e to an fmpz first
         e_fmpz = any_as_fmpz(e)
-        if e_fmpz is NotImplemented:
-            raise TypeError(f"exponent cannot be cast to an fmpz type: {e = }")
-
         fq_default_poly_powmod_fmpz_binexp(
                 res.val, self.val, (<fmpz>e_fmpz).val, (<fq_default_poly>modulus).val, res.ctx.field.val
             )

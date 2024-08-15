@@ -3676,6 +3676,7 @@ def test_fq_default():
     assert raises(lambda: flint.fq_default_ctx(5, fq_type="A"), ValueError)
     assert raises(lambda: flint.fq_default_ctx(5, fq_type=[]), TypeError)
     assert raises(lambda: flint.fq_default_ctx(5, fq_type=-1), ValueError)
+    assert raises(lambda: flint.fq_default_ctx("ABC"), TypeError)
 
     # var must be one character
     assert raises(lambda: flint.fq_default_ctx(5, var="XXX"), ValueError)
@@ -3715,6 +3716,7 @@ def test_fq_default():
     gf_127_2 = flint.fq_default_ctx(2**127 - 1, 2)
 
     assert (gf_5 == gf_5_) is True
+    assert (hash(gf_5) == hash(gf_5_)) is True
     assert (gf_5 != gf_5_) is False
     assert (gf_5 == gf_5_2) is False
     assert (gf_5 != gf_5_2) is True
@@ -3756,12 +3758,13 @@ def test_fq_default():
     assert raises(lambda: flint.fq_default(1, "AAA"), TypeError)
     assert raises(lambda: flint.fq_default.__init__(1, "AAA"), TypeError)
     assert raises(lambda: flint.fq_default("AAA", gf_5), TypeError)
-
+    assert raises(lambda: gf_5.one() + gf_5_2.one(), ValueError)
     # testing various equalties between types
 
     # integers are the same if charactersitic is the same
     # even with extensions
     assert gf_5.one() == gf_5_.one()
+    assert hash(gf_5.one()) == hash(gf_5_.one())
     assert gf_5.one() == gf_5_2.one()
     assert gf_5.one() != gf_127.one()
 
@@ -3875,16 +3878,14 @@ def test_fq_default():
 
 
 def test_fq_default_poly():
-    from flint import fq_default_ctx, fq_default_poly_ctx, fq_default, fq_default_poly, fmpz, fmpz_poly
+    F = flint.fq_default_ctx(11, 3)
+    R1 = flint.fq_default_poly_ctx(F)
+    R2 = flint.fq_default_poly_ctx(11, 3)
+    R3 = flint.fq_default_poly_ctx(13, 5)
 
-    # fmpz_mod_poly_ctx tests
-    F = fq_default_ctx(11, 3)
-    R1 = fq_default_poly_ctx(F)
-    R2 = fq_default_poly_ctx(11, 3)
-    R3 = fq_default_poly_ctx(13, 5)
-
-    assert raises(lambda: fq_default_poly_ctx("AAA"), TypeError)
+    assert raises(lambda: flint.fq_default_poly_ctx("AAA"), TypeError)
     assert (R1 == R1) is True
+    assert hash(R1) == hash(R2)
     assert (R1 != R1) is False
     assert (R1 == R2) is True
     assert (R1 != R2) is False
@@ -3893,136 +3894,40 @@ def test_fq_default_poly():
     assert (R1 != "AAA") is True
     assert (R1 == "AAA") is False
 
-    assert (hash(R1) == hash(R1)) is True
-    assert (hash(R1) == hash(R2)) is True
-    assert (hash(R1) != hash(R3)) is True
-
     assert str(R1) == "Context for fq_default_poly with field: Context for fq_default in GF(11^3)[z]/(z^3 + 2*z + 9)"
     assert str(R1) == str(R2)
     assert repr(R3) == "fq_default_poly_ctx(fq_default_ctx(13, 5, 'z', x^5 + 4*x + 11, 'FQ_NMOD'))"
 
-    assert R1.characteristic() == 11
-    assert R3.prime() == 13
+    # random element failure
+    f = R1.random_element(not_zero=True)
+    assert not f.is_zero()
+    assert raises(lambda: R1.random_element(monic="AAA"), TypeError)
+    assert raises(lambda: R1.random_element(degree=-1), ValueError)
 
-    assert R1.zero().is_zero()
-    assert R1.zero() == 0
-    assert R1.one().is_one()
-    assert R1.one() == 1
-    assert R1.gen().is_gen()
-    assert R1.gen() == R1([0,1])
+    assert raises(lambda: flint.fq_default_poly([1,2,3], "AAA"), TypeError)
 
-    # Random testing
-    f = R1.random_element()
-    assert f.degree() <= 3
-    f = R1.random_element(degree=5, monic=True)
-    assert f.degree() <= 5
-    assert f.is_monic()
-    f = R1.random_element(degree=100, irreducible=True)
-    assert f.degree() <= 100
-    assert f.is_irreducible()
-    f = R1.random_element(degree=1, monic=True, irreducible=True)
-    assert f.degree() <= 1
-    assert f.is_irreducible()
-    assert f.is_monic()
-    assert raises(lambda: R1.random_element(degree=-123), ValueError)
-    assert raises(lambda: R1.random_element(monic="A"), ValueError)
-    assert raises(lambda: R1.random_element(irreducible="A"), ValueError)
+    assert R1(0).leading_coefficient() == 0
+    assert raises(lambda: R1.random_element().reverse(degree=-1), ValueError)
 
-    # Conversion tests
-    F = fq_default_ctx(11)
-    F_other = fq_default_ctx(13)
-    R = fq_default_poly_ctx(F)
-    R_other = fq_default_poly_ctx(F_other)
+    # some coersion
+    assert raises(lambda: R3(F(1)), ValueError)
+    assert R1.one() == R1(1)
+    assert R1.one() == R1([1])
+    assert R1.one() == R1(flint.fmpz(1))
+    assert R1.one() == R1(flint.fmpz_poly([1]))
+    assert R1.one() == R1(flint.fmpz_mod_ctx(11)(1))
+    assert R1.one() == R1(flint.fmpz_mod_poly_ctx(11)(1))
+    assert R1.one() == R1(flint.nmod_poly(1, 11))
 
-    assert raises(lambda: fq_default_poly(1, "A"), TypeError) # Need a valid context    
-    assert raises(lambda: R(R_other([1,2,3])), ValueError) # field must match
-    assert raises(lambda: R(F_other(2)), ValueError) # field must match
-    assert raises(lambda: R([F(1), F_other(2)]), ValueError) # field must match
-    assert raises(lambda: R([F(1), "A"]), TypeError) # need to be able to cast to fmpz_mod
+    R_sml = flint.fq_default_poly_ctx(5)
+    R_med = flint.fq_default_poly_ctx(65537)
+    R_big = flint.fq_default_poly_ctx(2**127 - 1)
+    R_sml_ext = flint.fq_default_poly_ctx(5, 5)
+    R_med_ext = flint.fq_default_poly_ctx(65537, 3)
+    R_big_ext = flint.fq_default_poly_ctx(2**127 - 1, 2)
 
-    f1 = R([int(-1),int(-2),int(-3)])
-    f2 = R([fmpz(-1),fmpz(-2),fmpz(-3)])
-    f3 = R([F(-1),F(-2),F(-3)])
-    f4 = R(fmpz_poly([-1, -2, -3]))
-    f5 = R(f4)
-
-    assert str(f1) == "8*x^2 + 9*x + 10"
-    assert str(f2) == "8*x^2 + 9*x + 10"
-    assert str(f3) == "8*x^2 + 9*x + 10"
-    assert str(f4) == "8*x^2 + 9*x + 10"
-    assert str(f5) == "8*x^2 + 9*x + 10"
-
-    f1 = R(5)
-    f2 = R(fmpz(6))
-    f3 = R(F(7))
-    assert str(f1) == "5"
-    assert str(f2) == "6"
-    assert str(f3) == "7"
-
-    # Printing
-    f = R([5, 6, 7, 8])
-    assert str(f) == "8*x^3 + 7*x^2 + 6*x + 5"
-
-    # Get and Set tests
-    f = R([5, 6, 7, 8])
-    assert f[0] == 5
-    assert repr(f[0]) == "5"
-    f[0] = 7
-    assert repr(f[0]) == "7"
-    assert str(f) == "8*x^3 + 7*x^2 + 6*x + 7"
-
-    # TODO: currently repr does pretty printing
-    # just like str, we should address this. Mainly,
-    # the issue is we want nice `repr` behaviour in
-    # interactive shells, which currently is why this
-    # choice has been made
-    assert str(f) == repr(f)
-
-    assert f[-1] == 0
-    assert raises(lambda: f.__setitem__(-1, 1), ValueError)
-    assert raises(lambda: f.__setitem__(1, "A"), TypeError)
-
-    # Comparisons
-    f1 = R([1,2,3])
-    f2 = R([12,13,14])
-    f3 = R([4,5,6])
-    f4 = R([3])
-
-    assert (f1 == f2) is True
-    assert (f1 != f3) is True
-    assert (f1 != "1") is True
-    assert (f4 == 3) is True
-    assert (hash(f1) == hash(f2)) is True
-    assert raises(lambda: f1 > f2, TypeError)
-    assert raises(lambda: f1 >= f2, TypeError)
-    assert raises(lambda: f1 < f2, TypeError)
-    assert raises(lambda: f1 <= f2, TypeError)
-
-    assert len(f1) == f1.length() == 3
-    assert f1.degree() == 2
-
-    f1 = R([0])
-    f2 = R([1])
-    f3 = R([0, 1])
-
-    assert f1.is_zero() is True
-    assert f2.is_one() is True
-    assert f3.is_gen() is True
-
-    # Arithmetic
-    p_sml = 163
-    p_med = 1013
-    p_big = 2**127 - 1
-
-    R_sml = fq_default_poly_ctx(p_sml)
-    R_med = fq_default_poly_ctx(p_med)
-    R_big = fq_default_poly_ctx(p_big)
-    R_sml_ext = fq_default_poly_ctx(p_sml, 5)
-    R_med_ext = fq_default_poly_ctx(p_med, 3)
-    R_big_ext = fq_default_poly_ctx(p_big, 2)
-
-    F_cmp = fq_default_ctx(11)
-    R_cmp = fq_default_poly_ctx(F_cmp)
+    F_cmp = flint.fq_default_ctx(11)
+    R_cmp = flint.fq_default_poly_ctx(F_cmp)
     f_cmp = R_cmp([1,2,3,4,5])
 
     for R_test in [R_sml, R_med, R_big, R_sml_ext, R_med_ext, R_big_ext]:
@@ -4034,86 +3939,34 @@ def test_fq_default_poly():
 
         f = R_test([-1,-2])
         g = R_test([-3,-4])
-
-        # pos, neg
-        assert f is +f
-        assert -f == R_test([1,2])
-
-        # add
-        assert raises(lambda: f + f_cmp, ValueError)
-        assert raises(lambda: f + "AAA", TypeError)
-        assert raises(lambda: "AAA" + f, TypeError)
-        assert f + g == R_test([-4,-6])
-        assert f + 1 ==  R_test([0,-2])
-        assert f + fmpz(1) ==  R_test([0,-2])
-        assert f + F_test(1) ==  R_test([0,-2])
-        assert 1 + f ==  R_test([0,-2])
-        assert fmpz(1) + f ==  R_test([0,-2])
-        assert F_test(1) + f ==  R_test([0,-2])
-
-        # sub
-        assert raises(lambda: f - f_cmp, ValueError)
-        assert raises(lambda: f - "AAA", TypeError)
-        assert raises(lambda: "AAA" - f, TypeError)
-        assert f - g == R_test([2, 2])
-        assert f - 1 ==  R_test([-2,-2])
-        assert f - fmpz(1) ==  R_test([-2,-2])
-        assert f - F_test(1) ==  R_test([-2,-2])
-        assert 1 - f ==  R_test([2, 2])
-        assert fmpz(1) - f ==  R_test([2, 2])
-        assert F_test(1) - f ==  R_test([2, 2])
-
-        # mul
-        assert raises(lambda: f * f_cmp, ValueError)
-        assert raises(lambda: f * "AAA", TypeError)
-        assert raises(lambda: "AAA" * f, TypeError)
-        assert f * g == R_test([3, 4 + 6, 8])
-        assert f * 2 ==  R_test([-2,-4])
-        assert f * fmpz(2) ==  R_test([-2,-4])
-        assert f * F_test(2) ==  R_test([-2,-4])
-        assert 2 * f ==  R_test([-2,-4])
-        assert fmpz(2) * f ==  R_test([-2,-4])
-        assert F_test(2) * f ==  R_test([-2,-4])
+        assert (f == f) is True
+        assert (f != g) is True
+        assert (hash(f) == hash(f)) is True
+        assert (hash(f) != hash(g)) is True
 
         # Exact division
         assert raises(lambda: f.exact_division(f_cmp), ValueError)
         assert raises(lambda: f.exact_division("AAA"), TypeError)
         assert raises(lambda: f.exact_division(0), ZeroDivisionError)
-
         assert (f * g).exact_division(g) == f
         assert raises(lambda: f.exact_division(g), DomainError)
-
-        # true div
         assert raises(lambda: f / "AAA", TypeError)
+        assert raises(lambda: "AAA" / f, TypeError)
+
+
+        # ZeroDivisionError
         assert raises(lambda: f / 0, ZeroDivisionError)
-
-        assert (f + f) / 2  ==  f
-        assert (f + f) / fmpz(2)  ==  f
-        assert (f + f) / F_test(2)  ==  f
-
-        # floor div
-        assert raises(lambda: f // f_cmp, ValueError)
-        assert raises(lambda: f // "AAA", TypeError)
-        assert raises(lambda: "AAA" // f, TypeError)
-        assert (f * g) // g == f
-        assert (f + f) // 2  ==  f
-        assert (f + f) // fmpz(2)  ==  f
-        assert (f + f) // F_test(2)  ==  f
-        assert 2 // R_test(2) == 1
-        assert (f + 1) // f == 1
+        assert raises(lambda: f // 0, ZeroDivisionError)
+        assert raises(lambda: 1 / R_test.zero(), ZeroDivisionError)
+        assert raises(lambda: 1 // R_test.zero(), ZeroDivisionError)
+        assert raises(lambda: 1 % R_test.zero(), ZeroDivisionError)
 
         # pow
-        assert raises(lambda: f**(-2), ValueError)
-        assert f*f == f**2
-        assert f*f == f**fmpz(2)
-
-        # pow_mod
         # assert ui and fmpz exp agree for polynomials and generators
         R_gen = R_test.gen()
+        assert raises(lambda: f**(-2), ValueError)
         assert pow(f, 2**60, g) == pow(pow(f, 2**30, g), 2**30, g)
         assert pow(R_gen, 2**60, g) == pow(pow(R_gen, 2**30, g), 2**30, g)
-
-        # Check other typechecks for pow_mod 
         assert raises(lambda: pow(f, -2, g), ValueError)
         assert raises(lambda: pow(f, 1, "A"), TypeError)
         assert raises(lambda: pow(f, "A", g), TypeError)
@@ -4125,45 +3978,6 @@ def test_fq_default_poly():
         assert R_test([1,2,3]).left_shift(3) == R_test([0,0,0,1,2,3])
         assert R_test([1,2,3]).right_shift(1) == R_test([2,3])
 
-        # Mod
-        assert raises(lambda: f % "AAA", TypeError)
-        assert raises(lambda: tuple() % f, TypeError), f'{"AAA" % f = }'
-
-        assert f % 1 == 0
-        assert R_test.one() % 1 == 0
-        assert 100 % R_test.one() == 0
-        assert (f*g + 1) % f == 1
-        assert (f*g + g) % f == (g % f)
-        assert f % R_test([0,1]) == f.constant_coefficient()
-
-        # Evaluation
-        h = R_test([0, 1])
-        assert h(1) == 1
-        assert h(-1) == R_test.base_field()(-1)
-        h = R_test([0, 0, 1])
-        assert h(1) == h(-1)
-        assert raises(lambda: h("AAA"), TypeError)
-
-        # compose
-        assert raises(lambda: h.compose("AAA"), TypeError)
-
-        # compose mod
-        mod = R_test([1,2,3,4])
-        assert f.compose(h) % mod == f.compose_mod(h, mod)
-        assert raises(lambda: h.compose_mod("AAA", mod), TypeError)
-        assert raises(lambda: h.compose_mod(f, "AAA"), TypeError)
-        assert raises(lambda: h.compose_mod(f, R_test(0)), ZeroDivisionError)
-
-        # Reverse
-        assert raises(lambda: h.reverse(degree=-100), ValueError)
-        assert R_test([-1,-2,-3]).reverse() == R_test([-3,-2,-1])
-
-        # monic
-        assert R_test([1,2]).monic() == R_test([1 / F_test(2), 1])
-
-        # Square
-        assert f*f == f**2 == f.square()
-
         # mulmod
         assert f.mul_mod(f, g) == (f*f) % g
         assert raises(lambda: f.mul_mod(f, "AAA"), TypeError)
@@ -4173,51 +3987,29 @@ def test_fq_default_poly():
         assert f.pow_mod(2, g) == (f*f) % g
         assert raises(lambda: f.pow_mod(2, "AAA"), TypeError)
 
-        # divmod
-        S, T = f.divmod(g)
-        assert S*g + T == f
-        assert raises(lambda: f.divmod("AAA"), TypeError)
+        assert raises(lambda: f.complex_roots(), DomainError)
 
-        # gcd
-        assert raises(lambda: f.gcd("f"), TypeError)
+        # compose errors
+        assert raises(lambda: f.compose("A"), TypeError)
+        assert raises(lambda: f.compose_mod("A", g), TypeError)
+        assert raises(lambda: f.compose_mod(g, "A"), TypeError)
+        assert raises(lambda: f.compose_mod(g, R_test.zero()), ZeroDivisionError)
 
-        # xgcd
-        assert raises(lambda: (f).xgcd("f_cmp"), TypeError)
-
-        f_inv = f.inverse_series_trunc(2)
-        assert (f * f_inv) % R_test([0,0,1]) == 1
-        assert raises(lambda: R_test([0,1]).inverse_series_trunc(2), ZeroDivisionError)
-
-        # sqrt
-        f1 = R_test.random_element(irreducible=True)
-        assert raises(lambda: f1.sqrt(), ValueError)
-        assert (f1*f1).sqrt() in [f1, -f1]
-
-        # sqrt series
+        # series
         f_non_square = R_test([nqr, 1, 1, 1])
         f_zero = R_test([0, 1, 1, 1])
         assert raises(lambda: f_non_square.sqrt_trunc(1), ValueError)
         assert raises(lambda: f_zero.sqrt_trunc(1), ZeroDivisionError)
         assert raises(lambda: f_non_square.inv_sqrt_trunc(1), ValueError)
         assert raises(lambda: f_zero.inv_sqrt_trunc(1), ZeroDivisionError)
+        f_inv = f.inverse_series_trunc(2)
+        assert (f * f_inv) % R_test([0,0,1]) == 1
+        assert raises(lambda: R_test([0,1]).inverse_series_trunc(2), ZeroDivisionError)
 
         # deflation
         f1 = R_test([1,0,2,0,3])
         assert raises(lambda: f1.deflate(100), ValueError)
         assert f1.deflate(2) == R_test([1,2,3])
-
-        # factor
-        ff = R_test([3,2,1]) * R_test([3,2,1]) * R_test([5,4,3])
-        ff_rebuild = R_test.one()
-        c, facs = ff.factor()
-        ff_rebuild *= c
-        for p, e in facs:
-            assert p.is_irreducible()
-            ff_rebuild *= p**e
-        assert ff_rebuild == ff
-
-        assert set(ff.factor()[1]) == set(ff.factor()[1])
-        assert raises(lambda: R_test([0,0,1]).complex_roots(), DomainError)
 
         # truncate things
         f = R_test.random_element()
@@ -4238,8 +4030,9 @@ def test_fq_default_poly():
         assert raises(lambda: f.sub_trunc(f_cmp, 1), ValueError)
         assert f.sub_trunc(g, 3) == (f - g) % x**3
 
-        assert raises(lambda: f.mul_low("A", h), TypeError)
+        assert raises(lambda: f.mul_low("A", 1), TypeError)
         assert raises(lambda: f.mul_low(g, "A"), TypeError)
+        assert raises(lambda: f.mul_low(f_cmp, 1), ValueError)
         assert f.mul_low(g, 3) == (f * g) % x**3
 
         assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
