@@ -10,7 +10,7 @@
 #
 set -o errexit
 
-meson configure build -Dcoverage=true
+meson setup build -Dcoverage=true
 spin run -- coverage run -m flint.test
 coverage report -m
 coverage html
