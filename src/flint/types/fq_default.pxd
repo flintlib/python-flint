@@ -1,7 +1,4 @@
 from flint.flintlib.fq_default cimport *
-from flint.flintlib.fq_zech cimport fq_zech_is_primitive, fq_zech_multiplicative_order
-from flint.flintlib.fq_nmod cimport fq_nmod_is_primitive, fq_nmod_multiplicative_order
-from flint.flintlib.fq cimport fq_is_primitive, fq_multiplicative_order
 from flint.types.fmpz cimport fmpz
 from flint.flint_base.flint_base cimport flint_scalar
 
