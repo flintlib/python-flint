@@ -1,7 +1,10 @@
 """
 A Cython plugin for coverage.py suitable for a spin/meson project.
 
-This is derived from Cython's coverage plugin.
+This follows the same general approach as Cython's coverage plugin and uses the
+Cython plugin for parsing the C files. The difference here is that files are
+laid out very differently in a meson project. Assuming meson makes it a lot
+easier to find all the C files because we can just parse the build.ninja file.
 
 https://coverage.readthedocs.io/en/latest/api_plugin.html
 https://github.com/cython/cython/blob/master/Cython/Coverage.py
@@ -15,6 +18,7 @@ from functools import cache
 from pathlib import Path
 
 
+# Paths used by spin/meson in a src-layout:
 root_dir = Path(__file__).parent
 build_dir = root_dir / 'build'
 build_install_dir = root_dir / 'build-install'
@@ -97,11 +101,10 @@ def parse_cfile_lines(c_file):
 
 
 class Plugin(CoveragePlugin):
-    """
-    A Cython coverage plugin for coverage.py suitable for a spin/meson project.
-    """
+    """A coverage plugin for a spin/meson project with Cython code."""
+
     def file_tracer(self, filename):
-        """Find a tracer for filename as reported in trace events."""
+        """Find a tracer for filename to handle trace events."""
         path = Path(filename)
 
         if path.suffix in ('.pyx', '.pxd') and root_dir in path.parents:
@@ -122,7 +125,7 @@ class Plugin(CoveragePlugin):
 
 
 class CyFileTracer(FileTracer):
-    """File tracer for Cython or Python files (.pyx,.pxd,.py)."""
+    """File tracer for Cython files (.pyx,.pxd)."""
 
     def __init__(self, srcpath):
         assert (src_dir / srcpath).exists()
@@ -136,7 +139,7 @@ class CyFileTracer(FileTracer):
 
     def dynamic_source_filename(self, filename, frame):
         """Get filename from frame and return abspath to file."""
-        # What is returned here needs to match MyFileReporter.filename
+        # What is returned here needs to match CyFileReporter.filename
         path = frame.f_code.co_filename
         return self.get_source_filename(path)
 
@@ -159,11 +162,9 @@ class CyFileReporter(FileReporter):
         assert abspath.exists()
 
         # filepath here needs to match dynamic_source_filename
-        filepath = str(abspath)
-        super().__init__(filepath)
+        super().__init__(str(abspath))
 
         self.srcpath = srcpath
-        self.abspath = abspath
 
     def relative_filename(self):
         """Path displayed in the coverage reports."""
