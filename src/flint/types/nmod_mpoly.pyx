@@ -1069,7 +1069,7 @@ cdef class nmod_mpoly(flint_mpoly):
             >>> Zm = nmod_mpoly
             >>> ctx = nmod_mpoly_ctx.get_context(3, Ordering.lex, 11, 'x,y,z')
             >>> p1 = Zm("2*x + 4", ctx)
-            >>> p2 = Zm("3*x*z +  + 3*x + 3*z + 3", ctx)
+            >>> p2 = Zm("3*x*z + 3*x + 3*z + 3", ctx)
             >>> (p1 * p2).factor()
             (6, [(z + 1, 1), (x + 2, 1), (x + 1, 1)])
             >>> (p2 * p1 * p2).factor()
