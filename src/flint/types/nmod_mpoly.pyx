@@ -14,7 +14,7 @@ from flint.types.fmpz_vec cimport fmpz_vec
 
 from flint.types.nmod cimport nmod
 
-from flint.flintlib.flint cimport FLINT_BITS
+from flint.flintlib.flint cimport SIZEOF_ULONG
 from flint.flintlib.fmpz cimport fmpz_set
 from flint.flintlib.nmod_mpoly cimport (
     nmod_mpoly_add,
@@ -696,7 +696,7 @@ cdef class nmod_mpoly(flint_mpoly):
         cdef:
             # Using sizeof(ulong) here breaks on 64 windows machines because of the `ctypedef unsigned long ulong` in
             # flintlib/flint.pxd. Cython will inline this definition and then allocate the wrong amount of memory.
-            ulong *vals = <ulong *>libc.stdlib.malloc(nargs * (FLINT_BITS // 4))
+            ulong *vals = <ulong *>libc.stdlib.malloc(nargs * SIZEOF_ULONG)
             ulong res
         if vals is NULL:
             raise MemoryError("malloc returned a null pointer")  # pragma: no cover

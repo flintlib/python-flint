@@ -50,6 +50,10 @@ cdef extern from *:
     """
 
 cdef extern from "flint/flint.h":
+    """
+    #define SIZEOF_ULONG sizeof(ulong)
+    """
+    int SIZEOF_ULONG
     const char * FLINT_VERSION
     const int __FLINT_RELEASE
     const int FLINT_BITS
