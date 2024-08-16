@@ -74,6 +74,7 @@ Polynomial types
    fmpq_poly.rst
    nmod_poly.rst
    fmpz_mod_poly.rst
+   fq_default_poly.rst
    arb_poly.rst
    acb_poly.rst
 
