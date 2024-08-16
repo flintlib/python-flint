@@ -28,6 +28,7 @@ exts = [
   'fmpz_mod_mat',
 
   'fq_default',
+  'fq_default_poly',
 
   'arf',
 

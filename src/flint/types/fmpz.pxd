@@ -1,7 +1,6 @@
 from cpython.long cimport PyLong_Check
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.conversion cimport chars_from_str
-
 from flint.flintlib.flint cimport slong, pylong_as_slong
 from flint.flintlib.flint cimport PyObject
 from flint.flintlib.fmpz cimport fmpz_t, fmpz_set_str, fmpz_set_si

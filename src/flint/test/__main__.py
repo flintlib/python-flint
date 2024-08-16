@@ -72,6 +72,7 @@ def run_doctests(verbose=None):
                flint.types.nmod_mat,
                flint.types.nmod_series,
                flint.types.fq_default,
+               flint.types.fq_default_poly,
                flint.types.arf,
                flint.types.arb,
                flint.types.arb_poly,
@@ -88,9 +89,12 @@ def run_doctests(verbose=None):
         modules.append(acb_theta)
     except ImportError:
         pass
-    results = [doctest.testmod(x) for x in modules]
-#    ffmpz, tfmpz = doctest.testmod(flint._fmpz, verbose=verbose)
-#    failed, total = doctest.testmod(flint.pyflint, verbose=verbose)
+
+    results = []
+    for x in modules:
+        if verbose:
+            print(f" {x.__name__}")
+        results.append(doctest.testmod(x))
     return tuple(sum(res) for res in zip(*results))
 
 

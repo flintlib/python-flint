@@ -7,7 +7,7 @@ from flint.flintlib.nmod_mat cimport nmod_mat_t
 from flint.flintlib.nmod_poly cimport nmod_poly_struct, nmod_poly_t
 
 cdef extern from "flint/fq_nmod.h":
-
+    # Type definitions **********************************************/
     ctypedef nmod_poly_t fq_nmod_t
     ctypedef nmod_poly_struct fq_nmod_struct
 
@@ -28,7 +28,20 @@ cdef extern from "flint/fq_nmod.h":
         char *var
     ctypedef fq_nmod_ctx_struct fq_nmod_ctx_t[1]
 
+    ctypedef struct fq_nmod_poly_struct:
+        fq_nmod_struct * coeffs
+        slong alloc
+        slong length
+    ctypedef fq_nmod_poly_struct fq_nmod_poly_t[1]
 
+    ctypedef struct fq_nmod_mat_struct:
+        fq_nmod_struct * entries
+        slong r
+        slong s
+        fq_nmod_struct ** rows
+    ctypedef fq_nmod_mat_struct fq_nmod_mat_t[1]
+
+    # Parsed from here **********************************************/
     void fq_nmod_ctx_init(fq_nmod_ctx_t ctx, const fmpz_t p, slong d, const char *var)
     int _fq_nmod_ctx_init_conway(fq_nmod_ctx_t ctx, const fmpz_t p, slong d, const char *var)
     void fq_nmod_ctx_init_conway(fq_nmod_ctx_t ctx, const fmpz_t p, slong d, const char *var)
