@@ -16,6 +16,7 @@ from flint.types.nmod cimport nmod
 
 from flint.flintlib.flint cimport SIZEOF_ULONG
 from flint.flintlib.fmpz cimport fmpz_set
+from flint.flintlib.nmod cimport fmpz_get_nmod
 from flint.flintlib.nmod_mpoly cimport (
     nmod_mpoly_add,
     nmod_mpoly_add_ui,
@@ -216,12 +217,29 @@ cdef class nmod_mpoly_ctx(flint_mpoly_context):
 
         res = create_nmod_mpoly(self)
 
-        for i, (k, v) in enumerate(d.items()):
-            if len(k) != nvars:
-                raise ValueError(f"expected {nvars} exponents, got {len(k)}")
-            elif v:
-                exp_vec = fmpz_vec(k)
-                nmod_mpoly_push_term_ui_ffmpz(res.val, v, exp_vec.val, self.val)
+        for i, (exps, coeff) in enumerate(d.items()):
+            if len(exps) != nvars:
+                raise ValueError(f"expected {nvars} exponents, got {len(exps)}")
+            elif not coeff:
+                continue
+
+            exp_vec = fmpz_vec(exps)
+
+            if isinstance(coeff, int) or typecheck(coeff, fmpz):
+                coeff_fmpz = any_as_fmpz(coeff)
+                if coeff_fmpz is NotImplemented:
+                    raise TypeError(f"cannot coerce '{repr(coeff)}' to fmpz")
+
+                nmod_mpoly_push_term_ui_ffmpz(
+                    res.val,
+                    fmpz_get_nmod((<fmpz>coeff_fmpz).val, self.val.mod),
+                    exp_vec.val,
+                    self.val
+                )
+            elif typecheck(coeff, nmod):
+                nmod_mpoly_push_term_ui_ffmpz(res.val, int(coeff), exp_vec.val, self.val)
+            else:
+                raise TypeError(f"cannot coerce {repr(coeff)} to nmod_mpoly coefficient")
 
         nmod_mpoly_sort_terms(res.val, self.val)
         return res
@@ -283,8 +301,6 @@ cdef class nmod_mpoly(flint_mpoly):
     def __richcmp__(self, other, int op):
         if not (op == Py_EQ or op == Py_NE):
             return NotImplemented
-        elif other is None:
-            return op == Py_NE
         elif typecheck(self, nmod_mpoly) and typecheck(other, nmod_mpoly):
             if (<nmod_mpoly>self).ctx is (<nmod_mpoly>other).ctx:
                 return (op == Py_NE) ^ <bint>nmod_mpoly_equal(self.val, (<nmod_mpoly>other).val, self.ctx.val)
@@ -292,8 +308,14 @@ cdef class nmod_mpoly(flint_mpoly):
                 return op == Py_NE
         elif typecheck(other, nmod):
             if other.modulus() != self.ctx.modulus():
-                raise ValueError(f"cannot compare with different modulus {other.modulus()} vs {self.ctx.modulus()}")
+                return op == Py_NE
             return (op == Py_NE) ^ <bint>nmod_mpoly_equal_ui(self.val, int(other), self.ctx.val)
+        elif typecheck(other, fmpz):
+            return (op == Py_NE) ^ <bint>nmod_mpoly_equal_ui(
+                self.val,
+                fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod),
+                self.ctx.val
+            )
         elif isinstance(other, int):
             return (op == Py_NE) ^ <bint>nmod_mpoly_equal_ui(self.val, other, self.ctx.val)
         else:
@@ -349,7 +371,26 @@ cdef class nmod_mpoly(flint_mpoly):
             raise ValueError("exponent vector provided does not match number of variables")
 
         exp_vec = fmpz_vec(x, double_indirect=True)
-        nmod_mpoly_set_coeff_ui_fmpz(self.val, y, exp_vec.double_indirect, self.ctx.val)
+        if isinstance(y, int):
+            nmod_mpoly_set_coeff_ui_fmpz(self.val, y, exp_vec.double_indirect, self.ctx.val)
+        elif typecheck(y, fmpz):
+            nmod_mpoly_set_coeff_ui_fmpz(
+                self.val,
+                fmpz_get_nmod((<fmpz>y).val, self.ctx.val.mod),
+                exp_vec.double_indirect,
+                self.ctx.val
+            )
+        elif typecheck(y, nmod):
+            if y.modulus() != self.ctx.modulus():
+                raise ValueError(f"cannot add with different modulus {y.modulus()} vs {self.ctx.modulus()}")
+            nmod_mpoly_set_coeff_ui_fmpz(
+                self.val,
+                int(y),
+                exp_vec.double_indirect,
+                self.ctx.val
+            )
+        else:
+            raise TypeError(f"cannot set coefficient to type {type(y)}")
 
     def __neg__(self):
         cdef nmod_mpoly res
@@ -364,6 +405,15 @@ cdef class nmod_mpoly(flint_mpoly):
                 raise IncompatibleContextError(f"{(<nmod_mpoly>self).ctx} is not {(<nmod_mpoly>other).ctx}")
             res = create_nmod_mpoly(self.ctx)
             nmod_mpoly_add(res.val, (<nmod_mpoly>self).val, (<nmod_mpoly>other).val, res.ctx.val)
+            return res
+        elif typecheck(other, fmpz):
+            res = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_add_ui(
+                res.val,
+                (<nmod_mpoly>self).val,
+                fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod),
+                self.ctx.val
+            )
             return res
         elif typecheck(other, nmod):
             if other.modulus() != self.ctx.modulus():
@@ -384,6 +434,15 @@ cdef class nmod_mpoly(flint_mpoly):
             res = create_nmod_mpoly(self.ctx)
             nmod_mpoly_add_ui(res.val, (<nmod_mpoly>self).val, other, self.ctx.val)
             return res
+        elif typecheck(other, fmpz):
+            res = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_add_ui(
+                res.val,
+                (<nmod_mpoly>self).val,
+                fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod),
+                self.ctx.val
+            )
+            return res
         elif typecheck(other, nmod):
             if other.modulus() != self.ctx.modulus():
                 raise ValueError(f"cannot add with different modulus {other.modulus()} vs {self.ctx.modulus()}")
@@ -400,6 +459,15 @@ cdef class nmod_mpoly(flint_mpoly):
                 raise IncompatibleContextError(f"{(<nmod_mpoly>self).ctx} is not {(<nmod_mpoly>other).ctx}")
             res = create_nmod_mpoly(self.ctx)
             nmod_mpoly_sub(res.val, (<nmod_mpoly>self).val, (<nmod_mpoly>other).val, res.ctx.val)
+            return res
+        elif typecheck(other, fmpz):
+            res = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_sub_ui(
+                res.val,
+                (<nmod_mpoly>self).val,
+                fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod),
+                self.ctx.val
+            )
             return res
         elif typecheck(other, nmod):
             if other.modulus() != self.ctx.modulus():
@@ -420,6 +488,15 @@ cdef class nmod_mpoly(flint_mpoly):
             res = create_nmod_mpoly(self.ctx)
             nmod_mpoly_sub_ui(res.val, (<nmod_mpoly>self).val, other, res.ctx.val)
             return -res
+        elif typecheck(other, fmpz):
+            res = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_sub_ui(
+                res.val,
+                (<nmod_mpoly>self).val,
+                fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod),
+                self.ctx.val
+            )
+            return -res
         elif typecheck(other, nmod):
             if other.modulus() != self.ctx.modulus():
                 raise ValueError(f"cannot subtract with different modulus {other.modulus()} vs {self.ctx.modulus()}")
@@ -436,6 +513,15 @@ cdef class nmod_mpoly(flint_mpoly):
                 raise IncompatibleContextError(f"{(<nmod_mpoly>self).ctx} is not {(<nmod_mpoly>other).ctx}")
             res = create_nmod_mpoly(self.ctx)
             nmod_mpoly_mul(res.val, (<nmod_mpoly>self).val, (<nmod_mpoly>other).val, res.ctx.val)
+            return res
+        elif typecheck(other, fmpz):
+            res = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_scalar_mul_ui(
+                res.val,
+                (<nmod_mpoly>self).val,
+                fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod),
+                self.ctx.val
+            )
             return res
         elif typecheck(other, nmod):
             if other.modulus() != self.ctx.modulus():
@@ -455,6 +541,15 @@ cdef class nmod_mpoly(flint_mpoly):
         if isinstance(other, int):
             res = create_nmod_mpoly(self.ctx)
             nmod_mpoly_scalar_mul_ui(res.val, (<nmod_mpoly>self).val, other, res.ctx.val)
+            return res
+        elif typecheck(other, fmpz):
+            res = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_scalar_mul_ui(
+                res.val,
+                (<nmod_mpoly>self).val,
+                fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod),
+                self.ctx.val
+            )
             return res
         elif typecheck(other, nmod):
             if other.modulus() != self.ctx.modulus():
@@ -484,11 +579,11 @@ cdef class nmod_mpoly(flint_mpoly):
     def __divmod__(self, other):
         cdef nmod_mpoly res, res2, o
 
-        if not self.ctx.is_prime():
-            raise DomainError("division with non-prime modulus is not supported")
-        elif typecheck(other, nmod_mpoly):
+        if typecheck(other, nmod_mpoly):
             if not other:
                 raise ZeroDivisionError("nmod_mpoly division by zero")
+            elif not self.ctx.is_prime():
+                raise DomainError("division with non-prime modulus is not supported")
             elif (<nmod_mpoly>self).ctx is not (<nmod_mpoly>other).ctx:
                 raise IncompatibleContextError(f"{(<nmod_mpoly>self).ctx} is not {(<nmod_mpoly>other).ctx}")
             res = create_nmod_mpoly(self.ctx)
@@ -498,6 +593,8 @@ cdef class nmod_mpoly(flint_mpoly):
         elif isinstance(other, int):
             if not other:
                 raise ZeroDivisionError("nmod_mpoly division by zero")
+            elif not self.ctx.is_prime():
+                raise DomainError("division with non-prime modulus is not supported")
             o = create_nmod_mpoly(self.ctx)
             nmod_mpoly_set_ui(o.val, other, o.ctx.val)
 
@@ -505,11 +602,25 @@ cdef class nmod_mpoly(flint_mpoly):
             res2 = create_nmod_mpoly(self.ctx)
             nmod_mpoly_divrem(res.val, res2.val, (<nmod_mpoly>self).val, o.val, res.ctx.val)
             return (res, res2)
-        elif typecheck(other, nmod):
-            if other.modulus() != self.ctx.modulus():
-                raise ValueError(f"cannot divide with different modulus {other.modulus()} vs {self.ctx.modulus()}")
-            elif not other:
+        elif typecheck(other, fmpz):
+            if not other:
                 raise ZeroDivisionError("nmod_mpoly division by zero")
+            elif not self.ctx.is_prime():
+                raise DomainError("division with non-prime modulus is not supported")
+            o = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_set_ui(o.val, fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod), o.ctx.val)
+
+            res = create_nmod_mpoly(self.ctx)
+            res2 = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_divrem(res.val, res2.val, (<nmod_mpoly>self).val, o.val, res.ctx.val)
+            return (res, res2)
+        elif typecheck(other, nmod):
+            if not other:
+                raise ZeroDivisionError("nmod_mpoly division by zero")
+            elif not self.ctx.is_prime():
+                raise DomainError("division with non-prime modulus is not supported")
+            elif other.modulus() != self.ctx.modulus():
+                raise ValueError(f"cannot divide with different modulus {other.modulus()} vs {self.ctx.modulus()}")
             o = create_nmod_mpoly(self.ctx)
             nmod_mpoly_set_ui(o.val, int(other), o.ctx.val)
 
@@ -522,13 +633,21 @@ cdef class nmod_mpoly(flint_mpoly):
 
     def __rdivmod__(self, other):
         cdef nmod_mpoly res, res2, o
-        if not self.ctx.is_prime():
-            raise DomainError("division with non-prime modulus is not supported")
-        elif not self:
+        if not self:
             raise ZeroDivisionError("nmod_mpoly division by zero")
+        elif not self.ctx.is_prime():
+            raise DomainError("division with non-prime modulus is not supported")
         elif isinstance(other, int):
             o = create_nmod_mpoly(self.ctx)
             nmod_mpoly_set_ui(o.val, other, o.ctx.val)
+
+            res = create_nmod_mpoly(self.ctx)
+            res2 = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_divrem(res.val, res2.val, o.val, (<nmod_mpoly>self).val, res.ctx.val)
+            return (res, res2)
+        elif typecheck(other, fmpz):
+            o = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_set_ui(o.val, fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod), o.ctx.val)
 
             res = create_nmod_mpoly(self.ctx)
             res2 = create_nmod_mpoly(self.ctx)
@@ -549,11 +668,11 @@ cdef class nmod_mpoly(flint_mpoly):
 
     def __floordiv__(self, other):
         cdef nmod_mpoly res, o
-        if not self.ctx.is_prime():
-            raise DomainError("division with non-prime modulus is not supported")
-        elif typecheck(other, nmod_mpoly):
+        if typecheck(other, nmod_mpoly):
             if not other:
                 raise ZeroDivisionError("nmod_mpoly division by zero")
+            elif not self.ctx.is_prime():
+                raise DomainError("division with non-prime modulus is not supported")
             elif (<nmod_mpoly>self).ctx is not (<nmod_mpoly>other).ctx:
                 raise IncompatibleContextError(f"{(<nmod_mpoly>self).ctx} is not {(<nmod_mpoly>other).ctx}")
             res = create_nmod_mpoly(self.ctx)
@@ -562,17 +681,32 @@ cdef class nmod_mpoly(flint_mpoly):
         elif isinstance(other, int):
             if not other:
                 raise ZeroDivisionError("nmod_mpoly division by zero")
+            elif not self.ctx.is_prime():
+                raise DomainError("division with non-prime modulus is not supported")
             o = create_nmod_mpoly(self.ctx)
             nmod_mpoly_set_ui(o.val, other, o.ctx.val)
 
             res = create_nmod_mpoly(self.ctx)
             nmod_mpoly_div(res.val, (<nmod_mpoly>self).val, o.val, res.ctx.val)
             return res
-        elif typecheck(other, nmod):
-            if other.modulus() != self.ctx.modulus():
-                raise ValueError(f"cannot divide with different modulus {other.modulus()} vs {self.ctx.modulus()}")
-            elif not other:
+        elif typecheck(other, fmpz):
+            if not other:
                 raise ZeroDivisionError("nmod_mpoly division by zero")
+            elif not self.ctx.is_prime():
+                raise DomainError("division with non-prime modulus is not supported")
+            o = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_set_ui(o.val, fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod), o.ctx.val)
+
+            res = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_div(res.val, (<nmod_mpoly>self).val, o.val, res.ctx.val)
+            return res
+        elif typecheck(other, nmod):
+            if not other:
+                raise ZeroDivisionError("nmod_mpoly division by zero")
+            elif not self.ctx.is_prime():
+                raise DomainError("division with non-prime modulus is not supported")
+            elif other.modulus() != self.ctx.modulus():
+                raise ValueError(f"cannot divide with different modulus {other.modulus()} vs {self.ctx.modulus()}")
             o = create_nmod_mpoly(self.ctx)
             nmod_mpoly_set_ui(o.val, int(other), o.ctx.val)
 
@@ -584,16 +718,23 @@ cdef class nmod_mpoly(flint_mpoly):
 
     def __rfloordiv__(self, other):
         cdef nmod_mpoly res, o
-        if not self.ctx.is_prime():
-            raise DomainError("division with non-prime modulus is not supported")
-        elif not self:
+        if not self:
             raise ZeroDivisionError("nmod_mpoly division by zero")
+        elif not self.ctx.is_prime():
+            raise DomainError("division with non-prime modulus is not supported")
         elif isinstance(other, int):
             o = create_nmod_mpoly(self.ctx)
             nmod_mpoly_set_ui(o.val, other, o.ctx.val)
 
             res = create_nmod_mpoly(self.ctx)
             nmod_mpoly_div(res.val, o.val,  self.val, res.ctx.val)
+            return res
+        elif typecheck(other, fmpz):
+            o = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_set_ui(o.val, fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod), o.ctx.val)
+
+            res = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_div(res.val, o.val, self.val, res.ctx.val)
             return res
         elif typecheck(other, nmod):
             if other.modulus() != self.ctx.modulus():
@@ -611,11 +752,11 @@ cdef class nmod_mpoly(flint_mpoly):
         cdef:
             nmod_mpoly res, div
 
-        if not self.ctx.is_prime():
-            raise DomainError("division with non-prime modulus is not supported")
-        elif typecheck(other, nmod_mpoly):
+        if typecheck(other, nmod_mpoly):
             if not other:
                 raise ZeroDivisionError("nmod_mpoly division by zero")
+            elif not self.ctx.is_prime():
+                raise DomainError("division with non-prime modulus is not supported")
             elif self.ctx is not (<nmod_mpoly>other).ctx:
                 raise IncompatibleContextError(f"{self.ctx} is not {(<nmod_mpoly>other).ctx}")
 
@@ -627,6 +768,8 @@ cdef class nmod_mpoly(flint_mpoly):
         elif isinstance(other, int):
             if not other:
                 raise ZeroDivisionError("nmod_mpoly division by zero")
+            elif not self.ctx.is_prime():
+                raise DomainError("division with non-prime modulus is not supported")
             res = create_nmod_mpoly(self.ctx)
             div = create_nmod_mpoly(self.ctx)
             nmod_mpoly_set_ui(div.val, other, self.ctx.val)
@@ -634,11 +777,26 @@ cdef class nmod_mpoly(flint_mpoly):
                 return res
             else:
                 raise DomainError("nmod_mpoly division is not exact")
-        elif typecheck(other, nmod):
-            if other.modulus() != self.ctx.modulus():
-                raise ValueError(f"cannot divide with different modulus {other.modulus()} vs {self.ctx.modulus()}")
-            elif not other:
+        elif typecheck(other, fmpz):
+            if not other:
                 raise ZeroDivisionError("nmod_mpoly division by zero")
+            elif not self.ctx.is_prime():
+                raise DomainError("division with non-prime modulus is not supported")
+            div = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_set_ui(div.val, fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod), div.ctx.val)
+
+            res = create_nmod_mpoly(self.ctx)
+            if nmod_mpoly_divides(res.val, self.val, div.val, self.ctx.val):
+                return res
+            else:
+                raise DomainError("nmod_mpoly division is not exact")
+        elif typecheck(other, nmod):
+            if not other:
+                raise ZeroDivisionError("nmod_mpoly division by zero")
+            elif not self.ctx.is_prime():
+                raise DomainError("division with non-prime modulus is not supported")
+            elif other.modulus() != self.ctx.modulus():
+                raise ValueError(f"cannot divide with different modulus {other.modulus()} vs {self.ctx.modulus()}")
             res = create_nmod_mpoly(self.ctx)
             div = create_nmod_mpoly(self.ctx)
             nmod_mpoly_set_ui(div.val, int(other), self.ctx.val)
@@ -651,14 +809,23 @@ cdef class nmod_mpoly(flint_mpoly):
 
     def __rtruediv__(self, other):
         cdef nmod_mpoly res
-        if not self.ctx.is_prime():
-            raise DomainError("division with non-prime modulus is not supported")
-        elif not self:
+        if not self:
             raise ZeroDivisionError("nmod_mpoly division by zero")
+        elif not self.ctx.is_prime():
+            raise DomainError("division with non-prime modulus is not supported")
         elif isinstance(other, int):
             res = create_nmod_mpoly(self.ctx)
             div = create_nmod_mpoly(self.ctx)
             nmod_mpoly_set_ui(div.val, other, self.ctx.val)
+            if nmod_mpoly_divides(res.val, div.val, self.val, self.ctx.val):
+                return res
+            else:
+                raise DomainError("nmod_mpoly division is not exact")
+        elif typecheck(other, fmpz):
+            div = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_set_ui(div.val, fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod), div.ctx.val)
+
+            res = create_nmod_mpoly(self.ctx)
             if nmod_mpoly_divides(res.val, div.val, self.val, self.ctx.val):
                 return res
             else:
@@ -727,6 +894,8 @@ cdef class nmod_mpoly(flint_mpoly):
             nmod_mpoly_add((<nmod_mpoly>self).val, (<nmod_mpoly>self).val, (<nmod_mpoly>other).val, self.ctx.val)
         elif isinstance(other, int):
             nmod_mpoly_add_ui((<nmod_mpoly>self).val, (<nmod_mpoly>self).val, other, self.ctx.val)
+        elif typecheck(other, fmpz):
+            nmod_mpoly_add_ui(self.val, self.val, fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod), self.ctx.val)
         elif typecheck(other, nmod):
             if other.modulus() != self.ctx.modulus():
                 raise ValueError(f"cannot add with different modulus {other.modulus()} vs {self.ctx.modulus()}")
@@ -754,6 +923,8 @@ cdef class nmod_mpoly(flint_mpoly):
             nmod_mpoly_sub((<nmod_mpoly>self).val, (<nmod_mpoly>self).val, (<nmod_mpoly>other).val, self.ctx.val)
         elif isinstance(other, int):
             nmod_mpoly_sub_ui((<nmod_mpoly>self).val, (<nmod_mpoly>self).val, other, self.ctx.val)
+        elif typecheck(other, fmpz):
+            nmod_mpoly_sub_ui(self.val, self.val, fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod), self.ctx.val)
         elif typecheck(other, nmod):
             if other.modulus() != self.ctx.modulus():
                 raise ValueError(f"cannot subtract with different modulus {other.modulus()} vs {self.ctx.modulus()}")
@@ -781,6 +952,13 @@ cdef class nmod_mpoly(flint_mpoly):
             nmod_mpoly_mul((<nmod_mpoly>self).val, (<nmod_mpoly>self).val, (<nmod_mpoly>other).val, self.ctx.val)
         elif isinstance(other, int):
             nmod_mpoly_scalar_mul_ui(self.val, (<nmod_mpoly>self).val, other, self.ctx.val)
+        elif typecheck(other, fmpz):
+            nmod_mpoly_scalar_mul_ui(
+                self.val,
+                self.val,
+                fmpz_get_nmod((<fmpz>other).val, self.ctx.val.mod),
+                self.ctx.val
+            )
         elif typecheck(other, nmod):
             if other.modulus() != self.ctx.modulus():
                 raise ValueError(f"cannot multiply with different modulus {other.modulus()} vs {self.ctx.modulus()}")

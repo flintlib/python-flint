@@ -3,6 +3,9 @@ from flint.flintlib.flint cimport slong
 from flint.flintlib.fmpz_vec cimport _fmpz_vec_init, _fmpz_vec_clear
 
 from flint.types.fmpz cimport fmpz, any_as_fmpz
+from flint.types.fmpz_mod cimport fmpz_mod
+
+from flint.utils.typecheck cimport typecheck
 
 cimport libc.stdlib
 
@@ -52,11 +55,14 @@ cdef class fmpz_vec:
         elif not 0 <= x < self.length:
             raise IndexError("index out of range")
 
-        y = any_as_fmpz(y)
-        if y is NotImplemented:
-            raise TypeError("argument is not coercible to fmpz")
+        if typecheck(y, fmpz_mod):
+            fmpz_set(&self.val[x], (<fmpz_mod>y).val)
+        else:
+            y = any_as_fmpz(y)
+            if y is NotImplemented:
+                raise TypeError("argument is not coercible to fmpz")
 
-        fmpz_set(&self.val[x], (<fmpz>y).val)
+            fmpz_set(&self.val[x], (<fmpz>y).val)
 
     def __len__(self):
         return self.length
