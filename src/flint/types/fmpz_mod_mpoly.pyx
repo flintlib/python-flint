@@ -605,17 +605,10 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             fmpz vres
             slong nvars = self.ctx.nvars(), nargs = len(args)
 
-        if nargs < nvars:
-            raise ValueError("not enough arguments provided")
-        elif nargs > nvars:
-            raise ValueError("more arguments provided than variables")
+        if nargs != nvars:
+            raise ValueError("number of generators does not match number of arguments")  # TODO: fix for all of them
 
-        args_fmpz = tuple(any_as_fmpz(v) for v in args)
-        for arg in args_fmpz:
-            if arg is NotImplemented:
-                raise TypeError(f"cannot coerce argument ('{arg}') to fmpz")
-
-        V = fmpz_vec(args_fmpz, double_indirect=True)
+        V = fmpz_vec(args, double_indirect=True)
         vres = fmpz.__new__(fmpz)
         fmpz_mod_mpoly_evaluate_all_fmpz(vres.val, self.val, V.double_indirect, self.ctx.val)
         return vres

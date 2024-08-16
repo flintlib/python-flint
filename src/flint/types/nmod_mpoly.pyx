@@ -686,13 +686,10 @@ cdef class nmod_mpoly(flint_mpoly):
         cdef:
             slong nvars = self.ctx.nvars(), nargs = len(args)
 
-        if nargs < nvars:
-            raise ValueError("not enough arguments provided")
-        elif nargs > nvars:
-            raise ValueError("more arguments provided than variables")
+        if nargs != nvars:
+            raise ValueError("number of generators does not match number of arguments")
 
         args = [int(x) for x in args]
-
         cdef:
             # Using sizeof(ulong) here breaks on 64 windows machines because of the `ctypedef unsigned long ulong` in
             # flintlib/flint.pxd. Cython will inline this definition and then allocate the wrong amount of memory.

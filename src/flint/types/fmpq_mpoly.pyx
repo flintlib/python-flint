@@ -542,17 +542,10 @@ cdef class fmpq_mpoly(flint_mpoly):
             fmpq vres
             slong nvars = self.ctx.nvars(), nargs = len(args)
 
-        if nargs < nvars:
-            raise ValueError("not enough arguments provided")
-        elif nargs > nvars:
-            raise ValueError("more arguments provided than variables")
+        if nargs != nvars:
+            raise ValueError("number of generators does not match number of arguments")
 
-        args_fmpq = tuple(any_as_fmpq(v) for v in args)
-        for arg in args_fmpq:
-            if arg is NotImplemented:
-                raise TypeError(f"cannot coerce argument ('{arg}') to fmpq")
-
-        V = fmpq_vec(args_fmpq, double_indirect=True)
+        V = fmpq_vec(args, double_indirect=True)
         vres = fmpq.__new__(fmpq)
         if fmpq_mpoly_evaluate_all_fmpq(vres.val, self.val, V.double_indirect, self.ctx.val) == 0:
             raise ValueError("unreasonably large polynomial")  # pragma: no cover
