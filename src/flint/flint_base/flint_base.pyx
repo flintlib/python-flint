@@ -11,6 +11,7 @@ from flint.utils.typecheck cimport typecheck
 cimport libc.stdlib
 
 from typing import Optional
+from flint.utils.flint_exceptions import IncompatibleContextError
 
 
 FLINT_BITS = _FLINT_BITS
@@ -369,6 +370,18 @@ cdef class flint_mpoly_context(flint_elem):
             nametup=ctx.names()
         )
 
+    def any_as_scalar(self, other):
+        raise NotImplementedError("abstract method")
+
+    def scalar_as_mpoly(self, other):
+        raise NotImplementedError("abstract method")
+
+    def compatible_context_check(self, other):
+        if not typecheck(other, type(self)):
+            raise TypeError(f"type {type(other)} is not {type(self)}")
+        elif other is not self:
+            raise IncompatibleContextError(f"{other} is not {self}")
+
 
 cdef class flint_mpoly(flint_elem):
     """
@@ -380,6 +393,53 @@ cdef class flint_mpoly(flint_elem):
 
     def to_dict(self):
         return {self.monomial(i): self.coefficient(i) for i in range(len(self))}
+
+    def _division_check(self, other):
+        if not other:
+            raise ZeroDivisionError("nmod_mpoly division by zero")
+
+    def _add_scalar_(self, other):
+        return NotImplemented
+
+    def _add_mpoly_(self, other):
+        return NotImplemented
+
+    def __add__(self, other):
+        if typecheck(other, type(self)):
+            self.context().compatible_context_check(other.context())
+            return self._add_mpoly_(other)
+
+        other = self.context().any_as_scalar(other)
+        if other is NotImplemented:
+            return NotImplemented
+
+        return self._add_scalar_(other)
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __divmod__(self, other):
+        if typecheck(other, type(self)):
+            self._division_check(other)
+            self.context().compatible_context_check(other.context())
+            return self._divmod_mpoly_(other)
+
+        other = self.context().any_as_scalar(other)
+        if other is NotImplemented:
+            return NotImplemented
+
+        self._division_check(other)
+        other = self.context().scalar_as_mpoly(other)
+        return self._divmod_mpoly_(other)
+
+    def __rdivmod__(self, other):
+        other = self.context().any_as_scalar(other)
+        if other is NotImplemented:
+            return NotImplemented
+
+        self._division_check(self)
+        other = self.context().scalar_as_mpoly(other)
+        return other._divmod_mpoly_(self)
 
     def __contains__(self, x):
         """
