@@ -13,6 +13,8 @@ cimport libc.stdlib
 from typing import Optional
 from flint.utils.flint_exceptions import IncompatibleContextError
 
+from flint.types.fmpz cimport fmpz, any_as_fmpz
+
 
 FLINT_BITS = _FLINT_BITS
 FLINT_VERSION = _FLINT_VERSION.decode("ascii")
@@ -404,6 +406,48 @@ cdef class flint_mpoly(flint_elem):
     def _add_mpoly_(self, other):
         return NotImplemented
 
+    def _iadd_scalar_(self, other):
+        return NotImplemented
+
+    def _iadd_mpoly_(self, other):
+        return NotImplemented
+
+    def _sub_scalar_(self, other):
+        return NotImplemented
+
+    def _sub_mpoly_(self, other):
+        return NotImplemented
+
+    def _isub_scalar_(self, other):
+        return NotImplemented
+
+    def _isub_mpoly_(self, other):
+        return NotImplemented
+
+    def _mul_scalar_(self, other):
+        return NotImplemented
+
+    def _imul_mpoly_(self, other):
+        return NotImplemented
+
+    def _imul_scalar_(self, other):
+        return NotImplemented
+
+    def _mul_mpoly_(self, other):
+        return NotImplemented
+
+    def _pow_(self, other):
+        return NotImplemented
+
+    def _divmod_mpoly_(self, other):
+        return NotImplemented
+
+    def _floordiv_mpoly_(self, other):
+        return NotImplemented
+
+    def _truediv_mpoly_(self, other):
+        return NotImplemented
+
     def __add__(self, other):
         if typecheck(other, type(self)):
             self.context().compatible_context_check(other.context())
@@ -417,6 +461,123 @@ cdef class flint_mpoly(flint_elem):
 
     def __radd__(self, other):
         return self.__add__(other)
+
+    def iadd(self, other):
+        """
+        In-place addition, mutates self.
+
+            >>> from flint import Ordering, fmpz_mpoly_ctx
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
+            >>> f
+            4*x0*x1 + 2*x0 + 3*x1
+            >>> f.iadd(5)
+            >>> f
+            4*x0*x1 + 2*x0 + 3*x1 + 5
+
+        """
+        if typecheck(other, type(self)):
+            self.context().compatible_context_check(other.context())
+            self._iadd_mpoly_(other)
+            return
+
+        other_scalar = self.context().any_as_scalar(other)
+        if other_scalar is NotImplemented:
+            raise NotImplementedError(f"cannot add {type(self)} and {type(other)}")
+
+        self._iadd_scalar_(other_scalar)
+
+    def __sub__(self, other):
+        if typecheck(other, type(self)):
+            self.context().compatible_context_check(other.context())
+            return self._sub_mpoly_(other)
+
+        other = self.context().any_as_scalar(other)
+        if other is NotImplemented:
+            return NotImplemented
+
+        return self._sub_scalar_(other)
+
+    def __rsub__(self, other):
+        return -self.__sub__(other)
+
+    def isub(self, other):
+        """
+        In-place subtraction, mutates self.
+
+            >>> from flint import Ordering, fmpz_mpoly_ctx
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
+            >>> f
+            4*x0*x1 + 2*x0 + 3*x1
+            >>> f.isub(5)
+            >>> f
+            4*x0*x1 + 2*x0 + 3*x1 - 5
+
+        """
+        if typecheck(other, type(self)):
+            self.context().compatible_context_check(other.context())
+            self._isub_mpoly_(other)
+            return
+
+        other_scalar = self.context().any_as_scalar(other)
+        if other_scalar is NotImplemented:
+            raise NotImplementedError(f"cannot subtract {type(self)} and {type(other)}")
+
+        self._isub_scalar_(other_scalar)
+
+    def __mul__(self, other):
+        if typecheck(other, type(self)):
+            self.context().compatible_context_check(other.context())
+            return self._mul_mpoly_(other)
+
+        other = self.context().any_as_scalar(other)
+        if other is NotImplemented:
+            return NotImplemented
+
+        return self._mul_scalar_(other)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def imul(self, other):
+        """
+        In-place multiplication, mutates self.
+
+            >>> from flint import Ordering, fmpz_mpoly_ctx
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
+            >>> f
+            4*x0*x1 + 2*x0 + 3*x1
+            >>> f.imul(2)
+            >>> f
+            8*x0*x1 + 4*x0 + 6*x1
+
+        """
+        if typecheck(other, type(self)):
+            self.context().compatible_context_check(other.context())
+            self._imul_mpoly_(other)
+            return
+
+        other_scalar = self.context().any_as_scalar(other)
+        if other_scalar is NotImplemented:
+            raise NotImplementedError(f"cannot multiply {type(self)} and {type(other)}")
+
+        self._imul_scalar_(other_scalar)
+
+    def __pow__(self, other, modulus):
+        if modulus is not None:
+            raise NotImplementedError("cannot specify modulus outside of the context")
+        elif typecheck(other, fmpz):
+            return self._pow_(other)
+
+        other = any_as_fmpz(other)
+        if other is NotImplemented:
+            return NotImplemented
+        elif other < 0:
+            raise ValueError("cannot raise to a negative power")
+
+        return self._pow_(other)
 
     def __divmod__(self, other):
         if typecheck(other, type(self)):
@@ -440,6 +601,75 @@ cdef class flint_mpoly(flint_elem):
         self._division_check(self)
         other = self.context().scalar_as_mpoly(other)
         return other._divmod_mpoly_(self)
+
+    def __truediv__(self, other):
+        if typecheck(other, type(self)):
+            self._division_check(other)
+            self.context().compatible_context_check(other.context())
+            return self._truediv_mpoly_(other)
+
+        other = self.context().any_as_scalar(other)
+        if other is NotImplemented:
+            return NotImplemented
+
+        self._division_check(other)
+        other = self.context().scalar_as_mpoly(other)
+        return self._truediv_mpoly_(other)
+
+    def __rtruediv__(self, other):
+        other = self.context().any_as_scalar(other)
+        if other is NotImplemented:
+            return NotImplemented
+
+        self._division_check(self)
+        other = self.context().scalar_as_mpoly(other)
+        return other._truediv_mpoly_(self)
+
+    def __floordiv__(self, other):
+        if typecheck(other, type(self)):
+            self._division_check(other)
+            self.context().compatible_context_check(other.context())
+            return self._floordiv_mpoly_(other)
+
+        other = self.context().any_as_scalar(other)
+        if other is NotImplemented:
+            return NotImplemented
+
+        self._division_check(other)
+        other = self.context().scalar_as_mpoly(other)
+        return self._floordiv_mpoly_(other)
+
+    def __rfloordiv__(self, other):
+        other = self.context().any_as_scalar(other)
+        if other is NotImplemented:
+            return NotImplemented
+
+        self._division_check(self)
+        other = self.context().scalar_as_mpoly(other)
+        return other._floordiv_mpoly_(self)
+
+    def __mod__(self, other):
+        if typecheck(other, type(self)):
+            self._division_check(other)
+            self.context().compatible_context_check(other.context())
+            return self._mod_mpoly_(other)
+
+        other = self.context().any_as_scalar(other)
+        if other is NotImplemented:
+            return NotImplemented
+
+        self._division_check(other)
+        other = self.context().scalar_as_mpoly(other)
+        return self._mod_mpoly_(other)
+
+    def __rmod__(self, other):
+        other = self.context().any_as_scalar(other)
+        if other is NotImplemented:
+            return NotImplemented
+
+        self._division_check(self)
+        other = self.context().scalar_as_mpoly(other)
+        return other._mod_mpoly_(self)
 
     def __contains__(self, x):
         """
