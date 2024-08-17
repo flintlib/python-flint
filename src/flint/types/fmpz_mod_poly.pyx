@@ -1803,11 +1803,14 @@ cdef class fmpz_mod_poly(flint_poly):
         # Exception (fmpz_mod_poly_powmod_fmpz_binexp). Divide by zero
         #
         # We handle this special case first:
-        cdef fmpz_mod zero
-        if self.is_zero():
-            zero = fmpz_mod.__new__(fmpz_mod)
-            zero.ctx = self.ctx.mod
-            return (zero, [])
+        cdef fmpz_mod constant
+        if self.is_constant():
+            if self.is_zero():
+                constant = fmpz_mod.__new__(fmpz_mod)
+                constant.ctx = self.ctx.mod
+            else:
+                constant = self[0]
+            return (constant, [])
 
         fmpz_mod_poly_factor_init(fac, self.ctx.mod.val)
         if algorithm == None:

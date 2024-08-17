@@ -3281,6 +3281,7 @@ def test_factor_poly_mpoly():
 
         assert factor(0*x) == (S(0), [])
         assert factor(0*x + 1) == (S(1), [])
+        assert factor(0*x + 3) == (S(3), [])
         assert factor(x) == (S(1), [(x, 1)])
         assert factor(-x) == (S(-1), [(x, 1)])
         assert factor(x**2) == (S(1), [(x, 2)])
