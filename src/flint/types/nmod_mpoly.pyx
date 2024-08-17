@@ -126,22 +126,21 @@ cdef class nmod_mpoly_ctx(flint_mpoly_context):
             try:
                 return <ulong>other
             except OverflowError:
-                return <ulong>(other % self.val.mod)
+                return <ulong>(other % self.modulus())
         elif typecheck(other, nmod):
-            val = <nmod>other
-            if val.modulus() != self.modulus():
+            if (<nmod>other).modulus() != self.modulus():
                 raise DomainError(
-                    f"modulus does not match, got {val.modulus()}, expected {self.modulus()}"
+                    f"modulus does not match, got {(<nmod>other).modulus()}, expected {self.modulus()}"
                 )
-            return val.val
+            return (<nmod>other).val
         elif typecheck(other, fmpz):
             return fmpz_get_nmod((<fmpz>other).val, self.val.mod)
         elif typecheck(other, fmpz_mod):
-            if other.ctx.modulus() != self.modulus():
+            if (<fmpz_mod>other).ctx.modulus() != self.modulus():
                 raise DomainError(
-                    f"modulus does not match, got {other.ctx.modulus()}, expected {self.modulus()}"
+                    f"modulus does not match, got {(<fmpz_mod>other).ctx.modulus()}, expected {self.modulus()}"
                 )
-            return fmpz_get_nmod((<fmpz>other).val, self.val.mod)
+            return fmpz_get_nmod((<fmpz_mod>other).val, self.val.mod)
         else:
             return NotImplemented
 
@@ -253,22 +252,11 @@ cdef class nmod_mpoly_ctx(flint_mpoly_context):
                 continue
 
             exp_vec = fmpz_vec(exps)
-
-            if isinstance(coeff, int) or typecheck(coeff, fmpz):
-                coeff_fmpz = any_as_fmpz(coeff)
-                if coeff_fmpz is NotImplemented:
-                    raise TypeError(f"cannot coerce '{repr(coeff)}' to fmpz")
-
-                nmod_mpoly_push_term_ui_ffmpz(
-                    res.val,
-                    fmpz_get_nmod((<fmpz>coeff_fmpz).val, self.val.mod),
-                    exp_vec.val,
-                    self.val
-                )
-            elif typecheck(coeff, nmod):
-                nmod_mpoly_push_term_ui_ffmpz(res.val, int(coeff), exp_vec.val, self.val)
-            else:
+            coeff_scalar = self.any_as_scalar(coeff)
+            if coeff_scalar is NotImplemented:
                 raise TypeError(f"cannot coerce {repr(coeff)} to nmod_mpoly coefficient")
+
+            nmod_mpoly_push_term_ui_ffmpz(res.val, coeff_scalar, exp_vec.val, self.val)
 
         nmod_mpoly_sort_terms(res.val, self.val)
         return res
