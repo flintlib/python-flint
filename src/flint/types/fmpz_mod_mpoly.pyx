@@ -920,7 +920,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
                 arg_fmpz = any_as_fmpz(arg)
                 if arg_fmpz is NotImplemented:
                     raise TypeError(f"cannot coerce {type(arg)} to fmpz")
-                fmpz_mod_mpoly_evaluate_one_fmpz(res.val, res.val, i, (<fmpz>arg).val, self.ctx.val)
+                fmpz_mod_mpoly_evaluate_one_fmpz(res.val, res.val, i, (<fmpz>arg_fmpz).val, self.ctx.val)
 
         return res
 
