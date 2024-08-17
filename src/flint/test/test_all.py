@@ -3279,7 +3279,10 @@ def test_factor_poly_mpoly():
 
     for P, S, [x, y], is_field, characteristic_zero in _all_polys_mpolys():
 
+        assert factor(0*x) == (S(0), [])
+        assert factor(0*x + 1) == (S(1), [])
         assert factor(x) == (S(1), [(x, 1)])
+        assert factor(-x) == (S(-1), [(x, 1)])
         assert factor(x**2) == (S(1), [(x, 2)])
         assert factor(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
         assert factor(2*(x+1)) == (S(2), [(x+1, 1)])
@@ -3293,10 +3296,8 @@ def test_factor_poly_mpoly():
 
         if is_field:
             if characteristic_zero:
-                # primitive factors over Z for Z and Q.
                 assert factor((2*x+1)/7) == (S(1)/7, [(2*x+1, 1)])
             else:
-                # monic factors over Z/pZ and GF(p^d)
                 assert factor((2*x+1)/7) == (S(2)/7, [(x+S(1)/2, 1)])
 
         if y is not None:
@@ -3305,11 +3306,15 @@ def test_factor_poly_mpoly():
             assert factor(x*y) == (S(1), [(x, 1), (y, 1)])
 
             if characteristic_zero:
-                # primitive factors over Z for Z and Q.
                 assert factor(2*x + y) == (S(1), [(2*x + y, 1)])
             else:
-                # monic factors over Z/pZ and GF(p^d)
                 assert factor(2*x + y) == (S(1)/2, [(x + y/2, 1)])
+
+            if is_field:
+                if characteristic_zero:
+                    assert factor((2*x+y)/7) == (S(1)/7, [(2*x+y, 1)])
+                else:
+                    assert factor((2*x+y)/7) == (S(2)/7, [(x+y/2, 1)])
 
 
 def _all_matrices():

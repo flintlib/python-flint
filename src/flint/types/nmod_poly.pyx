@@ -235,15 +235,19 @@ cdef class nmod_poly(flint_poly):
             >>> f.leading_coefficient()
             133
         """
+        cdef ulong cu
+        cdef slong d
         cdef nmod c
 
         d = self.degree()
         if d < 0:
-            return 0
+            cu = 0
+        else:
+            cu = nmod_poly_get_coeff_ui(self.val, d)
 
         c = nmod.__new__(nmod)
         c.mod = self.val.mod
-        c.val = nmod_poly_get_coeff_ui(self.val, d)
+        c.val = cu
 
         return c
 

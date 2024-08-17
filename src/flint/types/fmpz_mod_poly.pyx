@@ -1798,6 +1798,17 @@ cdef class fmpz_mod_poly(flint_poly):
         if not self.ctx.is_prime():
             raise NotImplementedError("factor algorithm assumes that the modulus is prime")
 
+        # XXX: fmpz_mod_poly_factor with modulus 163 crashes on the zero poly:
+        #
+        # Exception (fmpz_mod_poly_powmod_fmpz_binexp). Divide by zero
+        #
+        # We handle this special case first:
+        cdef fmpz_mod zero
+        if self.is_zero():
+            zero = fmpz_mod.__new__(fmpz_mod)
+            zero.ctx = self.ctx.mod
+            return (zero, [])
+
         fmpz_mod_poly_factor_init(fac, self.ctx.mod.val)
         if algorithm == None:
             fmpz_mod_poly_factor(fac, self.val, self.ctx.mod.val)

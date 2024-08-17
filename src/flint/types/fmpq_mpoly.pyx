@@ -858,6 +858,12 @@ cdef class fmpq_mpoly(flint_mpoly):
         fmpq_mpoly_total_degree_fmpz((<fmpz> res).val, self.val, self.ctx.val)
         return res
 
+    def leading_coefficient(self):
+        if fmpq_mpoly_is_zero(self.val, self.ctx.val):
+            return fmpq(0)
+        else:
+            return self.coefficient(0)
+
     def repr(self):
         return f"{self.ctx}.from_dict({self.to_dict()})"
 
