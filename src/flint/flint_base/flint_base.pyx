@@ -4,6 +4,7 @@ from flint.flintlib.flint cimport (
     __FLINT_RELEASE as _FLINT_RELEASE,
     slong
 )
+from flint.utils.flint_exceptions import DomainError
 from flint.flintlib.mpoly cimport ordering_t
 from flint.flint_base.flint_context cimport thectx
 from flint.flint_base.flint_base cimport Ordering
@@ -249,9 +250,13 @@ cdef class flint_poly(flint_elem):
         roots = []
         factors = self.factor()
         for fac, m in factors[1]:
-            if fac.degree() == fac[1] == 1:
-                v = - fac[0]
-                roots.append((v, m))
+            if fac.degree() == 1:
+                try:
+                    v = - fac[0] / fac[1]
+                except DomainError:
+                    pass
+                else:
+                    roots.append((v, m))
         return roots
 
     def complex_roots(self):

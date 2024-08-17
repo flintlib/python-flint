@@ -393,26 +393,41 @@ cdef class fmpq_poly(flint_poly):
         fmpq_poly_xgcd(res1.val, res2.val, res3.val, self.val, (<fmpq_poly>other).val)
         return (res1, res2, res3)
 
-    def factor(self):
+    def factor(self, *, monic=False):
         """
         Factors *self* into irreducible polynomials. Returns (*c*, *factors*)
         where *c* is the leading coefficient and *factors* is a list of
-        (*poly*, *exp*) pairs with all *poly* monic.
+        (*poly*, *exp*).
 
             >>> fmpq_poly.legendre_p(5).factor()
-            (63/8, [(x, 1), (x^4 + (-10/9)*x^2 + 5/21, 1)])
+            (1/8, [(x, 1), (63*x^4 + (-70)*x^2 + 15, 1)])
             >>> (fmpq_poly([1,-1],10) ** 5 * fmpq_poly([1,2,3],7)).factor()
+            (-1/700000, [(3*x^2 + 2*x + 1, 1), (x + (-1), 5)])
+
+        Since python-flint 0.7.0 this returns primitive denominator-free
+        factors consistent with ``fmpq_mpoly.factor()``. In previous versions
+        of python-flint all factors were made monic. Pass ``monic=True`` to get
+        monic factors instead.
+
+            >>> fmpq_poly.legendre_p(5).factor(monic=True)
+            (63/8, [(x, 1), (x^4 + (-10/9)*x^2 + 5/21, 1)])
+            >>> (fmpq_poly([1,-1],10) ** 5 * fmpq_poly([1,2,3],7)).factor(monic=True)
             (-3/700000, [(x^2 + 2/3*x + 1/3, 1), (x + (-1), 5)])
 
         """
         c, fac = self.numer().factor()
         c = fmpq(c)
-        for i in range(len(fac)):
-            base, exp = fac[i]
-            lead = base[base.degree()]
-            base = fmpq_poly(base, lead)
-            c *= lead ** exp
-            fac[i] = (base, exp)
+
+        if monic:
+            for i in range(len(fac)):
+                base, exp = fac[i]
+                lead = base[base.degree()]
+                base = fmpq_poly(base, lead)
+                c *= lead ** exp
+                fac[i] = (base, exp)
+        else:
+            fac = [(fmpq_poly(f), m) for f, m in fac]
+
         return c / self.denom(), fac
 
     def sqrt(self):

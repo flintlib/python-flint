@@ -235,10 +235,17 @@ cdef class nmod_poly(flint_poly):
             >>> f.leading_coefficient()
             133
         """
+        cdef nmod c
+
         d = self.degree()
         if d < 0:
             return 0
-        return nmod_poly_get_coeff_ui(self.val, d)
+
+        c = nmod.__new__(nmod)
+        c.mod = self.val.mod
+        c.val = nmod_poly_get_coeff_ui(self.val, d)
+
+        return c
 
     def inverse_series_trunc(self, slong n):
         """

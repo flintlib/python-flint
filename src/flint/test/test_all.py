@@ -3233,6 +3233,85 @@ def test_fmpz_mpoly_vec():
         assert raises(lambda: vec.__setitem__(0, ctx1.from_dict({})), IncompatibleContextError)
 
 
+def _all_polys_mpolys():
+
+    for P, S, is_field in _all_polys():
+        x = P([0, 1])
+        y = None
+        assert isinstance(x, (
+            flint.fmpz_poly,
+            flint.fmpq_poly,
+            flint.nmod_poly,
+            flint.fmpz_mod_poly,
+            flint.fq_default_poly,
+        ))
+        characteristic_zero = isinstance(x, (flint.fmpz_poly, flint.fmpq_poly))
+        yield P, S, [x, y], is_field, characteristic_zero
+
+    for P, ctx_type, S, is_field in _all_mpolys():
+        ctx = ctx_type(2, flint.Ordering.lex, ["x", "y"])
+        x, y = ctx.gens()
+        assert isinstance(x, (
+            flint.fmpz_mpoly,
+            flint.fmpq_mpoly,
+        ))
+        characteristic_zero = isinstance(x, (flint.fmpz_mpoly, flint.fmpq_mpoly))
+        yield P, S, [x, y], is_field, characteristic_zero
+
+
+def test_factor_poly_mpoly():
+    """Test that factor() is consistent across different poly/mpoly types."""
+
+    def factor(p):
+        coeff, factors = p.factor()
+        try:
+            lc = p.leading_coefficient()
+        except AttributeError:
+            # XXX: Not all univariate types have a leading_coefficient method.
+            lc = p[0]
+        assert type(coeff) is type(lc)
+        assert isinstance(factors, list)
+        assert all(isinstance(f, tuple) for f in factors)
+        for fac, m in factors:
+            assert type(fac) is type(p)
+            assert type(m) is int
+        return coeff, sorted(factors, key=lambda p: (p[1], str(p[0])))
+
+    for P, S, [x, y], is_field, characteristic_zero in _all_polys_mpolys():
+
+        assert factor(x) == (S(1), [(x, 1)])
+        assert factor(x**2) == (S(1), [(x, 2)])
+        assert factor(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
+        assert factor(2*(x+1)) == (S(2), [(x+1, 1)])
+
+        if characteristic_zero:
+            # primitive factors over Z for Z and Q.
+            assert factor(2*x+1) == (S(1), [(2*x+1, 1)])
+        else:
+            # monic factors over Z/pZ and GF(p^d)
+            assert factor(2*x+1) == (S(2), [(x+S(1)/2, 1)])
+
+        if is_field:
+            if characteristic_zero:
+                # primitive factors over Z for Z and Q.
+                assert factor((2*x+1)/7) == (S(1)/7, [(2*x+1, 1)])
+            else:
+                # monic factors over Z/pZ and GF(p^d)
+                assert factor((2*x+1)/7) == (S(2)/7, [(x+S(1)/2, 1)])
+
+        if y is not None:
+
+            assert factor(x*y+1) == (S(1), [(x*y+1, 1)])
+            assert factor(x*y) == (S(1), [(x, 1), (y, 1)])
+
+            if characteristic_zero:
+                # primitive factors over Z for Z and Q.
+                assert factor(2*x + y) == (S(1), [(2*x + y, 1)])
+            else:
+                # monic factors over Z/pZ and GF(p^d)
+                assert factor(2*x + y) == (S(1)/2, [(x + y/2, 1)])
+
+
 def _all_matrices():
     """Return a list of matrix types and scalar types."""
     R163 = flint.fmpz_mod_ctx(163)
@@ -4151,6 +4230,8 @@ all_tests = [
     test_division_scalar,
     test_division_poly,
     test_division_matrix,
+
+    test_factor_poly_mpoly,
 
     test_polys,
     test_mpolys,

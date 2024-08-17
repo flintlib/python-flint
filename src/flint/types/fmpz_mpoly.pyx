@@ -919,7 +919,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             c = fmpz.__new__(fmpz)
             fmpz_set((<fmpz>c).val, &fac.exp[i])
 
-            res[i] = (u, c)
+            res[i] = (u, int(c))
 
         c = fmpz.__new__(fmpz)
         fmpz_set((<fmpz>c).val, fac.constant)
