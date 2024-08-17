@@ -396,6 +396,8 @@ cdef class nmod_mpoly(flint_mpoly):
         exp_vec = fmpz_vec(x, double_indirect=True)
 
         coeff = self.ctx.any_as_scalar(y)
+        if coeff is NotImplemented:
+            raise TypeError("provided coefficient not coercible to ulong")
         nmod_mpoly_set_coeff_ui_fmpz(self.val, coeff, exp_vec.double_indirect, self.ctx.val)
 
     def __neg__(self):
@@ -411,6 +413,7 @@ cdef class nmod_mpoly(flint_mpoly):
         return res
 
     def _add_mpoly_(self, other: nmod_mpoly):
+        cdef nmod_mpoly res
         res = create_nmod_mpoly(self.ctx)
         nmod_mpoly_add(res.val, self.val, other.val, res.ctx.val)
         return res
@@ -591,10 +594,10 @@ cdef class nmod_mpoly(flint_mpoly):
             nmod_mpoly res
             slong i
 
-        args = tuple((self.ctx.variable_to_index(k), int(v)) for k, v in dict_args.items())
-        for _, v in args:
-            if not v >= 0:
-                raise TypeError("constants must be non-negative integers")
+        args = tuple((self.ctx.variable_to_index(k), self.ctx.any_as_scalar(v)) for k, v in dict_args.items())
+        for (_, v), old in zip(args, dict_args.values()):
+            if v is NotImplemented:
+                raise TypeError(f"cannot coerce {type(old)} to ulong")
 
         # Partial application with args in Z. We evaluate the polynomial one variable at a time
         res = create_nmod_mpoly(self.ctx)
@@ -627,7 +630,6 @@ cdef class nmod_mpoly(flint_mpoly):
             nmod_mpoly_ctx res_ctx
             nmod_mpoly_vec C
             slong nvars = self.ctx.nvars(), nargs = len(args)
-
 
         if nargs != nvars:
             raise ValueError("number of generators does not match number of arguments")
