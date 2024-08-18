@@ -3264,11 +3264,7 @@ def test_factor_poly_mpoly():
 
     def factor(p):
         coeff, factors = p.factor()
-        try:
-            lc = p.leading_coefficient()
-        except AttributeError:
-            # XXX: Not all univariate types have a leading_coefficient method.
-            lc = p[0]
+        lc = p.leading_coefficient()
         assert type(coeff) is type(lc)
         assert isinstance(factors, list)
         assert all(isinstance(f, tuple) for f in factors)

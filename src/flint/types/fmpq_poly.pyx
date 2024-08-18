@@ -176,6 +176,24 @@ cdef class fmpq_poly(flint_poly):
     def is_one(self):
         return <bint>fmpq_poly_is_one(self.val)
 
+    def leading_coefficient(self):
+        """
+        Returns the leading coefficient of the polynomial.
+
+        >>> f = fmpq_poly([1, 2, 3])
+        >>> f
+        3*x^2 + 2*x + 1
+        >>> f.leading_coefficient()
+        3
+        """
+        cdef fmpq x
+        cdef slong d
+        d = fmpq_poly_degree(self.val)
+        x = fmpq.__new__(fmpq)
+        if d >= 0:
+            fmpq_poly_get_coeff_fmpq(x.val, self.val, d)
+        return x
+
     def __call__(self, other):
         t = any_as_fmpz(other)
         if t is not NotImplemented:
