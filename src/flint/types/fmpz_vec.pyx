@@ -3,6 +3,9 @@ from flint.flintlib.flint cimport slong
 from flint.flintlib.fmpz_vec cimport _fmpz_vec_init, _fmpz_vec_clear
 
 from flint.types.fmpz cimport fmpz, any_as_fmpz
+from flint.types.fmpz_mod cimport fmpz_mod
+
+from flint.utils.typecheck cimport typecheck
 
 cimport libc.stdlib
 

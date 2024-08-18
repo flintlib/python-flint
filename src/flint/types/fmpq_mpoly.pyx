@@ -28,6 +28,8 @@ from flint.flintlib.fmpq_mpoly cimport (
     fmpq_mpoly_divides,
     fmpq_mpoly_divrem,
     fmpq_mpoly_equal,
+    fmpq_mpoly_equal_fmpq,
+    fmpq_mpoly_equal_fmpz,
     fmpq_mpoly_evaluate_all_fmpq,
     fmpq_mpoly_evaluate_one_fmpq,
     fmpq_mpoly_gcd,
@@ -256,11 +258,18 @@ cdef class fmpq_mpoly(flint_mpoly):
             return op == Py_NE
         elif typecheck(self, fmpq_mpoly) and typecheck(other, fmpq_mpoly):
             if (<fmpq_mpoly>self).ctx is (<fmpq_mpoly>other).ctx:
-                return (op == Py_NE) ^ bool(
-                    fmpq_mpoly_equal((<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, (<fmpq_mpoly>self).ctx.val)
-                )
+                return (op == Py_NE) ^ <bint>fmpq_mpoly_equal(self.val, (<fmpq_mpoly>other).val, self.ctx.val)
             else:
                 return op == Py_NE
+        elif typecheck(other, fmpq):
+            return (op == Py_NE) ^ <bint>fmpq_mpoly_equal_fmpq(self.val, (<fmpq>other).val, self.ctx.val)
+        elif typecheck(other, fmpz):
+            return (op == Py_NE) ^ <bint>fmpq_mpoly_equal_fmpz(self.val, (<fmpz>other).val, self.ctx.val)
+        elif isinstance(other, int):
+            other = any_as_fmpz(other)
+            if other is NotImplemented:
+                return NotImplemented
+            return (op == Py_NE) ^ <bint>fmpq_mpoly_equal_fmpz(self.val, (<fmpz>other).val, self.ctx.val)
         else:
             return NotImplemented
 
@@ -533,17 +542,10 @@ cdef class fmpq_mpoly(flint_mpoly):
             fmpq vres
             slong nvars = self.ctx.nvars(), nargs = len(args)
 
-        if nargs < nvars:
-            raise ValueError("not enough arguments provided")
-        elif nargs > nvars:
-            raise ValueError("more arguments provided than variables")
+        if nargs != nvars:
+            raise ValueError("number of generators does not match number of arguments")
 
-        args_fmpq = tuple(any_as_fmpq(v) for v in args)
-        for arg in args_fmpq:
-            if arg is NotImplemented:
-                raise TypeError(f"cannot coerce argument ('{arg}') to fmpq")
-
-        V = fmpq_vec(args_fmpq, double_indirect=True)
+        V = fmpq_vec(args, double_indirect=True)
         vres = fmpq.__new__(fmpq)
         if fmpq_mpoly_evaluate_all_fmpq(vres.val, self.val, V.double_indirect, self.ctx.val) == 0:
             raise ValueError("unreasonably large polynomial")  # pragma: no cover
@@ -916,7 +918,7 @@ cdef class fmpq_mpoly(flint_mpoly):
             >>> Zm = fmpq_mpoly
             >>> ctx = fmpq_mpoly_ctx.get_context(3, Ordering.lex, 'x,y,z')
             >>> p1 = Zm("2*x + 4", ctx)
-            >>> p2 = Zm("3*x*z +  + 3*x + 3*z + 3", ctx)
+            >>> p2 = Zm("3*x*z + 3*x + 3*z + 3", ctx)
             >>> (p1 * p2).factor()
             (6, [(z + 1, 1), (x + 2, 1), (x + 1, 1)])
             >>> (p2 * p1 * p2).factor()
@@ -927,7 +929,8 @@ cdef class fmpq_mpoly(flint_mpoly):
             fmpq_mpoly u
 
         fmpq_mpoly_factor_init(fac, self.ctx.val)
-        fmpq_mpoly_factor(fac, self.val, self.ctx.val)
+        if not fmpq_mpoly_factor(fac, self.val, self.ctx.val):
+            raise RuntimeError("factorisation failed")
         res = [0] * fac.num
 
         for i in range(fac.num):

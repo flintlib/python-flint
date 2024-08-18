@@ -97,9 +97,11 @@ ext_files = [
     ("flint.types.nmod_poly", ["src/flint/types/nmod_poly.pyx"]),
     ("flint.types.nmod_mat", ["src/flint/types/nmod_mat.pyx"]),
     ("flint.types.nmod_series", ["src/flint/types/nmod_series.pyx"]),
+    ("flint.types.nmod_mpoly", ["src/flint/types/nmod_mpoly.pyx"]),
 
     ("flint.types.fmpz_mod", ["src/flint/types/fmpz_mod.pyx"]),
     ("flint.types.fmpz_mod_poly", ["src/flint/types/fmpz_mod_poly.pyx"]),
+    ("flint.types.fmpz_mod_mpoly", ["src/flint/types/fmpz_mod_mpoly.pyx"]),
     ("flint.types.fmpz_mod_mat", ["src/flint/types/fmpz_mod_mat.pyx"]),
 
     ("flint.types.fmpq_mpoly", ["src/flint/types/fmpq_mpoly.pyx"]),

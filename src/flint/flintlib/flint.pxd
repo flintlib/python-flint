@@ -50,6 +50,10 @@ cdef extern from *:
     """
 
 cdef extern from "flint/flint.h":
+    """
+    #define SIZEOF_ULONG sizeof(ulong)
+    """
+    int SIZEOF_ULONG
     const char * FLINT_VERSION
     const int __FLINT_RELEASE
     const int FLINT_BITS
@@ -59,6 +63,11 @@ cdef extern from "flint/flint.h":
     void flint_set_num_threads(long)
     long flint_get_num_threads()
     void flint_cleanup()
+
+    ctypedef struct nmod_t:
+        mp_limb_t n
+        mp_limb_t ninv
+        flint_bitcnt_t norm
 
 cdef extern from *:
     """
