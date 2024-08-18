@@ -439,9 +439,8 @@ cdef class fmpz_mod_poly(flint_poly):
 
         if other == 0:
             raise ZeroDivisionError(f"Cannot divide by zero")
-
-        if not other.is_unit():
-            raise ZeroDivisionError(f"Cannot divide by {other} modulo {self.ctx.modulus()}")
+        elif not other.is_unit():
+            raise DomainError(f"Cannot divide by {other} modulo {self.ctx.modulus()}")
 
         res = self.ctx.new_ctype_poly()
         fmpz_mod_poly_scalar_div_fmpz(
@@ -520,8 +519,12 @@ cdef class fmpz_mod_poly(flint_poly):
             if left is NotImplemented:
                 return NotImplemented
 
-        if not right.leading_coefficient().is_unit():
-            raise ZeroDivisionError(f"The leading term of {right} must be a unit modulo N")
+        lc = right.leading_coefficient()
+
+        if lc.is_zero():
+            raise ZeroDivisionError(f"Cannot divide by zero")
+        elif not lc.is_unit():
+            raise DomainError(f"The leading term of {right} must be a unit modulo N")
 
         res = (<fmpz_mod_poly>left).ctx.new_ctype_poly()
         fmpz_mod_poly_div(
@@ -648,7 +651,7 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         if not fmpz_is_one(f):
             fmpz_clear(f)
-            raise ValueError(
+            raise DomainError(
                 f"Cannot compute remainder of {left} modulo {right}"
             )
 
@@ -1266,12 +1269,12 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         cdef fmpz_mod_poly res
 
-        if not self.ctx.is_prime():
-            raise NotImplementedError("gcd algorithm assumes that the modulus is prime")
-
         other = self.ctx.any_as_fmpz_mod_poly(other)
         if other is NotImplemented:
             raise TypeError(f"Cannot interpret {other} as a polynomial")
+
+        if not self.ctx.is_prime():
+            raise NotImplementedError("gcd algorithm assumes that the modulus is prime")
 
         res = self.ctx.new_ctype_poly()
         fmpz_mod_poly_gcd(
@@ -1484,6 +1487,9 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         cdef fmpz_mod_poly res
         cdef int check
+
+        if not self.ctx.is_prime():
+            raise DomainError("sqrt algorithm assumes that the modulus is prime")
 
         res = self.ctx.new_ctype_poly()
         check = fmpz_mod_poly_sqrt(
@@ -1762,7 +1768,7 @@ cdef class fmpz_mod_poly(flint_poly):
         cdef int i
 
         if not self.ctx.is_prime():
-            raise NotImplementedError("factor_squarefree algorithm assumes that the modulus is prime")
+            raise DomainError("factor_squarefree algorithm assumes that the modulus is prime")
 
         fmpz_mod_poly_factor_init(fac, self.ctx.mod.val)
         fmpz_mod_poly_factor_squarefree(fac, self.val, self.ctx.mod.val)
@@ -1796,7 +1802,7 @@ cdef class fmpz_mod_poly(flint_poly):
         cdef int i
 
         if not self.ctx.is_prime():
-            raise NotImplementedError("factor algorithm assumes that the modulus is prime")
+            raise DomainError("factor algorithm assumes that the modulus is prime")
 
         # XXX: fmpz_mod_poly_factor with modulus 163 crashes on the zero poly:
         #
