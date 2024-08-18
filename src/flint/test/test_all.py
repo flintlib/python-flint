@@ -2480,9 +2480,13 @@ def test_division_matrix():
 
 def _all_polys():
     return [
-        # (poly_type, scalar_type, is_field)
+        # (poly_type, scalar_type, is_field, characteristic)
+
+        # Z and Q
         (flint.fmpz_poly, flint.fmpz, False, flint.fmpz(0)),
         (flint.fmpq_poly, flint.fmpq, True, flint.fmpz(0)),
+
+        # Z/pZ (p prime)
         (lambda *a: flint.nmod_poly(*a, 17), lambda x: flint.nmod(x, 17), True, flint.fmpz(17)),
         (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(163)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(163)),
@@ -2493,6 +2497,8 @@ def _all_polys():
         (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255 - 19)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255 - 19)),
          True, flint.fmpz(2**255 - 19)),
+
+        # GF(p^k) (p prime)
         (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(2**127 - 1)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(2**127 - 1)),
          True, flint.fmpz(2**127 - 1)),
@@ -2511,6 +2517,8 @@ def _all_polys():
         (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(11, 5)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(11, 5)),
          True, flint.fmpz(11)),
+
+        # Z/nZ (n composite)
         (lambda *a: flint.nmod_poly(*a, 16), lambda x: flint.nmod(x, 16), False, flint.fmpz(16)),
         (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(164)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(164)),
