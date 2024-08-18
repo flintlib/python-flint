@@ -157,10 +157,8 @@ cdef class fmpz_poly(flint_poly):
         cdef fmpz x
         cdef slong d
         d = fmpz_poly_degree(self.val)
-        if d < 0:
-            x = fmpz.__new__(fmpz)
-        else:
-            x = fmpz.__new__(fmpz)
+        x = fmpz.__new__(fmpz)
+        if d >= 0:
             fmpz_poly_get_coeff_fmpz(x.val, self.val, d)
         return x
 
