@@ -649,9 +649,9 @@ cdef class nmod_poly(flint_poly):
             >>> p
             2*x^7 + 5*x^6 + 4*x^5 + 2*x^4 + 2*x^3 + x^2
             >>> p.factor_squarefree()
-            (2, [(x**2 - 2*x, 2), (x + 1, 3)])
+            (2, [(x^2 + 5*x, 2), (x + 1, 3)])
             >>> p.factor()
-            (1/4, [(x, 2), (x + 5, 2), (x + 1, 3)])
+            (2, [(x, 2), (x + 5, 2), (x + 1, 3)])
 
         """
         return self._factor('squarefree')

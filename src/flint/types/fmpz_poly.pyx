@@ -395,9 +395,9 @@ cdef class fmpz_poly(flint_poly):
             >>> x = fmpz_poly([0, 1])
             >>> p = (-3 * x**2 * (x + 1)**2 * (x - 1)**3)
             >>> p.factor_squarefree()
-            (-3, [(x**2 + x, 2), (x - 1, 3)])
+            (-3, [(x^2 + x, 2), (x + (-1), 3)])
             >>> p.factor()
-            (-3, [(x, 2), (x + 1, 2), (x - 1, 3)])
+            (-3, [(x, 2), (x + 1, 2), (x + (-1), 3)])
 
         """
         return self._factor('squarefree')
