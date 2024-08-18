@@ -591,7 +591,7 @@ cdef class fmpz_poly(flint_poly):
         if fmpz_poly_sqrt(v.val, self.val):
             return v
         else:
-            raise ValueError(f"Cannot compute square root of {self}")
+            raise DomainError(f"Cannot compute square root of {self}")
 
     def deflation(self):
         cdef fmpz_poly v

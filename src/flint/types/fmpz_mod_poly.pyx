@@ -1496,7 +1496,7 @@ cdef class fmpz_mod_poly(flint_poly):
             res.val, self.val, res.ctx.mod.val
         )
         if check != 1:
-            raise ValueError(
+            raise DomainError(
                 f"Cannot compute square-root {self}"
             )
         return res

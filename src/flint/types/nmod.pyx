@@ -261,11 +261,16 @@ cdef class nmod(flint_scalar):
 
         """
         cdef nmod r
+        cdef mp_limb_t val
         r = nmod.__new__(nmod)
         r.mod = self.mod
-        r.val = n_sqrtmod(self.val, self.mod.n)
 
-        if r.val == 0:
+        if self.val == 0:
+            return r
+
+        val = n_sqrtmod(self.val, self.mod.n)
+        if val == 0:
             raise DomainError("no square root exists for %s mod %s" % (self.val, self.mod.n))
 
+        r.val = val
         return r

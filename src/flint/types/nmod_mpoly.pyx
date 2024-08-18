@@ -803,7 +803,7 @@ cdef class nmod_mpoly(flint_mpoly):
         if nmod_mpoly_sqrt(res.val, self.val, self.ctx.val):
             return res
         else:
-            raise ValueError("polynomial is not a perfect square")
+            raise DomainError("polynomial is not a perfect square")
 
     def factor(self):
         """

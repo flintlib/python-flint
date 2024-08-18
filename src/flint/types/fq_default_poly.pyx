@@ -982,7 +982,7 @@ cdef class fq_default_poly(flint_poly):
             res.val, self.val, res.ctx.field.val
         )
         if check != 1:
-            raise ValueError(
+            raise DomainError(
                 f"Cannot compute square-root {self}"
             )
         return res

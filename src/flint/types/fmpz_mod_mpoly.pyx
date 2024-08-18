@@ -827,7 +827,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         if fmpz_mod_mpoly_sqrt(res.val, self.val, self.ctx.val):
             return res
         else:
-            raise ValueError("polynomial is not a perfect square")
+            raise DomainError("polynomial is not a perfect square")
 
     def factor(self):
         """

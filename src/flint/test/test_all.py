@@ -454,7 +454,7 @@ def test_fmpz_poly():
     assert Z([1,2,-4]).height_bits() == 3
     assert Z([1,2,-4]).height_bits(signed=True) == -3
     assert Z([1,2,1]).sqrt() == Z([1,1])
-    assert raises(lambda: Z([1,2,2]).sqrt(), ValueError)
+    assert raises(lambda: Z([1,2,2]).sqrt(), DomainError)
     assert Z([1,0,2,0,3]).deflation() == (Z([1,2,3]), 2)
     assert Z([]).deflation() == (Z([]), 1)
     assert Z([1,1]).deflation() == (Z([1,1]), 1)
@@ -2204,7 +2204,7 @@ def test_fmpz_mod_poly():
 
         # sqrt
         f1 = R_test.random_element(irreducible=True)
-        assert raises(lambda: f1.sqrt(), ValueError)
+        assert raises(lambda: f1.sqrt(), DomainError)
         assert (f1*f1).sqrt() in [f1, -f1]
 
         # deflation
@@ -2777,7 +2777,7 @@ def test_polys():
 
         if not composite_characteristic:
             assert P([1, 2, 1]).sqrt() == P([1, 1])
-            assert raises(lambda: P([1, 2, 2]).sqrt(), ValueError), f"{P}, {P([1, 2, 2]).sqrt()}"
+            assert raises(lambda: P([1, 2, 2]).sqrt(), DomainError)
         elif nmod_poly_will_crash:
             pass
         else:
@@ -3231,7 +3231,7 @@ def test_mpolys():
             assert (f * f).sqrt() == f
             if P is flint.fmpz_mpoly:
                 assert (f * f).sqrt(assume_perfect_square=True) == f
-            assert raises(lambda: quick_poly().sqrt(), ValueError)
+            assert raises(lambda: quick_poly().sqrt(), DomainError)
 
         p = quick_poly()
         assert p.derivative(0) == p.derivative("x0") == mpoly({(0, 0): 3, (1, 2): 8})
@@ -3364,6 +3364,35 @@ def test_factor_poly_mpoly():
             # All tests below would raise
             continue
 
+        assert S(0).sqrt() == S(0)
+        assert S(1).sqrt() == S(1)
+        assert S(4).sqrt()**2 == S(4)
+        for i in range(100):
+            try:
+                assert S(i).sqrt() ** 2 == S(i)
+            except DomainError:
+                pass
+
+        if characteristic == 0:
+            assert raises(lambda: S(-1).sqrt(), DomainError)
+        else:
+            try:
+                assert S(-1).sqrt() ** 2 == S(-1)
+            except DomainError:
+                pass
+
+        assert (0*x).sqrt() == 0*x
+        assert (1*x/x).sqrt() == 0*x + 1
+        assert (4*x/x).sqrt()**2 == 0*x + 4
+        for i in range(100):
+            try:
+                assert (i*x).sqrt() ** 2 == i*x
+            except DomainError:
+                pass
+        assert (x**2).sqrt() == x
+        assert (S(4)*x**2).sqrt()**2 == S(4)*x**2
+        assert raises(lambda: (x**2 + 1).sqrt(), DomainError)
+
         assert factor(0*x) == (S(0), [])
         assert factor(0*x + 1) == (S(1), [])
         assert factor(0*x + 3) == (S(3), [])
@@ -3379,7 +3408,22 @@ def test_factor_poly_mpoly():
         assert factor_sqf(x**2) == (S(1), [(x, 2)])
         assert factor_sqf(2*(x+1)) == (S(2), [(x+1, 1)])
 
-        assert factor(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
+        assert (2*x).gcd(x) == x
+        assert (2*x).gcd(x**2) == x
+        assert (2*x).gcd(x**2 + 1) == S(1)
+
+        if not is_field:
+            # primitive gcd over Z
+            assert (2*x).gcd(4*x**2) == 2*x
+        else:
+            # monic gcd over Q, Z/pZ and GF(p^d)
+            assert (2*x).gcd(4*x**2) == x
+
+        if is_field and y is None:
+            # xgcd is defined and consistent for all univariate polynomials
+            # over a field (Q, Z/pZ, GF(p^d)).
+            assert (2*x).xgcd(4*x) == (x, P(0), P(1)/4)
+            assert (2*x).xgcd(4*x**2+1) == (P(1), -2*x, P(1))
 
         # mpoly types have a slightly different squarefree factorisation
         # because they handle trivial factors differently. It looks like a
@@ -3388,6 +3432,7 @@ def test_factor_poly_mpoly():
         #
         # Maybe it is worth making them consistent by absorbing the power
         # of x into a factor of equal multiplicity.
+        assert factor(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
         if y is None:
             # *_poly types
             assert factor_sqf(x*(x+1)) == (S(1), [(x**2+x, 1)])
@@ -3399,7 +3444,7 @@ def test_factor_poly_mpoly():
         # a unique multiplicity.
         assert factor_sqf(x**2*(x+1)) == (S(1), [(x+1, 1), (x, 2)])
 
-        # This is the same for all types because there is no tivial monomial
+        # This is the same for all types because there is no trivial monomial
         # factor to extract.
         assert factor((x-1)*(x+1)) == (S(1), sort([(x-1, 1), (x+1, 1)]))
         assert factor_sqf((x-1)*(x+1)) == (S(1), [(x**2-1, 1)])
@@ -3433,6 +3478,8 @@ def test_factor_poly_mpoly():
 
         if y is not None:
 
+            # *_mpoly types
+
             assert factor(x*y+1) == (S(1), [(x*y+1, 1)])
             assert factor(x*y) == (S(1), [(x, 1), (y, 1)])
 
@@ -3450,6 +3497,13 @@ def test_factor_poly_mpoly():
                     assert factor(p) == factor_sqf(p) == (S(1)/7, [(7*p, 1)])
                 else:
                     assert factor(p) == factor_sqf(p) == (S(2)/7, [(7*p/2, 1)])
+
+            if not is_field:
+                # primitive gcd over Z
+                assert (2*(x+y)).gcd(4*(x+y)**2) == 2*(x+y)
+            else:
+                # monic gcd over Q, Z/pZ and GF(p^d)
+                assert (2*(x+y)).gcd(4*(x+y)**2) == x + y
 
 
 def _all_matrices():
