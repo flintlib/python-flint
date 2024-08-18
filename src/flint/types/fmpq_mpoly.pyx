@@ -859,6 +859,19 @@ cdef class fmpq_mpoly(flint_mpoly):
         return res
 
     def leading_coefficient(self):
+        """
+        Leading coefficient in the monomial ordering.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx(2, Ordering.lex, ['x', 'y'])
+            >>> x, y = ctx.gens()
+            >>> p = 2*x*y + 3*x + 4*y**2 + 5
+            >>> p
+            2*x*y + 3*x + 4*y^2 + 5
+            >>> p.leading_coefficient()
+            2
+
+        """
         if fmpq_mpoly_is_zero(self.val, self.ctx.val):
             return fmpq(0)
         else:

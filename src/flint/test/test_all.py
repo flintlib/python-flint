@@ -285,7 +285,7 @@ def test_fmpz_factor():
         (1296814508839693536173209832765271992846610925502473758289451540212712414540699659186801, 1)]
 
 def test_fmpz_functions():
-    T, F, VE, OE = True, False, ValueError, OverflowError
+    T, F, VE, OE, DE = True, False, ValueError, OverflowError, DomainError
     cases = [
         # (f, [f(-1), f(0), f(1), f(2), ... f(10)]),
         (lambda n: flint.fmpz(n).is_prime(),
@@ -331,11 +331,11 @@ def test_fmpz_functions():
         (lambda n: flint.fmpz(n).euler_phi(),
             [0, 0, 1, 1, 2, 2, 4, 2, 6, 4, 6, 4]),
         (lambda n: flint.fmpz(n).isqrt(),
-            [VE, 0, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3]),
+            [DE, 0, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3]),
         (lambda n: flint.fmpz(n).sqrtrem(),
-            [VE, (0, 0), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (3, 0), (3, 1)]),
+            [DE, (0, 0), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (3, 0), (3, 1)]),
         (lambda n: flint.fmpz(n).sqrtmod(11),
-            [VE, 0, 1, VE, 5, 2, 4, VE, VE, VE, 3, VE]),
+            [DE, 0, 1, DE, 5, 2, 4, DE, DE, DE, 3, DE]),
         (lambda n: flint.fmpz(n).root(3),
             [VE, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2]),
         (lambda n: flint.fmpz(n).jacobi(3),
@@ -2781,8 +2781,6 @@ def test_polys():
         elif nmod_poly_will_crash:
             pass
         else:
-            # fmpz_mod_poly.sqrt() also crashes here:
-            # GR_MUST_SUCCEED failure: src/fmpz_mod_poly/sqrt_series.c
             assert raises(lambda: P([1, 2, 1]).sqrt(), DomainError)
 
         if P == flint.fmpq_poly:
@@ -3352,21 +3350,6 @@ def test_factor_poly_mpoly():
         check(p, coeff, factors)
         return coeff, sort(factors)
 
-    def sqrt(a):
-        if type(x) is flint.fq_default_poly:
-            try:
-                return S(a).sqrt()
-            except ValueError:
-                return None
-        elif characteristic != 0:
-            # XXX: fmpz(0).sqrtmod crashes
-            try:
-                return flint.fmpz(-1).sqrtmod(characteristic)
-            except ValueError:
-                return None
-        else:
-            return None
-
     for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
 
         if characteristic != 0 and not characteristic.is_prime():
@@ -3397,25 +3380,39 @@ def test_factor_poly_mpoly():
         assert factor_sqf(2*(x+1)) == (S(2), [(x+1, 1)])
 
         assert factor(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
+
+        # mpoly types have a slightly different squarefree factorisation
+        # because they handle trivial factors differently. It looks like a
+        # monomial gcd is extracted but not recombined so the square-free
+        # factors might not have unique multiplicities.
+        #
+        # Maybe it is worth making them consistent by absorbing the power
+        # of x into a factor of equal multiplicity.
         if y is None:
+            # *_poly types
             assert factor_sqf(x*(x+1)) == (S(1), [(x**2+x, 1)])
         else:
-            # mpoly types have a different squarefree factorisation because
-            # they handle trivial factors differently...
-            #
-            # Maybe it is worth making them consistent by absorbing the power
-            # of x into a factor of equal multiplicity.
+            # *_mpoly types
             assert factor_sqf(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
 
+        # This is the same for all types because the extracted monomial has
+        # a unique multiplicity.
         assert factor_sqf(x**2*(x+1)) == (S(1), [(x+1, 1), (x, 2)])
 
+        # This is the same for all types because there is no tivial monomial
+        # factor to extract.
         assert factor((x-1)*(x+1)) == (S(1), sort([(x-1, 1), (x+1, 1)]))
         assert factor_sqf((x-1)*(x+1)) == (S(1), [(x**2-1, 1)])
+
+        # Some finite fields have sqrt(-1) so we can factor x**2 + 1
+        try:
+            i = S(-1).sqrt()
+        except DomainError:
+            i = None
 
         p = 3*(x-1)**2*(x+1)**2*(x**2 + 1)**3
         assert factor_sqf(p) == (S(3), [(x**2 - 1, 2), (x**2 + 1, 3)])
 
-        i = sqrt(-1)
         if i is not None:
             assert factor(p) == (S(3), sort([(x+1, 2), (x-1, 2), (x+i, 3), (x-i, 3)]))
         else:
@@ -4163,7 +4160,7 @@ def test_fq_default():
             nqr = gf.random_element()
             if not nqr.is_square():
                 break
-        assert raises(lambda: nqr.sqrt(), ValueError)
+        assert raises(lambda: nqr.sqrt(), DomainError)
 
 
 def test_fq_default_poly():

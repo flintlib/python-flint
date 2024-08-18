@@ -734,6 +734,19 @@ cdef class nmod_mpoly(flint_mpoly):
         return res
 
     def leading_coefficient(self):
+        """
+        Leading coefficient in the monomial ordering.
+
+            >>> from flint import Ordering
+            >>> ctx = nmod_mpoly_ctx(2, Ordering.lex, ['x', 'y'], 11)
+            >>> x, y = ctx.gens()
+            >>> p = 2*x*y + 3*x + 4*y**2 + 5
+            >>> p
+            2*x*y + 3*x + 4*y^2 + 5
+            >>> p.leading_coefficient()
+            2
+
+        """
         if nmod_mpoly_is_zero(self.val, self.ctx.val):
             return nmod(0, self.ctx.modulus())
         else:

@@ -883,30 +883,102 @@ cdef class fmpz(flint_scalar):
             return self.bit_length()
 
     def isqrt(self):
+        """
+        Return square root rounded down.
+
+            >>> fmpz(9).isqrt()
+            3
+            >>> fmpz(8).isqrt()
+            2
+
+        """
         cdef fmpz v
+
         if fmpz_sgn(self.val) < 0:
-            raise ValueError("integer square root of a negative number")
+            raise DomainError("integer square root of a negative number")
+
         v = fmpz()
         fmpz_sqrt(v.val, self.val)
         return v
 
-    def sqrtrem(self):
-        cdef fmpz u, v
+    def sqrt(self):
+        """
+        Return exact integer square root of self or raise an error.
+
+            >>> fmpz(9).sqrt()
+            3
+            >>> fmpz(8).sqrt()
+            Traceback (most recent call last):
+                ...
+            flint.utils.flint_exceptions.DomainError: not a square number
+
+        """
+        cdef fmpz v
+
         if fmpz_sgn(self.val) < 0:
-            raise ValueError("integer square root of a negative number")
+            raise DomainError("integer square root of a negative number")
+
+        v = fmpz()
+        fmpz_sqrt(v.val, self.val)
+
+        c = fmpz()
+        fmpz_mul(c.val, v.val, v.val)
+        if not fmpz_equal(c.val, self.val):
+            raise DomainError("not a square number")
+
+        return v
+
+    def sqrtrem(self):
+        """
+        Return the integer square root of self and remainder.
+
+            >>> fmpz(9).sqrtrem()
+            (3, 0)
+            >>> fmpz(8).sqrtrem()
+            (2, 4)
+            >>> c = fmpz(123456789012345678901234567890)
+            >>> u, v = c.sqrtrem()
+            >>> u ** 2 + v == c
+            True
+
+        """
+        cdef fmpz u, v
+
+        if fmpz_sgn(self.val) < 0:
+            raise DomainError("integer square root of a negative number")
+
         u = fmpz()
         v = fmpz()
         fmpz_sqrtrem(u.val, v.val, self.val)
+
         return u, v
 
     # warning: m should be prime!
-    # also if self is zero this crashes...
-    def sqrtmod(self, m):
+    def sqrtmod(self, p):
+        """
+        Return modular square root of self modulo *p* or raise an error.
+
+            >>> fmpz(10).sqrtmod(13)
+            6
+            >>> (6**2) % 13
+            10
+            >>> fmpz(11).sqrtmod(13)
+            Traceback (most recent call last):
+                ...
+            flint.utils.flint_exceptions.DomainError: modular square root does not exist
+
+        The modulus *p* must be a prime number.
+        """
         cdef fmpz v
+
         v = fmpz()
-        m = fmpz(m)
-        if not fmpz_sqrtmod(v.val, self.val, (<fmpz>m).val):
-            raise ValueError("unable to compute modular square root")
+        if fmpz_is_zero(self.val):
+            return v
+
+        p = fmpz(p)
+        if not fmpz_sqrtmod(v.val, self.val, (<fmpz>p).val):
+            raise DomainError("modular square root does not exist")
+
         return v
 
     def root(self, long n):
