@@ -581,16 +581,16 @@ cdef class flint_mpoly(flint_elem):
 
     def __divmod__(self, other):
         if typecheck(other, type(self)):
-            self._division_check(other)
             self.context().compatible_context_check(other.context())
+            self._division_check(other)
             return self._divmod_mpoly_(other)
 
         other = self.context().any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
-        self._division_check(other)
         other = self.context().scalar_as_mpoly(other)
+        self._division_check(other)
         return self._divmod_mpoly_(other)
 
     def __rdivmod__(self, other):
@@ -598,22 +598,22 @@ cdef class flint_mpoly(flint_elem):
         if other is NotImplemented:
             return NotImplemented
 
-        self._division_check(self)
         other = self.context().scalar_as_mpoly(other)
+        other._division_check(self)
         return other._divmod_mpoly_(self)
 
     def __truediv__(self, other):
         if typecheck(other, type(self)):
-            self._division_check(other)
             self.context().compatible_context_check(other.context())
+            self._division_check(other)
             return self._truediv_mpoly_(other)
 
         other = self.context().any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
-        self._division_check(other)
         other = self.context().scalar_as_mpoly(other)
+        self._division_check(other)
         return self._truediv_mpoly_(other)
 
     def __rtruediv__(self, other):
@@ -621,22 +621,22 @@ cdef class flint_mpoly(flint_elem):
         if other is NotImplemented:
             return NotImplemented
 
-        self._division_check(self)
         other = self.context().scalar_as_mpoly(other)
+        other._division_check(self)
         return other._truediv_mpoly_(self)
 
     def __floordiv__(self, other):
         if typecheck(other, type(self)):
-            self._division_check(other)
             self.context().compatible_context_check(other.context())
+            self._division_check(other)
             return self._floordiv_mpoly_(other)
 
         other = self.context().any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
-        self._division_check(other)
         other = self.context().scalar_as_mpoly(other)
+        self._division_check(other)
         return self._floordiv_mpoly_(other)
 
     def __rfloordiv__(self, other):
@@ -644,22 +644,22 @@ cdef class flint_mpoly(flint_elem):
         if other is NotImplemented:
             return NotImplemented
 
-        self._division_check(self)
         other = self.context().scalar_as_mpoly(other)
+        other._division_check(self)
         return other._floordiv_mpoly_(self)
 
     def __mod__(self, other):
         if typecheck(other, type(self)):
-            self._division_check(other)
             self.context().compatible_context_check(other.context())
+            self._division_check(other)
             return self._mod_mpoly_(other)
 
         other = self.context().any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
-        self._division_check(other)
         other = self.context().scalar_as_mpoly(other)
+        self._division_check(other)
         return self._mod_mpoly_(other)
 
     def __rmod__(self, other):
@@ -667,8 +667,8 @@ cdef class flint_mpoly(flint_elem):
         if other is NotImplemented:
             return NotImplemented
 
-        self._division_check(self)
         other = self.context().scalar_as_mpoly(other)
+        other._division_check(self)
         return other._mod_mpoly_(self)
 
     def __contains__(self, x):

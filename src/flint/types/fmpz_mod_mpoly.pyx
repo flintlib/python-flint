@@ -831,6 +831,9 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             fmpz c
             fmpz_mod_mpoly u
 
+        if not self.ctx.is_prime():
+            raise DomainError("factorisation with non-prime modulus is not supported")
+
         fmpz_mod_mpoly_factor_init(fac, self.ctx.val)
         if not fmpz_mod_mpoly_factor(fac, self.val, self.ctx.val):
             raise RuntimeError("factorisation failed")
@@ -870,6 +873,9 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             fmpz_mod_mpoly_factor_t fac
             fmpz c
             fmpz_mod_mpoly u
+
+        if not self.ctx.is_prime():
+            raise DomainError("factorisation with non-prime modulus is not supported")
 
         fmpz_mod_mpoly_factor_init(fac, self.ctx.val)
         if not fmpz_mod_mpoly_factor_squarefree(fac, self.val, self.ctx.val):

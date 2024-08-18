@@ -2782,6 +2782,12 @@ def _all_mpolys():
 def test_mpolys():
     for P, get_context, S, is_field in _all_mpolys():
 
+        # Division under modulo will raise a flint exception if something is not invertible, crashing the program.  We
+        # can't tell before what is invertible and what is not before hand so we always raise an exception, except for
+        # fmpz_mpoly, that returns an bool noting if the division is exact or not.
+        division_not_supported = P is not flint.fmpz_mpoly and not is_field
+        characteristic_zero = not (P is flint.fmpz_mod_mpoly or P is flint.nmod_mpoly)
+
         ctx = get_context(nvars=2)
 
         assert raises(lambda: get_context(nvars=2, ordering="bad"), TypeError)
@@ -3045,7 +3051,7 @@ def test_mpolys():
         assert raises(lambda: quick_poly().imul(P(ctx=ctx1)), IncompatibleContextError)
         assert raises(lambda: quick_poly().imul(None), NotImplementedError)
 
-        if (P is flint.fmpz_mod_mpoly or P is flint.nmod_mpoly) and not ctx.is_prime():
+        if division_not_supported:
             assert raises(lambda: quick_poly() // mpoly({(1, 1): 1}), DomainError)
             assert raises(lambda: quick_poly() % mpoly({(1, 1): 1}), DomainError)
             assert raises(lambda: divmod(quick_poly(), mpoly({(1, 1): 1})), DomainError)
@@ -3056,9 +3062,6 @@ def test_mpolys():
             assert divmod(quick_poly(), mpoly({(1, 1): 1})) \
                 == (mpoly({(1, 1): 4}), mpoly({(1, 0): 3, (0, 1): 2, (0, 0): 1}))
 
-        if (P is flint.fmpz_mod_mpoly or P is flint.nmod_mpoly) and not ctx.is_prime():
-            pass
-        else:
             assert 1 / P(1, ctx=ctx) == P(1, ctx=ctx)
             assert quick_poly() / 1 == quick_poly()
             assert quick_poly() // 1 == quick_poly()
@@ -3078,9 +3081,7 @@ def test_mpolys():
 
         f = mpoly({(1, 1): 4, (0, 0): 1})
         g = mpoly({(0, 1): 2, (1, 0): 2})
-        if (P is flint.fmpz_mod_mpoly or P is flint.nmod_mpoly) and not ctx.is_prime():
-            pass
-        else:
+        if not division_not_supported:
             assert 1 // quick_poly() == P(ctx=ctx)
             assert 1 % quick_poly() == P(1, ctx=ctx)
             assert divmod(1, quick_poly()) == (P(ctx=ctx), P(1, ctx=ctx))
@@ -3089,42 +3090,43 @@ def test_mpolys():
             assert S(1) % quick_poly() == P(1, ctx=ctx)
             assert divmod(S(1), quick_poly()) == (P(ctx=ctx), P(1, ctx=ctx))
 
-            assert raises(lambda: quick_poly() / None, TypeError)
-            assert raises(lambda: quick_poly() // None, TypeError)
-            assert raises(lambda: quick_poly() % None, TypeError)
-            assert raises(lambda: divmod(quick_poly(), None), TypeError)
-
-            assert raises(lambda: None / quick_poly(), TypeError)
-            assert raises(lambda: None // quick_poly(), TypeError)
-            assert raises(lambda: None % quick_poly(), TypeError)
-            assert raises(lambda: divmod(None, quick_poly()), TypeError)
-
-            assert raises(lambda: quick_poly() / 0, ZeroDivisionError)
-            assert raises(lambda: quick_poly() // 0, ZeroDivisionError)
-            assert raises(lambda: quick_poly() % 0, ZeroDivisionError)
-            assert raises(lambda: divmod(quick_poly(), 0), ZeroDivisionError)
-
-            assert raises(lambda: 1 / P(ctx=ctx), ZeroDivisionError)
-            assert raises(lambda: 1 // P(ctx=ctx), ZeroDivisionError)
-            assert raises(lambda: 1 % P(ctx=ctx), ZeroDivisionError)
-            assert raises(lambda: divmod(1, P(ctx=ctx)), ZeroDivisionError)
-
-            assert raises(lambda: quick_poly() / P(ctx=ctx), ZeroDivisionError)
-            assert raises(lambda: quick_poly() // P(ctx=ctx), ZeroDivisionError)
-            assert raises(lambda: quick_poly() % P(ctx=ctx), ZeroDivisionError)
-            assert raises(lambda: divmod(quick_poly(), P(ctx=ctx)), ZeroDivisionError)
-
-            assert raises(lambda: quick_poly() / P(1, ctx=ctx1), IncompatibleContextError)
-            assert raises(lambda: quick_poly() // P(1, ctx=ctx1), IncompatibleContextError)
-            assert raises(lambda: quick_poly() % P(1, ctx=ctx1), IncompatibleContextError)
-            assert raises(lambda: divmod(quick_poly(), P(1, ctx=ctx1)), IncompatibleContextError)
-
             assert f * g / mpoly({(0, 1): 1, (1, 0): 1}) \
                 == mpoly({(1, 1): 8, (0, 0): 2})
 
             if not is_field:
                 assert raises(lambda: 1 / quick_poly(), DomainError)
                 assert raises(lambda: quick_poly() / P(2, ctx=ctx), DomainError)
+
+        # We prefer various other errors to the "division not supported" domain error so these are safe.
+        assert raises(lambda: quick_poly() / None, TypeError)
+        assert raises(lambda: quick_poly() // None, TypeError)
+        assert raises(lambda: quick_poly() % None, TypeError)
+        assert raises(lambda: divmod(quick_poly(), None), TypeError)
+
+        assert raises(lambda: None / quick_poly(), TypeError)
+        assert raises(lambda: None // quick_poly(), TypeError)
+        assert raises(lambda: None % quick_poly(), TypeError)
+        assert raises(lambda: divmod(None, quick_poly()), TypeError)
+
+        assert raises(lambda: quick_poly() / 0, ZeroDivisionError)
+        assert raises(lambda: quick_poly() // 0, ZeroDivisionError)
+        assert raises(lambda: quick_poly() % 0, ZeroDivisionError)
+        assert raises(lambda: divmod(quick_poly(), 0), ZeroDivisionError)
+
+        assert raises(lambda: 1 / P(ctx=ctx), ZeroDivisionError)
+        assert raises(lambda: 1 // P(ctx=ctx), ZeroDivisionError)
+        assert raises(lambda: 1 % P(ctx=ctx), ZeroDivisionError)
+        assert raises(lambda: divmod(1, P(ctx=ctx)), ZeroDivisionError)
+
+        assert raises(lambda: quick_poly() / P(ctx=ctx), ZeroDivisionError)
+        assert raises(lambda: quick_poly() // P(ctx=ctx), ZeroDivisionError)
+        assert raises(lambda: quick_poly() % P(ctx=ctx), ZeroDivisionError)
+        assert raises(lambda: divmod(quick_poly(), P(ctx=ctx)), ZeroDivisionError)
+
+        assert raises(lambda: quick_poly() / P(1, ctx=ctx1), IncompatibleContextError)
+        assert raises(lambda: quick_poly() // P(1, ctx=ctx1), IncompatibleContextError)
+        assert raises(lambda: quick_poly() % P(1, ctx=ctx1), IncompatibleContextError)
+        assert raises(lambda: divmod(quick_poly(), P(1, ctx=ctx1)), IncompatibleContextError)
 
         assert quick_poly() ** 0 == P(1, ctx=ctx)
         assert quick_poly() ** 1 == quick_poly()
@@ -3146,29 +3148,34 @@ def test_mpolys():
         # # XXX: Not sure what this should do in general:
         assert raises(lambda: pow(P(1, ctx=ctx), 2, 3), NotImplementedError)
 
-        if (P is not flint.fmpz_mod_mpoly and P is not flint.nmod_mpoly) or f.context().is_prime():
+        if division_not_supported:
+            assert raises(lambda: (f * g).gcd(f), DomainError)
+        else:
             if is_field:
                 assert (f * g).gcd(f) == f / 4
             else:
                 assert (f * g).gcd(f) == f
             assert raises(lambda: quick_poly().gcd(None), TypeError)
             assert raises(lambda: quick_poly().gcd(P(ctx=ctx1)), IncompatibleContextError)
-        else:
-            assert raises(lambda: (f * g).gcd(f), DomainError)
 
-        if P is flint.fmpz_mod_mpoly or P is flint.nmod_mpoly:
-            if is_field:
-                assert (f * g).factor() == (S(8), [(mpoly({(0, 1): 1, (1, 0): 1}), 1), (f / 4, 1)])
-        else:
-            assert (f * g).factor() == (S(2), [(mpoly({(0, 1): 1, (1, 0): 1}), 1), (f, 1)])
+        if division_not_supported:
+            # Factorisation not allowed over Z/nZ for n not prime.
+            # Flint would abort so we raise an exception instead:
+            assert raises(lambda: (f * g).factor(), DomainError)
+        elif characteristic_zero:
+            # Primitive factors over Z for fmpz_mpoly and fmpq_mpoly
+            assert (f * g).factor() == (S(2), [(g / 2, 1), (f, 1)])
+        elif is_field:
+            # Monic polynomials over Z/pZ for nmod_mpoly and fmpz_mod_mpoly
+            assert (f * g).factor() == (S(8), [(g / 2, 1), (f / 4, 1)])
 
-        if (P is not flint.fmpz_mod_mpoly and P is not flint.nmod_mpoly) or f.context().is_prime():
+        if division_not_supported:
+            assert raises(lambda: (f * g).sqrt(), DomainError)
+        else:
             assert (f * f).sqrt() == f
             if P is flint.fmpz_mpoly:
                 assert (f * f).sqrt(assume_perfect_square=True) == f
             assert raises(lambda: quick_poly().sqrt(), ValueError)
-        else:
-            assert raises(lambda: (f * g).sqrt(), DomainError)
 
         p = quick_poly()
         assert p.derivative(0) == p.derivative("x0") == mpoly({(0, 0): 3, (1, 2): 8})
