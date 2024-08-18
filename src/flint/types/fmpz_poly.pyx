@@ -384,11 +384,36 @@ cdef class fmpz_poly(flint_poly):
             (1, [(6*x^5 + 5*x^4 + 4*x^3 + 3*x^2 + 2*x + 1, 1)])
 
         """
+        return self._factor('irreducible')
+
+    def factor_squarefree(self):
+        """
+        Factors self into square-free factors, returning a tuple
+        (c, factors) where c is the content of the coefficients and
+        factors is a list of (poly, exp) pairs.
+
+            >>> x = fmpz_poly([0, 1])
+            >>> p = (-3 * x**2 * (x + 1)**2 * (x - 1)**3)
+            >>> p.factor_squarefree()
+            (-3, [(x**2 + x, 2), (x - 1, 3)])
+            >>> p.factor()
+            (-3, [(x, 2), (x + 1, 2), (x - 1, 3)])
+
+        """
+        return self._factor('squarefree')
+
+    def _factor(self, factor_type):
         cdef fmpz_poly_factor_t fac
         cdef int i
         fmpz_poly_factor_init(fac)
-        # should use fmpz_poly_factor, but not available in 2.5.2
-        fmpz_poly_factor(fac, self.val)
+
+        if factor_type == 'squarefree':
+            fmpz_poly_factor_squarefree(fac, self.val)
+        elif factor_type == 'irreducible':
+            fmpz_poly_factor(fac, self.val)
+        else:
+            assert False
+
         res = [0] * fac.num
         for 0 <= i < fac.num:
             u = fmpz_poly.__new__(fmpz_poly)
@@ -398,6 +423,7 @@ cdef class fmpz_poly(flint_poly):
         c = fmpz.__new__(fmpz)
         fmpz_set((<fmpz>c).val, &fac.c)
         fmpz_poly_factor_clear(fac)
+
         return c, res
 
     def complex_roots(self, bint verbose=False):

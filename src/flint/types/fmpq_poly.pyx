@@ -448,6 +448,27 @@ cdef class fmpq_poly(flint_poly):
 
         return c / self.denom(), fac
 
+    def factor_squarefree(self):
+        """
+        Factors *self* into square-free polynomials. Returns (*c*, *factors*)
+        where *c* is the leading coefficient and *factors* is a list of
+        (*poly*, *exp*).
+
+            >>> x = fmpq_poly([0, 1])
+            >>> p = x**2 * (x/2 - 1)**2 * (x + 1)**3
+            >>> p
+            1/4*x^7 + (-1/4)*x^6 + (-5/4)*x^5 + 1/4*x^4 + 2*x^3 + x^2
+            >>> p.factor_squarefree()
+            (1/4, [(x**2 - 2*x, 2), (x + 1, 3)])
+            >>> p.factor()
+            (1/4, [(x, 2), (x + (-2), 2), (x + 1, 3)])
+
+        """
+        c, fac = self.numer().factor_squarefree()
+        c = fmpq(c) / self.denom()
+        fac = [(fmpq_poly(f), m) for f, m in fac]
+        return c, fac
+
     def sqrt(self):
         """
         Return the exact square root of this polynomial or ``None``.

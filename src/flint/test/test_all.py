@@ -3320,8 +3320,8 @@ def _all_polys_mpolys():
 def test_factor_poly_mpoly():
     """Test that factor() is consistent across different poly/mpoly types."""
 
-    def factor(p):
-        coeff, factors = p.factor()
+    def check(p, coeff, factors):
+        # Check all the types
         lc = p.leading_coefficient()
         assert type(coeff) is type(lc)
         assert isinstance(factors, list)
@@ -3329,7 +3329,43 @@ def test_factor_poly_mpoly():
         for fac, m in factors:
             assert type(fac) is type(p)
             assert type(m) is int
-        return coeff, sorted(factors, key=lambda p: (p[1], str(p[0])))
+
+        # Check the actual factorisation!
+        res = coeff
+        for fac, m in factors:
+            res *= fac ** m
+        assert res == p
+
+    def sort(factors):
+        def sort_key(p):
+            fac, m = p
+            return (m, sorted(str(i) for i in fac.coeffs()))
+        return sorted(factors, key=sort_key)
+
+    def factor(p):
+        coeff, factors = p.factor()
+        check(p, coeff, factors)
+        return coeff, sort(factors)
+
+    def factor_sqf(p):
+        coeff, factors = p.factor_squarefree()
+        check(p, coeff, factors)
+        return coeff, sort(factors)
+
+    def sqrt(a):
+        if type(x) is flint.fq_default_poly:
+            try:
+                return S(a).sqrt()
+            except ValueError:
+                return None
+        elif characteristic != 0:
+            # XXX: fmpz(0).sqrtmod crashes
+            try:
+                return flint.fmpz(-1).sqrtmod(characteristic)
+            except ValueError:
+                return None
+        else:
+            return None
 
     for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
 
@@ -3351,8 +3387,39 @@ def test_factor_poly_mpoly():
         assert factor(x) == (S(1), [(x, 1)])
         assert factor(-x) == (S(-1), [(x, 1)])
         assert factor(x**2) == (S(1), [(x, 2)])
-        assert factor(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
         assert factor(2*(x+1)) == (S(2), [(x+1, 1)])
+
+        assert factor_sqf(0*x) == (S(0), [])
+        assert factor_sqf(0*x + 1) == (S(1), [])
+        assert factor_sqf(0*x + 3) == (S(3), [])
+        assert factor_sqf(-x) == (S(-1), [(x, 1)])
+        assert factor_sqf(x**2) == (S(1), [(x, 2)])
+        assert factor_sqf(2*(x+1)) == (S(2), [(x+1, 1)])
+
+        assert factor(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
+        if y is None:
+            assert factor_sqf(x*(x+1)) == (S(1), [(x**2+x, 1)])
+        else:
+            # mpoly types have a different squarefree factorisation because
+            # they handle trivial factors differently...
+            #
+            # Maybe it is worth making them consistent by absorbing the power
+            # of x into a factor of equal multiplicity.
+            assert factor_sqf(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
+
+        assert factor_sqf(x**2*(x+1)) == (S(1), [(x+1, 1), (x, 2)])
+
+        assert factor((x-1)*(x+1)) == (S(1), sort([(x-1, 1), (x+1, 1)]))
+        assert factor_sqf((x-1)*(x+1)) == (S(1), [(x**2-1, 1)])
+
+        p = 3*(x-1)**2*(x+1)**2*(x**2 + 1)**3
+        assert factor_sqf(p) == (S(3), [(x**2 - 1, 2), (x**2 + 1, 3)])
+
+        i = sqrt(-1)
+        if i is not None:
+            assert factor(p) == (S(3), sort([(x+1, 2), (x-1, 2), (x+i, 3), (x-i, 3)]))
+        else:
+            assert factor(p) == (S(3), sort([(x-1, 2), (x+1, 2), (x**2+1, 3)]))
 
         if characteristic == 0:
             # primitive factors over Z for Z and Q.
@@ -3372,16 +3439,20 @@ def test_factor_poly_mpoly():
             assert factor(x*y+1) == (S(1), [(x*y+1, 1)])
             assert factor(x*y) == (S(1), [(x, 1), (y, 1)])
 
+            assert factor_sqf((x*y+1)**2*(x*y-1)) == (S(1), [(x*y-1, 1), (x*y+1, 2)])
+
+            p = 2*x + y
             if characteristic == 0:
-                assert factor(2*x + y) == (S(1), [(2*x + y, 1)])
+                assert factor(p) == factor_sqf(p) == (S(1), [(p, 1)])
             else:
-                assert factor(2*x + y) == (S(2), [(x + y/2, 1)])
+                assert factor(p) == factor_sqf(p) == (S(2), [(p/2, 1)])
 
             if is_field:
+                p = (2*x + y)/7
                 if characteristic == 0:
-                    assert factor((2*x+y)/7) == (S(1)/7, [(2*x+y, 1)])
+                    assert factor(p) == factor_sqf(p) == (S(1)/7, [(7*p, 1)])
                 else:
-                    assert factor((2*x+y)/7) == (S(2)/7, [(x+y/2, 1)])
+                    assert factor(p) == factor_sqf(p) == (S(2)/7, [(7*p/2, 1)])
 
 
 def _all_matrices():

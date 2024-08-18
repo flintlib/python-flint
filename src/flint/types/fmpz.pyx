@@ -900,6 +900,7 @@ cdef class fmpz(flint_scalar):
         return u, v
 
     # warning: m should be prime!
+    # also if self is zero this crashes...
     def sqrtmod(self, m):
         cdef fmpz v
         v = fmpz()
