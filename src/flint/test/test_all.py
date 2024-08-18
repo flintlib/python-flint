@@ -3375,7 +3375,8 @@ def test_factor_poly_mpoly():
         assert S(0).sqrt() == S(0)
         assert S(1).sqrt() == S(1)
         assert S(4).sqrt()**2 == S(4)
-        for i in range(100):
+
+        for i in range(-100, 100):
             try:
                 assert S(i).sqrt() ** 2 == S(i)
             except DomainError:
@@ -3383,20 +3384,17 @@ def test_factor_poly_mpoly():
 
         if characteristic == 0:
             assert raises(lambda: S(-1).sqrt(), DomainError)
-        else:
-            try:
-                assert S(-1).sqrt() ** 2 == S(-1)
-            except DomainError:
-                pass
 
         assert (0*x).sqrt() == 0*x
         assert (1*x/x).sqrt() == 0*x + 1
         assert (4*x/x).sqrt()**2 == 0*x + 4
-        for i in range(100):
+
+        for i in range(-100, 100):
             try:
                 assert (i*x).sqrt() ** 2 == i*x
             except DomainError:
                 pass
+
         assert (x**2).sqrt() == x
         assert (S(4)*x**2).sqrt()**2 == S(4)*x**2
         assert raises(lambda: (x**2 + 1).sqrt(), DomainError)
@@ -3415,6 +3413,14 @@ def test_factor_poly_mpoly():
         assert factor_sqf(-x) == (S(-1), [(x, 1)])
         assert factor_sqf(x**2) == (S(1), [(x, 2)])
         assert factor_sqf(2*(x+1)) == (S(2), [(x+1, 1)])
+
+        assert (0*x).gcd(0*x) == 0*x
+        assert (0*x).gcd(0*x + 1) == S(1)
+
+        if not is_field:
+            assert (0*x).gcd(0*x + 3) == S(3)
+        else:
+            assert (0*x).gcd(0*x + 3) == S(1)
 
         assert (2*x).gcd(x) == x
         assert (2*x).gcd(x**2) == x
