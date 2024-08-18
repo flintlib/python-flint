@@ -733,6 +733,12 @@ cdef class nmod_mpoly(flint_mpoly):
         nmod_mpoly_total_degree_fmpz((<fmpz> res).val, self.val, self.ctx.val)
         return res
 
+    def leading_coefficient(self):
+        if nmod_mpoly_is_zero(self.val, self.ctx.val):
+            return nmod(0, self.ctx.modulus())
+        else:
+            return nmod(self.coefficient(0), self.ctx.modulus())
+
     def repr(self):
         return f"{self.ctx}.from_dict({self.to_dict()})"
 
@@ -822,9 +828,9 @@ cdef class nmod_mpoly(flint_mpoly):
             c = fmpz.__new__(fmpz)
             fmpz_set((<fmpz>c).val, &fac.exp[i])
 
-            res[i] = (u, c)
+            res[i] = (u, int(c))
 
-        constant = fac.constant
+        constant = nmod(fac.constant, self.ctx.modulus())
         nmod_mpoly_factor_clear(fac, self.ctx.val)
         return constant, res
 
