@@ -145,7 +145,7 @@ cdef class nmod_mpoly_ctx(flint_mpoly_context):
             return NotImplemented
 
     def scalar_as_mpoly(self, other: ulong):
-        # non-ulong scalars should first be converted via cls.any_as_scalar
+        # non-ulong scalars should first be converted via self.any_as_scalar
         return self.constant(<ulong>other)
 
     def nvars(self):
