@@ -2173,7 +2173,7 @@ def test_fmpz_mod_poly():
         assert raises(lambda: f_bad.divmod(f_bad), ValueError)
 
         # gcd
-        assert raises(lambda: f_cmp.gcd(f_cmp), NotImplementedError)
+        assert raises(lambda: f_cmp.gcd(f_cmp), DomainError)
         assert raises(lambda: f.gcd("f"), TypeError)
 
         # xgcd
@@ -2766,7 +2766,7 @@ def test_polys():
             pass
         else:
             # Z/nZ for n not prime
-            assert raises(lambda: P([1, 2, 1]).gcd(P([1, 1])), NotImplementedError)
+            assert raises(lambda: P([1, 2, 1]).gcd(P([1, 1])), DomainError)
             assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
 
         if is_field:
@@ -2846,11 +2846,12 @@ def _all_mpolys():
 def test_mpolys():
     for P, get_context, S, is_field, characteristic in _all_mpolys():
 
-        # Division under modulo will raise a flint exception if something is not invertible, crashing the program.  We
-        # can't tell before what is invertible and what is not before hand so we always raise an exception, except for
-        # fmpz_mpoly, that returns an bool noting if the division is exact or not.
-        division_not_supported = P is not flint.fmpz_mpoly and not is_field
-        characteristic_zero = not (P is flint.fmpz_mod_mpoly or P is flint.nmod_mpoly)
+        # Division under modulo will raise a flint exception if something is
+        # not invertible, crashing the program. We can't tell before what is
+        # invertible and what is not before hand so we always raise an
+        # exception, except for fmpz_mpoly, that returns an bool noting if the
+        # division is exact or not.
+        composite_characteristic = characteristic != 0 and not characteristic.is_prime()
 
         ctx = get_context(nvars=2)
 
@@ -3115,7 +3116,7 @@ def test_mpolys():
         assert raises(lambda: quick_poly().imul(P(ctx=ctx1)), IncompatibleContextError)
         assert raises(lambda: quick_poly().imul(None), NotImplementedError)
 
-        if division_not_supported:
+        if composite_characteristic:
             assert raises(lambda: quick_poly() // mpoly({(1, 1): 1}), DomainError)
             assert raises(lambda: quick_poly() % mpoly({(1, 1): 1}), DomainError)
             assert raises(lambda: divmod(quick_poly(), mpoly({(1, 1): 1})), DomainError)
@@ -3145,7 +3146,7 @@ def test_mpolys():
 
         f = mpoly({(1, 1): 4, (0, 0): 1})
         g = mpoly({(0, 1): 2, (1, 0): 2})
-        if not division_not_supported:
+        if not composite_characteristic:
             assert 1 // quick_poly() == P(ctx=ctx)
             assert 1 % quick_poly() == P(1, ctx=ctx)
             assert divmod(1, quick_poly()) == (P(ctx=ctx), P(1, ctx=ctx))
@@ -3212,7 +3213,7 @@ def test_mpolys():
         # # XXX: Not sure what this should do in general:
         assert raises(lambda: pow(P(1, ctx=ctx), 2, 3), NotImplementedError)
 
-        if division_not_supported:
+        if composite_characteristic:
             assert raises(lambda: (f * g).gcd(f), DomainError)
         else:
             if is_field:
@@ -3222,18 +3223,18 @@ def test_mpolys():
             assert raises(lambda: quick_poly().gcd(None), TypeError)
             assert raises(lambda: quick_poly().gcd(P(ctx=ctx1)), IncompatibleContextError)
 
-        if division_not_supported:
+        if composite_characteristic:
             # Factorisation not allowed over Z/nZ for n not prime.
             # Flint would abort so we raise an exception instead:
             assert raises(lambda: (f * g).factor(), DomainError)
-        elif characteristic_zero:
+        elif characteristic == 0:
             # Primitive factors over Z for fmpz_mpoly and fmpq_mpoly
             assert (f * g).factor() == (S(2), [(g / 2, 1), (f, 1)])
         elif is_field:
             # Monic polynomials over Z/pZ for nmod_mpoly and fmpz_mod_mpoly
             assert (f * g).factor() == (S(8), [(g / 2, 1), (f / 4, 1)])
 
-        if division_not_supported:
+        if composite_characteristic:
             assert raises(lambda: (f * g).sqrt(), DomainError)
         else:
             assert (f * f).sqrt() == f
@@ -3365,11 +3366,21 @@ def test_factor_poly_mpoly():
             #     https://github.com/flintlib/python-flint/issues/124
             # so we can't even test it...
             nmod_poly_will_crash = type(x) is flint.nmod_poly
+            if nmod_poly_will_crash:
+                continue
 
-            if not nmod_poly_will_crash:
-                assert raises(lambda: x.factor(), DomainError)
+            try:
+                S(4).sqrt() ** 2 == S(4)
+            except DomainError:
+                pass
+            assert raises(lambda: (x**2).sqrt(), DomainError)
+            assert raises(lambda: x.gcd(x), DomainError)
+            assert raises(lambda: x.gcd(None), TypeError)
+            assert raises(lambda: x.factor(), DomainError)
+            assert raises(lambda: x.factor_squarefree(), DomainError)
 
-            # All tests below would raise
+            # All tests below can be expected to raise DomainError
+            # Not sure if that is guaranteed in all cases though...
             continue
 
         assert S(0).sqrt() == S(0)

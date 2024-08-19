@@ -1274,7 +1274,7 @@ cdef class fmpz_mod_poly(flint_poly):
             raise TypeError(f"Cannot interpret {other} as a polynomial")
 
         if not self.ctx.is_prime():
-            raise NotImplementedError("gcd algorithm assumes that the modulus is prime")
+            raise DomainError("gcd algorithm assumes that the modulus is prime")
 
         res = self.ctx.new_ctype_poly()
         fmpz_mod_poly_gcd(
