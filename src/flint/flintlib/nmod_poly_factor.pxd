@@ -6,9 +6,9 @@ cdef extern from "flint/nmod_poly_factor.h":
 
     ctypedef struct nmod_poly_factor_struct:
         nmod_poly_struct *p
-        long *exp
-        long num
-        long alloc
+        slong *exp
+        slong num
+        slong alloc
     ctypedef nmod_poly_factor_struct nmod_poly_factor_t[1]
 
 # from here on is parsed
