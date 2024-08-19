@@ -285,7 +285,7 @@ def test_fmpz_factor():
         (1296814508839693536173209832765271992846610925502473758289451540212712414540699659186801, 1)]
 
 def test_fmpz_functions():
-    T, F, VE, OE = True, False, ValueError, OverflowError
+    T, F, VE, OE, DE = True, False, ValueError, OverflowError, DomainError
     cases = [
         # (f, [f(-1), f(0), f(1), f(2), ... f(10)]),
         (lambda n: flint.fmpz(n).is_prime(),
@@ -331,11 +331,11 @@ def test_fmpz_functions():
         (lambda n: flint.fmpz(n).euler_phi(),
             [0, 0, 1, 1, 2, 2, 4, 2, 6, 4, 6, 4]),
         (lambda n: flint.fmpz(n).isqrt(),
-            [VE, 0, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3]),
+            [DE, 0, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3]),
         (lambda n: flint.fmpz(n).sqrtrem(),
-            [VE, (0, 0), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (3, 0), (3, 1)]),
+            [DE, (0, 0), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (3, 0), (3, 1)]),
         (lambda n: flint.fmpz(n).sqrtmod(11),
-            [VE, 0, 1, VE, 5, 2, 4, VE, VE, VE, 3, VE]),
+            [DE, 0, 1, DE, 5, 2, 4, DE, DE, DE, 3, DE]),
         (lambda n: flint.fmpz(n).root(3),
             [VE, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2]),
         (lambda n: flint.fmpz(n).jacobi(3),
@@ -454,7 +454,7 @@ def test_fmpz_poly():
     assert Z([1,2,-4]).height_bits() == 3
     assert Z([1,2,-4]).height_bits(signed=True) == -3
     assert Z([1,2,1]).sqrt() == Z([1,1])
-    assert raises(lambda: Z([1,2,2]).sqrt(), ValueError)
+    assert raises(lambda: Z([1,2,2]).sqrt(), DomainError)
     assert Z([1,0,2,0,3]).deflation() == (Z([1,2,3]), 2)
     assert Z([]).deflation() == (Z([]), 1)
     assert Z([1,1]).deflation() == (Z([1,1]), 1)
@@ -2072,14 +2072,14 @@ def test_fmpz_mod_poly():
         # true div
         assert raises(lambda: f / "AAA", TypeError)
         assert raises(lambda: f / 0, ZeroDivisionError)
-        assert raises(lambda: f_cmp / 2, ZeroDivisionError)
+        assert raises(lambda: f_cmp / 2, DomainError)
 
         assert (f + f) / 2  ==  f
         assert (f + f) / fmpz(2)  ==  f
         assert (f + f) / F_test(2)  ==  f
 
         # floor div
-        assert raises(lambda: 1 // f_bad, ZeroDivisionError)
+        assert raises(lambda: 1 // f_bad, DomainError)
         assert raises(lambda: f // f_cmp, ValueError)
         assert raises(lambda: f // "AAA", TypeError)
         assert raises(lambda: "AAA" // f, TypeError)
@@ -2115,7 +2115,7 @@ def test_fmpz_mod_poly():
 
         # Mod
         assert raises(lambda: f % f_bad, ValueError)
-        assert raises(lambda: 123 % f_bad, ValueError)
+        assert raises(lambda: 123 % f_bad, DomainError)
         assert raises(lambda: f % "AAA", TypeError)
         assert raises(lambda: tuple() % f, TypeError), f'{"AAA" % f = }'
 
@@ -2173,7 +2173,7 @@ def test_fmpz_mod_poly():
         assert raises(lambda: f_bad.divmod(f_bad), ValueError)
 
         # gcd
-        assert raises(lambda: f_cmp.gcd(f_cmp), NotImplementedError)
+        assert raises(lambda: f_cmp.gcd(f_cmp), DomainError)
         assert raises(lambda: f.gcd("f"), TypeError)
 
         # xgcd
@@ -2204,7 +2204,7 @@ def test_fmpz_mod_poly():
 
         # sqrt
         f1 = R_test.random_element(irreducible=True)
-        assert raises(lambda: f1.sqrt(), ValueError)
+        assert raises(lambda: f1.sqrt(), DomainError)
         assert (f1*f1).sqrt() in [f1, -f1]
 
         # deflation
@@ -2229,8 +2229,8 @@ def test_fmpz_mod_poly():
         assert raises(lambda: R_test([0,0,1]).complex_roots(), DomainError)
 
         # composite moduli not supported
-        assert raises(lambda: R_cmp([0,0,1]).factor(), NotImplementedError)
-        assert raises(lambda: R_cmp([0,0,1]).factor_squarefree(), NotImplementedError)
+        assert raises(lambda: R_cmp([0,0,1]).factor(), DomainError)
+        assert raises(lambda: R_cmp([0,0,1]).factor_squarefree(), DomainError)
         assert raises(lambda: R_cmp([0,0,1]).roots(), NotImplementedError)
         assert raises(lambda: R_cmp([0,0,1]).complex_roots(), DomainError)
 
@@ -2480,42 +2480,67 @@ def test_division_matrix():
 
 def _all_polys():
     return [
-        # (poly_type, scalar_type, is_field)
-        (flint.fmpz_poly, flint.fmpz, False),
-        (flint.fmpq_poly, flint.fmpq, True),
-        (lambda *a: flint.nmod_poly(*a, 17), lambda x: flint.nmod(x, 17), True),
+        # (poly_type, scalar_type, is_field, characteristic)
+
+        # Z and Q
+        (flint.fmpz_poly, flint.fmpz, False, flint.fmpz(0)),
+        (flint.fmpq_poly, flint.fmpq, True, flint.fmpz(0)),
+
+        # Z/pZ (p prime)
+        (lambda *a: flint.nmod_poly(*a, 17), lambda x: flint.nmod(x, 17), True, flint.fmpz(17)),
         (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(163)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(163)),
-         True),
+         True, flint.fmpz(163)),
         (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**127 - 1)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**127 - 1)),
-         True),
+         True, flint.fmpz(2**127 - 1)),
         (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255 - 19)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255 - 19)),
-         True),
+         True, flint.fmpz(2**255 - 19)),
+
+        # GF(p^k) (p prime)
         (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(2**127 - 1)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(2**127 - 1)),
-         True),
+         True, flint.fmpz(2**127 - 1)),
         (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(2**127 - 1, 2)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(2**127 - 1, 2)),
-         True),
+         True, flint.fmpz(2**127 - 1)),
         (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(65537)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(65537)),
-         True),
+         True, flint.fmpz(65537)),
         (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(65537, 5)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(65537, 5)),
-         True),
+         True, flint.fmpz(65537)),
         (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(11)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(11)),
-         True),
+         True, flint.fmpz(11)),
         (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(11, 5)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(11, 5)),
-         True),
+         True, flint.fmpz(11)),
+
+        # Z/nZ (n composite)
+        (lambda *a: flint.nmod_poly(*a, 16), lambda x: flint.nmod(x, 16), False, flint.fmpz(16)),
+        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(164)),
+         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(164)),
+         False, flint.fmpz(164)),
+        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**127)),
+         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**127)),
+         False, flint.fmpz(2**127)),
+        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255)),
+         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255)),
+         False, flint.fmpz(2**255)),
     ]
 
 
 def test_polys():
-    for P, S, is_field in _all_polys():
+    for P, S, is_field, characteristic in _all_polys():
+
+        composite_characteristic = characteristic != 0 and not characteristic.is_prime()
+        # nmod_poly crashes for many operations with non-prime modulus
+        #     https://github.com/flintlib/python-flint/issues/124
+        # so we can't even test it...
+        nmod_poly_will_crash = type(P(1)) is flint.nmod_poly and composite_characteristic
+
         assert P([S(1)]) == P([1]) == P(P([1])) == P(1)
 
         assert raises(lambda: P([None]), TypeError)
@@ -2601,7 +2626,7 @@ def test_polys():
             elif type(p) == flint.fmpq_poly:
                 assert P(v).repr() == f'fmpq_poly({v!r})'
             elif type(p) == flint.nmod_poly:
-                assert P(v).repr() == f'nmod_poly({v!r}, 17)'
+                assert P(v).repr() == f'nmod_poly({v!r}, {p.modulus()})'
             elif type(p) == flint.fmpz_mod_poly:
                 pass # fmpz_mod_poly does not have .repr() ...
             elif type(p) == flint.fq_default_poly:
@@ -2666,9 +2691,18 @@ def test_polys():
         if is_field:
             assert P([1, 1]) // 2 == P([S(1)/2, S(1)/2])
             assert P([1, 1]) % 2 == P([0])
-        else:
+        elif characteristic == 0:
             assert P([1, 1]) // 2 == P([0, 0])
             assert P([1, 1]) % 2 == P([1, 1])
+        elif nmod_poly_will_crash:
+            pass
+        else:
+            # Z/nZ for n not prime
+            if characteristic % 2 == 0:
+                assert raises(lambda: P([1, 1]) // 2, DomainError)
+                assert raises(lambda: P([1, 1]) % 2, DomainError)
+            else:
+                1/0
 
         assert 1 // P([1, 1]) == P([0])
         assert 1 % P([1, 1]) == P([1])
@@ -2694,14 +2728,22 @@ def test_polys():
         if is_field:
             assert P([2, 2]) / 2 == P([1, 1])
             assert P([1, 2]) / 2 == P([S(1)/2, 1])
-        else:
+        elif characteristic == 0:
             assert P([2, 2]) / 2 == P([1, 1])
             assert raises(lambda: P([1, 2]) / 2, DomainError)
+        elif nmod_poly_will_crash:
+            pass
+        else:
+            # Z/nZ for n not prime
+            assert raises(lambda: P([2, 2]) / 2, DomainError)
+            assert raises(lambda: P([1, 2]) / 2, DomainError)
+
         assert raises(lambda: P([1, 2]) / 0, ZeroDivisionError)
 
-        assert P([1, 2, 1]) / P([1, 1]) == P([1, 1])
-        assert raises(lambda: 1 / P([1, 1]), DomainError)
-        assert raises(lambda: P([1, 2, 1]) / P([1, 2]), DomainError)
+        if not nmod_poly_will_crash:
+            assert P([1, 2, 1]) / P([1, 1]) == P([1, 1])
+            assert raises(lambda: 1 / P([1, 1]), DomainError)
+            assert raises(lambda: P([1, 2, 1]) / P([1, 2]), DomainError)
 
         assert P([1, 1]) ** 0 == P([1])
         assert P([1, 1]) ** 1 == P([1, 1])
@@ -2717,8 +2759,15 @@ def test_polys():
         else:
             assert p * p % mod == pow(p, 2, mod)
 
-        assert P([1, 2, 1]).gcd(P([1, 1])) == P([1, 1])
-        assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
+        if not composite_characteristic:
+            assert P([1, 2, 1]).gcd(P([1, 1])) == P([1, 1])
+            assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
+        elif nmod_poly_will_crash:
+            pass
+        else:
+            # Z/nZ for n not prime
+            assert raises(lambda: P([1, 2, 1]).gcd(P([1, 1])), DomainError)
+            assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
 
         if is_field:
             p1 = P([1, 0, 1])
@@ -2727,10 +2776,20 @@ def test_polys():
             assert p1.xgcd(p2) == (g, s, t)
             assert raises(lambda: p1.xgcd(None), TypeError)
 
-        assert P([1, 2, 1]).factor() == (S(1), [(P([1, 1]), 2)])
+        if not composite_characteristic:
+            assert P([1, 2, 1]).factor() == (S(1), [(P([1, 1]), 2)])
+        elif nmod_poly_will_crash:
+            pass
+        else:
+            assert raises(lambda: P([1, 2, 1]).factor(), DomainError)
 
-        assert P([1, 2, 1]).sqrt() == P([1, 1])
-        assert raises(lambda: P([1, 2, 2]).sqrt(), ValueError), f"{P}, {P([1, 2, 2]).sqrt()}"
+        if not composite_characteristic:
+            assert P([1, 2, 1]).sqrt() == P([1, 1])
+            assert raises(lambda: P([1, 2, 2]).sqrt(), DomainError)
+        elif nmod_poly_will_crash:
+            pass
+        else:
+            assert raises(lambda: P([1, 2, 1]).sqrt(), DomainError)
 
         if P == flint.fmpq_poly:
             assert raises(lambda: P([1, 2, 1], 3).sqrt(), ValueError)
@@ -2748,45 +2807,51 @@ def test_polys():
         if type(p) == flint.fq_default_poly:
             assert raises(lambda: p.integral(), NotImplementedError)
 
+
 def _all_mpolys():
     return [
-        (flint.fmpz_mpoly, flint.fmpz_mpoly_ctx.get_context, flint.fmpz, False),
-        (flint.fmpq_mpoly, flint.fmpq_mpoly_ctx.get_context, flint.fmpq, True),
+        (flint.fmpz_mpoly, flint.fmpz_mpoly_ctx.get_context, flint.fmpz, False, flint.fmpz(0)),
+        (flint.fmpq_mpoly, flint.fmpq_mpoly_ctx.get_context, flint.fmpq, True, flint.fmpz(0)),
         (
             flint.fmpz_mod_mpoly,
             lambda *args, **kwargs: flint.fmpz_mod_mpoly_ctx.get_context(*args, **kwargs, modulus=101),
             lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(101)),
             True,
+            flint.fmpz(101),
         ),
         (
             flint.fmpz_mod_mpoly,
             lambda *args, **kwargs: flint.fmpz_mod_mpoly_ctx.get_context(*args, **kwargs, modulus=100),
             lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(100)),
             False,
+            flint.fmpz(100),
         ),
         (
             flint.nmod_mpoly,
             lambda *args, **kwargs: flint.nmod_mpoly_ctx.get_context(*args, **kwargs, modulus=101),
             lambda x: flint.nmod(x, 101),
             True,
+            flint.fmpz(101),
         ),
         (
             flint.nmod_mpoly,
             lambda *args, **kwargs: flint.nmod_mpoly_ctx.get_context(*args, **kwargs, modulus=100),
             lambda x: flint.nmod(x, 100),
             False,
+            flint.fmpz(100),
         ),
     ]
 
 
 def test_mpolys():
-    for P, get_context, S, is_field in _all_mpolys():
+    for P, get_context, S, is_field, characteristic in _all_mpolys():
 
-        # Division under modulo will raise a flint exception if something is not invertible, crashing the program.  We
-        # can't tell before what is invertible and what is not before hand so we always raise an exception, except for
-        # fmpz_mpoly, that returns an bool noting if the division is exact or not.
-        division_not_supported = P is not flint.fmpz_mpoly and not is_field
-        characteristic_zero = not (P is flint.fmpz_mod_mpoly or P is flint.nmod_mpoly)
+        # Division under modulo will raise a flint exception if something is
+        # not invertible, crashing the program. We can't tell before what is
+        # invertible and what is not before hand so we always raise an
+        # exception, except for fmpz_mpoly, that returns an bool noting if the
+        # division is exact or not.
+        composite_characteristic = characteristic != 0 and not characteristic.is_prime()
 
         ctx = get_context(nvars=2)
 
@@ -3051,7 +3116,7 @@ def test_mpolys():
         assert raises(lambda: quick_poly().imul(P(ctx=ctx1)), IncompatibleContextError)
         assert raises(lambda: quick_poly().imul(None), NotImplementedError)
 
-        if division_not_supported:
+        if composite_characteristic:
             assert raises(lambda: quick_poly() // mpoly({(1, 1): 1}), DomainError)
             assert raises(lambda: quick_poly() % mpoly({(1, 1): 1}), DomainError)
             assert raises(lambda: divmod(quick_poly(), mpoly({(1, 1): 1})), DomainError)
@@ -3081,7 +3146,7 @@ def test_mpolys():
 
         f = mpoly({(1, 1): 4, (0, 0): 1})
         g = mpoly({(0, 1): 2, (1, 0): 2})
-        if not division_not_supported:
+        if not composite_characteristic:
             assert 1 // quick_poly() == P(ctx=ctx)
             assert 1 % quick_poly() == P(1, ctx=ctx)
             assert divmod(1, quick_poly()) == (P(ctx=ctx), P(1, ctx=ctx))
@@ -3148,7 +3213,7 @@ def test_mpolys():
         # # XXX: Not sure what this should do in general:
         assert raises(lambda: pow(P(1, ctx=ctx), 2, 3), NotImplementedError)
 
-        if division_not_supported:
+        if composite_characteristic:
             assert raises(lambda: (f * g).gcd(f), DomainError)
         else:
             if is_field:
@@ -3158,24 +3223,24 @@ def test_mpolys():
             assert raises(lambda: quick_poly().gcd(None), TypeError)
             assert raises(lambda: quick_poly().gcd(P(ctx=ctx1)), IncompatibleContextError)
 
-        if division_not_supported:
+        if composite_characteristic:
             # Factorisation not allowed over Z/nZ for n not prime.
             # Flint would abort so we raise an exception instead:
             assert raises(lambda: (f * g).factor(), DomainError)
-        elif characteristic_zero:
+        elif characteristic == 0:
             # Primitive factors over Z for fmpz_mpoly and fmpq_mpoly
             assert (f * g).factor() == (S(2), [(g / 2, 1), (f, 1)])
         elif is_field:
             # Monic polynomials over Z/pZ for nmod_mpoly and fmpz_mod_mpoly
             assert (f * g).factor() == (S(8), [(g / 2, 1), (f / 4, 1)])
 
-        if division_not_supported:
+        if composite_characteristic:
             assert raises(lambda: (f * g).sqrt(), DomainError)
         else:
             assert (f * f).sqrt() == f
             if P is flint.fmpz_mpoly:
                 assert (f * f).sqrt(assume_perfect_square=True) == f
-            assert raises(lambda: quick_poly().sqrt(), ValueError)
+            assert raises(lambda: quick_poly().sqrt(), DomainError)
 
         p = quick_poly()
         assert p.derivative(0) == p.derivative("x0") == mpoly({(0, 0): 3, (1, 2): 8})
@@ -3231,6 +3296,239 @@ def test_fmpz_mpoly_vec():
         assert raises(lambda: vec.__setitem__(-1, 0), IndexError)
         assert raises(lambda: vec.__setitem__(0, 0), TypeError)
         assert raises(lambda: vec.__setitem__(0, ctx1.from_dict({})), IncompatibleContextError)
+
+
+def _all_polys_mpolys():
+
+    for P, S, is_field, characteristic in _all_polys():
+        x = P([0, 1])
+        y = None
+        assert isinstance(x, (
+            flint.fmpz_poly,
+            flint.fmpq_poly,
+            flint.nmod_poly,
+            flint.fmpz_mod_poly,
+            flint.fq_default_poly,
+        ))
+        yield P, S, [x, y], is_field, characteristic
+
+    for P, get_context, S, is_field, characteristic in _all_mpolys():
+        ctx = get_context(2, flint.Ordering.lex, nametup=("x", "y"))
+        x, y = ctx.gens()
+        assert isinstance(x, (
+            flint.fmpz_mpoly,
+            flint.fmpq_mpoly,
+            flint.nmod_mpoly,
+            flint.fmpz_mod_mpoly,
+        ))
+        yield P, S, [x, y], is_field, characteristic
+
+
+def test_factor_poly_mpoly():
+    """Test that factor() is consistent across different poly/mpoly types."""
+
+    def check(p, coeff, factors):
+        # Check all the types
+        lc = p.leading_coefficient()
+        assert type(coeff) is type(lc)
+        assert isinstance(factors, list)
+        assert all(isinstance(f, tuple) for f in factors)
+        for fac, m in factors:
+            assert type(fac) is type(p)
+            assert type(m) is int
+
+        # Check the actual factorisation!
+        res = coeff
+        for fac, m in factors:
+            res *= fac ** m
+        assert res == p
+
+    def sort(factors):
+        def sort_key(p):
+            fac, m = p
+            return (m, sorted(str(i) for i in fac.coeffs()))
+        return sorted(factors, key=sort_key)
+
+    def factor(p):
+        coeff, factors = p.factor()
+        check(p, coeff, factors)
+        return coeff, sort(factors)
+
+    def factor_sqf(p):
+        coeff, factors = p.factor_squarefree()
+        check(p, coeff, factors)
+        return coeff, sort(factors)
+
+    for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
+
+        if characteristic != 0 and not characteristic.is_prime():
+            # nmod_poly crashes for many operations with non-prime modulus
+            #     https://github.com/flintlib/python-flint/issues/124
+            # so we can't even test it...
+            nmod_poly_will_crash = type(x) is flint.nmod_poly
+            if nmod_poly_will_crash:
+                continue
+
+            try:
+                S(4).sqrt() ** 2 == S(4)
+            except DomainError:
+                pass
+            assert raises(lambda: (x**2).sqrt(), DomainError)
+            assert raises(lambda: x.gcd(x), DomainError)
+            assert raises(lambda: x.gcd(None), TypeError)
+            assert raises(lambda: x.factor(), DomainError)
+            assert raises(lambda: x.factor_squarefree(), DomainError)
+
+            # All tests below can be expected to raise DomainError
+            # Not sure if that is guaranteed in all cases though...
+            continue
+
+        assert S(0).sqrt() == S(0)
+        assert S(1).sqrt() == S(1)
+        assert S(4).sqrt()**2 == S(4)
+
+        for i in range(-100, 100):
+            try:
+                assert S(i).sqrt() ** 2 == S(i)
+            except DomainError:
+                pass
+
+        if characteristic == 0:
+            assert raises(lambda: S(-1).sqrt(), DomainError)
+
+        assert (0*x).sqrt() == 0*x
+        assert (1*x/x).sqrt() == 0*x + 1
+        assert (4*x/x).sqrt()**2 == 0*x + 4
+
+        for i in range(-100, 100):
+            try:
+                assert (i*x).sqrt() ** 2 == i*x
+            except DomainError:
+                pass
+
+        assert (x**2).sqrt() == x
+        assert (S(4)*x**2).sqrt()**2 == S(4)*x**2
+        assert raises(lambda: (x**2 + 1).sqrt(), DomainError)
+
+        assert factor(0*x) == (S(0), [])
+        assert factor(0*x + 1) == (S(1), [])
+        assert factor(0*x + 3) == (S(3), [])
+        assert factor(x) == (S(1), [(x, 1)])
+        assert factor(-x) == (S(-1), [(x, 1)])
+        assert factor(x**2) == (S(1), [(x, 2)])
+        assert factor(2*(x+1)) == (S(2), [(x+1, 1)])
+
+        assert factor_sqf(0*x) == (S(0), [])
+        assert factor_sqf(0*x + 1) == (S(1), [])
+        assert factor_sqf(0*x + 3) == (S(3), [])
+        assert factor_sqf(-x) == (S(-1), [(x, 1)])
+        assert factor_sqf(x**2) == (S(1), [(x, 2)])
+        assert factor_sqf(2*(x+1)) == (S(2), [(x+1, 1)])
+
+        assert (0*x).gcd(0*x) == 0*x
+        assert (0*x).gcd(0*x + 1) == S(1)
+
+        if not is_field:
+            assert (0*x).gcd(0*x + 3) == S(3)
+        else:
+            assert (0*x).gcd(0*x + 3) == S(1)
+
+        assert (2*x).gcd(x) == x
+        assert (2*x).gcd(x**2) == x
+        assert (2*x).gcd(x**2 + 1) == S(1)
+
+        if not is_field:
+            # primitive gcd over Z
+            assert (2*x).gcd(4*x**2) == 2*x
+        else:
+            # monic gcd over Q, Z/pZ and GF(p^d)
+            assert (2*x).gcd(4*x**2) == x
+
+        if is_field and y is None:
+            # xgcd is defined and consistent for all univariate polynomials
+            # over a field (Q, Z/pZ, GF(p^d)).
+            assert (2*x).xgcd(4*x) == (x, P(0), P(1)/4)
+            assert (2*x).xgcd(4*x**2+1) == (P(1), -2*x, P(1))
+
+        # mpoly types have a slightly different squarefree factorisation
+        # because they handle trivial factors differently. It looks like a
+        # monomial gcd is extracted but not recombined so the square-free
+        # factors might not have unique multiplicities.
+        #
+        # Maybe it is worth making them consistent by absorbing the power
+        # of x into a factor of equal multiplicity.
+        assert factor(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
+        if y is None:
+            # *_poly types
+            assert factor_sqf(x*(x+1)) == (S(1), [(x**2+x, 1)])
+        else:
+            # *_mpoly types
+            assert factor_sqf(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
+
+        # This is the same for all types because the extracted monomial has
+        # a unique multiplicity.
+        assert factor_sqf(x**2*(x+1)) == (S(1), [(x+1, 1), (x, 2)])
+
+        # This is the same for all types because there is no trivial monomial
+        # factor to extract.
+        assert factor((x-1)*(x+1)) == (S(1), sort([(x-1, 1), (x+1, 1)]))
+        assert factor_sqf((x-1)*(x+1)) == (S(1), [(x**2-1, 1)])
+
+        # Some finite fields have sqrt(-1) so we can factor x**2 + 1
+        try:
+            i = S(-1).sqrt()
+        except DomainError:
+            i = None
+
+        p = 3*(x-1)**2*(x+1)**2*(x**2 + 1)**3
+        assert factor_sqf(p) == (S(3), [(x**2 - 1, 2), (x**2 + 1, 3)])
+
+        if i is not None:
+            assert factor(p) == (S(3), sort([(x+1, 2), (x-1, 2), (x+i, 3), (x-i, 3)]))
+        else:
+            assert factor(p) == (S(3), sort([(x-1, 2), (x+1, 2), (x**2+1, 3)]))
+
+        if characteristic == 0:
+            # primitive factors over Z for Z and Q.
+            assert factor(2*x+1) == (S(1), [(2*x+1, 1)])
+        else:
+            # monic factors over Z/pZ and GF(p^d)
+            assert factor(2*x+1) == (S(2), [(x+S(1)/2, 1)])
+
+        if is_field:
+            if characteristic == 0:
+                assert factor((2*x+1)/7) == (S(1)/7, [(2*x+1, 1)])
+            else:
+                assert factor((2*x+1)/7) == (S(2)/7, [(x+S(1)/2, 1)])
+
+        if y is not None:
+
+            # *_mpoly types
+
+            assert factor(x*y+1) == (S(1), [(x*y+1, 1)])
+            assert factor(x*y) == (S(1), [(x, 1), (y, 1)])
+
+            assert factor_sqf((x*y+1)**2*(x*y-1)) == (S(1), [(x*y-1, 1), (x*y+1, 2)])
+
+            p = 2*x + y
+            if characteristic == 0:
+                assert factor(p) == factor_sqf(p) == (S(1), [(p, 1)])
+            else:
+                assert factor(p) == factor_sqf(p) == (S(2), [(p/2, 1)])
+
+            if is_field:
+                p = (2*x + y)/7
+                if characteristic == 0:
+                    assert factor(p) == factor_sqf(p) == (S(1)/7, [(7*p, 1)])
+                else:
+                    assert factor(p) == factor_sqf(p) == (S(2)/7, [(7*p/2, 1)])
+
+            if not is_field:
+                # primitive gcd over Z
+                assert (2*(x+y)).gcd(4*(x+y)**2) == 2*(x+y)
+            else:
+                # monic gcd over Q, Z/pZ and GF(p^d)
+                assert (2*(x+y)).gcd(4*(x+y)**2) == x + y
 
 
 def _all_matrices():
@@ -3941,7 +4239,7 @@ def test_fq_default():
             nqr = gf.random_element()
             if not nqr.is_square():
                 break
-        assert raises(lambda: nqr.sqrt(), ValueError)
+        assert raises(lambda: nqr.sqrt(), DomainError)
 
 
 def test_fq_default_poly():
@@ -4151,6 +4449,8 @@ all_tests = [
     test_division_scalar,
     test_division_poly,
     test_division_matrix,
+
+    test_factor_poly_mpoly,
 
     test_polys,
     test_mpolys,

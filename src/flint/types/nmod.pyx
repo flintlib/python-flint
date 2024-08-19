@@ -12,7 +12,9 @@ from flint.flintlib.nmod_vec cimport *
 from flint.flintlib.fmpz cimport fmpz_fdiv_ui, fmpz_init, fmpz_clear
 from flint.flintlib.fmpz cimport fmpz_set_ui, fmpz_get_ui
 from flint.flintlib.fmpq cimport fmpq_mod_fmpz
-from flint.flintlib.ulong_extras cimport n_gcdinv
+from flint.flintlib.ulong_extras cimport n_gcdinv, n_sqrtmod
+
+from flint.utils.flint_exceptions import DomainError
 
 cdef int any_as_nmod(mp_limb_t * val, obj, nmod_t mod) except -1:
     cdef int success
@@ -239,4 +241,36 @@ cdef class nmod(flint_scalar):
         r = nmod.__new__(nmod)
         r.mod = self.mod
         r.val = nmod_pow_fmpz(rval, (<fmpz>e).val, self.mod)
+        return r
+
+    def sqrt(self):
+        """
+        Return the square root of this nmod or raise an exception.
+
+            >>> s = nmod(10, 13).sqrt()
+            >>> s
+            6
+            >>> s * s
+            10
+            >>> nmod(11, 13).sqrt()
+            Traceback (most recent call last):
+                ...
+            flint.utils.flint_exceptions.DomainError: no square root exists for 11 mod 13
+
+        The modulus must be prime.
+
+        """
+        cdef nmod r
+        cdef mp_limb_t val
+        r = nmod.__new__(nmod)
+        r.mod = self.mod
+
+        if self.val == 0:
+            return r
+
+        val = n_sqrtmod(self.val, self.mod.n)
+        if val == 0:
+            raise DomainError("no square root exists for %s mod %s" % (self.val, self.mod.n))
+
+        r.val = val
         return r

@@ -858,6 +858,25 @@ cdef class fmpq_mpoly(flint_mpoly):
         fmpq_mpoly_total_degree_fmpz((<fmpz> res).val, self.val, self.ctx.val)
         return res
 
+    def leading_coefficient(self):
+        """
+        Leading coefficient in the monomial ordering.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx(2, Ordering.lex, ['x', 'y'])
+            >>> x, y = ctx.gens()
+            >>> p = 2*x*y + 3*x + 4*y**2 + 5
+            >>> p
+            2*x*y + 3*x + 4*y^2 + 5
+            >>> p.leading_coefficient()
+            2
+
+        """
+        if fmpq_mpoly_is_zero(self.val, self.ctx.val):
+            return fmpq(0)
+        else:
+            return self.coefficient(0)
+
     def repr(self):
         return f"{self.ctx}.from_dict({self.to_dict()})"
 
@@ -906,7 +925,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         if fmpq_mpoly_sqrt(res.val, self.val, self.ctx.val):
             return res
         else:
-            raise ValueError("polynomial is not a perfect square")
+            raise DomainError("polynomial is not a perfect square")
 
     def factor(self):
         """
@@ -940,7 +959,7 @@ cdef class fmpq_mpoly(flint_mpoly):
             c = fmpz.__new__(fmpz)
             fmpz_init_set((<fmpz>c).val, &fac.exp[i])
 
-            res[i] = (u, c)
+            res[i] = (u, int(c))
 
         c = fmpq.__new__(fmpq)
         fmpq_set((<fmpq>c).val, fac.constant)
@@ -979,7 +998,7 @@ cdef class fmpq_mpoly(flint_mpoly):
             c = fmpz.__new__(fmpz)
             fmpz_init_set((<fmpz>c).val, &fac.exp[i])
 
-            res[i] = (u, c)
+            res[i] = (u, int(c))
 
         c = fmpq.__new__(fmpq)
         fmpq_set((<fmpq>c).val, fac.constant)

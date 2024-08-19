@@ -733,6 +733,25 @@ cdef class nmod_mpoly(flint_mpoly):
         nmod_mpoly_total_degree_fmpz((<fmpz> res).val, self.val, self.ctx.val)
         return res
 
+    def leading_coefficient(self):
+        """
+        Leading coefficient in the monomial ordering.
+
+            >>> from flint import Ordering
+            >>> ctx = nmod_mpoly_ctx(2, Ordering.lex, ['x', 'y'], 11)
+            >>> x, y = ctx.gens()
+            >>> p = 2*x*y + 3*x + 4*y**2 + 5
+            >>> p
+            2*x*y + 3*x + 4*y^2 + 5
+            >>> p.leading_coefficient()
+            2
+
+        """
+        if nmod_mpoly_is_zero(self.val, self.ctx.val):
+            return nmod(0, self.ctx.modulus())
+        else:
+            return nmod(self.coefficient(0), self.ctx.modulus())
+
     def repr(self):
         return f"{self.ctx}.from_dict({self.to_dict()})"
 
@@ -755,12 +774,12 @@ cdef class nmod_mpoly(flint_mpoly):
             4*x0*x1 + 1
         """
         cdef nmod_mpoly res
-        if not self.ctx.is_prime():
-            raise DomainError("gcd with non-prime modulus is not supported")
-        elif not typecheck(other, nmod_mpoly):
+        if not typecheck(other, nmod_mpoly):
             raise TypeError("argument must be a nmod_mpoly")
         elif (<nmod_mpoly>self).ctx is not (<nmod_mpoly>other).ctx:
             raise IncompatibleContextError(f"{(<nmod_mpoly>self).ctx} is not {(<nmod_mpoly>other).ctx}")
+        elif not self.ctx.is_prime():
+            raise DomainError("gcd with non-prime modulus is not supported")
         res = create_nmod_mpoly(self.ctx)
         nmod_mpoly_gcd(res.val, (<nmod_mpoly>self).val, (<nmod_mpoly>other).val, res.ctx.val)
         return res
@@ -784,7 +803,7 @@ cdef class nmod_mpoly(flint_mpoly):
         if nmod_mpoly_sqrt(res.val, self.val, self.ctx.val):
             return res
         else:
-            raise ValueError("polynomial is not a perfect square")
+            raise DomainError("polynomial is not a perfect square")
 
     def factor(self):
         """
@@ -822,9 +841,9 @@ cdef class nmod_mpoly(flint_mpoly):
             c = fmpz.__new__(fmpz)
             fmpz_set((<fmpz>c).val, &fac.exp[i])
 
-            res[i] = (u, c)
+            res[i] = (u, int(c))
 
-        constant = fac.constant
+        constant = nmod(fac.constant, self.ctx.modulus())
         nmod_mpoly_factor_clear(fac, self.ctx.val)
         return constant, res
 
@@ -865,9 +884,9 @@ cdef class nmod_mpoly(flint_mpoly):
             c = fmpz.__new__(fmpz)
             fmpz_set((<fmpz>c).val, &fac.exp[i])
 
-            res[i] = (u, c)
+            res[i] = (u, int(c))
 
-        constant = fac.constant
+        constant = nmod(fac.constant, self.ctx.modulus())
         nmod_mpoly_factor_clear(fac, self.ctx.val)
         return constant, res
 

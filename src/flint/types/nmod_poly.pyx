@@ -235,10 +235,21 @@ cdef class nmod_poly(flint_poly):
             >>> f.leading_coefficient()
             133
         """
+        cdef ulong cu
+        cdef slong d
+        cdef nmod c
+
         d = self.degree()
         if d < 0:
-            return 0
-        return nmod_poly_get_coeff_ui(self.val, d)
+            cu = 0
+        else:
+            cu = nmod_poly_get_coeff_ui(self.val, d)
+
+        c = nmod.__new__(nmod)
+        c.mod = self.val.mod
+        c.val = cu
+
+        return c
 
     def inverse_series_trunc(self, slong n):
         """
@@ -621,16 +632,49 @@ cdef class nmod_poly(flint_poly):
             (3, [(x + 4, 1), (x + 2, 1), (x^2 + 4*x + 1, 1)])
 
         """
+        if algorithm is None:
+            algorithm = 'irreducible'
+        elif algorithm not in ('berlekamp', 'cantor-zassenhaus'):
+            raise ValueError(f"unknown factorization algorithm: {algorithm}")
+        return self._factor(algorithm)
+
+    def factor_squarefree(self):
+        """
+        Factors *self* into square-free polynomials. Returns (*c*, *factors*)
+        where *c* is the leading coefficient and *factors* is a list of
+        (*poly*, *exp*).
+
+            >>> x = nmod_poly([0, 1], 7)
+            >>> p = x**2 * (x/2 - 1)**2 * (x + 1)**3
+            >>> p
+            2*x^7 + 5*x^6 + 4*x^5 + 2*x^4 + 2*x^3 + x^2
+            >>> p.factor_squarefree()
+            (2, [(x^2 + 5*x, 2), (x + 1, 3)])
+            >>> p.factor()
+            (2, [(x, 2), (x + 5, 2), (x + 1, 3)])
+
+        """
+        return self._factor('squarefree')
+
+    def _factor(self, factor_type):
         cdef nmod_poly_factor_t fac
         cdef mp_limb_t lead
         cdef int i
+
         nmod_poly_factor_init(fac)
-        if algorithm == 'berlekamp':
+
+        if factor_type == 'berlekamp':
             lead = nmod_poly_factor_with_berlekamp(fac, self.val)
-        elif algorithm == 'cantor-zassenhaus':
+        elif factor_type == 'cantor-zassenhaus':
             lead = nmod_poly_factor_with_cantor_zassenhaus(fac, self.val)
-        else:
+        elif factor_type == 'irreducible':
             lead = nmod_poly_factor(fac, self.val)
+        elif factor_type == 'squarefree':
+            nmod_poly_factor_squarefree(fac, self.val)
+            lead = (<nmod>self.leading_coefficient()).val
+        else:
+            assert False
+
         res = [None] * fac.num
         for 0 <= i < fac.num:
             u = nmod_poly.__new__(nmod_poly)
@@ -639,10 +683,13 @@ cdef class nmod_poly(flint_poly):
             nmod_poly_set((<nmod_poly>u).val, &fac.p[i])
             exp = fac.exp[i]
             res[i] = (u, exp)
+
         c = nmod.__new__(nmod)
         (<nmod>c).mod = self.val.mod
         (<nmod>c).val = lead
+
         nmod_poly_factor_clear(fac)
+
         return c, res
 
     def sqrt(nmod_poly self):
@@ -653,7 +700,7 @@ cdef class nmod_poly(flint_poly):
         if nmod_poly_sqrt(res.val, self.val):
             return res
         else:
-            raise ValueError(f"Cannot compute square root of {self}")
+            raise DomainError(f"Cannot compute square root of {self}")
 
     def deflation(self):
         cdef nmod_poly v

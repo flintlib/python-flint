@@ -836,6 +836,25 @@ cdef class fmpz_mpoly(flint_mpoly):
         fmpz_mpoly_total_degree_fmpz((<fmpz> res).val, self.val, self.ctx.val)
         return res
 
+    def leading_coefficient(self):
+        """
+        Leading coefficient in the monomial ordering.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx(2, Ordering.lex, ['x', 'y'])
+            >>> x, y = ctx.gens()
+            >>> p = 2*x*y + 3*x + 4*y**2 + 5
+            >>> p
+            2*x*y + 3*x + 4*y^2 + 5
+            >>> p.leading_coefficient()
+            2
+
+        """
+        if fmpz_mpoly_is_zero(self.val, self.ctx.val):
+            return fmpz(0)
+        else:
+            return self.coefficient(0)
+
     def repr(self):
         return f"{self.ctx}.from_dict({self.to_dict()})"
 
@@ -884,7 +903,7 @@ cdef class fmpz_mpoly(flint_mpoly):
         if fmpz_mpoly_sqrt_heap(res.val, self.val, self.ctx.val, not assume_perfect_square):
             return res
         else:
-            raise ValueError("polynomial is not a perfect square")
+            raise DomainError("polynomial is not a perfect square")
 
     def factor(self):
         """
@@ -919,7 +938,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             c = fmpz.__new__(fmpz)
             fmpz_set((<fmpz>c).val, &fac.exp[i])
 
-            res[i] = (u, c)
+            res[i] = (u, int(c))
 
         c = fmpz.__new__(fmpz)
         fmpz_set((<fmpz>c).val, fac.constant)
@@ -928,7 +947,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def factor_squarefree(self):
         """
-        Factors self into irreducible factors, returning a tuple
+        Factors self into square-free factors, returning a tuple
         (c, factors) where c is the content of the coefficients and
         factors is a list of (poly, exp) pairs.
 
@@ -959,7 +978,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             c = fmpz.__new__(fmpz)
             fmpz_set((<fmpz>c).val, &fac.exp[i])
 
-            res[i] = (u, c)
+            res[i] = (u, int(c))
 
         c = fmpz.__new__(fmpz)
         fmpz_set((<fmpz>c).val, fac.constant)

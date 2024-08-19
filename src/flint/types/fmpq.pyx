@@ -486,3 +486,17 @@ cdef class fmpq(flint_scalar):
             return v
         else:
             raise OverflowError("fmpq_pow_fmpz(): exponent too large")
+
+    def sqrt(self):
+        """
+        Return exact rational square root of self or raise an error.
+
+            >>> fmpq(9, 4).sqrt()
+            3/2
+            >>> fmpq(8).sqrt()
+            Traceback (most recent call last):
+                ...
+            flint.utils.flint_exceptions.DomainError: not a square number
+
+        """
+        return fmpq(self.numer().sqrt(), self.denom().sqrt())
