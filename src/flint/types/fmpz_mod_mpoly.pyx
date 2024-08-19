@@ -137,7 +137,9 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
                 )
             return any_as_fmpz((<nmod>other).val)
         elif typecheck(other, fmpz):
-            return fmpz(other)
+            res = fmpz.__new__(fmpz)
+            fmpz_set((<fmpz>res).val, (<fmpz>other).val)
+            return res
         elif typecheck(other, fmpz_mod):
             if (<fmpz_mod>other).ctx.modulus() != self.modulus():
                 raise DomainError(
@@ -150,7 +152,7 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
             return NotImplemented
 
     def scalar_as_mpoly(self, other: fmpz):
-        # non-fmpz scalars should first be converted via cls.any_as_scalar
+        # non-fmpz scalars should first be converted via self.any_as_scalar
         return self.constant(<fmpz>other)
 
     def nvars(self):
