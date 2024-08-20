@@ -1183,13 +1183,12 @@ cdef class fmpz_mpoly_vec:
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
-            >>> f = ctx.from_dict({(2, 0): 1, (0, 1): -1})
-            >>> g = ctx.from_dict({(3, 0): 1, (1, 0): -1})
-            >>> k = ctx.from_dict({(1, 1): 1, (1, 0): -1})
-            >>> h = ctx.from_dict({(0, 2): 1, (0, 1): -1})
+            >>> x, y = ctx.gens()
+            >>> f = x**2 - y
+            >>> g = x**3 - x
+            >>> k = x*y - x
+            >>> h = y**2 - y
             >>> vec = fmpz_mpoly_vec([f, k, h], ctx)
-            >>> vec
-            fmpz_mpoly_vec([x^2 - y, x*y - x, y^2 - y], ctx=fmpz_mpoly_ctx(2, '<Ordering.lex: 0>', ('x', 'y')))
             >>> vec.is_groebner()
             True
             >>> vec.is_groebner(fmpz_mpoly_vec([f, g], ctx))
@@ -1212,18 +1211,15 @@ cdef class fmpz_mpoly_vec:
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
-            >>> f = ctx.from_dict({(2, 0): 3, (0, 1): -1})
-            >>> k1 = ctx.from_dict({(1, 1): 1, (1, 0): -1})
-            >>> k2 = ctx.from_dict({(1, 1): 3, (1, 0): -3})
-            >>> h = ctx.from_dict({(0, 2): 1, (0, 1): -1})
+            >>> x, y = ctx.gens()
+            >>> f = 3*x**2 - y
+            >>> k1 = x*y - x
+            >>> k2 = 3*x*y - 3*x
+            >>> h = y**2 - y
             >>> vec = fmpz_mpoly_vec([f, k1, h], ctx)
-            >>> vec
-            fmpz_mpoly_vec([3*x^2 - y, x*y - x, y^2 - y], ctx=fmpz_mpoly_ctx(2, '<Ordering.lex: 0>', ('x', 'y')))
             >>> vec.is_autoreduced()
             True
             >>> vec = fmpz_mpoly_vec([f, k2, h], ctx)
-            >>> vec
-            fmpz_mpoly_vec([3*x^2 - y, 3*x*y - 3*x, y^2 - y], ctx=fmpz_mpoly_ctx(2, '<Ordering.lex: 0>', ('x', 'y')))
             >>> vec.is_autoreduced()
             False
 
@@ -1237,12 +1233,11 @@ cdef class fmpz_mpoly_vec:
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
-            >>> f = ctx.from_dict({(2, 0): 3, (0, 1): -1})
-            >>> k2 = ctx.from_dict({(1, 1): 3, (1, 0): -3})
-            >>> h = ctx.from_dict({(0, 2): 1, (0, 1): -1})
+            >>> x, y = ctx.gens()
+            >>> f = 3*x**2 - y
+            >>> k2 = 3*x*y - 3*x
+            >>> h = y**2 - y
             >>> vec = fmpz_mpoly_vec([f, k2, h], ctx)
-            >>> vec
-            fmpz_mpoly_vec([3*x^2 - y, 3*x*y - 3*x, y^2 - y], ctx=fmpz_mpoly_ctx(2, '<Ordering.lex: 0>', ('x', 'y')))
             >>> vec.is_autoreduced()
             False
             >>> vec2 = vec.autoreduction()
@@ -1277,11 +1272,10 @@ cdef class fmpz_mpoly_vec:
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
-            >>> f = ctx.from_dict({(2, 0): 1, (0, 1): -1})
-            >>> g = ctx.from_dict({(3, 1): 1, (1, 0): -1})
+            >>> x, y = ctx.gens()
+            >>> f = x**2 - y
+            >>> g = x**3*y - x
             >>> vec = fmpz_mpoly_vec([f, g], ctx)
-            >>> vec
-            fmpz_mpoly_vec([x^2 - y, x^3*y - x], ctx=fmpz_mpoly_ctx(2, '<Ordering.lex: 0>', ('x', 'y')))
             >>> vec.is_groebner()
             False
             >>> vec.buchberger_naive()
