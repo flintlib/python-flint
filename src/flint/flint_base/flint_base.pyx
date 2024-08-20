@@ -405,52 +405,58 @@ cdef class flint_mpoly(flint_elem):
         if not other:
             raise ZeroDivisionError("nmod_mpoly division by zero")
 
-    def _add_scalar_(self, other):
+    cdef _add_scalar_(self, other):
         return NotImplemented
 
-    def _add_mpoly_(self, other):
+    cdef _sub_scalar_(self, other):
         return NotImplemented
 
-    def _iadd_scalar_(self, other):
+    cdef _mul_scalar_(self, other):
         return NotImplemented
 
-    def _iadd_mpoly_(self, other):
+    cdef _pow_(self, other):
         return NotImplemented
 
-    def _sub_scalar_(self, other):
+    cdef _add_mpoly_(self, other):
         return NotImplemented
 
-    def _sub_mpoly_(self, other):
+    cdef _sub_mpoly_(self, other):
         return NotImplemented
 
-    def _isub_scalar_(self, other):
+    cdef _mul_mpoly_(self, other):
         return NotImplemented
 
-    def _isub_mpoly_(self, other):
+    cdef _divmod_mpoly_(self, other):
         return NotImplemented
 
-    def _mul_scalar_(self, other):
+    cdef _floordiv_mpoly_(self, other):
         return NotImplemented
 
-    def _imul_mpoly_(self, other):
+    cdef _truediv_mpoly_(self, other):
         return NotImplemented
 
-    def _imul_scalar_(self, other):
+    cdef _rtruediv_mpoly_(self, other):
         return NotImplemented
 
-    def _mul_mpoly_(self, other):
+    cdef _mod_mpoly_(self, other):
         return NotImplemented
 
-    def _pow_(self, other):
+    cdef _iadd_scalar_(self, other):
         return NotImplemented
 
-    def _divmod_mpoly_(self, other):
+    cdef _isub_scalar_(self, other):
         return NotImplemented
 
-    def _floordiv_mpoly_(self, other):
+    cdef _imul_scalar_(self, other):
         return NotImplemented
 
-    def _truediv_mpoly_(self, other):
+    cdef _iadd_mpoly_(self, other):
+        return NotImplemented
+
+    cdef _isub_mpoly_(self, other):
+        return NotImplemented
+
+    cdef _imul_mpoly_(self, other):
         return NotImplemented
 
     def __add__(self, other):
@@ -628,7 +634,8 @@ cdef class flint_mpoly(flint_elem):
 
         other = self.context().scalar_as_mpoly(other)
         other._division_check(self)
-        return other._truediv_mpoly_(self)
+        # return other._truediv_mpoly_(self)
+        return self._rtruediv_mpoly_(other)
 
     def __floordiv__(self, other):
         if typecheck(other, type(self)):
