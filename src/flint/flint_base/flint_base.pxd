@@ -14,7 +14,37 @@ cdef class flint_mpoly_context(flint_elem):
     cdef const char ** c_names
 
 cdef class flint_mpoly(flint_elem):
-    pass
+    cdef _add_scalar_(self, other)
+    cdef _sub_scalar_(self, other)
+    cdef _mul_scalar_(self, other)
+
+    cdef _add_mpoly_(self, other)
+    cdef _sub_mpoly_(self, other)
+    cdef _mul_mpoly_(self, other)
+
+    cdef _divmod_mpoly_(self, other)
+    cdef _floordiv_mpoly_(self, other)
+    cdef _truediv_mpoly_(self, other)
+    cdef _mod_mpoly_(self, other)
+
+    cdef _rsub_scalar_(self, other)
+    cdef _rsub_mpoly_(self, other)
+
+    cdef _rdivmod_mpoly_(self, other)
+    cdef _rfloordiv_mpoly_(self, other)
+    cdef _rtruediv_mpoly_(self, other)
+    cdef _rmod_mpoly_(self, other)
+
+    cdef _pow_(self, other)
+
+    cdef _iadd_scalar_(self, other)
+    cdef _isub_scalar_(self, other)
+    cdef _imul_scalar_(self, other)
+
+    cdef _iadd_mpoly_(self, other)
+    cdef _isub_mpoly_(self, other)
+    cdef _imul_mpoly_(self, other)
+
 
 cdef class flint_mat(flint_elem):
     pass

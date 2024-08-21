@@ -352,77 +352,127 @@ cdef class fmpq_mpoly(flint_mpoly):
         fmpq_mpoly_neg(res.val, (<fmpq_mpoly>self).val, res.ctx.val)
         return res
 
-
-    def _add_scalar_(self, other: fmpq):
+    cdef _add_scalar_(self, arg):
         cdef fmpq_mpoly res
+        cdef fmpq other = <fmpq>arg
         res = create_fmpq_mpoly(self.ctx)
         fmpq_mpoly_add_fmpq(res.val, self.val, other.val, self.ctx.val)
         return res
 
-    def _add_mpoly_(self, other: fmpq_mpoly):
-        cdef fmpq_mpoly res
+    cdef _add_mpoly_(self, arg):
+        cdef fmpq_mpoly res, other = <fmpq_mpoly>arg
         res = create_fmpq_mpoly(self.ctx)
         fmpq_mpoly_add(res.val, self.val, other.val, res.ctx.val)
         return res
 
-    def _sub_scalar_(self, other: fmpq):
+    cdef _sub_scalar_(self, arg):
         cdef fmpq_mpoly res
+        cdef fmpq other = <fmpq>arg
         res = create_fmpq_mpoly(self.ctx)
         fmpq_mpoly_sub_fmpq(res.val, self.val, other.val, self.ctx.val)
         return res
 
-    def _sub_mpoly_(self, other: fmpq_mpoly):
-        cdef fmpq_mpoly res
+    cdef _sub_mpoly_(self, arg):
+        cdef fmpq_mpoly res, other = <fmpq_mpoly>arg
         res = create_fmpq_mpoly(self.ctx)
         fmpq_mpoly_sub(res.val, self.val, other.val, res.ctx.val)
         return res
 
-    def _mul_scalar_(self, other: fmpq):
+    cdef _mul_scalar_(self, arg):
         cdef fmpq_mpoly res
+        cdef fmpq other = <fmpq>arg
         res = create_fmpq_mpoly(self.ctx)
         fmpq_mpoly_scalar_mul_fmpq(res.val, self.val, other.val, self.ctx.val)
         return res
 
-    def _mul_mpoly_(self, other: fmpq_mpoly):
-        cdef fmpq_mpoly res
+    cdef _mul_mpoly_(self, arg):
+        cdef fmpq_mpoly res, other = <fmpq_mpoly>arg
         res = create_fmpq_mpoly(self.ctx)
         fmpq_mpoly_mul(res.val, self.val, other.val, res.ctx.val)
         return res
 
-    def _pow_(self, other: fmpz):
+    cdef _pow_(self, arg):
         cdef fmpq_mpoly res
+        cdef fmpz other = <fmpz>arg
         res = create_fmpq_mpoly(self.ctx)
         if fmpq_mpoly_pow_fmpz(res.val, self.val, other.val, res.ctx.val) == 0:
             raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return res
 
-    def _divmod_mpoly_(self, other: fmpq_mpoly):
-        cdef fmpq_mpoly quotient, remainder
+    cdef _divmod_mpoly_(self, arg):
+        cdef fmpq_mpoly quotient, remainder, other = <fmpq_mpoly>arg
         quotient = create_fmpq_mpoly(self.ctx)
         remainder = create_fmpq_mpoly(self.ctx)
         fmpq_mpoly_divrem(quotient.val, remainder.val, self.val, other.val, self.ctx.val)
         return (quotient, remainder)
 
-    def _floordiv_mpoly_(self, other: fmpq_mpoly):
-        cdef fmpq_mpoly quotient
+    cdef _floordiv_mpoly_(self, arg):
+        cdef fmpq_mpoly quotient, other = <fmpq_mpoly>arg
         quotient = create_fmpq_mpoly(self.ctx)
         fmpq_mpoly_div(quotient.val, self.val, other.val, self.ctx.val)
         return quotient
 
-    def _truediv_mpoly_(self, other: fmpq_mpoly):
-        cdef fmpq_mpoly quotient
+    cdef _truediv_mpoly_(self, arg):
+        cdef fmpq_mpoly quotient, other = <fmpq_mpoly>arg
         quotient = create_fmpq_mpoly(self.ctx)
         if fmpq_mpoly_divides(quotient.val, self.val, other.val, self.ctx.val):
             return quotient
         else:
             raise DomainError("fmpq_mpoly division is not exact")
 
-    def _mod_mpoly_(self, other: fmpq_mpoly):
-        cdef fmpq_mpoly quotient, remainder
+    cdef _mod_mpoly_(self, arg):
+        cdef fmpq_mpoly quotient, remainder, other = <fmpq_mpoly>arg
         quotient = create_fmpq_mpoly(self.ctx)
         remainder = create_fmpq_mpoly(self.ctx)
         fmpq_mpoly_divrem(quotient.val, remainder.val, self.val, other.val, self.ctx.val)
         return remainder
+
+    cdef _rsub_scalar_(self, arg):
+        cdef fmpq_mpoly res
+        cdef fmpq other = <fmpq>arg
+        res = create_fmpq_mpoly(self.ctx)
+        fmpq_mpoly_sub_fmpq(res.val, self.val, other.val, self.ctx.val)
+        fmpq_mpoly_neg(res.val, res.val, res.ctx.val)
+        return res
+
+    cdef _rsub_mpoly_(self, arg):
+        return (<fmpq_mpoly>arg)._sub_mpoly_(self)
+
+    cdef _rdivmod_mpoly_(self, arg):
+        return (<fmpq_mpoly>arg)._divmod_mpoly_(self)
+
+    cdef _rfloordiv_mpoly_(self, arg):
+        return (<fmpq_mpoly>arg)._floordiv_mpoly_(self)
+
+    cdef _rtruediv_mpoly_(self, arg):
+        return (<fmpq_mpoly>arg)._truediv_mpoly_(self)
+
+    cdef _rmod_mpoly_(self, arg):
+        return (<fmpq_mpoly>arg)._mod_mpoly_(self)
+
+    cdef _iadd_scalar_(self, arg):
+        cdef fmpq other = <fmpq>arg
+        fmpq_mpoly_add_fmpq(self.val, self.val, other.val, self.ctx.val)
+
+    cdef _isub_scalar_(self, arg):
+        cdef fmpq other = <fmpq>arg
+        fmpq_mpoly_sub_fmpq(self.val, self.val, other.val, self.ctx.val)
+
+    cdef _imul_scalar_(self, arg):
+        cdef fmpq other = <fmpq>arg
+        fmpq_mpoly_scalar_mul_fmpq(self.val, self.val, other.val, self.ctx.val)
+
+    cdef _iadd_mpoly_(self, arg):
+        cdef fmpq_mpoly other = <fmpq_mpoly>arg
+        fmpq_mpoly_add(self.val, self.val, other.val, self.ctx.val)
+
+    cdef _isub_mpoly_(self, arg):
+        cdef fmpq_mpoly other = <fmpq_mpoly>arg
+        fmpq_mpoly_sub(self.val, self.val, other.val, self.ctx.val)
+
+    cdef _imul_mpoly_(self, arg):
+        cdef fmpq_mpoly other = <fmpq_mpoly>arg
+        fmpq_mpoly_mul(self.val, self.val, other.val, self.ctx.val)
 
     def __call__(self, *args) -> fmpq:
         cdef:
@@ -438,24 +488,6 @@ cdef class fmpq_mpoly(flint_mpoly):
         if fmpq_mpoly_evaluate_all_fmpq(vres.val, self.val, V.double_indirect, self.ctx.val) == 0:
             raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return vres
-
-    def _iadd_scalar_(self, other: fmpq):
-        fmpq_mpoly_add_fmpq(self.val, self.val, other.val, self.ctx.val)
-
-    def _iadd_mpoly_(self, other: fmpq_mpoly):
-        fmpq_mpoly_add(self.val, self.val, other.val, self.ctx.val)
-
-    def _isub_scalar_(self, other: fmpq):
-        fmpq_mpoly_sub_fmpq(self.val, self.val, other.val, self.ctx.val)
-
-    def _isub_mpoly_(self, other: fmpq_mpoly):
-        fmpq_mpoly_sub(self.val, self.val, other.val, self.ctx.val)
-
-    def _imul_scalar_(self, other: fmpq):
-        fmpq_mpoly_scalar_mul_fmpq(self.val, self.val, other.val, self.ctx.val)
-
-    def _imul_mpoly_(self, other: fmpq_mpoly):
-        fmpq_mpoly_mul(self.val, self.val, other.val, self.ctx.val)
 
     def monoms(self):
         """
