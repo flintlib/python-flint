@@ -18,10 +18,10 @@ Author: Fredrik Johansson <fredrik.johansson@gmail.com>
 Installation
 ------------
 
-Currently python-flint supports CPython versions 3.10-3.13. For Windows (x86-64)
-or OSX (x86-64 or arm64) or Linux (x86-64 `manylinux_2_17`) there are CPython
-binary wheels for python-flint on PyPI. For these platforms python-flint can be
-installed simply with `pip`
+Currently python-flint supports CPython versions 3.10-3.13. For Windows
+(x86-64) or OSX (x86-64 or arm64) or Linux (x86-64 `manylinux_2_17`) there are
+CPython binary wheels for python-flint on PyPI. For these platforms
+python-flint can be installed simply with `pip`
 
     pip install python-flint
 
@@ -127,6 +127,31 @@ To do
 * Conversions to and from external types (numpy, sage, sympy, mpmath, gmpy)
 * Improved printing and string input/output
 * IPython hooks (TeX pretty-printing etc.)
+
+Compatibility table
+-------------------
+
+Generally each release of python-flint will be compatible with a range of
+Python versions as described in [SPEC
+0](https://scientific-python.org/specs/spec-0000/). Since python-flint 0.5.0
+the minimum supported Flint version is `3.0` and each release of python-flint
+supports all versions of Flint `>=3.0` available at the time of release.
+
+Compatible versions (note that 0.7.0 is not yet released):
+
+| python-flint | Release date | CPython     | FLINT      | Cython     |
+|--------------|--------------|-------------|------------|------------|
+| `0.7.0`      | Not yet      | `3.10-3.13` | `3.0-3.2?` | `3.0-3.1?` |
+| `0.6.0`      | 1st Feb 2024 | `3.9-3.12`  | `3.0-3.1`  | `3.0` only |
+
+As of python-flint 0.7.0, CPython 3.13 free-threaded builds are tested in CI
+but wheels are yet provided on PyPI. There are no known issues related to using
+python-flint in a [PEP 703](https://peps.python.org/pep-0703/) free-threaded
+build but it is likely that mutating objects from multiple threads is not safe.
+
+Binary wheels are not yet provided for Linux aarch64 (
+[gh-105](https://github.com/flintlib/python-flint/issues/105)) or for Windows
+on ARM but may be added when CI runners for Linux/Windows are available.
 
 CHANGELOG
 -------------
