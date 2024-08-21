@@ -13,12 +13,15 @@ mpfr_dep = dependency('mpfr')
 flint_dep = dependency('flint', version: ['>=' + flint_ver_lower])
 
 #
-# For the source release, we should by default fail for newer versions of Flint
-# that are untested with a nice error message:
+# The minimum Flint version is because we know that it will not work with
+# earlier versions. The maximum version is because python-flint has not been
+# tested against versions that didn't exist at the time of release. In future
+# if it seems like new Flint releases do not break the build of python-flint
+# every time, then we can consider not using a speculative upper version cap
+# here.
 #
-#   ../meson.build:10:12:
-#   ERROR: Dependency lookup for flint with method 'pkgconfig' failed:
-#   Invalid version, need 'flint' ['<3.2'] found '3.2.0'.
+# For the source release, we should by default fail for newer versions of Flint
+# that are untested with a nice error message.
 #
 # We need an option to disable this though so that we can test newer versions
 # of Flint. Also good to have an escape hatch for users since we don't know
@@ -28,26 +31,25 @@ if get_option('flint_version_check')
   if flint_dep.version().version_compare('>=' + flint_ver_upper)
     error('''
 
-      Invalid Flint version:
-      Version needed is: @0@ <= flint < @1@
-      Version found is: flint == @2@
+    Invalid Flint version:
+    Version needed is: @0@ <= flint < @1@
+    Version found is: flint == @2@
 
-      By default, python-flint will only build against Flint versions that have
-      been tested. If you are sure you want to use this version of Flint, you
-      can disable this check with -Dflint_version_check=false.
+    By default, python-flint will only build against Flint versions that have
+    been tested. If you are sure you want to use this version of Flint, you can
+    disable this check with -Dflint_version_check=false.
 
-      If building from the source directory using meson directly, you can do
-      this with:
+    If building from the source directory using meson directly, you can do this
+    with:
 
-        meson setup build -Dflint_version_check=false
+      meson setup build -Dflint_version_check=false
 
-      If you are installing with pip, you can do this with:
+    If you are installing with pip, you can do this with:
 
-        pip install --config-settings=setup-args="-Dflint_version_check=false" python-flint
+      pip install --config-settings=setup-args="-Dflint_version_check=false" python-flint
 
-      Other build frontends have similar options for passing this to meson.
-      '''.format(flint_ver_lower, flint_ver_upper, flint_dep.version())
-    )
+    Other build frontends have similar options for passing this to meson.
+    '''.format(flint_ver_lower, flint_ver_upper, flint_dep.version()))
   endif
 endif
 
