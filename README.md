@@ -149,8 +149,8 @@ but wheels are not provided on PyPI. There are no known issues related to using
 python-flint in a [PEP 703](https://peps.python.org/pep-0703/) free-threaded
 build but it is likely that mutating objects from multiple threads is not safe.
 
-Binary wheels are not yet provided for Linux aarch64 (
-[gh-105](https://github.com/flintlib/python-flint/issues/105)) or for Windows
+Binary wheels are not yet provided for Linux aarch64
+([gh-105](https://github.com/flintlib/python-flint/issues/105)) or for Windows
 on ARM but may be added when CI runners for Linux/Windows are available.
 
 CHANGELOG
