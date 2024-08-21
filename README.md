@@ -18,7 +18,7 @@ Author: Fredrik Johansson <fredrik.johansson@gmail.com>
 Installation
 ------------
 
-Currently python-flint supports CPython versions 3.9-3.12. For Windows (x86-64)
+Currently python-flint supports CPython versions 3.10-3.13. For Windows (x86-64)
 or OSX (x86-64 or arm64) or Linux (x86-64 `manylinux_2_17`) there are CPython
 binary wheels for python-flint on PyPI. For these platforms python-flint can be
 installed simply with `pip`

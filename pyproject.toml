@@ -2,7 +2,8 @@
 name = "python-flint"
 description = "Bindings for FLINT"
 version = "0.7.0a4"
-requires-python = ">= 3.9"
+# This needs to be in sync with README, cibuildwheel and CI config.
+requires-python = ">= 3.10"
 urls = {Homepage = "https://github.com/flintlib/python-flint"}
 authors = [
     {name = "Fredrik Johansson", email = "fredrik.johansson@gmail.com"},
@@ -57,8 +58,13 @@ package = "flint"
 [tool.cibuildwheel]
 # requires-python needs to keep in sync with this and also the list of Python
 # versions the wheels are tested against in CI.
-build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
+build = "cp310-* cp311-* cp312-* cp313-*"
 skip = "*-win32 *-manylinux_i686 *-musllinux_*"
+
+# This is needed for free-threaded wheels:
+# build = "cp313t-*"
+# free-threaded-support = true
+
 manylinux-x86_64-image = "manylinux2014"
 manylinux-i686-image = "manylinux2014"
 test-command = "python -c \"import flint; print(str(flint.fmpz(2)))\""
