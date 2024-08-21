@@ -1,8 +1,3 @@
-[build-system]
-# Minimum build requirements tested in CI need to be kept in sync with this.
-requires = ["meson-python>=0.13", "cython>=3.0"]
-build-backend = "mesonpy"
-
 [project]
 name = "python-flint"
 description = "Bindings for FLINT and Arb"
@@ -19,6 +14,11 @@ classifiers = [
 [project.readme]
 file = "README.md"
 content-type = "text/markdown"
+
+[build-system]
+# Minimum build requirements tested in CI need to be kept in sync with this.
+requires = ["meson-python>=0.13", "cython>=3.0"]
+build-backend = "mesonpy"
 
 [tool.spin]
 package = "flint"
