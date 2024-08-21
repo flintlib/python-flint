@@ -1,5 +1,6 @@
 [build-system]
-requires = ["meson-python", "cython"]
+# Minimum build requirements tested in CI need to be kept in sync with this.
+requires = ["meson-python>=0.13", "cython>=3.0"]
 build-backend = "mesonpy"
 
 [project]

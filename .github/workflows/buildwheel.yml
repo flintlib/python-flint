@@ -138,9 +138,9 @@ jobs:
       - run: pip install .
       - run: python -m flint.test --verbose
 
-  # Test that we can still make a coverage build with setuptools.
-  test_coverage_setuptools:
-    name: Test coverage setuptools build
+  # Test build with minimum Cython and meson-python versions.
+  test_old_build_requires:
+    name: 'Test old Cython/meson-python'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -149,29 +149,10 @@ jobs:
           python-version: '3.12'
       - run: sudo apt-get update
       - run: sudo apt-get install libflint-dev
-      - run: pip install git+https://github.com/oscarbenjamin/cython.git@pr_relative_paths
-      - run: pip install -r requirements-dev.txt
-      - run: bin/coverage.sh
-
-  # Run SymPy test suite against python-flint master
-  test_sympy:
-    name: Test SymPy ${{ matrix.sympy-version }}
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        sympy-version: ['1.13.1']
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: sudo apt-get update
-      - run: sudo apt-get install libflint-dev
-      - run: pip install .
-      - run: pip install pytest pytest-xdist hypothesis
-      - run: pip install sympy==${{ matrix.sympy-version }}
-      - run: python -c 'import sympy; sympy.test(parallel=True)'
+      # The versions here should be kept in sync with pyproject.toml.
+      - run: 'pip install cython==3.0 meson-python==0.13'
+      - run: pip install --no-build-isolation .
+      - run: python -m flint.test --verbose
 
   # For older Ubuntu we have to build Flint >= 3.0.0
   test_flint_releases:
@@ -208,6 +189,43 @@ jobs:
       - run: bin/install_flint_ubuntu.sh ${{ matrix.flint-tag }}
       - run: pip install --config-settings=setup-args="-Dflint_version_check=false" .
       - run: python -m flint.test --verbose
+
+  # Test that we can make a coverage build and report coverage
+  test_coverage_setuptools:
+    name: Test coverage setuptools build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update
+      - run: sudo apt-get install libflint-dev
+      # This is branch is for a Cython PR:
+      # https://github.com/cython/cython/pull/6341
+      - run: pip install git+https://github.com/oscarbenjamin/cython.git@pr_relative_paths
+      - run: pip install -r requirements-dev.txt
+      - run: bin/coverage.sh
+
+  # Run SymPy test suite against python-flint master
+  test_sympy:
+    name: Test SymPy ${{ matrix.sympy-version }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        sympy-version: ['1.13.1']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update
+      - run: sudo apt-get install libflint-dev
+      - run: pip install .
+      - run: pip install pytest pytest-xdist hypothesis
+      - run: pip install sympy==${{ matrix.sympy-version }}
+      - run: python -c 'import sympy; sympy.test(parallel=True)'
 
   # Deploy wheels and sdist to PyPI
 
