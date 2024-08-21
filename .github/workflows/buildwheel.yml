@@ -42,7 +42,7 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.19.2
+        uses: pypa/cibuildwheel@v2.20.0
         env:
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
@@ -107,7 +107,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, windows-2019, macos-13, macos-14]
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13-dev']
 
     steps:
       - uses: actions/setup-python@v5
@@ -138,8 +138,62 @@ jobs:
       - run: pip install .
       - run: python -m flint.test --verbose
 
-  # Test that we can still make a coverage build with setuptools.
-  test_coverage_setuptools:
+  # Test build with minimum Cython and meson-python versions.
+  test_old_build_requires:
+    name: 'Test old Cython/meson-python'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update
+      - run: sudo apt-get install libflint-dev
+      # The versions of cython and meson-python here should be kept in sync
+      # with those in pyproject.toml so that we test the stated minimum
+      # versions.
+      #
+      # We don't need to specify ninja as a requirement in pyproject.toml
+      # because without --no-build-isolation meson-python handles it
+      # automatically in get_requirements_for_build_wheel().
+      - run: 'pip install "cython==3.0" "meson-python==0.13" "ninja<1.11"'
+      - run: pip install --no-build-isolation .
+      - run: python -m flint.test --verbose
+
+  # For older Ubuntu we have to build Flint >= 3.0.0
+  test_flint_releases:
+    name: Test flint ${{ matrix.flint-tag }}
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # Supported Flint versions:
+        flint-tag: ['v3.0.0', 'v3.0.1', 'v3.1.0', 'v3.1.1', 'v3.1.2']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: bin/install_flint_ubuntu.sh ${{ matrix.flint-tag }}
+      - run: pip install .
+      - run: python -m flint.test --verbose
+
+  # Test against flint main
+  test_flint_main:
+    name: Test flint main
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: bin/install_flint_ubuntu.sh main
+      # Need to disable flint version check to build against main
+      - run: pip install --config-settings=setup-args="-Dflint_version_check=false" .
+      - run: python -m flint.test --verbose
+
+  # Test that we can make a coverage build and report coverage
+  test_coverage_build:
     name: Test coverage setuptools build
     runs-on: ubuntu-24.04
     steps:
@@ -149,6 +203,8 @@ jobs:
           python-version: '3.12'
       - run: sudo apt-get update
       - run: sudo apt-get install libflint-dev
+      # This is branch is for a Cython PR:
+      # https://github.com/cython/cython/pull/6341
       - run: pip install git+https://github.com/oscarbenjamin/cython.git@pr_relative_paths
       - run: pip install -r requirements-dev.txt
       - run: bin/coverage.sh
@@ -172,24 +228,6 @@ jobs:
       - run: pip install pytest pytest-xdist hypothesis
       - run: pip install sympy==${{ matrix.sympy-version }}
       - run: python -c 'import sympy; sympy.test(parallel=True)'
-
-  # For older Ubuntu we have to build Flint >= 3.0.0
-  test_flint_versions:
-    name: Test flint ${{ matrix.flint-tag }}
-    runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        # Supported versions and latest git
-        flint-tag: ['v3.0.0', 'v3.0.1', 'v3.1.0', 'v3.1.1', 'v3.1.2', 'main']
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: bin/install_flint_ubuntu.sh ${{ matrix.flint-tag }}
-      - run: pip install .
-      - run: python -m flint.test --verbose
 
   # Deploy wheels and sdist to PyPI
 
