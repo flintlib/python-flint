@@ -107,7 +107,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, windows-2019, macos-13, macos-14]
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13-dev']
+        # This list to be kept in sync with cibuildwheel config
+        # and python-requires in pyproject.toml.
+        python-version: ['3.10', '3.11', '3.12', '3.13-dev']
 
     steps:
       - uses: actions/setup-python@v5
@@ -208,6 +210,37 @@ jobs:
       - run: pip install git+https://github.com/oscarbenjamin/cython.git@pr_relative_paths
       - run: pip install -r requirements-dev.txt
       - run: bin/coverage.sh
+
+  # On new enough Ubuntu we can build against the system deb.
+  test_freethreaded:
+    name: Free-threaded ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04]
+        python-version: ['3.13-dev']
+    steps:
+      - uses: actions/checkout@v4
+      # Can't use actions/setup-python
+      # https://github.com/actions/setup-python/issues/771
+      # deadsnakes only works for Ubuntu...
+      - uses: deadsnakes/action@v3.1.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          nogil: true
+      - run: |
+          python --version --version
+          which python
+          python -c "import sysconfig; print(sysconfig.get_config_var('Py_GIL_DISABLED'))"
+          python -c "import sys; print(sys._is_gil_enabled())"
+      - run: sudo apt-get update
+      - run: sudo apt-get install libflint-dev
+      # Need Cython master until 3.1 is released
+      - run: pip install git+https://github.com/cython/cython.git@master
+      - run: pip install -r requirements-dev.txt
+      - run: pip install --no-build-isolation .
+      - run: python -m flint.test --verbose
 
   # Run SymPy test suite against python-flint master
   test_sympy:

@@ -18,10 +18,10 @@ Author: Fredrik Johansson <fredrik.johansson@gmail.com>
 Installation
 ------------
 
-Currently python-flint supports CPython versions 3.9-3.12. For Windows (x86-64)
-or OSX (x86-64 or arm64) or Linux (x86-64 `manylinux_2_17`) there are CPython
-binary wheels for python-flint on PyPI. For these platforms python-flint can be
-installed simply with `pip`
+Currently python-flint supports CPython versions 3.10-3.13. For Windows
+(x86-64) or OSX (x86-64 or arm64) or Linux (x86-64 `manylinux_2_17`) there are
+CPython binary wheels for python-flint on PyPI. For these platforms
+python-flint can be installed simply with `pip`
 
     pip install python-flint
 
@@ -128,35 +128,117 @@ To do
 * Improved printing and string input/output
 * IPython hooks (TeX pretty-printing etc.)
 
+Compatibility table
+-------------------
+
+Generally each release of python-flint will be compatible with a range of
+Python versions as described in [SPEC
+0](https://scientific-python.org/specs/spec-0000/). Since python-flint 0.5.0
+the minimum supported Flint version is `3.0` and each release of python-flint
+supports all versions of Flint `>=3.0` available at the time of release.
+
+Compatible versions (note that 0.7.0 is not yet released):
+
+| python-flint | Release date | CPython     | FLINT      | Cython     |
+|--------------|--------------|-------------|------------|------------|
+| `0.7.0`      | Not yet      | `3.10-3.13` | `3.0-3.2?` | `3.0-3.1?` |
+| `0.6.0`      | 1st Feb 2024 | `3.9-3.12`  | `3.0` only | `3.0` only |
+
+As of python-flint 0.7.0, CPython 3.13 free-threaded builds are tested in CI
+but wheels are not provided on PyPI. There are no known issues related to using
+python-flint in a [PEP 703](https://peps.python.org/pep-0703/) free-threaded
+build but it is likely that mutating objects from multiple threads is not safe.
+
+Binary wheels are not yet provided for Linux aarch64
+([gh-105](https://github.com/flintlib/python-flint/issues/105)) or for Windows
+on ARM but may be added when CI runners for Linux/Windows are available.
+
 CHANGELOG
 -------------
 
-Next release:
+Next release (0.7.0)...
 
-- [gh-172](https://github.com/flintlib/python-flint/pull/161)
-  Add `fmpz_is_square`.
-- [gh-161](https://github.com/flintlib/python-flint/pull/161)
-  Add `acb.lerch_phi` to compute the Lerch transcendent.
-- [gh-132](https://github.com/flintlib/python-flint/pull/132)
-  Add `fmpz_mpoly` and `fmpq_mpoly` types for multivariate polynomials with
-  integer or rational coefficients.
-- [gh-160](https://github.com/flintlib/python-flint/pull/160)
-  Add `bits` to `arb` and `acb`, add `log_base` to `arb`.
-- [gh-149](https://github.com/flintlib/python-flint/pull/149)
-  Bump Flint version to 3.1.3-p1 (Flint 3.0.0 - 3.1.3-p1 is supported but the
-  wheels are built with 3.1.3-p1).
-- [gh-148](https://github.com/flintlib/python-flint/pull/148)
-  Remove debug symbols to make smaller Linux binaries.
-- [gh-144](https://github.com/flintlib/python-flint/pull/144)
-  Add `rel_one_accuracy_bits` to `arb` and `acb`.
+Contributors (0.7.0):
+
+- Jake Moss (JM)
+- Giacomo Pope (GP)
+- Joris Roos (JR)
+- Edgar Costa (EC)
+- Oscar Benjamin (OB)
+
+Highlights (0.7.0):
+
+- [gh-97](https://github.com/flintlib/python-flint/pull/97),
+  [gh-182](https://github.com/flintlib/python-flint/pull/180):
+  Add `fq_default` and `fq_default_poly` for finite fields and
+  univariate polynomials over finite fields. (GP)
+- [gh-132](https://github.com/flintlib/python-flint/pull/132),
+  [gh-164](https://github.com/flintlib/python-flint/pull/164),
+  [gh-190](https://github.com/flintlib/python-flint/pull/190),
+  [gh-192](https://github.com/flintlib/python-flint/pull/192):
+  Add `fmpz_mpoly`, `fmpq_mpoly`, `nmod_poly` and `fmpz_mod_poly`
+  types for multivariate polynomials with integer, rational or
+  integers mod n coefficients. (JM)
 - [gh-142](https://github.com/flintlib/python-flint/pull/142)
   Add `acb_theta` module for the numerical evaluation of [theta
-  functions](https://flintlib.org/doc/acb_theta.html) (only available for
-  `Flint >= 3.1`).
-- [gh-137](https://github.com/flintlib/python-flint/pull/137)
-  Add `erfinv` and `erfcinv` for `arb`.
+  functions](https://flintlib.org/doc/acb_theta.html) (only
+  available for `Flint >= 3.1`). (EC)
 - [gh-129](https://github.com/flintlib/python-flint/pull/129)
-  Use meson-python instead of setuptools as the build backend.
+  Use meson/meson-python instead of setuptools as the build system
+  for parallel builds and better detection of build and dependency
+  requirements. (OB)
+
+Compatibility break (0.7.0):
+
+- [gh-189](https://github.com/flintlib/python-flint/pull/189)
+  As of python-flint 0.7.0 `fmpq_poly.factor()` now returns
+  primitive rather than monic factors i.e. `2*x + 1` rather than
+  `x + 1/2`. This ensures consistency between all poly types
+  including between `fmpq_poly` and `fmpq_mpoly`. (OB)
+
+Other changes (0.7.0):
+
+- [gh-189](https://github.com/flintlib/python-flint/pull/189)
+  All scalar and poly types now have `sqrt`. All poly types now
+  have `factor_squarefree` and `leading_coefficient` methods.
+  Exception types raised in a number of places were changed to
+  `DomainError` for better consistency.
+- [gh-196](https://github.com/flintlib/python-flint/pull/196)
+  Supported Python versions are 3.10-3.13 (3.9 dropped). CI
+  Testing added for 3.13 free-threaded CPython.
+- [gh-194](https://github.com/flintlib/python-flint/pull/194)
+  Add version checking for build requirements. (OB)
+- [gh-180](https://github.com/flintlib/python-flint/pull/180)
+  Add `equal_trunc`, `add_trunc`, `sub_trunc`, `mul_low`,
+  `mul_mod` and `pow_trunc` methods to `fmpz_mod_poly`. (GP)
+- [gh-177](https://github.com/flintlib/python-flint/pull/177)
+  Remove old Py2 code for compatibility with Cython 3.1. (OB)
+- [gh-176](https://github.com/flintlib/python-flint/pull/176)
+  Fix the error messages from `fmpq` constructor. (OB)
+- [gh-174](https://github.com/flintlib/python-flint/pull/174)
+  Add `pow_mod` and `compose_mod` methods to `nmod_poly` and
+  `fmpz_mod_poly`. Also add some missing methods to `nmod_poly`
+  that other poly types already have. (GP)
+- [gh-172](https://github.com/flintlib/python-flint/pull/172)
+  Add `fmpz_is_square`. (JR)
+- [gh-168](https://github.com/flintlib/python-flint/pull/168)
+  Make comparisons consistent between different types. Add
+  `is_one` and `is_zero` for all poly types. (OB)
+- [gh-161](https://github.com/flintlib/python-flint/pull/161)
+  Add `acb.lerch_phi` to compute the Lerch transcendent. (OB)
+- [gh-160](https://github.com/flintlib/python-flint/pull/160)
+  Add `bits` to `arb` and `acb`, add `log_base` to `arb`. (JR)
+- [gh-149](https://github.com/flintlib/python-flint/pull/149)
+  Bump Flint version to 3.1.3-p1 (Flint 3.0.0 - 3.1.3-p1 is
+  supported but the wheels are built with 3.1.3-p1). (OB)
+- [gh-148](https://github.com/flintlib/python-flint/pull/148)
+  Remove debug symbols to make smaller Linux binaries. (OB)
+- [gh-144](https://github.com/flintlib/python-flint/pull/144)
+  Add `rel_one_accuracy_bits` to `arb` and `acb`. (EC)
+- [gh-137](https://github.com/flintlib/python-flint/pull/137)
+  Add `erfinv` and `erfcinv` for `arb`. (JR)
+- [gh-119](https://github.com/flintlib/python-flint/pull/119)
+  Add compatibility with Flint 3.1. (OB)
 
 0.6.0
 
@@ -164,16 +246,18 @@ Next release:
   [gh-111](https://github.com/flintlib/python-flint/issues/111),
   [gh-110](https://github.com/flintlib/python-flint/issues/110),
   [gh-108](https://github.com/flintlib/python-flint/issues/108):
-  Add pyproject.toml and build dependencies. This means that python-flint can
-  be built from source without `--no-build-isolation`.
+  Add pyproject.toml and build dependencies. This means that
+  python-flint can be built from source without
+  `--no-build-isolation`.
 - [gh-109](https://github.com/flintlib/python-flint/issues/109):
-  Use exact division for non-field domains. Now `fmpz(6)/fmpz(3)` returns an
-  exact result `fmpz(2)` or raises an error if an exact result is not possible.
-  Similar changes for `fmpz_poly/fmpz`, `fmpz_mat/fmpz`, and for polynomial
-  division with `fmpz_poly`, `fmpq_poly`, `nmod_poly` and `fmpz_mod_poly`.
+  Use exact division for non-field domains. Now `fmpz(6)/fmpz(3)`
+  returns an exact result `fmpz(2)` or raises an error if an exact
+  result is not possible. Similar changes for `fmpz_poly/fmpz`,
+  `fmpz_mat/fmpz`, and for polynomial division with `fmpz_poly`,
+  `fmpq_poly`, `nmod_poly` and `fmpz_mod_poly`.
 - [gh-106](https://github.com/flintlib/python-flint/issues/106):
-  Add `fmpz_mod_mat` for matrices of integers mod `n` where `n` is larger than
-  word sized.
+  Add `fmpz_mod_mat` for matrices of integers mod `n` where `n` is
+  larger than word sized.
 - [gh-104](https://github.com/flintlib/python-flint/issues/104):
   Bump Flint from 3.0.0 to 3.0.1
 
@@ -186,7 +270,8 @@ Important compatibility changes:
   [gh-98](https://github.com/flintlib/python-flint/issues/98):
   Switch from Flint 2.9 to Flint 3.
 - [gh-100](https://github.com/flintlib/python-flint/issues/100):
-  Supports Python 3.12 by using setuptools instead of numpy.distutils.
+  Supports Python 3.12 by using setuptools instead of
+  numpy.distutils.
 
 New features:
 
@@ -200,8 +285,8 @@ New features:
 Bug fixes:
 
 - [gh-93](https://github.com/flintlib/python-flint/issues/93):
-  Fixes a bug with `pow(int, int, fmpz)` which previously gave incorrect
-  results.
+  Fixes a bug with `pow(int, int, fmpz)` which previously gave
+  incorrect results.
 - [gh-78](https://github.com/flintlib/python-flint/issues/78),
   [gh-79](https://github.com/flintlib/python-flint/issues/79):
   minor fixes for the `nmod` type.
@@ -214,11 +299,12 @@ Bug fixes:
   submodules
 - [gh-72](https://github.com/flintlib/python-flint/issues/72):
   The roots method of `arb_poly` is not supported. Use either the
-  `complex_roots` method or `acb_roots(p).roots()` to get the old behaviour of
-  returning the complex roots. The `roots` method on `fmpz_poly` and
-  `fmpq_poly` now return integer and rational roots respectively. To access
-  complex roots on these types, use the `complex_roots` method. For `acb_poly`,
-  both `roots` and `complex_roots` behave the same
+  `complex_roots` method or `acb_roots(p).roots()` to get the old
+  behaviour of returning the complex roots. The `roots` method on
+  `fmpz_poly` and `fmpq_poly` now return integer and rational
+  roots respectively. To access complex roots on these types, use
+  the `complex_roots` method. For `acb_poly`, both `roots` and
+  `complex_roots` behave the same
 - [gh-71](https://github.com/flintlib/python-flint/issues/71):
   Include files in sdist and fix issue
   [gh-70](https://github.com/flintlib/python-flint/issues/70)
@@ -228,10 +314,11 @@ Bug fixes:
 0.4.3
 
 - [gh-63](https://github.com/flintlib/python-flint/issues/63):
-  The `roots` method of `arb_poly`, and `nmod_poly` is no longer supported. Use
-  `acb_roots(p).roots()` to get the old behaviour of returning the roots as
-  `acb`. Note that the `roots` method of `fmpz_poly` and `fmpq_poly` currently
-  returns the complex roots of the polynomial.
+  The `roots` method of `arb_poly`, and `nmod_poly` is no longer
+  supported. Use `acb_roots(p).roots()` to get the old behaviour
+  of returning the roots as `acb`. Note that the `roots` method of
+  `fmpz_poly` and `fmpq_poly` currently returns the complex roots
+  of the polynomial.
 - [gh-61](https://github.com/flintlib/python-flint/issues/61):
   Start refactoring job to introduce submodules into `python-flint`
 
@@ -243,12 +330,14 @@ Bug fixes:
 0.4.1
 
 - [gh-47](https://github.com/flintlib/python-flint/issues/47):
-  Removes Linux wheels, updates instructions for building from source.
+  Removes Linux wheels, updates instructions for building from
+  source.
 
 0.4.0
 
 - [gh-45](https://github.com/flintlib/python-flint/issues/45):
-  Adds wheels for Windows, OSX and manylinux but the Linux wheels are broken.
+  Adds wheels for Windows, OSX and manylinux but the Linux wheels
+  are broken.
 
 License
 ------------
