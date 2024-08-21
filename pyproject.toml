@@ -16,8 +16,20 @@ file = "README.md"
 content-type = "text/markdown"
 
 [build-system]
-# Minimum build requirements tested in CI need to be kept in sync with this.
-requires = ["meson-python>=0.13", "cython>=3.0"]
+#
+# Minimum build requirements tested in CI need to be kept in sync with the
+# versions in requires below so that they are tested.
+#
+# The upper cap on Cython is speculative but we may as well cap it given that
+# it is only a build requirement and that it is not uncommon for newer Cython
+# versions to break the build. For example Cython 3.0 broke the build and then
+# Cython 3.1 broke the build again so python-flint 0.6.0 did not have any upper
+# cap but it should have had cython>=3.0,<3.1 i.e. precisely one minor release
+# of Cython works. In future we could contemplate not having an upper cap but
+# until we have actually witnessed a Cython 3.x release that does not break the
+# build we should keep the upper cap.
+#
+requires = ["meson-python>=0.13", "cython>=3.0,<3.1"]
 build-backend = "mesonpy"
 
 [tool.spin]
