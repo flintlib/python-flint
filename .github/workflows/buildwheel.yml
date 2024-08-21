@@ -149,11 +149,14 @@ jobs:
           python-version: '3.12'
       - run: sudo apt-get update
       - run: sudo apt-get install libflint-dev
-      # The versions here should be kept in sync with pyproject.toml.
-      # Not sure if ninja should be listed as a requirement in pyproject.toml
-      # as with newer meson-python it does not seem to be needed but this CI
-      # job would fail without it being installed explicitly here...
-      - run: 'pip install cython==3.0 meson-python'
+      # The versions of cython and meson-python here should be kept in sync
+      # with those in pyproject.toml so that we test the stated minimum
+      # versions.
+      #
+      # We don't need to specify ninja as a requirement in pyproject.toml
+      # because without --no-build-isolation meson-python handles it
+      # automatically in get_requirements_for_build_wheel().
+      - run: 'pip install cython==3.0 meson-python==0.13 ninja==1.8.2'
       - run: pip install --no-build-isolation .
       - run: python -m flint.test --verbose
 
