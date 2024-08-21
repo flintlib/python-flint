@@ -7,7 +7,7 @@ cc = meson.get_compiler('c')
 
 gmp_dep = dependency('gmp')
 mpfr_dep = dependency('mpfr')
-flint_dep = dependency('flint', version: ['>=3.1', '<3.2'])
+flint_dep = dependency('flint', version: ['>=3.0', '<3.2'])
 
 add_project_arguments(
     '-X', 'embedsignature=True',
