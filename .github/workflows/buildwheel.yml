@@ -42,7 +42,7 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.19.2
+        uses: pypa/cibuildwheel@v2.20.0
         env:
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
@@ -167,7 +167,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Supported versions and latest git
+        # Supported Flint versions:
         flint-tag: ['v3.0.0', 'v3.0.1', 'v3.1.0', 'v3.1.1', 'v3.1.2']
     steps:
       - uses: actions/checkout@v4
@@ -178,26 +178,22 @@ jobs:
       - run: pip install .
       - run: python -m flint.test --verbose
 
-  # Test against flint main (with disabled version check)
+  # Test against flint main
   test_flint_main:
-    name: Test flint ${{ matrix.flint-tag }}
+    name: Test flint main
     runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        # Supported versions and latest git
-        flint-tag: ['main']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: bin/install_flint_ubuntu.sh ${{ matrix.flint-tag }}
+      - run: bin/install_flint_ubuntu.sh main
+      # Need to disable flint version check to build against main
       - run: pip install --config-settings=setup-args="-Dflint_version_check=false" .
       - run: python -m flint.test --verbose
 
   # Test that we can make a coverage build and report coverage
-  test_coverage_setuptools:
+  test_coverage_build:
     name: Test coverage setuptools build
     runs-on: ubuntu-24.04
     steps:
