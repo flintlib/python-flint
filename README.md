@@ -198,6 +198,9 @@ Compatibility break (0.7.0):
 
 Other changes (0.7.0):
 
+- [gh-196](https://github.com/flintlib/python-flint/pull/196)
+  Supported Python versions are 3.10-3.13 (3.9 dropped). CI Testing
+  added for 3.13 free-threaded CPython.
 - [gh-194](https://github.com/flintlib/python-flint/pull/194)
   Add version checking for build requirements. (OB)
 - [gh-180](https://github.com/flintlib/python-flint/pull/180)
