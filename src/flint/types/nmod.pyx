@@ -20,7 +20,6 @@ from flint.utils.flint_exceptions import DomainError
 #cdef int any_as_nmod(mp_limb_t * val, obj, nmod_t mod) except -1:
 #    return mod.ctx.any_as_nmod(val, obj)
 
-
 _nmod_ctx_cache = {}
 
 
@@ -35,6 +34,32 @@ cdef nmod_ctx any_as_nmod_ctx(obj):
             _nmod_ctx_cache[obj] = ctx
         return ctx
     return NotImplemented
+
+
+cdef int any_as_nmod(mp_limb_t * val, obj, nmod_t mod) except -1:
+    """Convert an object to an nmod element."""
+    cdef int success
+    cdef fmpz_t t
+    if typecheck(obj, nmod):
+        if (<nmod>obj).ctx.mod.n != mod.n:
+            raise ValueError("cannot coerce integers mod n with different n")
+        val[0] = (<nmod>obj).val
+        return 1
+    z = any_as_fmpz(obj)
+    if z is not NotImplemented:
+        val[0] = fmpz_fdiv_ui((<fmpz>z).val, mod.n)
+        return 1
+    q = any_as_fmpq(obj)
+    if q is not NotImplemented:
+        fmpz_init(t)
+        fmpz_set_ui(t, mod.n)
+        success = fmpq_mod_fmpz(t, (<fmpq>q).val, t)
+        val[0] = fmpz_get_ui(t)
+        fmpz_clear(t)
+        if not success:
+            raise ZeroDivisionError("%s does not exist mod %i!" % (q, mod.n))
+        return 1
+    return 0
 
 
 cdef class nmod_ctx:
@@ -278,7 +303,7 @@ cdef class nmod(flint_scalar):
         cdef nmod r, s2
         cdef mp_limb_t val
         s2 = s
-        if s2.ctx.any_as_nmod(&val, t):
+        if any_as_nmod(&val, t, s2.ctx.mod):
             r = nmod.__new__(nmod)
             r.ctx = s2.ctx
             r.val = nmod_mul(val, s2.val, s2.ctx.mod)
