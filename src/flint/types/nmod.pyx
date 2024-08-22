@@ -52,6 +52,23 @@ cdef class nmod_ctx:
         nmod_init(&self.mod, m)
         self._is_prime = n_is_prime(m)
 
+    def __eq__(self, other):
+        # XXX: If we could ensure uniqueness of nmod_ctx for given modulus then
+        # we would need to implement __eq__ and __hash__ at all...
+        #
+        # It isn't possible to ensure uniqueness in __new__ like it is in
+        # Python because we can't return an existing object from __new__. What
+        # we could do though is make it so that __init__ raises an error and
+        # use a static method .new() to create new objects.
+        if self is other:
+            return True
+        if not typecheck(other, nmod_ctx):
+            return NotImplemented
+        return self.mod.n == (<nmod_ctx>other).mod.n
+
+    def __repr__(self):
+        return f"nmod_ctx({self.modulus()})"
+
     cdef int any_as_nmod(self, mp_limb_t * val, obj) except -1:
         """Convert an object to an nmod element."""
         cdef int success
@@ -85,7 +102,7 @@ cdef class nmod_ctx:
         17
 
         """
-        return fmpz(self.mod)
+        return fmpz(self.mod.n)
 
     def is_prime(self):
         """Check if the modulus is prime.
@@ -121,10 +138,10 @@ cdef class nmod_ctx:
         return hash(self.mod)
 
     def __eq__(self, other):
-        if not typecheck(other, nmod_ctx):
-            return NotImplemented
+        if typecheck(other, nmod_ctx):
+            return self.mod.n == (<nmod_ctx>other).mod.n
         else:
-            return self.mod == other.mod
+            return NotImplemented
 
     def __str__(self):
         return f"Context for nmod with modulus: {self.modulus()}"
@@ -165,6 +182,7 @@ cdef class nmod(flint_scalar):
             raise TypeError("Invalid context/modulus for nmod: %s" % mod)
         if not ctx.any_as_nmod(&self.val, val):
             raise TypeError("cannot create nmod from object of type %s" % type(val))
+        self.ctx = ctx
 
     def repr(self):
         return "nmod(%s, %s)" % (self.val, self.ctx.mod.n)
@@ -385,14 +403,14 @@ cdef class nmod(flint_scalar):
         cdef nmod r
         cdef mp_limb_t val
         r = nmod.__new__(nmod)
-        r.mod = self.mod
+        r.ctx = self.ctx
 
         if self.val == 0:
             return r
 
-        val = n_sqrtmod(self.val, self.mod.n)
+        val = n_sqrtmod(self.val, self.ctx.mod.n)
         if val == 0:
-            raise DomainError("no square root exists for %s mod %s" % (self.val, self.mod.n))
+            raise DomainError("no square root exists for %s mod %s" % (self.val, self.ctx.mod.n))
 
         r.val = val
         return r

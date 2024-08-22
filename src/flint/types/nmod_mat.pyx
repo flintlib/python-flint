@@ -43,8 +43,7 @@ from flint.flintlib.nmod_mat cimport (
 from flint.utils.typecheck cimport typecheck
 from flint.types.fmpz_mat cimport any_as_fmpz_mat
 from flint.types.fmpz_mat cimport fmpz_mat
-from flint.types.nmod cimport nmod
-from flint.types.nmod cimport any_as_nmod
+from flint.types.nmod cimport nmod, any_as_nmod_ctx
 from flint.types.nmod_poly cimport nmod_poly
 from flint.pyflint cimport global_random_state
 from flint.flint_base.flint_context cimport thectx
@@ -87,20 +86,24 @@ cdef class nmod_mat(flint_mat):
     def __init__(self, *args):
         cdef long m, n, i, j
         cdef mp_limb_t mod
+        cdef nmod_ctx ctx
         if len(args) == 1:
             val = args[0]
             if typecheck(val, nmod_mat):
                 nmod_mat_init_set(self.val, (<nmod_mat>val).val)
+                self.ctx = (<nmod_mat>val).ctx
                 return
         mod = args[-1]
         args = args[:-1]
         if mod == 0:
             raise ValueError("modulus must be nonzero")
+        ctx = any_as_nmod_ctx(mod)
+        self.ctx = ctx
         if len(args) == 1:
             val = args[0]
             if typecheck(val, fmpz_mat):
                 nmod_mat_init(self.val, fmpz_mat_nrows((<fmpz_mat>val).val),
-                              fmpz_mat_ncols((<fmpz_mat>val).val), mod)
+                              fmpz_mat_ncols((<fmpz_mat>val).val), ctx.mod.n)
                 fmpz_mat_get_nmod_mat(self.val, (<fmpz_mat>val).val)
             elif isinstance(val, (list, tuple)):
                 m = len(val)
@@ -112,11 +115,11 @@ cdef class nmod_mat(flint_mat):
                     for i from 1 <= i < m:
                         if len(val[i]) != n:
                             raise ValueError("input rows have different lengths")
-                nmod_mat_init(self.val, m, n, mod)
+                nmod_mat_init(self.val, m, n, ctx.mod.n)
                 for i from 0 <= i < m:
                     row = val[i]
                     for j from 0 <= j < n:
-                        x = nmod(row[j], mod)
+                        x = nmod(row[j], ctx)        # XXX: slow
                         self.val.rows[i][j] = (<nmod>x).val
             else:
                 raise TypeError("cannot create nmod_mat from input of type %s" % type(val))
@@ -131,7 +134,7 @@ cdef class nmod_mat(flint_mat):
                 raise ValueError("list of entries has the wrong length")
             for i from 0 <= i < m:
                 for j from 0 <= j < n:
-                    x = nmod(entries[i*n + j], mod)         # XXX: slow
+                    x = nmod(entries[i*n + j], ctx)         # XXX: slow
                     self.val.rows[i][j] = (<nmod>x).val
         else:
             raise TypeError("nmod_mat: expected 1-3 arguments plus modulus")
@@ -207,7 +210,7 @@ cdef class nmod_mat(flint_mat):
         i, j = index
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
             raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
-        if any_as_nmod(&v, value, self.val.mod):
+        if self.ctx.any_as_nmod(&v, value):
             nmod_mat_set_entry(self.val, i, j, v)
         else:
             raise TypeError("cannot set item of type %s" % type(value))
@@ -306,7 +309,7 @@ cdef class nmod_mat(flint_mat):
         sv = &(<nmod_mat>s).val[0]
         u = any_as_nmod_mat(t, sv.mod)
         if u is NotImplemented:
-            if any_as_nmod(&c, t, sv.mod):
+            if s.ctx.any_as_nmod(&c, t):
                 return (<nmod_mat>s).__mul_nmod(c)
             return NotImplemented
         tv = &(<nmod_mat>u).val[0]
@@ -323,7 +326,7 @@ cdef class nmod_mat(flint_mat):
         cdef nmod_mat_struct *sv
         cdef mp_limb_t c
         sv = &(<nmod_mat>s).val[0]
-        if any_as_nmod(&c, t, sv.mod):
+        if s.ctx.any_as_nmod(&c, t):
             return (<nmod_mat>s).__mul_nmod(c)
         u = any_as_nmod_mat(t, sv.mod)
         if u is NotImplemented:
@@ -348,7 +351,7 @@ cdef class nmod_mat(flint_mat):
     @staticmethod
     def _div_(nmod_mat s, t):
         cdef mp_limb_t v
-        if not any_as_nmod(&v, t, s.val.mod):
+        if not s.ctx.any_as_nmod(&v, t):
             return NotImplemented
         t = nmod(v, s.val.mod.n)
         return s * (~t)
