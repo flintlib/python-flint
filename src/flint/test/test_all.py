@@ -3595,17 +3595,34 @@ def test_factor_poly_mpoly():
 
 def _all_matrices():
     """Return a list of matrix types and scalar types."""
+    # Prime modulus
     R163 = flint.fmpz_mod_ctx(163)
     R127 = flint.fmpz_mod_ctx(2**127 - 1)
     R255 = flint.fmpz_mod_ctx(2**255 - 19)
+
+    # Composite modulus
+    R164_C = flint.fmpz_mod_ctx(164)
+    R127_C = flint.fmpz_mod_ctx(2**127)
+    R255_C = flint.fmpz_mod_ctx(2**255)
+
     return [
-        # (matrix_type, scalar_type, is_field)
-        (flint.fmpz_mat, flint.fmpz, False),
-        (flint.fmpq_mat, flint.fmpq, True),
-        (lambda *a: flint.nmod_mat(*a, 17), lambda x: flint.nmod(x, 17), True),
-        (lambda *a: flint.fmpz_mod_mat(*a, R163), lambda x: flint.fmpz_mod(x, R163), True),
-        (lambda *a: flint.fmpz_mod_mat(*a, R127), lambda x: flint.fmpz_mod(x, R127), True),
-        (lambda *a: flint.fmpz_mod_mat(*a, R255), lambda x: flint.fmpz_mod(x, R255), True),
+        # (matrix_type, scalar_type, is_field, characteristic)
+
+        # Z and Q
+        (flint.fmpz_mat, flint.fmpz, False, 0),
+        (flint.fmpq_mat, flint.fmpq, True, 0),
+
+        # Z/pZ
+        (lambda *a: flint.nmod_mat(*a, 17), lambda x: flint.nmod(x, 17), True, 17),
+        (lambda *a: flint.fmpz_mod_mat(*a, R163), lambda x: flint.fmpz_mod(x, R163), True, 163),
+        (lambda *a: flint.fmpz_mod_mat(*a, R127), lambda x: flint.fmpz_mod(x, R127), True, 2**127 - 1),
+        (lambda *a: flint.fmpz_mod_mat(*a, R255), lambda x: flint.fmpz_mod(x, R255), True, 2**255 - 19),
+
+        # Z/nZ (n composite)
+        (lambda *a: flint.nmod_mat(*a, 16), lambda x: flint.nmod(x, 16), False, 16),
+        (lambda *a: flint.fmpz_mod_mat(*a, R164_C), lambda x: flint.fmpz_mod(x, R164_C), False, 164),
+        (lambda *a: flint.fmpz_mod_mat(*a, R127_C), lambda x: flint.fmpz_mod(x, R127_C), False, 2**127),
+        (lambda *a: flint.fmpz_mod_mat(*a, R255_C), lambda x: flint.fmpz_mod(x, R255_C), False, 2**255),
     ]
 
 
@@ -3726,7 +3743,7 @@ def _poly_type_from_matrix_type(mat_type):
 
 
 def test_matrices_eq():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
         A1 = M([[1, 2], [3, 4]])
         A2 = M([[1, 2], [3, 4]])
         B = M([[5, 6], [7, 8]])
@@ -3751,7 +3768,7 @@ def test_matrices_eq():
 
 
 def test_matrices_constructor():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
         assert raises(lambda: M(), TypeError)
 
         # Empty matrices
@@ -3823,7 +3840,7 @@ def _matrix_repr(M):
 
 
 def test_matrices_strrepr():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
         A = M([[1, 2], [3, 4]])
         A_str = "[1, 2]\n[3, 4]"
         A_repr = _matrix_repr(A)
@@ -3846,7 +3863,7 @@ def test_matrices_strrepr():
 
 
 def test_matrices_getitem():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         assert M1234[0, 0] == S(1)
         assert M1234[0, 1] == S(2)
@@ -3862,7 +3879,7 @@ def test_matrices_getitem():
 
 
 def test_matrices_setitem():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
 
         assert M1234[0, 0] == S(1)
@@ -3888,7 +3905,7 @@ def test_matrices_setitem():
 
 
 def test_matrices_bool():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
         assert bool(M([])) is False
         assert bool(M([[0]])) is False
         assert bool(M([[1]])) is True
@@ -3899,14 +3916,14 @@ def test_matrices_bool():
 
 
 def test_matrices_pos_neg():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         assert +M1234 == M1234
         assert -M1234 == M([[-1, -2], [-3, -4]])
 
 
 def test_matrices_add():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         M5678 = M([[5, 6], [7, 8]])
         assert M1234 + M5678 == M([[6, 8], [10, 12]])
@@ -3926,7 +3943,7 @@ def test_matrices_add():
 
 
 def test_matrices_sub():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         M5678 = M([[5, 6], [7, 8]])
         assert M1234 - M5678 == M([[-4, -4], [-4, -4]])
@@ -3946,7 +3963,7 @@ def test_matrices_sub():
 
 
 def test_matrices_mul():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         M5678 = M([[5, 6], [7, 8]])
         assert M1234 * M5678 == M([[19, 22], [43, 50]])
@@ -3972,18 +3989,24 @@ def test_matrices_mul():
 
 
 def test_matrices_pow():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
+
         assert M1234**0 == M([[1, 0], [0, 1]])
         assert M1234**1 == M1234
         assert M1234**2 == M([[7, 10], [15, 22]])
         assert M1234**3 == M([[37, 54], [81, 118]])
+
         if is_field:
             assert M1234**-1 == M([[-4, 2], [3, -1]]) / 2
             assert M1234**-2 == M([[22, -10], [-15, 7]]) / 4
             assert M1234**-3 == M([[-118, 54], [81, -37]]) / 8
             Ms = M([[1, 2], [3, 6]])
             assert raises(lambda: Ms**-1, ZeroDivisionError)
+        else:
+            # XXX: Allow unimodular matrices?
+            assert raises(lambda: M1234**-1, DomainError)
+
         Mr = M([[1, 2, 3], [4, 5, 6]])
         assert raises(lambda: Mr**0, ValueError)
         assert raises(lambda: Mr**1, ValueError)
@@ -3993,31 +4016,49 @@ def test_matrices_pow():
 
 
 def test_matrices_div():
-    for M, S, is_field in _all_matrices():
+
+    for M, S, is_field, characteristic in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
+
         if is_field:
             assert M1234 / 2 == M([[S(1)/2, S(1)], [S(3)/2, 2]])
             assert M1234 / S(2) == M([[S(1)/2, S(1)], [S(3)/2, 2]])
             assert raises(lambda: M1234 / 0, ZeroDivisionError)
             assert raises(lambda: M1234 / S(0), ZeroDivisionError)
+        else:
+            assert raises(lambda: M1234 / 2, DomainError)
+            if characteristic == 0:
+                assert (2*M1234) / 2 == M1234
+            else:
+                assert raises(lambda: (2*M1234) / 2, DomainError)
+
         raises(lambda: M1234 / None, TypeError)
         raises(lambda: None / M1234, TypeError)
 
 
 def test_matrices_inv():
-    for M, S, is_field in _all_matrices():
-        if is_field:
-            M1234 = M([[1, 2], [3, 4]])
+
+    for M, S, is_field, characteristic in _all_matrices():
+
+        M1234 = M([[1, 2], [3, 4]])
+        M1236 = M([[1, 2], [3, 6]])
+        Mr = M([[1, 2, 3], [4, 5, 6]])
+
+        if characteristic > 0 and not is_field:
+            assert raises(lambda: M([[1, 2], [3, 4]]).inv(), DomainError)
+        elif is_field:
             assert M1234.inv() == M([[-2, 1], [S(3)/2, -S(1)/2]])
-            M1236 = M([[1, 2], [3, 6]])
             assert raises(lambda: M1236.inv(), ZeroDivisionError)
-            Mr = M([[1, 2, 3], [4, 5, 6]])
             assert raises(lambda: Mr.inv(), ValueError)
-        # XXX: Test non-field matrices. unimodular?
+        else:
+            # assert M1234.inv() == (M([[-4, 2], [3, -1]]), 2)
+            # assert M1236.inv() == (M([[-6, 2], [3, -1]]), 3)
+            # XXX: fmpz_mat.inv() return fmpq_mat...
+            assert M1234.inv() * M1234.det() == M([[4, -2], [-3, 1]])
 
 
 def test_matrices_det():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         assert M1234.det() == S(-2)
         M9 = M([[1, 2, 3], [4, 5, 6], [7, 8, 10]])
@@ -4027,7 +4068,7 @@ def test_matrices_det():
 
 
 def test_matrices_charpoly():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
         P = _poly_type_from_matrix_type(M)
         M1234 = M([[1, 2], [3, 4]])
         assert M1234.charpoly() == P([-2, -5, 1])
@@ -4038,18 +4079,21 @@ def test_matrices_charpoly():
 
 
 def test_matrices_minpoly():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
+        if characteristic > 0 and not is_field:
+            assert raises(lambda: M([[1, 2], [3, 4]]).minpoly(), DomainError)
+            continue
         P = _poly_type_from_matrix_type(M)
-        M1234 = M([[1, 2], [3, 4]])
-        assert M1234.minpoly() == P([-2, -5, 1])
-        M9 = M([[2, 1, 0], [0, 2, 0], [0, 0, 2]])
-        assert M9.minpoly() == P([4, -4, 1])
-        Mr = M([[1, 2, 3], [4, 5, 6]])
-        assert raises(lambda: Mr.minpoly(), ValueError)
+        assert M([[1, 2], [3, 4]]).minpoly() == P([-2, -5, 1])
+        assert M([[2, 1, 0], [0, 2, 0], [0, 0, 2]]).minpoly() == P([4, -4, 1])
+        assert raises(lambda: M([[1, 2, 3], [4, 5, 6]]).minpoly(), ValueError)
 
 
 def test_matrices_rank():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
+        if characteristic > 0 and not is_field:
+            assert raises(lambda: M([[1, 2], [3, 4]]).rank(), DomainError)
+            continue
         M1234 = M([[1, 2], [3, 4]])
         assert M1234.rank() == 2
         Mr = M([[1, 2, 3], [4, 5, 6]])
@@ -4061,37 +4105,57 @@ def test_matrices_rank():
 
 
 def test_matrices_rref():
-    for M, S, is_field in _all_matrices():
-        if is_field:
-            Mr = M([[1, 2, 3], [4, 5, 6]])
-            Mr_rref = M([[1, 0, -1], [0, 1, 2]])
+    for M, S, is_field, characteristic in _all_matrices():
+
+        Mr = M([[1, 2, 3], [4, 5, 6]])
+        Mr_rref = M([[1, 0, -1], [0, 1, 2]])
+
+        if characteristic > 0 and not is_field:
+            # Z/nZ (n composite) raises
+            assert raises(lambda: Mr.rref(), DomainError)
+        elif is_field:
+            # Q, Z/pZ and GF(p^d) return usual RREF
             assert Mr.rref() == (Mr_rref, 2)
             assert Mr == M([[1, 2, 3], [4, 5, 6]])
             assert Mr.rref(inplace=True) == (Mr_rref, 2)
             assert Mr == Mr_rref
+        else:
+            # Z returns RREF with divisor -3
+            d = -3
+            assert Mr.rref() == (d*Mr_rref, d, 2)
+            assert Mr == M([[1, 2, 3], [4, 5, 6]])
+            assert Mr.rref(inplace=True) == (d*Mr_rref, d, 2)
+            assert Mr == d*Mr_rref
 
 
 def test_matrices_solve():
-    for M, S, is_field in _all_matrices():
-        if is_field:
-            A = M([[1, 2], [3, 4]])
-            x = M([[1], [2]])
-            b = M([[5], [11]])
-            assert A*x == b
+    for M, S, is_field, characteristic in _all_matrices():
+
+        A = M([[1, 2], [3, 4]])
+        x = M([[1], [2]])
+        b = M([[5], [11]])
+        assert A*x == b
+
+        A2 = M([[1, 2], [2, 4]])
+
+        if characteristic > 0 and not is_field:
+            assert raises(lambda: A.solve(b), DomainError)
+            assert raises(lambda: A2.solve(b), DomainError)
+        else:
             assert A.solve(b) == x
-            A22 = M([[1, 2], [3, 4]])
-            A23 = M([[1, 2, 3], [4, 5, 6]])
-            b2 = M([[5], [11]])
-            b3 = M([[5], [11], [17]])
-            assert raises(lambda: A22.solve(b3), ValueError)
-            assert raises(lambda: A23.solve(b2), ValueError)
-            assert raises(lambda: A.solve(None), TypeError)
-            A = M([[1, 2], [2, 4]])
-            assert raises(lambda: A.solve(b), ZeroDivisionError)
+            assert raises(lambda: A2.solve(b), ZeroDivisionError)
+
+        A22 = M([[1, 2], [3, 4]])
+        A23 = M([[1, 2, 3], [4, 5, 6]])
+        b2 = M([[5], [11]])
+        b3 = M([[5], [11], [17]])
+        assert raises(lambda: A22.solve(b3), ValueError)
+        assert raises(lambda: A23.solve(b2), ValueError)
+        assert raises(lambda: A.solve(None), TypeError)
 
 
 def test_matrices_transpose():
-    for M, S, is_field in _all_matrices():
+    for M, S, is_field, characteristic in _all_matrices():
         M1234 = M([[1, 2, 3], [4, 5, 6]])
         assert M1234.transpose() == M([[1, 4], [2, 5], [3, 6]])
 

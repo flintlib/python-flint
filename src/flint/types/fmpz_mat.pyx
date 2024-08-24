@@ -306,8 +306,11 @@ cdef class fmpz_mat(flint_mat):
             raise ValueError("matrix must be square")
         if m is not None:
             raise NotImplementedError("modular matrix exponentiation")
+        if e < 0:
+            raise DomainError("negative power of integer matrix: M**%i" % e)
         ee = e
-        t = fmpz_mat(self)   # XXX
+        t = fmpz_mat.__new__(fmpz_mat)
+        fmpz_mat_init_set(t.val, (<fmpz_mat>self).val)
         fmpz_mat_pow(t.val, t.val, ee)
         return t
 

@@ -7,6 +7,10 @@ from flint.flint_base.flint_base cimport flint_poly
 from flint.types.nmod cimport nmod_ctx
 
 
+cdef nmod_poly_ctx any_as_nmod_poly_ctx(obj)
+cdef nmod_poly nmod_poly_new_init(nmod_poly_ctx ctx)
+
+
 cdef class nmod_poly_ctx:
     cdef nmod_ctx ctx
     cdef nmod_t mod

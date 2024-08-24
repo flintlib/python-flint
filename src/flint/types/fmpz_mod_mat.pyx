@@ -53,6 +53,10 @@ from flint.types.nmod_mat cimport (
     nmod_mat,
 )
 
+from flint.utils.flint_exceptions import (
+    DomainError,
+)
+
 
 cdef any_as_fmpz_mod_mat(x):
     if typecheck(x, fmpz_mod_mat):
@@ -401,6 +405,14 @@ cdef class fmpz_mod_mat(flint_mat):
 
     def _div(self, fmpz_mod other):
         """Divide an ``fmpz_mod_mat`` matrix by an ``fmpz_mod`` scalar."""
+        try:
+            inv = other.inverse()
+        except ZeroDivisionError:
+            # XXX: Maybe fmpz_mod should raise DomainError?
+            if other == 0:
+                raise ZeroDivisionError("fmpz_mod_mat div: division by zero")
+            else:
+                raise DomainError("fmpz_mod_mat div: division by non-invertible element")
         return self._scalarmul(other.inverse())
 
     def __add__(self, other):
@@ -483,8 +495,12 @@ cdef class fmpz_mod_mat(flint_mat):
         Assumes that the modulus is prime.
         """
         cdef fmpz_mod_mat res
+
         if self.nrows() != self.ncols():
             raise ValueError("fmpz_mod_mat inv: matrix must be square")
+        if not self.ctx.is_prime():
+            raise DomainError("fmpz_mod_mat inv: modulus must be prime")
+
         res = self._newlike()
         r = compat_fmpz_mod_mat_inv(res.val, self.val, self.ctx.val)
         if r == 0:
@@ -546,6 +562,8 @@ cdef class fmpz_mod_mat(flint_mat):
 
         if self.nrows() != self.ncols():
             raise ValueError("fmpz_mod_mat minpoly: matrix must be square")
+        if not self.ctx.is_prime():
+            raise DomainError("fmpz_mod_mat minpoly: modulus must be prime")
 
         pctx = fmpz_mod_poly_ctx(self.ctx)
         res = fmpz_mod_poly(0, pctx)
@@ -596,6 +614,8 @@ cdef class fmpz_mod_mat(flint_mat):
             raise ValueError("fmpz_mod_mat solve: matrix must be square")
         if self.nrows() != rhs.nrows():
             raise ValueError("fmpz_mod_mat solve: shape mismatch")
+        if not self.ctx.is_prime():
+            raise DomainError("fmpz_mod_mat solve: modulus must be prime")
 
         res = self._new(rhs.nrows(), rhs.ncols(), self.ctx)
         success = compat_fmpz_mod_mat_solve(res.val, self.val, (<fmpz_mod_mat> rhs).val, self.ctx.val)
@@ -616,6 +636,8 @@ cdef class fmpz_mod_mat(flint_mat):
 
         Assumes that the modulus is prime.
         """
+        if not self.ctx.is_prime():
+            raise DomainError("fmpz_mod_mat rank: modulus must be prime")
         return self.rref()[1]
 
     def rref(self, inplace=False):
@@ -637,6 +659,10 @@ cdef class fmpz_mod_mat(flint_mat):
         """
         cdef fmpz_mod_mat res
         cdef slong r
+
+        if not self.ctx.is_prime():
+            raise DomainError("fmpz_mod_mat rref: modulus must be prime")
+
         if inplace:
             res = self
         else:

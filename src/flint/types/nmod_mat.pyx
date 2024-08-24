@@ -44,28 +44,48 @@ from flint.utils.typecheck cimport typecheck
 from flint.types.fmpz_mat cimport any_as_fmpz_mat
 from flint.types.fmpz_mat cimport fmpz_mat
 from flint.types.nmod cimport nmod, any_as_nmod_ctx
-from flint.types.nmod_poly cimport nmod_poly
+from flint.types.nmod_poly cimport nmod_poly, nmod_poly_new_init, any_as_nmod_poly_ctx
 from flint.pyflint cimport global_random_state
 from flint.flint_base.flint_context cimport thectx
 
 from flint.flint_base.flint_base cimport flint_mat
 
+from flint.utils.flint_exceptions import DomainError
+
 
 ctx = thectx
 
 
-cdef any_as_nmod_mat(obj, nmod_t mod):
+cdef nmod_mat new_nmod_mat_init(nmod_ctx ctx, ulong m, ulong n):
+    """New initialized nmod_mat of size m x n with context ctx."""
+    cdef nmod_mat r = nmod_mat.__new__(nmod_mat)
+    nmod_mat_init(r.val, m, n, ctx.mod.n)
+    r.ctx = ctx
+    return r
+
+
+cdef nmod_mat new_nmod_mat_copy(nmod_mat other):
+    """New copy of nmod_mat other."""
+    cdef nmod_mat r = nmod_mat.__new__(nmod_mat)
+    nmod_mat_init_set(r.val, other.val)
+    r.ctx = other.ctx
+    return r
+
+
+cdef any_as_nmod_mat(obj, nmod_ctx ctx):
+    """Convert obj to nmod_mat or return NotImplemented."""
     cdef nmod_mat r
     if typecheck(obj, nmod_mat):
         return obj
+
     x = any_as_fmpz_mat(obj)
     if x is not NotImplemented:
-        r = nmod_mat.__new__(nmod_mat)
-        nmod_mat_init(r.val,
-                      fmpz_mat_nrows((<fmpz_mat>x).val),
-                      fmpz_mat_ncols((<fmpz_mat>x).val), mod.n)
+        r = new_nmod_mat_init(ctx,
+                              fmpz_mat_nrows((<fmpz_mat>x).val),
+                              fmpz_mat_ncols((<fmpz_mat>x).val))
         fmpz_mat_get_nmod_mat(r.val, (<fmpz_mat>x).val)
         return r
+
     return NotImplemented
 
 
@@ -87,18 +107,22 @@ cdef class nmod_mat(flint_mat):
         cdef long m, n, i, j
         cdef mp_limb_t mod
         cdef nmod_ctx ctx
+
         if len(args) == 1:
             val = args[0]
             if typecheck(val, nmod_mat):
                 nmod_mat_init_set(self.val, (<nmod_mat>val).val)
                 self.ctx = (<nmod_mat>val).ctx
                 return
+
         mod = args[-1]
         args = args[:-1]
         if mod == 0:
             raise ValueError("modulus must be nonzero")
+
         ctx = any_as_nmod_ctx(mod)
         self.ctx = ctx
+
         if len(args) == 1:
             val = args[0]
             if typecheck(val, fmpz_mat):
@@ -228,7 +252,7 @@ cdef class nmod_mat(flint_mat):
         cdef nmod_mat_struct *sv
         cdef nmod_mat_struct *tv
         sv = &(<nmod_mat>s).val[0]
-        t = any_as_nmod_mat(t, sv.mod)
+        t = any_as_nmod_mat(t, s.ctx)
         if t is NotImplemented:
             return t
         tv = &(<nmod_mat>t).val[0]
@@ -236,8 +260,7 @@ cdef class nmod_mat(flint_mat):
             raise ValueError("cannot add nmod_mats with different moduli")
         if sv.r != tv.r or sv.c != tv.c:
             raise ValueError("incompatible shapes for matrix addition")
-        r = nmod_mat.__new__(nmod_mat)
-        nmod_mat_init(r.val, sv.r, sv.c, sv.mod.n)
+        r = new_nmod_mat_init(s.ctx, sv.r, sv.c)
         nmod_mat_add(r.val, sv, tv)
         return r
 
@@ -246,7 +269,7 @@ cdef class nmod_mat(flint_mat):
         cdef nmod_mat_struct *sv
         cdef nmod_mat_struct *tv
         sv = &(<nmod_mat>s).val[0]
-        t = any_as_nmod_mat(t, sv.mod)
+        t = any_as_nmod_mat(t, s.ctx)
         if t is NotImplemented:
             return t
         tv = &(<nmod_mat>t).val[0]
@@ -254,8 +277,7 @@ cdef class nmod_mat(flint_mat):
             raise ValueError("cannot add nmod_mats with different moduli")
         if sv.r != tv.r or sv.c != tv.c:
             raise ValueError("incompatible shapes for matrix addition")
-        r = nmod_mat.__new__(nmod_mat)
-        nmod_mat_init(r.val, sv.r, sv.c, sv.mod.n)
+        r = new_nmod_mat_init(s.ctx, sv.r, sv.c)
         nmod_mat_add(r.val, sv, tv)
         return r
 
@@ -264,7 +286,7 @@ cdef class nmod_mat(flint_mat):
         cdef nmod_mat_struct *sv
         cdef nmod_mat_struct *tv
         sv = &(<nmod_mat>s).val[0]
-        t = any_as_nmod_mat(t, sv.mod)
+        t = any_as_nmod_mat(t, s.ctx)
         if t is NotImplemented:
             return t
         tv = &(<nmod_mat>t).val[0]
@@ -272,8 +294,7 @@ cdef class nmod_mat(flint_mat):
             raise ValueError("cannot subtract nmod_mats with different moduli")
         if sv.r != tv.r or sv.c != tv.c:
             raise ValueError("incompatible shapes for matrix subtraction")
-        r = nmod_mat.__new__(nmod_mat)
-        nmod_mat_init(r.val, sv.r, sv.c, sv.mod.n)
+        r = new_nmod_mat_init(s.ctx, sv.r, sv.c)
         nmod_mat_sub(r.val, sv, tv)
         return r
 
@@ -282,7 +303,7 @@ cdef class nmod_mat(flint_mat):
         cdef nmod_mat_struct *sv
         cdef nmod_mat_struct *tv
         sv = &(<nmod_mat>s).val[0]
-        t = any_as_nmod_mat(t, sv.mod)
+        t = any_as_nmod_mat(t, s.ctx)
         if t is NotImplemented:
             return t
         tv = &(<nmod_mat>t).val[0]
@@ -290,14 +311,13 @@ cdef class nmod_mat(flint_mat):
             raise ValueError("cannot subtract nmod_mats with different moduli")
         if sv.r != tv.r or sv.c != tv.c:
             raise ValueError("incompatible shapes for matrix subtraction")
-        r = nmod_mat.__new__(nmod_mat)
-        nmod_mat_init(r.val, sv.r, sv.c, sv.mod.n)
+        r = new_nmod_mat_init(s.ctx, sv.r, sv.c)
         nmod_mat_sub(r.val, tv, sv)
         return r
 
     cdef __mul_nmod(self, mp_limb_t c):
-        cdef nmod_mat r = nmod_mat.__new__(nmod_mat)
-        nmod_mat_init(r.val, self.val.r, self.val.c, self.val.mod.n)
+        cdef nmod_mat r
+        r = new_nmod_mat_init(self.ctx, self.val.r, self.val.c)
         nmod_mat_scalar_mul(r.val, self.val, c)
         return r
 
@@ -307,7 +327,7 @@ cdef class nmod_mat(flint_mat):
         cdef nmod_mat_struct *tv
         cdef mp_limb_t c
         sv = &(<nmod_mat>s).val[0]
-        u = any_as_nmod_mat(t, sv.mod)
+        u = any_as_nmod_mat(t, s.ctx)
         if u is NotImplemented:
             if s.ctx.any_as_nmod(&c, t):
                 return (<nmod_mat>s).__mul_nmod(c)
@@ -317,8 +337,7 @@ cdef class nmod_mat(flint_mat):
             raise ValueError("cannot multiply nmod_mats with different moduli")
         if sv.c != tv.r:
             raise ValueError("incompatible shapes for matrix multiplication")
-        r = nmod_mat.__new__(nmod_mat)
-        nmod_mat_init(r.val, sv.r, tv.c, sv.mod.n)
+        r = new_nmod_mat_init(s.ctx, sv.r, tv.c)
         nmod_mat_mul(r.val, sv, tv)
         return r
 
@@ -328,7 +347,7 @@ cdef class nmod_mat(flint_mat):
         sv = &(<nmod_mat>s).val[0]
         if s.ctx.any_as_nmod(&c, t):
             return (<nmod_mat>s).__mul_nmod(c)
-        u = any_as_nmod_mat(t, sv.mod)
+        u = any_as_nmod_mat(t, s.ctx)
         if u is NotImplemented:
             return u
         return u * s
@@ -341,10 +360,12 @@ cdef class nmod_mat(flint_mat):
         if m is not None:
             raise NotImplementedError("modular matrix exponentiation")
         if e < 0:
+            if not self.ctx._is_prime:
+                raise DomainError("negative matrix power needs prime modulus")
             self = self.inv()
             e = -e
         ee = e
-        t = nmod_mat(self)   # XXX
+        t = new_nmod_mat_copy(self)
         nmod_mat_pow(t.val, t.val, ee)
         return t
 
@@ -354,7 +375,15 @@ cdef class nmod_mat(flint_mat):
         if not s.ctx.any_as_nmod(&v, t):
             return NotImplemented
         t = nmod(v, s.val.mod.n)
-        return s * (~t)
+        try:
+            tinv = ~t
+        except ZeroDivisionError:
+            # XXX: Maybe nmod.__invert__ should raise DomainError instead?
+            if t == 0:
+                raise ZeroDivisionError("division by zero")
+            else:
+                raise DomainError("nmod_mat division: modulus must be prime")
+        return s * tinv
 
     def __truediv__(s, t):
         return nmod_mat._div_(s, t)
@@ -386,11 +415,14 @@ cdef class nmod_mat(flint_mat):
 
         """
         cdef nmod_mat u
+
         if not nmod_mat_is_square(self.val):
             raise ValueError("matrix must be square")
-        u = nmod_mat.__new__(nmod_mat)
-        nmod_mat_init(u.val, nmod_mat_nrows(self.val),
-                      nmod_mat_ncols(self.val), self.val.mod.n)
+        if not self.ctx._is_prime:
+            raise DomainError("nmod_mat inv: modulus must be prime")
+
+        u = new_nmod_mat_init(self.ctx, nmod_mat_nrows(self.val),
+                              nmod_mat_ncols(self.val))
         if not nmod_mat_inv(u.val, self.val):
             raise ZeroDivisionError("matrix is singular")
         return u
@@ -405,9 +437,8 @@ cdef class nmod_mat(flint_mat):
             [2, 5]
         """
         cdef nmod_mat u
-        u = nmod_mat.__new__(nmod_mat)
-        nmod_mat_init(u.val, nmod_mat_ncols(self.val),
-                      nmod_mat_nrows(self.val), self.val.mod.n)
+        u = new_nmod_mat_init(self.ctx, nmod_mat_ncols(self.val),
+                              nmod_mat_nrows(self.val))
         nmod_mat_transpose(u.val, self.val)
         return u
 
@@ -436,15 +467,17 @@ cdef class nmod_mat(flint_mat):
         """
         cdef nmod_mat u
         cdef int result
-        t = any_as_nmod_mat(other, self.val.mod)
+        t = any_as_nmod_mat(other, self.ctx)
         if t is NotImplemented:
             raise TypeError("cannot convert input to nmod_mat")
         if (nmod_mat_nrows(self.val) != nmod_mat_ncols(self.val) or
             nmod_mat_nrows(self.val) != nmod_mat_nrows((<nmod_mat>t).val)):
             raise ValueError("need a square system and compatible right hand side")
-        u = nmod_mat.__new__(nmod_mat)
-        nmod_mat_init(u.val, nmod_mat_nrows((<nmod_mat>t).val),
-                      nmod_mat_ncols((<nmod_mat>t).val), self.val.mod.n)
+        if not self.ctx._is_prime:
+            raise DomainError("nmod_mat solve: modulus must be prime")
+
+        u = new_nmod_mat_init(self.ctx, nmod_mat_nrows((<nmod_mat>t).val),
+                              nmod_mat_ncols((<nmod_mat>t).val))
         result = nmod_mat_solve(u.val, self.val, (<nmod_mat>t).val)
         if not result:
             raise ZeroDivisionError("singular matrix in solve()")
@@ -471,11 +504,13 @@ cdef class nmod_mat(flint_mat):
             [0, 0,  0]
 
         """
+        if not self.ctx._is_prime:
+            raise DomainError("rref only works for prime moduli")
+
         if inplace:
             res = self
         else:
-            res = nmod_mat.__new__(nmod_mat)
-            nmod_mat_init_set((<nmod_mat>res).val, self.val)
+            res = new_nmod_mat_copy(self)
         rank = nmod_mat_rref((<nmod_mat>res).val)
         return res, rank
 
@@ -487,6 +522,8 @@ cdef class nmod_mat(flint_mat):
         >>> M.rank()
         2
         """
+        if not self.ctx._is_prime:
+            raise DomainError("rank only works for prime moduli")
         return nmod_mat_rank(self.val)
 
     def nullspace(self):
@@ -513,8 +550,8 @@ cdef class nmod_mat(flint_mat):
 
         """
         cdef nmod_mat res
-        res = nmod_mat.__new__(nmod_mat)
-        nmod_mat_init(res.val, nmod_mat_ncols(self.val), nmod_mat_ncols(self.val), self.val.mod.n)
+        res = new_nmod_mat_init(self.ctx, nmod_mat_ncols(self.val),
+                                          nmod_mat_ncols(self.val))
         nullity = nmod_mat_nullspace(res.val, self.val)
         return res, nullity
 
@@ -532,8 +569,8 @@ cdef class nmod_mat(flint_mat):
         if self.nrows() != self.ncols():
             raise ValueError("fmpz_mod_mat charpoly: matrix must be square")
 
-        res = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init(res.val, self.val.mod.n)
+        # XXX: don't create a new context for the polynomial
+        res = nmod_poly_new_init(any_as_nmod_poly_ctx(self.ctx.mod.n))
         nmod_mat_charpoly(res.val, self.val)
         return res
 
@@ -552,8 +589,10 @@ cdef class nmod_mat(flint_mat):
 
         if self.nrows() != self.ncols():
             raise ValueError("fmpz_mod_mat minpoly: matrix must be square")
+        if not self.ctx._is_prime:
+            raise DomainError("minpoly only works for prime moduli")
 
-        res = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init(res.val, self.val.mod.n)
+        # XXX: don't create a new context for the polynomial
+        res = nmod_poly_new_init(any_as_nmod_poly_ctx(self.ctx.mod.n))
         nmod_mat_minpoly(res.val, self.val)
         return res

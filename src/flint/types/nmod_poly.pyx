@@ -32,6 +32,22 @@ cdef nmod_poly_ctx any_as_nmod_poly_ctx(obj):
     return NotImplemented
 
 
+cdef nmod_poly nmod_poly_new_init(nmod_poly_ctx ctx):
+    cdef nmod_poly p
+    p = nmod_poly.__new__(nmod_poly)
+    nmod_poly_init(p.val, ctx.mod.n)
+    p.ctx = ctx
+    return p
+
+
+cdef nmod_poly nmod_poly_new_init_preinv(nmod_poly_ctx ctx):
+    cdef nmod_poly p
+    p = nmod_poly.__new__(nmod_poly)
+    nmod_poly_init_preinv(p.val, ctx.mod.n, ctx.mod.ninv)
+    p.ctx = ctx
+    return p
+
+
 cdef class nmod_poly_ctx:
     """
     Context object for creating :class:`~.nmod_poly` initalised 
@@ -61,15 +77,13 @@ cdef class nmod_poly_ctx:
         if typecheck(obj, nmod_poly):
             return obj
         if self.ctx.any_as_nmod(&v, obj):
-            r = nmod_poly.__new__(nmod_poly)
-            nmod_poly_init(r.val, self.mod.n)
+            r = nmod_poly_new_init(self)
             nmod_poly_set_coeff_ui(r.val, 0, v)
             r.ctx = self
             return r
         x = any_as_fmpz_poly(obj)
         if x is not NotImplemented:
-            r = nmod_poly.__new__(nmod_poly)
-            nmod_poly_init(r.val, self.mod.n)   # XXX: create flint _nmod_poly_set_modulus for this?
+            r = nmod_poly_new_init(self)   # XXX: create flint _nmod_poly_set_modulus for this?
             fmpz_poly_get_nmod_poly(r.val, (<fmpz_poly>x).val)
             r.ctx = self
             return r
@@ -268,8 +282,7 @@ cdef class nmod_poly(flint_poly):
         else:
             length = nmod_poly_length(self.val)
 
-        res = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        res = nmod_poly_new_init_preinv(self.ctx)
         nmod_poly_reverse(res.val, self.val, length)
         res.ctx = self.ctx
         return res
@@ -317,9 +330,7 @@ cdef class nmod_poly(flint_poly):
         if self.is_zero():
             raise ValueError("cannot invert the zero element")
 
-        cdef nmod_poly res
-        res = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        cdef nmod_poly res = nmod_poly_new_init_preinv(self.ctx)
         nmod_poly_inv_series(res.val, self.val, n)
         res.ctx = self.ctx
         return res
@@ -342,8 +353,7 @@ cdef class nmod_poly(flint_poly):
         other = self.ctx.any_as_nmod_poly(other)
         if other is NotImplemented:
             raise TypeError("cannot convert input to nmod_poly")
-        res = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        res = nmod_poly_new_init_preinv(self.ctx)
         nmod_poly_compose(res.val, self.val, (<nmod_poly>other).val) 
         res.ctx = self.ctx
         return res  
@@ -376,8 +386,7 @@ cdef class nmod_poly(flint_poly):
         if modulus.is_zero():
             raise ZeroDivisionError("cannot reduce modulo zero")
 
-        res = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        res = nmod_poly_new_init_preinv(self.ctx)
         nmod_poly_compose_mod(res.val, self.val, (<nmod_poly>other).val, (<nmod_poly>modulus).val) 
         res.ctx = self.ctx
         return res 
@@ -390,23 +399,20 @@ cdef class nmod_poly(flint_poly):
             return v
         t = self.ctx.any_as_nmod_poly(other)
         if t is not NotImplemented:
-            r = nmod_poly.__new__(nmod_poly)
-            nmod_poly_init_preinv((<nmod_poly>r).val, self.val.mod.n, self.val.mod.ninv)
+            r = nmod_poly_new_init_preinv(self.ctx)
             nmod_poly_compose((<nmod_poly>r).val, self.val, (<nmod_poly>t).val)
             (<nmod_poly>r).ctx = self.ctx
             return r
         raise TypeError("cannot call nmod_poly with input of type %s", type(other))
 
     def derivative(self):
-        cdef nmod_poly res = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        cdef nmod_poly res = nmod_poly_new_init_preinv(self.ctx)
         nmod_poly_derivative(res.val, self.val)
         res.ctx = self.ctx
         return res
 
     def integral(self):
-        cdef nmod_poly res = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        cdef nmod_poly res = nmod_poly_new_init_preinv(self.ctx)
         nmod_poly_integral(res.val, self.val)
         res.ctx = self.ctx
         return res
@@ -415,8 +421,7 @@ cdef class nmod_poly(flint_poly):
         return self
 
     def __neg__(self):
-        cdef nmod_poly r = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(r.val, self.val.mod.n, self.val.mod.ninv)
+        cdef nmod_poly r = nmod_poly_new_init_preinv(self.ctx)
         nmod_poly_neg(r.val, self.val)
         r.ctx = self.ctx
         return r
@@ -428,8 +433,7 @@ cdef class nmod_poly(flint_poly):
             return t
         if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
             raise ValueError("cannot add nmod_polys with different moduli")
-        r = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(r.val, (<nmod_poly>t).val.mod.n, (<nmod_poly>t).val.mod.ninv)
+        r = nmod_poly_new_init_preinv(s.ctx)
         nmod_poly_add(r.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
         r.ctx = s.ctx
         return r
@@ -444,8 +448,7 @@ cdef class nmod_poly(flint_poly):
         cdef nmod_poly r
         if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
             raise ValueError("cannot subtract nmod_polys with different moduli")
-        r = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(r.val, (<nmod_poly>t).val.mod.n, (<nmod_poly>t).val.mod.ninv)
+        r = nmod_poly_new_init_preinv(s.ctx)
         nmod_poly_sub(r.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
         r.ctx = s.ctx
         return r
@@ -469,8 +472,7 @@ cdef class nmod_poly(flint_poly):
             return t
         if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
             raise ValueError("cannot multiply nmod_polys with different moduli")
-        r = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(r.val, (<nmod_poly>t).val.mod.n, (<nmod_poly>t).val.mod.ninv)
+        r = nmod_poly_new_init_preinv(s.ctx)
         nmod_poly_mul(r.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
         r.ctx = s.ctx
         return r
@@ -505,8 +507,7 @@ cdef class nmod_poly(flint_poly):
             raise ValueError("cannot divide nmod_polys with different moduli")
         if nmod_poly_is_zero((<nmod_poly>t).val):
             raise ZeroDivisionError("polynomial division by zero")
-        r = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(r.val, (<nmod_poly>t).val.mod.n, (<nmod_poly>t).val.mod.ninv)
+        r = nmod_poly_new_init_preinv(s.ctx)
         nmod_poly_div(r.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
         r.ctx = s.ctx
         return r
@@ -529,13 +530,9 @@ cdef class nmod_poly(flint_poly):
             raise ValueError("cannot divide nmod_polys with different moduli")
         if nmod_poly_is_zero((<nmod_poly>t).val):
             raise ZeroDivisionError("polynomial division by zero")
-        P = nmod_poly.__new__(nmod_poly)
-        Q = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(P.val, (<nmod_poly>t).val.mod.n, (<nmod_poly>t).val.mod.ninv)
-        nmod_poly_init_preinv(Q.val, (<nmod_poly>t).val.mod.n, (<nmod_poly>t).val.mod.ninv)
+        P = nmod_poly_new_init_preinv(s.ctx)
+        Q = nmod_poly_new_init_preinv(s.ctx)
         nmod_poly_divrem(P.val, Q.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
-        P.ctx = s.ctx
-        Q.ctx = s.ctx
         return P, Q
 
     def __divmod__(s, t):
@@ -562,8 +559,7 @@ cdef class nmod_poly(flint_poly):
             return self.pow_mod(exp, mod)
         if exp < 0:
             raise ValueError("negative exponent")
-        res = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(res.val, (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
+        res = nmod_poly_new_init_preinv(self.ctx)
         nmod_poly_pow(res.val, self.val, <ulong>exp)
         res.ctx = self.ctx
         return res
@@ -600,9 +596,7 @@ cdef class nmod_poly(flint_poly):
             raise TypeError("cannot convert input to nmod_poly")
 
         # Output polynomial
-        res = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
-        res.ctx = self.ctx
+        res = nmod_poly_new_init_preinv(self.ctx)
         
         # For small exponents, use a simple binary exponentiation method
         if e.bit_length() < 32:
@@ -652,8 +646,7 @@ cdef class nmod_poly(flint_poly):
             raise TypeError("cannot convert input to nmod_poly")
         if self.val.mod.n != (<nmod_poly>other).val.mod.n:
             raise ValueError("moduli must be the same")
-        res = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        res = nmod_poly_new_init_preinv(self.ctx)
         nmod_poly_gcd(res.val, self.val, (<nmod_poly>other).val)
         res.ctx = self.ctx
         return res
@@ -663,16 +656,10 @@ cdef class nmod_poly(flint_poly):
         other = self.ctx.any_as_nmod_poly(other)
         if other is NotImplemented:
             raise TypeError("cannot convert input to fmpq_poly")
-        res1 = nmod_poly.__new__(nmod_poly)
-        res2 = nmod_poly.__new__(nmod_poly)
-        res3 = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init(res1.val, (<nmod_poly>self).val.mod.n)
-        nmod_poly_init(res2.val, (<nmod_poly>self).val.mod.n)
-        nmod_poly_init(res3.val, (<nmod_poly>self).val.mod.n)
+        res1 = nmod_poly_new_init(self.ctx)
+        res2 = nmod_poly_new_init(self.ctx)
+        res3 = nmod_poly_new_init(self.ctx)
         nmod_poly_xgcd(res1.val, res2.val, res3.val, self.val, (<nmod_poly>other).val)
-        res1.ctx = self.ctx
-        res2.ctx = self.ctx
-        res3.ctx = self.ctx
         return (res1, res2, res3)
 
     def factor(self, algorithm=None):
@@ -724,6 +711,8 @@ cdef class nmod_poly(flint_poly):
 
     def _factor(self, factor_type):
         cdef nmod_poly_factor_t fac
+        cdef nmod_poly u
+        cdef nmod c
         cdef mp_limb_t lead
         cdef int i
 
@@ -743,17 +732,14 @@ cdef class nmod_poly(flint_poly):
 
         res = [None] * fac.num
         for 0 <= i < fac.num:
-            u = nmod_poly.__new__(nmod_poly)
-            nmod_poly_init_preinv((<nmod_poly>u).val,
-                                  (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
-            nmod_poly_set((<nmod_poly>u).val, &fac.p[i])
-            (<nmod_poly>u).ctx = self.ctx
+            u = nmod_poly_new_init_preinv(self.ctx)
+            nmod_poly_set(u.val, &fac.p[i])
             exp = fac.exp[i]
             res[i] = (u, exp)
 
         c = nmod.__new__(nmod)
-        (<nmod>c).ctx = self.ctx.ctx
-        (<nmod>c).val = lead
+        c.ctx = self.ctx.ctx
+        c.val = lead
 
         nmod_poly_factor_clear(fac)
 
@@ -761,10 +747,7 @@ cdef class nmod_poly(flint_poly):
 
     def sqrt(nmod_poly self):
         """Return exact square root or ``None``. """
-        cdef nmod_poly res
-        res = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
-        res.ctx = self.ctx
+        cdef nmod_poly res = nmod_poly_new_init_preinv(self.ctx)
         if nmod_poly_sqrt(res.val, self.val):
             return res
         else:
@@ -779,8 +762,7 @@ cdef class nmod_poly(flint_poly):
         if n == 1:
             return self, int(n)
         else:
-            v = nmod_poly.__new__(nmod_poly)
-            nmod_poly_init(v.val, self.val.mod.n)
+            v = nmod_poly_new_init(self.ctx)
             nmod_poly_deflate(v.val, self.val, n)
             v.ctx = self.ctx
             return v, int(n)
