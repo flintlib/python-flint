@@ -205,9 +205,9 @@ jobs:
           python-version: '3.12'
       - run: sudo apt-get update
       - run: sudo apt-get install libflint-dev
-      # This is branch is for a Cython PR:
+      # Need Cython's master branch until 3.1 is released because of:
       # https://github.com/cython/cython/pull/6341
-      - run: pip install git+https://github.com/oscarbenjamin/cython.git@pr_relative_paths
+      - run: pip install git+https://github.com/cython/cython.git@master
       - run: pip install -r requirements-dev.txt
       - run: bin/coverage.sh
 
