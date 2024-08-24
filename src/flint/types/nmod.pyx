@@ -1,3 +1,5 @@
+cimport cython
+
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
 from flint.types.fmpq cimport any_as_fmpq
@@ -193,6 +195,7 @@ cdef class nmod_ctx:
         return self._new(&v)
 
 
+@cython.no_gc
 cdef class nmod(flint_scalar):
     """
     The nmod type represents elements of Z/nZ for word-size n.
