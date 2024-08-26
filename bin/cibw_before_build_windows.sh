@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#
+# This script was previously needed to make libpythonXX.a on Windows when using
+# MinGW and setuptools. This is no longer needed now that we use meson.
+#
+
 set -o errexit
 
 # Uncomment this to run cibuildwheel locally on Windows:
@@ -28,15 +33,13 @@ echo ---------------------------------------------------
 #  Find pythonXX.dll and make a .a library        #
 ###################################################
 
-# XXX: Maybe this is not necessary any more with meson?
+cd $homepath
+gendef python${VER}.dll
+dlltool --dllname python${VER}.dll 	\
+	--def python${VER}.def 		\
+	--output-lib libpython${VER}.a
 
-#cd $homepath
-#gendef python${VER}.dll
-#dlltool --dllname python${VER}.dll 	\
-#	--def python${VER}.def 		\
-#	--output-lib libpython${VER}.a
-#
-#mv libpython${VER}.a libs
+mv libpython${VER}.a libs
 
 ###################################################
 #  Install build dependencies                     #
