@@ -91,7 +91,7 @@ before-all = "bin/cibw_before_all_macosx_$(uname -m).sh"
 [tool.cibuildwheel.windows]
 before-all = "C:\\msys64\\usr\\bin\\bash bin/cibw_before_all_windows.sh"
 before-build = "pip install delvewheel"
-repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
+repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel} --add-path .local/bin"
 
 # Previously with setuptools and MinGW it was necessary to run
 # bin/cibw_before_build_windows.sh before building the wheel to create the
