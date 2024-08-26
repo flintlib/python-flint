@@ -503,10 +503,14 @@ cdef class nmod_poly(flint_poly):
 
     def _floordiv_(s, t):
         cdef nmod_poly r
+
         if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
             raise ValueError("cannot divide nmod_polys with different moduli")
         if nmod_poly_is_zero((<nmod_poly>t).val):
             raise ZeroDivisionError("polynomial division by zero")
+        if not s.ctx._is_prime:
+            raise DomainError("nmod_poly divmod: modulus {self.ctx.mod.n} is not prime")
+
         r = nmod_poly_new_init_preinv(s.ctx)
         nmod_poly_div(r.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
         r.ctx = s.ctx
@@ -526,10 +530,14 @@ cdef class nmod_poly(flint_poly):
 
     def _divmod_(s, t):
         cdef nmod_poly P, Q
+
         if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
             raise ValueError("cannot divide nmod_polys with different moduli")
         if nmod_poly_is_zero((<nmod_poly>t).val):
             raise ZeroDivisionError("polynomial division by zero")
+        if not s.ctx._is_prime:
+            raise DomainError("nmod_poly divmod: modulus {self.ctx.mod.n} is not prime")
+
         P = nmod_poly_new_init_preinv(s.ctx)
         Q = nmod_poly_new_init_preinv(s.ctx)
         nmod_poly_divrem(P.val, Q.val, (<nmod_poly>s).val, (<nmod_poly>t).val)
@@ -639,27 +647,53 @@ cdef class nmod_poly(flint_poly):
             >>> (A * B).gcd(B) * 5
             5*x^2 + x + 4
 
+        The modulus must be prime.
         """
         cdef nmod_poly res
+
         other = self.ctx.any_as_nmod_poly(other)
         if other is NotImplemented:
             raise TypeError("cannot convert input to nmod_poly")
         if self.val.mod.n != (<nmod_poly>other).val.mod.n:
             raise ValueError("moduli must be the same")
+        if not self.ctx._is_prime:
+            raise DomainError("nmod_poly gcd: modulus {self.ctx.mod.n} is not prime")
+
         res = nmod_poly_new_init_preinv(self.ctx)
         nmod_poly_gcd(res.val, self.val, (<nmod_poly>other).val)
         res.ctx = self.ctx
         return res
 
     def xgcd(self, other):
+        r"""
+        Computes the extended gcd of self and other: (`G`, `S`, `T`)
+        where `G` is the ``gcd(self, other)`` and `S`, `T` are such that:
+
+        :math:`G = \textrm{self}*S +  \textrm{other}*T`
+
+            >>> f = nmod_poly([143, 19, 37, 138, 102, 127, 95], 163)
+            >>> g = nmod_poly([139, 9, 35, 154, 87, 120, 24], 163)
+            >>> f.xgcd(g)
+            (x^3 + 128*x^2 + 123*x + 91, 17*x^2 + 49*x + 104, 21*x^2 + 5*x + 25)
+
+        The modulus must be prime.
+        """
         cdef nmod_poly res1, res2, res3
+
         other = self.ctx.any_as_nmod_poly(other)
         if other is NotImplemented:
             raise TypeError("cannot convert input to fmpq_poly")
+        if self.val.mod.n != (<nmod_poly>other).val.mod.n:
+            raise ValueError("moduli must be the same")
+        if not self.ctx._is_prime:
+            raise DomainError("nmod_poly xgcd: modulus {self.ctx.mod.n} is not prime")
+
         res1 = nmod_poly_new_init(self.ctx)
         res2 = nmod_poly_new_init(self.ctx)
         res3 = nmod_poly_new_init(self.ctx)
+
         nmod_poly_xgcd(res1.val, res2.val, res3.val, self.val, (<nmod_poly>other).val)
+
         return (res1, res2, res3)
 
     def factor(self, algorithm=None):
@@ -684,11 +718,14 @@ cdef class nmod_poly(flint_poly):
             >>> nmod_poly([3,2,1,2,3], 7).factor(algorithm='cantor-zassenhaus')
             (3, [(x + 4, 1), (x + 2, 1), (x^2 + 4*x + 1, 1)])
 
+        The modulus must be prime.
         """
         if algorithm is None:
             algorithm = 'irreducible'
         elif algorithm not in ('berlekamp', 'cantor-zassenhaus'):
             raise ValueError(f"unknown factorization algorithm: {algorithm}")
+        if not self.ctx._is_prime:
+            raise DomainError(f"nmod_poly factor: modulus {self.ctx.mod.n} is not prime")
         return self._factor(algorithm)
 
     def factor_squarefree(self):
@@ -707,6 +744,8 @@ cdef class nmod_poly(flint_poly):
             (2, [(x, 2), (x + 5, 2), (x + 1, 3)])
 
         """
+        if not self.ctx._is_prime:
+            raise DomainError(f"nmod_poly factor_squarefree: modulus {self.ctx.mod.n} is not prime")
         return self._factor('squarefree')
 
     def _factor(self, factor_type):
@@ -747,11 +786,17 @@ cdef class nmod_poly(flint_poly):
 
     def sqrt(nmod_poly self):
         """Return exact square root or ``None``. """
-        cdef nmod_poly res = nmod_poly_new_init_preinv(self.ctx)
-        if nmod_poly_sqrt(res.val, self.val):
-            return res
-        else:
+        cdef nmod_poly
+
+        if not self.ctx._is_prime:
+            raise DomainError(f"nmod_poly sqrt: modulus {self.ctx.mod.n} is not prime")
+
+        res = nmod_poly_new_init_preinv(self.ctx)
+
+        if not nmod_poly_sqrt(res.val, self.val):
             raise DomainError(f"Cannot compute square root of {self}")
+
+        return res
 
     def deflation(self):
         cdef nmod_poly v
