@@ -46,7 +46,10 @@ jobs:
         env:
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
-          CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel && msys2 -c bin/cibw_before_build_windows.sh
+          #
+          # Don't need to create pythonXX.a under meson. Not needed any more:
+          #   CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel && msys2 -c bin/cibw_before_build_windows.sh
+          #
 
       - uses: actions/upload-artifact@v4
         with:
@@ -109,7 +112,7 @@ jobs:
         os: [ubuntu-20.04, windows-2019, macos-13, macos-14]
         # This list to be kept in sync with cibuildwheel config
         # and python-requires in pyproject.toml.
-        python-version: ['3.10', '3.11', '3.12', '3.13-dev']
+        python-version: ['3.10', '3.11', '3.12', '3.13-dev', 'pypy3.10']
 
     steps:
       - uses: actions/setup-python@v5
