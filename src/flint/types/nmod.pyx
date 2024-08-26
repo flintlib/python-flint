@@ -19,49 +19,7 @@ from flint.flintlib.ulong_extras cimport n_gcdinv, n_is_prime, n_sqrtmod
 from flint.utils.flint_exceptions import DomainError
 
 
-#cdef int any_as_nmod(mp_limb_t * val, obj, nmod_t mod) except -1:
-#    return mod.ctx.any_as_nmod(val, obj)
-
-_nmod_ctx_cache = {}
-
-
-cdef nmod_ctx any_as_nmod_ctx(obj):
-    """Convert an int to an nmod_ctx."""
-    if typecheck(obj, nmod_ctx):
-        return obj
-    if typecheck(obj, int):
-        ctx = _nmod_ctx_cache.get(obj)
-        if ctx is None:
-            ctx = nmod_ctx(obj)
-            _nmod_ctx_cache[obj] = ctx
-        return ctx
-    return NotImplemented
-
-
-cdef int any_as_nmod(mp_limb_t * val, obj, nmod_t mod) except -1:
-    """Convert an object to an nmod element."""
-    cdef int success
-    cdef fmpz_t t
-    if typecheck(obj, nmod):
-        if (<nmod>obj).ctx.mod.n != mod.n:
-            raise ValueError("cannot coerce integers mod n with different n")
-        val[0] = (<nmod>obj).val
-        return 1
-    z = any_as_fmpz(obj)
-    if z is not NotImplemented:
-        val[0] = fmpz_fdiv_ui((<fmpz>z).val, mod.n)
-        return 1
-    q = any_as_fmpq(obj)
-    if q is not NotImplemented:
-        fmpz_init(t)
-        fmpz_set_ui(t, mod.n)
-        success = fmpq_mod_fmpz(t, (<fmpq>q).val, t)
-        val[0] = fmpz_get_ui(t)
-        fmpz_clear(t)
-        if not success:
-            raise ZeroDivisionError("%s does not exist mod %i!" % (q, mod.n))
-        return 1
-    return 0
+cdef dict _nmod_ctx_cache = {}
 
 
 cdef class nmod_ctx:
@@ -69,62 +27,55 @@ cdef class nmod_ctx:
     Context object for creating :class:`~.nmod` initalised 
     with modulus :math:`N`.
 
-        >>> nmod_ctx(17)
+        >>> nmod_ctx.get_ctx(17)
         nmod_ctx(17)
 
     """
-    def __init__(self, mod):
-        cdef mp_limb_t m
-        m = mod
-        nmod_init(&self.mod, m)
-        self._is_prime = n_is_prime(m)
 
-    def __eq__(self, other):
-        # XXX: If we could ensure uniqueness of nmod_ctx for given modulus then
-        # we would need to implement __eq__ and __hash__ at all...
-        #
-        # It isn't possible to ensure uniqueness in __new__ like it is in
-        # Python because we can't return an existing object from __new__. What
-        # we could do though is make it so that __init__ raises an error and
-        # use a static method .new() to create new objects.
-        if self is other:
-            return True
-        if not typecheck(other, nmod_ctx):
-            return NotImplemented
-        return self.mod.n == (<nmod_ctx>other).mod.n
+    def __init__(self, *args, **kwargs):
+        raise TypeError("cannot create nmod_ctx directly: use nmod_ctx.get_ctx()")
+
+    @staticmethod
+    cdef nmod_ctx any_as_nmod_ctx(obj):
+        """Convert an int to an nmod_ctx."""
+        if typecheck(obj, nmod_ctx):
+            return obj
+        if typecheck(obj, int):
+            return nmod_ctx._get_ctx(obj)
+        return NotImplemented
+
+    @staticmethod
+    def get_ctx(mod):
+        """Create a new nmod context."""
+        return nmod_ctx._get_ctx(mod)
+
+    @staticmethod
+    cdef _get_ctx(int mod):
+        """Create a new nmod context."""
+        ctx = _nmod_ctx_cache.get(mod)
+        if ctx is None:
+            _nmod_ctx_cache[mod] = ctx = nmod_ctx._new_ctx(mod)
+        return ctx
+
+    @staticmethod
+    cdef _new_ctx(ulong mod):
+        """Create a new nmod context."""
+        cdef nmod_ctx ctx = nmod_ctx.__new__(nmod_ctx)
+        nmod_init(&ctx.mod, mod)
+        ctx._is_prime = n_is_prime(mod)
+        return ctx
 
     def __repr__(self):
         return f"nmod_ctx({self.modulus()})"
 
     cdef int any_as_nmod(self, mp_limb_t * val, obj) except -1:
         """Convert an object to an nmod element."""
-        cdef int success
-        cdef fmpz_t t
-        if typecheck(obj, nmod):
-            if (<nmod>obj).ctx != self:
-                raise ValueError("cannot coerce integers mod n with different n")
-            val[0] = (<nmod>obj).val
-            return 1
-        z = any_as_fmpz(obj)
-        if z is not NotImplemented:
-            val[0] = fmpz_fdiv_ui((<fmpz>z).val, self.mod.n)
-            return 1
-        q = any_as_fmpq(obj)
-        if q is not NotImplemented:
-            fmpz_init(t)
-            fmpz_set_ui(t, self.mod.n)
-            success = fmpq_mod_fmpz(t, (<fmpq>q).val, t)
-            val[0] = fmpz_get_ui(t)
-            fmpz_clear(t)
-            if not success:
-                raise ZeroDivisionError("%s does not exist mod %i!" % (q, self.mod.n))
-            return 1
-        return 0
+        return any_as_nmod(val, obj, self)
 
     def modulus(self):
         """Get the modulus of the context.
 
-        >>> ctx = nmod_ctx(17)
+        >>> ctx = nmod_ctx.get_ctx(17)
         >>> ctx.modulus()
         17
 
@@ -134,7 +85,7 @@ cdef class nmod_ctx:
     def is_prime(self):
         """Check if the modulus is prime.
 
-        >>> ctx = nmod_ctx(17)
+        >>> ctx = nmod_ctx.get_ctx(17)
         >>> ctx.is_prime()
         True
 
@@ -144,7 +95,7 @@ cdef class nmod_ctx:
     def zero(self):
         """Return the zero element of the context.
 
-        >>> ctx = nmod_ctx(17)
+        >>> ctx = nmod_ctx.get_ctx(17)
         >>> ctx.zero()
         0
 
@@ -154,7 +105,7 @@ cdef class nmod_ctx:
     def one(self):
         """Return the one element of the context.
 
-        >>> ctx = nmod_ctx(17)
+        >>> ctx = nmod_ctx.get_ctx(17)
         >>> ctx.one()
         1
 
@@ -185,14 +136,40 @@ cdef class nmod_ctx:
     def __call__(self, val):
         """Create an nmod element from an integer.
 
-        >>> ctx = nmod_ctx(17)
+        >>> ctx = nmod_ctx.get_ctx(17)
         >>> ctx(10)
         10
 
         """
         cdef mp_limb_t v
-        v = val
+        v = val % self.mod.n
         return self._new(&v)
+
+
+cdef int any_as_nmod(mp_limb_t * val, obj, nmod_ctx ctx) except -1:
+    """Convert an object to an nmod element."""
+    cdef int success
+    cdef fmpz_t t
+    if typecheck(obj, nmod):
+        if (<nmod>obj).ctx.mod.n != ctx.mod.n:
+            raise ValueError("cannot coerce integers mod n with different n")
+        val[0] = (<nmod>obj).val
+        return 1
+    z = any_as_fmpz(obj)
+    if z is not NotImplemented:
+        val[0] = fmpz_fdiv_ui((<fmpz>z).val, ctx.mod.n)
+        return 1
+    q = any_as_fmpq(obj)
+    if q is not NotImplemented:
+        fmpz_init(t)
+        fmpz_set_ui(t, ctx.mod.n)
+        success = fmpq_mod_fmpz(t, (<fmpq>q).val, t)
+        val[0] = fmpz_get_ui(t)
+        fmpz_clear(t)
+        if not success:
+            raise ZeroDivisionError("%s does not exist mod %i!" % (q, ctx.mod.n))
+        return 1
+    return 0
 
 
 @cython.no_gc
@@ -205,10 +182,10 @@ cdef class nmod(flint_scalar):
 
     """
     def __init__(self, val, mod):
-        ctx = any_as_nmod_ctx(mod)
+        ctx = nmod_ctx.any_as_nmod_ctx(mod)
         if ctx is NotImplemented:
             raise TypeError("Invalid context/modulus for nmod: %s" % mod)
-        if not ctx.any_as_nmod(&self.val, val):
+        if not any_as_nmod(&self.val, val, ctx):
             raise TypeError("cannot create nmod from object of type %s" % type(val))
         self.ctx = ctx
 
@@ -262,7 +239,7 @@ cdef class nmod(flint_scalar):
         cdef nmod r, s2
         cdef mp_limb_t val
         s2 = s
-        if s2.ctx.any_as_nmod(&val, t):
+        if any_as_nmod(&val, t, s2.ctx):
             r = nmod.__new__(nmod)
             r.ctx = s2.ctx
             r.val = nmod_add(val, s2.val, s2.ctx.mod)
@@ -273,7 +250,7 @@ cdef class nmod(flint_scalar):
         cdef nmod r, s2
         cdef mp_limb_t val
         s2 = s
-        if s2.ctx.any_as_nmod(&val, t):
+        if any_as_nmod(&val, t, s2.ctx):
             r = nmod.__new__(nmod)
             r.ctx = s2.ctx
             r.val = nmod_add(s2.val, val, s2.ctx.mod)
@@ -284,7 +261,7 @@ cdef class nmod(flint_scalar):
         cdef nmod r, s2
         cdef mp_limb_t val
         s2 = s
-        if s2.ctx.any_as_nmod(&val, t):
+        if any_as_nmod(&val, t, s2.ctx):
             r = nmod.__new__(nmod)
             r.ctx = s2.ctx
             r.val = nmod_sub(s2.val, val, s2.ctx.mod)
@@ -295,7 +272,7 @@ cdef class nmod(flint_scalar):
         cdef nmod r
         cdef mp_limb_t val
         s2 = s
-        if s2.ctx.any_as_nmod(&val, t):
+        if any_as_nmod(&val, t, s2.ctx):
             r = nmod.__new__(nmod)
             r.ctx = s2.ctx
             r.val = nmod_sub(val, s2.val, s2.ctx.mod)
@@ -306,7 +283,7 @@ cdef class nmod(flint_scalar):
         cdef nmod r, s2
         cdef mp_limb_t val
         s2 = s
-        if any_as_nmod(&val, t, s2.ctx.mod):
+        if any_as_nmod(&val, t, s2.ctx):
             r = nmod.__new__(nmod)
             r.ctx = s2.ctx
             r.val = nmod_mul(val, s2.val, s2.ctx.mod)
@@ -317,7 +294,7 @@ cdef class nmod(flint_scalar):
         cdef nmod r, s2
         cdef mp_limb_t val
         s2 = s
-        if s2.ctx.any_as_nmod(&val, t):
+        if any_as_nmod(&val, t, s2.ctx):
             r = nmod.__new__(nmod)
             r.ctx = s2.ctx
             r.val = nmod_mul(s2.val, val, s2.ctx.mod)
@@ -335,13 +312,13 @@ cdef class nmod(flint_scalar):
             s2 = s
             ctx = s2.ctx
             sval = s2.val
-            if not ctx.any_as_nmod(&tval, t):
+            if not any_as_nmod(&tval, t, ctx):
                 return NotImplemented
         else:
             t2 = t
             ctx = t2.ctx
             tval = t2.val
-            if not ctx.any_as_nmod(&sval, s):
+            if not any_as_nmod(&sval, s, ctx):
                 return NotImplemented
 
         if tval == 0:

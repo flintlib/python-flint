@@ -4,7 +4,6 @@ from flint.utils.typecheck cimport typecheck
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 from flint.types.fmpz_poly cimport any_as_fmpz_poly
 from flint.types.fmpz_poly cimport fmpz_poly
-from flint.types.nmod cimport any_as_nmod_ctx
 from flint.types.nmod cimport nmod, nmod_ctx
 
 from flint.flintlib.nmod_vec cimport *
@@ -61,7 +60,7 @@ cdef class nmod_poly_ctx:
         cdef mp_limb_t m
         m = mod
         nmod_init(&self.mod, m)
-        self.ctx = nmod_ctx(mod)
+        self.ctx = nmod_ctx.get_ctx(mod)
         self._is_prime = n_is_prime(m)
 
     def __repr__(self):

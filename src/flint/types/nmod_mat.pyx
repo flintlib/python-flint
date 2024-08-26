@@ -43,7 +43,7 @@ from flint.flintlib.nmod_mat cimport (
 from flint.utils.typecheck cimport typecheck
 from flint.types.fmpz_mat cimport any_as_fmpz_mat
 from flint.types.fmpz_mat cimport fmpz_mat
-from flint.types.nmod cimport nmod, any_as_nmod_ctx
+from flint.types.nmod cimport nmod, nmod_ctx
 from flint.types.nmod_poly cimport nmod_poly, nmod_poly_new_init, any_as_nmod_poly_ctx
 from flint.pyflint cimport global_random_state
 from flint.flint_base.flint_context cimport thectx
@@ -120,7 +120,7 @@ cdef class nmod_mat(flint_mat):
         if mod == 0:
             raise ValueError("modulus must be nonzero")
 
-        ctx = any_as_nmod_ctx(mod)
+        ctx = nmod_ctx.any_as_nmod_ctx(mod)
         self.ctx = ctx
 
         if len(args) == 1:

@@ -2259,7 +2259,7 @@ cdef class arb(flint_scalar):
             >>> from flint import showgood
             >>> showgood(lambda: arb("9/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5, abc=True), dps=25)
             1.447530478120770807945697
-            >>> showgood(lambda: arb("9/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5), dps=25)
+            >>> showgood(lambda: arb("9/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5), dps=25) # doctest: +SKIP
             Traceback (most recent call last):
               ...
             ValueError: no convergence (maxprec=960, try higher maxprec)

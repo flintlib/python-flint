@@ -1357,6 +1357,10 @@ def test_nmod():
     assert str(G(3,5)) == "3"
     assert G(3,5).repr() == "nmod(3, 5)"
 
+    G = flint.nmod_ctx.get_ctx(7)
+    assert G(0) == G(7) == G(-7)
+
+
 def test_nmod_poly():
     N = flint.nmod
     P = flint.nmod_poly
