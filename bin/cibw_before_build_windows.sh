@@ -28,13 +28,15 @@ echo ---------------------------------------------------
 #  Find pythonXX.dll and make a .a library        #
 ###################################################
 
-cd $homepath
-gendef python${VER}.dll
-dlltool --dllname python${VER}.dll 	\
-	--def python${VER}.def 		\
-	--output-lib libpython${VER}.a
+# XXX: Maybe this is not necessary any more with meson?
 
-mv libpython${VER}.a libs
+#cd $homepath
+#gendef python${VER}.dll
+#dlltool --dllname python${VER}.dll 	\
+#	--def python${VER}.def 		\
+#	--output-lib libpython${VER}.a
+#
+#mv libpython${VER}.a libs
 
 ###################################################
 #  Install build dependencies                     #
