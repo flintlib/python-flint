@@ -62,7 +62,7 @@ cdef class nmod_ctx:
         """Retrieve an nmod context from the cache or create a new one."""
         ctx = _nmod_ctx_cache.get(mod)
         if ctx is None:
-            _nmod_ctx_cache[mod] = ctx = nmod_ctx._new_ctx(mod)
+            ctx = _nmod_ctx_cache.setdefault(mod, nmod_ctx._new_ctx(mod))
         return ctx
 
     @staticmethod

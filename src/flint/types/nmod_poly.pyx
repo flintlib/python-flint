@@ -49,7 +49,7 @@ cdef class nmod_poly_ctx:
         """Retrieve an nmod_poly context from the cache or create a new one."""
         ctx = _nmod_poly_ctx_cache.get(mod)
         if ctx is None:
-            _nmod_poly_ctx_cache[mod] = ctx = nmod_poly_ctx._new_ctx(mod)
+            ctx = _nmod_poly_ctx_cache.setdefault(mod, nmod_poly_ctx._new_ctx(mod))
         return ctx
 
     @staticmethod
