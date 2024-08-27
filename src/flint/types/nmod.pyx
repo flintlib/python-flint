@@ -22,6 +22,7 @@ from flint.utils.flint_exceptions import DomainError
 cdef dict _nmod_ctx_cache = {}
 
 
+@cython.no_gc
 cdef class nmod_ctx:
     """
     Context object for creating :class:`~.nmod` initalised 
@@ -163,6 +164,7 @@ cdef class nmod_ctx:
         return r
 
 
+@cython.no_gc
 cdef class nmod(flint_scalar):
     """
     The nmod type represents elements of Z/nZ for word-size n.

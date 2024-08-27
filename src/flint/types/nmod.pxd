@@ -23,6 +23,7 @@ cdef class nmod_ctx:
     cdef nmod new_nmod(self)
 
 
+@cython.no_gc
 cdef class nmod(flint_scalar):
     cdef mp_limb_t val
     cdef nmod_ctx ctx
