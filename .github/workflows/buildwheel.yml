@@ -206,7 +206,7 @@ jobs:
       # https://github.com/cython/cython/pull/6341
       # Except now we can't use the master branch any more because of:
       # https://github.com/cython/cython/issues/6366
-      - run: pip install git+https://github.com/cython/cython.git@accde54653217dc28c52befd10d183941ba28336
+      - run: pip install git+https://github.com/cython/cython.git@20bceea6b19ffc2f65b9fba2e4f737f09e5a2b20
       - run: pip install -r requirements-dev.txt
       - run: bin/coverage.sh
 
