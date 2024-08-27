@@ -1465,6 +1465,9 @@ def test_nmod_poly():
     assert P([1], 11).roots() == []
     assert P([1, 2, 3], 11).roots() == [(8, 1), (6, 1)]
     assert P([1, 6, 1, 8], 11).roots() == [(5, 3)]
+    assert raises(lambda: P([1, 2, 3], 11).real_roots(), DomainError)
+    assert raises(lambda: P([1, 2, 3], 11).complex_roots(), DomainError)
+
 
 def test_nmod_mat():
     M = flint.nmod_mat
@@ -2226,12 +2229,15 @@ def test_fmpz_mod_poly():
         assert set(ff.factor()[1]) == set(ff.factor(algorithm="kaltofen_shoup")[1])
         assert set(ff.factor()[1]) == set(ff.factor(algorithm="berlekamp")[1])
         assert raises(lambda: R_test([0,0,1]).factor(algorithm="AAA"), ValueError)
+        assert raises(lambda: R_test([0,0,1]).real_roots(), DomainError)
         assert raises(lambda: R_test([0,0,1]).complex_roots(), DomainError)
+
 
         # composite moduli not supported
         assert raises(lambda: R_cmp([0,0,1]).factor(), NotImplementedError)
         assert raises(lambda: R_cmp([0,0,1]).factor_squarefree(), NotImplementedError)
         assert raises(lambda: R_cmp([0,0,1]).roots(), NotImplementedError)
+        assert raises(lambda: R_cmp([0,0,1]).real_roots(), DomainError)
         assert raises(lambda: R_cmp([0,0,1]).complex_roots(), DomainError)
 
         # minpoly
@@ -4020,7 +4026,6 @@ def test_fq_default_poly():
         assert raises(lambda: f / "AAA", TypeError)
         assert raises(lambda: "AAA" / f, TypeError)
 
-
         # ZeroDivisionError
         assert raises(lambda: f / 0, ZeroDivisionError)
         assert raises(lambda: f // 0, ZeroDivisionError)
@@ -4053,6 +4058,9 @@ def test_fq_default_poly():
         # pow_mod
         assert f.pow_mod(2, g) == (f*f) % g
         assert raises(lambda: f.pow_mod(2, "AAA"), TypeError)
+
+        # roots
+        assert raises(lambda: f.real_roots(), DomainError)
         assert raises(lambda: f.complex_roots(), DomainError)
 
         # compose errors

@@ -254,6 +254,9 @@ cdef class flint_poly(flint_elem):
                 roots.append((v, m))
         return roots
 
+    def real_roots(self):
+        raise AttributeError("Real roots are not supported for this polynomial")
+
     def complex_roots(self):
         raise AttributeError("Complex roots are not supported for this polynomial")
 

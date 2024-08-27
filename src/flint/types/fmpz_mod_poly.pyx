@@ -1864,6 +1864,13 @@ cdef class fmpz_mod_poly(flint_poly):
                 res[i] = root
         return res
 
+    def real_roots(self):
+        """
+        This method is not implemented for polynomials in
+        :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
+        """
+        raise DomainError("Cannot compute real roots for polynomials over integers modulo N")
+
     def complex_roots(self):
         """
         This method is not implemented for polynomials in

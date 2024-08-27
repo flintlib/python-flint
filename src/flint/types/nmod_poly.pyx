@@ -668,3 +668,17 @@ cdef class nmod_poly(flint_poly):
             nmod_poly_init(v.val, self.val.mod.n)
             nmod_poly_deflate(v.val, self.val, n)
             return v, int(n)
+
+    def real_roots(self):
+        """
+        This method is not implemented for polynomials in
+        :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
+        """
+        raise DomainError("Cannot compute real roots for polynomials over integers modulo N")
+
+    def complex_roots(self):
+        """
+        This method is not implemented for polynomials in
+        :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
+        """
+        raise DomainError("Cannot compute complex roots for polynomials over integers modulo N")
