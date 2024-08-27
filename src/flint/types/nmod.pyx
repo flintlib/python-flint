@@ -48,7 +48,7 @@ cdef class nmod_ctx:
         return nmod_ctx._get_ctx(mod)
 
     @staticmethod
-    cdef nmod_ctx any_as_nmod_ctx(obj):
+    cdef any_as_nmod_ctx(obj):
         """Convert an ``nmod_ctx`` or ``int`` to an ``nmod_ctx``."""
         if typecheck(obj, nmod_ctx):
             return obj
@@ -163,7 +163,6 @@ cdef class nmod_ctx:
         return r
 
 
-@cython.no_gc
 cdef class nmod(flint_scalar):
     """
     The nmod type represents elements of Z/nZ for word-size n.
@@ -173,9 +172,11 @@ cdef class nmod(flint_scalar):
 
     """
     def __init__(self, val, mod):
-        ctx = nmod_ctx.any_as_nmod_ctx(mod)
-        if ctx is NotImplemented:
+        cdef nmod_ctx ctx
+        c = nmod_ctx.any_as_nmod_ctx(mod)
+        if c is NotImplemented:
             raise TypeError("Invalid context/modulus for nmod: %s" % mod)
+        ctx = c
         if not ctx.any_as_nmod(&self.val, val):
             raise TypeError("cannot create nmod from object of type %s" % type(val))
         self.ctx = ctx
