@@ -1588,6 +1588,12 @@ cdef class fq_default_poly(flint_poly):
                 res[i] = root
         return res
 
+    def real_roots(self):
+        """
+        This method is not implemented for polynomials in finite fields
+        """
+        raise DomainError("Cannot compute real roots for polynomials over finite fields")
+
     def complex_roots(self):
         """
         This method is not implemented for polynomials in finite fields
