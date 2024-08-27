@@ -27,17 +27,29 @@ cdef class nmod_ctx:
     Context object for creating :class:`~.nmod` initalised 
     with modulus :math:`N`.
 
-        >>> nmod_ctx.get_ctx(17)
+        >>> ctx = nmod_ctx.new(17)
+        >>> ctx
         nmod_ctx(17)
+        >>> ctx.modulus()
+        17
+        >>> e = ctx(10)
+        >>> e
+        10
+        >>> e + 10
+        3
 
     """
-
     def __init__(self, *args, **kwargs):
-        raise TypeError("cannot create nmod_ctx directly: use nmod_ctx.get_ctx()")
+        raise TypeError("cannot create nmod_ctx directly: use nmod_ctx.new()")
+
+    @staticmethod
+    def new(mod):
+        """Get an nmod context with modulus ``mod``."""
+        return nmod_ctx._get_ctx(mod)
 
     @staticmethod
     cdef nmod_ctx any_as_nmod_ctx(obj):
-        """Convert an int to an nmod_ctx."""
+        """Convert an ``nmod_ctx`` or ``int`` to an ``nmod_ctx``."""
         if typecheck(obj, nmod_ctx):
             return obj
         if typecheck(obj, int):
@@ -45,13 +57,8 @@ cdef class nmod_ctx:
         return NotImplemented
 
     @staticmethod
-    def get_ctx(mod):
-        """Create a new nmod context."""
-        return nmod_ctx._get_ctx(mod)
-
-    @staticmethod
     cdef _get_ctx(int mod):
-        """Create a new nmod context."""
+        """Retrieve an nmod context from the cache or create a new one."""
         ctx = _nmod_ctx_cache.get(mod)
         if ctx is None:
             _nmod_ctx_cache[mod] = ctx = nmod_ctx._new_ctx(mod)
@@ -91,13 +98,16 @@ cdef class nmod_ctx:
             return 1
         return 0
 
-    def __repr__(self):
-        return f"nmod_ctx({self.modulus()})"
+    @cython.final
+    cdef nmod new_nmod(self):
+        cdef nmod r = nmod.__new__(nmod)
+        r.ctx = self
+        return r
 
     def modulus(self):
         """Get the modulus of the context.
 
-        >>> ctx = nmod_ctx.get_ctx(17)
+        >>> ctx = nmod_ctx.new(17)
         >>> ctx.modulus()
         17
 
@@ -107,7 +117,7 @@ cdef class nmod_ctx:
     def is_prime(self):
         """Check if the modulus is prime.
 
-        >>> ctx = nmod_ctx.get_ctx(17)
+        >>> ctx = nmod_ctx.new(17)
         >>> ctx.is_prime()
         True
 
@@ -117,7 +127,7 @@ cdef class nmod_ctx:
     def zero(self):
         """Return the zero element of the context.
 
-        >>> ctx = nmod_ctx.get_ctx(17)
+        >>> ctx = nmod_ctx.new(17)
         >>> ctx.zero()
         0
 
@@ -127,7 +137,7 @@ cdef class nmod_ctx:
     def one(self):
         """Return the one element of the context.
 
-        >>> ctx = nmod_ctx.get_ctx(17)
+        >>> ctx = nmod_ctx.new(17)
         >>> ctx.one()
         1
 
@@ -140,23 +150,17 @@ cdef class nmod_ctx:
     def __repr__(self):
         return f"nmod_ctx({self.modulus()})"
 
-    cdef nmod _new(self, mp_limb_t * val):
-        cdef nmod r = nmod.__new__(nmod)
-        r.val = val[0]
-        r.ctx = self
-        return r
-
     def __call__(self, val):
         """Create an nmod element from an integer.
 
-        >>> ctx = nmod_ctx.get_ctx(17)
+        >>> ctx = nmod_ctx.new(17)
         >>> ctx(10)
         10
 
         """
-        cdef mp_limb_t v
-        v = val % self.mod.n
-        return self._new(&v)
+        r = self.new_nmod()
+        self.any_as_nmod(&r.val, val)
+        return r
 
 
 @cython.no_gc
@@ -217,8 +221,7 @@ cdef class nmod(flint_scalar):
         return self
 
     def __neg__(self):
-        cdef nmod r = nmod.__new__(nmod)
-        r.ctx = self.ctx
+        r = self.ctx.new_nmod()
         r.val = nmod_neg(self.val, self.ctx.mod)
         return r
 
@@ -227,8 +230,7 @@ cdef class nmod(flint_scalar):
         cdef mp_limb_t val
         s2 = s
         if s2.ctx.any_as_nmod(&val, t):
-            r = nmod.__new__(nmod)
-            r.ctx = s2.ctx
+            r = s2.ctx.new_nmod()
             r.val = nmod_add(val, s2.val, s2.ctx.mod)
             return r
         return NotImplemented
@@ -238,8 +240,7 @@ cdef class nmod(flint_scalar):
         cdef mp_limb_t val
         s2 = s
         if s2.ctx.any_as_nmod(&val, t):
-            r = nmod.__new__(nmod)
-            r.ctx = s2.ctx
+            r = s2.ctx.new_nmod()
             r.val = nmod_add(s2.val, val, s2.ctx.mod)
             return r
         return NotImplemented
@@ -249,8 +250,7 @@ cdef class nmod(flint_scalar):
         cdef mp_limb_t val
         s2 = s
         if s2.ctx.any_as_nmod(&val, t):
-            r = nmod.__new__(nmod)
-            r.ctx = s2.ctx
+            r = s2.ctx.new_nmod()
             r.val = nmod_sub(s2.val, val, s2.ctx.mod)
             return r
         return NotImplemented
@@ -260,8 +260,7 @@ cdef class nmod(flint_scalar):
         cdef mp_limb_t val
         s2 = s
         if s2.ctx.any_as_nmod(&val, t):
-            r = nmod.__new__(nmod)
-            r.ctx = s2.ctx
+            r = s2.ctx.new_nmod()
             r.val = nmod_sub(val, s2.val, s2.ctx.mod)
             return r
         return NotImplemented
@@ -271,8 +270,7 @@ cdef class nmod(flint_scalar):
         cdef mp_limb_t val
         s2 = s
         if s2.ctx.any_as_nmod(&val, t):
-            r = nmod.__new__(nmod)
-            r.ctx = s2.ctx
+            r = s2.ctx.new_nmod()
             r.val = nmod_mul(val, s2.val, s2.ctx.mod)
             return r
         return NotImplemented
@@ -282,8 +280,7 @@ cdef class nmod(flint_scalar):
         cdef mp_limb_t val
         s2 = s
         if s2.ctx.any_as_nmod(&val, t):
-            r = nmod.__new__(nmod)
-            r.ctx = s2.ctx
+            r = s2.ctx.new_nmod()
             r.val = nmod_mul(s2.val, val, s2.ctx.mod)
             return r
         return NotImplemented
@@ -317,8 +314,7 @@ cdef class nmod(flint_scalar):
         if g != 1:
             raise ZeroDivisionError("%s is not invertible mod %s" % (tval, ctx.mod.n))
 
-        r = nmod.__new__(nmod)
-        r.ctx = ctx
+        r = ctx.new_nmod()
         r.val = nmod_mul(sval, <mp_limb_t>tinvval, ctx.mod)
         return r
 
@@ -338,8 +334,7 @@ cdef class nmod(flint_scalar):
         g = n_gcdinv(&inv, sval, ctx.mod.n)
         if g != 1:
             raise ZeroDivisionError("%s is not invertible mod %s" % (sval, ctx.mod.n))
-        r = nmod.__new__(nmod)
-        r.ctx = ctx
+        r = ctx.new_nmod()
         r.val = <mp_limb_t>inv
         return r
 
@@ -370,8 +365,7 @@ cdef class nmod(flint_scalar):
             rval = <mp_limb_t>rinv
             e = -e
 
-        r = nmod.__new__(nmod)
-        r.ctx = ctx
+        r = ctx.new_nmod()
         r.val = nmod_pow_fmpz(rval, (<fmpz>e).val, ctx.mod)
         return r
 
@@ -394,8 +388,7 @@ cdef class nmod(flint_scalar):
         """
         cdef nmod r
         cdef mp_limb_t val
-        r = nmod.__new__(nmod)
-        r.ctx = self.ctx
+        r = self.ctx.new_nmod()
 
         if self.val == 0:
             return r

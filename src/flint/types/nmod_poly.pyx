@@ -60,7 +60,7 @@ cdef class nmod_poly_ctx:
         cdef mp_limb_t m
         m = mod
         nmod_init(&self.mod, m)
-        self.ctx = nmod_ctx.get_ctx(mod)
+        self.ctx = nmod_ctx.new(mod)
         self._is_prime = n_is_prime(m)
 
     def __repr__(self):

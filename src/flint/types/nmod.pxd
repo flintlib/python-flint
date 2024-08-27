@@ -15,7 +15,7 @@ cdef class nmod_ctx:
     cdef _new_ctx(ulong mod)
 
     cdef int any_as_nmod(self, mp_limb_t * val, obj) except -1
-    cdef nmod _new(self, mp_limb_t * val)
+    cdef nmod new_nmod(self)
 
 
 cdef class nmod(flint_scalar):
