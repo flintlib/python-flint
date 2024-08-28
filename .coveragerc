@@ -2,5 +2,5 @@
 plugins = coverage_plugin
 
 [report]
-exclude_lines =
+exclude_also =
     assert False

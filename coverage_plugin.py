@@ -62,7 +62,7 @@ def get_cython_build_rules():
 
 
 @cache
-def parse_all_cfile_lines():
+def parse_all_cfile_lines(exclude_patterns=None):
     """Parse all generated C files from the build directory."""
     #
     # Each .c file can include code generated from multiple Cython files (e.g.
@@ -80,7 +80,7 @@ def parse_all_cfile_lines():
 
     for c_file, _ in get_cython_build_rules():
 
-        cfile_lines = parse_cfile_lines(c_file)
+        cfile_lines = parse_cfile_lines(c_file, exclude_patterns=exclude_patterns)
 
         for cython_file, line_map in cfile_lines.items():
             if cython_file == '(tree fragment)':
@@ -94,14 +94,21 @@ def parse_all_cfile_lines():
     return all_code_lines
 
 
-def parse_cfile_lines(c_file):
+def parse_cfile_lines(c_file, exclude_patterns=None):
     """Use Cython's coverage plugin to parse the C code."""
     from Cython.Coverage import Plugin
-    return Plugin()._parse_cfile_lines(c_file)
+    p = Plugin()
+    p._excluded_line_patterns = list(exclude_patterns)
+    return p._parse_cfile_lines(c_file)
 
 
 class Plugin(CoveragePlugin):
     """A coverage plugin for a spin/meson project with Cython code."""
+
+    def configure(self, config):
+        # Entry point for coverage "configurer".
+        # Read the regular expressions from the coverage config that match lines to be excluded from coverage.
+        self.exclude_patterns = tuple(config.get_option("report:exclude_lines"))
 
     def file_tracer(self, filename):
         """Find a tracer for filename to handle trace events."""
@@ -121,7 +128,7 @@ class Plugin(CoveragePlugin):
     def file_reporter(self, filename):
         """Return a file reporter for filename."""
         srcfile = Path(filename).relative_to(src_dir)
-        return CyFileReporter(srcfile)
+        return CyFileReporter(srcfile, exclude_patterns=self.exclude_patterns)
 
 
 class CyFileTracer(FileTracer):
@@ -157,7 +164,7 @@ class CyFileTracer(FileTracer):
 class CyFileReporter(FileReporter):
     """File reporter for Cython or Python files (.pyx,.pxd,.py)."""
 
-    def __init__(self, srcpath):
+    def __init__(self, srcpath, exclude_patterns):
         abspath = (src_dir / srcpath)
         assert abspath.exists()
 
@@ -165,6 +172,7 @@ class CyFileReporter(FileReporter):
         super().__init__(str(abspath))
 
         self.srcpath = srcpath
+        self.exclude_patterns = exclude_patterns
 
     def relative_filename(self):
         """Path displayed in the coverage reports."""
@@ -173,7 +181,7 @@ class CyFileReporter(FileReporter):
     def lines(self):
         """Set of line numbers for possibly traceable lines."""
         srcpath = str(self.srcpath)
-        all_line_maps = parse_all_cfile_lines()
+        all_line_maps = parse_all_cfile_lines(exclude_patterns=self.exclude_patterns)
         line_map = all_line_maps[srcpath]
         return set(line_map)
 
