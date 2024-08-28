@@ -433,10 +433,6 @@ cdef class fmpz_mod_poly(flint_poly):
     def _div_(self, other):
         cdef fmpz_mod_poly res
 
-        other = self.ctx.mod.any_as_fmpz_mod(other)
-        if other is NotImplemented:
-            return NotImplemented
-
         if other == 0:
             raise ZeroDivisionError("Cannot divide by zero")
         elif not other.is_unit():

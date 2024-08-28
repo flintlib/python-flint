@@ -933,6 +933,7 @@ def test_fmpq_poly():
     assert raises(lambda: Q([1,[]]), TypeError)
     assert raises(lambda: Q({}), TypeError)
     assert raises(lambda: Q([1], []), TypeError)
+    assert raises(lambda: Q(1, 1, 1), TypeError)
     assert raises(lambda: Q([1], 0), ZeroDivisionError)
     assert bool(Q()) == False
     assert bool(Q([1])) == True
@@ -2735,6 +2736,8 @@ def test_polys():
 
         assert raises(lambda: 1 / P([1, 1]), DomainError)
         assert raises(lambda: P([1, 2, 1]) / P([1, 2]), DomainError)
+        assert raises(lambda: [] / P([1, 1]), TypeError)
+        assert raises(lambda: P([1, 1]) / [], TypeError)
 
         if is_field:
             assert P([1, 1]) // 2 == P([S(1)/2, S(1)/2])
@@ -2827,7 +2830,7 @@ def test_polys():
         assert raises(lambda: P([1, 2, 2]).sqrt(), DomainError)
 
         if P == flint.fmpq_poly:
-            assert raises(lambda: P([1, 2, 1], 3).sqrt(), ValueError)
+            assert raises(lambda: P([1, 2, 1], 3).sqrt(), DomainError)
             assert P([1, 2, 1], 4).sqrt() == P([1, 1], 2)
 
         assert P([]).deflation() == (P([]), 1)
@@ -3470,6 +3473,18 @@ def test_factor_poly_mpoly():
         assert S(0).sqrt() == S(0)
         assert S(1).sqrt() == S(1)
         assert S(4).sqrt()**2 == S(4)
+
+        if is_field:
+            for n in range(1, 10):
+                try:
+                    sqrtn = S(n).sqrt()
+                except DomainError:
+                    sqrtn = None
+                if sqrtn is None:
+                    assert raises(lambda: ((x + 1)**2/n).sqrt(), DomainError)
+                else:
+                    assert ((x + 1)**2/n).sqrt() ** 2 == (x + 1)**2/n
+                    assert raises(lambda: ((x**2 + 1)/n).sqrt(), DomainError)
 
         for i in range(-100, 100):
             try:
