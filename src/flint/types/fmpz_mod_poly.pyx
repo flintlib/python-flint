@@ -1434,17 +1434,27 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         cdef fmpz_t f
         cdef fmpz_mod_poly res
+        cdef bint is_one
+
+        if n < 1:
+            raise ValueError(f"{n = } must be positive")
+
+        if self.constant_coefficient() == 0:
+            raise ZeroDivisionError("fmpz_mod_poly inverse_series_trunc: zero constant term")
 
         res = self.ctx.new_ctype_poly()
         fmpz_init(f)
         fmpz_mod_poly_inv_series_f(
             f, res.val, self.val, n, res.ctx.mod.val
         )
-        if not fmpz_is_one(f):
-            fmpz_clear(f)
+        is_one = fmpz_is_one(f)
+        fmpz_clear(f)
+
+        if not is_one:
             raise ValueError(
                 f"Cannot compute inverse series of {self} modulo x^{n}"
             )
+
         return res
 
     def resultant(self, other):

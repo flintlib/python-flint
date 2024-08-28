@@ -33,16 +33,16 @@ cdef class nmod_poly_ctx:
     @staticmethod
     def new(mod):
         """Get an ``nmod_poly`` context with modulus ``mod``."""
-        return nmod_poly_ctx._get_ctx(mod)
+        return nmod_poly_ctx.any_as_nmod_poly_ctx(mod)
 
     @staticmethod
-    cdef any_as_nmod_poly_ctx(obj):
+    cdef nmod_poly_ctx any_as_nmod_poly_ctx(obj):
         """Convert an ``nmod_poly_ctx`` or ``int`` to an ``nmod_poly_ctx``."""
         if typecheck(obj, nmod_poly_ctx):
             return obj
         if typecheck(obj, int):
             return nmod_poly_ctx._get_ctx(obj)
-        return NotImplemented
+        raise TypeError("Invalid context/modulus for nmod_poly: %s" % obj)
 
     @staticmethod
     cdef nmod_poly_ctx _get_ctx(int mod):
@@ -216,9 +216,6 @@ cdef class nmod_poly(flint_poly):
             if mod == 0:
                 raise ValueError("a nonzero modulus is required")
             ctx = nmod_poly_ctx.any_as_nmod_poly_ctx(mod)
-            if ctx is NotImplemented:
-                raise TypeError("cannot create nmod_poly_ctx from input of type %s", type(mod))
-
             self.ctx = ctx
             nmod_poly_init(self.val, ctx.mod.n)
             if typecheck(val, fmpz_poly):
@@ -244,10 +241,12 @@ cdef class nmod_poly(flint_poly):
         return nmod_poly_modulus(self.val)
 
     def __richcmp__(s, t, int op):
+        cdef mp_limb_t v
+        cdef slong length
         cdef bint res
         if op != 2 and op != 3:
             raise TypeError("nmod_polys cannot be ordered")
-        if typecheck(s, nmod_poly) and typecheck(t, nmod_poly):
+        if typecheck(t, nmod_poly):
             if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
                 res = False
             else:
@@ -256,22 +255,19 @@ cdef class nmod_poly(flint_poly):
                 return res
             if op == 3:
                 return not res
-        else:
-            if not typecheck(s, nmod_poly):
-                s, t = t, s
-            try:
-                t = nmod_poly([t], (<nmod_poly>s).val.mod.n)
-            except TypeError:
-                pass
-            if typecheck(s, nmod_poly) and typecheck(t, nmod_poly):
-                if (<nmod_poly>s).val.mod.n != (<nmod_poly>t).val.mod.n:
-                    res = False
-                else:
-                    res = nmod_poly_equal((<nmod_poly>s).val, (<nmod_poly>t).val)
-                if op == 2:
-                    return res
-                if op == 3:
-                    return not res
+
+        # zero or constant poly can be equal to a scalar
+        length = nmod_poly_length(s.val)
+        if length <= 1 and s.ctx.any_as_nmod(&v, t):
+            if length == 0:
+                res = (v == 0)
+            else:
+                res = (v == nmod_poly_get_coeff_ui(s.val, 0))
+            if op == 2:
+                return res
+            if op == 3:
+                return not res
+
         return NotImplemented
 
     def __iter__(self):
@@ -391,9 +387,12 @@ cdef class nmod_poly(flint_poly):
         """
         if n <= 0:
             raise ValueError(f"n = {n} must be positive")
+        
+        if nmod_poly_get_coeff_ui(self.val, 0) == 0:
+            raise ZeroDivisionError(f"nmod_poly inverse_series_trunc: leading coefficient is zero")
 
-        if self.is_zero():
-            raise ValueError("cannot invert the zero element")
+        if not self.ctx._is_prime:
+            raise DomainError(f"nmod_poly inverse_series_trunc: modulus {self.ctx.mod.n} is not prime")
 
         cdef nmod_poly res = self.ctx.new_nmod_poly()
         nmod_poly_inv_series(res.val, self.val, n)
@@ -650,12 +649,17 @@ cdef class nmod_poly(flint_poly):
         """
         cdef nmod_poly res
 
-        if e < 0:
-            raise ValueError("Exponent must be non-negative")
-
         modulus = self.ctx.any_as_nmod_poly(modulus)
         if modulus is NotImplemented:
             raise TypeError("cannot convert input to nmod_poly")
+
+        # For larger exponents we need an fmpz
+        e_fmpz = any_as_fmpz(e)
+        if e_fmpz is NotImplemented:
+            raise TypeError(f"exponent cannot be cast to an fmpz type: {e}")
+
+        if e < 0:
+            raise ValueError("Exponent must be non-negative")
 
         # Output polynomial
         res = self.ctx.new_nmod_poly()
@@ -663,14 +667,9 @@ cdef class nmod_poly(flint_poly):
         # For small exponents, use a simple binary exponentiation method
         if e.bit_length() < 32:
             nmod_poly_powmod_ui_binexp(
-                res.val, self.val, <ulong>e, (<nmod_poly>modulus).val
+                res.val, self.val, <ulong>int(e), (<nmod_poly>modulus).val
             )
             return res
-
-        # For larger exponents we need to cast e to an fmpz first
-        e_fmpz = any_as_fmpz(e)
-        if e_fmpz is NotImplemented:
-            raise TypeError(f"exponent cannot be cast to an fmpz type: {e}")
 
         # To optimise powering, we precompute the inverse of the reverse of the modulus
         if mod_rev_inv is not None:

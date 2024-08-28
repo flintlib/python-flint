@@ -46,19 +46,19 @@ cdef class nmod_ctx:
     @staticmethod
     def new(mod):
         """Get an nmod context with modulus ``mod``."""
-        return nmod_ctx._get_ctx(mod)
+        return nmod_ctx.any_as_nmod_ctx(mod)
 
     @staticmethod
-    cdef any_as_nmod_ctx(obj):
+    cdef nmod_ctx any_as_nmod_ctx(obj):
         """Convert an ``nmod_ctx`` or ``int`` to an ``nmod_ctx``."""
         if typecheck(obj, nmod_ctx):
             return obj
         if typecheck(obj, int):
             return nmod_ctx._get_ctx(obj)
-        return NotImplemented
+        raise TypeError("Invalid context/modulus for nmod: %s" % obj)
 
     @staticmethod
-    cdef _get_ctx(int mod):
+    cdef nmod_ctx _get_ctx(int mod):
         """Retrieve an nmod context from the cache or create a new one."""
         ctx = _nmod_ctx_cache.get(mod)
         if ctx is None:
@@ -66,7 +66,7 @@ cdef class nmod_ctx:
         return ctx
 
     @staticmethod
-    cdef _new_ctx(ulong mod):
+    cdef nmod_ctx _new_ctx(ulong mod):
         """Create a new nmod context."""
         cdef nmod_ctx ctx = nmod_ctx.__new__(nmod_ctx)
         nmod_init(&ctx.mod, mod)
@@ -160,7 +160,8 @@ cdef class nmod_ctx:
 
         """
         r = self.new_nmod()
-        self.any_as_nmod(&r.val, val)
+        if not self.any_as_nmod(&r.val, val):
+            raise TypeError("cannot create nmod from object of type %s" % type(val))
         return r
 
 
@@ -174,11 +175,7 @@ cdef class nmod(flint_scalar):
 
     """
     def __init__(self, val, mod):
-        cdef nmod_ctx ctx
-        c = nmod_ctx.any_as_nmod_ctx(mod)
-        if c is NotImplemented:
-            raise TypeError("Invalid context/modulus for nmod: %s" % mod)
-        ctx = c
+        cdef nmod_ctx ctx = nmod_ctx.any_as_nmod_ctx(mod)
         if not ctx.any_as_nmod(&self.val, val):
             raise TypeError("cannot create nmod from object of type %s" % type(val))
         self.ctx = ctx

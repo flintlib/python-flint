@@ -11,11 +11,11 @@ cdef class nmod_ctx:
     cdef bint _is_prime
 
     @staticmethod
-    cdef any_as_nmod_ctx(obj)
+    cdef nmod_ctx any_as_nmod_ctx(obj)
     @staticmethod
-    cdef _get_ctx(int mod)
+    cdef nmod_ctx _get_ctx(int mod)
     @staticmethod
-    cdef _new_ctx(ulong mod)
+    cdef nmod_ctx _new_ctx(ulong mod)
 
     @cython.final
     cdef int any_as_nmod(self, mp_limb_t * val, obj) except -1

@@ -16,7 +16,7 @@ cdef class nmod_poly_ctx:
     cdef nmod_ctx scalar_ctx
 
     @staticmethod
-    cdef any_as_nmod_poly_ctx(obj)
+    cdef nmod_poly_ctx any_as_nmod_poly_ctx(obj)
     @staticmethod
     cdef nmod_poly_ctx _get_ctx(int mod)
     @staticmethod

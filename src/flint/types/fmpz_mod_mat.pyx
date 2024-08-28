@@ -467,8 +467,10 @@ cdef class fmpz_mod_mat(flint_mat):
             return self._scalarmul(e)
         return NotImplemented
 
-    def __pow__(self, other):
+    def __pow__(self, other, m=None):
         """``M ** n``: Raise a matrix to an integer power."""
+        if m is not None:
+            raise NotImplementedError("fmpz_mod_mat pow: modulo not supported")
         if not isinstance(other, int):
             return NotImplemented
         return self._pow(other)

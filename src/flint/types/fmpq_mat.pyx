@@ -99,9 +99,6 @@ cdef class fmpq_mat(flint_mat):
         cdef bint r
         if op != 2 and op != 3:
             raise TypeError("matrices cannot be ordered")
-        s = any_as_fmpq_mat(s)
-        if t is NotImplemented:
-            return s
         t = any_as_fmpq_mat(t)
         if t is NotImplemented:
             return t
@@ -266,9 +263,6 @@ cdef class fmpq_mat(flint_mat):
         return s * (1 / t)
 
     def __truediv__(s, t):
-        return fmpq_mat._div_(s, t)
-
-    def __div__(s, t):
         return fmpq_mat._div_(s, t)
 
     def inv(self):
@@ -488,7 +482,7 @@ cdef class fmpq_mat(flint_mat):
         if self.nrows() != self.ncols():
             raise ValueError("matrix must be square")
         if z is not None:
-            raise TypeError("fmpq_mat does not support modular exponentiation")
+            raise NotImplementedError("fmpq_mat does not support modular exponentiation")
 
         n = int(n)
         if n == 0:
