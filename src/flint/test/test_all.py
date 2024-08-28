@@ -2803,7 +2803,7 @@ def test_polys():
         assert P([1, 2, 1]).derivative() == P([2, 2])
 
         p = P([1, 2, 1])
-        if is_field and type(p) is flint.fq_default_poly:
+        if is_field and type(p) is not flint.fq_default_poly:
             assert p.integral() == P([0, 1, 1, S(1)/3])
         if type(p) is flint.fq_default_poly:
             assert raises(lambda: p.integral(), NotImplementedError)
