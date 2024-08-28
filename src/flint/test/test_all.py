@@ -2938,7 +2938,7 @@ def test_polys():
             assert (1 + x).pow_mod(2**127, x - 1) == pow(2, 2**127, int(characteristic))
 
             if type(x) is not flint.fq_default_poly:
-                assert (1 + x).pow_mod(2**127, x - 1, S(1)/2) == pow(2, 2**127, characteristic)
+                assert (1 + x).pow_mod(2**127, x - 1, S(1)/2) == pow(2, 2**127, int(characteristic))
                 assert raises(lambda: (1 + x).pow_mod(2**127, x - 1, []), TypeError)
 
             assert raises(lambda: (1 + x).pow_mod(4, []), TypeError)
