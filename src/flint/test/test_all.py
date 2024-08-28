@@ -197,8 +197,8 @@ def test_fmpz():
     assert abs(flint.fmpz(1)) == 1
     assert abs(flint.fmpz(-1)) == 1
 
-    assert bool(flint.fmpz(0)) == False
-    assert bool(flint.fmpz(1)) == True
+    assert bool(flint.fmpz(0)) is False
+    assert bool(flint.fmpz(1)) is True
 
     assert flint.fmpz(2).bit_length() == 2
     assert flint.fmpz(-2).bit_length() == 2
@@ -430,8 +430,8 @@ def test_fmpz_poly():
     assert p.degree() == 1
     assert p.coeffs() == [3,2]
     assert Z([]).coeffs() == []
-    assert bool(Z([])) == False
-    assert bool(Z([1])) == True
+    assert bool(Z([])) is False
+    assert bool(Z([1])) is True
     ctx.pretty = False
     assert repr(Z([1,2])) == "fmpz_poly([1, 2])"
     ctx.pretty = True
@@ -534,8 +534,8 @@ def test_fmpz_mat():
     assert (C.nrows(),C.ncols()) == (7,2)
     assert A*(B*C) == (A*B)*C
     assert raises(lambda: A*C, ValueError)
-    assert bool(M(2,2,[0,0,0,0])) == False
-    assert bool(M(2,2,[0,0,0,1])) == True
+    assert bool(M(2,2,[0,0,0,0])) is False
+    assert bool(M(2,2,[0,0,0,1])) is True
     ctx.pretty = False
     assert repr(M(2,2,[1,2,3,4])) == 'fmpz_mat(2, 2, [1, 2, 3, 4])'
     ctx.pretty = True
@@ -762,8 +762,8 @@ def test_fmpq():
     assert raises(lambda: Q([]), TypeError)
     assert raises(lambda: Q(1, []), TypeError)
     assert raises(lambda: Q([], 1), TypeError)
-    assert bool(Q(0)) == False
-    assert bool(Q(1)) == True
+    assert bool(Q(0)) is False
+    assert bool(Q(1)) is True
     assert Q(1,3) + Q(2,3) == 1
     assert Q(1,3) - Q(2,3) == Q(-1,3)
     assert Q(1,3) * Q(2,3) == Q(2,9)
@@ -924,8 +924,8 @@ def test_fmpq_poly():
     assert raises(lambda: Q({}), TypeError)
     assert raises(lambda: Q([1], []), TypeError)
     assert raises(lambda: Q([1], 0), ZeroDivisionError)
-    assert bool(Q()) == False
-    assert bool(Q([1])) == True
+    assert bool(Q()) is False
+    assert bool(Q([1])) is True
     assert Q(Q([1,2])) == Q([1,2])
     assert Q(Z([1,2])) == Q([1,2])
     assert Q([1,2]) + 3 == Q([4,2])
@@ -1497,8 +1497,8 @@ def test_nmod_mat():
     B = M(3,7,Z.randtest(3,7,5).entries(),17)
     C = M(7,2,Z.randtest(7,2,5).entries(),17)
     assert A*(B*C) == (A*B)*C
-    assert bool(M(2,2,[0,0,0,0],17)) == False
-    assert bool(M(2,2,[0,0,0,1],17)) == True
+    assert bool(M(2,2,[0,0,0,0],17)) is False
+    assert bool(M(2,2,[0,0,0,1],17)) is True
     pretty = ctx.pretty
     try:
         ctx.pretty = False
