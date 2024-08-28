@@ -1523,8 +1523,8 @@ def test_nmod_mat():
     assert raises(lambda: M([[0]],13) < M([[1]],13), TypeError)
     assert (M([[1]],17) == M([[1]],13)) is False
     assert (M([[1]],17) != M([[1]],13)) is True
-    assert (M([[1]],17) == None) is False
-    assert (M([[1]],17) != None) is True
+    assert (M([[1]],17) is None) is False
+    assert (M([[1]],17) is not None) is True
     M2 = M.randtest(3,4,5)
     assert all(0 <= int(x) < 5 for x in M2.entries())
     assert (M2.nrows(), M2.ncols()) == (3, 4)
@@ -2591,10 +2591,8 @@ def test_polys():
         assert (s1 == P([s2])) is False
         assert (s1 != P([s2])) is True
 
-        assert (P([1]) == None) is False
-        assert (P([1]) != None) is True
-        assert (None == P([1])) is False
-        assert (None != P([1])) is True
+        assert (P([1]) is None) is False
+        assert (P([1]) is not None) is True
 
         assert raises(lambda: P([1]) < P([1]), TypeError)
         assert raises(lambda: P([1]) <= P([1]), TypeError)
@@ -2937,10 +2935,8 @@ def test_mpolys():
         assert (P(1, ctx=ctx) == P(1, ctx=ctx1)) is False
         assert (P(1, ctx=ctx) != P(1, ctx=ctx1)) is True
 
-        assert (P(1, ctx=ctx) == None) is False
-        assert (P(1, ctx=ctx) != None) is True
-        assert (None == P(1, ctx=ctx)) is False
-        assert (None != P(1, ctx=ctx)) is True
+        assert (P(1, ctx=ctx) is None) is False
+        assert (P(1, ctx=ctx) is not None) is True
 
         assert P(ctx.from_dict({(0, 1): 3})) == ctx.from_dict({(0, 1): 3})
         assert P({(0, 1): 3}, ctx=ctx) == ctx.from_dict({(0, 1): 3})
@@ -3676,10 +3672,8 @@ def test_matrices_eq():
         assert (A1 != A2) is False
         assert (A1 == B) is False
         assert (A1 != B) is True
-        assert (A1 == None) is False
-        assert (A1 != None) is True
-        assert (None == A1) is False
-        assert (None != A1) is True
+        assert (A1 is None) is False
+        assert (A1 is not None) is True
         assert raises(lambda: A1 < A2, TypeError)
         assert raises(lambda: A1 <= A2, TypeError)
         assert raises(lambda: A1 > A2, TypeError)
