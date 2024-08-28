@@ -21,6 +21,11 @@ def raises(f, exception):
     return False
 
 
+def test_raises():
+    assert raises(lambda: 1/0, ZeroDivisionError) is True
+    assert raises(lambda: 1/1, ZeroDivisionError) is False
+
+
 _default_ctx_string = """\
 pretty = True      # pretty-print repr() output
 unicode = False    # use unicode characters in output
@@ -153,8 +158,9 @@ def test_fmpz():
         # https://github.com/flintlib/python-flint/issues/74
         if not PYPY:
             assert pow(a, flint.fmpz(b), c) == ab_mod_c
-            assert pow(a, b, flint.fmpz(c)) == ab_mod_c
             assert pow(a, flint.fmpz(b), flint.fmpz(c)) == ab_mod_c
+            assert pow(a, b, flint.fmpz(c)) == ab_mod_c
+            assert raises(lambda: pow([], flint.fmpz(2), 2), TypeError)
 
     assert raises(lambda: pow(flint.fmpz(2), 2, 0), ValueError)
     # XXX: Handle negative modulus like int?
@@ -602,7 +608,8 @@ def test_fmpz_mat():
     assert raises(lambda: M([[1,1],[1,1]]).solve(b), ZeroDivisionError)
     assert raises(lambda: M([[1,2],[3,4],[5,6]]).solve(b), ValueError)
     assert M([[1,0],[1,2]]).solve(b) == flint.fmpq_mat([[3],[2]])
-    assert raises(lambda: M([[1,0],[1,2]]).solve(b, integer=True), ValueError)
+    assert raises(lambda: M([[1,0],[1,0]]).solve(b, integer=True), ZeroDivisionError)
+    assert raises(lambda: M([[1,0],[1,2]]).solve(b, integer=True), DomainError)
     assert raises(lambda: M([[1,2,3],[4,5,6]]).inv(), ValueError)
     assert raises(lambda: M([[1,1],[1,1]]).inv(), ZeroDivisionError)
     assert raises(lambda: M([[1,0],[1,2]]).inv(integer=True), ValueError)
@@ -632,6 +639,7 @@ def test_fmpz_mat():
     for gram in "approx", "exact":
         assert M4.lll(rep=rep, gram=gram) == L4
         assert M4.lll(rep=rep, gram=gram, transform=True) == (L4, T4)
+    assert raises(lambda: M4.lll(rep="gram"), AssertionError)
     assert raises(lambda: M4.lll(rep="bad"), ValueError)
     assert raises(lambda: M4.lll(gram="bad"), ValueError)
     M5 = M([[1,2,3],[4,5,6]])
@@ -4561,6 +4569,7 @@ def test_all_tests():
 
 all_tests = [
 
+    test_raises,
     test_pyflint,
     test_showgood,
 

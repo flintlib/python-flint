@@ -1,2 +1,6 @@
 [run]
 plugins = coverage_plugin
+
+[report]
+exclude_lines =
+    assert False
