@@ -126,7 +126,7 @@ def test_fmpz():
                         assert raises(lambda: ltype(s) >> rtype(t), ValueError)
 
     assert 2 ** flint.fmpz(2) == 4
-    assert type(2 ** flint.fmpz(2)) == flint.fmpz
+    assert type(2 ** flint.fmpz(2)) is flint.fmpz
     assert raises(lambda: () ** flint.fmpz(1), TypeError)
     assert raises(lambda: flint.fmpz(1) ** (), TypeError)
     assert raises(lambda: flint.fmpz(1) ** -1, ValueError)
@@ -2305,7 +2305,7 @@ def test_fmpz_mod_mat():
     assert M.nrows() == 3
     assert M.ncols() == 3
     assert M.entries() == [flint.fmpz_mod(i, c11) for i in [1,2,3,4,5,6,7,8,9]]
-    assert type(M[0,0]) == flint.fmpz_mod
+    assert type(M[0,0]) is flint.fmpz_mod
     assert M[0,0] == 1
     assert raises(lambda: flint.fmpz_mod_mat([[1]]), TypeError)
     assert raises(lambda: flint.fmpz_mod_mat([[1,2],[3,4]], c11, c11), TypeError)
@@ -2622,15 +2622,15 @@ def test_polys():
 
         for v in [], [1], [1, 2]:
             p = P(v)
-            if type(p) == flint.fmpz_poly:
+            if type(p) is flint.fmpz_poly:
                 assert P(v).repr() == f'fmpz_poly({v!r})'
-            elif type(p) == flint.fmpq_poly:
+            elif type(p) is flint.fmpq_poly:
                 assert P(v).repr() == f'fmpq_poly({v!r})'
-            elif type(p) == flint.nmod_poly:
+            elif type(p) is flint.nmod_poly:
                 assert P(v).repr() == f'nmod_poly({v!r}, {p.modulus()})'
-            elif type(p) == flint.fmpz_mod_poly:
+            elif type(p) is flint.fmpz_mod_poly:
                 pass # fmpz_mod_poly does not have .repr() ...
-            elif type(p) == flint.fq_default_poly:
+            elif type(p) is flint.fq_default_poly:
                 pass # fq_default_poly does not have .repr() ...
             else:
                 assert False
@@ -2803,9 +2803,9 @@ def test_polys():
         assert P([1, 2, 1]).derivative() == P([2, 2])
 
         p = P([1, 2, 1])
-        if is_field and type(p) != flint.fq_default_poly:
+        if is_field and type(p) is flint.fq_default_poly:
             assert p.integral() == P([0, 1, 1, S(1)/3])
-        if type(p) == flint.fq_default_poly:
+        if type(p) is flint.fq_default_poly:
             assert raises(lambda: p.integral(), NotImplementedError)
 
 
