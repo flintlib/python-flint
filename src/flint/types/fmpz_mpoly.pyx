@@ -1174,6 +1174,17 @@ cdef class fmpz_mpoly_vec:
     def __repr__(self):
         return f"fmpz_mpoly_vec({self}, ctx={self.ctx})"
 
+    def __richcmp__(self, other, int op):
+        if not (op == Py_EQ or op == Py_NE):
+            return NotImplemented
+        elif typecheck(other, fmpz_mpoly_vec):
+            if (<fmpz_mpoly_vec>self).ctx is (<fmpz_mpoly_vec>other).ctx and len(self) == len(other):
+                return (op == Py_NE) ^ all(x == y for x, y in zip(self, other))
+            else:
+                return op == Py_NE
+        else:
+            return NotImplemented
+
     def to_tuple(self):
         return tuple(self[i] for i in range(self.val.length))
 
@@ -1193,7 +1204,7 @@ cdef class fmpz_mpoly_vec:
             True
             >>> vec.is_groebner(fmpz_mpoly_vec([f, g], ctx))
             True
-            >>> vec.is_groebner(fmpz_mpoly_vec([f, ctx.from_dict({(3, 0): 1})], ctx))
+            >>> vec.is_groebner(fmpz_mpoly_vec([f, x**3], ctx))
             False
 
         """
@@ -1212,14 +1223,14 @@ cdef class fmpz_mpoly_vec:
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
             >>> x, y = ctx.gens()
-            >>> f = 3*x**2 - y
-            >>> k1 = x*y - x
+            >>> f2 = 3*x**2 - y
+            >>> k = x*y - x
             >>> k2 = 3*x*y - 3*x
             >>> h = y**2 - y
-            >>> vec = fmpz_mpoly_vec([f, k1, h], ctx)
+            >>> vec = fmpz_mpoly_vec([f2, k, h], ctx)
             >>> vec.is_autoreduced()
             True
-            >>> vec = fmpz_mpoly_vec([f, k2, h], ctx)
+            >>> vec = fmpz_mpoly_vec([f2, k2, h], ctx)
             >>> vec.is_autoreduced()
             False
 
@@ -1234,10 +1245,10 @@ cdef class fmpz_mpoly_vec:
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
             >>> x, y = ctx.gens()
-            >>> f = 3*x**2 - y
+            >>> f2 = 3*x**2 - y
             >>> k2 = 3*x*y - 3*x
             >>> h = y**2 - y
-            >>> vec = fmpz_mpoly_vec([f, k2, h], ctx)
+            >>> vec = fmpz_mpoly_vec([f2, k2, h], ctx)
             >>> vec.is_autoreduced()
             False
             >>> vec2 = vec.autoreduction()
@@ -1270,6 +1281,9 @@ cdef class fmpz_mpoly_vec:
         If limits is provided return a tuple of `(result, success)`. If `success` is False then `result` is a valid
         basis for `self`, but it may not be a Gröbner basis.
 
+        NOTE: This function is exposed only for convenience, it is a naive implementation and does not compute a reduced
+        basis.
+
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
             >>> x, y = ctx.gens()
@@ -1282,7 +1296,6 @@ cdef class fmpz_mpoly_vec:
             fmpz_mpoly_vec([x^2 - y, x^3*y - x, x*y^2 - x, y^3 - y], ctx=fmpz_mpoly_ctx(2, '<Ordering.lex: 0>', ('x', 'y')))
             >>> vec.buchberger_naive(limits=(2, 2, 512))
             (fmpz_mpoly_vec([x^2 - y, x^3*y - x], ctx=fmpz_mpoly_ctx(2, '<Ordering.lex: 0>', ('x', 'y'))), False)
-
         """
 
         cdef:

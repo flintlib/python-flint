@@ -3208,8 +3208,11 @@ def _all_mpoly_vecs():
 
 def test_fmpz_mpoly_vec():
     for context, mpoly_vec in _all_mpoly_vecs():
+        has_groebner_functions = mpoly_vec is flint.fmpz_mpoly_vec
+
         ctx = context.get_context(nvars=2)
         ctx1 = context.get_context(nvars=4)
+        x, y = ctx.gens()
 
         vec = mpoly_vec(3, ctx)
 
@@ -3225,12 +3228,66 @@ def test_fmpz_mpoly_vec():
         assert raises(lambda: vec[None], TypeError)
         assert raises(lambda: vec[-1], IndexError)
 
-        vec[1] = ctx.from_dict({(1, 1): 1})
-        assert vec.to_tuple() == mpoly_vec([ctx.from_dict({}), ctx.from_dict({(1, 1): 1}), ctx.from_dict({})], ctx).to_tuple()
+        vec[1] = x * y
+        assert vec == mpoly_vec([ctx.from_dict({}), x * y, ctx.from_dict({})], ctx)
+        assert vec != mpoly_vec([x, x * y, ctx.from_dict({})], ctx)
+        assert vec != mpoly_vec([ctx.from_dict({})], ctx)
+        assert vec != mpoly_vec([ctx1.from_dict({})], ctx1)
+        assert vec.to_tuple() == mpoly_vec([ctx.from_dict({}), x * y, ctx.from_dict({})], ctx).to_tuple()
         assert raises(lambda: vec.__setitem__(None, 0), TypeError)
         assert raises(lambda: vec.__setitem__(-1, 0), IndexError)
         assert raises(lambda: vec.__setitem__(0, 0), TypeError)
         assert raises(lambda: vec.__setitem__(0, ctx1.from_dict({})), IncompatibleContextError)
+
+
+        if has_groebner_functions:
+            ctx = context.get_context(3, flint.Ordering.lex, nametup=('x', 'y', 'z'))
+
+            # Examples here cannibalised from
+            # https://en.wikipedia.org/wiki/Gr%C3%B6bner_basis#Example_and_counterexample
+            x, y, z = ctx.gens()
+            f = x**2 - y
+            f2 = 3 * x**2 - y
+            g = x**3 - x
+            g2 = x**3 * y - x
+            k = x * y - x
+            k2 = 3 * x * y - 3 * x
+            h = y**2 - y
+
+            vec = mpoly_vec([f, k, h], ctx)
+            assert vec.is_groebner()
+            assert vec.is_groebner(mpoly_vec([f, g], ctx))
+            assert not vec.is_groebner(mpoly_vec([f, x**3], ctx))
+
+            assert mpoly_vec([f2, k, h], ctx).is_autoreduced()
+            assert not mpoly_vec([f2, k2, h], ctx).is_autoreduced()
+
+            vec = mpoly_vec([f2, k2, h], ctx)
+            vec2 = vec.autoreduction()
+            assert not vec.is_autoreduced()
+            assert vec2.is_autoreduced()
+            assert vec2 == mpoly_vec([3 * x**2 - y, x * y - x, y**2 - y], ctx)
+
+            vec = mpoly_vec([f, g2], ctx)
+            assert not vec.is_groebner()
+            assert vec.buchberger_naive() == mpoly_vec([x**2 - y, x**3 * y - x, x * y**2 - x, y**3 - y], ctx)
+            assert vec.buchberger_naive(limits=(2, 2, 512)) == (mpoly_vec([x**2 - y, x**3 * y - x], ctx), False)
+
+            unreduced_basis = mpoly_vec([x**2 - 2, y**2 - 3, z - x - y], ctx).buchberger_naive()
+            assert list(unreduced_basis) == [
+                x**2 - 2,
+                y**2 - 3,
+                x + y - z,
+                2*y*z - z**2 - 1,
+                2*y + z**3 - 11*z,
+                z**4 - 10*z**2 + 1
+            ]
+
+            assert list(unreduced_basis.autoreduction()) == [
+                z**4 - 10 * z**2 + 1,
+                2*y + z**3 - 11 * z,
+                2 * x - z**3 + 9 * z
+            ]
 
 
 def _all_matrices():
