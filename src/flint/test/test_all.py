@@ -772,6 +772,7 @@ def test_fmpq():
     assert raises(lambda: Q([]), TypeError)
     assert raises(lambda: Q(1, []), TypeError)
     assert raises(lambda: Q([], 1), TypeError)
+    assert raises(lambda: Q(1, 1, 1), TypeError)
     assert bool(Q(0)) == False
     assert bool(Q(1)) == True
     assert Q(1,3) + Q(2,3) == 1
