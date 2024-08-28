@@ -1451,7 +1451,7 @@ cdef class fmpz_mod_poly(flint_poly):
         fmpz_clear(f)
 
         if not is_one:
-            raise ValueError(
+            raise DomainError(
                 f"Cannot compute inverse series of {self} modulo x^{n}"
             )
 

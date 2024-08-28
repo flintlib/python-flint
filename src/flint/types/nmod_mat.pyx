@@ -76,10 +76,10 @@ cdef class nmod_mat_ctx:
     @staticmethod
     def new(mod):
         """Get an ``nmod_poly`` context with modulus ``mod``."""
-        return nmod_mat_ctx._get_ctx(mod)
+        return nmod_mat_ctx.any_as_nmod_mat_ctx(mod)
 
     @staticmethod
-    cdef any_as_nmod_mat_ctx(obj):
+    cdef nmod_mat_ctx any_as_nmod_mat_ctx(obj):
         """Convert an ``nmod_mat_ctx`` or ``int`` to an ``nmod_mat_ctx``."""
         if typecheck(obj, nmod_mat_ctx):
             return obj
@@ -87,7 +87,7 @@ cdef class nmod_mat_ctx:
             return nmod_mat_ctx._get_ctx(obj)
         elif typecheck(obj, fmpz):
             return nmod_mat_ctx._get_ctx(int(obj))
-        return NotImplemented
+        raise TypeError("nmod_mat: expected last argument to be an nmod_mat_ctx or an integer")
 
     @staticmethod
     cdef nmod_mat_ctx _get_ctx(int mod):
@@ -265,12 +265,7 @@ cdef class nmod_mat(flint_mat):
         mod = args[-1]
         args = args[:-1]
 
-        c = nmod_mat_ctx.any_as_nmod_mat_ctx(mod)
-        if c is NotImplemented:
-            raise TypeError("nmod_mat: expected last argument to be an nmod_mat_ctx or an integer")
-
-        ctx = c
-        self.ctx = ctx
+        self.ctx = ctx = nmod_mat_ctx.any_as_nmod_mat_ctx(mod)
 
         if mod == 0:
             raise ValueError("modulus must be nonzero")
@@ -427,7 +422,7 @@ cdef class nmod_mat(flint_mat):
             return t
         tv = &(<nmod_mat>t).val[0]
         if sv.mod.n != tv.mod.n:
-            raise ValueError("cannot add nmod_mats with different moduli")
+            raise ValueError("cannot add nmod_mats with different moduli") # pragma: no cover
         if sv.r != tv.r or sv.c != tv.c:
             raise ValueError("incompatible shapes for matrix addition")
         r = s.ctx.new_nmod_mat(sv.r, sv.c)
@@ -461,7 +456,7 @@ cdef class nmod_mat(flint_mat):
             return t
         tv = &(<nmod_mat>t).val[0]
         if sv.mod.n != tv.mod.n:
-            raise ValueError("cannot subtract nmod_mats with different moduli")
+            raise ValueError("cannot subtract nmod_mats with different moduli") # pragma: no cover
         if sv.r != tv.r or sv.c != tv.c:
             raise ValueError("incompatible shapes for matrix subtraction")
         r = s.ctx.new_nmod_mat(sv.r, sv.c)
@@ -539,9 +534,6 @@ cdef class nmod_mat(flint_mat):
         return s * tinv
 
     def __truediv__(s, t):
-        return nmod_mat._div_(s, t)
-
-    def __div__(s, t):
         return nmod_mat._div_(s, t)
 
     def det(self):

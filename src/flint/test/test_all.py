@@ -1123,7 +1123,7 @@ def test_fmpq_mat():
     for _ in range(2):
         A = Q(flint.fmpz_mat.randtest(30, 30, 10))
         if A.det() == 0:
-            continue
+            continue  # pragma: no cover
         B = Q(flint.fmpz_mat.randtest(30, 1, 10))
         X = A.solve(B)
         assert A*X == B
@@ -1548,6 +1548,8 @@ def test_nmod_mat():
     assert raises(lambda: M([1], 5), TypeError)
     assert raises(lambda: M([[1],[2,3]], 5), ValueError)
     assert raises(lambda: M([[1],[2]], 0), ValueError)
+    assert raises(lambda: M([[1, 2], [3, 4.0]], 5), TypeError)
+    assert raises(lambda: M(2, 2, [1, 2, 3, 4.0], 5), TypeError)
     assert raises(lambda: M(None), TypeError)
     assert raises(lambda: M(None,17), TypeError)
     assert M(2,3,17) == M(2,3,[0,0,0,0,0,0],17)
@@ -1629,12 +1631,14 @@ def test_nmod_series():
 
 def test_nmod_contexts():
     # XXX: Generalise this test to cover fmpz_mod, fq_default, etc.
-    C = flint.nmod_ctx
+    CS = flint.nmod_ctx
     CP = flint.nmod_poly_ctx
-    G = flint.nmod
+    CM = flint.nmod_mat_ctx
+    S = flint.nmod
     P = flint.nmod_poly
+    M = flint.nmod_mat
 
-    for c, name in [(C, 'nmod'), (CP, 'nmod_poly')]:
+    for c, name in [(CS, 'nmod'), (CP, 'nmod_poly'), (CM, 'nmod_mat')]:
         ctx = c.new(17)
         assert ctx.modulus() == 17
         assert str(ctx) == f"Context for {name} with modulus: 17"
@@ -1642,15 +1646,20 @@ def test_nmod_contexts():
         assert raises(lambda: c(3), TypeError)
         assert raises(lambda: ctx.new(3.0), TypeError)
 
-    ctx = C.new(17)
-    assert ctx(3) == G(3,17) == G(3, ctx)
+    ctx = CS.new(17)
+    assert ctx(3) == S(3,17) == S(3, ctx)
     assert raises(lambda: ctx(3.0), TypeError)
-    assert raises(lambda: G(3, []), TypeError)
+    assert raises(lambda: S(3, []), TypeError)
 
     ctx_poly = CP.new(17)
     assert ctx_poly([1,2,3]) == P([1,2,3],17) == P([1,2,3], ctx_poly)
     assert raises(lambda: ctx_poly([1,2.0,3]), TypeError)
     assert raises(lambda: P([1,2,3], []), TypeError)
+
+    ctx_mat = CM.new(17)
+    assert ctx_mat([[1,2],[3,4]]) == M([[1,2],[3,4]],17) == M([[1,2],[3,4]], ctx_mat)
+    assert raises(lambda: ctx_mat([[1,2.0],[3,4]]), TypeError)
+    assert raises(lambda: M([[1,2],[3,4]], []), TypeError)
 
 
 def test_arb():
@@ -2596,6 +2605,7 @@ def _all_polys():
         NMOD(9),
         NMOD(16),
         FMPZ_MOD(164),
+        FMPZ_MOD(9),
         FMPZ_MOD(2**127),
         FMPZ_MOD(2**255),
     ]
@@ -2795,7 +2805,7 @@ def test_polys():
             assert P([1, 1]) % 2 == P([1, 1])
             assert P([2, 2]) / 2 == P([1, 1])
             assert raises(lambda: P([1, 2]) / 2, DomainError)
-        else:
+        elif characteristic.gcd(2) != 1 or type(P(1)) is flint.nmod_poly:
             # Z/nZ for n not prime
             assert raises(lambda: P([1, 1]) // 2, DomainError)
             assert raises(lambda: P([1, 1]) % 2, DomainError)
@@ -2898,7 +2908,7 @@ def test_polys():
             if type(x) is flint.fmpz_mod_poly:
                 assert (1 + x).inverse_series_trunc(4) == 1 - x + x**2 - x**3
                 if characteristic.gcd(3) != 1:
-                    assert (3 + x).inverse_series_trunc(4) == 1 - x + x**2 - x**3
+                    assert raises(lambda: (3 + x).inverse_series_trunc(4), DomainError)
                 else:
                     assert (3 + x).inverse_series_trunc(4)\
                             == S(1)/3 - S(1)/9*x + S(1)/27*x**2 - S(1)/81*x**3
