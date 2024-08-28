@@ -47,7 +47,7 @@ def test_pyflint():
         ctx.prec = oldprec
 
     assert ctx.dps == 15
-    olddps = ctx.dps
+
     try:
         f1 = flint.arb(2).sqrt()
         ctx.dps = 3
@@ -1530,7 +1530,6 @@ def test_nmod_mat():
     assert (M2.nrows(), M2.ncols()) == (3, 4)
     M3 = M(2,2,[1,2,3,4],17)
     assert M3[0,1] == G(2,17)
-    M3_copy = M(M3)
     M3[0,1] = -1
     assert M3[0,1] == G(-1,17)
     def set_bad(i,j):

@@ -35,7 +35,7 @@ def run_tests(verbose=None):
         try:
             test()
         except Exception as e:
-            print(f'Error in {test.__name__}')
+            print(f'Error in {test.__name__}, {e = }')
             if verbose:
                 traceback.print_exc()
             failed += 1
