@@ -1,6 +1,5 @@
 import sys
 import os
-from subprocess import check_call
 
 from Cython.Distutils import build_ext
 from Cython.Build import cythonize

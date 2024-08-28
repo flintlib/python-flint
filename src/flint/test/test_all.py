@@ -1,8 +1,6 @@
-import sys
 import math
 import operator
 import pickle
-import doctest
 import platform
 
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError

@@ -9,11 +9,7 @@ easier to find all the C files because we can just parse the build.ninja file.
 https://coverage.readthedocs.io/en/latest/api_plugin.html
 https://github.com/cython/cython/blob/master/Cython/Coverage.py
 """
-import re
-from collections import defaultdict
-
 from coverage.plugin import CoveragePlugin, FileTracer, FileReporter
-
 from functools import cache
 from pathlib import Path
 
