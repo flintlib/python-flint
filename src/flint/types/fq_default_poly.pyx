@@ -982,7 +982,7 @@ cdef class fq_default_poly(flint_poly):
             res.val, self.val, res.ctx.field.val
         )
         if check != 1:
-            raise ValueError(
+            raise DomainError(
                 f"Cannot compute square-root {self}"
             )
         return res
@@ -1587,6 +1587,12 @@ cdef class fq_default_poly(flint_poly):
             else:
                 res[i] = root
         return res
+
+    def real_roots(self):
+        """
+        This method is not implemented for polynomials in finite fields
+        """
+        raise DomainError("Cannot compute real roots for polynomials over finite fields")
 
     def complex_roots(self):
         """

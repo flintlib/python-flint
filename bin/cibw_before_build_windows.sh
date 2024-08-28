@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#
+# This script was previously needed to make libpythonXX.a on Windows when using
+# MinGW and setuptools. This is no longer needed now that we use meson.
+#
+
 set -o errexit
 
 # Uncomment this to run cibuildwheel locally on Windows:

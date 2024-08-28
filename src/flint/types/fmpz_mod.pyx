@@ -10,6 +10,7 @@ from flint.flintlib.fmpz cimport(
     fmpz_is_probabprime,
     fmpz_mul,
     fmpz_invmod,
+    fmpz_sqrtmod,
     fmpz_divexact,
     fmpz_gcd,
     fmpz_is_one,
@@ -28,6 +29,9 @@ from flint.types.fmpz cimport(
 )
 cimport cython
 cimport libc.stdlib
+
+from flint.utils.flint_exceptions import DomainError
+
 
 cdef class fmpz_mod_ctx:
     r"""
@@ -578,3 +582,34 @@ cdef class fmpz_mod(flint_scalar):
             )
 
         return res
+
+    def sqrt(self):
+        """
+        Return the square root of this ``fmpz_mod`` or raise an exception.
+
+            >>> ctx = fmpz_mod_ctx(13)
+            >>> s = ctx(10).sqrt()
+            >>> s
+            fmpz_mod(6, 13)
+            >>> s * s
+            fmpz_mod(10, 13)
+            >>> ctx(11).sqrt()
+            Traceback (most recent call last):
+                ...
+            flint.utils.flint_exceptions.DomainError: no square root exists for 11 mod 13
+
+        The modulus must be prime.
+
+        """
+        cdef fmpz_mod v
+
+        v = fmpz_mod.__new__(fmpz_mod)
+        v.ctx = self.ctx
+
+        if fmpz_is_zero(self.val):
+            return v
+
+        if not fmpz_sqrtmod(v.val, self.val, self.ctx.val.n):
+            raise DomainError("no square root exists for {} mod {}".format(self, self.ctx.modulus()))
+
+        return v

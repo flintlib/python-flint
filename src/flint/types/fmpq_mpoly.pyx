@@ -94,6 +94,22 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
         fmpq_mpoly_ctx_init(self.val, nvars, ordering_py_to_c(ordering))
         super().__init__(nvars, names)
 
+    def any_as_scalar(self, other):
+        if isinstance(other, int):
+            return any_as_fmpq(other)
+        elif typecheck(other, fmpz):
+            return any_as_fmpq(other)
+        elif typecheck(other, fmpq):
+            res = fmpq.__new__(fmpq)
+            fmpq_set((<fmpq>res).val, (<fmpq>other).val)
+            return res
+        else:
+            return NotImplemented
+
+    def scalar_as_mpoly(self, other: fmpq):
+        # non-fmpq scalars should first be converted via self.any_as_scalar
+        return self.constant(<fmpq>other)
+
     def nvars(self):
         """
         Return the number of variables in the context
@@ -336,205 +352,127 @@ cdef class fmpq_mpoly(flint_mpoly):
         fmpq_mpoly_neg(res.val, (<fmpq_mpoly>self).val, res.ctx.val)
         return res
 
-    def __add__(self, other):
+    cdef _add_scalar_(self, arg):
         cdef fmpq_mpoly res
-        if typecheck(other, fmpq_mpoly):
-            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
-            res = create_fmpq_mpoly(self.ctx)
-            fmpq_mpoly_add(res.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
-            return res
-        else:
-            other = any_as_fmpq(other)
-            if other is not NotImplemented:
-                res = create_fmpq_mpoly(self.ctx)
-                fmpq_mpoly_add_fmpq(res.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, res.ctx.val)
-                return res
-        return NotImplemented
-
-    def __radd__(self, other):
-        cdef fmpq_mpoly res
-        other = any_as_fmpq(other)
-        if other is not NotImplemented:
-            res = create_fmpq_mpoly(self.ctx)
-            fmpq_mpoly_add_fmpq(res.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, res.ctx.val)
-            return res
-        return NotImplemented
-
-    def __sub__(self, other):
-        cdef fmpq_mpoly res
-        if typecheck(other, fmpq_mpoly):
-            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
-            res = create_fmpq_mpoly(self.ctx)
-            fmpq_mpoly_sub(res.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
-            return res
-        else:
-            other = any_as_fmpq(other)
-            if other is not NotImplemented:
-                res = create_fmpq_mpoly(self.ctx)
-                fmpq_mpoly_sub_fmpq(res.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, res.ctx.val)
-                return res
-        return NotImplemented
-
-    def __rsub__(self, other):
-        cdef fmpq_mpoly res
-        other = any_as_fmpq(other)
-        if other is not NotImplemented:
-            res = create_fmpq_mpoly(self.ctx)
-            fmpq_mpoly_sub_fmpq(res.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, res.ctx.val)
-            return -res
-        return NotImplemented
-
-    def __mul__(self, other):
-        cdef fmpq_mpoly res
-        if typecheck(other, fmpq_mpoly):
-            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
-            res = create_fmpq_mpoly(self.ctx)
-            fmpq_mpoly_mul(res.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
-            return res
-        else:
-            other = any_as_fmpq(other)
-            if other is not NotImplemented:
-                res = create_fmpq_mpoly(self.ctx)
-                fmpq_mpoly_scalar_mul_fmpq(res.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, res.ctx.val)
-                return res
-        return NotImplemented
-
-    def __rmul__(self, other):
-        cdef fmpq_mpoly res
-        other = any_as_fmpq(other)
-        if other is not NotImplemented:
-            res = create_fmpq_mpoly(self.ctx)
-            fmpq_mpoly_scalar_mul_fmpq(res.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, res.ctx.val)
-            return res
-        return NotImplemented
-
-    def __pow__(self, other, modulus):
-        cdef fmpq_mpoly res
-        if modulus is not None:
-            raise NotImplementedError
-        other = any_as_fmpz(other)
-        if other is NotImplemented:
-            return other
-        if other < 0:
-            raise ValueError("cannot raise fmpq_mpoly to negative power")
+        cdef fmpq other = <fmpq>arg
         res = create_fmpq_mpoly(self.ctx)
-        if fmpq_mpoly_pow_fmpz(res.val, (<fmpq_mpoly>self).val, (<fmpz>other).val, res.ctx.val) == 0:
+        fmpq_mpoly_add_fmpq(res.val, self.val, other.val, self.ctx.val)
+        return res
+
+    cdef _add_mpoly_(self, arg):
+        cdef fmpq_mpoly res, other = <fmpq_mpoly>arg
+        res = create_fmpq_mpoly(self.ctx)
+        fmpq_mpoly_add(res.val, self.val, other.val, res.ctx.val)
+        return res
+
+    cdef _sub_scalar_(self, arg):
+        cdef fmpq_mpoly res
+        cdef fmpq other = <fmpq>arg
+        res = create_fmpq_mpoly(self.ctx)
+        fmpq_mpoly_sub_fmpq(res.val, self.val, other.val, self.ctx.val)
+        return res
+
+    cdef _sub_mpoly_(self, arg):
+        cdef fmpq_mpoly res, other = <fmpq_mpoly>arg
+        res = create_fmpq_mpoly(self.ctx)
+        fmpq_mpoly_sub(res.val, self.val, other.val, res.ctx.val)
+        return res
+
+    cdef _mul_scalar_(self, arg):
+        cdef fmpq_mpoly res
+        cdef fmpq other = <fmpq>arg
+        res = create_fmpq_mpoly(self.ctx)
+        fmpq_mpoly_scalar_mul_fmpq(res.val, self.val, other.val, self.ctx.val)
+        return res
+
+    cdef _mul_mpoly_(self, arg):
+        cdef fmpq_mpoly res, other = <fmpq_mpoly>arg
+        res = create_fmpq_mpoly(self.ctx)
+        fmpq_mpoly_mul(res.val, self.val, other.val, res.ctx.val)
+        return res
+
+    cdef _pow_(self, arg):
+        cdef fmpq_mpoly res
+        cdef fmpz other = <fmpz>arg
+        res = create_fmpq_mpoly(self.ctx)
+        if fmpq_mpoly_pow_fmpz(res.val, self.val, other.val, res.ctx.val) == 0:
             raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return res
 
-    def __divmod__(self, other):
-        cdef fmpq_mpoly res, res2
-        if typecheck(other, fmpq_mpoly):
-            if not other:
-                raise ZeroDivisionError("fmpq_mpoly division by zero")
-            elif (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
-            res = create_fmpq_mpoly(self.ctx)
-            res2 = create_fmpq_mpoly(self.ctx)
-            fmpq_mpoly_divrem(res.val, res2.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
-            return (res, res2)
+    cdef _divmod_mpoly_(self, arg):
+        cdef fmpq_mpoly quotient, remainder, other = <fmpq_mpoly>arg
+        quotient = create_fmpq_mpoly(self.ctx)
+        remainder = create_fmpq_mpoly(self.ctx)
+        fmpq_mpoly_divrem(quotient.val, remainder.val, self.val, other.val, self.ctx.val)
+        return (quotient, remainder)
+
+    cdef _floordiv_mpoly_(self, arg):
+        cdef fmpq_mpoly quotient, other = <fmpq_mpoly>arg
+        quotient = create_fmpq_mpoly(self.ctx)
+        fmpq_mpoly_div(quotient.val, self.val, other.val, self.ctx.val)
+        return quotient
+
+    cdef _truediv_mpoly_(self, arg):
+        cdef fmpq_mpoly quotient, other = <fmpq_mpoly>arg
+        quotient = create_fmpq_mpoly(self.ctx)
+        if fmpq_mpoly_divides(quotient.val, self.val, other.val, self.ctx.val):
+            return quotient
         else:
-            other = any_as_fmpq(other)
-            if other is not NotImplemented:
-                other = fmpq_mpoly(other, self.ctx)
-                if not other:
-                    raise ZeroDivisionError("fmpq_mpoly division by zero")
-                res = create_fmpq_mpoly(self.ctx)
-                res2 = create_fmpq_mpoly(self.ctx)
-                fmpq_mpoly_divrem(res.val, res2.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
-                return (res, res2)
-        return NotImplemented
+            raise DomainError("fmpq_mpoly division is not exact")
 
-    def __rdivmod__(self, other):
-        cdef fmpq_mpoly res, res2
-        if not self:
-            raise ZeroDivisionError("fmpq_mpoly division by zero")
-        other = any_as_fmpq(other)
-        if other is not NotImplemented:
-            other = fmpq_mpoly(other, self.ctx)
-            res = create_fmpq_mpoly(self.ctx)
-            res2 = create_fmpq_mpoly(self.ctx)
-            fmpq_mpoly_divrem(res.val, res2.val, (<fmpq_mpoly>other).val, (<fmpq_mpoly>self).val, res.ctx.val)
-            return (res, res2)
-        return NotImplemented
+    cdef _mod_mpoly_(self, arg):
+        cdef fmpq_mpoly quotient, remainder, other = <fmpq_mpoly>arg
+        quotient = create_fmpq_mpoly(self.ctx)
+        remainder = create_fmpq_mpoly(self.ctx)
+        fmpq_mpoly_divrem(quotient.val, remainder.val, self.val, other.val, self.ctx.val)
+        return remainder
 
-    def __floordiv__(self, other):
+    cdef _rsub_scalar_(self, arg):
         cdef fmpq_mpoly res
-        if typecheck(other, fmpq_mpoly):
-            if not other:
-                raise ZeroDivisionError("fmpq_mpoly division by zero")
-            elif (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
-            res = create_fmpq_mpoly(self.ctx)
-            fmpq_mpoly_div(res.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
-            return res
-        else:
-            other = any_as_fmpq(other)
-            if other is not NotImplemented:
-                if not other:
-                    raise ZeroDivisionError("fmpq_mpoly division by zero")
-                other = fmpq_mpoly(other, self.ctx)
-                res = create_fmpq_mpoly(self.ctx)
-                fmpq_mpoly_div(res.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
-                return res
-        return NotImplemented
-
-    def __rfloordiv__(self, other):
-        cdef fmpq_mpoly res
-        if not self:
-            raise ZeroDivisionError("fmpq_mpoly division by zero")
-        other = any_as_fmpq(other)
-        if other is not NotImplemented:
-            other = fmpq_mpoly(other, self.ctx)
-            res = create_fmpq_mpoly(self.ctx)
-            fmpq_mpoly_div(res.val, (<fmpq_mpoly>other).val, self.val, res.ctx.val)
-            return res
-        return NotImplemented
-
-    def __truediv__(self, other):
-        cdef:
-            fmpq_mpoly res
-
-        if typecheck(other, fmpq_mpoly):
-            if not other:
-                raise ZeroDivisionError("fmpq_mpoly division by zero")
-            elif self.ctx is not (<fmpq_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{self.ctx} is not {(<fmpq_mpoly>other).ctx}")
-
-            res = create_fmpq_mpoly(self.ctx)
-            if fmpq_mpoly_divides(res.val, self.val, (<fmpq_mpoly>other).val, self.ctx.val):
-                return res
-            else:
-                raise DomainError("fmpq_mpoly division is not exact")
-        else:
-            o = any_as_fmpq(other)
-            if o is NotImplemented:
-                return NotImplemented
-            elif not o:
-                raise ZeroDivisionError("fmpq_mpoly division by zero")
-            res = create_fmpq_mpoly(self.ctx)
-            fmpq_mpoly_scalar_div_fmpq(res.val, self.val, (<fmpq>o).val, self.ctx.val)
-            return res
-
-    def __rtruediv__(self, other):
-        cdef fmpq_mpoly res
-        if not self:
-            raise ZeroDivisionError("fmpq_mpoly division by zero")
-        o = any_as_fmpq(other)
-        if o is NotImplemented:
-            return NotImplemented
+        cdef fmpq other = <fmpq>arg
         res = create_fmpq_mpoly(self.ctx)
-        fmpq_mpoly_set_fmpq(res.val, (<fmpq>o).val, self.ctx.val)
-        return res / self
+        fmpq_mpoly_sub_fmpq(res.val, self.val, other.val, self.ctx.val)
+        fmpq_mpoly_neg(res.val, res.val, res.ctx.val)
+        return res
 
-    def __mod__(self, other):
-        return divmod(self, other)[1]
+    cdef _rsub_mpoly_(self, arg):
+        return (<fmpq_mpoly>arg)._sub_mpoly_(self)
 
-    def __rmod__(self, other):
-        return divmod(other, self)[1]
+    cdef _rdivmod_mpoly_(self, arg):
+        return (<fmpq_mpoly>arg)._divmod_mpoly_(self)
+
+    cdef _rfloordiv_mpoly_(self, arg):
+        return (<fmpq_mpoly>arg)._floordiv_mpoly_(self)
+
+    cdef _rtruediv_mpoly_(self, arg):
+        return (<fmpq_mpoly>arg)._truediv_mpoly_(self)
+
+    cdef _rmod_mpoly_(self, arg):
+        return (<fmpq_mpoly>arg)._mod_mpoly_(self)
+
+    cdef _iadd_scalar_(self, arg):
+        cdef fmpq other = <fmpq>arg
+        fmpq_mpoly_add_fmpq(self.val, self.val, other.val, self.ctx.val)
+
+    cdef _isub_scalar_(self, arg):
+        cdef fmpq other = <fmpq>arg
+        fmpq_mpoly_sub_fmpq(self.val, self.val, other.val, self.ctx.val)
+
+    cdef _imul_scalar_(self, arg):
+        cdef fmpq other = <fmpq>arg
+        fmpq_mpoly_scalar_mul_fmpq(self.val, self.val, other.val, self.ctx.val)
+
+    cdef _iadd_mpoly_(self, arg):
+        cdef fmpq_mpoly other = <fmpq_mpoly>arg
+        fmpq_mpoly_add(self.val, self.val, other.val, self.ctx.val)
+
+    cdef _isub_mpoly_(self, arg):
+        cdef fmpq_mpoly other = <fmpq_mpoly>arg
+        fmpq_mpoly_sub(self.val, self.val, other.val, self.ctx.val)
+
+    cdef _imul_mpoly_(self, arg):
+        cdef fmpq_mpoly other = <fmpq_mpoly>arg
+        fmpq_mpoly_mul(self.val, self.val, other.val, self.ctx.val)
 
     def __call__(self, *args) -> fmpq:
         cdef:
@@ -550,84 +488,6 @@ cdef class fmpq_mpoly(flint_mpoly):
         if fmpq_mpoly_evaluate_all_fmpq(vres.val, self.val, V.double_indirect, self.ctx.val) == 0:
             raise ValueError("unreasonably large polynomial")  # pragma: no cover
         return vres
-
-    def iadd(self, other):
-        """
-        In-place addition, mutates self.
-
-            >>> from flint import Ordering
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
-            >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
-            >>> f
-            4*x0*x1 + 2*x0 + 3*x1
-            >>> f.iadd(5)
-            >>> f
-            4*x0*x1 + 2*x0 + 3*x1 + 5
-
-        """
-        if typecheck(other, fmpq_mpoly):
-            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
-            fmpq_mpoly_add((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
-            return
-        else:
-            other = any_as_fmpq(other)
-            if other is not NotImplemented:
-                fmpq_mpoly_add_fmpq((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
-                return
-        raise NotImplementedError(f"in-place addition not implemented between {type(self)} and {type(other)}")
-
-    def isub(self, other):
-        """
-        In-place subtraction, mutates self.
-
-            >>> from flint import Ordering
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
-            >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
-            >>> f
-            4*x0*x1 + 2*x0 + 3*x1
-            >>> f.isub(5)
-            >>> f
-            4*x0*x1 + 2*x0 + 3*x1 - 5
-
-        """
-        if typecheck(other, fmpq_mpoly):
-            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
-            fmpq_mpoly_sub((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
-            return
-        else:
-            other = any_as_fmpq(other)
-            if other is not NotImplemented:
-                fmpq_mpoly_sub_fmpq((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
-                return
-        raise NotImplementedError(f"in-place subtraction not implemented between {type(self)} and {type(other)}")
-
-    def imul(self, other):
-        """
-        In-place multiplication, mutates self.
-
-            >>> from flint import Ordering
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
-            >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
-            >>> f
-            4*x0*x1 + 2*x0 + 3*x1
-            >>> f.imul(2)
-            >>> f
-            8*x0*x1 + 4*x0 + 6*x1
-
-        """
-        if typecheck(other, fmpq_mpoly):
-            if (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
-                raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
-            fmpq_mpoly_mul((<fmpq_mpoly>self).val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, self.ctx.val)
-            return
-        else:
-            other = any_as_fmpq(other)
-            if other is not NotImplemented:
-                fmpq_mpoly_scalar_mul_fmpq(self.val, (<fmpq_mpoly>self).val, (<fmpq>other).val, self.ctx.val)
-                return
-        raise NotImplementedError(f"in-place multiplication not implemented between {type(self)} and {type(other)}")
 
     def monoms(self):
         """
@@ -858,6 +718,25 @@ cdef class fmpq_mpoly(flint_mpoly):
         fmpq_mpoly_total_degree_fmpz((<fmpz> res).val, self.val, self.ctx.val)
         return res
 
+    def leading_coefficient(self):
+        """
+        Leading coefficient in the monomial ordering.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx(2, Ordering.lex, ['x', 'y'])
+            >>> x, y = ctx.gens()
+            >>> p = 2*x*y + 3*x + 4*y**2 + 5
+            >>> p
+            2*x*y + 3*x + 4*y^2 + 5
+            >>> p.leading_coefficient()
+            2
+
+        """
+        if fmpq_mpoly_is_zero(self.val, self.ctx.val):
+            return fmpq(0)
+        else:
+            return self.coefficient(0)
+
     def repr(self):
         return f"{self.ctx}.from_dict({self.to_dict()})"
 
@@ -906,7 +785,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         if fmpq_mpoly_sqrt(res.val, self.val, self.ctx.val):
             return res
         else:
-            raise ValueError("polynomial is not a perfect square")
+            raise DomainError("polynomial is not a perfect square")
 
     def factor(self):
         """
@@ -940,7 +819,7 @@ cdef class fmpq_mpoly(flint_mpoly):
             c = fmpz.__new__(fmpz)
             fmpz_init_set((<fmpz>c).val, &fac.exp[i])
 
-            res[i] = (u, c)
+            res[i] = (u, int(c))
 
         c = fmpq.__new__(fmpq)
         fmpq_set((<fmpq>c).val, fac.constant)
@@ -979,7 +858,7 @@ cdef class fmpq_mpoly(flint_mpoly):
             c = fmpz.__new__(fmpz)
             fmpz_init_set((<fmpz>c).val, &fac.exp[i])
 
-            res[i] = (u, c)
+            res[i] = (u, int(c))
 
         c = fmpq.__new__(fmpq)
         fmpq_set((<fmpq>c).val, fac.constant)

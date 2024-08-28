@@ -145,7 +145,7 @@ cdef class nmod_mpoly_ctx(flint_mpoly_context):
             return NotImplemented
 
     def scalar_as_mpoly(self, other: ulong):
-        # non-ulong scalars should first be converted via cls.any_as_scalar
+        # non-ulong scalars should first be converted via self.any_as_scalar
         return self.constant(<ulong>other)
 
     def nvars(self):
@@ -406,76 +406,127 @@ cdef class nmod_mpoly(flint_mpoly):
         nmod_mpoly_neg(res.val, (<nmod_mpoly>self).val, res.ctx.val)
         return res
 
-    def _add_scalar_(self, other: ulong):
+    cdef _add_scalar_(self, arg):
         cdef nmod_mpoly res
+        cdef ulong other = <ulong>arg
         res = create_nmod_mpoly(self.ctx)
         nmod_mpoly_add_ui(res.val, self.val, other, self.ctx.val)
         return res
 
-    def _add_mpoly_(self, other: nmod_mpoly):
+    cdef _sub_scalar_(self, arg):
         cdef nmod_mpoly res
-        res = create_nmod_mpoly(self.ctx)
-        nmod_mpoly_add(res.val, self.val, other.val, res.ctx.val)
-        return res
-
-    def _sub_scalar_(self, other: ulong):
-        cdef nmod_mpoly res
+        cdef ulong other = <ulong>arg
         res = create_nmod_mpoly(self.ctx)
         nmod_mpoly_sub_ui(res.val, self.val, other, self.ctx.val)
         return res
 
-    def _sub_mpoly_(self, other: nmod_mpoly):
+    cdef _mul_scalar_(self, arg):
         cdef nmod_mpoly res
-        res = create_nmod_mpoly(self.ctx)
-        nmod_mpoly_sub(res.val, self.val, other.val, res.ctx.val)
-        return res
-
-    def _mul_scalar_(self, other: ulong):
-        cdef nmod_mpoly res
+        cdef ulong other = <ulong>arg
         res = create_nmod_mpoly(self.ctx)
         nmod_mpoly_scalar_mul_ui(res.val, self.val, other, self.ctx.val)
         return res
 
-    def _mul_mpoly_(self, other: nmod_mpoly):
+    cdef _pow_(self, arg):
         cdef nmod_mpoly res
+        cdef fmpz other = <fmpz>arg
+        res = create_nmod_mpoly(self.ctx)
+        if nmod_mpoly_pow_fmpz(res.val, self.val, other.val, res.ctx.val) == 0:
+            raise ValueError("unreasonably large polynomial")  # pragma: no cover
+        return res
+
+    cdef _add_mpoly_(self, arg):
+        cdef nmod_mpoly res, other = <nmod_mpoly>arg
+        res = create_nmod_mpoly(self.ctx)
+        nmod_mpoly_add(res.val, self.val, other.val, res.ctx.val)
+        return res
+
+    cdef _sub_mpoly_(self, arg):
+        cdef nmod_mpoly res, other = <nmod_mpoly>arg
+        res = create_nmod_mpoly(self.ctx)
+        nmod_mpoly_sub(res.val, self.val, other.val, res.ctx.val)
+        return res
+
+    cdef _mul_mpoly_(self, arg):
+        cdef nmod_mpoly res, other = <nmod_mpoly>arg
         res = create_nmod_mpoly(self.ctx)
         nmod_mpoly_mul(res.val, self.val, other.val, res.ctx.val)
         return res
 
-    def _pow_(self, other: fmpz):
-        cdef nmod_mpoly res
-        res = create_nmod_mpoly(self.ctx)
-        if nmod_mpoly_pow_fmpz(res.val, self.val, (<fmpz>other).val, res.ctx.val) == 0:
-            raise ValueError("unreasonably large polynomial")  # pragma: no cover
-        return res
-
-    def _divmod_mpoly_(self, other: nmod_mpoly):
-        cdef nmod_mpoly quotient, remainder
+    cdef _divmod_mpoly_(self, arg):
+        cdef nmod_mpoly quotient, remainder, other = <nmod_mpoly>arg
         quotient = create_nmod_mpoly(self.ctx)
         remainder = create_nmod_mpoly(self.ctx)
         nmod_mpoly_divrem(quotient.val, remainder.val, self.val, other.val, self.ctx.val)
         return (quotient, remainder)
 
-    def _floordiv_mpoly_(self, other: nmod_mpoly):
-        cdef nmod_mpoly quotient
+    cdef _floordiv_mpoly_(self, arg):
+        cdef nmod_mpoly quotient, other = <nmod_mpoly>arg
         quotient = create_nmod_mpoly(self.ctx)
         nmod_mpoly_div(quotient.val, self.val, other.val, self.ctx.val)
         return quotient
 
-    def _truediv_mpoly_(self, other: nmod_mpoly):
-        cdef nmod_mpoly quotient
+    cdef _truediv_mpoly_(self, arg):
+        cdef nmod_mpoly quotient, other = <nmod_mpoly>arg
         quotient = create_nmod_mpoly(self.ctx)
         if nmod_mpoly_divides(quotient.val, self.val, other.val, self.ctx.val):
             return quotient
         else:
             raise DomainError("nmod_mpoly division is not exact")
 
-    def _mod_mpoly_(self, other: nmod_mpoly):
-        cdef nmod_mpoly quotient, remainder
+    cdef _mod_mpoly_(self, arg):
+        cdef nmod_mpoly quotient, remainder, other = <nmod_mpoly>arg
         quotient = create_nmod_mpoly(self.ctx)
         remainder = create_nmod_mpoly(self.ctx)
         nmod_mpoly_divrem(quotient.val, remainder.val, self.val, other.val, self.ctx.val)
         return remainder
+
+    cdef _rsub_scalar_(self, arg):
+        cdef nmod_mpoly res
+        cdef ulong other = <ulong>arg
+        res = create_nmod_mpoly(self.ctx)
+        nmod_mpoly_sub_ui(res.val, self.val, other, self.ctx.val)
+        nmod_mpoly_neg(res.val, res.val, res.ctx.val)
+        return res
+
+    cdef _rsub_mpoly_(self, arg):
+        return (<nmod_mpoly>arg)._sub_mpoly_(self)
+
+    cdef _rdivmod_mpoly_(self, arg):
+        return (<nmod_mpoly>arg)._divmod_mpoly_(self)
+
+    cdef _rfloordiv_mpoly_(self, arg):
+        return (<nmod_mpoly>arg)._floordiv_mpoly_(self)
+
+    cdef _rtruediv_mpoly_(self, arg):
+        return (<nmod_mpoly>arg)._truediv_mpoly_(self)
+
+    cdef _rmod_mpoly_(self, arg):
+        return (<nmod_mpoly>arg)._mod_mpoly_(self)
+
+    cdef _iadd_scalar_(self, arg):
+        cdef ulong other = <ulong>arg
+        nmod_mpoly_add_ui(self.val, self.val, other, self.ctx.val)
+
+    cdef _isub_scalar_(self, arg):
+        cdef ulong other = <ulong>arg
+        nmod_mpoly_sub_ui(self.val, self.val, other, self.ctx.val)
+
+    cdef _imul_scalar_(self, arg):
+        cdef ulong other = <fmpz>arg
+        nmod_mpoly_scalar_mul_ui(self.val, self.val, other, self.ctx.val)
+
+    cdef _iadd_mpoly_(self, arg):
+        cdef nmod_mpoly other = <nmod_mpoly>arg
+        nmod_mpoly_add(self.val, self.val, other.val, self.ctx.val)
+
+    cdef _isub_mpoly_(self, arg):
+        cdef nmod_mpoly other = <nmod_mpoly>arg
+        nmod_mpoly_sub(self.val, self.val, other.val, self.ctx.val)
+
+    cdef _imul_mpoly_(self, arg):
+        cdef nmod_mpoly other = <nmod_mpoly>arg
+        nmod_mpoly_mul(self.val, self.val, other.val, self.ctx.val)
 
     def __call__(self, *args) -> ulong:
         cdef:
@@ -501,24 +552,6 @@ cdef class nmod_mpoly(flint_mpoly):
             libc.stdlib.free(vals)
 
         return res
-
-    def _iadd_scalar_(self, other: ulong):
-        nmod_mpoly_add_ui(self.val, self.val, other, self.ctx.val)
-
-    def _iadd_mpoly_(self, other: nmod_mpoly):
-        nmod_mpoly_add(self.val, self.val, other.val, self.ctx.val)
-
-    def _isub_scalar_(self, other: ulong):
-        nmod_mpoly_sub_ui(self.val, self.val, other, self.ctx.val)
-
-    def _isub_mpoly_(self, other: nmod_mpoly):
-        nmod_mpoly_sub(self.val, self.val, other.val, self.ctx.val)
-
-    def _imul_scalar_(self, other: ulong):
-        nmod_mpoly_scalar_mul_ui(self.val, self.val, other, self.ctx.val)
-
-    def _imul_mpoly_(self, other: nmod_mpoly):
-        nmod_mpoly_mul(self.val, self.val, other.val, self.ctx.val)
 
     def monoms(self):
         """
@@ -733,6 +766,25 @@ cdef class nmod_mpoly(flint_mpoly):
         nmod_mpoly_total_degree_fmpz((<fmpz> res).val, self.val, self.ctx.val)
         return res
 
+    def leading_coefficient(self):
+        """
+        Leading coefficient in the monomial ordering.
+
+            >>> from flint import Ordering
+            >>> ctx = nmod_mpoly_ctx(2, Ordering.lex, ['x', 'y'], 11)
+            >>> x, y = ctx.gens()
+            >>> p = 2*x*y + 3*x + 4*y**2 + 5
+            >>> p
+            2*x*y + 3*x + 4*y^2 + 5
+            >>> p.leading_coefficient()
+            2
+
+        """
+        if nmod_mpoly_is_zero(self.val, self.ctx.val):
+            return nmod(0, self.ctx.modulus())
+        else:
+            return nmod(self.coefficient(0), self.ctx.modulus())
+
     def repr(self):
         return f"{self.ctx}.from_dict({self.to_dict()})"
 
@@ -755,12 +807,12 @@ cdef class nmod_mpoly(flint_mpoly):
             4*x0*x1 + 1
         """
         cdef nmod_mpoly res
-        if not self.ctx.is_prime():
-            raise DomainError("gcd with non-prime modulus is not supported")
-        elif not typecheck(other, nmod_mpoly):
+        if not typecheck(other, nmod_mpoly):
             raise TypeError("argument must be a nmod_mpoly")
         elif (<nmod_mpoly>self).ctx is not (<nmod_mpoly>other).ctx:
             raise IncompatibleContextError(f"{(<nmod_mpoly>self).ctx} is not {(<nmod_mpoly>other).ctx}")
+        elif not self.ctx.is_prime():
+            raise DomainError("gcd with non-prime modulus is not supported")
         res = create_nmod_mpoly(self.ctx)
         nmod_mpoly_gcd(res.val, (<nmod_mpoly>self).val, (<nmod_mpoly>other).val, res.ctx.val)
         return res
@@ -784,7 +836,7 @@ cdef class nmod_mpoly(flint_mpoly):
         if nmod_mpoly_sqrt(res.val, self.val, self.ctx.val):
             return res
         else:
-            raise ValueError("polynomial is not a perfect square")
+            raise DomainError("polynomial is not a perfect square")
 
     def factor(self):
         """
@@ -822,9 +874,9 @@ cdef class nmod_mpoly(flint_mpoly):
             c = fmpz.__new__(fmpz)
             fmpz_set((<fmpz>c).val, &fac.exp[i])
 
-            res[i] = (u, c)
+            res[i] = (u, int(c))
 
-        constant = fac.constant
+        constant = nmod(fac.constant, self.ctx.modulus())
         nmod_mpoly_factor_clear(fac, self.ctx.val)
         return constant, res
 
@@ -865,9 +917,9 @@ cdef class nmod_mpoly(flint_mpoly):
             c = fmpz.__new__(fmpz)
             fmpz_set((<fmpz>c).val, &fac.exp[i])
 
-            res[i] = (u, c)
+            res[i] = (u, int(c))
 
-        constant = fac.constant
+        constant = nmod(fac.constant, self.ctx.modulus())
         nmod_mpoly_factor_clear(fac, self.ctx.val)
         return constant, res
 

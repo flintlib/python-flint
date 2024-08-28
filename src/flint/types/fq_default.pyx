@@ -7,6 +7,8 @@ from flint.types.fmpz_mod_poly cimport fmpz_mod_poly, fmpz_mod_poly_ctx
 from flint.types.nmod_poly cimport nmod_poly
 from flint.utils.typecheck cimport typecheck
 
+from flint.utils.flint_exceptions import DomainError
+
 # Allow the type to be denoted by strings or integers
 FQ_TYPES = {
     "FQ_ZECH" : 1,
@@ -750,7 +752,7 @@ cdef class fq_default(flint_scalar):
         check = fq_default_sqrt(res.val, self.val, self.ctx.val)
         if check:
             return res
-        raise ValueError("element is not a square")
+        raise DomainError("element is not a square")
 
     def is_square(self):
         """
