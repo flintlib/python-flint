@@ -204,10 +204,7 @@ jobs:
       - run: sudo apt-get install libflint-dev
       # Need Cython's master branch until 3.1 is released because we need:
       # https://github.com/cython/cython/pull/6341
-      # Except now we can't use the master branch any more because of:
-      # https://github.com/cython/cython/issues/6366
-      # So we have to keep using Oscar's PR branch:
-      - run: pip install git+https://github.com/oscarbenjamin/cython.git@pr_relative_paths
+      - run: pip install git+https://github.com/cython/cython.git@master
       - run: pip install -r requirements-dev.txt
       - run: bin/coverage.sh
 
