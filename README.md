@@ -9,7 +9,7 @@ and Arb (arbitrary-precision ball arithmetic). Features:
 * Polynomials, power series and matrices over all the above types
 * Lots of mathematical functions
 
-Documentation: http://fredrikj.net/python-flint/
+Documentation: https://python-flint.readthedocs.io/en/latest/
 
 Repository: https://github.com/flintlib/python-flint/
 
@@ -67,7 +67,7 @@ as follows:
 See the documentation for further notes on building and installing
 python-flint:
 
-* https://fredrikj.net/python-flint/setup.html
+* https://python-flint.readthedocs.io/en/latest/setup.html
 
 Examples
 -------------------------------------

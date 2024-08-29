@@ -1660,7 +1660,7 @@ cdef class fmpz_mod_poly(flint_poly):
         :math:`f^e \mod x^n`/
 
         Note: For exponents larger that 2^31 (which do not fit inside a ulong) use the
-        method :method:`~.pow_mod` with the explicit modulus `x^n`.
+        method :meth:`~.pow_mod` with the explicit modulus `x^n`.
 
             >>> R = fmpz_mod_poly_ctx(163)
             >>> x = R.gen()
