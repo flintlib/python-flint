@@ -123,7 +123,7 @@ jobs:
 
   test_docs:
     name: Test docs (build and doctest)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -134,11 +134,8 @@ jobs:
 
       - run: pip install --upgrade pip
       - run: pip install -r requirements-dev.txt
-      - run: pip install .
-      - run: pytest --doctest-glob='*.rst' doc/source
-      - run: make -C doc html
-        env:
-          SPHINX_OPTS: '-W -j auto'
+      - run: spin run -- pytest --doctest-glob='*.rst' doc/source
+      - run: spin docs
 
   # Test build with minimum Cython and meson-python versions.
   test_old_build_requires:
