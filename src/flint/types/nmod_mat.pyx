@@ -237,6 +237,7 @@ cdef class nmod_mat_ctx:
         return nmod_mat(*args, self)
 
 
+@cython.no_gc
 cdef class nmod_mat(flint_mat):
     """
     The nmod_mat type represents dense matrices over Z/nZ for word-size n (see
@@ -474,7 +475,7 @@ cdef class nmod_mat(flint_mat):
         cdef nmod_mat_struct *sv
         cdef nmod_mat_struct *tv
         cdef mp_limb_t c
-        sv = &(<nmod_mat>s).val[0]
+        sv = &s.val[0]
         u = s.ctx.any_as_nmod_mat(t)
         if u is NotImplemented:
             if s.ctx.any_as_nmod(&c, t):

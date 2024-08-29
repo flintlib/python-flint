@@ -1,3 +1,5 @@
+cimport cython
+
 from cpython.list cimport PyList_GET_SIZE
 from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
@@ -18,9 +20,10 @@ from flint.utils.flint_exceptions import DomainError
 cdef dict _nmod_poly_ctx_cache = {}
 
 
+@cython.no_gc
 cdef class nmod_poly_ctx:
     """
-    Context object for creating :class:`~.nmod_poly` initalised 
+    Context object for creating :class:`~.nmod_poly` initalised
     with modulus :math:`N`.
 
         >>> nmod_poly_ctx.new(17)
@@ -170,6 +173,7 @@ cdef class nmod_poly_ctx:
         return nmod_poly(arg, self)
 
 
+@cython.no_gc
 cdef class nmod_poly(flint_poly):
     """
     The nmod_poly type represents dense univariate polynomials
@@ -417,8 +421,8 @@ cdef class nmod_poly(flint_poly):
         if other is NotImplemented:
             raise TypeError("cannot convert input to nmod_poly")
         res = self.ctx.new_nmod_poly()
-        nmod_poly_compose(res.val, self.val, (<nmod_poly>other).val) 
-        return res  
+        nmod_poly_compose(res.val, self.val, (<nmod_poly>other).val)
+        return res
 
     def compose_mod(self, other, modulus):
         r"""
@@ -449,8 +453,8 @@ cdef class nmod_poly(flint_poly):
             raise ZeroDivisionError("cannot reduce modulo zero")
 
         res = self.ctx.new_nmod_poly()
-        nmod_poly_compose_mod(res.val, self.val, (<nmod_poly>other).val, (<nmod_poly>modulus).val) 
-        return res 
+        nmod_poly_compose_mod(res.val, self.val, (<nmod_poly>other).val, (<nmod_poly>modulus).val)
+        return res
 
     def __call__(self, other):
         cdef nmod_poly r
@@ -638,7 +642,6 @@ cdef class nmod_poly(flint_poly):
             >>> f = 30*x**6 + 104*x**5 + 76*x**4 + 33*x**3 + 70*x**2 + 44*x + 65
             >>> g = 43*x**6 + 91*x**5 + 77*x**4 + 113*x**3 + 71*x**2 + 132*x + 60
             >>> mod = x**4 + 93*x**3 + 78*x**2 + 72*x + 149
-            >>>
             >>> f.pow_mod(123, mod)
             3*x^3 + 25*x^2 + 115*x + 161
             >>> f.pow_mod(2**64, mod)
@@ -663,7 +666,7 @@ cdef class nmod_poly(flint_poly):
 
         # Output polynomial
         res = self.ctx.new_nmod_poly()
-        
+
         # For small exponents, use a simple binary exponentiation method
         if e.bit_length() < 32:
             nmod_poly_powmod_ui_binexp(
