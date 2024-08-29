@@ -80,29 +80,6 @@ jobs:
           name: sdist
           path: dist/*.tar.gz
 
-  test_docs:
-    needs: build_wheels
-    name: Test docs (build and doctest)
-    runs-on: ubuntu-20.04
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: wheels-ubuntu-20.04
-          path: wheelhouse
-
-      - run: pip install --upgrade pip
-      - run: pip install -r requirements-dev.txt
-      - run: pip install --no-index --find-links wheelhouse python_flint
-      - run: pytest --doctest-glob='*.rst' doc/source
-      - run: spin docs
-
   test_wheels:
     needs: build_wheels
     name: Test ${{ matrix.python-version }} wheel on ${{ matrix.os }}
@@ -143,6 +120,23 @@ jobs:
       - run: sudo apt-get install libflint-dev
       - run: pip install .
       - run: python -m flint.test --verbose
+
+  test_docs:
+    name: Test docs (build and doctest)
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update
+      - run: sudo apt-get install libflint-dev
+
+      - run: pip install --upgrade pip
+      - run: pip install -r requirements-dev.txt
+      - run: pip install --no-index --find-links wheelhouse python_flint
+      - run: pytest --doctest-glob='*.rst' doc/source
+      - run: spin docs
 
   # Test build with minimum Cython and meson-python versions.
   test_old_build_requires:
