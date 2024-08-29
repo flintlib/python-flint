@@ -80,9 +80,9 @@ jobs:
           name: sdist
           path: dist/*.tar.gz
 
-  test_rst:
+  test_docs:
     needs: build_wheels
-    name: Test rst docs
+    name: Test docs (build and doctest)
     runs-on: ubuntu-20.04
 
     steps:
@@ -98,9 +98,10 @@ jobs:
           path: wheelhouse
 
       - run: pip install --upgrade pip
-      - run: pip install pytest
+      - run: pip install -r requirements-dev.txt
       - run: pip install --no-index --find-links wheelhouse python_flint
       - run: pytest --doctest-glob='*.rst' doc/source
+      - run: spin docs
 
   test_wheels:
     needs: build_wheels
