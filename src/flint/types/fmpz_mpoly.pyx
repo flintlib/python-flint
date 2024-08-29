@@ -15,6 +15,8 @@ from flint.flintlib.fmpz cimport fmpz_set
 from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_add,
     fmpz_mpoly_add_fmpz,
+    fmpz_mpoly_buchberger_naive,
+    fmpz_mpoly_buchberger_naive_with_limits,
     fmpz_mpoly_clear,
     fmpz_mpoly_compose_fmpz_mpoly,
     fmpz_mpoly_ctx_init,
@@ -41,6 +43,7 @@ from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_neg,
     fmpz_mpoly_pow_fmpz,
     fmpz_mpoly_push_term_fmpz_ffmpz,
+    fmpz_mpoly_reduction_primitive_part,
     fmpz_mpoly_scalar_divides_fmpz,
     fmpz_mpoly_scalar_mul_fmpz,
     fmpz_mpoly_set,
@@ -48,13 +51,18 @@ from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_set_fmpz,
     fmpz_mpoly_set_str_pretty,
     fmpz_mpoly_sort_terms,
+    fmpz_mpoly_spoly,
     fmpz_mpoly_sqrt_heap,
     fmpz_mpoly_sub,
     fmpz_mpoly_sub_fmpz,
     fmpz_mpoly_total_degree_fmpz,
+    fmpz_mpoly_vec_autoreduction,
+    fmpz_mpoly_vec_autoreduction_groebner,
     fmpz_mpoly_vec_clear,
     fmpz_mpoly_vec_entry,
     fmpz_mpoly_vec_init,
+    fmpz_mpoly_vec_is_autoreduced,
+    fmpz_mpoly_vec_is_groebner,
 )
 from flint.flintlib.fmpz_mpoly_factor cimport (
     fmpz_mpoly_factor,
@@ -924,13 +932,61 @@ cdef class fmpz_mpoly(flint_mpoly):
         fmpz_mpoly_integral(res.val, scale.val, self.val, i, self.ctx.val)
         return scale, res
 
+    def spoly(self, g):
+        """
+        Compute the S-polynomial of `self` and `g`, scaled to an integer polynomial
+        by computing the LCM of the leading coefficients.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> f = ctx.from_dict({(2, 0): 1, (0, 1): -1})
+            >>> g = ctx.from_dict({(3, 0): 1, (1, 0): -1})
+            >>> f.spoly(g)
+            -x*y + x
+        """
+        cdef fmpz_mpoly res = create_fmpz_mpoly(self.ctx)
+
+        if not typecheck(g, fmpz_mpoly):
+            raise TypeError(f"expected fmpz_mpoly, got {type(g)}")
+
+        self.ctx.compatible_context_check((<fmpz_mpoly>g).ctx)
+        fmpz_mpoly_spoly(res.val, self.val, (<fmpz_mpoly>g).val, self.ctx.val)
+        return res
+
+    def reduction_primitive_part(self, vec):
+        """
+        Compute the the primitive part of the reduction (remainder of multivariate
+        quasi-division with remainder) with respect to the polynomials `vec`.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = 2 * x**3 -x**2 * y + y**3 + 3 * y
+            >>> g1 = x**2 + y**2 + 1
+            >>> g2 = x * y - 2
+            >>> vec = fmpz_mpoly_vec([g1, g2], ctx)
+            >>> vec
+            fmpz_mpoly_vec([x^2 + y^2 + 1, x*y - 2], ctx=fmpz_mpoly_ctx(2, '<Ordering.lex: 0>', ('x', 'y')))
+            >>> f.reduction_primitive_part(vec)
+            x - y^3
+        """
+        cdef fmpz_mpoly res = create_fmpz_mpoly(self.ctx)
+        if not typecheck(vec, fmpz_mpoly_vec):
+            raise TypeError(f"expected fmpz_mpoly, got {type(vec)}")
+
+        self.ctx.compatible_context_check((<fmpz_mpoly_vec>vec).ctx)
+        fmpz_mpoly_reduction_primitive_part(res.val, self.val, (<fmpz_mpoly_vec>vec).val, self.ctx.val)
+        return res
+
 
 cdef class fmpz_mpoly_vec:
     """
     A class representing a vector of fmpz_mpolys.
     """
 
-    def __cinit__(self, iterable_or_len, fmpz_mpoly_ctx ctx, bint double_indirect = False):
+    def __cinit__(
+            self, iterable_or_len, fmpz_mpoly_ctx ctx, bint double_indirect = False
+    ):
         if isinstance(iterable_or_len, int):
             length = iterable_or_len
         else:
@@ -940,7 +996,9 @@ cdef class fmpz_mpoly_vec:
         fmpz_mpoly_vec_init(self.val, length, self.ctx.val)
 
         if double_indirect:
-            self.double_indirect = <fmpz_mpoly_struct **> libc.stdlib.malloc(length * sizeof(fmpz_mpoly_struct *))
+            self.double_indirect = <fmpz_mpoly_struct **> libc.stdlib.malloc(
+                length * sizeof(fmpz_mpoly_struct *)
+            )
             if self.double_indirect is NULL:
                 raise MemoryError("malloc returned a null pointer")  # pragma: no cover
 
@@ -978,7 +1036,9 @@ cdef class fmpz_mpoly_vec:
         elif (<fmpz_mpoly>y).ctx is not self.ctx:
             raise IncompatibleContextError(f"{(<fmpz_mpoly>y).ctx} is not {self.ctx}")
 
-        fmpz_mpoly_set(fmpz_mpoly_vec_entry(self.val, x), (<fmpz_mpoly>y).val, self.ctx.val)
+        fmpz_mpoly_set(
+            fmpz_mpoly_vec_entry(self.val, x), (<fmpz_mpoly>y).val, self.ctx.val
+        )
 
     def __len__(self):
         return self.val.length
@@ -994,5 +1054,166 @@ cdef class fmpz_mpoly_vec:
     def __repr__(self):
         return f"fmpz_mpoly_vec({self}, ctx={self.ctx})"
 
+    def __richcmp__(self, other, int op):
+        if not (op == Py_EQ or op == Py_NE):
+            return NotImplemented
+        elif typecheck(other, fmpz_mpoly_vec):
+            if (
+                    (<fmpz_mpoly_vec>self).ctx is (<fmpz_mpoly_vec>other).ctx
+                    and len(self) == len(other)
+            ):
+                return (op == Py_NE) ^ all(x == y for x, y in zip(self, other))
+            else:
+                return op == Py_NE
+        else:
+            return NotImplemented
+
     def to_tuple(self):
         return tuple(self[i] for i in range(self.val.length))
+
+    def is_groebner(self, other=None) -> bool:
+        """
+        Check if self is a Gröbner basis. If `other` is not None then check if self
+        is a Gröbner basis for `other`.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**2 - y
+            >>> g = x**3 - x
+            >>> k = x*y - x
+            >>> h = y**2 - y
+            >>> vec = fmpz_mpoly_vec([f, k, h], ctx)
+            >>> vec.is_groebner()
+            True
+            >>> vec.is_groebner(fmpz_mpoly_vec([f, g], ctx))
+            True
+            >>> vec.is_groebner(fmpz_mpoly_vec([f, x**3], ctx))
+            False
+        """
+        if other is None:
+            return <bint>fmpz_mpoly_vec_is_groebner(self.val, NULL, self.ctx.val)
+        elif typecheck(other, fmpz_mpoly_vec):
+            self.ctx.compatible_context_check((<fmpz_mpoly_vec>other).ctx)
+            return <bint>fmpz_mpoly_vec_is_groebner(
+                self.val, (<fmpz_mpoly_vec>other).val, self.ctx.val
+            )
+        else:
+            raise TypeError(
+                f"expected either None or a fmpz_mpoly_vec, got {type(other)}"
+            )
+
+    def is_autoreduced(self) -> bool:
+        """
+        Check if self is auto-reduced (or inter-reduced).
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f2 = 3*x**2 - y
+            >>> k = x*y - x
+            >>> k2 = 3*x*y - 3*x
+            >>> h = y**2 - y
+            >>> vec = fmpz_mpoly_vec([f2, k, h], ctx)
+            >>> vec.is_autoreduced()
+            True
+            >>> vec = fmpz_mpoly_vec([f2, k2, h], ctx)
+            >>> vec.is_autoreduced()
+            False
+
+        """
+        return <bint>fmpz_mpoly_vec_is_autoreduced(self.val, self.ctx.val)
+
+    def autoreduction(self, groebner=False) -> fmpz_mpoly_vec:
+        """
+        Compute the autoreduction of `self`. If `groebner` is True and `self` is a
+        Gröbner basis, compute the reduced reduced Gröbner basis of `self`, throws an
+        `RuntimeError` otherwise.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f2 = 3*x**2 - y
+            >>> k2 = 3*x*y - 3*x
+            >>> h = y**2 - y
+            >>> vec = fmpz_mpoly_vec([f2, k2, h], ctx)
+            >>> vec.is_autoreduced()
+            False
+            >>> vec2 = vec.autoreduction()
+            >>> vec2.is_autoreduced()
+            True
+            >>> vec2
+            fmpz_mpoly_vec([3*x^2 - y, x*y - x, y^2 - y], ctx=fmpz_mpoly_ctx(2, '<Ordering.lex: 0>', ('x', 'y')))
+        """
+
+        cdef fmpz_mpoly_vec h = fmpz_mpoly_vec(0, self.ctx)
+
+        if groebner:
+            if not self.is_groebner():
+                raise RuntimeError(
+                    "reduced Gröbner basis construction requires that `self` is a "
+                    "Gröbner basis."
+                )
+            fmpz_mpoly_vec_autoreduction_groebner(h.val, self.val, self.ctx.val)
+        else:
+            fmpz_mpoly_vec_autoreduction(h.val, self.val, self.ctx.val)
+
+        return h
+
+    def buchberger_naive(self, limits=None):
+        """
+        Compute the Gröbner basis of `self` using a naive implementation of
+        Buchberger’s algorithm.
+
+        Provide `limits` in the form of a tuple of `(ideal_len_limit, poly_len_limit,
+        poly_bits_limit)` to halt execution if the length of the ideal basis set exceeds
+        `ideal_len_limit`, the length of any polynomial exceeds `poly_len_limit`, or the
+        size of the coefficients of any polynomial exceeds `poly_bits_limit`.
+
+        If limits is provided return a tuple of `(result, success)`. If `success` is
+        False then `result` is a valid basis for `self`, but it may not be a Gröbner
+        basis.
+
+        NOTE: This function is exposed only for convenience, it is a naive
+        implementation and does not compute a reduced basis. To construct a reduced
+        basis use `autoreduce`.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**2 - y
+            >>> g = x**3*y - x
+            >>> vec = fmpz_mpoly_vec([f, g], ctx)
+            >>> vec.is_groebner()
+            False
+            >>> vec2 = vec.buchberger_naive()
+            >>> vec2
+            fmpz_mpoly_vec([x^2 - y, x^3*y - x, x*y^2 - x, y^3 - y], ctx=fmpz_mpoly_ctx(2, '<Ordering.lex: 0>', ('x', 'y')))
+            >>> vec.buchberger_naive(limits=(2, 2, 512))
+            (fmpz_mpoly_vec([x^2 - y, x^3*y - x], ctx=fmpz_mpoly_ctx(2, '<Ordering.lex: 0>', ('x', 'y'))), False)
+            >>> vec2.is_autoreduced()
+            False
+            >>> vec2.autoreduction()
+            fmpz_mpoly_vec([x^2 - y, y^3 - y, x*y^2 - x], ctx=fmpz_mpoly_ctx(2, '<Ordering.lex: 0>', ('x', 'y')))
+        """
+
+        cdef:
+            fmpz_mpoly_vec g = fmpz_mpoly_vec(0, self.ctx)
+            slong ideal_len_limit, poly_len_limit, poly_bits_limit
+
+        if limits is not None:
+            ideal_len_limit, poly_len_limit, poly_bits_limit = limits
+            if fmpz_mpoly_buchberger_naive_with_limits(
+                    g.val,
+                    self.val,
+                    ideal_len_limit,
+                    poly_len_limit,
+                    poly_bits_limit,
+                    self.ctx.val
+            ):
+                return g, True
+            else:
+                return g, False
+        else:
+            fmpz_mpoly_buchberger_naive(g.val, self.val, self.ctx.val)
+            return g

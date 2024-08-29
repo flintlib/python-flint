@@ -991,5 +991,16 @@ cdef class fmpq_mpoly_vec:
     def __repr__(self):
         return f"fmpq_mpoly_vec({self}, ctx={self.ctx})"
 
+    def __richcmp__(self, other, int op):
+        if not (op == Py_EQ or op == Py_NE):
+            return NotImplemented
+        elif typecheck(other, fmpq_mpoly_vec):
+            if (<fmpq_mpoly_vec>self).ctx is (<fmpq_mpoly_vec>other).ctx and len(self) == len(other):
+                return (op == Py_NE) ^ all(x == y for x, y in zip(self, other))
+            else:
+                return op == Py_NE
+        else:
+            return NotImplemented
+
     def to_tuple(self):
         return tuple(self[i] for i in range(self.length))
