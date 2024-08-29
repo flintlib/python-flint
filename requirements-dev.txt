@@ -6,3 +6,4 @@ meson-python
 pytest
 coverage
 pytest-cov
+sphinx
