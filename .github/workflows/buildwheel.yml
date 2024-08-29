@@ -134,7 +134,7 @@ jobs:
 
       - run: pip install --upgrade pip
       - run: pip install -r requirements-dev.txt
-      - run: pytest --doctest-glob='*.rst' doc/source
+      - run: spin run -- pytest --doctest-glob='*.rst' doc/source
       - run: spin docs
 
   # Test build with minimum Cython and meson-python versions.
