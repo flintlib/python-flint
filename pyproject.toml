@@ -4,7 +4,6 @@ description = "Bindings for FLINT"
 version = "0.7.0a4"
 # This needs to be in sync with README, cibuildwheel and CI config.
 requires-python = ">= 3.10"
-urls = {Homepage = "https://github.com/flintlib/python-flint"}
 authors = [
     {name = "Fredrik Johansson", email = "fredrik.johansson@gmail.com"},
 ]
@@ -12,6 +11,12 @@ license = {text = "MIT"}
 classifiers = [
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
+
+[project.urls]
+Homepage = "https://github.com/flintlib/python-flint"
+Documentation = "https://python-flint.readthedocs.io/en/latest/"
+Repository = "https://github.com/flintlib/python-flint"
+Changelog = "https://github.com/flintlib/python-flint/blob/master/README.md#changelog"
 
 [project.readme]
 file = "README.md"
