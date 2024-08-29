@@ -134,9 +134,11 @@ jobs:
 
       - run: pip install --upgrade pip
       - run: pip install -r requirements-dev.txt
-      - run: spin build
-      - run: spin run -- pytest --doctest-glob='*.rst' doc/source
-      - run: spin docs
+      - run: pip install .
+      - run: pytest --doctest-glob='*.rst' doc/source
+      - run: make -C doc html
+        env:
+          SPHINX_OPTS: '-W -j auto'
 
   # Test build with minimum Cython and meson-python versions.
   test_old_build_requires:
