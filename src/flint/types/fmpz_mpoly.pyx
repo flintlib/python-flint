@@ -961,9 +961,10 @@ cdef class fmpz_mpoly(flint_mpoly):
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
-            >>> f = ctx.from_dict({(3, 0): 2, (2, 1): -1, (0, 3): 1, (0, 1): 3})
-            >>> g1 = ctx.from_dict({(2, 0): 1, (0, 2): 1, (0, 0): 1})
-            >>> g2 = ctx.from_dict({(1, 1): 1, (0, 0): -2})
+            >>> x, y = ctx.gens()
+            >>> f = 2 * x**3 -x**2 * y + y**3 + 3 * y
+            >>> g1 = x**2 + y**2 + 1
+            >>> g2 = x * y - 2
             >>> vec = fmpz_mpoly_vec([g1, g2], ctx)
             >>> vec
             fmpz_mpoly_vec([x^2 + y^2 + 1, x*y - 2], ctx=fmpz_mpoly_ctx(2, '<Ordering.lex: 0>', ('x', 'y')))
