@@ -12,3 +12,5 @@ extensions = [
 ]
 #autodoc_typehints = "description"
 html_theme = "sphinx_rtd_theme"
+
+master_doc = "source/index"
