@@ -1,0 +1,26 @@
+name: Linting
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        pip install uv
+        uv pip install cython-lint --upgrade --system
+
+    - name: cython-lint
+      run: |
+        cython-lint --ignore=E114,E117,E127,E128,E129,E202,E221,E222,E231,E261,E262,E265,E302,E303,E306,E501,E701,E703,E711,E722,E731,E741,E743,W291,W293,W391,W605 src/
