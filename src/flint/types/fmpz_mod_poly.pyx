@@ -180,7 +180,7 @@ cdef class fmpz_mod_poly_ctx:
                 val_fmpz = any_as_fmpz(val[i])
                 if val_fmpz is NotImplemented:
                     fmpz_clear(x)
-                    raise TypeError(f"unsupported coefficient in list")
+                    raise TypeError("unsupported coefficient in list")
                 fmpz_mod_poly_set_coeff_fmpz(
                     poly, i, (<fmpz>(val_fmpz)).val, self.mod.val
                 )
@@ -438,7 +438,7 @@ cdef class fmpz_mod_poly(flint_poly):
             return NotImplemented
 
         if other == 0:
-            raise ZeroDivisionError(f"Cannot divide by zero")
+            raise ZeroDivisionError("Cannot divide by zero")
         elif not other.is_unit():
             raise DomainError(f"Cannot divide by {other} modulo {self.ctx.modulus()}")
 
@@ -485,7 +485,7 @@ cdef class fmpz_mod_poly(flint_poly):
             raise TypeError(f"Cannot convert {right} to `fmpz_mod_poly` type.")
 
         if right == 0:
-            raise ZeroDivisionError(f"Cannot divide by zero")
+            raise ZeroDivisionError("Cannot divide by zero")
 
         res = self.ctx.new_ctype_poly()
         check = fmpz_mod_poly_divides(
@@ -522,7 +522,7 @@ cdef class fmpz_mod_poly(flint_poly):
         lc = right.leading_coefficient()
 
         if lc.is_zero():
-            raise ZeroDivisionError(f"Cannot divide by zero")
+            raise ZeroDivisionError("Cannot divide by zero")
         elif not lc.is_unit():
             raise DomainError(f"The leading term of {right} must be a unit modulo N")
 
@@ -642,7 +642,7 @@ cdef class fmpz_mod_poly(flint_poly):
                 return NotImplemented
 
         if right == 0:
-            raise ZeroDivisionError(f"Cannot reduce modulo zero")
+            raise ZeroDivisionError("Cannot reduce modulo zero")
 
         res = (<fmpz_mod_poly>left).ctx.new_ctype_poly()
         fmpz_init(f)
@@ -1059,7 +1059,7 @@ cdef class fmpz_mod_poly(flint_poly):
             )
             if not fmpz_is_one(f):
                 fmpz_clear(f)
-                raise ValueError(f"Leading coefficient is not invertible")
+                raise ValueError("Leading coefficient is not invertible")
         return res
 
     def is_irreducible(self):

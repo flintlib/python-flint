@@ -69,7 +69,6 @@ cdef class nmod(flint_scalar):
         return self.mod.n
 
     def __richcmp__(s, t, int op):
-        cdef mp_limb_t v
         cdef bint res
         if op != 2 and op != 3:
             raise TypeError("nmods cannot be ordered")
@@ -166,7 +165,7 @@ cdef class nmod(flint_scalar):
     @staticmethod
     def _div_(s, t):
         cdef nmod r
-        cdef mp_limb_t sval, tval, x
+        cdef mp_limb_t sval, tval
         cdef nmod_t mod
         cdef ulong tinvval
 

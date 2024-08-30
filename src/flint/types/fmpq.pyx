@@ -470,7 +470,6 @@ cdef class fmpq(flint_scalar):
         cdef int ntype = FMPZ_UNKNOWN
         cdef fmpq v
         cdef int success
-        cdef long e
 
         assert z is None
 

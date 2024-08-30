@@ -331,7 +331,6 @@ cdef class acb_mat(flint_mat):
         return u
 
     def __truediv__(s, t):
-        cdef acb_mat u
         if typecheck(s, acb_mat):
             s, t = acb_mat_coerce_scalar(s, t)
             if s is NotImplemented:
@@ -597,7 +596,6 @@ cdef class acb_mat(flint_mat):
         return u
 
     def __richcmp__(s, t, int op):
-        cdef int stype, ttype
         cdef bint res
         if not (op == 2 or op == 3):
             raise ValueError("comparing matrices")

@@ -43,7 +43,7 @@ cdef arb_from_str(str s):
         raise ValueError("invalid string for arb()")
 
 cdef arb_set_mpmath_mpf(arb_t x, obj):
-    sgn, man, exp, bc = obj
+    sgn, man, exp, _ = obj
 
     if not man:
         if not exp:
@@ -2171,7 +2171,7 @@ cdef class arb(flint_scalar):
             >>> showgood(lambda: arb(5).hypgeom([1,2,3],[5,4.5,6],regularized=True), dps=25)
             3.886189282817193519132054e-5
         """
-        cdef long i, p, q, prec
+        cdef long i, p, q
         cdef arb_ptr aa, bb
         a = [any_as_arb(t) for t in a]
         b = [any_as_arb(t) for t in b]

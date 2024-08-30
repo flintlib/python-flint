@@ -287,14 +287,12 @@ cdef class fmpq_poly(flint_poly):
         return r
 
     def __floordiv__(s, t):
-        cdef fmpq_poly r
         t = any_as_fmpq_poly(t)
         if t is NotImplemented:
             return t
         return s._floordiv_(t)
 
     def __rfloordiv__(s, t):
-        cdef fmpq_poly r
         t = any_as_fmpq_poly(t)
         if t is NotImplemented:
             return t
@@ -309,14 +307,12 @@ cdef class fmpq_poly(flint_poly):
         return r
 
     def __mod__(s, t):
-        cdef fmpq_poly r
         t = any_as_fmpq_poly(t)
         if t is NotImplemented:
             return t
         return s._mod_(t)
 
     def __rmod__(s, t):
-        cdef fmpq_poly r
         t = any_as_fmpq_poly(t)
         if t is NotImplemented:
             return t

@@ -87,15 +87,15 @@ cdef any_as_acb_or_notimplemented(x):
         return NotImplemented
     return t
 
-"""
-cdef any_as_arb_or_acb(x):
-    if typecheck(x, arb) or typecheck(x, acb):
-        return x
-    try:
-        return arb(x)
-    except (TypeError, ValueError):
-        return acb(x)
-"""
+
+# cdef any_as_arb_or_acb(x):
+#     if typecheck(x, arb) or typecheck(x, acb):
+#         return x
+#     try:
+#         return arb(x)
+#     except (TypeError, ValueError):
+#         return acb(x)
+
 
 
 # Copied with modifications from sage/rings/complex_arb.pyx
@@ -2387,7 +2387,7 @@ cdef class acb(flint_scalar):
         of terms to add in the hypergeometric series. This is just a tuning
         parameter: a rigorous error bound is computed regardless of *n*.
         """
-        cdef long i, p, q, prec
+        cdef long i, p, q
         cdef acb_ptr aa, bb
         a = [any_as_acb(t) for t in a]
         b = [any_as_acb(t) for t in b]

@@ -43,7 +43,6 @@ cdef nmod_poly_set_list(nmod_poly_t poly, list val):
     n = PyList_GET_SIZE(val)
     nmod_poly_fit_length(poly, n)
     for i from 0 <= i < n:
-        c = val[i]
         if any_as_nmod(&v, val[i], mod):
             nmod_poly_set_coeff_ui(poly, i, v)
         else:
@@ -115,7 +114,6 @@ cdef class nmod_poly(flint_poly):
         return nmod_poly_modulus(self.val)
 
     def __richcmp__(s, t, int op):
-        cdef mp_limb_t v
         cdef bint res
         if op != 2 and op != 3:
             raise TypeError("nmod_polys cannot be ordered")
@@ -268,7 +266,7 @@ cdef class nmod_poly(flint_poly):
             raise ValueError(f"{n = } must be positive")
 
         if self.is_zero():
-            raise ValueError(f"cannot invert the zero element")
+            raise ValueError("cannot invert the zero element")
 
         cdef nmod_poly res
         res = nmod_poly.__new__(nmod_poly)

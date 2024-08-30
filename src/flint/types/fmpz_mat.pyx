@@ -252,7 +252,6 @@ cdef class fmpz_mat(flint_mat):
         cdef fmpz_mat u
         cdef fmpz_mat_struct *sval
         cdef fmpz_mat_struct *tval
-        cdef int ttype
         if typecheck(t, fmpz_mat):
             sval = &(<fmpz_mat>s).val[0]
             tval = &(<fmpz_mat>t).val[0]

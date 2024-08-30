@@ -629,7 +629,7 @@ cdef class acb_series(flint_series):
         of terms to add in the hypergeometric series. This is just a tuning
         parameter: a rigorous error bound is computed regardless of *n*.
         """
-        cdef long i, p, q, prec, cap
+        cdef long i, p, q, cap
         cdef acb_poly_struct * aa
         cdef acb_poly_struct * bb
         a = [acb_series(t) for t in a]

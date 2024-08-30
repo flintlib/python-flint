@@ -591,7 +591,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_mpoly res
             fmpz_mpoly_ctx res_ctx
             fmpz_mpoly_vec C
-            slong i, nvars = self.ctx.nvars(), nargs = len(args)
+            slong nvars = self.ctx.nvars(), nargs = len(args)
 
         if nargs < nvars:
             raise ValueError("not enough arguments provided")

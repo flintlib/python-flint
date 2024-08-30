@@ -233,7 +233,6 @@ cdef class fmpq_mat(flint_mat):
         return u
 
     def __mul__(s, t):
-        cdef fmpz_mat u
         if typecheck(t, fmpq_mat):
             return (<fmpq_mat>s).__mul_fmpq_mat(t)
         elif typecheck(t, fmpz_mat):
@@ -248,7 +247,6 @@ cdef class fmpq_mat(flint_mat):
             return NotImplemented
 
     def __rmul__(s, t):
-        cdef fmpz_mat u
         if typecheck(t, fmpz_mat):
             return (<fmpq_mat>s).__mul_r_fmpz_mat(t)
         else:
@@ -433,7 +431,6 @@ cdef class fmpq_mat(flint_mat):
             60
         """
         cdef fmpz_mat num
-        cdef fmpz_den
         num = fmpz_mat(self.nrows(), self.ncols())
         den = fmpz()
         fmpq_mat_get_fmpz_mat_matwise(num.val, den.val, self.val)

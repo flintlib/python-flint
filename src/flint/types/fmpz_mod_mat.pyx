@@ -408,47 +408,37 @@ cdef class fmpz_mod_mat(flint_mat):
 
     def __add__(self, other):
         """``M + N``: Add two matrices."""
-        cdef fmpz_mod_mat o
         other = self._as_fmpz_mod_mat(other)
         if other is NotImplemented:
             return NotImplemented
-        o = other
         return self._add(other)
 
     def __radd__(self, other):
         """``N + M``: Add two matrices."""
-        cdef fmpz_mod_mat o
         other = self._as_fmpz_mod_mat(other)
         if other is NotImplemented:
             return NotImplemented
-        o = other
         return other._add(self)
 
     def __sub__(self, other):
         """``M - N``: Subtract two matrices."""
-        cdef fmpz_mod_mat o
         other = self._as_fmpz_mod_mat(other)
         if other is NotImplemented:
             return NotImplemented
-        o = other
         return self._sub(other)
 
     def __rsub__(self, other):
         """``N - M``: Subtract two matrices."""
-        cdef fmpz_mod_mat o
         other = self._as_fmpz_mod_mat(other)
         if other is NotImplemented:
             return NotImplemented
-        o = other
         return other._sub(self)
 
     def __mul__(self, other):
         """``M * N``: Multiply two matrices."""
-        cdef fmpz_mod_mat o
         cdef fmpz_mod e
         other_mat = self._as_fmpz_mod_mat(other, same_shape=False)
         if other_mat is not NotImplemented:
-            o = other_mat
             return self._matmul(other_mat)
         other_scalar = self.ctx.any_as_fmpz_mod(other)
         if other_scalar is not NotImplemented:
@@ -461,7 +451,6 @@ cdef class fmpz_mod_mat(flint_mat):
         cdef fmpz_mod e
         other_mat = self._as_fmpz_mod_mat(other)
         if other_mat is not NotImplemented:
-            o = other_mat
             return other_mat._matmul(self)
         other_scalar = self.ctx.any_as_fmpz_mod(other)
         if other_scalar is not NotImplemented:
