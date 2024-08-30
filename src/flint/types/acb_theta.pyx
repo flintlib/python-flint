@@ -5,6 +5,7 @@ from flint.flintlib.acb cimport *
 from flint.flintlib.acb_mat cimport *
 from flint.flintlib.acb_theta cimport *
 
+
 def acb_theta(acb_mat z, acb_mat tau, ulong square=False):
     r"""
     Computes the vector valued Riemann theta function

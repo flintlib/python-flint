@@ -97,6 +97,7 @@ cdef any_as_arb_or_acb(x):
         return acb(x)
 """
 
+
 # Copied with modifications from sage/rings/complex_arb.pyx
 @cython.internal
 cdef class IntegrationContext:

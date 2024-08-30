@@ -803,6 +803,7 @@ cdef class arb_series(flint_series):
 
         """
         orig_cap = ctx.cap
+
         def xsgn(x):
             if x < 0:
                 return -1

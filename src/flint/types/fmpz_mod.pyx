@@ -409,7 +409,6 @@ cdef class fmpz_mod(flint_scalar):
         else:
             return not res
 
-
     def __bool__(self):
         return not self.is_zero()
 

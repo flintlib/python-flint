@@ -218,9 +218,6 @@ cdef extern from "flint/fmpq.h":
     void fmpq_dedekind_sum(fmpq_t s, const fmpz_t h, const fmpz_t k)
     void fmpq_dedekind_sum_naive(fmpq_t s, const fmpz_t h, const fmpz_t k)
 
-
-
-
     # void fmpq_init(fmpq_t x)
     # void fmpq_clear(fmpq_t x)
     # void fmpq_zero(fmpq_t res)

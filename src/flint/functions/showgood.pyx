@@ -36,6 +36,7 @@ cdef goodstr(x):
         return x.str(radius=False)
     raise TypeError("must be a element/tuple/list of arb, acb, arb_mat, acb_mat, arb_poly, acb_poly, arb_series, or acb_series")
 
+
 def good(func, slong prec=0, slong maxprec=0, slong dps=0,
         slong maxdps=0, slong padding=10, bint verbose=False, bint show=False, bint parts=True, metric=None):
     """
@@ -112,6 +113,7 @@ def good(func, slong prec=0, slong maxprec=0, slong dps=0,
     finally:
         ctx.prec = orig
     raise ValueError("no convergence (maxprec=%i, try higher maxprec)" % maxprec)
+
 
 def showgood(func, **kwargs):
     """
