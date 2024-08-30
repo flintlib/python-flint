@@ -5,7 +5,7 @@ from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_context cimport thectx
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
-from flint.utils.conversion cimport chars_from_str, str_from_chars, _str_trunc
+from flint.utils.conversion cimport chars_from_str, str_from_chars
 from flint.types.fmpz cimport fmpz_set_pylong
 from flint.types.arf cimport arf
 from flint.types.fmpq cimport fmpq
@@ -43,7 +43,7 @@ cdef arb_from_str(str s):
         raise ValueError("invalid string for arb()")
 
 cdef arb_set_mpmath_mpf(arb_t x, obj):
-    sgn, man, exp, bc = obj
+    sgn, man, exp, _ = obj
 
     if not man:
         if not exp:
@@ -2171,7 +2171,7 @@ cdef class arb(flint_scalar):
             >>> showgood(lambda: arb(5).hypgeom([1,2,3],[5,4.5,6],regularized=True), dps=25)
             3.886189282817193519132054e-5
         """
-        cdef long i, p, q, prec
+        cdef long i, p, q
         cdef arb_ptr aa, bb
         a = [any_as_arb(t) for t in a]
         b = [any_as_arb(t) for t in b]

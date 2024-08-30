@@ -163,7 +163,6 @@ cdef class dirichlet_char(object):
         cdef fmpz m
         cdef ulong v
         m = fmpz(n) % self.G.q
-        expo = self.G.exponent()
         v = dirichlet_chi(self.G.val, self.val, fmpz_get_ui(m.val))
         if v == DIRICHLET_CHI_NULL:
             return None

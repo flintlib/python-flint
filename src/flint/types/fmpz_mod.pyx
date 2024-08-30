@@ -27,7 +27,6 @@ from flint.types.fmpz cimport(
     any_as_fmpz,
     fmpz_get_intlong
 )
-cimport cython
 cimport libc.stdlib
 
 from flint.utils.flint_exceptions import DomainError
@@ -341,8 +340,6 @@ cdef class fmpz_mod(flint_scalar):
             >>> g.discrete_log(a)
             123
         """
-        cdef bint is_prime
-
         # Ensure that the modulus is prime
         if not self.ctx.is_prime():
             raise NotImplementedError("algorithm assumes modulus is prime")

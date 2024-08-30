@@ -300,7 +300,6 @@ cdef class arb_mat(flint_mat):
         return u
 
     def __rmul__(s, t):
-        cdef arb_mat u
         c, d = arb_mat_coerce_scalar(s, t)
         if c is not NotImplemented:
             return c._scalar_mul_(d)
@@ -317,7 +316,6 @@ cdef class arb_mat(flint_mat):
         return u
 
     def __truediv__(s, t):
-        cdef arb_mat u
         s, t = arb_mat_coerce_scalar(s, t)
         if s is NotImplemented:
             return s
@@ -669,7 +667,6 @@ cdef class arb_mat(flint_mat):
         return u
 
     def __richcmp__(s, t, int op):
-        cdef int stype, ttype
         cdef bint res
         if not (op == 2 or op == 3):
             raise ValueError("comparing matrices")

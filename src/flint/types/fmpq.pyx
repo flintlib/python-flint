@@ -5,7 +5,7 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 
 from flint.flintlib.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
-from flint.flintlib.fmpz cimport fmpz_set, fmpz_one, fmpz_t
+from flint.flintlib.fmpz cimport fmpz_set, fmpz_one
 from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_sgn
 from flint.flintlib.fmpz cimport fmpz_fdiv_q, fmpz_bits
 from flint.flintlib.fmpz cimport fmpz_cdiv_q
@@ -470,7 +470,6 @@ cdef class fmpq(flint_scalar):
         cdef int ntype = FMPZ_UNKNOWN
         cdef fmpq v
         cdef int success
-        cdef long e
 
         assert z is None
 

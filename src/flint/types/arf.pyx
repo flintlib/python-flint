@@ -89,7 +89,6 @@ cdef class arf:
         return man, exp
 
     def _repr_str(self):
-        cdef fmpz man, exp
         if arf_is_zero(self.val):
             return "0.0"
         elif arf_is_finite(self.val):

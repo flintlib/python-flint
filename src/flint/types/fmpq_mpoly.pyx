@@ -36,7 +36,6 @@ from flint.flintlib.fmpq_mpoly cimport (
     fmpq_mpoly_gen,
     fmpq_mpoly_get_coeff_fmpq_fmpz,
     fmpq_mpoly_get_str_pretty,
-    fmpq_mpoly_get_term,
     fmpq_mpoly_get_term_coeff_fmpq,
     fmpq_mpoly_get_term_exp_fmpz,
     fmpq_mpoly_integral,
@@ -48,7 +47,6 @@ from flint.flintlib.fmpq_mpoly cimport (
     fmpq_mpoly_pow_fmpz,
     fmpq_mpoly_push_term_fmpq_ffmpz,
     fmpq_mpoly_reduce,
-    fmpq_mpoly_scalar_div_fmpq,
     fmpq_mpoly_scalar_mul_fmpq,
     fmpq_mpoly_set,
     fmpq_mpoly_set_coeff_fmpq_fmpz,
@@ -609,7 +607,7 @@ cdef class fmpq_mpoly(flint_mpoly):
             fmpq_mpoly res
             fmpq_mpoly_ctx res_ctx
             fmpq_mpoly_vec C
-            slong i, nvars = self.ctx.nvars(), nargs = len(args)
+            slong nvars = self.ctx.nvars(), nargs = len(args)
 
         if nargs < nvars:
             raise ValueError("not enough arguments provided")

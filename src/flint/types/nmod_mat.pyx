@@ -57,7 +57,6 @@ ctx = thectx
 
 cdef any_as_nmod_mat(obj, nmod_t mod):
     cdef nmod_mat r
-    cdef mp_limb_t v
     if typecheck(obj, nmod_mat):
         return obj
     x = any_as_fmpz_mat(obj)
@@ -140,7 +139,6 @@ cdef class nmod_mat(flint_mat):
         return not nmod_mat_is_zero(self.val)
 
     def __richcmp__(s, t, int op):
-        cdef mp_limb_t v
         cdef bint res
         if op != 2 and op != 3:
             raise TypeError("matrices cannot be ordered")

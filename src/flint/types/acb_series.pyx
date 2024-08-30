@@ -8,7 +8,6 @@ from flint.types.acb cimport acb
 from flint.types.fmpz_poly cimport fmpz_poly
 from flint.types.fmpq_poly cimport fmpq_poly
 from flint.types.arb_poly cimport arb_poly
-from flint.types.arb_poly cimport arb_poly_set_list
 from flint.types.acb_poly cimport acb_poly_set_list
 from flint.types.arb cimport arb
 from flint.types.acb_poly cimport acb_poly
@@ -629,7 +628,7 @@ cdef class acb_series(flint_series):
         of terms to add in the hypergeometric series. This is just a tuning
         parameter: a rigorous error bound is computed regardless of *n*.
         """
-        cdef long i, p, q, prec, cap
+        cdef long i, p, q, cap
         cdef acb_poly_struct * aa
         cdef acb_poly_struct * bb
         a = [acb_series(t) for t in a]

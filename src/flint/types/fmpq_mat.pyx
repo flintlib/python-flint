@@ -2,13 +2,11 @@ from flint.flint_base.flint_base cimport flint_mat
 from flint.utils.typecheck cimport typecheck
 from flint.types.fmpq_poly cimport fmpq_poly
 from flint.types.fmpq cimport any_as_fmpq
-from flint.types.fmpz_poly cimport fmpz_poly
-from flint.types.fmpq_poly cimport fmpq_poly_set_list
 from flint.types.fmpz cimport any_as_fmpz
 
 from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
 from flint.flintlib.fmpq cimport fmpq_set,fmpq_numref, fmpq_denref
-from flint.flintlib.fmpq_poly cimport fmpq_poly_init, fmpq_poly_clear
+from flint.flintlib.fmpq_poly cimport fmpq_poly_init
 from flint.flintlib.fmpq_mat cimport *
 
 cimport cython
@@ -233,7 +231,6 @@ cdef class fmpq_mat(flint_mat):
         return u
 
     def __mul__(s, t):
-        cdef fmpz_mat u
         if typecheck(t, fmpq_mat):
             return (<fmpq_mat>s).__mul_fmpq_mat(t)
         elif typecheck(t, fmpz_mat):
@@ -248,7 +245,6 @@ cdef class fmpq_mat(flint_mat):
             return NotImplemented
 
     def __rmul__(s, t):
-        cdef fmpz_mat u
         if typecheck(t, fmpz_mat):
             return (<fmpq_mat>s).__mul_r_fmpz_mat(t)
         else:
@@ -433,7 +429,6 @@ cdef class fmpq_mat(flint_mat):
             60
         """
         cdef fmpz_mat num
-        cdef fmpz_den
         num = fmpz_mat(self.nrows(), self.ncols())
         den = fmpz()
         fmpq_mat_get_fmpz_mat_matwise(num.val, den.val, self.val)

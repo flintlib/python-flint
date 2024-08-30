@@ -69,7 +69,6 @@ cdef class fmpz(flint_scalar):
         fmpz_clear(self.val)
 
     def __init__(self, *args):
-        cdef long x
         if not args:
             return
         elif len(args) != 1:
@@ -123,7 +122,6 @@ cdef class fmpz(flint_scalar):
 
     def __richcmp__(s, t, int op):
         cdef bint res = 0
-        cdef long tl
         cdef fmpz_struct tval[1]
         cdef fmpz_struct * sval
         cdef int ttype
@@ -1019,7 +1017,6 @@ cdef class fmpz(flint_scalar):
         ttype = fmpz_set_any_ref(tval, other)
         if ttype == FMPZ_UNKNOWN:
             raise TypeError("input must be an integer")
-        u = fmpz.__new__(fmpz)
         v = fmpz_jacobi(self.val, tval)
         if ttype == FMPZ_TMP:
             fmpz_clear(tval)

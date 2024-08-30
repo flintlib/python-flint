@@ -44,7 +44,6 @@ from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_pow_fmpz,
     fmpz_mpoly_push_term_fmpz_ffmpz,
     fmpz_mpoly_reduction_primitive_part,
-    fmpz_mpoly_scalar_divides_fmpz,
     fmpz_mpoly_scalar_mul_fmpz,
     fmpz_mpoly_set,
     fmpz_mpoly_set_coeff_fmpz_fmpz,
@@ -591,7 +590,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_mpoly res
             fmpz_mpoly_ctx res_ctx
             fmpz_mpoly_vec C
-            slong i, nvars = self.ctx.nvars(), nargs = len(args)
+            slong nvars = self.ctx.nvars(), nargs = len(args)
 
         if nargs < nvars:
             raise ValueError("not enough arguments provided")

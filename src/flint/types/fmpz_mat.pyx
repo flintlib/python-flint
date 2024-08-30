@@ -4,7 +4,6 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpz_poly cimport fmpz_poly
 from flint.types.fmpq_mat cimport fmpq_mat
 from flint.types.fmpz cimport any_as_fmpz
-from flint.types.fmpq cimport fmpq
 from flint.pyflint cimport global_random_state
 from flint.types.fmpq cimport any_as_fmpq
 cimport cython
@@ -252,7 +251,6 @@ cdef class fmpz_mat(flint_mat):
         cdef fmpz_mat u
         cdef fmpz_mat_struct *sval
         cdef fmpz_mat_struct *tval
-        cdef int ttype
         if typecheck(t, fmpz_mat):
             sval = &(<fmpz_mat>s).val[0]
             tval = &(<fmpz_mat>t).val[0]

@@ -363,7 +363,7 @@ cdef class acb_poly(flint_poly):
             ValueError: roots() failed to converge: insufficient precision, or squareful input
 
         """
-        cdef long prec, initial_prec, target_prec, isolated, maxiter, deg, i
+        cdef long prec, initial_prec, isolated, maxiter, deg, i
         cdef acb_ptr roots
         cdef acb_poly_t tmp
         deg = s.degree()

@@ -35,7 +35,6 @@ from flint.flintlib.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_gen,
     fmpz_mod_mpoly_get_coeff_fmpz_fmpz,
     fmpz_mod_mpoly_get_str_pretty,
-    fmpz_mod_mpoly_get_term,
     fmpz_mod_mpoly_get_term_coeff_fmpz,
     fmpz_mod_mpoly_get_term_exp_fmpz,
     fmpz_mod_mpoly_is_one,
@@ -685,7 +684,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             fmpz_mod_mpoly res
             fmpz_mod_mpoly_ctx res_ctx
             fmpz_mod_mpoly_vec C
-            slong i, nvars = self.ctx.nvars(), nargs = len(args)
+            slong nvars = self.ctx.nvars(), nargs = len(args)
 
         if nargs != nvars:
             raise ValueError("number of generators does not match number of arguments")
