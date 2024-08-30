@@ -115,7 +115,7 @@ cdef class arb_poly(flint_poly):
 
     def complex_roots(self, **kwargs):
         """
-        Compute the complex roots of the polynomial by converting 
+        Compute the complex roots of the polynomial by converting
         from arb_poly to acb_poly
         """
         return acb_poly(self).roots(**kwargs)

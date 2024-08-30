@@ -293,8 +293,8 @@ cdef class acb_series(flint_series):
         cap = getcap()
         cap = min(cap, (<acb_series>s).prec)
         if s.length() < 2 or (not acb_is_zero(&s.val.coeffs[0])) or \
-            (acb_contains_zero(&s.val.coeffs[1])):
-                raise ValueError("power series reversion requires valuation 1")
+           (acb_contains_zero(&s.val.coeffs[1])):
+            raise ValueError("power series reversion requires valuation 1")
         u = acb_series.__new__(acb_series)
         acb_poly_revert_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
         (<acb_series>u).prec = cap
@@ -652,7 +652,7 @@ cdef class acb_series(flint_series):
         libc.stdlib.free(aa)
         libc.stdlib.free(bb)
         (<acb_series>u).prec = cap
-        return u    
+        return u
 
     def airy_ai(s):
         cdef long cap

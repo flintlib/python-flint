@@ -12,19 +12,19 @@ cdef extern from "flint/fq_zech.h":
     ctypedef fq_zech_struct fq_zech_t[1]
 
     ctypedef struct fq_zech_ctx_struct:
-        mp_limb_t qm1              # q - 1 
-        mp_limb_t qm1o2            # (q - 1) / 2 or 1 when p == 2 
-        mp_limb_t qm1opm1          # (q - 1) / (p - 1) 
+        mp_limb_t qm1              # q - 1
+        mp_limb_t qm1o2            # (q - 1) / 2 or 1 when p == 2
+        mp_limb_t qm1opm1          # (q - 1) / (p - 1)
         mp_limb_t p
         double ppre
-        mp_limb_t prime_root       # primitive root for prime subfield 
+        mp_limb_t prime_root       # primitive root for prime subfield
         mp_limb_t * zech_log_table
         mp_limb_t * prime_field_table
         mp_limb_t * eval_table
 
         fq_nmod_ctx_struct * fq_nmod_ctx
         int owns_fq_nmod_ctx
-        int is_conway # whether field was generated using Flint Conway tables (assures primitivity) 
+        int is_conway # whether field was generated using Flint Conway tables (assures primitivity)
     ctypedef fq_zech_ctx_struct fq_zech_ctx_t[1]
 
     ctypedef struct fq_zech_mat_struct:

@@ -4188,7 +4188,7 @@ def test_fq_default():
     assert raises(lambda: gf_5.one() + gf_5_2.one(), ValueError)
     # testing various equalties between types
 
-    # integers are the same if charactersitic is the same
+    # integers are the same if characteristic is the same
     # even with extensions
     assert gf_5.one() == gf_5_.one()
     assert hash(gf_5.one()) == hash(gf_5_.one())
@@ -4242,7 +4242,7 @@ def test_fq_default():
     assert gf_5_2(-1) != R7(-1)
     assert gf_5_2(-1) != R7(4)
 
-    # test fq_default element arithemtic
+    # test fq_default element arithmetic
 
     for gf in [gf_5, gf_5_2, gf_127, gf_127_2]:
 
@@ -4336,7 +4336,7 @@ def test_fq_default_poly():
     assert R1(0).leading_coefficient() == 0
     assert raises(lambda: R1.random_element().reverse(degree=-1), ValueError)
 
-    # some coersion
+    # some coercion
     assert raises(lambda: R3(F(1)), ValueError)
     assert R1.one() == R1(1)
     assert R1.one() == R1([1])

@@ -15,7 +15,7 @@ from flint.utils.flint_exceptions import DomainError
 
 cdef class fq_default_poly_ctx:
     r"""
-    Context object for creating :class:`~.fq_default_poly` initalised
+    Context object for creating :class:`~.fq_default_poly` initialised
     with a finite field `GF(p^d)`.
 
         >>> fq_default_poly_ctx(163, 3, fq_type="FQ_NMOD")
@@ -406,7 +406,7 @@ cdef class fq_default_poly(flint_poly):
         return res
 
     def truncate(self, slong n):
-        """
+        r"""
         Notionally truncate the polynomial to have length ``n``. If
         ``n`` is larger than the length of the input, then ``self`` is
         returned. If ``n`` is not positive, then the zero polynomial
@@ -655,7 +655,7 @@ cdef class fq_default_poly(flint_poly):
         return res
 
     def pow_mod(self, e, modulus):
-        """
+        r"""
         Returns ``self`` raised to the power ``e`` modulo ``modulus``:
         :math:`f^e \mod g`/
 
@@ -733,8 +733,9 @@ cdef class fq_default_poly(flint_poly):
 
     def exact_division(self, other):
         """
-        Attempt to compute the exact quotient of self with other
-        Raises a value error if divison without remainer is not
+        Attempt to compute the exact quotient of self with other.
+
+        Raises a value error if division without remainder is not
         possible.
 
             >>> R = fq_default_poly_ctx(163)
@@ -1134,7 +1135,7 @@ cdef class fq_default_poly(flint_poly):
         return res
 
     def pow_trunc(self, slong e, slong n):
-        """
+        r"""
         Returns ``self`` raised to the power ``e`` modulo `x^n`:
         :math:`f^e \mod x^n`/
 
@@ -1433,7 +1434,7 @@ cdef class fq_default_poly(flint_poly):
         return res
 
     def compose_mod(self, other, modulus):
-        """
+        r"""
         Returns the composition of two polynomials modulo a third.
 
         To be precise about the order of composition, given ``self``, and ``other``

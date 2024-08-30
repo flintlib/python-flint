@@ -35,7 +35,7 @@ from flint.utils.flint_exceptions import DomainError
 
 cdef class fmpz_mod_ctx:
     r"""
-    Context object for creating :class:`~.fmpz_mod` initalised 
+    Context object for creating :class:`~.fmpz_mod` initialised
     with a modulus :math:`N`.
 
         >>> fmpz_mod_ctx(2**127 - 1)
@@ -106,7 +106,7 @@ cdef class fmpz_mod_ctx:
             >>> F.zero()
             fmpz_mod(0, 163)
         """
-        cdef fmpz_mod res 
+        cdef fmpz_mod res
         res = fmpz_mod.__new__(fmpz_mod)
         fmpz_zero(res.val)
         res.ctx = self
@@ -121,7 +121,7 @@ cdef class fmpz_mod_ctx:
             >>> F.one()
             fmpz_mod(1, 163)
         """
-        cdef fmpz_mod res 
+        cdef fmpz_mod res
         res = fmpz_mod.__new__(fmpz_mod)
         fmpz_one(res.val)
         res.ctx = self
@@ -142,7 +142,7 @@ cdef class fmpz_mod_ctx:
 
     cdef discrete_log_pohlig_hellman_run(self, fmpz_t x, fmpz_t y):
         # First, Ensure that L has performed precomputations This generates a
-        # base which is a primative root, and used as the base in
+        # base which is a primitive root, and used as the base in
         # fmpz_mod_discrete_log_pohlig_hellman_run
         if not self._init_L:
             fmpz_mod_discrete_log_pohlig_hellman_precompute_prime(self.L, self.val.n)
@@ -157,15 +157,15 @@ cdef class fmpz_mod_ctx:
                 raise ValueError("moduli must match")
             fmpz_set(val, (<fmpz_mod>obj).val)
             return 0
-        
+
         # Try and convert obj to fmpz
         if not typecheck(obj, fmpz):
             obj = any_as_fmpz(obj)
             if obj is NotImplemented:
                 return NotImplemented
-        
+
         fmpz_mod_set_fmpz(val, (<fmpz>obj).val, self.val)
-        
+
         return 0
 
     cdef any_as_fmpz_mod(self, obj):
@@ -184,7 +184,7 @@ cdef class fmpz_mod_ctx:
         if check is NotImplemented:
             return NotImplemented
         res.ctx = self
-        
+
         return res
 
     def __eq__(self, other):
@@ -192,11 +192,11 @@ cdef class fmpz_mod_ctx:
         # If we could cache contexts, then we would ensure that only
         # the a is b check is needed for equality.
 
-        # Most often, we expect both `fmpz_mod` to be pointing to the 
+        # Most often, we expect both `fmpz_mod` to be pointing to the
         # same ctx, so this seems the fastest way to check
         if self is other:
             return True
-        
+
         # If they're not the same object in memory, they may have the
         # same modulus, which is good enough
         if typecheck(other, fmpz_mod_ctx):
@@ -217,7 +217,7 @@ cdef class fmpz_mod_ctx:
 
 cdef class fmpz_mod(flint_scalar):
     """
-    The *fmpz_mod* type represents integer modulo an 
+    The *fmpz_mod* type represents integer modulo an
     arbitrary-size modulus. For wordsize modulus, see
     :class:`~.nmod`.
 
@@ -297,7 +297,7 @@ cdef class fmpz_mod(flint_scalar):
         Computes :math:`a^{-1} \pmod N`
 
         When check=False, the solutions is assumed to exist and Flint will abort on
-        failure. 
+        failure.
 
             >>> mod_ctx = fmpz_mod_ctx(163)
             >>> mod_ctx(2).inverse()
@@ -328,7 +328,7 @@ cdef class fmpz_mod(flint_scalar):
         return res
 
     def discrete_log(self, a):
-        """
+        r"""
         Solve the discrete logarithm problem, using `self = g` as a base.
         Assumes a solution, :math:`a = g^x \pmod p` exists.
 
@@ -367,7 +367,7 @@ cdef class fmpz_mod(flint_scalar):
         fmpz_init(x_a)
         self.ctx.discrete_log_pohlig_hellman_run(x_a, (<fmpz_mod>a).val)
 
-        # If g is not a primative root, then x_g and pm1 will share
+        # If g is not a primitive root, then x_g and pm1 will share
         # a common factor. We can use this to compute the order of
         # g.
         cdef fmpz_t g, g_order, x_g
@@ -408,7 +408,6 @@ cdef class fmpz_mod(flint_scalar):
             return res
         else:
             return not res
-
 
     def __bool__(self):
         return not self.is_zero()

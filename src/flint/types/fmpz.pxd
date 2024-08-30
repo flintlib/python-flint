@@ -32,6 +32,5 @@ cdef class fmpz(flint_scalar):
         >>> fmpz(3) ** 25
         847288609443
 
-    """ 
-
+    """
     cdef fmpz_t val

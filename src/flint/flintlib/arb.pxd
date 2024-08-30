@@ -254,7 +254,6 @@ cdef extern from "flint/arb.h":
 
     void arb_lambertw(arb_t z, const arb_t x, int flags, long prec)
 
-
     void arb_rising_ui_bs(arb_t y, const arb_t x, ulong n, long prec)
     void arb_rising_ui_rs(arb_t y, const arb_t x, ulong n, ulong m, long prec)
     void arb_rising_ui_rec(arb_t y, const arb_t x, ulong n, long prec)

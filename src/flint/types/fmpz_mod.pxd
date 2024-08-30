@@ -14,7 +14,7 @@ cdef class fmpz_mod_ctx:
     cdef set_any_as_fmpz_mod(self, fmpz_t val, obj)
     cdef any_as_fmpz_mod(self, obj)
     cdef discrete_log_pohlig_hellman_run(self, fmpz_t x, fmpz_t y)
-    
+
 cdef class fmpz_mod(flint_scalar):
     cdef fmpz_mod_ctx ctx
     cdef fmpz_t val

@@ -76,7 +76,7 @@ def fill_import_dict(pyflintlibdir):
 
 def undecorate(str):
     """
-    remove variable name, const, *, etc. to just get types
+    remove variable name, const, ``*``, etc. to just get types
     """
     ret = str.strip()
     ret = ret[:ret.rfind(' ')]

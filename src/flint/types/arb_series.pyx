@@ -285,8 +285,8 @@ cdef class arb_series(flint_series):
         cap = getcap()
         cap = min(cap, (<arb_series>s).prec)
         if s.length() < 2 or (not arb_is_zero(&s.val.coeffs[0])) or \
-            (not arb_is_nonzero(&s.val.coeffs[1])):
-                raise ValueError("power series reversion requires valuation 1")
+           (not arb_is_nonzero(&s.val.coeffs[1])):
+            raise ValueError("power series reversion requires valuation 1")
         u = arb_series.__new__(arb_series)
         arb_poly_revert_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
         (<arb_series>u).prec = cap
@@ -803,6 +803,7 @@ cdef class arb_series(flint_series):
 
         """
         orig_cap = ctx.cap
+
         def xsgn(x):
             if x < 0:
                 return -1

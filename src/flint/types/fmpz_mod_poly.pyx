@@ -22,7 +22,7 @@ from flint.utils.flint_exceptions import DomainError
 
 cdef class fmpz_mod_poly_ctx:
     r"""
-    Context object for creating :class:`~.fmpz_mod_poly` initalised
+    Context object for creating :class:`~.fmpz_mod_poly` initialised
     with a modulus :math:`N`.
 
         >>> fmpz_mod_poly_ctx(2**127 - 1)
@@ -188,7 +188,7 @@ cdef class fmpz_mod_poly_ctx:
         return 0
 
     cdef set_any_as_fmpz_mod_poly(self, fmpz_mod_poly_t poly, obj):
-        # Set val from fmpz_mod_poly 
+        # Set val from fmpz_mod_poly
         if typecheck(obj, fmpz_mod_poly):
             if self != (<fmpz_mod_poly>obj).ctx:
                 raise ValueError("moduli must match")
@@ -467,7 +467,7 @@ cdef class fmpz_mod_poly(flint_poly):
     def exact_division(self, right):
         """
         Attempt to compute the exact quotient of self with other
-        Raises a value error if divison without remainer is not
+        Raises a value error if division without remainder is not
         possible.
 
             >>> R = fmpz_mod_poly_ctx(163)
@@ -807,7 +807,7 @@ cdef class fmpz_mod_poly(flint_poly):
         return res
 
     def compose_mod(self, other, modulus):
-        """
+        r"""
         Returns the composition of two polynomials modulo a third.
 
         To be precise about the order of composition, given ``self``, and ``other``
@@ -1047,7 +1047,7 @@ cdef class fmpz_mod_poly(flint_poly):
         cdef fmpz_mod_poly res
         cdef fmpz_t f
 
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         if not check:
             fmpz_mod_poly_make_monic(
                 res.val, self.val, self.ctx.mod.val
@@ -1142,7 +1142,7 @@ cdef class fmpz_mod_poly(flint_poly):
         return res
 
     def pow_mod(self, e, modulus, mod_rev_inv=None):
-        """
+        r"""
         Returns ``self`` raised to the power ``e`` modulo ``modulus``:
         :math:`f^e \mod g`/
 
@@ -1655,7 +1655,7 @@ cdef class fmpz_mod_poly(flint_poly):
         return res
 
     def pow_trunc(self, slong e, slong n):
-        """
+        r"""
         Returns ``self`` raised to the power ``e`` modulo `x^n`:
         :math:`f^e \mod x^n`/
 
@@ -1885,14 +1885,14 @@ cdef class fmpz_mod_poly(flint_poly):
         return res
 
     def real_roots(self):
-        """
+        r"""
         This method is not implemented for polynomials in
         :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
         """
         raise DomainError("Cannot compute real roots for polynomials over integers modulo N")
 
     def complex_roots(self):
-        """
+        r"""
         This method is not implemented for polynomials in
         :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
         """

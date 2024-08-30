@@ -364,7 +364,6 @@ cdef extern from "flint/nmod_poly.h":
     # const nmod_poly_struct * nmod_berlekamp_massey_V_poly(const nmod_berlekamp_massey_t B)
     # const nmod_poly_struct * nmod_berlekamp_massey_R_poly(const nmod_berlekamp_massey_t B)
 
-
     # void nmod_poly_init(nmod_poly_t poly, mp_limb_t n)
     # void nmod_poly_init_preinv(nmod_poly_t poly, mp_limb_t n, mp_limb_t ninv)
     # void nmod_poly_init2(nmod_poly_t poly, mp_limb_t n, long alloc)

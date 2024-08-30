@@ -97,6 +97,7 @@ cdef any_as_arb_or_acb(x):
         return acb(x)
 """
 
+
 # Copied with modifications from sage/rings/complex_arb.pyx
 @cython.internal
 cdef class IntegrationContext:
@@ -655,7 +656,7 @@ cdef class acb(flint_scalar):
             return u
 
     def gamma(s):
-        """
+        r"""
         Gamma function `\Gamma(s)`.
 
             >>> from flint import showgood
@@ -667,7 +668,7 @@ cdef class acb(flint_scalar):
         return u
 
     def rgamma(s):
-        """
+        r"""
         Reciprocal gamma function `1/\Gamma(s)`, avoiding
         division by zero at the poles of the gamma function.
 
@@ -684,7 +685,7 @@ cdef class acb(flint_scalar):
         return u
 
     def lgamma(s):
-        """
+        r"""
         Logarithmic gamma function `\log \Gamma(s)`.
         The function is defined to be continuous away from the
         negative half-axis and thus differs from `\log(\Gamma(s))` in general.
@@ -701,7 +702,7 @@ cdef class acb(flint_scalar):
         return u
 
     def digamma(s):
-        """
+        r"""
         Digamma function `\psi(s)`.
 
             >>> from flint import showgood
@@ -713,7 +714,7 @@ cdef class acb(flint_scalar):
         return u
 
     def zeta(s, a=None):
-        """
+        r"""
         Riemann zeta function `\zeta(s)`, or the Hurwitz
         zeta function `\zeta(s,a)` if a second parameter is passed.
 
@@ -734,7 +735,7 @@ cdef class acb(flint_scalar):
             return u
 
     def lerch_phi(z, s, a):
-        """
+        r"""
         Lerch transcendent `\Phi(z,s,a)`.
 
             >>> from flint import showgood
@@ -746,7 +747,6 @@ cdef class acb(flint_scalar):
         u = acb.__new__(acb)
         acb_dirichlet_lerch_phi((<acb>u).val, (<acb>z).val, (<acb>s).val, (<acb>a).val, getprec())
         return u
-
 
     def dirichlet_l(s, chi):
         cdef dirichlet_char cchar
@@ -760,8 +760,8 @@ cdef class acb(flint_scalar):
 
     @staticmethod
     def pi():
-        """
-        Returns tthe constant `\pi` as an *acb*.
+        r"""
+        Returns the constant `\pi` as an *acb*.
 
             >>> from flint import showgood
             >>> showgood(lambda: acb.pi(), dps=25)
@@ -796,6 +796,7 @@ cdef class acb(flint_scalar):
     def rsqrt(s, bint analytic=False):
         r"""
         Reciprocal square root `1/\sqrt{s}`.
+
         The *analytic* flag allows verifying that the branch cut is not
         touched; this is useful for numerical integration.
 
@@ -1134,7 +1135,7 @@ cdef class acb(flint_scalar):
         return u, v
 
     def polylog(self, s):
-        """
+        r"""
         Computes the polylogarithm `\operatorname{Li}_s(z)` where
         the argument *z* is given by *self* and the order *s* is given
         as an extra parameter.
@@ -1176,7 +1177,7 @@ cdef class acb(flint_scalar):
             >>> from flint import showgood
             >>> for i in range(4):
             ...     showgood(lambda: acb(1+1j).modular_theta(1.25+3j)[i], dps=25)
-            ... 
+            ...
             1.820235910124989594900076 - 1.216251950154477951760042j
             -1.220790267576967690128359 - 1.827055516791154669091679j
             0.9694430387796704100046143 - 0.03055696120816803328582847j
@@ -1420,7 +1421,7 @@ cdef class acb(flint_scalar):
 
     def bits(self):
         r"""Returns maximum of :meth:`.arb.bits` called on real and imaginary part.
-        
+
             >>> acb("2047/2048").bits()
             11
         """

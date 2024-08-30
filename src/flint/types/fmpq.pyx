@@ -302,7 +302,7 @@ cdef class fmpq(flint_scalar):
             ...     b.append(b[-1].next(signed=False))
             ...     c.append(c[-1].next(minimal=False))
             ...     d.append(d[-1].next(signed=False, minimal=False))
-            ... 
+            ...
             >>> a
             [0, 1, -1, 1/2, -1/2, 2, -2, 1/3, -1/3, 3, -3, 2/3, -2/3, 3/2, -3/2, 1/4, -1/4, 4, -4, 3/4, -3/4]
             >>> b

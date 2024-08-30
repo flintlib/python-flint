@@ -213,7 +213,7 @@ cdef class nmod_poly(flint_poly):
         """
         cdef nmod_poly res
         cdef slong d
-        
+
         if degree is not None:
             d = degree
             if d != degree or d < 0:
@@ -266,7 +266,7 @@ cdef class nmod_poly(flint_poly):
         """
         if n <= 0:
             raise ValueError(f"{n = } must be positive")
-        
+
         if self.is_zero():
             raise ValueError(f"cannot invert the zero element")
 
@@ -280,7 +280,7 @@ cdef class nmod_poly(flint_poly):
         """
         Returns the composition of two polynomials
 
-        To be precise about the order of composition, given ``self``, and ``other`` 
+        To be precise about the order of composition, given ``self``, and ``other``
         by `f(x)`, `g(x)`, returns `f(g(x))`.
 
             >>> f = nmod_poly([1,2,3], 163)
@@ -296,15 +296,15 @@ cdef class nmod_poly(flint_poly):
             raise TypeError("cannot convert input to nmod_poly")
         res = nmod_poly.__new__(nmod_poly)
         nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
-        nmod_poly_compose(res.val, self.val, (<nmod_poly>other).val) 
-        return res  
+        nmod_poly_compose(res.val, self.val, (<nmod_poly>other).val)
+        return res
 
     def compose_mod(self, other, modulus):
-        """
+        r"""
         Returns the composition of two polynomials modulo a third.
 
-        To be precise about the order of composition, given ``self``, and ``other`` 
-        and ``modulus`` by `f(x)`, `g(x)` and `h(x)`, returns `f(g(x)) \mod h(x)`. 
+        To be precise about the order of composition, given ``self``, and ``other``
+        and ``modulus`` by `f(x)`, `g(x)` and `h(x)`, returns `f(g(x)) \mod h(x)`.
         We require that `h(x)` is non-zero.
 
             >>> f = nmod_poly([1,2,3,4,5], 163)
@@ -319,18 +319,18 @@ cdef class nmod_poly(flint_poly):
         g = any_as_nmod_poly(other, self.val.mod)
         if g is NotImplemented:
             raise TypeError(f"cannot convert {other = } to nmod_poly")
-    
+
         h = any_as_nmod_poly(modulus, self.val.mod)
         if h is NotImplemented:
             raise TypeError(f"cannot convert {modulus = } to nmod_poly")
-        
+
         if modulus.is_zero():
             raise ZeroDivisionError("cannot reduce modulo zero")
 
         res = nmod_poly.__new__(nmod_poly)
         nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
-        nmod_poly_compose_mod(res.val, self.val, (<nmod_poly>other).val, (<nmod_poly>modulus).val) 
-        return res 
+        nmod_poly_compose_mod(res.val, self.val, (<nmod_poly>other).val, (<nmod_poly>modulus).val)
+        return res
 
     def __call__(self, other):
         cdef mp_limb_t c
@@ -508,7 +508,7 @@ cdef class nmod_poly(flint_poly):
         return res
 
     def pow_mod(self, e, modulus, mod_rev_inv=None):
-        """
+        r"""
         Returns ``self`` raised to the power ``e`` modulo ``modulus``:
         :math:`f^e \mod g`/
 
@@ -520,8 +520,8 @@ cdef class nmod_poly(flint_poly):
             >>> f = 30*x**6 + 104*x**5 + 76*x**4 + 33*x**3 + 70*x**2 + 44*x + 65
             >>> g = 43*x**6 + 91*x**5 + 77*x**4 + 113*x**3 + 71*x**2 + 132*x + 60
             >>> mod = x**4 + 93*x**3 + 78*x**2 + 72*x + 149
-            >>> 
-            >>> f.pow_mod(123, mod) 
+            >>>
+            >>> f.pow_mod(123, mod)
             3*x^3 + 25*x^2 + 115*x + 161
             >>> f.pow_mod(2**64, mod)
             52*x^3 + 96*x^2 + 136*x + 9
@@ -541,7 +541,7 @@ cdef class nmod_poly(flint_poly):
         # Output polynomial
         res = nmod_poly.__new__(nmod_poly)
         nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
-        
+
         # For small exponents, use a simple binary exponentiation method
         if e.bit_length() < 32:
             nmod_poly_powmod_ui_binexp(
@@ -717,14 +717,14 @@ cdef class nmod_poly(flint_poly):
             return v, int(n)
 
     def real_roots(self):
-        """
+        r"""
         This method is not implemented for polynomials in
         :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
         """
         raise DomainError("Cannot compute real roots for polynomials over integers modulo N")
 
     def complex_roots(self):
-        """
+        r"""
         This method is not implemented for polynomials in
         :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
         """
