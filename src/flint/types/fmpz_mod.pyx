@@ -27,7 +27,6 @@ from flint.types.fmpz cimport(
     any_as_fmpz,
     fmpz_get_intlong
 )
-cimport cython
 cimport libc.stdlib
 
 from flint.utils.flint_exceptions import DomainError

@@ -4,7 +4,6 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpz_poly cimport fmpz_poly
 from flint.types.fmpq_mat cimport fmpq_mat
 from flint.types.fmpz cimport any_as_fmpz
-from flint.types.fmpq cimport fmpq
 from flint.pyflint cimport global_random_state
 from flint.types.fmpq cimport any_as_fmpq
 cimport cython

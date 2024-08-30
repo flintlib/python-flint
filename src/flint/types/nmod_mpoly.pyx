@@ -9,7 +9,7 @@ from flint.flint_base.flint_base import Ordering
 from flint.utils.typecheck cimport typecheck
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
-from flint.types.fmpz cimport any_as_fmpz, fmpz
+from flint.types.fmpz cimport fmpz
 from flint.types.fmpz_vec cimport fmpz_vec
 from flint.types.fmpz_mod cimport fmpz_mod
 
@@ -38,7 +38,6 @@ from flint.flintlib.nmod_mpoly cimport (
     nmod_mpoly_gen,
     nmod_mpoly_get_coeff_ui_fmpz,
     nmod_mpoly_get_str_pretty,
-    nmod_mpoly_get_term,
     nmod_mpoly_get_term_coeff_ui,
     nmod_mpoly_get_term_exp_fmpz,
     nmod_mpoly_is_one,

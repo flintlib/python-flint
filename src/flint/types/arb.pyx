@@ -5,7 +5,7 @@ from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_context cimport thectx
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
-from flint.utils.conversion cimport chars_from_str, str_from_chars, _str_trunc
+from flint.utils.conversion cimport chars_from_str, str_from_chars
 from flint.types.fmpz cimport fmpz_set_pylong
 from flint.types.arf cimport arf
 from flint.types.fmpq cimport fmpq

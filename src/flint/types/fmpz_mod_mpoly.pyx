@@ -35,7 +35,6 @@ from flint.flintlib.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_gen,
     fmpz_mod_mpoly_get_coeff_fmpz_fmpz,
     fmpz_mod_mpoly_get_str_pretty,
-    fmpz_mod_mpoly_get_term,
     fmpz_mod_mpoly_get_term_coeff_fmpz,
     fmpz_mod_mpoly_get_term_exp_fmpz,
     fmpz_mod_mpoly_is_one,

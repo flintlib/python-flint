@@ -8,7 +8,6 @@ from flint.types.fmpz cimport fmpz_set_python
 from flint.types.fmpz cimport any_as_fmpz
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport any_as_fmpq
-from flint.types.fmpq cimport fmpq
 from flint.types.fmpq_poly cimport fmpq_poly
 from flint.types.fmpq_poly cimport any_as_fmpq_poly
 from flint.types.acb cimport acb

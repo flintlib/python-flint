@@ -38,9 +38,6 @@ from flint.flint_base.flint_base cimport (
 from flint.types.fmpz cimport (
     fmpz,
 )
-from flint.types.nmod cimport (
-    nmod,
-)
 from flint.types.fmpz_mod cimport (
     fmpz_mod_ctx,
     fmpz_mod,

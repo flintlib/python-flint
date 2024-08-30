@@ -2,9 +2,8 @@
 Python wrapper for FLINT and Arb.
 """
 
-cimport flint
+# cimport flint
 cimport libc.stdlib
-cimport cython
 
 from flint.flint_base.flint_context cimport thectx
 

@@ -8,7 +8,6 @@ from flint.types.acb cimport acb
 from flint.types.fmpz_poly cimport fmpz_poly
 from flint.types.fmpq_poly cimport fmpq_poly
 from flint.types.arb_poly cimport arb_poly
-from flint.types.arb_poly cimport arb_poly_set_list
 from flint.types.acb_poly cimport acb_poly_set_list
 from flint.types.arb cimport arb
 from flint.types.acb_poly cimport acb_poly
