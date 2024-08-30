@@ -23,4 +23,4 @@ jobs:
 
     - name: cython-lint
       run: |
-        cython-lint --ignore=E114,E117,E127,E128,E129,E202,E221,E222,E231,E261,E262,E265,E302,E303,E306,E501,E701,E703,E711,E722,E731,E741,E743,W291,W293,W391,W605 src/
+        cython-lint src/
