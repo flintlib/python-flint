@@ -14,7 +14,7 @@ cdef extern from "flint/fmpz_mpoly_factor.h":
         slong num
         slong alloc
 
-    ctypedef fmpz_mpoly_factor_struct fmpz_mpoly_factor_t[1];
+    ctypedef fmpz_mpoly_factor_struct fmpz_mpoly_factor_t[1]
 
     void fmpz_mpoly_factor_init(fmpz_mpoly_factor_t f, const fmpz_mpoly_ctx_t ctx)
     void fmpz_mpoly_factor_clear(fmpz_mpoly_factor_t f, const fmpz_mpoly_ctx_t ctx)

@@ -479,14 +479,22 @@ cdef class arb(flint_scalar):
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
         res = 0
-        if   op == 2: res = arb_eq(sval, tval)
-        elif op == 3: res = arb_ne(sval, tval)
-        elif op == 0: res = arb_lt(sval, tval)
-        elif op == 1: res = arb_le(sval, tval)
-        elif op == 4: res = arb_gt(sval, tval)
-        elif op == 5: res = arb_ge(sval, tval)
-        if stype == FMPZ_TMP: arb_clear(sval)
-        if ttype == FMPZ_TMP: arb_clear(tval)
+        if op == 2:
+            res = arb_eq(sval, tval)
+        elif op == 3:
+            res = arb_ne(sval, tval)
+        elif op == 0:
+            res = arb_lt(sval, tval)
+        elif op == 1:
+            res = arb_le(sval, tval)
+        elif op == 4:
+            res = arb_gt(sval, tval)
+        elif op == 5:
+            res = arb_ge(sval, tval)
+        if stype == FMPZ_TMP:
+            arb_clear(sval)
+        if ttype == FMPZ_TMP:
+            arb_clear(tval)
         return res
 
     def __contains__(self, other):
@@ -563,7 +571,8 @@ cdef class arb(flint_scalar):
             return NotImplemented
         u = arb.__new__(arb)
         arb_add((<arb>u).val, (<arb>s).val, tval, getprec())
-        if ttype == FMPZ_TMP: arb_clear(tval)
+        if ttype == FMPZ_TMP:
+            arb_clear(tval)
         return u
 
     def __radd__(s, t):
@@ -574,7 +583,8 @@ cdef class arb(flint_scalar):
             return NotImplemented
         u = arb.__new__(arb)
         arb_add((<arb>u).val, tval, s.val, getprec())
-        if ttype == FMPZ_TMP: arb_clear(tval)
+        if ttype == FMPZ_TMP:
+            arb_clear(tval)
         return u
 
     def __sub__(s, t):
@@ -585,7 +595,8 @@ cdef class arb(flint_scalar):
             return NotImplemented
         u = arb.__new__(arb)
         arb_sub((<arb>u).val, (<arb>s).val, tval, getprec())
-        if ttype == FMPZ_TMP: arb_clear(tval)
+        if ttype == FMPZ_TMP:
+            arb_clear(tval)
         return u
 
     def __rsub__(s, t):
@@ -596,7 +607,8 @@ cdef class arb(flint_scalar):
             return NotImplemented
         u = arb.__new__(arb)
         arb_sub((<arb>u).val, tval, s.val, getprec())
-        if ttype == FMPZ_TMP: arb_clear(tval)
+        if ttype == FMPZ_TMP:
+            arb_clear(tval)
         return u
 
     def __mul__(s, t):
@@ -607,7 +619,8 @@ cdef class arb(flint_scalar):
             return NotImplemented
         u = arb.__new__(arb)
         arb_mul((<arb>u).val, (<arb>s).val, tval, getprec())
-        if ttype == FMPZ_TMP: arb_clear(tval)
+        if ttype == FMPZ_TMP:
+            arb_clear(tval)
         return u
 
     def __rmul__(s, t):
@@ -618,7 +631,8 @@ cdef class arb(flint_scalar):
             return NotImplemented
         u = arb.__new__(arb)
         arb_mul((<arb>u).val, tval, s.val, getprec())
-        if ttype == FMPZ_TMP: arb_clear(tval)
+        if ttype == FMPZ_TMP:
+            arb_clear(tval)
         return u
 
     def __truediv__(s, t):
@@ -629,7 +643,8 @@ cdef class arb(flint_scalar):
             return NotImplemented
         u = arb.__new__(arb)
         arb_div((<arb>u).val, (<arb>s).val, tval, getprec())
-        if ttype == FMPZ_TMP: arb_clear(tval)
+        if ttype == FMPZ_TMP:
+            arb_clear(tval)
         return u
 
     def __rtruediv__(s, t):
@@ -640,7 +655,8 @@ cdef class arb(flint_scalar):
             return NotImplemented
         u = arb.__new__(arb)
         arb_div((<arb>u).val, tval, s.val, getprec())
-        if ttype == FMPZ_TMP: arb_clear(tval)
+        if ttype == FMPZ_TMP:
+            arb_clear(tval)
         return u
 
     def __pow__(s, t, modulus):
@@ -653,7 +669,8 @@ cdef class arb(flint_scalar):
             return NotImplemented
         u = arb.__new__(arb)
         arb_pow((<arb>u).val, (<arb>s).val, tval, getprec())
-        if ttype == FMPZ_TMP: arb_clear(tval)
+        if ttype == FMPZ_TMP:
+            arb_clear(tval)
         return u
 
     def __rpow__(s, t, modulus):
@@ -666,7 +683,8 @@ cdef class arb(flint_scalar):
             return NotImplemented
         u = arb.__new__(arb)
         arb_pow((<arb>u).val, tval, s.val, getprec())
-        if ttype == FMPZ_TMP: arb_clear(tval)
+        if ttype == FMPZ_TMP:
+            arb_clear(tval)
         return u
 
     def floor(s):
@@ -2252,11 +2270,16 @@ cdef class arb(flint_scalar):
         c = any_as_arb(c)
         u = arb.__new__(arb)
         flags = 0
-        if regularized: flags |= 1
-        if ab: flags |= 2
-        if ac: flags |= 4
-        if bc: flags |= 8
-        if abc: flags |= 16
+        if regularized:
+            flags |= 1
+        if ab:
+            flags |= 2
+        if ac:
+            flags |= 4
+        if bc:
+            flags |= 8
+        if abc:
+            flags |= 16
         arb_hypgeom_2f1((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>c).val,
             (<arb>self).val, flags, getprec())
         return u

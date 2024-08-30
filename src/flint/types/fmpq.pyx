@@ -120,11 +120,16 @@ cdef class fmpq(flint_scalar):
             return res
         else:
             # todo: use fmpq_cmp when available
-            if op == 0: res = (s-t).p < 0
-            elif op == 1: res = (s-t).p <= 0
-            elif op == 4: res = (s-t).p > 0
-            elif op == 5: res = (s-t).p >= 0
-            else: raise ValueError
+            if op == 0:
+                res = (s-t).p < 0
+            elif op == 1:
+                res = (s-t).p <= 0
+            elif op == 4:
+                res = (s-t).p > 0
+            elif op == 5:
+                res = (s-t).p >= 0
+            else:
+                raise ValueError
             return res
 
     def numer(self):
@@ -474,13 +479,15 @@ cdef class fmpq(flint_scalar):
             return NotImplemented
 
         if fmpq_is_zero((<fmpq>self).val) and fmpz_sgn(nval) == -1:
-            if ntype == FMPZ_TMP: fmpz_clear(nval)
+            if ntype == FMPZ_TMP:
+                fmpz_clear(nval)
             raise ZeroDivisionError
 
         v = fmpq.__new__(fmpq)
         success = fmpq_pow_fmpz(v.val, (<fmpq>self).val, nval)
 
-        if ntype == FMPZ_TMP: fmpz_clear(nval)
+        if ntype == FMPZ_TMP:
+            fmpz_clear(nval)
 
         if success:
             return v
