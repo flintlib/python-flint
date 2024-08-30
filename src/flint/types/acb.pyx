@@ -747,7 +747,6 @@ cdef class acb(flint_scalar):
         acb_dirichlet_lerch_phi((<acb>u).val, (<acb>z).val, (<acb>s).val, (<acb>a).val, getprec())
         return u
 
-
     def dirichlet_l(s, chi):
         cdef dirichlet_char cchar
         if isinstance(chi, dirichlet_char):
@@ -761,7 +760,7 @@ cdef class acb(flint_scalar):
     @staticmethod
     def pi():
         """
-        Returns tthe constant `\pi` as an *acb*.
+        Returns the constant `\pi` as an *acb*.
 
             >>> from flint import showgood
             >>> showgood(lambda: acb.pi(), dps=25)
@@ -796,6 +795,7 @@ cdef class acb(flint_scalar):
     def rsqrt(s, bint analytic=False):
         r"""
         Reciprocal square root `1/\sqrt{s}`.
+
         The *analytic* flag allows verifying that the branch cut is not
         touched; this is useful for numerical integration.
 

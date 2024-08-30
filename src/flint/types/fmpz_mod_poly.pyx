@@ -22,7 +22,7 @@ from flint.utils.flint_exceptions import DomainError
 
 cdef class fmpz_mod_poly_ctx:
     r"""
-    Context object for creating :class:`~.fmpz_mod_poly` initalised
+    Context object for creating :class:`~.fmpz_mod_poly` initialised
     with a modulus :math:`N`.
 
         >>> fmpz_mod_poly_ctx(2**127 - 1)
@@ -467,7 +467,7 @@ cdef class fmpz_mod_poly(flint_poly):
     def exact_division(self, right):
         """
         Attempt to compute the exact quotient of self with other
-        Raises a value error if divison without remainer is not
+        Raises a value error if division without remainder is not
         possible.
 
             >>> R = fmpz_mod_poly_ctx(163)

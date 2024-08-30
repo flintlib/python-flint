@@ -35,7 +35,7 @@ from flint.utils.flint_exceptions import DomainError
 
 cdef class fmpz_mod_ctx:
     r"""
-    Context object for creating :class:`~.fmpz_mod` initalised 
+    Context object for creating :class:`~.fmpz_mod` initialised 
     with a modulus :math:`N`.
 
         >>> fmpz_mod_ctx(2**127 - 1)
@@ -142,7 +142,7 @@ cdef class fmpz_mod_ctx:
 
     cdef discrete_log_pohlig_hellman_run(self, fmpz_t x, fmpz_t y):
         # First, Ensure that L has performed precomputations This generates a
-        # base which is a primative root, and used as the base in
+        # base which is a primitive root, and used as the base in
         # fmpz_mod_discrete_log_pohlig_hellman_run
         if not self._init_L:
             fmpz_mod_discrete_log_pohlig_hellman_precompute_prime(self.L, self.val.n)
@@ -367,7 +367,7 @@ cdef class fmpz_mod(flint_scalar):
         fmpz_init(x_a)
         self.ctx.discrete_log_pohlig_hellman_run(x_a, (<fmpz_mod>a).val)
 
-        # If g is not a primative root, then x_g and pm1 will share
+        # If g is not a primitive root, then x_g and pm1 will share
         # a common factor. We can use this to compute the order of
         # g.
         cdef fmpz_t g, g_order, x_g
