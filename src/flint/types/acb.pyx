@@ -202,7 +202,8 @@ cdef class acb(flint_scalar):
             res = acb_eq(s.val, tval)
         else:
             res = acb_ne(s.val, tval)
-        if ttype == FMPZ_TMP: acb_clear(tval)
+        if ttype == FMPZ_TMP:
+            acb_clear(tval)
         return res
 
     def __contains__(self, other):
@@ -402,7 +403,8 @@ cdef class acb(flint_scalar):
             return NotImplemented
         u = acb.__new__(acb)
         acb_add((<acb>u).val, (<acb>s).val, tval, getprec())
-        if ttype == FMPZ_TMP: acb_clear(tval)
+        if ttype == FMPZ_TMP:
+            acb_clear(tval)
         return u
 
     def __radd__(s, t):
@@ -413,7 +415,8 @@ cdef class acb(flint_scalar):
             return NotImplemented
         u = acb.__new__(acb)
         acb_add((<acb>u).val, tval, s.val, getprec())
-        if ttype == FMPZ_TMP: acb_clear(tval)
+        if ttype == FMPZ_TMP:
+            acb_clear(tval)
         return u
 
     def __sub__(s, t):
@@ -424,7 +427,8 @@ cdef class acb(flint_scalar):
             return NotImplemented
         u = acb.__new__(acb)
         acb_sub((<acb>u).val, (<acb>s).val, tval, getprec())
-        if ttype == FMPZ_TMP: acb_clear(tval)
+        if ttype == FMPZ_TMP:
+            acb_clear(tval)
         return u
 
     def __rsub__(s, t):
@@ -435,7 +439,8 @@ cdef class acb(flint_scalar):
             return NotImplemented
         u = acb.__new__(acb)
         acb_sub((<acb>u).val, tval, s.val, getprec())
-        if ttype == FMPZ_TMP: acb_clear(tval)
+        if ttype == FMPZ_TMP:
+            acb_clear(tval)
         return u
 
     def __mul__(s, t):
@@ -446,7 +451,8 @@ cdef class acb(flint_scalar):
             return NotImplemented
         u = acb.__new__(acb)
         acb_mul((<acb>u).val, (<acb>s).val, tval, getprec())
-        if ttype == FMPZ_TMP: acb_clear(tval)
+        if ttype == FMPZ_TMP:
+            acb_clear(tval)
         return u
 
     def __rmul__(s, t):
@@ -457,7 +463,8 @@ cdef class acb(flint_scalar):
             return NotImplemented
         u = acb.__new__(acb)
         acb_mul((<acb>u).val, tval, s.val, getprec())
-        if ttype == FMPZ_TMP: acb_clear(tval)
+        if ttype == FMPZ_TMP:
+            acb_clear(tval)
         return u
 
     def __truediv__(s, t):
@@ -468,7 +475,8 @@ cdef class acb(flint_scalar):
             return NotImplemented
         u = acb.__new__(acb)
         acb_div((<acb>u).val, (<acb>s).val, tval, getprec())
-        if ttype == FMPZ_TMP: acb_clear(tval)
+        if ttype == FMPZ_TMP:
+            acb_clear(tval)
         return u
 
     def __rtruediv__(s, t):
@@ -479,7 +487,8 @@ cdef class acb(flint_scalar):
             return NotImplemented
         u = acb.__new__(acb)
         acb_div((<acb>u).val, tval, s.val, getprec())
-        if ttype == FMPZ_TMP: acb_clear(tval)
+        if ttype == FMPZ_TMP:
+            acb_clear(tval)
         return u
 
     def __pow__(s, t, u):
@@ -492,7 +501,8 @@ cdef class acb(flint_scalar):
             return NotImplemented
         u = acb.__new__(acb)
         acb_pow((<acb>u).val, (<acb>s).val, tval, getprec())
-        if ttype == FMPZ_TMP: acb_clear(tval)
+        if ttype == FMPZ_TMP:
+            acb_clear(tval)
         return u
 
     def __rpow__(s, t, u):
@@ -505,7 +515,8 @@ cdef class acb(flint_scalar):
             return NotImplemented
         u = acb.__new__(acb)
         acb_pow((<acb>u).val, tval, s.val, getprec())
-        if ttype == FMPZ_TMP: acb_clear(tval)
+        if ttype == FMPZ_TMP:
+            acb_clear(tval)
         return u
 
     def union(s, t):
@@ -1535,11 +1546,16 @@ cdef class acb(flint_scalar):
         c = any_as_acb(c)
         u = acb.__new__(acb)
         flags = 0
-        if regularized: flags |= 1
-        if ab: flags |= 2
-        if ac: flags |= 4
-        if bc: flags |= 8
-        if abc: flags |= 16
+        if regularized:
+            flags |= 1
+        if ab:
+            flags |= 2
+        if ac:
+            flags |= 4
+        if bc:
+            flags |= 8
+        if abc:
+            flags |= 16
         acb_hypgeom_2f1((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>c).val,
             (<acb>self).val, flags, getprec())
         return u
