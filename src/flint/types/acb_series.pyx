@@ -652,7 +652,7 @@ cdef class acb_series(flint_series):
         libc.stdlib.free(aa)
         libc.stdlib.free(bb)
         (<acb_series>u).prec = cap
-        return u    
+        return u
 
     def airy_ai(s):
         cdef long cap

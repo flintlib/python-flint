@@ -61,7 +61,7 @@ cdef class dirichlet_char(object):
         >>> chi = dirichlet_char(7, 1)
         >>> for n in range(7):
         ...     print(chi(n))
-        ... 
+        ...
         0
         1.00000000000000
         1.00000000000000
@@ -72,7 +72,7 @@ cdef class dirichlet_char(object):
         >>> chi = dirichlet_char(7, 3)
         >>> for n in range(7):
         ...     print(chi(n))
-        ... 
+        ...
         0
         1.00000000000000
         -0.500000000000000 + [0.866025403784439 +/- 5.15e-16]j
@@ -206,4 +206,3 @@ cdef class dirichlet_char(object):
         v = acb.__new__(acb)
         acb_dirichlet_hardy_z((<acb>v).val, (<acb>s).val, self.G.val, self.val, 1, getprec())
         return v
-

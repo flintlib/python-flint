@@ -14,4 +14,3 @@ cdef class Context:
     cdef public bint pretty
     cdef public long prec
     cdef arf_rnd_t rnd
-

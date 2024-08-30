@@ -51,7 +51,7 @@ cdef class FlintContext:
     @property
     def threads(self):
         return flint_get_num_threads()
-    
+
     @threads.setter
     def threads(self, long num):
         assert num >= 1 and num <= 64

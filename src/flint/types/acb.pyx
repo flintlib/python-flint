@@ -1176,7 +1176,7 @@ cdef class acb(flint_scalar):
             >>> from flint import showgood
             >>> for i in range(4):
             ...     showgood(lambda: acb(1+1j).modular_theta(1.25+3j)[i], dps=25)
-            ... 
+            ...
             1.820235910124989594900076 - 1.216251950154477951760042j
             -1.220790267576967690128359 - 1.827055516791154669091679j
             0.9694430387796704100046143 - 0.03055696120816803328582847j
@@ -1420,7 +1420,7 @@ cdef class acb(flint_scalar):
 
     def bits(self):
         r"""Returns maximum of :meth:`.arb.bits` called on real and imaginary part.
-        
+
             >>> acb("2047/2048").bits()
             11
         """
