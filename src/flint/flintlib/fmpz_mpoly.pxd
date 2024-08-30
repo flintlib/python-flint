@@ -242,9 +242,9 @@ cdef extern from "flint/fmpz_mpoly.h":
     void fmpz_mpoly_symmetric_gens(fmpz_mpoly_t res, ulong k, slong * vars, slong n, const fmpz_mpoly_ctx_t ctx)
     void fmpz_mpoly_symmetric(fmpz_mpoly_t res, ulong k, const fmpz_mpoly_ctx_t ctx)
 # undocumented functions
-    void _fmpz_mpoly_push_exp_ffmpz(fmpz_mpoly_t A, const fmpz_struct * exp, const fmpz_mpoly_ctx_t ctx);
-    void _fmpz_mpoly_push_exp_pfmpz(fmpz_mpoly_t A, fmpz_struct * const * exp, const fmpz_mpoly_ctx_t ctx);
-    void _fmpz_mpoly_push_exp_ui(fmpz_mpoly_t A, const ulong * exp, const fmpz_mpoly_ctx_t ctx);
+    void _fmpz_mpoly_push_exp_ffmpz(fmpz_mpoly_t A, const fmpz_struct * exp, const fmpz_mpoly_ctx_t ctx)
+    void _fmpz_mpoly_push_exp_pfmpz(fmpz_mpoly_t A, fmpz_struct * const * exp, const fmpz_mpoly_ctx_t ctx)
+    void _fmpz_mpoly_push_exp_ui(fmpz_mpoly_t A, const ulong * exp, const fmpz_mpoly_ctx_t ctx)
 
     # Macros
     fmpz_mpoly_struct *fmpz_mpoly_vec_entry(fmpz_mpoly_vec_t vec, slong i)

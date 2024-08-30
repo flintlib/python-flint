@@ -1819,7 +1819,7 @@ cdef class fmpz_mod_poly(flint_poly):
             return (constant, [])
 
         fmpz_mod_poly_factor_init(fac, self.ctx.mod.val)
-        if algorithm == None:
+        if algorithm is None:
             fmpz_mod_poly_factor(fac, self.val, self.ctx.mod.val)
         elif algorithm == "cantor_zassenhaus":
             fmpz_mod_poly_factor_cantor_zassenhaus(fac, self.val, self.ctx.mod.val)

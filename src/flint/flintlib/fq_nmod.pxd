@@ -100,8 +100,8 @@ cdef extern from "flint/fq_nmod.h":
     void fq_nmod_one(fq_nmod_t rop, const fq_nmod_ctx_t ctx)
     void fq_nmod_gen(fq_nmod_t rop, const fq_nmod_ctx_t ctx)
     int fq_nmod_get_fmpz(fmpz_t rop, const fq_nmod_t op, const fq_nmod_ctx_t ctx)
-    void fq_nmod_get_nmod_poly(nmod_poly_t a, const fq_nmod_t b, const fq_nmod_ctx_t ctx);
-    void fq_nmod_set_nmod_poly(fq_nmod_t a, const nmod_poly_t b, const fq_nmod_ctx_t ctx);
+    void fq_nmod_get_nmod_poly(nmod_poly_t a, const fq_nmod_t b, const fq_nmod_ctx_t ctx)
+    void fq_nmod_set_nmod_poly(fq_nmod_t a, const nmod_poly_t b, const fq_nmod_ctx_t ctx)
     void fq_nmod_get_nmod_mat(nmod_mat_t col, const fq_nmod_t a, const fq_nmod_ctx_t ctx)
     void fq_nmod_set_nmod_mat(fq_nmod_t a, const nmod_mat_t col, const fq_nmod_ctx_t ctx)
     int fq_nmod_is_zero(const fq_nmod_t op, const fq_nmod_ctx_t ctx)
