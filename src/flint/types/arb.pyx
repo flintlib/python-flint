@@ -304,7 +304,7 @@ cdef class arb(flint_scalar):
         return x
 
     def lower(self):
-        """
+        r"""
         Lower bound for *self* (towards `-\infty`).
         The output is an *arb* holding an exact floating-point number
         that has been rounded down to the current precision.
@@ -317,7 +317,7 @@ cdef class arb(flint_scalar):
         return x
 
     def upper(self):
-        """
+        r"""
         Upper bound for *self* (towards `+\infty`).
         The output is an *arb* holding an exact floating-point number
         that has been rounded up to the current precision.
@@ -330,7 +330,7 @@ cdef class arb(flint_scalar):
         return x
 
     def mid_rad_10exp(self, long n=0):
-        """
+        r"""
         Returns an *fmpz* triple (*mid*, *rad*, *exp*) where the larger of *mid*
         and *rad* has *n* digits plus a few digits (*n* defaults to the current
         precision), such that *self* is contained in
@@ -670,7 +670,7 @@ cdef class arb(flint_scalar):
         return u
 
     def floor(s):
-        ur"""
+        r"""
         Floor function `\lfloor s \rfloor`.
 
             >>> print(arb.pi().floor())
@@ -683,7 +683,7 @@ cdef class arb(flint_scalar):
         return u
 
     def ceil(s):
-        ur"""
+        r"""
         Ceiling function `\lceil s \rceil`.
 
             >>> print(arb.pi().ceil())
@@ -986,7 +986,7 @@ cdef class arb(flint_scalar):
         return u, v
 
     def sec(s):
-        """
+        r"""
         Secant function `\operatorname{sec}(s)`.
 
             >>> from flint import showgood
@@ -998,7 +998,7 @@ cdef class arb(flint_scalar):
         return u
 
     def csc(s):
-        """
+        r"""
         Cosecant function `\operatorname{csc}(s)`.
 
             >>> from flint import showgood
@@ -1208,7 +1208,7 @@ cdef class arb(flint_scalar):
         return u
 
     def gamma(s):
-        """
+        r"""
         Gamma function `\Gamma(s)`.
 
             >>> from flint import showgood
@@ -1229,7 +1229,7 @@ cdef class arb(flint_scalar):
 
     @staticmethod
     def gamma_fmpq(fmpq s):
-        """
+        r"""
         Computes the gamma function `\Gamma(s)` of a given *fmpq* *s*,
         exploiting the fact that *s* is an exact rational number to
         improve performance.
@@ -1244,7 +1244,7 @@ cdef class arb(flint_scalar):
         return u
 
     def rgamma(s):
-        ur"""
+        r"""
         Reciprocal gamma function `1/\Gamma(s)`, avoiding
         division by zero at the poles of the gamma function.
 
@@ -1263,7 +1263,7 @@ cdef class arb(flint_scalar):
         return u
 
     def lgamma(s):
-        """
+        r"""
         Logarithmic gamma function `\log \Gamma(s)`.
 
             >>> from flint import showgood
@@ -1278,7 +1278,7 @@ cdef class arb(flint_scalar):
         return u
 
     def digamma(s):
-        """
+        r"""
         Digamma function `\psi(s)`.
 
             >>> from flint import showgood
@@ -1326,6 +1326,7 @@ cdef class arb(flint_scalar):
         """
         Computes the rising factorial `(s)_n` where *n* is an unsigned
         integer, along with the first derivative with respect to `(s)_n`.
+
         The current implementation does not use the gamma function,
         so *n* should be moderate.
 
@@ -1340,7 +1341,7 @@ cdef class arb(flint_scalar):
         return u, v
 
     def zeta(s, a=None):
-        """
+        r"""
         Riemann zeta function `\zeta(s)` or the Hurwitz
         zeta function `\zeta(s,a)` if a second parameter is passed.
 
@@ -1488,7 +1489,7 @@ cdef class arb(flint_scalar):
         return u
 
     def bin(s, ulong k):
-        """
+        r"""
         Binomial coefficient `{s \choose k}`. Currently *k* is limited
         to an integer; this restriction will be removed in the future
         by using the gamma function.
@@ -1505,7 +1506,7 @@ cdef class arb(flint_scalar):
 
     @staticmethod
     def bin_uiui(ulong n, ulong k):
-        """
+        r"""
         Binomial coefficient `{n \choose k}`.
 
             >>> print(arb.bin_uiui(10, 5))
@@ -1533,7 +1534,7 @@ cdef class arb(flint_scalar):
         return u
 
     def polylog(self, s):
-        """
+        r"""
         Polylogarithm `\operatorname{Li}_s(z)` where
         the argument *z* is given by *self* and the order *s* is given
         as an extra parameter.
@@ -2261,7 +2262,7 @@ cdef class arb(flint_scalar):
 
     @staticmethod
     def pi():
-        """
+        r"""
         Returns the constant `\pi` as an *arb*.
 
             >>> from flint import showgood
@@ -2274,7 +2275,7 @@ cdef class arb(flint_scalar):
 
     @staticmethod
     def const_sqrt_pi():
-        """
+        r"""
         The constant `\sqrt{\pi}`.
 
             >>> from flint import showgood
@@ -2287,7 +2288,7 @@ cdef class arb(flint_scalar):
 
     @staticmethod
     def const_log2():
-        """
+        r"""
         The constant `\log(2)`.
 
             >>> from flint import showgood
@@ -2300,7 +2301,7 @@ cdef class arb(flint_scalar):
 
     @staticmethod
     def const_log10():
-        """
+        r"""
         The constant `\log(10)`.
 
             >>> from flint import showgood
@@ -2313,7 +2314,7 @@ cdef class arb(flint_scalar):
 
     @staticmethod
     def const_euler():
-        """
+        r"""
         Euler's constant `\gamma`.
 
             >>> from flint import showgood

@@ -328,7 +328,7 @@ cdef class fmpz_mod(flint_scalar):
         return res
 
     def discrete_log(self, a):
-        """
+        r"""
         Solve the discrete logarithm problem, using `self = g` as a base.
         Assumes a solution, :math:`a = g^x \pmod p` exists.
 

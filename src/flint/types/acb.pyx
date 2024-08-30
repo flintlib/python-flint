@@ -655,7 +655,7 @@ cdef class acb(flint_scalar):
             return u
 
     def gamma(s):
-        """
+        r"""
         Gamma function `\Gamma(s)`.
 
             >>> from flint import showgood
@@ -667,7 +667,7 @@ cdef class acb(flint_scalar):
         return u
 
     def rgamma(s):
-        """
+        r"""
         Reciprocal gamma function `1/\Gamma(s)`, avoiding
         division by zero at the poles of the gamma function.
 
@@ -684,7 +684,7 @@ cdef class acb(flint_scalar):
         return u
 
     def lgamma(s):
-        """
+        r"""
         Logarithmic gamma function `\log \Gamma(s)`.
         The function is defined to be continuous away from the
         negative half-axis and thus differs from `\log(\Gamma(s))` in general.
@@ -701,7 +701,7 @@ cdef class acb(flint_scalar):
         return u
 
     def digamma(s):
-        """
+        r"""
         Digamma function `\psi(s)`.
 
             >>> from flint import showgood
@@ -713,7 +713,7 @@ cdef class acb(flint_scalar):
         return u
 
     def zeta(s, a=None):
-        """
+        r"""
         Riemann zeta function `\zeta(s)`, or the Hurwitz
         zeta function `\zeta(s,a)` if a second parameter is passed.
 
@@ -734,7 +734,7 @@ cdef class acb(flint_scalar):
             return u
 
     def lerch_phi(z, s, a):
-        """
+        r"""
         Lerch transcendent `\Phi(z,s,a)`.
 
             >>> from flint import showgood
@@ -759,7 +759,7 @@ cdef class acb(flint_scalar):
 
     @staticmethod
     def pi():
-        """
+        r"""
         Returns the constant `\pi` as an *acb*.
 
             >>> from flint import showgood
@@ -1134,7 +1134,7 @@ cdef class acb(flint_scalar):
         return u, v
 
     def polylog(self, s):
-        """
+        r"""
         Computes the polylogarithm `\operatorname{Li}_s(z)` where
         the argument *z* is given by *self* and the order *s* is given
         as an extra parameter.

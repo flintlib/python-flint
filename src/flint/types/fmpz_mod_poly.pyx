@@ -807,7 +807,7 @@ cdef class fmpz_mod_poly(flint_poly):
         return res
 
     def compose_mod(self, other, modulus):
-        """
+        r"""
         Returns the composition of two polynomials modulo a third.
 
         To be precise about the order of composition, given ``self``, and ``other``
@@ -1047,7 +1047,7 @@ cdef class fmpz_mod_poly(flint_poly):
         cdef fmpz_mod_poly res
         cdef fmpz_t f
 
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         if not check:
             fmpz_mod_poly_make_monic(
                 res.val, self.val, self.ctx.mod.val
@@ -1142,7 +1142,7 @@ cdef class fmpz_mod_poly(flint_poly):
         return res
 
     def pow_mod(self, e, modulus, mod_rev_inv=None):
-        """
+        r"""
         Returns ``self`` raised to the power ``e`` modulo ``modulus``:
         :math:`f^e \mod g`/
 
@@ -1655,7 +1655,7 @@ cdef class fmpz_mod_poly(flint_poly):
         return res
 
     def pow_trunc(self, slong e, slong n):
-        """
+        r"""
         Returns ``self`` raised to the power ``e`` modulo `x^n`:
         :math:`f^e \mod x^n`/
 
@@ -1885,14 +1885,14 @@ cdef class fmpz_mod_poly(flint_poly):
         return res
 
     def real_roots(self):
-        """
+        r"""
         This method is not implemented for polynomials in
         :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
         """
         raise DomainError("Cannot compute real roots for polynomials over integers modulo N")
 
     def complex_roots(self):
-        """
+        r"""
         This method is not implemented for polynomials in
         :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
         """

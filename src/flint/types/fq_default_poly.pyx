@@ -406,7 +406,7 @@ cdef class fq_default_poly(flint_poly):
         return res
 
     def truncate(self, slong n):
-        """
+        r"""
         Notionally truncate the polynomial to have length ``n``. If
         ``n`` is larger than the length of the input, then ``self`` is
         returned. If ``n`` is not positive, then the zero polynomial
@@ -655,7 +655,7 @@ cdef class fq_default_poly(flint_poly):
         return res
 
     def pow_mod(self, e, modulus):
-        """
+        r"""
         Returns ``self`` raised to the power ``e`` modulo ``modulus``:
         :math:`f^e \mod g`/
 
@@ -1135,7 +1135,7 @@ cdef class fq_default_poly(flint_poly):
         return res
 
     def pow_trunc(self, slong e, slong n):
-        """
+        r"""
         Returns ``self`` raised to the power ``e`` modulo `x^n`:
         :math:`f^e \mod x^n`/
 
@@ -1434,7 +1434,7 @@ cdef class fq_default_poly(flint_poly):
         return res
 
     def compose_mod(self, other, modulus):
-        """
+        r"""
         Returns the composition of two polynomials modulo a third.
 
         To be precise about the order of composition, given ``self``, and ``other``

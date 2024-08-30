@@ -300,7 +300,7 @@ cdef class nmod_poly(flint_poly):
         return res  
 
     def compose_mod(self, other, modulus):
-        """
+        r"""
         Returns the composition of two polynomials modulo a third.
 
         To be precise about the order of composition, given ``self``, and ``other`` 
@@ -508,7 +508,7 @@ cdef class nmod_poly(flint_poly):
         return res
 
     def pow_mod(self, e, modulus, mod_rev_inv=None):
-        """
+        r"""
         Returns ``self`` raised to the power ``e`` modulo ``modulus``:
         :math:`f^e \mod g`/
 
@@ -717,14 +717,14 @@ cdef class nmod_poly(flint_poly):
             return v, int(n)
 
     def real_roots(self):
-        """
+        r"""
         This method is not implemented for polynomials in
         :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
         """
         raise DomainError("Cannot compute real roots for polynomials over integers modulo N")
 
     def complex_roots(self):
-        """
+        r"""
         This method is not implemented for polynomials in
         :math:`(\mathbb{Z}/N\mathbb{Z})[X]`
         """
