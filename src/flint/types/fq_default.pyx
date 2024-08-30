@@ -545,10 +545,10 @@ cdef class fq_default(flint_scalar):
             # For nmod and fmpz_mod if the modulus does not match the characteristic
             # then we return false.
             if typecheck(other, nmod) and self.ctx.characteristic() != (<nmod>other).modulus():
-                    res = False
+                res = False
 
             elif typecheck(other, fmpz_mod) and self.ctx.characteristic() != (<fmpz_mod>other).ctx.modulus():
-                    res = False
+                res = False
 
             else:
                 # Convert from int, fmpz, fmpz_mod and nmod to fq_default
