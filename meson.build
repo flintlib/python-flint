@@ -1,57 +1,76 @@
 project('python-flint', 'cython', 'c')
+#
+# The minimum versions are because we know that it will not work with earlier
+# versions. The maximum versions are because python-flint was not tested
+# against future versions that didn't exist at the time of release. In future
+# if it seems like new releases do not always break the build of python-flint
+# then we can consider not using a speculative upper version cap here.
+#
+flint_lower = '>=3.0'
+flint_upper = '<3.2'
+cython_lower = '>=3.0'
+cython_upper = '<3.2'
 
 py = import('python').find_installation(pure: false)
 dep_py = py.dependency()
 
 cc = meson.get_compiler('c')
-
-flint_ver_lower = '3.0' # >=3.0
-flint_ver_upper = '3.2' # <3.2
+cy = meson.get_compiler('cython')
 
 gmp_dep = dependency('gmp')
 mpfr_dep = dependency('mpfr')
-flint_dep = dependency('flint', version: ['>=' + flint_ver_lower])
+flint_dep = dependency('flint')
 
 #
-# The minimum Flint version is because we know that it will not work with
-# earlier versions. The maximum version is because python-flint has not been
-# tested against versions that didn't exist at the time of release. In future
-# if it seems like new Flint releases do not break the build of python-flint
-# every time, then we can consider not using a speculative upper version cap
-# here.
-#
-# For the source release, we should by default fail for newer versions of Flint
-# that are untested with a nice error message.
+# For the source release, we should by default fail for new untested versions
+# with a clear error message about the version mismatch.
 #
 # We need an option to disable this though so that we can test newer versions
 # of Flint. Also good to have an escape hatch for users since we don't know
 # that future versions of Flint will not work.
 #
+ver_message = '''
+
+Invalid @0@ version:
+Version needed is: @0@ @2@, @3@
+Version found is: @0@ == @1@
+
+By default, python-flint will only build against @0@ versions that have
+been tested. If you are sure you want to use this version of @0@, you can
+disable this check with -Dflint_version_check=false.
+
+If building from the source directory using meson directly, you can do this
+with:
+
+  meson setup build -Dflint_version_check=false
+
+If you are installing with pip, you can do this with:
+
+  pip install --config-settings=setup-args="-Dflint_version_check=false" python-flint
+
+Other build frontends have similar options for passing this to meson.
+
+'''
 if get_option('flint_version_check')
-  if flint_dep.version().version_compare('>=' + flint_ver_upper)
-    error('''
-
-    Invalid Flint version:
-    Version needed is: @0@ <= flint < @1@
-    Version found is: flint == @2@
-
-    By default, python-flint will only build against Flint versions that have
-    been tested. If you are sure you want to use this version of Flint, you can
-    disable this check with -Dflint_version_check=false.
-
-    If building from the source directory using meson directly, you can do this
-    with:
-
-      meson setup build -Dflint_version_check=false
-
-    If you are installing with pip, you can do this with:
-
-      pip install --config-settings=setup-args="-Dflint_version_check=false" python-flint
-
-    Other build frontends have similar options for passing this to meson.
-    '''.format(flint_ver_lower, flint_ver_upper, flint_dep.version()))
+  if not (flint_dep.version().version_compare(flint_lower) and
+          flint_dep.version().version_compare(flint_upper))
+    error(ver_message.format('FLINT', flint_dep.version(), flint_lower, flint_upper))
+  endif
+  if not (cy.version().version_compare(cython_lower) and
+          cy.version().version_compare(cython_upper))
+    error(ver_message.format('Cython', cy.version(), cython_lower, cython_upper))
   endif
 endif
+
+# flint.pc was missing -lflint until Flint 3.1.0
+if flint_dep.version().version_compare('<3.1')
+  flint_dep = cc.find_library('flint')
+  have_acb_theta = false
+else
+  have_acb_theta = true
+endif
+
+pyflint_deps = [dep_py, gmp_dep, mpfr_dep, flint_dep]
 
 add_project_arguments(
     '-X', 'embedsignature=True',
@@ -73,15 +92,5 @@ if get_option('add_flint_rpath')
     language: 'c',
   )
 endif
-
-# flint.pc was missing -lflint until Flint 3.1.0
-if flint_dep.version().version_compare('<3.1')
-  flint_dep = cc.find_library('flint')
-  have_acb_theta = false
-else
-  have_acb_theta = true
-endif
-
-pyflint_deps = [dep_py, gmp_dep, mpfr_dep, flint_dep]
 
 subdir('src/flint')
