@@ -97,7 +97,6 @@ cdef any_as_acb_or_notimplemented(x):
 #         return acb(x)
 
 
-
 # Copied with modifications from sage/rings/complex_arb.pyx
 @cython.internal
 cdef class IntegrationContext:
