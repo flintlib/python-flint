@@ -525,4 +525,3 @@ cdef class fmpq_series(flint_series):
         fmpq_poly_tanh_series((<fmpq_series>u).val, (<fmpq_series>s).val, cap)
         (<fmpq_series>u).prec = cap
         return u
-

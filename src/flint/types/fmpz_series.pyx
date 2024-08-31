@@ -358,4 +358,3 @@ cdef class fmpz_series(flint_series):
         fmpz_poly_revert_series((<fmpz_series>u).val, (<fmpz_series>s).val, cap)
         (<fmpz_series>u).prec = cap
         return u
-

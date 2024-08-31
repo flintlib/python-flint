@@ -506,5 +506,3 @@ cdef class fmpq_mat(flint_mat):
         if n % 2:
             v *= self
         return v
-
-
