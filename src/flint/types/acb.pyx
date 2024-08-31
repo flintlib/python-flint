@@ -120,7 +120,7 @@ cdef int acb_calc_func_callback(acb_ptr out, const acb_t inp, void * param, long
             if not typecheck(y, acb):
                 raise TypeError("integrand must return an acb")
             acb_set(out, (<acb> y).val)
-        except:
+        except (TypeError, ValueError):
             import sys
             ictx.exn_type, ictx.exn_obj, ictx.exn_tb = sys.exc_info()
             acb_indeterminate(out)
@@ -1346,7 +1346,7 @@ cdef class acb(flint_scalar):
         acb_hypgeom_gamma_upper((<acb>u).val, (<acb>s).val, (<acb>self).val, regularized, getprec())
         return u
 
-    def gamma_lower(self,s, int regularized=0):
+    def gamma_lower(self, s, int regularized=0):
         r"""
         Lower incomplete gamma function `\gamma(s,z)`. The argument *z*
         is given by *self* and the order *s* is passed as an extra parameter.

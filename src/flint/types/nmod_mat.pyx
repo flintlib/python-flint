@@ -62,8 +62,9 @@ cdef any_as_nmod_mat(obj, nmod_t mod):
     x = any_as_fmpz_mat(obj)
     if x is not NotImplemented:
         r = nmod_mat.__new__(nmod_mat)
-        nmod_mat_init(r.val, fmpz_mat_nrows((<fmpz_mat>x).val),
-                             fmpz_mat_ncols((<fmpz_mat>x).val), mod.n)
+        nmod_mat_init(r.val,
+                      fmpz_mat_nrows((<fmpz_mat>x).val),
+                      fmpz_mat_ncols((<fmpz_mat>x).val), mod.n)
         fmpz_mat_get_nmod_mat(r.val, (<fmpz_mat>x).val)
         return r
     return NotImplemented

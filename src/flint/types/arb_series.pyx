@@ -668,7 +668,8 @@ cdef class arb_series(flint_series):
         cap = getcap()
         cap = min(cap, (<arb_series>s).prec)
         u = arb_series.__new__(arb_series)
-        arb_hypgeom_airy_series(NULL, NULL, NULL, (<arb_series>u).val,(<arb_series>s).val, cap, getprec())
+        arb_hypgeom_airy_series(NULL, NULL, NULL, (<arb_series>u).val,
+                                (<arb_series>s).val, cap, getprec())
         (<arb_series>u).prec = cap
         return u
 
@@ -813,7 +814,7 @@ cdef class arb_series(flint_series):
         try:
             roots = []
             ctx.cap = 1
-            queue = [(arb(a),arb(b))]
+            queue = [(arb(a), arb(b))]
             qvals = [(xsgn(f(arb_series(a))[0]), xsgn(f(arb_series(b))[0]))]
             if 0 in qvals[0]:
                 raise ValueError("unknown sign at an endpoint; try a slightly larger interval")
@@ -833,8 +834,8 @@ cdef class arb_series(flint_series):
                 #fa = xsgn(f(arb_series(a))[0])
                 #fb = xsgn(f(arb_series(b))[0])
                 ctx.cap = 2
-                if fa * fb < 0 and f(arb_series([arb(m, r),1]))[1] != 0:
-                    roots.append((a,b))
+                if fa * fb < 0 and f(arb_series([arb(m, r), 1]))[1] != 0:
+                    roots.append((a, b))
                     continue
                 ctx.cap = 1
                 fm = xsgn(f(arb_series(m))[0])
@@ -843,10 +844,10 @@ cdef class arb_series(flint_series):
                     fm = xsgn(f(arb_series(m))[0])
                     if fm == 0:
                         raise ValueError("unknown sign at a bisection point")
-                queue.append((m,b))
-                qvals.append((fm,fb))
-                queue.append((a,m))
-                qvals.append((fa,fm))
+                queue.append((m, b))
+                qvals.append((fm, fb))
+                queue.append((a, m))
+                qvals.append((fa, fm))
         finally:
             ctx.cap = orig_cap
         return roots
