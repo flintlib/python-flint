@@ -2656,4 +2656,3 @@ cdef class arb(flint_scalar):
         arb_hypgeom_coulomb(NULL, (<arb>G).val,
                         (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
         return G
-

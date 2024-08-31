@@ -647,4 +647,3 @@ cdef class fmpz_poly(flint_poly):
                     return int(i)
         libc.stdlib.free(phi)
         return 0
-

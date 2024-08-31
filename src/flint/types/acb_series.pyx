@@ -854,4 +854,3 @@ cdef class acb_series(flint_series):
         acb_poly_lambertw_series((<acb_series>u).val, (<acb_series>s).val, (<fmpz>k).val, 0, cap, getprec())
         (<acb_series>u).prec = cap
         return u
-

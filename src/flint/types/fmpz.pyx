@@ -1021,4 +1021,3 @@ cdef class fmpz(flint_scalar):
         if ttype == FMPZ_TMP:
             fmpz_clear(tval)
         return fmpz(v)
-

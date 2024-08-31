@@ -41,7 +41,7 @@ build-backend = "mesonpy"
 
 [tool.cython-lint]
 max-line-length = 120
-ignore = ['E114','E117','E127','E128','E129','E202','E221','E222','E231','E261','E262','E265','E302','E303','E306','E501','E701','E703','E711','E722','E731','E741','E743','W391']
+ignore = ['E114','E117','E127','E128','E129','E202','E221','E222','E231','E261','E262','E265','E501','E711','E722','E731','E741','E743']
 exclude = 'src/flint/flintlib/.*'
 
 [tool.spin]

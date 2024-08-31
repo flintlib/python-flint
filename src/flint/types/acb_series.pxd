@@ -7,4 +7,3 @@ cdef class acb_series(flint_series):
     cdef long prec
     cpdef long length(self)
     cpdef valuation(self)
-

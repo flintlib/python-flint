@@ -424,4 +424,3 @@ cdef class acb_poly(flint_poly):
         arf_set_mag(arb_midref((<arb>r).val), m)
         mag_clear(m)
         return r
-
