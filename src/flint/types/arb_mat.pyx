@@ -122,7 +122,7 @@ cdef class arb_mat(flint_mat):
                 arb_mat_init(self.val, m, n)
                 for i from 0 <= i < m:
                     for j from 0 <= j < n:
-                        x = arb(val[i,j])
+                        x = arb(val[i, j])
                         arb_set(arb_mat_entry(self.val, i, j), (<arb>x).val)
             else:
                 raise TypeError("cannot create arb_mat from input of type %s" % type(val))
@@ -135,7 +135,7 @@ cdef class arb_mat(flint_mat):
             if isinstance(entries, (int, float, fmpz, fmpq, arb)):
                 c = entries
                 entries = [0] * (m * n)
-                for i in range(min(m,n)):
+                for i in range(min(m, n)):
                     entries[i*n + i] = c
             else:
                 entries = list(entries)

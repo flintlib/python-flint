@@ -685,7 +685,8 @@ cdef class acb_series(flint_series):
         cap = getcap()
         cap = min(cap, (<acb_series>s).prec)
         u = acb_series.__new__(acb_series)
-        acb_hypgeom_airy_series(NULL, NULL, NULL, (<acb_series>u).val,(<acb_series>s).val, cap, getprec())
+        acb_hypgeom_airy_series(NULL, NULL, NULL, (<acb_series>u).val,
+                                (<acb_series>s).val, cap, getprec())
         (<acb_series>u).prec = cap
         return u
 

@@ -5,7 +5,7 @@ from flint.types.fmpq cimport any_as_fmpq
 from flint.types.fmpz cimport any_as_fmpz
 
 from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
-from flint.flintlib.fmpq cimport fmpq_set,fmpq_numref, fmpq_denref
+from flint.flintlib.fmpq cimport fmpq_set, fmpq_numref, fmpq_denref
 from flint.flintlib.fmpq_poly cimport fmpq_poly_init
 from flint.flintlib.fmpq_mat cimport *
 
@@ -48,12 +48,14 @@ cdef class fmpq_mat(flint_mat):
         if len(args) == 1:
             val = args[0]
             if typecheck(val, fmpq_mat):
-                fmpq_mat_init(self.val, fmpq_mat_nrows((<fmpq_mat>val).val),
-                                        fmpq_mat_ncols((<fmpq_mat>val).val))
+                fmpq_mat_init(self.val,
+                              fmpq_mat_nrows((<fmpq_mat>val).val),
+                              fmpq_mat_ncols((<fmpq_mat>val).val))
                 fmpq_mat_set(self.val, (<fmpq_mat>val).val)
             elif typecheck(val, fmpz_mat):
-                fmpq_mat_init(self.val, fmpz_mat_nrows((<fmpz_mat>val).val),
-                                        fmpz_mat_ncols((<fmpz_mat>val).val))
+                fmpq_mat_init(self.val,
+                              fmpz_mat_nrows((<fmpz_mat>val).val),
+                              fmpz_mat_ncols((<fmpz_mat>val).val))
                 fmpq_mat_set_fmpz_mat(self.val, (<fmpz_mat>val).val)
             elif isinstance(val, (list, tuple)):
                 m = len(val)

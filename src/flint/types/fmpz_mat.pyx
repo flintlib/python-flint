@@ -80,7 +80,7 @@ cdef class fmpz_mat(flint_mat):
 
     """
 
- #   cdef fmpz_mat_t val
+    #   cdef fmpz_mat_t val
 
     def __cinit__(self):
         fmpz_mat_init(self.val, 0, 0)
@@ -651,7 +651,7 @@ cdef class fmpz_mat(flint_mat):
         if transform:
             v = fmpz_mat(self.nrows(), self.nrows())
             for 0 <= i < self.nrows():
-                v[i,i] = 1
+                v[i, i] = 1
             fmpz_lll(u.val, v.val, ctx)
             return u, v
         else:

@@ -400,11 +400,8 @@ cdef class fmpz_mod(flint_scalar):
             return NotImplemented
 
         res = fmpz_equal(self.val, (<fmpz_mod>other).val) and \
-                (self.ctx == (<fmpz_mod>other).ctx)
-        if op == 2:
-            return res
-        else:
-            return not res
+            (self.ctx == (<fmpz_mod>other).ctx)
+        return res if op == 2 else not res
 
     def __bool__(self):
         return not self.is_zero()

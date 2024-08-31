@@ -105,7 +105,7 @@ cdef class dirichlet_char(object):
             _dirichlet_group_cache[q] = G
         self.G = G
         dirichlet_char_init(self.val, self.G.val)
-        assert 1 <= l <= max(q,2)-1 and n_gcd(q, l) == 1
+        assert 1 <= l <= max(q, 2)-1 and n_gcd(q, l) == 1
         dirichlet_char_log(self.val, self.G.val, l)
 
     def group(self):

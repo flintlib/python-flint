@@ -124,7 +124,7 @@ cdef class acb_mat(flint_mat):
                 acb_mat_init(self.val, m, n)
                 for i from 0 <= i < m:
                     for j from 0 <= j < n:
-                        x = acb(val[i,j])
+                        x = acb(val[i, j])
                         acb_set(acb_mat_entry(self.val, i, j), (<acb>x).val)
             else:
                 raise TypeError("cannot create acb_mat from input of type %s" % type(val))
@@ -137,7 +137,7 @@ cdef class acb_mat(flint_mat):
             if isinstance(entries, (int, float, complex, fmpz, fmpq, arb, acb)):
                 c = entries
                 entries = [0] * (m * n)
-                for i in range(min(m,n)):
+                for i in range(min(m, n)):
                     entries[i*n + i] = c
             else:
                 entries = list(entries)

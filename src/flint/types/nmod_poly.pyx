@@ -155,7 +155,7 @@ cdef class nmod_poly(flint_poly):
         cdef mp_limb_t m
         n = self.length()
         m = self.modulus()
-        L = [nmod(0,m) for i in range(n)]   # XXX: speed up
+        L = [nmod(0, m) for i in range(n)]   # XXX: speed up
         for i from 0 <= i < n:
             (<nmod>(L[i])).val = nmod_poly_get_coeff_ui(self.val, i)
         return L
