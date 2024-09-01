@@ -31,6 +31,7 @@ Introduction
    install.rst
    general.rst
    build.rst
+   workflow.rst
 
 
 Reference

@@ -72,7 +72,7 @@ Platforms without binaries
 There are many other platforms on which ``python-flint`` works fine but for
 which binaries are not provided. If a binary is not available for your platform
 then you may be able to build from source as described in
-:ref:`build_from_source`.
+:ref:`simple_build_instructions`.
 
 Notably, at the time of writing the following platforms do *not* have binaries
 available but ``python-flint`` should work if built from source:

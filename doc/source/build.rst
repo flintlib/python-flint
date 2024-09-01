@@ -1,5 +1,5 @@
-Build from source
-=================
+Install/Build from source
+=========================
 
 .. note::
    The instructions here are for building ``python-flint`` from source. For
@@ -8,13 +8,15 @@ Build from source
    is not available for the platform. See :ref:`install_pip_conda`.
 
 
+.. _simple_build_instructions:
+
 Simple build instructions
 -------------------------
 
 The simple explanation of how to build ``python-flint`` from source is that
 there are two steps:
 
-- Install ``FLINT >= 3.0`` (see :ref:`install_dependencies` below).
+- Install ``FLINT >= 3.0`` (see :ref:`installing_the_dependencies` below).
 - Run ``pip install --no-binary python-flint python-flint``.
 
 For example on Ubuntu 24.04 (but not older versions of Ubuntu) and when installing
@@ -38,10 +40,15 @@ If you have the source code locally then you can build and install with::
 After installing from source it is recommended to run the tests to check that
 everything is working correctly as described in :ref:`test_installation`.
 
-The remainder of this page provides more detailed instructions for building
-``python-flint`` from source including how to install the dependencies, how to
-build older versions of ``python-flint`` (``< 0.7.0``), how to install from
-git, and other more advanced topics.
+The remainder of this page provides more detailed instructions for:
+
+- :ref:`supported_versions`.
+- :ref:`building_from_source`.
+- :ref:`building_older_versions`.
+- :ref:`installing_the_dependencies`.
+- :ref:`building_on_windows`.
+- :ref:`non_standard_location`.
+- :ref:`editable_install`.
 
 .. note::
    If you have more than one Python environment in your system then you need to
@@ -142,10 +149,10 @@ It is also possible to build and use python-flint for PyPy. Other Python
 implementations may work but are not tested.
 
 
-.. _build_from_source:
+.. _building_from_source:
 
-Building python-flint from source
----------------------------------
+Installing python-flint from source
+-----------------------------------
 
 .. note::
    The instructions here are for building ``python-flint`` from source. For
@@ -154,18 +161,18 @@ Building python-flint from source
    is not available for the platform. See :ref:`install_pip_conda`.
 
    Also if you are working on ``python-flint`` itself then it is not
-   recommended to install the package 
-
-   - XXX: Add link to separate development page...
+   recommended to install the package as described here. Instead see the
+   :ref:`development_workflow` page for how to work on ``python-flint``.
 
 The source code for ``python-flint`` is available on `GitHub
 <https://github.com/flintlib/python-flint/tags>`_ and source distributions can
 be downloaded from PyPI.
 
 To build from source you must first install the dependencies (see
-:ref:`install_dependencies` below for instructions). Once the dependencies are
-installed the following command will download the ``python-flint`` source code
-from PyPI, then build and install it into the active Python environment::
+:ref:`installing_the_dependencies` below for instructions). Once the
+dependencies are installed the following command will download the
+``python-flint`` source code from PyPI, then build and install it into the
+active Python environment::
 
     pip install python-flint
 
@@ -223,8 +230,10 @@ example if you want to build ``python-flint`` against the latest git version of
 and Cython that are supported by each version of ``python-flint``.
 
 
-Building older versions of python-flint
----------------------------------------
+.. _building_older_versions:
+
+Installing older versions from source
+-------------------------------------
 
 For ``python-flint < 0.6.0`` the source distribution did not include
 ``pyproject.toml`` and did not list the build requirements. Also for
@@ -244,7 +253,7 @@ If the build fails during the Cython step then it is likely that a different
 version of Cython is needed.
 
 
-.. _install_dependencies:
+.. _installing_the_dependencies:
 
 Installing the dependencies
 ---------------------------
@@ -321,26 +330,11 @@ again be able to install ``python-flint`` with::
 
     pip install .
 
-In the ``python-flint`` git repo there is a script
-`bin/build_dependencies_unix.sh
-<https://github.com/flintlib/python-flint/blob/master/bin/build_dependencies_unix.sh>`_
-which will download and build GMP, MPFR and FLINT and install them in the
-current directory under ``~/.local``. The versions used and the installation
-directory can be changed by editing the `bin/build_variables.sh
-<https://github.com/flintlib/python-flint/blob/master/bin/build_variables.sh>`_
-script. This script is useful for building ``python-flint`` on systems where
-the system-wide ``FLINT`` is too old or if precise control over the versions of
-GMP, MPFR and FLINT is needed. This script is used for building the binaries
-for PyPI and also takes care of ensuring that ``GMP`` and ``FLINT`` are built
-as redistributable shared libraries (this is not the default behaviour of the
-``configure`` scripts for these libraries and disables some optimisation
-features of ``FLINT`` on some ``x86_64`` micro-architectures). Since this
-installation is not system-wide, see :ref:`non_standard_location` below for
-instructions on how to build and use ``python-flint`` in this case.
 
+.. _building_on_windows:
 
-Building on Windows
--------------------
+Installing from source on Windows
+---------------------------------
 
 .. note::
    Building from source is not the recommended way for most users to install
@@ -348,7 +342,7 @@ Building on Windows
    use the binaries from ``PyPI`` or ``conda-forge`` except in cases where a
    binary is not available for the platform. See :ref:`install_pip_conda`.
 
-The instructions in :ref:`install_dependencies` above are for Unix-like systems
+The instructions in :ref:`installing_the_dependencies` above are for Unix-like systems
 (e.g. Linux or MacOS). On Windows the dependencies can be built in a similar
 way using MSYS2 or under WSL. It is also possible to build ``python-flint`` and
 its dependencies using MSVC but we do not currently provide instructions for
@@ -464,18 +458,17 @@ perhaps it could be possible to link ``FLINT`` and the other libraries
 statically into ``python-flint``.
 
 
-Editable install
-----------------
+.. _editable_install:
+
+Installing in editable mode
+---------------------------
 
 .. note::
-    For working on ``python-flint`` itself it is not recommended to install the
-    package into the active Python environment. Instead the development
-    workflow uses ``spin`` and ``meson`` to manage a local build of
-    ``python-flint``. See
-
-    - XXX: Add link to separate development page...
-
-    for more information on how to develop ``python-flint``.
+   For working on ``python-flint`` itself it is not recommended to install the
+   package into the active Python environment. Instead the development workflow
+   uses ``spin`` and ``meson`` to manage a local build of ``python-flint``. See
+   the :ref:`development_workflow` page for more information on how to develop
+   ``python-flint``.
 
 If you are building and testing ``python-flint`` while working on another
 project then it may be useful to install ``python-flint`` in editable mode.
