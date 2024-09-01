@@ -9,6 +9,9 @@ set -o errexit
 # Make a setup.cfg to specify compiling with mingw64 (even though it says
 # mingw32...)
 #
+
+# This is not needed any more for python-flint >= 0.7.0 because meson is now
+# used as the build system rather than setuptools:
 echo '[build]' > setup.cfg
 echo 'compiler = mingw32' >> setup.cfg
 cat setup.cfg
@@ -25,5 +28,5 @@ pacman -S --noconfirm \
     libtool\
     #
 
-# This takes ~30mins
+# This is slow with MinGW:
 bin/build_dependencies_unix.sh --use-gmp-github-mirror

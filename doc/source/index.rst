@@ -28,8 +28,10 @@ Introduction
 .. toctree::
    :maxdepth: 2
 
-   setup.rst
+   install.rst
    general.rst
+   build.rst
+   workflow.rst
 
 
 Reference
