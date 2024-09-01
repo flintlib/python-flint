@@ -12,7 +12,6 @@ from flint.flintlib.nmod_vec cimport *
 from flint.flintlib.nmod_poly cimport *
 from flint.flintlib.nmod_poly_factor cimport *
 from flint.flintlib.fmpz_poly cimport fmpz_poly_get_nmod_poly
-from flint.flintlib.ulong_extras cimport n_gcdinv, n_is_prime
 
 from flint.utils.flint_exceptions import DomainError
 
@@ -104,7 +103,6 @@ cdef class nmod_poly_ctx:
         n = PyList_GET_SIZE(val)
         nmod_poly_fit_length(poly, n)
         for i from 0 <= i < n:
-            c = val[i]
             if self.any_as_nmod(&v, val[i]):
                 nmod_poly_set_coeff_ui(poly, i, v)
             else:
@@ -393,7 +391,7 @@ cdef class nmod_poly(flint_poly):
             raise ValueError(f"n = {n} must be positive")
         
         if nmod_poly_get_coeff_ui(self.val, 0) == 0:
-            raise ZeroDivisionError(f"nmod_poly inverse_series_trunc: leading coefficient is zero")
+            raise ZeroDivisionError("nmod_poly inverse_series_trunc: leading coefficient is zero")
 
         if not self.ctx._is_prime:
             raise DomainError(f"nmod_poly inverse_series_trunc: modulus {self.ctx.mod.n} is not prime")
@@ -840,7 +838,7 @@ cdef class nmod_poly(flint_poly):
 
     def sqrt(nmod_poly self):
         """Return exact square root or ``None``. """
-        cdef nmod_poly
+        cdef nmod_poly res
 
         if not self.ctx._is_prime:
             raise DomainError(f"nmod_poly sqrt: modulus {self.ctx.mod.n} is not prime")

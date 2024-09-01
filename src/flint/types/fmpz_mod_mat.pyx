@@ -413,7 +413,7 @@ cdef class fmpz_mod_mat(flint_mat):
                 raise ZeroDivisionError("fmpz_mod_mat div: division by zero")
             else:
                 raise DomainError("fmpz_mod_mat div: division by non-invertible element")
-        return self._scalarmul(other.inverse())
+        return self._scalarmul(inv)
 
     def __add__(self, other):
         """``M + N``: Add two matrices."""

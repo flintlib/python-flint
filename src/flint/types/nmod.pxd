@@ -12,13 +12,16 @@ cdef class nmod_ctx:
 
     @staticmethod
     cdef nmod_ctx any_as_nmod_ctx(obj)
+
     @staticmethod
     cdef nmod_ctx _get_ctx(int mod)
+
     @staticmethod
     cdef nmod_ctx _new_ctx(ulong mod)
 
     @cython.final
     cdef int any_as_nmod(self, mp_limb_t * val, obj) except -1
+
     @cython.final
     cdef nmod new_nmod(self)
 

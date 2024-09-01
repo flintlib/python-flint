@@ -19,21 +19,28 @@ cdef class nmod_mat_ctx:
 
     @staticmethod
     cdef nmod_mat_ctx any_as_nmod_mat_ctx(obj)
+
     @staticmethod
     cdef nmod_mat_ctx _get_ctx(int mod)
+
     @staticmethod
     cdef nmod_mat_ctx _new_ctx(ulong mod)
 
     @cython.final
     cdef int any_as_nmod(self, mp_limb_t * val, obj) except -1
+
     @cython.final
     cdef any_as_nmod_mat(self, obj)
+
     @cython.final
     cdef nmod new_nmod(self)
+
     @cython.final
     cdef nmod_poly new_nmod_poly(self)
+
     @cython.final
     cdef nmod_mat new_nmod_mat(self, ulong m, ulong n)
+
     @cython.final
     cdef nmod_mat new_nmod_mat_copy(self, nmod_mat other)
 

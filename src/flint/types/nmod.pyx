@@ -25,7 +25,7 @@ cdef dict _nmod_ctx_cache = {}
 @cython.no_gc
 cdef class nmod_ctx:
     """
-    Context object for creating :class:`~.nmod` initalised 
+    Context object for creating :class:`~.nmod` initalised
     with modulus :math:`N`.
 
         >>> ctx = nmod_ctx.new(17)

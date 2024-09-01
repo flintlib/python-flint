@@ -17,19 +17,25 @@ cdef class nmod_poly_ctx:
 
     @staticmethod
     cdef nmod_poly_ctx any_as_nmod_poly_ctx(obj)
+
     @staticmethod
     cdef nmod_poly_ctx _get_ctx(int mod)
+
     @staticmethod
     cdef nmod_poly_ctx _new_ctx(ulong mod)
 
     @cython.final
     cdef nmod_poly_set_list(self, nmod_poly_t poly, list val)
+
     @cython.final
     cdef int any_as_nmod(self, mp_limb_t * val, obj) except -1
+
     @cython.final
     cdef any_as_nmod_poly(self, obj)
+
     @cython.final
     cdef nmod new_nmod(self)
+
     @cython.final
     cdef nmod_poly new_nmod_poly(self)
 
