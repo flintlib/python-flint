@@ -38,21 +38,25 @@ specifying the version number, for example::
 
     pip install python-flint==0.6.0
 
-At the time of writing the next release of ``python-flint`` will be ``0.7.0``
-and binaries will be provided for Python 3.10, 3.11, 3.12 and 3.13 for the
-following platforms:
+After installing ``python-flint`` you can test your installation as described
+in :ref:`test_installation` below.
+
+
+Fully supported platforms
+-------------------------
+
+Generally each release of python-flint will be compatible with a range of
+Python versions as described in `SPEC 0
+<https://scientific-python.org/specs/spec-0000/>`_. At the time of writing, the
+current release of ``python-flint`` is ``0.6.0`` and binaries are provided for
+Python 3.9, 3.10 3.11 and 3.12 for the following platforms:
 
 - Windows 64-bit (``x86_64``)
 - MacOS 64-bit Intel and 64-bit ARM (i.e. Apple Silicon)
 - Linux 64-bit (``x86_64``, ``manylinux``)
 
-Notably, at the time of writing the following platforms do *not* have binaries
-available:
-
-- Windows on ARM.
-- Linux aarch64 (``conda-forge`` has binaries but ``PyPI`` does not, see
-  `gh-105 <https://github.com/flintlib/python-flint/issues/105>`_).
-- non-glibc Linux distros (``musllinux`` rather than ``manylinux``)
+A WASM build of ``python-flint`` is also available for use in the browser
+via `Pyodide <https://pyodide.org/en/stable/usage/packages-in-pyodide.html>`_.
 
 You can see which binaries are provided for the latest release of
 ``python-flint`` `from PyPI <https://pypi.org/project/python-flint/#files>`_
@@ -61,9 +65,43 @@ and which are provided `from conda-forge
 of Python and other ``python-flint`` dependencies can be found at
 :ref:`supported_versions`.
 
-If a binary is not available for your platform then you can build from source
-as described in :ref:`build_from_source`.
 
+Platforms without binaries
+--------------------------
+
+There are many other platforms on which ``python-flint`` works fine but for
+which binaries are not provided. If a binary is not available for your platform
+then you may be able to build from source as described in
+:ref:`build_from_source`.
+
+Notably, at the time of writing the following platforms do *not* have binaries
+available but ``python-flint`` should work if built from source:
+
+- Linux aarch64 (``conda-forge`` has binaries but ``PyPI`` does not, see
+  `gh-105 <https://github.com/flintlib/python-flint/issues/105>`_).
+- non-glibc Linux distros (e.g. ``musllinux`` rather than ``manylinux``)
+- PyPy
+
+Binaries for Linux aarch64 will likely be added in future when the platform is
+available for testing in CI.
+
+
+Unsupported platforms
+---------------------
+
+It is *not* known or expected that ``python-flint`` will currently work on:
+
+- Windows on ARM (has never been tested)
+- Any 32-bit platform (previously worked but has not been tested for some
+  time)
+- Other Python implementations besides CPython and PyPy (e.g. GraalPython,
+  Jython, IronPython)
+
+Support for Windows on ARM will likely be added in future when the platform is
+available for testing in CI.
+
+
+.. _test_installation:
 
 Testing your installation
 -------------------------

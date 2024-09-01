@@ -1,6 +1,55 @@
 Build from source
 =================
 
+.. note::
+   The instructions here are for building ``python-flint`` from source. For
+   most users it is recommended to install prebuilt binaries from ``PyPI`` or
+   ``conda-forge`` instead. The instructions here are only needed if a binary
+   is not available for the platform. See :ref:`install_pip_conda`.
+
+
+Simple build instructions
+-------------------------
+
+The simple explanation of how to build ``python-flint`` from source is that
+there are two steps:
+
+- Install ``FLINT >= 3.0`` (see :ref:`install_dependencies` below).
+- Run ``pip install --no-binary python-flint python-flint``.
+
+For example on Ubuntu 24.04 (but not older versions of Ubuntu) and when installing
+``python-flint >= 0.7.0`` these two steps are::
+
+    sudo apt-get install libflint-dev
+    pip install --no-binary python-flint python-flint
+
+The first command installs ``FLINT 3.0.1`` system-wide. With the second command
+``pip`` will download the source code for the latest release of
+``python-flint`` from PyPI, build it and install it into the active Python
+environment. When building, ``pip`` will create a temporary isolated build
+environment and will install the Python build dependencies (``Cython``,
+``meson``, ...) into this environment so it is not necessary to install them
+manually before running ``pip install``.
+
+If you have the source code locally then you can build and install with::
+
+    pip install path/to/python-flint-directory-or-archive
+
+After installing from source it is recommended to run the tests to check that
+everything is working correctly as described in :ref:`test_installation`.
+
+The remainder of this page provides more detailed instructions for building
+``python-flint`` from source including how to install the dependencies, how to
+build older versions of ``python-flint`` (``< 0.7.0``), how to install from
+git, and other more advanced topics.
+
+.. note::
+   If you have more than one Python environment in your system then you need to
+   ensure that you are installing ``python-flint`` into the correct one. This
+   may require using the full path to ``pip`` or something like ``python3 -m
+   pip`` or you may need to activate the environment first.
+
+
 .. _supported_versions:
 
 Compatibility and supported versions
@@ -36,33 +85,40 @@ Compatible versions (note that 0.7.0 is not yet released):
    * - 0.6.0
      - 1st Feb 2024
      - 3.9-3.12
-     - 3.0 only
-     - 3.0 only
+     - 3.0
+     - 3.0
    * - 0.5.0
      - 22nd Oct 2023
      - 3.9-3.12
-     - 3.0 only
-     - 3.0 only
+     - 3.0
+     - 3.0
+   * - 0.4.0
+     - 8th Aug 2023
+     - 3.9-3.11
+     - ``2.9.0`` (``Arb 2.23.0``)
+     - 3.0
+   * - 0.3.0
+     - 7th Dec 2018
+     - older Python versions
+     - ``< 3.0``
+     - ``< 3.0``
 
-If installing binaries from PyPI or conda-forge then the Python (CPython)
-version is the only column in this table that matters. The minimum and maximum
-versions of Python represent the versions that are tested in CI and for which
-binaries are provided on PyPI. It is likely that ``python-flint`` will work
-with other versions of Python (particularly older Python versions) but this is
-not tested and requires building from source. It is possible that
-``conda-forge`` may provide binaries for other versions of Python.
+The minimum and maximum versions of Python represent the versions that are
+tested in CI and for which binaries are provided on PyPI. It is likely that
+``python-flint`` will work with other versions of Python (particularly older
+Python versions) but this is not tested. It is possible that ``conda-forge``
+may provide binaries for other versions of Python.
 
 The minimum versions of Cython and FLINT are needed because it is known that
 python-flint will not even build with older versions of these libraries. The
 maximum versions of all dependencies are speculative and are based on the
 versions that are known to work at the time of release. It is possible that
-newer versions of Cython and FLINT will work but from ``python-flint 0.4.0``
-through to the time of writing (``python-flint 0.7.0``) minor releases of
-Cython, FLINT, or CPython have frequently required changes to the
-``python-flint`` source code to be able to build at all. In particular the
-following releases of Cython, FLINT and CPython have had changes that would
-prevent building all versions of ``python-flint`` existing at the time of the
-release:
+newer versions of Cython and FLINT will work but unlikely. During the year
+following the release of ``python-flint 0.4.0`` every non-patch release of
+Cython, FLINT, or CPython has required changes to the ``python-flint`` source
+code to be able to build at all. In particular the following releases of
+Cython, FLINT and CPython had changes that would prevent building all versions
+of ``python-flint`` existing at the time:
 
 - Flint 3.0 (Arb and Flint merged, lots of changes)
 - Flint 3.1 (Function signature for ``fmpz_mod_mat`` changed)
@@ -71,12 +127,10 @@ release:
 - Cython 3.1 (Removal of ``PyInt_*`` functions)
 - CPython 3.12 (Removal of distutils)
 
-In fact out of python-flint's three core dependencies (CPython, Cython, FLINT),
-the only minor release that has not required changes to the python-flint source
-code during this time has been CPython ``3.13``. It is expected then that any
-future untested ``3.x`` version of Cython, FLINT, or CPython will not be
-compatible with past versions of ``python-flint`` which is why the table above
-only lists the versions that are known to work.
+It is expected then that any future untested ``3.x`` version of Cython, FLINT,
+or CPython will not be compatible with past versions of ``python-flint`` which
+is why the table above lists the versions that were known to work at the time
+of release.
 
 As of python-flint 0.7.0, CPython ``3.13t`` free-threaded builds are tested in
 CI but wheels are not provided on PyPI. There are no known issues related to
@@ -90,21 +144,19 @@ implementations may work but are not tested.
 
 .. _build_from_source:
 
-Building from source
---------------------
+Building python-flint from source
+---------------------------------
 
 .. note::
-   Building from source is not the recommended way for most users to install
-   ``python-flint``. For most users it is recommended to use the binaries from
-   ``PyPI`` or ``conda-forge`` except in cases where a binary is not available
-   for the platform. See :ref:`install_pip_conda`.
+   The instructions here are for building ``python-flint`` from source. For
+   most users it is recommended to install prebuilt binaries from ``PyPI`` or
+   ``conda-forge`` instead. The instructions here are only needed if a binary
+   is not available for the platform. See :ref:`install_pip_conda`.
 
-.. note::
-   The instructions here assume that you want to build and install ``python-flint``
-   on a platform for which a binary is not available on PyPI or conda-forge. If
-   you are interested in contributing to ``python-flint`` then see the
+   Also if you are working on ``python-flint`` itself then it is not
+   recommended to install the package 
 
-    - XXX: Add link to separate development page...
+   - XXX: Add link to separate development page...
 
 The source code for ``python-flint`` is available on `GitHub
 <https://github.com/flintlib/python-flint/tags>`_ and source distributions can
@@ -117,20 +169,17 @@ from PyPI, then build and install it into the active Python environment::
 
     pip install python-flint
 
-This will download, build and install the latest release of ``python-flint``
-from PyPI.
+This will try to install a binary first but will otherwise download, build and
+install the latest release of ``python-flint`` from PyPI. If you definitely
+want to build from source then you can use the ``--no-binary`` option::
 
-.. note::
-   If you have more than one Python environment on your system then you need to
-   ensure that you are installing ``python-flint`` into the correct one. This
-   may require using the full path to ``pip`` or something like ``python3 -m
-   pip`` or by activating the correct environment first.
+    pip install --no-binary python-flint python-flint
 
-To install a specific version of ``python-flint`` from PyPI use::
+To install a specific version of ``python-flint`` from PyPI use e.g.::
 
-    pip install python-flint==0.6.0
+    pip install python-flint==0.7.0a4
 
-To download and install the latest ``python-flint`` from git master you can
+To build and install the latest ``python-flint`` from git master you can
 use::
 
     pip install git+https://github.com/flintlib/python-flint.git@master
@@ -148,33 +197,23 @@ Alternatively if you would like to build a wheel you can use
 Note that wheels built in this way will not include the dependencies (unlike
 those distributed on PyPI) and cannot generally be installed on other systems.
 
-For ``python-flint < 0.6.0`` the source distribution did not include
-``pyproject.toml`` and did not list the build requirements. Also for
-``python-flint < 0.7.0`` there were no version constraints on the build
-requirements. If you are building an older version of ``python-flint`` then you
-may need to install the build requirements manually and disable build isolation
-with ``--no-build-isolation``::
-
-    pip install Cython==3.0 setuptools numpy
-    pip install --no-build-isolation .
-
-To build without build isolation with ``python-flint >= 0.7.0`` the needed
-dependencies are different::
-
-    pip install Cython==3.0 meson meson-python ninja
-    pip install --no-build-isolation .
-
 Since ``python-flint 0.7.0`` the build system is ``meson`` and the build
 requirements and version constraints are listed in ``pyproject.toml``. When
 using build isolation the build requirements are installed in a temporary
 virtual environment and so it should not be necessary to install them in the
 active Python environment before running ``pip install``.
 
-The ``meson`` build system will also detect the version of ``FLINT`` installed
-in the system and will fail if it is not a version that was known to be
-compatible at time of the release of ``python-flint``. To build against new,
-untested versions of ``FLINT`` you can pass the ``-Dflint_version_check=false``
-option to the ``meson`` build system::
+To build without build isolation with ``python-flint >= 0.7.0`` the 
+dependencies should first be installed in the active Python environment::
+
+    pip install Cython==3.0 meson meson-python ninja
+    pip install --no-build-isolation .
+
+The ``meson`` build system will detect the versions of ``FLINT`` and Cython
+installed in the system and will fail if they are not versions that were known
+to be compatible at the time of the release of ``python-flint``. To build
+against new, untested versions of ``FLINT`` or Cython you can pass the
+``-Dflint_version_check=false`` option to the ``meson`` build system::
 
     pip install --config-settings=setup-args="-Dflint_version_check=false" .
 
@@ -182,6 +221,27 @@ This is useful for testing new versions of ``FLINT`` with ``python-flint`` for
 example if you want to build ``python-flint`` against the latest git version of
 ``FLINT``. See :ref:`supported_versions` above for the versions of ``FLINT``
 and Cython that are supported by each version of ``python-flint``.
+
+
+Building older versions of python-flint
+---------------------------------------
+
+For ``python-flint < 0.6.0`` the source distribution did not include
+``pyproject.toml`` and did not list the build requirements. Also for
+``python-flint < 0.7.0`` the build requirements were different and there were
+no version constraints listed on the dependencies. An list of the build
+requirements for older versions of ``python-flint`` is given above in
+:ref:`supported_versions`.
+
+For ``python-flint < 0.7.0`` you will need to install the build requirements
+manually, pin the version of Cython, and disable build isolation::
+
+    pip install Cython==3.0 setuptools numpy
+    pip install --no-build-isolation .
+
+For ``python-flint < 0.4.0`` older versions of Cython are needed (``<= 0.29``).
+If the build fails during the Cython step then it is likely that a different
+version of Cython is needed.
 
 
 .. _install_dependencies:
@@ -290,9 +350,9 @@ Building on Windows
 
 The instructions in :ref:`install_dependencies` above are for Unix-like systems
 (e.g. Linux or MacOS). On Windows the dependencies can be built in a similar
-way using MSYS2 or WSL. It is also possible to build ``python-flint`` and its
-dependencies using MSVC but we do not currently provide instructions for this.
-The `conda-forge recipe
+way using MSYS2 or under WSL. It is also possible to build ``python-flint`` and
+its dependencies using MSVC but we do not currently provide instructions for
+this. The `conda-forge recipe
 <https://github.com/conda-forge/python-flint-feedstock>`_ for ``python-flint``
 builds on Windows using MSVC.
 
@@ -331,7 +391,7 @@ Using ``FLINT`` from a non-standard location
     For most users it is recommended to use the binaries from ``PyPI`` or
     ``conda-forge``. See :ref:`install_pip_conda`. The instructions here are
     also not needed if you have installed ``FLINT`` and its dependencies
-    system-wide.
+    system-wide (e.g. using a package manager like ``apt-get`` or ``brew``).
 
 If you have installed ``FLINT`` in a non-standard location then you will need
 to instruct the ``python-flint`` build system where to find it and ensure that
@@ -353,8 +413,9 @@ location e.g. ``lib64/pkgconfig``. It is also possible to pass the path to the
 ``pkg-config`` files to the ``meson-python`` build backend. For example if
 building with ``pip``::
 
-    pip install --config-settings=setup-args="--pkg-config-path=$(pwd)/.local/lib/pkgconfig" \
-                python-flint
+    pip install \
+        --config-settings=setup-args="--pkg-config-path=$(pwd)/.local/lib/pkgconfig" \
+        python-flint
 
 Setting the path to the ``pkg-config`` files in this way will allow the
 ``python-flint`` build system to find the ``FLINT`` library at build time. At
@@ -376,9 +437,10 @@ platforms this is done automatically by the ``meson`` build system but on
 others it needs to be enabled explicitly. This can be done by passing the
 ``-Dadd_flint_rpath=true`` option to the ``meson`` build system::
 
-    pip install --config-settings=setup-args="--pkg-config-path=$(pwd)/.local/lib/pkgconfig" \
-                --config-settings=setup-args="-Dadd_flint_rpath=true" \
-                python-flint
+    pip install \
+        --config-settings=setup-args="--pkg-config-path=$(pwd)/.local/lib/pkgconfig" \
+        --config-settings=setup-args="-Dadd_flint_rpath=true" \
+        python-flint
 
 For versions of ``python-flint`` before ``0.7.0`` the build system is
 ``setuptools`` (or ``numpy.distutils`` for ``Python < 3.12``). In this case
@@ -447,9 +509,10 @@ running ``python`` again or by restarting the Jupyter kernel.
 If you have installed ``FLINT`` in a non-standard location then you should set
 the ``pkg-config`` path as described in :ref:`non_standard_location` above::
 
-    pip install --no-build-isolation \
-                --config-settings=setup-args="--pkg-config-path=$(pwd)/.local/lib/pkgconfig" \
-                --editable .
+    pip install
+        --no-build-isolation \
+        --config-settings=setup-args="--pkg-config-path=$(pwd)/.local/lib/pkgconfig" \
+        --editable .
 
 To fully remove the editable install you can run::
 
@@ -457,4 +520,3 @@ To fully remove the editable install you can run::
 
 and then delete the ``build`` directory that was created in the root of the
 ``python-flint`` git repo.
-
