@@ -39,7 +39,7 @@ cdef class fmpz_mod_poly_ctx:
         # Allow context to be made from fmpz_mod_ctx
         if typecheck(mod, fmpz_mod_ctx):
             self.mod = mod
-        else: # Otherwise attempt to create context from moduli
+        else:  # Otherwise attempt to create context from moduli
             self.mod = fmpz_mod_ctx(mod)
 
     def modulus(self):
@@ -579,7 +579,7 @@ cdef class fmpz_mod_poly(flint_poly):
             fmpz_mod_poly_shift_left(
                 res.val, self.val, n, self.ctx.mod.val
             )
-        else: # do nothing, just copy self
+        else:  # do nothing, just copy self
             fmpz_mod_poly_set(
                 res.val, self.val, self.ctx.mod.val
             )
@@ -612,7 +612,7 @@ cdef class fmpz_mod_poly(flint_poly):
             fmpz_mod_poly_shift_right(
                 res.val, self.val, n, self.ctx.mod.val
             )
-        else: # do nothing, just copy self
+        else:  # do nothing, just copy self
             fmpz_mod_poly_set(
                 res.val, self.val, self.ctx.mod.val
             )
@@ -1004,9 +1004,9 @@ cdef class fmpz_mod_poly(flint_poly):
         length = fmpz_mod_poly_degree(self.val, self.ctx.mod.val)
         res = self.ctx.new_ctype_poly()
 
-        if n <= 0: # return zero
+        if n <= 0:  # return zero
             return res
-        elif n > length: # do nothing
+        elif n > length:  # do nothing
             fmpz_mod_poly_set(
                 res.val, self.val, self.ctx.mod.val
             )

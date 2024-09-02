@@ -197,7 +197,7 @@ cdef class acb_poly(flint_poly):
         return u
 
     def __pos__(self):
-        return self # ?
+        return self
 
     def __neg__(s):
         u = acb_poly.__new__(acb_poly)

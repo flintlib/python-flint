@@ -31,7 +31,7 @@ cdef class fq_default_poly_ctx:
         # Allow context to be made from fq_default_ctx
         if len(args) == 1 and typecheck(args[0], fq_default_ctx):
             self.field = args[0]
-        else: # Otherwise attempt to create context from moduli
+        else:  # Otherwise attempt to create context from moduli
             self.field = fq_default_ctx(*args, **kwargs)
 
     cdef set_list_as_fq_default_poly(self, fq_default_poly_t poly, val):
@@ -431,9 +431,9 @@ cdef class fq_default_poly(flint_poly):
         length = fq_default_poly_degree(self.val, self.ctx.field.val)
         res = self.ctx.new_ctype_poly()
 
-        if n <= 0: # return zero
+        if n <= 0:  # return zero
             return res
-        elif n > length: # do nothing
+        elif n > length:  # do nothing
             fq_default_poly_set(
                 res.val, self.val, self.ctx.field.val
             )
@@ -923,7 +923,7 @@ cdef class fq_default_poly(flint_poly):
             fq_default_poly_shift_left(
                 res.val, self.val, n, self.ctx.field.val
             )
-        else: # do nothing, just copy self
+        else:  # do nothing, just copy self
             fq_default_poly_set(
                 res.val, self.val, self.ctx.field.val
             )
@@ -956,7 +956,7 @@ cdef class fq_default_poly(flint_poly):
             fq_default_poly_shift_right(
                 res.val, self.val, n, self.ctx.field.val
             )
-        else: # do nothing, just copy self
+        else:  # do nothing, just copy self
             fq_default_poly_set(
                 res.val, self.val, self.ctx.field.val
             )

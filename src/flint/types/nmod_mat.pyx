@@ -198,7 +198,7 @@ cdef class nmod_mat(flint_mat):
         i, j = index
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
             raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
-        x = nmod(nmod_mat_entry(self.val, i, j), self.modulus()) # XXX: slow
+        x = nmod(nmod_mat_entry(self.val, i, j), self.modulus())  # XXX: slow
         return x
 
     def __setitem__(self, index, value):

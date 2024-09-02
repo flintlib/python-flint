@@ -194,7 +194,7 @@ cdef class arb_poly(flint_poly):
         return u
 
     def __pos__(self):
-        return self # ?
+        return self
 
     def __neg__(s):
         u = arb_poly.__new__(arb_poly)
