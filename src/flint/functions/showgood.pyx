@@ -82,7 +82,7 @@ def good(func, slong prec=0, slong maxprec=0, slong dps=0,
         maxprec = 10 * prec + 100
 
     if metric == "abssum":
-        metric = lambda L: sum(abs(c) for c in L)
+        def metric(L): return sum(abs(c) for c in L)
 
     # for printing
     if dps == 0:
