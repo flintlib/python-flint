@@ -780,7 +780,9 @@ cdef class flint_mat(flint_elem):
     def repr(self):
         # XXX
         return "%s(%i, %i, [%s])" % (type(self).__name__,
-            self.nrows(), self.ncols(), (", ".join(map(str, self.entries()))))
+                                     self.nrows(),
+                                     self.ncols(),
+                                     ", ".join(map(str, self.entries())))
 
     def str(self, *args, **kwargs):
         tab = self.table()

@@ -56,9 +56,9 @@ cdef class fq_default_ctx:
 
         # Now fq_type should be an int between 0, 5
         if not typecheck(fq_type, int):
-            raise TypeError(f"{fq_type = } is invalid")
+            raise TypeError(f"fq_type = {fq_type} is invalid")
         if fq_type < 0 or fq_type > 5:
-            raise ValueError(f"{fq_type = } should be between 0 and 5")
+            raise ValueError(f"fq_type = {fq_type} should be between 0 and 5")
 
         return fq_type
 
@@ -129,14 +129,14 @@ cdef class fq_default_ctx:
         # c_from_order expects the characteristic to be fmpz type
         prime = any_as_fmpz(p)
         if prime is NotImplemented:
-            raise TypeError(f"cannot coerce {p = } to type fmpz")
+            raise TypeError(f"cannot coerce p = {p} to type fmpz")
 
         if check_prime and not prime.is_prime():
             raise ValueError("characteristic is not prime")
 
         # the degree must be strictly positive
         if d < 1:
-            raise ValueError(f"the degree must be positive, got {d = }")
+            raise ValueError(f"the degree must be positive, got d = {d}")
 
         fq_default_ctx_init_type(self.val, (<fmpz>prime).val, d, self.var, <fq_default_type>fq_type)
         self._initialized = True

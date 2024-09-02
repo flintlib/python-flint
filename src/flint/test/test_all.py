@@ -1921,7 +1921,7 @@ def test_fmpz_mod_poly():
     R_other = fmpz_mod_poly_ctx(F_other)
 
     assert raises(lambda: fmpz_mod_poly(1, "A"), TypeError) # Need a valid context
-    assert raises(lambda: R(R_other([1,2,3])), ValueError), f"{R(R_other([1,2,3])) = }" # moduli must match
+    assert raises(lambda: R(R_other([1,2,3])), ValueError) # moduli must match
     assert raises(lambda: R(F_other(2)), ValueError) # moduli must match
     assert raises(lambda: R([F(1), F_other(2)]), ValueError) # moduli must match
     assert raises(lambda: R([F(1), "A"]), TypeError) # need to be able to cast to fmpz_mod
@@ -2120,7 +2120,7 @@ def test_fmpz_mod_poly():
         assert raises(lambda: f % f_bad, ValueError)
         assert raises(lambda: 123 % f_bad, DomainError)
         assert raises(lambda: f % "AAA", TypeError)
-        assert raises(lambda: tuple() % f, TypeError), f'{"AAA" % f = }'
+        assert raises(lambda: tuple() % f, TypeError)
 
         assert f % 1 == 0
         assert R_test.one() % 1 == 0
@@ -2550,7 +2550,7 @@ def test_polys():
         assert P([S(1)]) == P([1]) == P(P([1])) == P(1)
 
         assert raises(lambda: P([None]), TypeError)
-        assert raises(lambda: P(object()), TypeError), f"{P(object()) = }"
+        assert raises(lambda: P(object()), TypeError)
         assert raises(lambda: P(None), TypeError)
         assert raises(lambda: P(None, None), TypeError)
         assert raises(lambda: P([1,2], None), TypeError)
@@ -2903,7 +2903,7 @@ def test_mpolys():
         assert ctx.constant(1) == mpoly({(0, 0): 1}) == P(1, ctx=ctx)
 
         assert raises(lambda: P([None]), TypeError)
-        assert raises(lambda: P(object()), TypeError), f"{P(object()) = }"
+        assert raises(lambda: P(object()), TypeError)
         assert raises(lambda: P(None), TypeError)
         assert raises(lambda: P(None, None), TypeError)
         assert raises(lambda: P([1,2], None), TypeError)

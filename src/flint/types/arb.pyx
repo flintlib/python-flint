@@ -192,8 +192,8 @@ cdef class arb(flint_scalar):
         if rad is not None:
             rad = arb(rad)
             arb_add_error(self.val, (<arb>rad).val)
-            #rad = arf(rad)
-            #arb_add_error_arf(self.val, (<arf>rad).val)
+            # rad = arf(rad)
+            # arb_add_error_arf(self.val, (<arf>rad).val)
 
     cpdef bint is_zero(self):
         return arb_is_zero(self.val)
@@ -1629,7 +1629,7 @@ cdef class arb(flint_scalar):
         w = arb.__new__(arb)
         z = arb.__new__(arb)
         arb_hypgeom_airy((<arb>u).val, (<arb>v).val,
-                        (<arb>w).val, (<arb>z).val, (<arb>s).val, getprec())
+                         (<arb>w).val, (<arb>z).val, (<arb>s).val, getprec())
         return u, v, w, z
 
     @staticmethod
@@ -2281,7 +2281,7 @@ cdef class arb(flint_scalar):
         if abc:
             flags |= 16
         arb_hypgeom_2f1((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>c).val,
-            (<arb>self).val, flags, getprec())
+                        (<arb>self).val, flags, getprec())
         return u
 
     @staticmethod
@@ -2622,7 +2622,7 @@ cdef class arb(flint_scalar):
         F = arb.__new__(arb)
         G = arb.__new__(arb)
         arb_hypgeom_coulomb((<arb>F).val, (<arb>G).val,
-                        (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
+                            (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
         return F, G
 
     def coulomb_f(self, l, eta):
@@ -2638,7 +2638,7 @@ cdef class arb(flint_scalar):
         eta = any_as_arb(eta)
         F = arb.__new__(arb)
         arb_hypgeom_coulomb((<arb>F).val, NULL,
-                        (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
+                            (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
         return F
 
     def coulomb_g(self, l, eta):
@@ -2654,5 +2654,5 @@ cdef class arb(flint_scalar):
         eta = any_as_arb(eta)
         G = arb.__new__(arb)
         arb_hypgeom_coulomb(NULL, (<arb>G).val,
-                        (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
+                            (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
         return G

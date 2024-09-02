@@ -194,7 +194,7 @@ cdef class arb_poly(flint_poly):
         return u
 
     def __pos__(self):
-        return self # ?
+        return self  # ?
 
     def __neg__(s):
         u = arb_poly.__new__(arb_poly)
@@ -258,7 +258,7 @@ cdef class arb_poly(flint_poly):
         q = arb_poly.__new__(arb_poly)
         r = arb_poly.__new__(arb_poly)
         if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
-                (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
+                           (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
             return q
         else:
             raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")
@@ -278,7 +278,7 @@ cdef class arb_poly(flint_poly):
         q = arb_poly.__new__(arb_poly)
         r = arb_poly.__new__(arb_poly)
         if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
-                (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
+                           (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
             return r
         else:
             raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")
@@ -298,7 +298,7 @@ cdef class arb_poly(flint_poly):
         q = arb_poly.__new__(arb_poly)
         r = arb_poly.__new__(arb_poly)
         if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
-                (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
+                           (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
             return q, r
         else:
             raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")

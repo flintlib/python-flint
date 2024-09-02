@@ -346,7 +346,7 @@ cdef class fmpq_mat(flint_mat):
             raise ValueError("need a square system and compatible right hand side")
         u = fmpq_mat.__new__(fmpq_mat)
         fmpq_mat_init(u.val, fmpq_mat_nrows((<fmpq_mat>t).val),
-            fmpq_mat_ncols((<fmpq_mat>t).val))
+                      fmpq_mat_ncols((<fmpq_mat>t).val))
         if algorithm is None:
             if fmpq_mat_nrows(self.val) < 25:
                 result = fmpq_mat_solve_fraction_free(u.val, self.val, (<fmpq_mat>t).val)

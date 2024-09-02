@@ -100,7 +100,7 @@ cdef class nmod_mat(flint_mat):
             val = args[0]
             if typecheck(val, fmpz_mat):
                 nmod_mat_init(self.val, fmpz_mat_nrows((<fmpz_mat>val).val),
-                    fmpz_mat_ncols((<fmpz_mat>val).val), mod)
+                              fmpz_mat_ncols((<fmpz_mat>val).val), mod)
                 fmpz_mat_get_nmod_mat(self.val, (<fmpz_mat>val).val)
             elif isinstance(val, (list, tuple)):
                 m = len(val)
@@ -198,7 +198,7 @@ cdef class nmod_mat(flint_mat):
         i, j = index
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
             raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
-        x = nmod(nmod_mat_entry(self.val, i, j), self.modulus()) # XXX: slow
+        x = nmod(nmod_mat_entry(self.val, i, j), self.modulus())  # XXX: slow
         return x
 
     def __setitem__(self, index, value):
@@ -387,7 +387,7 @@ cdef class nmod_mat(flint_mat):
             raise ValueError("matrix must be square")
         u = nmod_mat.__new__(nmod_mat)
         nmod_mat_init(u.val, nmod_mat_nrows(self.val),
-            nmod_mat_ncols(self.val), self.val.mod.n)
+                      nmod_mat_ncols(self.val), self.val.mod.n)
         if not nmod_mat_inv(u.val, self.val):
             raise ZeroDivisionError("matrix is singular")
         return u
@@ -404,7 +404,7 @@ cdef class nmod_mat(flint_mat):
         cdef nmod_mat u
         u = nmod_mat.__new__(nmod_mat)
         nmod_mat_init(u.val, nmod_mat_ncols(self.val),
-            nmod_mat_nrows(self.val), self.val.mod.n)
+                      nmod_mat_nrows(self.val), self.val.mod.n)
         nmod_mat_transpose(u.val, self.val)
         return u
 
@@ -441,7 +441,7 @@ cdef class nmod_mat(flint_mat):
             raise ValueError("need a square system and compatible right hand side")
         u = nmod_mat.__new__(nmod_mat)
         nmod_mat_init(u.val, nmod_mat_nrows((<nmod_mat>t).val),
-            nmod_mat_ncols((<nmod_mat>t).val), self.val.mod.n)
+                      nmod_mat_ncols((<nmod_mat>t).val), self.val.mod.n)
         result = nmod_mat_solve(u.val, self.val, (<nmod_mat>t).val)
         if not result:
             raise ZeroDivisionError("singular matrix in solve()")

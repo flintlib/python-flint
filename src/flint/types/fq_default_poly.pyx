@@ -31,7 +31,7 @@ cdef class fq_default_poly_ctx:
         # Allow context to be made from fq_default_ctx
         if len(args) == 1 and typecheck(args[0], fq_default_ctx):
             self.field = args[0]
-        else: # Otherwise attempt to create context from moduli
+        else:  # Otherwise attempt to create context from moduli
             self.field = fq_default_ctx(*args, **kwargs)
 
     cdef set_list_as_fq_default_poly(self, fq_default_poly_t poly, val):
@@ -47,7 +47,7 @@ cdef class fq_default_poly_ctx:
             # First coerce the list element as an fq_default type
             v = self.field.any_as_fq_default(val[i])
             if v is NotImplemented:
-                raise TypeError(f"unsupported coefficient in list: {val[i] = }, {type(val[i]) = }")
+                raise TypeError(f"unsupported coefficient in list: val[i] = {val[i]}, type(val[i] = {type(val[i])}")
 
             # Set the coefficient of the polynomial
             fq_default_poly_set_coeff(
@@ -431,9 +431,9 @@ cdef class fq_default_poly(flint_poly):
         length = fq_default_poly_degree(self.val, self.ctx.field.val)
         res = self.ctx.new_ctype_poly()
 
-        if n <= 0: # return zero
+        if n <= 0:  # return zero
             return res
-        elif n > length: # do nothing
+        elif n > length:  # do nothing
             fq_default_poly_set(
                 res.val, self.val, self.ctx.field.val
             )
@@ -453,7 +453,7 @@ cdef class fq_default_poly(flint_poly):
             x^2 + 55*x + 109
         """
         cdef fq_default_poly res
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         fq_default_poly_make_monic(
             res.val, self.val, self.ctx.field.val
         )
@@ -563,7 +563,7 @@ cdef class fq_default_poly(flint_poly):
 
     def __neg__(self):
         cdef fq_default_poly res
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         fq_default_poly_neg(
             res.val, self.val, self.ctx.field.val
         )
@@ -576,7 +576,7 @@ cdef class fq_default_poly(flint_poly):
         if other is NotImplemented:
             return NotImplemented
 
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         fq_default_poly_add(
             res.val, self.val, (<fq_default_poly>other).val, self.ctx.field.val
         )
@@ -592,7 +592,7 @@ cdef class fq_default_poly(flint_poly):
         if other is NotImplemented:
             return NotImplemented
 
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         fq_default_poly_sub(
             res.val, self.val, (<fq_default_poly>other).val, self.ctx.field.val
         )
@@ -605,7 +605,7 @@ cdef class fq_default_poly(flint_poly):
         if other is NotImplemented:
             return NotImplemented
 
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         fq_default_poly_sub(
             res.val, (<fq_default_poly>other).val, self.val, self.ctx.field.val
         )
@@ -613,7 +613,7 @@ cdef class fq_default_poly(flint_poly):
 
     def __mul__(self, other):
         cdef fq_default_poly res
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
 
         # First try scalar multiplication
         if not typecheck(other, fq_default_poly):
@@ -766,7 +766,7 @@ cdef class fq_default_poly(flint_poly):
 
     def __truediv__(self, other):
         cdef fq_default_poly res
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
 
         # First try scalar division
         if not typecheck(other, fq_default_poly):
@@ -854,7 +854,7 @@ cdef class fq_default_poly(flint_poly):
         if other.is_zero():
             raise ZeroDivisionError("Cannot compute remainder modulo 0")
 
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         fq_default_poly_rem(
             res.val, self.val, (<fq_default_poly>other).val, self.ctx.field.val
         )
@@ -870,7 +870,7 @@ cdef class fq_default_poly(flint_poly):
         if other is NotImplemented:
             return NotImplemented
 
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         fq_default_poly_rem(
             res.val, (<fq_default_poly>other).val, self.val, self.ctx.field.val
         )
@@ -923,7 +923,7 @@ cdef class fq_default_poly(flint_poly):
             fq_default_poly_shift_left(
                 res.val, self.val, n, self.ctx.field.val
             )
-        else: # do nothing, just copy self
+        else:  # do nothing, just copy self
             fq_default_poly_set(
                 res.val, self.val, self.ctx.field.val
             )
@@ -956,7 +956,7 @@ cdef class fq_default_poly(flint_poly):
             fq_default_poly_shift_right(
                 res.val, self.val, n, self.ctx.field.val
             )
-        else: # do nothing, just copy self
+        else:  # do nothing, just copy self
             fq_default_poly_set(
                 res.val, self.val, self.ctx.field.val
             )
@@ -1324,7 +1324,7 @@ cdef class fq_default_poly(flint_poly):
         """
         G, S, _ = self.xgcd(other)
         if not G.is_one():
-            raise ValueError(f"polynomial has no inverse modulo {other = }")
+            raise ValueError(f"polynomial has no inverse modulo other = {other}")
         return S
 
     # ====================================
@@ -1638,7 +1638,7 @@ cdef class fq_default_poly(flint_poly):
             self.val, self.ctx.field.val
         )
         if n > n_max:
-            raise ValueError(f"Cannot deflate with {n = }, maximum allowed value is {n_max = }")
+            raise ValueError(f"Cannot deflate with n = {n}, maximum allowed value is n_max = {n_max}")
 
         res = self.ctx.new_ctype_poly()
         fq_default_poly_deflate(

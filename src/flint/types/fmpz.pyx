@@ -77,7 +77,7 @@ cdef class fmpz(flint_scalar):
         if typecheck(val, fmpz):
             fmpz_set(self.val, (<fmpz>val).val)
         else:
-            if fmpz_set_any_ref(self.val, val) == FMPZ_UNKNOWN: # XXX
+            if fmpz_set_any_ref(self.val, val) == FMPZ_UNKNOWN:  # XXX
                 if typecheck(val, str):
                     if fmpz_set_str(self.val, chars_from_str(val), 10) != 0:
                         raise ValueError("invalid string for fmpz")
@@ -527,45 +527,29 @@ cdef class fmpz(flint_scalar):
             fmpz_clear(tval)
         return u
 
-    # This is the correct code when fmpz_or is fixed (in flint 3.0.0)
-    #
-    #def __or__(self, other):
-    #    cdef fmpz_struct tval[1]
-    #    cdef int ttype = FMPZ_UNKNOWN
-    #    ttype = fmpz_set_any_ref(tval, other)
-    #    if ttype == FMPZ_UNKNOWN:
-    #        return NotImplemented
-    #    u = fmpz.__new__(fmpz)
-    #    fmpz_or((<fmpz>u).val, self.val, tval)
-    #    if ttype == FMPZ_TMP:
-    #        fmpz_clear(tval)
-    #    return u
-    #
-    #def __ror__(self, other):
-    #    cdef fmpz_struct tval[1]
-    #    cdef int ttype = FMPZ_UNKNOWN
-    #    ttype = fmpz_set_any_ref(tval, other)
-    #    if ttype == FMPZ_UNKNOWN:
-    #        return NotImplemented
-    #    u = fmpz.__new__(fmpz)
-    #    fmpz_or((<fmpz>u).val, tval, self.val)
-    #    if ttype == FMPZ_TMP:
-    #        fmpz_clear(tval)
-    #    return u
-
     def __or__(self, other):
-        if typecheck(other, fmpz):
-            other = int(other)
-        if typecheck(other, int):
-            return fmpz(int(self) | other)
-        else:
+        cdef fmpz_struct tval[1]
+        cdef int ttype = FMPZ_UNKNOWN
+        ttype = fmpz_set_any_ref(tval, other)
+        if ttype == FMPZ_UNKNOWN:
             return NotImplemented
+        u = fmpz.__new__(fmpz)
+        fmpz_or((<fmpz>u).val, self.val, tval)
+        if ttype == FMPZ_TMP:
+            fmpz_clear(tval)
+        return u
 
     def __ror__(self, other):
-        if typecheck(other, int):
-            return fmpz(other | int(self))
-        else:
+        cdef fmpz_struct tval[1]
+        cdef int ttype = FMPZ_UNKNOWN
+        ttype = fmpz_set_any_ref(tval, other)
+        if ttype == FMPZ_UNKNOWN:
             return NotImplemented
+        u = fmpz.__new__(fmpz)
+        fmpz_or((<fmpz>u).val, tval, self.val)
+        if ttype == FMPZ_TMP:
+            fmpz_clear(tval)
+        return u
 
     def __xor__(self, other):
         cdef fmpz_struct tval[1]
