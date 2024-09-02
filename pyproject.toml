@@ -40,14 +40,28 @@ requires = ["meson-python>=0.13", "cython>=3.0,<3.1"]
 build-backend = "mesonpy"
 
 [tool.cython-lint]
-# We currently ignore
 # E129 visually indented line with same indent as next logical line
+# Reasoning: this rule is a little controversial
+#            (see https://github.com/PyCQA/pycodestyle/issues/386)
+#            and we ignore it to avoid needing additional indentation after
+#            long logical statements.
+#
 # E202 whitespace before '}'
+# Reasoning: this rule flags up format strings f"{x = }". This is discussed
+#            here: https://github.com/PyCQA/pycodestyle/issues/1201, as we
+#            prefer printing whitespace around =, we disable this rule.
+#
 # E501 line too long (128 > 120 characters)
+# Reasoning: this is a work in progress and will be enforced once a line length
+#            and refactor has taken place. See issue #214
+#
 # E741 ambiguous variable name
+# Reasoning: many places it makes sense to use l or other letters as variable
+#            names as it is standard in mathematical notation.
+#
 # E743 ambiguous function definition
-# TODO: E743 should be fixed, see issue #210
-#       E501 should be fixed once we decide line length
+# Reasoning: this is a work in progress and will be enforced after #210 is
+#            resolved.
 max-line-length = 120
 ignore = ['E129','E202','E501','E741','E743']
 exclude = 'src/flint/flintlib/.*'
