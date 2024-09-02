@@ -15,11 +15,11 @@ cpdef enum fq_default_type:
     These can be manually selected, or type: `fq_default_ctx.DEFAULT` can be used
     for the implementation to be automatically decided by Flint (default),
     """
-    DEFAULT  = 0
-    FQ_ZECH  = 1
-    FQ_NMOD  = 2
-    FQ       = 3
-    NMOD     = 4
+    DEFAULT = 0
+    FQ_ZECH = 1
+    FQ_NMOD = 2
+    FQ = 3
+    NMOD = 4
     FMPZ_MOD = 5
 
 cdef class fq_default_ctx:
