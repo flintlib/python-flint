@@ -433,7 +433,7 @@ cdef class fq_default_poly(flint_poly):
 
         if n <= 0:  # return zero
             return res
-        elif n > length:  # do nothing
+        elif n > length:  # do nothing
             fq_default_poly_set(
                 res.val, self.val, self.ctx.field.val
             )

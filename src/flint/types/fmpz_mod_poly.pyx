@@ -1006,7 +1006,7 @@ cdef class fmpz_mod_poly(flint_poly):
 
         if n <= 0:  # return zero
             return res
-        elif n > length:  # do nothing
+        elif n > length:  # do nothing
             fmpz_mod_poly_set(
                 res.val, self.val, self.ctx.mod.val
             )
