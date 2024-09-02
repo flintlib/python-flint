@@ -43,6 +43,10 @@ build-backend = "mesonpy"
 # We currently ignore
 # E129 visually indented line with same indent as next logical line
 # E501 line too long (128 > 120 characters)
+# E741 ambiguous variable name
+# E743 ambiguous function definition
+# TODO: E743 should be fixed, see issue #210
+#       E501 should be fixed once we decide line length
 max-line-length = 120
 ignore = ['E129','E501','E741','E743']
 exclude = 'src/flint/flintlib/.*'
