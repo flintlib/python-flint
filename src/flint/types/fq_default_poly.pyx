@@ -47,7 +47,7 @@ cdef class fq_default_poly_ctx:
             # First coerce the list element as an fq_default type
             v = self.field.any_as_fq_default(val[i])
             if v is NotImplemented:
-                raise TypeError(f"unsupported coefficient in list: {val[i] = }, {type(val[i]) = }")
+                raise TypeError(f"unsupported coefficient in list: val[i] = {val[i]}, type(val[i] = {type(val[i])}")
 
             # Set the coefficient of the polynomial
             fq_default_poly_set_coeff(
@@ -1324,7 +1324,7 @@ cdef class fq_default_poly(flint_poly):
         """
         G, S, _ = self.xgcd(other)
         if not G.is_one():
-            raise ValueError(f"polynomial has no inverse modulo {other = }")
+            raise ValueError(f"polynomial has no inverse modulo other = {other}")
         return S
 
     # ====================================
@@ -1638,7 +1638,7 @@ cdef class fq_default_poly(flint_poly):
             self.val, self.ctx.field.val
         )
         if n > n_max:
-            raise ValueError(f"Cannot deflate with {n = }, maximum allowed value is {n_max = }")
+            raise ValueError(f"Cannot deflate with n = {n}, maximum allowed value is n_max = {n_max}")
 
         res = self.ctx.new_ctype_poly()
         fq_default_poly_deflate(

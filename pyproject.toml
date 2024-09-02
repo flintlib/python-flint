@@ -46,11 +46,6 @@ build-backend = "mesonpy"
 #            and we ignore it to avoid needing additional indentation after
 #            long logical statements.
 #
-# E202 whitespace before '}'
-# Reasoning: this rule flags up format strings f"{x = }". This is discussed
-#            here: https://github.com/PyCQA/pycodestyle/issues/1201, as we
-#            prefer printing whitespace around =, we disable this rule.
-#
 # E501 line too long (128 > 120 characters)
 # Reasoning: this is a work in progress and will be enforced once a line length
 #            and refactor has taken place. See issue #214
@@ -63,7 +58,7 @@ build-backend = "mesonpy"
 # Reasoning: this is a work in progress and will be enforced after #210 is
 #            resolved.
 max-line-length = 120
-ignore = ['E129','E202','E501','E741','E743']
+ignore = ['E129','E501','E741','E743']
 exclude = 'src/flint/flintlib/.*'
 
 [tool.spin]

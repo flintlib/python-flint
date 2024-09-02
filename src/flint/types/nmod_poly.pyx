@@ -262,7 +262,7 @@ cdef class nmod_poly(flint_poly):
             45*x^4 + 23*x^3 + 159*x^2 + 151*x + 110
         """
         if n <= 0:
-            raise ValueError(f"{n = } must be positive")
+            raise ValueError(f"n = {n} must be positive")
 
         if self.is_zero():
             raise ValueError("cannot invert the zero element")
@@ -315,11 +315,11 @@ cdef class nmod_poly(flint_poly):
         cdef nmod_poly res
         g = any_as_nmod_poly(other, self.val.mod)
         if g is NotImplemented:
-            raise TypeError(f"cannot convert {other = } to nmod_poly")
+            raise TypeError(f"cannot convert other = {other} to nmod_poly")
 
         h = any_as_nmod_poly(modulus, self.val.mod)
         if h is NotImplemented:
-            raise TypeError(f"cannot convert {modulus = } to nmod_poly")
+            raise TypeError(f"cannot convert modulus = {modulus} to nmod_poly")
 
         if modulus.is_zero():
             raise ZeroDivisionError("cannot reduce modulo zero")
@@ -549,7 +549,7 @@ cdef class nmod_poly(flint_poly):
         # For larger exponents we need to cast e to an fmpz first
         e_fmpz = any_as_fmpz(e)
         if e_fmpz is NotImplemented:
-            raise TypeError(f"exponent cannot be cast to an fmpz type: {e = }")
+            raise TypeError(f"exponent cannot be cast to an fmpz type: {e}")
 
         # To optimise powering, we precompute the inverse of the reverse of the modulus
         if mod_rev_inv is not None:
