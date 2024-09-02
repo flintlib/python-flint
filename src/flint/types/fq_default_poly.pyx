@@ -453,7 +453,7 @@ cdef class fq_default_poly(flint_poly):
             x^2 + 55*x + 109
         """
         cdef fq_default_poly res
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         fq_default_poly_make_monic(
             res.val, self.val, self.ctx.field.val
         )
@@ -563,7 +563,7 @@ cdef class fq_default_poly(flint_poly):
 
     def __neg__(self):
         cdef fq_default_poly res
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         fq_default_poly_neg(
             res.val, self.val, self.ctx.field.val
         )
@@ -576,7 +576,7 @@ cdef class fq_default_poly(flint_poly):
         if other is NotImplemented:
             return NotImplemented
 
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         fq_default_poly_add(
             res.val, self.val, (<fq_default_poly>other).val, self.ctx.field.val
         )
@@ -592,7 +592,7 @@ cdef class fq_default_poly(flint_poly):
         if other is NotImplemented:
             return NotImplemented
 
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         fq_default_poly_sub(
             res.val, self.val, (<fq_default_poly>other).val, self.ctx.field.val
         )
@@ -605,7 +605,7 @@ cdef class fq_default_poly(flint_poly):
         if other is NotImplemented:
             return NotImplemented
 
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         fq_default_poly_sub(
             res.val, (<fq_default_poly>other).val, self.val, self.ctx.field.val
         )
@@ -613,7 +613,7 @@ cdef class fq_default_poly(flint_poly):
 
     def __mul__(self, other):
         cdef fq_default_poly res
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
 
         # First try scalar multiplication
         if not typecheck(other, fq_default_poly):
@@ -766,7 +766,7 @@ cdef class fq_default_poly(flint_poly):
 
     def __truediv__(self, other):
         cdef fq_default_poly res
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
 
         # First try scalar division
         if not typecheck(other, fq_default_poly):
@@ -854,7 +854,7 @@ cdef class fq_default_poly(flint_poly):
         if other.is_zero():
             raise ZeroDivisionError("Cannot compute remainder modulo 0")
 
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         fq_default_poly_rem(
             res.val, self.val, (<fq_default_poly>other).val, self.ctx.field.val
         )
@@ -870,7 +870,7 @@ cdef class fq_default_poly(flint_poly):
         if other is NotImplemented:
             return NotImplemented
 
-        res =  self.ctx.new_ctype_poly()
+        res = self.ctx.new_ctype_poly()
         fq_default_poly_rem(
             res.val, (<fq_default_poly>other).val, self.val, self.ctx.field.val
         )

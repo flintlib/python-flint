@@ -43,7 +43,7 @@ build-backend = "mesonpy"
 # We currently ignore
 # E129 visually indented line with same indent as next logical line
 max-line-length = 120
-ignore = ['E129','E222','E261','E262','E265','E501','E731','E741','E743']
+ignore = ['E129','E261','E262','E265','E501','E731','E741','E743']
 exclude = 'src/flint/flintlib/.*'
 
 [tool.spin]
