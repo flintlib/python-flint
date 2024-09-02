@@ -697,7 +697,7 @@ cdef class arb_series(flint_series):
         F = arb_series.__new__(arb_series)
         G = arb_series.__new__(arb_series)
         arb_hypgeom_coulomb_series((<arb_series>F).val, (<arb_series>G).val,
-            (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
+                                   (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
         (<arb_series>F).prec = cap
         (<arb_series>G).prec = cap
         return F, G
@@ -710,7 +710,7 @@ cdef class arb_series(flint_series):
         cap = min(cap, (<arb_series>self).prec)
         F = arb_series.__new__(arb_series)
         arb_hypgeom_coulomb_series((<arb_series>F).val, NULL,
-            (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
+                                   (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
         (<arb_series>F).prec = cap
         return F
 
@@ -722,7 +722,7 @@ cdef class arb_series(flint_series):
         cap = min(cap, (<arb_series>self).prec)
         G = arb_series.__new__(arb_series)
         arb_hypgeom_coulomb_series(NULL, (<arb_series>G).val,
-            (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
+                                   (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
         (<arb_series>G).prec = cap
         return G
 

@@ -775,29 +775,29 @@ cdef class acb_mat(flint_mat):
         if n != 0:
             if algorithm == "approx":
                 acb_mat_approx_eig_qr(acb_mat_entry(E.val, 0, 0),
-                    LP, RP,  s.val, magp, maxiter, getprec())
+                                      LP, RP,  s.val, magp, maxiter, getprec())
             else:
                 acb_mat_approx_eig_qr(acb_mat_entry(E.val, 0, 0),
-                    NULL, RP, s.val, magp, maxiter, getprec())
+                                      NULL, RP, s.val, magp, maxiter, getprec())
                 if multiple:
                     if left or right:
                         raise NotImplementedError("eigenvectors not supported with multiple=True")
                     if algorithm == "rump":
                         success = acb_mat_eig_multiple_rump(acb_mat_entry(E.val, 0, 0),
-                            s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                            s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                     else:
                         success = acb_mat_eig_multiple(acb_mat_entry(E.val, 0, 0),
-                            s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                       s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                 else:
                     if algorithm == "rump":
                         success = acb_mat_eig_simple_rump(acb_mat_entry(E.val, 0, 0),
-                            LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                          LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                     elif algorithm == "vdhoeven_mourrain":
                         success = acb_mat_eig_simple_vdhoeven_mourrain(acb_mat_entry(E.val, 0, 0),
-                            LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                                       LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                     else:
                         success = acb_mat_eig_simple(acb_mat_entry(E.val, 0, 0),
-                            LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                     LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                 if not (nonstop or success):
                     raise ValueError("failed to isolate eigenvalues (try higher prec, multiple=True for multiple eigenvalues, or nonstop=True to avoid the exception)")
         if tol is not None:

@@ -88,15 +88,6 @@ cdef any_as_acb_or_notimplemented(x):
     return t
 
 
-# cdef any_as_arb_or_acb(x):
-#     if typecheck(x, arb) or typecheck(x, acb):
-#         return x
-#     try:
-#         return arb(x)
-#     except (TypeError, ValueError):
-#         return acb(x)
-
-
 # Copied with modifications from sage/rings/complex_arb.pyx
 @cython.internal
 cdef class IntegrationContext:
@@ -1210,7 +1201,7 @@ cdef class acb(flint_scalar):
             T3 = _acb_vec_init(r + 3)
             T4 = _acb_vec_init(r + 4)
             acb_modular_theta_jet(T1, T2, T3, T4,
-                              (<acb>z).val, (<acb>tau).val, r + 1, getprec())
+                                  (<acb>z).val, (<acb>tau).val, r + 1, getprec())
             acb_set((<acb>t1).val, T1 + r)
             acb_set((<acb>t2).val, T2 + r)
             acb_set((<acb>t3).val, T3 + r)
@@ -1556,7 +1547,7 @@ cdef class acb(flint_scalar):
         if abc:
             flags |= 16
         acb_hypgeom_2f1((<acb>u).val, (<acb>a).val, (<acb>b).val, (<acb>c).val,
-            (<acb>self).val, flags, getprec())
+                        (<acb>self).val, flags, getprec())
         return u
 
     def chebyshev_t(s, n):
@@ -1764,7 +1755,7 @@ cdef class acb(flint_scalar):
         w = acb.__new__(acb)
         z = acb.__new__(acb)
         acb_hypgeom_airy((<acb>u).val, (<acb>v).val,
-                        (<acb>w).val, (<acb>z).val, (<acb>s).val, getprec())
+                         (<acb>w).val, (<acb>z).val, (<acb>s).val, getprec())
         return u, v, w, z
 
     def lambertw(s, branch=0, bint left=False, bint middle=False):
@@ -2621,9 +2612,9 @@ cdef class acb(flint_scalar):
 
     @staticmethod
     def integral(func, a, b, params=None,
-            rel_tol=None, abs_tol=None,
-            deg_limit=None, eval_limit=None, depth_limit=None,
-            use_heap=None, verbose=None):
+                 rel_tol=None, abs_tol=None,
+                 deg_limit=None, eval_limit=None, depth_limit=None,
+                 use_heap=None, verbose=None):
         r"""
         Computes the integral `\int_a^b f(x) dx` where the integrand
         *f* is defined by *func*.
@@ -2752,7 +2743,7 @@ cdef class acb(flint_scalar):
         Hpos = acb.__new__(acb)
         Hneg = acb.__new__(acb)
         acb_hypgeom_coulomb((<acb>F).val, (<acb>G).val, (<acb>Hpos).val, (<acb>Hneg).val,
-                        (<acb>l).val, (<acb>eta).val, (<acb>self).val, getprec())
+                            (<acb>l).val, (<acb>eta).val, (<acb>self).val, getprec())
         return F, G, Hpos, Hneg
 
     def coulomb_f(self, l, eta):
@@ -2768,7 +2759,7 @@ cdef class acb(flint_scalar):
         eta = any_as_acb(eta)
         F = acb.__new__(acb)
         acb_hypgeom_coulomb((<acb>F).val, NULL, NULL, NULL,
-                        (<acb>l).val, (<acb>eta).val, (<acb>self).val, getprec())
+                            (<acb>l).val, (<acb>eta).val, (<acb>self).val, getprec())
         return F
 
     def coulomb_g(self, l, eta):
@@ -2784,5 +2775,5 @@ cdef class acb(flint_scalar):
         eta = any_as_acb(eta)
         G = acb.__new__(acb)
         acb_hypgeom_coulomb(NULL, (<acb>G).val, NULL, NULL,
-                        (<acb>l).val, (<acb>eta).val, (<acb>self).val, getprec())
+                            (<acb>l).val, (<acb>eta).val, (<acb>self).val, getprec())
         return G

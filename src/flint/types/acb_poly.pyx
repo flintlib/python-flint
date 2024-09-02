@@ -261,7 +261,7 @@ cdef class acb_poly(flint_poly):
         q = acb_poly.__new__(acb_poly)
         r = acb_poly.__new__(acb_poly)
         if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
-                (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
+                           (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
             return q
         else:
             raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")
@@ -281,7 +281,7 @@ cdef class acb_poly(flint_poly):
         q = acb_poly.__new__(acb_poly)
         r = acb_poly.__new__(acb_poly)
         if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
-                (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
+                           (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
             return r
         else:
             raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")
@@ -301,7 +301,7 @@ cdef class acb_poly(flint_poly):
         q = acb_poly.__new__(acb_poly)
         r = acb_poly.__new__(acb_poly)
         if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
-                (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
+                           (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
             return q, r
         else:
             raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")

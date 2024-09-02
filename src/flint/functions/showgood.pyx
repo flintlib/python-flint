@@ -38,7 +38,8 @@ cdef goodstr(x):
 
 
 def good(func, slong prec=0, slong maxprec=0, slong dps=0,
-        slong maxdps=0, slong padding=10, bint verbose=False, bint show=False, bint parts=True, metric=None):
+         slong maxdps=0, slong padding=10, bint verbose=False,
+         bint show=False, bint parts=True, metric=None):
     """
     Evaluates *func*, automatically increasing the precision to get
     a result accurate to the current working precision (or the

@@ -548,7 +548,7 @@ cdef class fmpz_mat(flint_mat):
         else:
             u = fmpz_mat.__new__(fmpz_mat)
             fmpz_mat_init(u.val, fmpz_mat_nrows((<fmpz_mat>t).val),
-                fmpz_mat_ncols((<fmpz_mat>t).val))
+                          fmpz_mat_ncols((<fmpz_mat>t).val))
             d = fmpz.__new__(fmpz)
             result = fmpz_mat_solve(u.val, d.val, self.val, (<fmpz_mat>t).val)
             if not fmpz_is_pm1(d.val):

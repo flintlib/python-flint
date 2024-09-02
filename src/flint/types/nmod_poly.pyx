@@ -676,7 +676,7 @@ cdef class nmod_poly(flint_poly):
         for 0 <= i < fac.num:
             u = nmod_poly.__new__(nmod_poly)
             nmod_poly_init_preinv((<nmod_poly>u).val,
-                (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
+                                  (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
             nmod_poly_set((<nmod_poly>u).val, &fac.p[i])
             exp = fac.exp[i]
             res[i] = (u, exp)
