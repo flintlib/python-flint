@@ -22,8 +22,8 @@ cdef fmpz_series_coerce_operands(x, y):
         return x, fmpz_series(y)
     if isinstance(y, (fmpq, fmpq_poly, fmpq_series)):
         return fmpq_series(x), fmpq_series(y)
-    #if isinstance(y, (nmod, nmod_poly, nmod_series)):
-    #    return nmod_series(x), nmod_series(y)
+    # if isinstance(y, (nmod, nmod_poly, nmod_series)):
+    #     return nmod_series(x), nmod_series(y)
     if isinstance(y, (float, arb, arb_poly, arb_series)):
         return arb_series(x), arb_series(y)
     if isinstance(y, (complex, acb, acb_poly, acb_series)):

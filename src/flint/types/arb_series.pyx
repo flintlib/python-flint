@@ -830,9 +830,6 @@ cdef class arb_series(flint_series):
                 v = f(arb_series([arb(m, r)]))
                 if v[0] != 0:
                     continue
-                #ctx.cap = 1
-                #fa = xsgn(f(arb_series(a))[0])
-                #fb = xsgn(f(arb_series(b))[0])
                 ctx.cap = 2
                 if fa * fb < 0 and f(arb_series([arb(m, r), 1]))[1] != 0:
                     roots.append((a, b))

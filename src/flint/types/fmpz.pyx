@@ -528,8 +528,8 @@ cdef class fmpz(flint_scalar):
         return u
 
     # This is the correct code when fmpz_or is fixed (in flint 3.0.0)
-    #
-    #def __or__(self, other):
+
+    # def __or__(self, other):
     #    cdef fmpz_struct tval[1]
     #    cdef int ttype = FMPZ_UNKNOWN
     #    ttype = fmpz_set_any_ref(tval, other)
@@ -540,8 +540,8 @@ cdef class fmpz(flint_scalar):
     #    if ttype == FMPZ_TMP:
     #        fmpz_clear(tval)
     #    return u
-    #
-    #def __ror__(self, other):
+
+    # def __ror__(self, other):
     #    cdef fmpz_struct tval[1]
     #    cdef int ttype = FMPZ_UNKNOWN
     #    ttype = fmpz_set_any_ref(tval, other)

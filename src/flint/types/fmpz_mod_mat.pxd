@@ -14,7 +14,7 @@ cdef class fmpz_mod_mat(flint_mat):
     cdef void _init_empty(self, slong m, slong n, list args)
     cdef void _init_empty_ctx(self, slong m, slong n, fmpz_mod_ctx ctx)
     cdef void _init_from_list(self, slong m, slong n, list entries, list args)
-    #cdef void _init_from_matrix(self, flint_mat M, list args)
+    # cdef void _init_from_matrix(self, flint_mat M, list args)
     cdef void _init_from_matrix(self, M, list args)
     cdef fmpz_mod_ctx _parse_args(self, list args)
     cdef fmpz_mod_mat _new(self, slong m, slong n, fmpz_mod_ctx ctx)

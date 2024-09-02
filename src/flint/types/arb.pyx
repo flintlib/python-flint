@@ -192,8 +192,8 @@ cdef class arb(flint_scalar):
         if rad is not None:
             rad = arb(rad)
             arb_add_error(self.val, (<arb>rad).val)
-            #rad = arf(rad)
-            #arb_add_error_arf(self.val, (<arf>rad).val)
+            # rad = arf(rad)
+            # arb_add_error_arf(self.val, (<arf>rad).val)
 
     cpdef bint is_zero(self):
         return arb_is_zero(self.val)
