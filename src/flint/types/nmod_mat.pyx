@@ -179,39 +179,6 @@ cdef class nmod_mat_ctx:
         """
         return self._is_prime
 
-    #def zero(self, slong m, slong n):
-    #    """Return the zero ``nmod_mat``.
-    #
-    #    >>> ctx = nmod_mat_ctx.new(17)
-    #    >>> ctx.zero(2, 3)
-    #    [0, 0, 0]
-    #    [0, 0, 0]
-
-    #    """
-    #    cdef nmod_mat r = self.new_nmod_mat()
-    #    nmod_mat_zero(r.val)
-    #    return r
-
-    #def one(self, slong m, slong n=-1):
-    #    """Return the one ``nmod_mat``.
-
-    #    >>> ctx = nmod_mat_ctx.new(17)
-    #    >>> ctx.one(2)
-    #    [1, 0]
-    #    [0, 1]
-    #    >>> ctx.one(2, 3)
-    #    [1, 0, 0]
-    #    [0, 1, 0]
-
-    #    """
-    #    cdef nmod_mat r = self.new_nmod_mat()
-    #    if n == -1:
-    #        n = m
-    #    n = min(m, n)
-    #    for i from 0 <= i < n:
-    #        nmod_mat_set_entry(r.val, i, i, 1)
-    #    return r
-
     def __str__(self):
         return f"Context for nmod_mat with modulus: {self.mod.n}"
 
@@ -421,7 +388,7 @@ cdef class nmod_mat(flint_mat):
             return t
         tv = &(<nmod_mat>t).val[0]
         if sv.mod.n != tv.mod.n:
-            raise ValueError("cannot add nmod_mats with different moduli") # pragma: no cover
+            raise ValueError("cannot add nmod_mats with different moduli")  # pragma: no cover
         if sv.r != tv.r or sv.c != tv.c:
             raise ValueError("incompatible shapes for matrix addition")
         r = s.ctx.new_nmod_mat(sv.r, sv.c)
@@ -455,7 +422,7 @@ cdef class nmod_mat(flint_mat):
             return t
         tv = &(<nmod_mat>t).val[0]
         if sv.mod.n != tv.mod.n:
-            raise ValueError("cannot subtract nmod_mats with different moduli") # pragma: no cover
+            raise ValueError("cannot subtract nmod_mats with different moduli")  # pragma: no cover
         if sv.r != tv.r or sv.c != tv.c:
             raise ValueError("incompatible shapes for matrix subtraction")
         r = s.ctx.new_nmod_mat(sv.r, sv.c)

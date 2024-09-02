@@ -441,7 +441,7 @@ cdef class fmpq(flint_scalar):
         if sys.version_info < (3, 12):
             return hash(Fraction(int(self.p), int(self.q), _normalize=False))  # pragma: no cover
         else:
-            return hash(Fraction._from_coprime_ints(int(self.p), int(self.q))) # pragma: no cover
+            return hash(Fraction._from_coprime_ints(int(self.p), int(self.q)))  # pragma: no cover
 
     def height_bits(self, bint signed=False):
         """

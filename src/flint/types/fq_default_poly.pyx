@@ -1241,7 +1241,7 @@ cdef class fq_default_poly(flint_poly):
         cdef fq_default_poly res
 
         if n < 1:
-            raise ValueError(f"{n = } must be positive")
+            raise ValueError(f"n = {n} must be positive")
 
         if self.constant_coefficient().is_zero():
             raise ZeroDivisionError("constant coefficient must be invertible")

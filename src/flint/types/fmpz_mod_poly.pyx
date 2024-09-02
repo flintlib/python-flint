@@ -1437,7 +1437,7 @@ cdef class fmpz_mod_poly(flint_poly):
         cdef bint is_one
 
         if n < 1:
-            raise ValueError(f"{n = } must be positive")
+            raise ValueError(f"n = {n} must be positive")
 
         if self.constant_coefficient() == 0:
             raise ZeroDivisionError("fmpz_mod_poly inverse_series_trunc: zero constant term")

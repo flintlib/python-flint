@@ -389,7 +389,7 @@ cdef class nmod_poly(flint_poly):
         """
         if n <= 0:
             raise ValueError(f"n = {n} must be positive")
-        
+
         if nmod_poly_get_coeff_ui(self.val, 0) == 0:
             raise ZeroDivisionError("nmod_poly inverse_series_trunc: leading coefficient is zero")
 
