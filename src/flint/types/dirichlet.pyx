@@ -169,7 +169,7 @@ cdef class dirichlet_char(object):
         else:
             return fmpz(v)
 
-    def l(self, s):
+    def l_function(self, s):
         """
         Evaluates the Dirichlet L-function of this character at the given
         complex number s.
@@ -188,6 +188,9 @@ cdef class dirichlet_char(object):
         v = acb.__new__(acb)
         acb_dirichlet_l((<acb>v).val, (<acb>s).val, self.G.val, self.val, getprec())
         return v
+
+    # For backwards compatibility we allow self.l(s) see Issue #210
+    l = l_function # no-cython-lint
 
     def hardy_z(self, s):
         """
