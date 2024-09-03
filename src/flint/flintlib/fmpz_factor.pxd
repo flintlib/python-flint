@@ -1,5 +1,5 @@
 from flint.flintlib.flint cimport fmpz_struct, ulong, mp_limb_t, slong, flint_rand_t
-from flint.flintlib.fmpz cimport fmpz_t
+from flint.flintlib.fmpz_types cimport fmpz_t
 
 cdef extern from "flint/fmpz_factor.h":
     ctypedef struct fmpz_factor_struct:

@@ -36,6 +36,9 @@ cdef extern from "flint/fmpz.h":
 
 ctypedef slong fmpz_struct
 
+cdef extern from "flint/fmpz.h":
+    int COEFF_IS_MPZ(fmpz_struct x)
+
 cdef extern from *:
     """
     /*
@@ -83,25 +86,3 @@ cdef extern from *:
     #endif
     """
     slong pylong_as_slong(PyObject *pylong, int *overflow)
-
-
-"""
-cdef extern from "flint/fmpz_mpoly_factor.h":
-
-    ctypedef struct fmpz_mpoly_factor_struct:
-        fmpz_t content
-        fmpz_mpoly_struct * poly
-        fmpz_struct * exp
-        slong length
-        slong alloc
-
-    ctypedef fmpz_mpoly_factor_struct fmpz_mpoly_factor_t[1]
-
-
-    void fmpz_mpoly_factor_init(fmpz_mpoly_factor_t fac, const fmpz_mpoly_ctx_t ctx)
-
-    void fmpz_mpoly_factor_clear(fmpz_mpoly_factor_t fac, const fmpz_mpoly_ctx_t ctx)
-
-    int fmpz_mpoly_factor(fmpz_mpoly_factor_t fac, const fmpz_mpoly_t A, int full, const fmpz_mpoly_ctx_t ctx)
-"""
-

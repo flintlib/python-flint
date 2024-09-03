@@ -4,7 +4,7 @@ from flint.utils.conversion cimport chars_from_str
 from flint.utils.conversion cimport str_from_chars, _str_trunc
 cimport libc.stdlib
 
-from flint.flintlib.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN
+from flint.flintlib.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN, COEFF_IS_MPZ
 from flint.flintlib.fmpz cimport *
 from flint.flintlib.fmpz_factor cimport *
 from flint.flintlib.arith cimport *
