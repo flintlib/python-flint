@@ -13,6 +13,8 @@ modules="\
     fmpz_lll\
     arf\
     arb\
+    arb_poly\
+    arb_mat\
     "
 
 for module in $modules; do

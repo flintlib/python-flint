@@ -1,23 +1,15 @@
-from flint.flintlib.flint cimport flint_rand_t, ulong, slong
-from flint.flintlib.arb cimport arb_ptr, arb_t, arb_srcptr
-from flint.flintlib.fmpz_poly cimport fmpz_poly_t
+from flint.flintlib.acb cimport acb_srcptr, acb_t
+from flint.flintlib.arb_types cimport arb_poly_t, arb_ptr, arb_srcptr, arb_t, mag_t
+from flint.flintlib.arf_types cimport arf_t
+from flint.flintlib.flint cimport flint_rand_t, slong, ulong
 from flint.flintlib.fmpq_poly cimport fmpq_poly_t
-from flint.flintlib.acb cimport acb_t, acb_srcptr
-from flint.flintlib.mag cimport mag_t
-from flint.flintlib.arf cimport arf_t
+from flint.flintlib.fmpz_types cimport fmpz_poly_t
+
+# unknown type FILE
+
+# .. macro:: arb_poly_get_coeff_ptr(poly, n)
 
 cdef extern from "flint/arb_poly.h":
-    ctypedef struct arb_poly_struct:
-        arb_ptr coeffs
-        long length
-        long alloc
-
-    ctypedef arb_poly_struct arb_poly_t[1]
-    #macros
-
-    arb_ptr arb_poly_get_coeff_ptr(arb_poly_t poly, long n)
-
-# from here on is parsed
     void arb_poly_init(arb_poly_t poly)
     void arb_poly_clear(arb_poly_t poly)
     void arb_poly_fit_length(arb_poly_t poly, slong len)
@@ -31,7 +23,6 @@ cdef extern from "flint/arb_poly.h":
     int arb_poly_is_x(const arb_poly_t poly)
     void arb_poly_zero(arb_poly_t poly)
     void arb_poly_one(arb_poly_t poly)
-    void arb_poly_set_arb(arb_poly_t poly, const arb_t c)
     void arb_poly_set(arb_poly_t dest, const arb_poly_t src)
     void arb_poly_set_round(arb_poly_t dest, const arb_poly_t src, slong prec)
     void arb_poly_set_trunc(arb_poly_t dest, const arb_poly_t src, slong n)
@@ -49,6 +40,7 @@ cdef extern from "flint/arb_poly.h":
     void arb_poly_set_fmpq_poly(arb_poly_t poly, const fmpq_poly_t src, slong prec)
     void arb_poly_set_si(arb_poly_t poly, slong src)
     void arb_poly_printd(const arb_poly_t poly, slong digits)
+    # void arb_poly_fprintd(FILE * file, const arb_poly_t poly, slong digits)
     void arb_poly_randtest(arb_poly_t poly, flint_rand_t state, slong len, slong prec, slong mag_bits)
     int arb_poly_contains(const arb_poly_t poly1, const arb_poly_t poly2)
     int arb_poly_contains_fmpz_poly(const arb_poly_t poly1, const fmpz_poly_t poly2)
@@ -88,32 +80,12 @@ cdef extern from "flint/arb_poly.h":
     void _arb_poly_divrem(arb_ptr Q, arb_ptr R, arb_srcptr A, slong lenA, arb_srcptr B, slong lenB, slong prec)
     int arb_poly_divrem(arb_poly_t Q, arb_poly_t R, const arb_poly_t A, const arb_poly_t B, slong prec)
     void _arb_poly_div_root(arb_ptr Q, arb_t R, arb_srcptr A, slong len, const arb_t c, slong prec)
-    void _arb_poly_taylor_shift_horner(arb_ptr g, const arb_t c, slong n, slong prec)
-    void arb_poly_taylor_shift_horner(arb_poly_t g, const arb_poly_t f, const arb_t c, slong prec)
-    void _arb_poly_taylor_shift_divconquer(arb_ptr g, const arb_t c, slong n, slong prec)
-    void arb_poly_taylor_shift_divconquer(arb_poly_t g, const arb_poly_t f, const arb_t c, slong prec)
-    void _arb_poly_taylor_shift_convolution(arb_ptr g, const arb_t c, slong n, slong prec)
-    void arb_poly_taylor_shift_convolution(arb_poly_t g, const arb_poly_t f, const arb_t c, slong prec)
     void _arb_poly_taylor_shift(arb_ptr g, const arb_t c, slong n, slong prec)
     void arb_poly_taylor_shift(arb_poly_t g, const arb_poly_t f, const arb_t c, slong prec)
-    void _arb_poly_compose_horner(arb_ptr res, arb_srcptr poly1, slong len1, arb_srcptr poly2, slong len2, slong prec)
-    void arb_poly_compose_horner(arb_poly_t res, const arb_poly_t poly1, const arb_poly_t poly2, slong prec)
-    void _arb_poly_compose_divconquer(arb_ptr res, arb_srcptr poly1, slong len1, arb_srcptr poly2, slong len2, slong prec)
-    void arb_poly_compose_divconquer(arb_poly_t res, const arb_poly_t poly1, const arb_poly_t poly2, slong prec)
     void _arb_poly_compose(arb_ptr res, arb_srcptr poly1, slong len1, arb_srcptr poly2, slong len2, slong prec)
     void arb_poly_compose(arb_poly_t res, const arb_poly_t poly1, const arb_poly_t poly2, slong prec)
-    void _arb_poly_compose_series_horner(arb_ptr res, arb_srcptr poly1, slong len1, arb_srcptr poly2, slong len2, slong n, slong prec)
-    void arb_poly_compose_series_horner(arb_poly_t res, const arb_poly_t poly1, const arb_poly_t poly2, slong n, slong prec)
-    void _arb_poly_compose_series_brent_kung(arb_ptr res, arb_srcptr poly1, slong len1, arb_srcptr poly2, slong len2, slong n, slong prec)
-    void arb_poly_compose_series_brent_kung(arb_poly_t res, const arb_poly_t poly1, const arb_poly_t poly2, slong n, slong prec)
     void _arb_poly_compose_series(arb_ptr res, arb_srcptr poly1, slong len1, arb_srcptr poly2, slong len2, slong n, slong prec)
     void arb_poly_compose_series(arb_poly_t res, const arb_poly_t poly1, const arb_poly_t poly2, slong n, slong prec)
-    void _arb_poly_revert_series_lagrange(arb_ptr h, arb_srcptr f, slong flen, slong n, slong prec)
-    void arb_poly_revert_series_lagrange(arb_poly_t h, const arb_poly_t f, slong n, slong prec)
-    void _arb_poly_revert_series_newton(arb_ptr h, arb_srcptr f, slong flen, slong n, slong prec)
-    void arb_poly_revert_series_newton(arb_poly_t h, const arb_poly_t f, slong n, slong prec)
-    void _arb_poly_revert_series_lagrange_fast(arb_ptr h, arb_srcptr f, slong flen, slong n, slong prec)
-    void arb_poly_revert_series_lagrange_fast(arb_poly_t h, const arb_poly_t f, slong n, slong prec)
     void _arb_poly_revert_series(arb_ptr h, arb_srcptr f, slong flen, slong n, slong prec)
     void arb_poly_revert_series(arb_poly_t h, const arb_poly_t f, slong n, slong prec)
     void _arb_poly_evaluate_horner(arb_t y, arb_srcptr f, slong len, const arb_t x, slong prec)
@@ -162,6 +134,8 @@ cdef extern from "flint/arb_poly.h":
     void arb_poly_interpolate_fast(arb_poly_t poly, arb_srcptr xs, arb_srcptr ys, slong n, slong prec)
     void _arb_poly_derivative(arb_ptr res, arb_srcptr poly, slong len, slong prec)
     void arb_poly_derivative(arb_poly_t res, const arb_poly_t poly, slong prec)
+    void _arb_poly_nth_derivative(arb_ptr res, arb_srcptr poly, ulong n, slong len, slong prec)
+    void arb_poly_nth_derivative(arb_poly_t res, const arb_poly_t poly, ulong n, slong prec)
     void _arb_poly_integral(arb_ptr res, arb_srcptr poly, slong len, slong prec)
     void arb_poly_integral(arb_poly_t res, const arb_poly_t poly, slong prec)
     void _arb_poly_borel_transform(arb_ptr res, arb_srcptr poly, slong len, slong prec)
@@ -175,7 +149,7 @@ cdef extern from "flint/arb_poly.h":
     void _arb_poly_binomial_transform(arb_ptr b, arb_srcptr a, slong alen, slong len, slong prec)
     void arb_poly_binomial_transform(arb_poly_t b, const arb_poly_t a, slong len, slong prec)
     void _arb_poly_graeffe_transform(arb_ptr b, arb_srcptr a, slong len, slong prec)
-    void arb_poly_graeffe_transform(arb_poly_t b, arb_poly_t a, slong prec)
+    void arb_poly_graeffe_transform(arb_poly_t b, const arb_poly_t a, slong prec)
     void _arb_poly_pow_ui_trunc_binexp(arb_ptr res, arb_srcptr f, slong flen, ulong exp, slong len, slong prec)
     void arb_poly_pow_ui_trunc_binexp(arb_poly_t res, const arb_poly_t poly, ulong exp, slong len, slong prec)
     void _arb_poly_pow_ui(arb_ptr res, arb_srcptr f, slong flen, ulong exp, slong prec)
@@ -202,10 +176,6 @@ cdef extern from "flint/arb_poly.h":
     void arb_poly_exp_series_basecase(arb_poly_t f, const arb_poly_t h, slong n, slong prec)
     void _arb_poly_exp_series(arb_ptr f, arb_srcptr h, slong hlen, slong n, slong prec)
     void arb_poly_exp_series(arb_poly_t f, const arb_poly_t h, slong n, slong prec)
-    void _arb_poly_sin_cos_series_basecase(arb_ptr s, arb_ptr c, arb_srcptr h, slong hlen, slong n, slong prec, int times_pi)
-    void arb_poly_sin_cos_series_basecase(arb_poly_t s, arb_poly_t c, const arb_poly_t h, slong n, slong prec, int times_pi)
-    void _arb_poly_sin_cos_series_tangent(arb_ptr s, arb_ptr c, arb_srcptr h, slong hlen, slong n, slong prec, int times_pi)
-    void arb_poly_sin_cos_series_tangent(arb_poly_t s, arb_poly_t c, const arb_poly_t h, slong n, slong prec, int times_pi)
     void _arb_poly_sin_cos_series(arb_ptr s, arb_ptr c, arb_srcptr h, slong hlen, slong n, slong prec)
     void arb_poly_sin_cos_series(arb_poly_t s, arb_poly_t c, const arb_poly_t h, slong n, slong prec)
     void _arb_poly_sin_series(arb_ptr s, arb_srcptr h, slong hlen, slong n, slong prec)

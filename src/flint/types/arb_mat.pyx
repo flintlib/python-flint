@@ -16,7 +16,13 @@ from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
 from flint.flintlib.fmpq_mat cimport fmpq_mat_nrows, fmpq_mat_ncols
 from flint.flintlib.arf cimport *
 from flint.flintlib.arb cimport *
-from flint.flintlib.arb_types cimport arb_radref, arb_midref
+from flint.flintlib.arb_types cimport (
+    arb_radref,
+    arb_midref,
+    arb_mat_nrows,
+    arb_mat_ncols,
+    arb_mat_entry,
+)
 from flint.flintlib.arb_mat cimport *
 cimport cython
 
