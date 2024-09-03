@@ -16,7 +16,9 @@ from flint.types.dirichlet cimport dirichlet_char
 from flint.flintlib.flint cimport FMPZ_TMP, FMPZ_REF, FMPZ_UNKNOWN
 from flint.flintlib.mag cimport *
 from flint.flintlib.arb cimport *
+from flint.flintlib.arb_types cimport arb_midref, arb_radref
 from flint.flintlib.arf cimport *
+from flint.flintlib.arf_types cimport arf_rnd_t, ARF_RND_NEAR
 from flint.flintlib.acb cimport *
 from flint.flintlib.acb_modular cimport *
 from flint.flintlib.acb_hypgeom cimport *

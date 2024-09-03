@@ -1,10 +1,8 @@
-from flint.flintlib.arb cimport arb_ptr, arb_struct
+from flint.flintlib.arb_types cimport arb_ptr, arb_struct, mag_t, mag_srcptr, arb_t, arb_srcptr
 from flint.flintlib.fmpz_mat cimport fmpz_mat_t
 from flint.flintlib.fmpq_mat cimport fmpq_mat_t
-from flint.flintlib.mag cimport mag_t, mag_srcptr
 from flint.flintlib.flint cimport ulong, slong, flint_rand_t
 from flint.flintlib.fmpz cimport fmpz_t
-from flint.flintlib.arb cimport arb_t, arb_srcptr
 from flint.flintlib.arb_poly cimport arb_poly_t
 
 cdef extern from "flint/arb_mat.h":

@@ -11,6 +11,8 @@ modules="\
     fmpz_poly_factor\
     fmpz_mat\
     fmpz_lll\
+    arf\
+    arb\
     "
 
 for module in $modules; do

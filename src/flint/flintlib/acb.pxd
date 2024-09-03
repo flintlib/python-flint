@@ -1,9 +1,8 @@
 from flint.flintlib.flint cimport ulong, slong, flint_rand_t
-from flint.flintlib.arb cimport arb_struct, arb_t, arb_ptr
 from flint.flintlib.fmpq cimport fmpq_t
 from flint.flintlib.fmpz cimport fmpz_t, fmpz_struct
-from flint.flintlib.arf cimport arf_t, arf_srcptr
-from flint.flintlib.mag cimport mag_t, mag_srcptr
+from flint.flintlib.arf_types cimport arf_t, arf_srcptr
+from flint.flintlib.arb_types cimport mag_t, mag_srcptr, arb_struct, arb_t, arb_ptr
 
 cdef extern from "flint/acb.h":
     ctypedef struct acb_struct:

@@ -1,14 +1,9 @@
 from flint.flintlib.flint cimport ulong, mp_limb_t, slong, flint_rand_t
 from flint.flintlib.fmpz cimport fmpz_struct, fmpz_t
 from flint.flintlib.fmpq cimport fmpq_struct, fmpq_t
+from flint.flintlib.arb_types cimport mag_t, mag_ptr
 
 cdef extern from "flint/mag.h":
-    ctypedef struct mag_struct:
-        fmpz_struct exp
-        mp_limb_t man
-    ctypedef mag_struct mag_t[1]
-    ctypedef mag_struct * mag_ptr
-    ctypedef const mag_struct * mag_srcptr
 
 # from here on is parsed
     void mag_init(mag_t x)

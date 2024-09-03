@@ -1,4 +1,4 @@
-from flint.flintlib.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, slong, ulong
+from flint.flintlib.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, nn_ptr, nn_srcptr, slong, ulong
 from flint.flintlib.fmpq cimport fmpq_struct, fmpq_t
 from flint.flintlib.fmpz_types cimport fmpz_poly_factor_t, fmpz_poly_t, fmpz_preinvn_t, fmpz_t
 from flint.flintlib.nmod_poly cimport nmod_poly_t
@@ -7,8 +7,6 @@ from flint.flintlib.nmod_poly_factor cimport nmod_poly_factor_t
 # unknown type FILE
 # unknown type fmpz_poly_mul_precache_t
 # unknown type fmpz_poly_powers_precomp_t
-# unknown type nn_ptr
-# unknown type nn_srcptr
 
 
 cdef extern from "flint/fmpz_poly.h":
@@ -93,9 +91,9 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_scalar_smod_fmpz(fmpz_poly_t poly1, const fmpz_poly_t poly2, const fmpz_t p)
     slong _fmpz_poly_remove_content_2exp(fmpz_struct * pol, slong len)
     void _fmpz_poly_scale_2exp(fmpz_struct * pol, slong len, slong k)
-    # void _fmpz_poly_bit_pack(nn_ptr arr, const fmpz_struct * poly, slong len, flint_bitcnt_t bit_size, int negate)
-    # int _fmpz_poly_bit_unpack(fmpz_struct * poly, slong len, nn_srcptr arr, flint_bitcnt_t bit_size, int negate)
-    # void _fmpz_poly_bit_unpack_unsigned(fmpz_struct * poly, slong len, nn_srcptr arr, flint_bitcnt_t bit_size)
+    void _fmpz_poly_bit_pack(nn_ptr arr, const fmpz_struct * poly, slong len, flint_bitcnt_t bit_size, int negate)
+    int _fmpz_poly_bit_unpack(fmpz_struct * poly, slong len, nn_srcptr arr, flint_bitcnt_t bit_size, int negate)
+    void _fmpz_poly_bit_unpack_unsigned(fmpz_struct * poly, slong len, nn_srcptr arr, flint_bitcnt_t bit_size)
     void fmpz_poly_bit_pack(fmpz_t f, const fmpz_poly_t poly, flint_bitcnt_t bit_size)
     void fmpz_poly_bit_unpack(fmpz_poly_t poly, const fmpz_t f, flint_bitcnt_t bit_size)
     void fmpz_poly_bit_unpack_unsigned(fmpz_poly_t poly, const fmpz_t f, flint_bitcnt_t bit_size)
@@ -363,8 +361,8 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_get_nmod_poly(nmod_poly_t Amod, const fmpz_poly_t A)
     void fmpz_poly_set_nmod_poly(fmpz_poly_t A, const nmod_poly_t Amod)
     void fmpz_poly_set_nmod_poly_unsigned(fmpz_poly_t A, const nmod_poly_t Amod)
-    # void _fmpz_poly_CRT_ui_precomp(fmpz_struct * res, const fmpz_struct * poly1, slong len1, const fmpz_t m1, nn_srcptr poly2, slong len2, ulong m2, ulong m2inv, fmpz_t m1m2, ulong c, int sign)
-    # void _fmpz_poly_CRT_ui(fmpz_struct * res, const fmpz_struct * poly1, slong len1, const fmpz_t m1, nn_srcptr poly2, slong len2, ulong m2, ulong m2inv, int sign)
+    void _fmpz_poly_CRT_ui_precomp(fmpz_struct * res, const fmpz_struct * poly1, slong len1, const fmpz_t m1, nn_srcptr poly2, slong len2, ulong m2, ulong m2inv, fmpz_t m1m2, ulong c, int sign)
+    void _fmpz_poly_CRT_ui(fmpz_struct * res, const fmpz_struct * poly1, slong len1, const fmpz_t m1, nn_srcptr poly2, slong len2, ulong m2, ulong m2inv, int sign)
     void fmpz_poly_CRT_ui(fmpz_poly_t res, const fmpz_poly_t poly1, const fmpz_t m, const nmod_poly_t poly2, int sign)
     void _fmpz_poly_product_roots_fmpz_vec(fmpz_struct * poly, const fmpz_struct * xs, slong n)
     void fmpz_poly_product_roots_fmpz_vec(fmpz_poly_t poly, const fmpz_struct * xs, slong n)
@@ -376,7 +374,7 @@ cdef extern from "flint/fmpz_poly.h":
     slong fmpz_poly_num_real_roots_sturm(const fmpz_poly_t pol)
     slong _fmpz_poly_num_real_roots(const fmpz_struct * pol, slong len)
     slong fmpz_poly_num_real_roots(const fmpz_poly_t pol)
-    # void _fmpz_poly_cyclotomic(fmpz_struct * a, ulong n, nn_ptr factors, slong num_factors, ulong phi)
+    void _fmpz_poly_cyclotomic(fmpz_struct * a, ulong n, nn_ptr factors, slong num_factors, ulong phi)
     void fmpz_poly_cyclotomic(fmpz_poly_t poly, ulong n)
     ulong _fmpz_poly_is_cyclotomic(const fmpz_struct * poly, slong len)
     ulong fmpz_poly_is_cyclotomic(const fmpz_poly_t poly)

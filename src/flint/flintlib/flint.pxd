@@ -33,6 +33,8 @@ cdef extern from "gmp.h":
 cdef extern from "flint/fmpz.h":
     ctypedef long slong
     ctypedef ulong flint_bitcnt_t
+    ctypedef ulong * nn_ptr
+    ctypedef const ulong * nn_srcptr
 
 ctypedef slong fmpz_struct
 

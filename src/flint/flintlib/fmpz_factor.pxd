@@ -1,9 +1,8 @@
-from flint.flintlib.flint cimport flint_rand_t, slong, ulong
+from flint.flintlib.flint cimport flint_rand_t, nn_ptr, slong, ulong
 from flint.flintlib.fmpz_types cimport fmpz_factor_t, fmpz_t
 
 # unknown type FILE
 # unknown type ecm_t
-# unknown type nn_ptr
 
 
 cdef extern from "flint/fmpz_factor.h":

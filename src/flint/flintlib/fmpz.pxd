@@ -1,6 +1,5 @@
-from flint.flintlib.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, nmod_t, slong, ulong
-from flint.flintlib.fmpz_factor cimport fmpz_factor_t
-from flint.flintlib.fmpz_types cimport fmpz_preinvn_t, fmpz_t
+from flint.flintlib.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, nmod_t, nn_ptr, nn_srcptr, slong, ulong
+from flint.flintlib.fmpz_types cimport fmpz_factor_t, fmpz_preinvn_t, fmpz_t
 
 # unknown type FILE
 # unknown type fmpz_comb_t
@@ -11,8 +10,6 @@ from flint.flintlib.fmpz_types cimport fmpz_preinvn_t, fmpz_t
 # unknown type mpfr_t
 # unknown type mpz_ptr
 # unknown type mpz_t
-# unknown type nn_ptr
-# unknown type nn_srcptr
 # unknown type size_t
 
 # .. macro:: COEFF_MAX
@@ -57,7 +54,7 @@ cdef extern from "flint/fmpz.h":
     # void fmpz_get_mpfr(mpfr_t x, const fmpz_t f, mpfr_rnd_t rnd)
     double fmpz_get_d_2exp(slong * exp, const fmpz_t f)
     # void fmpz_get_mpz(mpz_t x, const fmpz_t f)
-    # int fmpz_get_mpn(nn_ptr * n, fmpz_t n_in)
+    int fmpz_get_mpn(nn_ptr * n, fmpz_t n_in)
     char * fmpz_get_str(char * str, int b, const fmpz_t f)
     void fmpz_set_si(fmpz_t f, slong val)
     void fmpz_set_ui(fmpz_t f, ulong val)
@@ -72,7 +69,7 @@ cdef extern from "flint/fmpz.h":
     void fmpz_set_signed_ui_array(fmpz_t out, const ulong * in_, slong n)
     void fmpz_get_ui_array(ulong * out, slong n, const fmpz_t in_)
     void fmpz_get_signed_ui_array(ulong * out, slong n, const fmpz_t in_)
-    # void fmpz_set_mpn_large(fmpz_t z, nn_srcptr src, slong n, int negative)
+    void fmpz_set_mpn_large(fmpz_t z, nn_srcptr src, slong n, int negative)
     void fmpz_get_signed_uiui(ulong * hi, ulong * lo, const fmpz_t in_)
     # void fmpz_set_mpz(fmpz_t f, const mpz_t x)
     int fmpz_set_str(fmpz_t f, const char * str, int b)
@@ -240,10 +237,10 @@ cdef extern from "flint/fmpz.h":
     int fmpz_is_probabprime_BPSW(const fmpz_t n)
     int fmpz_is_probabprime(const fmpz_t p)
     int fmpz_is_prime_pseudosquare(const fmpz_t n)
-    # int fmpz_is_prime_pocklington(fmpz_t F, fmpz_t R, const fmpz_t n, nn_ptr pm1, slong num_pm1)
-    # void _fmpz_nm1_trial_factors(const fmpz_t n, nn_ptr pm1, slong * num_pm1, ulong limit)
-    # int fmpz_is_prime_morrison(fmpz_t F, fmpz_t R, const fmpz_t n, nn_ptr pp1, slong num_pp1)
-    # void _fmpz_np1_trial_factors(const fmpz_t n, nn_ptr pp1, slong * num_pp1, ulong limit)
+    int fmpz_is_prime_pocklington(fmpz_t F, fmpz_t R, const fmpz_t n, nn_ptr pm1, slong num_pm1)
+    void _fmpz_nm1_trial_factors(const fmpz_t n, nn_ptr pm1, slong * num_pm1, ulong limit)
+    int fmpz_is_prime_morrison(fmpz_t F, fmpz_t R, const fmpz_t n, nn_ptr pp1, slong num_pp1)
+    void _fmpz_np1_trial_factors(const fmpz_t n, nn_ptr pp1, slong * num_pp1, ulong limit)
     int fmpz_is_prime(const fmpz_t n)
     void fmpz_lucas_chain(fmpz_t Vm, fmpz_t Vm1, const fmpz_t A, const fmpz_t m, const fmpz_t n)
     void fmpz_lucas_chain_full(fmpz_t Vm, fmpz_t Vm1, const fmpz_t A, const fmpz_t B, const fmpz_t m, const fmpz_t n)

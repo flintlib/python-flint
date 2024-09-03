@@ -15,7 +15,16 @@ from flint.flintlib.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
 from flint.flintlib.mag cimport *
 from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear
 from flint.flintlib.arf cimport *
+from flint.flintlib.arf_types cimport ARF_RND_NEAR, ARF_RND_DOWN
 from flint.flintlib.arb cimport *
+from flint.flintlib.arb_types cimport (
+    arb_struct,
+    arb_midref,
+    arb_radref,
+    ARB_STR_NO_RADIUS,
+    ARB_STR_MORE,
+    ARB_STR_CONDENSE,
+)
 from flint.flintlib.arb_hypgeom cimport *
 from flint.flintlib.acb_dirichlet cimport *
 
