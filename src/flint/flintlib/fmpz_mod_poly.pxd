@@ -1,7 +1,7 @@
 from flint.flintlib.flint cimport ulong, slong, flint_rand_t
 from flint.flintlib.fmpz cimport fmpz_t, fmpz_struct
 from flint.flintlib.fmpz_mat cimport fmpz_mat_t, fmpz_mat_struct
-from flint.flintlib.fmpz_poly cimport fmpz_poly_t, fmpz_poly_struct
+from flint.flintlib.fmpz_types cimport fmpz_poly_t, fmpz_poly_struct
 from flint.flintlib.fmpz_mod cimport fmpz_mod_ctx_t, fmpz_mod_ctx_struct
 from flint.flintlib.nmod_poly cimport nmod_poly_t
 

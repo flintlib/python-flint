@@ -1,8 +1,12 @@
 from flint.flintlib.flint cimport flint_bitcnt_t, fmpz_struct, slong, flint_rand_t, ulong
-from flint.flintlib.fmpz cimport fmpz_t, fmpz_struct
+from flint.flintlib.fmpz_types cimport (
+    fmpz_t,
+    fmpz_struct,
+    fmpz_poly_t,
+    fmpz_poly_struct,
+)
 from flint.flintlib.fmpz_mod cimport fmpz_mod_ctx_t
 from flint.flintlib.fmpz_mod_mat cimport fmpz_mod_mat_t
-from flint.flintlib.fmpz_poly cimport fmpz_poly_t, fmpz_poly_struct
 from flint.flintlib.fmpz_mod_poly cimport fmpz_mod_poly_t, fmpz_mod_poly_struct
 
 cdef extern from "flint/fq.h":

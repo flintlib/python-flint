@@ -4,7 +4,10 @@ FLINT_DOC_DIR=$1
 
 set -e
 
-modules="fmpz"
+modules="\
+    fmpz\
+    fmpz_poly\
+    "
 
 for module in $modules; do
     echo "Processing $module"
