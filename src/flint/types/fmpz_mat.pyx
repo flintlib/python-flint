@@ -10,7 +10,11 @@ cimport cython
 
 from flint.flintlib.fmpz cimport fmpz_set, fmpz_init, fmpz_clear
 from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_is_pm1
-from flint.flintlib.fmpz_types cimport fmpz_mat_struct
+from flint.flintlib.fmpz_types cimport (
+    fmpz_mat_struct,
+    rep_type,
+    gram_type,
+)
 from flint.flintlib.fmpz_poly cimport fmpz_poly_init
 from flint.flintlib.fmpz_mat cimport *
 from flint.flintlib.fmpz_lll cimport *
@@ -633,18 +637,18 @@ cdef class fmpz_mat(flint_mat):
         cdef fmpz_mat u, v
         cdef fmpz_lll_t ctx
         cdef long i
-        cdef int rt
-        cdef int gt
+        cdef rep_type rt
+        cdef gram_type gt
         if rep == "zbasis":
-            rt = 1
+            rt = rep_type.Z_BASIS
         elif rep == "gram":
-            rt = 0
+            rt = rep_type.GRAM
         else:
             raise ValueError("rep must be 'zbasis' or 'gram'")
         if gram == "approx":
-            gt = 0
+            gt = gram_type.APPROX
         elif gram == "exact":
-            gt = 1
+            gt = gram_type.EXACT
         else:
             raise ValueError("gram must be 'approx' or 'exact'")
         fmpz_lll_context_init(ctx, delta, eta, rt, gt)

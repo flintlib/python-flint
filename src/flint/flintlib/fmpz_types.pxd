@@ -55,12 +55,20 @@ cdef extern from "flint/fmpz_factor.h":
 
 
 cdef extern from "flint/fmpz_lll.h":
+
+    cdef enum _rep_type:
+        GRAM
+        Z_BASIS
+    ctypedef _rep_type rep_type
+
+    cdef enum _gram_type:
+        APPROX
+        EXACT
+    ctypedef _gram_type gram_type
+
     ctypedef struct fmpz_lll_struct:
         double delta
         double eta
-        int rt
-        int gt
-
+        rep_type rt
+        gram_type gt
     ctypedef fmpz_lll_struct fmpz_lll_t[1]
-    ctypedef int gram_type
-    ctypedef int rep_type
