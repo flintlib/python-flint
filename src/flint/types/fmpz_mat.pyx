@@ -10,6 +10,7 @@ cimport cython
 
 from flint.flintlib.fmpz cimport fmpz_set, fmpz_init, fmpz_clear
 from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_is_pm1
+from flint.flintlib.fmpz_types cimport fmpz_mat_struct
 from flint.flintlib.fmpz_poly cimport fmpz_poly_init
 from flint.flintlib.fmpz_mat cimport *
 from flint.flintlib.fmpz_lll cimport *

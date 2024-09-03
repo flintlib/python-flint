@@ -6,6 +6,7 @@ cimport libc.stdlib
 
 from flint.flintlib.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN, COEFF_IS_MPZ
 from flint.flintlib.fmpz cimport *
+from flint.flintlib.fmpz_types cimport fmpz_factor_expand
 from flint.flintlib.fmpz_factor cimport *
 from flint.flintlib.arith cimport *
 from flint.flintlib.partitions cimport *

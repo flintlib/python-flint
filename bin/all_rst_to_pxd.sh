@@ -6,7 +6,11 @@ set -e
 
 modules="\
     fmpz\
+    fmpz_factor\
     fmpz_poly\
+    fmpz_poly_factor\
+    fmpz_mat\
+    fmpz_lll\
     "
 
 for module in $modules; do
