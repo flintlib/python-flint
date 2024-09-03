@@ -15,6 +15,9 @@ modules="\
     arb\
     arb_poly\
     arb_mat\
+    acb\
+    acb_poly\
+    acb_mat\
     "
 
 for module in $modules; do

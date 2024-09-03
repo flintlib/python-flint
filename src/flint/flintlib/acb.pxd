@@ -1,21 +1,16 @@
-from flint.flintlib.flint cimport ulong, slong, flint_rand_t
+from flint.flintlib.acb_types cimport acb_ptr, acb_srcptr, acb_t
+from flint.flintlib.arb_types cimport arb_ptr, arb_srcptr, arb_t, mag_srcptr, mag_t
+from flint.flintlib.arf_types cimport arf_srcptr, arf_t
+from flint.flintlib.flint cimport flint_rand_t, fmpz_struct, slong, ulong
 from flint.flintlib.fmpq cimport fmpq_t
-from flint.flintlib.fmpz cimport fmpz_t, fmpz_struct
-from flint.flintlib.arf_types cimport arf_t, arf_srcptr
-from flint.flintlib.arb_types cimport mag_t, mag_srcptr, arb_struct, arb_t, arb_ptr
+from flint.flintlib.fmpz_types cimport fmpz_t
+
+# unknown type FILE
+
+# .. macro:: acb_realref(x)
+# .. macro:: acb_imagref(x)
 
 cdef extern from "flint/acb.h":
-    ctypedef struct acb_struct:
-        arb_struct real
-        arb_struct imag
-
-    ctypedef acb_struct * acb_ptr
-    ctypedef const acb_struct * acb_srcptr
-    ctypedef acb_struct acb_t[1]
-
-    arb_ptr acb_realref(const acb_t x)
-    arb_ptr acb_imagref(const acb_t x)
-
     void acb_init(acb_t x)
     void acb_clear(acb_t x)
     acb_ptr _acb_vec_init(slong n)
@@ -46,12 +41,16 @@ cdef extern from "flint/acb.h":
     void acb_add_error_arb(acb_t x, const arb_t err)
     void acb_get_mid(acb_t m, const acb_t x)
     void acb_print(const acb_t x)
+    # void acb_fprint(FILE * file, const acb_t x)
     void acb_printd(const acb_t x, slong digits)
+    # void acb_fprintd(FILE * file, const acb_t x, slong digits)
     void acb_printn(const acb_t x, slong digits, ulong flags)
+    # void acb_fprintn(FILE * file, const acb_t x, slong digits, ulong flags)
     void acb_randtest(acb_t z, flint_rand_t state, slong prec, slong mag_bits)
     void acb_randtest_special(acb_t z, flint_rand_t state, slong prec, slong mag_bits)
     void acb_randtest_precise(acb_t z, flint_rand_t state, slong prec, slong mag_bits)
     void acb_randtest_param(acb_t z, flint_rand_t state, slong prec, slong mag_bits)
+    void acb_urandom(acb_t z, flint_rand_t state, slong prec)
     int acb_is_zero(const acb_t z)
     int acb_is_one(const acb_t z)
     int acb_is_finite(const acb_t z)
@@ -104,6 +103,7 @@ cdef extern from "flint/acb.h":
     void acb_sub(acb_t z, const acb_t x, const acb_t y, slong prec)
     void acb_mul_onei(acb_t z, const acb_t x)
     void acb_div_onei(acb_t z, const acb_t x)
+    void acb_mul_i_pow_si(acb_t z, const acb_t x, slong k)
     void acb_mul_ui(acb_t z, const acb_t x, ulong y, slong prec)
     void acb_mul_si(acb_t z, const acb_t x, slong y, slong prec)
     void acb_mul_fmpz(acb_t z, const acb_t x, const fmpz_t y, slong prec)
@@ -143,6 +143,7 @@ cdef extern from "flint/acb.h":
     void acb_sqrt_analytic(acb_t r, const acb_t z, int analytic, slong prec)
     void acb_rsqrt(acb_t r, const acb_t z, slong prec)
     void acb_rsqrt_analytic(acb_t r, const acb_t z, int analytic, slong prec)
+    void acb_sqrts(acb_t y1, acb_t y2, const acb_t x, slong prec)
     void acb_quadratic_roots_fmpz(acb_t r1, acb_t r2, const fmpz_t a, const fmpz_t b, const fmpz_t c, slong prec)
     void acb_root_ui(acb_t r, const acb_t z, ulong k, slong prec)
     void acb_pow_fmpz(acb_t y, const acb_t b, const fmpz_t e, slong prec)
@@ -226,9 +227,16 @@ cdef extern from "flint/acb.h":
     void _acb_vec_zero(acb_ptr A, slong n)
     int _acb_vec_is_zero(acb_srcptr vec, slong len)
     int _acb_vec_is_real(acb_srcptr v, slong len)
+    int _acb_vec_is_finite(acb_srcptr vec, slong len)
+    int _acb_vec_equal(acb_srcptr vec1, acb_srcptr vec2, slong len)
+    int _acb_vec_overlaps(acb_srcptr vec1, acb_srcptr vec2, slong len)
+    int _acb_vec_contains(acb_srcptr vec1, acb_srcptr vec2, slong len)
     void _acb_vec_set(acb_ptr res, acb_srcptr vec, slong len)
     void _acb_vec_set_round(acb_ptr res, acb_srcptr vec, slong len, slong prec)
     void _acb_vec_swap(acb_ptr vec1, acb_ptr vec2, slong len)
+    void _acb_vec_get_real(arb_ptr re, acb_srcptr vec, slong len)
+    void _acb_vec_get_imag(arb_ptr im, acb_srcptr vec, slong len)
+    void _acb_vec_set_real_imag(acb_ptr vec, arb_srcptr re, arb_srcptr im, slong len)
     void _acb_vec_neg(acb_ptr res, acb_srcptr vec, slong len)
     void _acb_vec_add(acb_ptr res, acb_srcptr vec1, acb_srcptr vec2, slong len, slong prec)
     void _acb_vec_sub(acb_ptr res, acb_srcptr vec1, acb_srcptr vec2, slong len, slong prec)
@@ -244,6 +252,7 @@ cdef extern from "flint/acb.h":
     void _acb_vec_scalar_div_arb(acb_ptr res, acb_srcptr vec, slong len, const arb_t c, slong prec)
     void _acb_vec_scalar_mul_fmpz(acb_ptr res, acb_srcptr vec, slong len, const fmpz_t c, slong prec)
     void _acb_vec_scalar_div_fmpz(acb_ptr res, acb_srcptr vec, slong len, const fmpz_t c, slong prec)
+    void _acb_vec_sqr(acb_ptr res, acb_srcptr vec, slong len, slong prec)
     slong _acb_vec_bits(acb_srcptr vec, slong len)
     void _acb_vec_set_powers(acb_ptr xs, const acb_t x, slong len, slong prec)
     void _acb_vec_unit_roots(acb_ptr z, slong order, slong len, slong prec)
@@ -253,3 +262,5 @@ cdef extern from "flint/acb.h":
     void _acb_vec_trim(acb_ptr res, acb_srcptr vec, slong len)
     int _acb_vec_get_unique_fmpz_vec(fmpz_struct * res,  acb_srcptr vec, slong len)
     void _acb_vec_sort_pretty(acb_ptr vec, slong len)
+    void _acb_vec_printd(acb_srcptr vec, slong len, slong digits)
+    void _acb_vec_printn(acb_srcptr vec, slong len, slong digits, ulong flags)

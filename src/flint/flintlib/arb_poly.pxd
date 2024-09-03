@@ -1,4 +1,4 @@
-from flint.flintlib.acb cimport acb_srcptr, acb_t
+from flint.flintlib.acb_types cimport acb_srcptr, acb_t
 from flint.flintlib.arb_types cimport arb_poly_t, arb_ptr, arb_srcptr, arb_t, mag_t
 from flint.flintlib.arf_types cimport arf_t
 from flint.flintlib.flint cimport flint_rand_t, slong, ulong

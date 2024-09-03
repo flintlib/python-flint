@@ -17,6 +17,7 @@ from flint.flintlib.arf cimport *
 from flint.flintlib.arb cimport *
 from flint.flintlib.arb_types cimport arb_midref
 from flint.flintlib.acb cimport *
+from flint.flintlib.acb_types cimport acb_struct
 from flint.flintlib.acb_poly cimport *
 cimport libc.stdlib
 

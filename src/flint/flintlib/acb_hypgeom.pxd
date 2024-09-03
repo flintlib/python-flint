@@ -1,7 +1,12 @@
-from flint.flintlib.acb cimport acb_t, acb_srcptr, acb_ptr
-from flint.flintlib.acb_poly cimport acb_poly_t, acb_poly_struct
-from flint.flintlib.mag cimport mag_t
 from flint.flintlib.flint cimport ulong, slong
+from flint.flintlib.acb_types cimport (
+    acb_t,
+    acb_srcptr,
+    acb_ptr,
+    acb_poly_t,
+    acb_poly_struct,
+)
+from flint.flintlib.arb_types cimport mag_t
 
 cdef extern from "flint/acb_hypgeom.h":
 # from here on is parsed

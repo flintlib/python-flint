@@ -27,6 +27,14 @@ from flint.flintlib.arb_mat cimport *
 from flint.flintlib.arf cimport *
 from flint.flintlib.acb cimport *
 from flint.flintlib.acb_mat cimport *
+from flint.flintlib.acb_types cimport (
+    acb_realref,
+    acb_imagref,
+    acb_mat_struct,
+    acb_mat_entry,
+    acb_mat_nrows,
+    acb_mat_ncols,
+)
 
 cimport cython
 

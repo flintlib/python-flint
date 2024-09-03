@@ -1,5 +1,10 @@
-from flint.flintlib.acb cimport acb_t, acb_srcptr, acb_ptr
-from flint.flintlib.acb_poly cimport acb_poly_struct, acb_poly_t
+from flint.flintlib.acb_types cimport (
+    acb_t,
+    acb_srcptr,
+    acb_ptr,
+    acb_poly_struct,
+    acb_poly_t,
+)
 from flint.flintlib.arb cimport arb_t, arb_ptr, arb_srcptr
 from flint.flintlib.flint cimport ulong, slong, flint_rand_t
 from flint.flintlib.fmpz_types cimport fmpz_mat_t, fmpz_mat_struct

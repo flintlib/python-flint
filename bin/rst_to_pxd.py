@@ -44,6 +44,7 @@ rename_types = [
     (re.compile(r"\bfmpz\b"),"fmpz_struct"),
     (re.compile(r"\bfmpq\b"), "fmpq_struct"),
     (re.compile(r"\bin\b"), "in_"),
+    (re.compile(r"\blambda\b"), "lambda_"),
 ]
 # comment out functions which use these types
 comment_types = re.compile(r"(\bFILE\b)|(\bmpz_t\b)|(\bmpq_t\b)")
