@@ -1,22 +1,68 @@
 cimport cython
 
-from cpython.list cimport PyList_GET_SIZE
 from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
-from flint.types.fmpz cimport fmpz, any_as_fmpz
-from flint.types.fmpz_poly cimport any_as_fmpz_poly
-from flint.types.fmpz_poly cimport fmpz_poly
-from flint.types.nmod cimport nmod, nmod_ctx
 
-from flint.flintlib.nmod_vec cimport *
-from flint.flintlib.nmod_poly cimport *
-from flint.flintlib.nmod_poly_factor cimport *
+from flint.flintlib.flint cimport mp_limb_t, ulong, slong
 from flint.flintlib.fmpz_poly cimport fmpz_poly_get_nmod_poly
+
+from flint.types.fmpz cimport fmpz, any_as_fmpz
+from flint.types.fmpz_poly cimport fmpz_poly
+from flint.types.nmod cimport nmod
+
+from flint.flintlib.nmod_poly cimport (
+    nmod_poly_init,
+    nmod_poly_clear,
+    nmod_poly_set,
+    nmod_poly_fit_length,
+    nmod_poly_zero,
+    nmod_poly_set_coeff_ui,
+    nmod_poly_get_coeff_ui,
+    nmod_poly_length,
+    nmod_poly_degree,
+    nmod_poly_modulus,
+    nmod_poly_equal,
+    nmod_poly_is_zero,
+    nmod_poly_is_one,
+    nmod_poly_is_gen,
+    nmod_poly_reverse,
+    nmod_poly_evaluate_nmod,
+    nmod_poly_derivative,
+    nmod_poly_integral,
+    nmod_poly_neg,
+    nmod_poly_add,
+    nmod_poly_sub,
+    nmod_poly_mul,
+    nmod_poly_div,
+    nmod_poly_divrem,
+    nmod_poly_pow,
+    nmod_poly_compose,
+    nmod_poly_compose_mod,
+    nmod_poly_powmod_ui_binexp,
+    nmod_poly_powmod_fmpz_binexp_preinv,
+    nmod_poly_powmod_x_fmpz_preinv,
+    nmod_poly_inv_series,
+    nmod_poly_sqrt,
+    nmod_poly_xgcd,
+    nmod_poly_gcd,
+    nmod_poly_deflation,
+    nmod_poly_deflate,
+)
+
+from flint.flintlib.nmod_poly_factor cimport (
+    nmod_poly_factor_t,
+    nmod_poly_factor_init,
+    nmod_poly_factor_clear,
+    nmod_poly_factor,
+    nmod_poly_factor_with_berlekamp,
+    nmod_poly_factor_with_cantor_zassenhaus,
+    nmod_poly_factor_squarefree,
+)
 
 from flint.utils.flint_exceptions import DomainError
 
 
-cdef dict _nmod_poly_ctx_cache = {}
+_nmod_poly_ctx_cache = {}
 
 
 @cython.no_gc
@@ -36,77 +82,6 @@ cdef class nmod_poly_ctx:
     def new(mod):
         """Get an ``nmod_poly`` context with modulus ``mod``."""
         return nmod_poly_ctx.any_as_nmod_poly_ctx(mod)
-
-    @staticmethod
-    cdef nmod_poly_ctx any_as_nmod_poly_ctx(obj):
-        """Convert an ``nmod_poly_ctx`` or ``int`` to an ``nmod_poly_ctx``."""
-        if typecheck(obj, nmod_poly_ctx):
-            return obj
-        if typecheck(obj, int):
-            return nmod_poly_ctx._get_ctx(obj)
-        raise TypeError("Invalid context/modulus for nmod_poly: %s" % obj)
-
-    @staticmethod
-    cdef nmod_poly_ctx _get_ctx(int mod):
-        """Retrieve an nmod_poly context from the cache or create a new one."""
-        ctx = _nmod_poly_ctx_cache.get(mod)
-        if ctx is None:
-            ctx = _nmod_poly_ctx_cache.setdefault(mod, nmod_poly_ctx._new_ctx(mod))
-        return ctx
-
-    @staticmethod
-    cdef nmod_poly_ctx _new_ctx(ulong mod):
-        """Create a new nmod_poly context."""
-        cdef nmod_ctx scalar_ctx
-        cdef nmod_poly_ctx ctx
-        scalar_ctx = nmod_ctx.new(mod)
-
-        ctx = nmod_poly_ctx.__new__(nmod_poly_ctx)
-        ctx.mod = scalar_ctx.mod
-        ctx._is_prime = scalar_ctx._is_prime
-        ctx.scalar_ctx = scalar_ctx
-
-        return ctx
-
-    cdef int any_as_nmod(self, mp_limb_t * val, obj) except -1:
-        return self.scalar_ctx.any_as_nmod(val, obj)
-
-    cdef any_as_nmod_poly(self, obj):
-        cdef nmod_poly r
-        cdef mp_limb_t v
-        # XXX: should check that modulus is the same here, and not all over the place
-        if typecheck(obj, nmod_poly):
-            return obj
-        if self.any_as_nmod(&v, obj):
-            r = self.new_nmod_poly()
-            nmod_poly_set_coeff_ui(r.val, 0, v)
-            return r
-        x = any_as_fmpz_poly(obj)
-        if x is not NotImplemented:
-            r = self.new_nmod_poly()
-            fmpz_poly_get_nmod_poly(r.val, (<fmpz_poly>x).val)
-            return r
-        return NotImplemented
-
-    cdef nmod new_nmod(self):
-        return self.scalar_ctx.new_nmod()
-
-    cdef nmod_poly new_nmod_poly(self):
-        cdef nmod_poly p = nmod_poly.__new__(nmod_poly)
-        nmod_poly_init_preinv(p.val, self.mod.n, self.mod.ninv)
-        p.ctx = self
-        return p
-
-    cdef nmod_poly_set_list(self, nmod_poly_t poly, list val):
-        cdef long i, n
-        cdef mp_limb_t v
-        n = PyList_GET_SIZE(val)
-        nmod_poly_fit_length(poly, n)
-        for i from 0 <= i < n:
-            if self.any_as_nmod(&v, val[i]):
-                nmod_poly_set_coeff_ui(poly, i, v)
-            else:
-                raise TypeError("unsupported coefficient in list")
 
     def modulus(self):
         """Get the modulus of the context.
