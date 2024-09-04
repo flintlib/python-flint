@@ -52,7 +52,7 @@ modules=(
     "fmpz_poly_factor"
     "fmpz_poly"
     "fmpz"
-    #"fmpz_vec"
+    "fmpz_vec"
     #"fq_default_mat"
     #"fq_default_poly_factor"
     #"fq_default_poly"
@@ -78,8 +78,8 @@ modules=(
     #"nmod_poly"
     #"nmod"
     #"nmod_vec"
-    #"partitions"
-    #"ulong_extras"
+    "partitions"
+    "ulong_extras"
 )
 
 for module in ${modules[@]}; do

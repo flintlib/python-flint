@@ -1,10 +1,11 @@
-from flint.flintlib.types.flint cimport ulong, slong
-from flint.flintlib.fmpz cimport fmpz_t
-from flint.flintlib.arf cimport arf_t
-from flint.flintlib.arb cimport arb_t
+from flint.flintlib.types.arb cimport arb_t
+from flint.flintlib.types.arf cimport arf_t
+from flint.flintlib.types.flint cimport slong, ulong
+from flint.flintlib.types.fmpz cimport fmpz_t
+
+
 
 cdef extern from "flint/partitions.h":
-# from here on is parsed
     void partitions_rademacher_bound(arf_t b, const fmpz_t n, ulong N)
     void partitions_hrr_sum_arb(arb_t x, const fmpz_t n, slong N0, slong N, int use_doubles)
     void partitions_fmpz_fmpz(fmpz_t p, const fmpz_t n, int use_doubles)

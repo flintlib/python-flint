@@ -1,6 +1,8 @@
-from flint.flintlib.types.flint cimport mp_srcptr, flint_bitcnt_t, flint_rand_t, mp_ptr, slong, fmpz_struct, mp_limb_t, ulong
-from flint.flintlib.fmpz cimport fmpz_t
-from flint.flintlib.nmod cimport nmod_t
+from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, nmod_t, nn_ptr, nn_srcptr, slong, ulong
+from flint.flintlib.types.fmpz cimport fmpz_t
+
+# unknown type FILE
+
 
 cdef extern from "flint/fmpz_vec.h":
     fmpz_struct * _fmpz_vec_init(slong len)
@@ -10,17 +12,17 @@ cdef extern from "flint/fmpz_vec.h":
     slong _fmpz_vec_max_bits(const fmpz_struct * vec, slong len)
     slong _fmpz_vec_max_bits_ref(const fmpz_struct * vec, slong len)
     void _fmpz_vec_sum_max_bits(slong * sumabs, slong * maxabs, const fmpz_struct * vec, slong len)
-    ulong _fmpz_vec_max_limbs(const fmpz_struct * vec, slong len)
+    slong _fmpz_vec_max_limbs(const fmpz_struct * vec, slong len)
     void _fmpz_vec_height(fmpz_t height, const fmpz_struct * vec, slong len)
     slong _fmpz_vec_height_index(const fmpz_struct * vec, slong len)
     # int _fmpz_vec_fread(FILE * file, fmpz_struct ** vec, slong * len)
     int _fmpz_vec_read(fmpz_struct ** vec, slong * len)
     # int _fmpz_vec_fprint(FILE * file, const fmpz_struct * vec, slong len)
     int _fmpz_vec_print(const fmpz_struct * vec, slong len)
-    void _fmpz_vec_get_nmod_vec(mp_ptr res, const fmpz_struct * poly, slong len, nmod_t mod)
-    void _fmpz_vec_set_nmod_vec(fmpz_struct * res, mp_srcptr poly, slong len, nmod_t mod)
-    void _fmpz_vec_get_fft(mp_limb_t ** coeffs_f, const fmpz_struct * coeffs_m, slong l, slong length)
-    void _fmpz_vec_set_fft(fmpz_struct * coeffs_m, slong length, const mp_ptr * coeffs_f, slong limbs, slong sign)
+    void _fmpz_vec_get_nmod_vec(nn_ptr res, const fmpz_struct * poly, slong len, nmod_t mod)
+    void _fmpz_vec_set_nmod_vec(fmpz_struct * res, nn_srcptr poly, slong len, nmod_t mod)
+    void _fmpz_vec_get_fft(ulong ** coeffs_f, const fmpz_struct * coeffs_m, slong l, slong length)
+    void _fmpz_vec_set_fft(fmpz_struct * coeffs_m, slong length, const nn_ptr * coeffs_f, slong limbs, slong sign)
     slong _fmpz_vec_get_d_vec_2exp(double * appv, const fmpz_struct * vec, slong len)
     void _fmpz_vec_set(fmpz_struct * vec1, const fmpz_struct * vec2, slong len2)
     void _fmpz_vec_swap(fmpz_struct * vec1, fmpz_struct * vec2, slong len2)
@@ -40,7 +42,7 @@ cdef extern from "flint/fmpz_vec.h":
     void _fmpz_vec_scalar_mul_2exp(fmpz_struct * vec1, const fmpz_struct * vec2, slong len2, ulong exp)
     void _fmpz_vec_scalar_divexact_fmpz(fmpz_struct * vec1, const fmpz_struct * vec2, slong len2, const fmpz_t x)
     void _fmpz_vec_scalar_divexact_si(fmpz_struct * vec1, const fmpz_struct * vec2, slong len2, slong c)
-    void _fmpz_vec_scalar_divexact_ui(fmpz_struct * vec1, const fmpz_struct * vec2, ulong len2, ulong c)
+    void _fmpz_vec_scalar_divexact_ui(fmpz_struct * vec1, const fmpz_struct * vec2, slong len2, ulong c)
     void _fmpz_vec_scalar_fdiv_q_fmpz(fmpz_struct * vec1, const fmpz_struct * vec2, slong len2, const fmpz_t c)
     void _fmpz_vec_scalar_fdiv_q_si(fmpz_struct * vec1, const fmpz_struct * vec2, slong len2, slong c)
     void _fmpz_vec_scalar_fdiv_q_ui(fmpz_struct * vec1, const fmpz_struct * vec2, slong len2, ulong c)
@@ -59,10 +61,11 @@ cdef extern from "flint/fmpz_vec.h":
     void _fmpz_vec_scalar_submul_si_2exp(fmpz_struct * vec1, const fmpz_struct * vec2, slong len2, slong c, ulong e)
     void _fmpz_vec_sum(fmpz_t res, const fmpz_struct * vec, slong len)
     void _fmpz_vec_prod(fmpz_t res, const fmpz_struct * vec, slong len)
-    void _fmpz_vec_scalar_mod_fmpz(fmpz_struct *res, const fmpz_struct *vec, slong len, const fmpz_t p)
-    void _fmpz_vec_scalar_smod_fmpz(fmpz_struct *res, const fmpz_struct *vec, slong len, const fmpz_t p)
+    void _fmpz_vec_scalar_mod_fmpz(fmpz_struct * res, const fmpz_struct * vec, slong len, const fmpz_t p)
+    void _fmpz_vec_scalar_smod_fmpz(fmpz_struct * res, const fmpz_struct * vec, slong len, const fmpz_t p)
     void _fmpz_vec_content(fmpz_t res, const fmpz_struct * vec, slong len)
     void _fmpz_vec_content_chained(fmpz_t res, const fmpz_struct * vec, slong len, const fmpz_t input)
     void _fmpz_vec_lcm(fmpz_t res, const fmpz_struct * vec, slong len)
+    void _fmpz_vec_dot_general_naive(fmpz_t res, const fmpz_t initial, int subtract, const fmpz_struct * a, const fmpz_struct * b, int reverse, slong len)
+    void _fmpz_vec_dot_general(fmpz_t res, const fmpz_t initial, int subtract, const fmpz_struct * a, const fmpz_struct * b, int reverse, slong len)
     void _fmpz_vec_dot(fmpz_t res, const fmpz_struct * vec1, const fmpz_struct * vec2, slong len2)
-    void _fmpz_vec_dot_ptr(fmpz_t res, const fmpz_struct * vec1, fmpz_struct ** const vec2, slong offset, slong len)

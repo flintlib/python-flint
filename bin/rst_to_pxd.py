@@ -99,12 +99,13 @@ def undecorate(str):
     ret = str.strip()
     if ' ' in ret:
         ret = ret[:ret.rfind(' ')]
-    ret = re.sub(type_modifers, '', ret)
-    return ret.strip()
+    ret = re.sub(type_modifers, '', ret).strip()
+    return ret
 
 def get_parameter_types(str):
     params = str[str.find("(") + 1 : str.rfind(")")].split(",")
-    params.append(str.split()[0])
+    ret_type = str.split('(')[0].rsplit(' ', 1)[0]
+    params.append(ret_type)
     return [undecorate(s) for s in params if s]
 
 def clean_types(function):
