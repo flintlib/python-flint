@@ -1,5 +1,5 @@
 from flint.flintlib.fq_nmod cimport fq_nmod_struct, fq_nmod_ctx_t, fq_nmod_t, fq_nmod_poly_t
-from flint.flintlib.flint cimport slong, flint_rand_t
+from flint.flintlib.types.flint cimport slong, flint_rand_t
 from flint.flintlib.fmpz_mod_mat cimport fmpz_mod_mat_t
 from flint.flintlib.nmod_mat cimport nmod_mat_t
 

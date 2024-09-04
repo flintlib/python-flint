@@ -1,7 +1,7 @@
 # unimported types  {'fq_nmod_t', 'fq_nmod_ctx_t'}
 from flint.flintlib.fmpz cimport fmpz_t, fmpz_struct
 from flint.flintlib.nmod_poly cimport nmod_poly_t
-from flint.flintlib.flint cimport mp_ptr, mp_limb_t, slong, mp_srcptr, flint_rand_t, flint_bitcnt_t, ulong
+from flint.flintlib.types.flint cimport mp_ptr, mp_limb_t, slong, mp_srcptr, flint_rand_t, flint_bitcnt_t, ulong
 from flint.flintlib.nmod cimport nmod_t
 from flint.flintlib.nmod_mat cimport nmod_mat_t
 from flint.flintlib.nmod_poly cimport nmod_poly_struct, nmod_poly_t

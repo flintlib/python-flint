@@ -1,5 +1,5 @@
-from flint.flintlib.flint cimport flint_rand_t, nn_ptr, slong, ulong
-from flint.flintlib.fmpz_types cimport fmpz_factor_t, fmpz_t
+from flint.flintlib.types.flint cimport flint_rand_t, nn_ptr, slong, ulong
+from flint.flintlib.types.fmpz cimport fmpz_factor_t, fmpz_t
 
 # unknown type FILE
 # unknown type ecm_t

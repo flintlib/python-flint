@@ -1,7 +1,7 @@
-from flint.flintlib.arb_types cimport arb_mat_t, arb_poly_t, arb_ptr, arb_srcptr, arb_t, mag_srcptr, mag_t
-from flint.flintlib.flint cimport flint_rand_t, slong, ulong
+from flint.flintlib.types.arb cimport arb_mat_t, arb_poly_t, arb_ptr, arb_srcptr, arb_t, mag_srcptr, mag_t
+from flint.flintlib.types.flint cimport flint_rand_t, slong, ulong
 from flint.flintlib.fmpq_mat cimport fmpq_mat_t
-from flint.flintlib.fmpz_types cimport fmpz_mat_t, fmpz_t
+from flint.flintlib.types.fmpz cimport fmpz_mat_t, fmpz_t
 
 # unknown type FILE
 

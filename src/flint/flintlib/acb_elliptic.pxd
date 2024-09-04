@@ -1,5 +1,5 @@
-from flint.flintlib.acb_types cimport acb_poly_t, acb_ptr, acb_srcptr, acb_t
-from flint.flintlib.flint cimport slong
+from flint.flintlib.types.acb cimport acb_poly_t, acb_ptr, acb_srcptr, acb_t
+from flint.flintlib.types.flint cimport slong
 
 
 

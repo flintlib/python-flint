@@ -11,13 +11,13 @@ from flint.types.arf cimport arf
 from flint.types.fmpq cimport fmpq
 from flint.types.fmpz cimport fmpz
 
-from flint.flintlib.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
+from flint.flintlib.types.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
 from flint.flintlib.mag cimport *
 from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear
 from flint.flintlib.arf cimport *
-from flint.flintlib.arf_types cimport ARF_RND_NEAR, ARF_RND_DOWN
+from flint.flintlib.types.arf cimport ARF_RND_NEAR, ARF_RND_DOWN
 from flint.flintlib.arb cimport *
-from flint.flintlib.arb_types cimport (
+from flint.flintlib.types.arb cimport (
     arb_struct,
     arb_midref,
     arb_radref,

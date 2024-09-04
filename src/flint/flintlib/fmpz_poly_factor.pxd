@@ -1,5 +1,5 @@
-from flint.flintlib.flint cimport slong
-from flint.flintlib.fmpz_types cimport fmpz_poly_factor_t, fmpz_poly_t, fmpz_t
+from flint.flintlib.types.flint cimport slong
+from flint.flintlib.types.fmpz cimport fmpz_poly_factor_t, fmpz_poly_t, fmpz_t
 
 
 

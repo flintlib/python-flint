@@ -1,5 +1,5 @@
-from flint.flintlib.flint cimport ulong, slong
-from flint.flintlib.fmpz_types cimport fmpz_t, fmpz_struct, fmpz_preinvn_struct
+from flint.flintlib.types.flint cimport ulong, slong
+from flint.flintlib.types.fmpz cimport fmpz_t, fmpz_struct, fmpz_preinvn_struct
 from flint.flintlib.nmod cimport nmod_t
 
 cdef extern from "flint/fmpz_mod.h":

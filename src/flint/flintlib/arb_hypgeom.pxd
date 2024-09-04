@@ -1,7 +1,7 @@
 from flint.flintlib.arb cimport arb_t, arb_srcptr, arb_ptr
 from flint.flintlib.arb_poly cimport arb_poly_t
 from flint.flintlib.fmpz cimport fmpz_t, fmpz_struct
-from flint.flintlib.flint cimport ulong, slong
+from flint.flintlib.types.flint cimport ulong, slong
 from flint.flintlib.mag cimport mag_t
 from flint.flintlib.fmpq cimport fmpq_t, fmpq_struct
 

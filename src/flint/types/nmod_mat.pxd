@@ -1,7 +1,7 @@
 from flint.flint_base.flint_base cimport flint_mat
 
 from flint.flintlib.nmod_mat cimport nmod_mat_t
-from flint.flintlib.flint cimport mp_limb_t
+from flint.flintlib.types.flint cimport mp_limb_t
 
 cdef class nmod_mat(flint_mat):
     cdef nmod_mat_t val

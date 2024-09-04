@@ -1,4 +1,4 @@
-from flint.flintlib.flint cimport (
+from flint.flintlib.types.flint cimport (
     FLINT_BITS as _FLINT_BITS,
     FLINT_VERSION as _FLINT_VERSION,
     __FLINT_RELEASE as _FLINT_RELEASE,

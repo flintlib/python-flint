@@ -1,5 +1,5 @@
-from flint.flintlib.flint cimport ulong, slong, fmpz_struct
-from flint.flintlib.arf_types cimport arf_struct, arf_ptr
+from flint.flintlib.types.flint cimport ulong, slong, fmpz_struct
+from flint.flintlib.types.arf cimport arf_struct, arf_ptr
 
 cdef extern from "flint/arb_types.h":
     ctypedef struct mag_struct:

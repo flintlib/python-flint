@@ -1,4 +1,4 @@
-from flint.flintlib.flint cimport ulong, flint_rand_t, slong, mp_limb_t
+from flint.flintlib.types.flint cimport ulong, flint_rand_t, slong, mp_limb_t
 from flint.flintlib.fmpz cimport fmpz_t
 
 cdef extern from "flint/ulong_extras.h":

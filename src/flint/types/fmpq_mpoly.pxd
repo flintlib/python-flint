@@ -7,7 +7,7 @@ from flint.flintlib.fmpq_mpoly cimport (
     fmpq_mpoly_struct,
     fmpq_mpoly_init,
 )
-from flint.flintlib.flint cimport slong
+from flint.flintlib.types.flint cimport slong
 
 from flint.types.fmpz_mpoly cimport fmpz_mpoly_ctx
 

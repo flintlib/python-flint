@@ -1,4 +1,4 @@
-from flint.flintlib.flint cimport ulong, slong, flint_rand_t
+from flint.flintlib.types.flint cimport ulong, slong, flint_rand_t
 from flint.flintlib.fq cimport fq_t, fq_struct, fq_ctx_t
 from flint.flintlib.fq cimport fq_poly_struct, fq_poly_t
 

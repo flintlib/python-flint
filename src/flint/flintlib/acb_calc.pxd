@@ -1,7 +1,8 @@
-from flint.flintlib.acb_types cimport acb_calc_func_t, acb_calc_integrate_opt_t, acb_t
-from flint.flintlib.arb_types cimport arb_t, mag_t
-from flint.flintlib.arf_types cimport arf_t
-from flint.flintlib.flint cimport slong
+from flint.flintlib.types.acb cimport acb_t
+from flint.flintlib.types.arb cimport arb_t, mag_t
+from flint.flintlib.types.arf cimport arf_t
+from flint.flintlib.types.flint cimport slong
+from flint.flintlib.types.acb_calc cimport acb_calc_func_t, acb_calc_integrate_opt_t, acb_t
 
 
 

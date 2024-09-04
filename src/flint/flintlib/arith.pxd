@@ -1,4 +1,4 @@
-from flint.flintlib.flint cimport ulong, slong, mp_limb_t
+from flint.flintlib.types.flint cimport ulong, slong, mp_limb_t
 from flint.flintlib.fmpz cimport fmpz_t, fmpz_struct
 from flint.flintlib.fmpz_poly cimport fmpz_poly_t
 from flint.flintlib.fmpq_poly cimport fmpq_poly_t

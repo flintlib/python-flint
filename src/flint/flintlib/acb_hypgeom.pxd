@@ -1,6 +1,6 @@
-from flint.flintlib.acb_types cimport acb_poly_struct, acb_poly_t, acb_ptr, acb_srcptr, acb_t
-from flint.flintlib.arb_types cimport mag_t
-from flint.flintlib.flint cimport slong, ulong
+from flint.flintlib.types.acb cimport acb_poly_struct, acb_poly_t, acb_ptr, acb_srcptr, acb_t
+from flint.flintlib.types.arb cimport mag_t
+from flint.flintlib.types.flint cimport slong, ulong
 
 
 

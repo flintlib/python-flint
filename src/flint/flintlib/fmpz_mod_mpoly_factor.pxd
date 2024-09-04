@@ -1,4 +1,4 @@
-from flint.flintlib.flint cimport slong
+from flint.flintlib.types.flint cimport slong
 from flint.flintlib.fmpz cimport fmpz_t, fmpz_struct
 from flint.flintlib.fmpz_mod_mpoly cimport fmpz_mod_mpoly_ctx_t, fmpz_mod_mpoly_t, fmpz_mod_mpoly_struct
 

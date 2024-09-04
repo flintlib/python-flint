@@ -1,4 +1,4 @@
-from flint.flintlib.flint cimport fmpz_struct, slong, ulong, nn_ptr
+from flint.flintlib.types.flint cimport fmpz_struct, slong, ulong, nn_ptr
 
 cdef extern from "flint/arf.h":
     ctypedef enum arf_rnd_t:

@@ -1,7 +1,7 @@
-from flint.flintlib.acb_types cimport acb_poly_t, acb_ptr, acb_srcptr, acb_t
-from flint.flintlib.arf_types cimport arf_t
-from flint.flintlib.flint cimport flint_rand_t, slong
-from flint.flintlib.fmpz_types cimport fmpz_poly_t
+from flint.flintlib.types.acb cimport acb_poly_t, acb_ptr, acb_srcptr, acb_t
+from flint.flintlib.types.arf cimport arf_t
+from flint.flintlib.types.flint cimport flint_rand_t, slong
+from flint.flintlib.types.fmpz cimport fmpz_poly_t
 
 # unknown type FILE
 # unknown type psl2z_t

@@ -1,8 +1,9 @@
-from flint.flintlib.acb_types cimport acb_mat_t, acb_poly_struct, acb_poly_t, acb_ptr, acb_srcptr, acb_t, acb_theta_eld_t, acb_theta_naive_worker_t, acb_theta_ql_worker_t
-from flint.flintlib.arb_types cimport arb_mat_t, arb_ptr, arb_srcptr, arb_t
-from flint.flintlib.arf_types cimport arf_t
-from flint.flintlib.flint cimport flint_rand_t, slong, ulong
-from flint.flintlib.fmpz_types cimport fmpz_mat_struct, fmpz_mat_t
+from flint.flintlib.types.acb cimport acb_mat_t, acb_poly_struct, acb_poly_t, acb_ptr, acb_srcptr, acb_t
+from flint.flintlib.types.acb_theta cimport acb_theta_eld_t, acb_theta_naive_worker_t, acb_theta_ql_worker_t
+from flint.flintlib.types.arb cimport arb_mat_t, arb_ptr, arb_srcptr, arb_t
+from flint.flintlib.types.arf cimport arf_t
+from flint.flintlib.types.flint cimport flint_rand_t, slong, ulong
+from flint.flintlib.types.fmpz cimport fmpz_mat_struct, fmpz_mat_t
 
 
 # .. macro:: acb_theta_eld_dim(E)

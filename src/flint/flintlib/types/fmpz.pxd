@@ -1,4 +1,4 @@
-from flint.flintlib.flint cimport (
+from flint.flintlib.types.flint cimport (
     mp_ptr,
     fmpz_struct,
     ulong,

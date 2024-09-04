@@ -1,6 +1,6 @@
 from flint.flintlib.fmpz_mpoly cimport fmpz_mpoly_t, fmpz_mpoly_ctx_t, fmpz_mpoly_struct
 from flint.flintlib.fmpz cimport fmpz_t
-from flint.flintlib.flint cimport slong, fmpz_struct
+from flint.flintlib.types.flint cimport slong, fmpz_struct
 from flint.flintlib.fmpq cimport fmpq_t
 
 

@@ -1,5 +1,5 @@
 from flint.flintlib.fmpz_mod_poly cimport fmpz_mod_poly_t
-from flint.flintlib.flint cimport flint_rand_t, slong, ulong
+from flint.flintlib.types.flint cimport flint_rand_t, slong, ulong
 from flint.flintlib.nmod_poly cimport nmod_poly_t
 from flint.flintlib.fmpz cimport fmpz_t
 from flint.flintlib.fq_zech cimport fq_zech_struct, fq_zech_t, fq_zech_ctx_t, fq_zech_mat_t, fq_zech_poly_t

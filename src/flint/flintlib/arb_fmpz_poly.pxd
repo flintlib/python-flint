@@ -1,7 +1,7 @@
 from flint.flintlib.arb cimport arb_t
 from flint.flintlib.acb cimport acb_t, acb_ptr
 from flint.flintlib.fmpz_poly cimport fmpz_poly_t
-from flint.flintlib.flint cimport ulong, slong
+from flint.flintlib.types.flint cimport ulong, slong
 from flint.flintlib.fmpz cimport fmpz_struct
 
 cdef extern from "flint/arb_fmpz_poly.h":

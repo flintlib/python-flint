@@ -1,7 +1,7 @@
 from flint.flintlib.fmpq cimport fmpq_t
 from flint.flintlib.fmpz cimport fmpz_t
 from flint.flintlib.fmpq_mpoly cimport fmpq_mpoly_ctx_t, fmpq_mpoly_t, fmpq_mpoly_struct
-from flint.flintlib.flint cimport slong, fmpz_struct
+from flint.flintlib.types.flint cimport slong, fmpz_struct
 
 cdef extern from "flint/fmpq_mpoly_factor.h":
     ctypedef struct fmpq_mpoly_factor_struct:

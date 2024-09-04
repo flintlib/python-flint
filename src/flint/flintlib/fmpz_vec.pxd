@@ -1,4 +1,4 @@
-from flint.flintlib.flint cimport mp_srcptr, flint_bitcnt_t, flint_rand_t, mp_ptr, slong, fmpz_struct, mp_limb_t, ulong
+from flint.flintlib.types.flint cimport mp_srcptr, flint_bitcnt_t, flint_rand_t, mp_ptr, slong, fmpz_struct, mp_limb_t, ulong
 from flint.flintlib.fmpz cimport fmpz_t
 from flint.flintlib.nmod cimport nmod_t
 

@@ -1,5 +1,5 @@
 from flint.flintlib.fq_default cimport fq_default_t, fq_default_ctx_t
-from flint.flintlib.flint cimport ulong, slong
+from flint.flintlib.types.flint cimport ulong, slong
 from flint.flintlib.fq_default_poly cimport fq_default_poly_t
 from flint.flintlib.fq_poly_factor cimport fq_poly_factor_t
 from flint.flintlib.fq_nmod_poly_factor cimport fq_nmod_poly_factor_t

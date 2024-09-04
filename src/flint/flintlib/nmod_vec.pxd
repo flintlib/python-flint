@@ -1,4 +1,4 @@
-from flint.flintlib.flint cimport mp_limb_t, mp_bitcnt_t
+from flint.flintlib.types.flint cimport mp_limb_t, mp_bitcnt_t
 from flint.flintlib.nmod cimport nmod_t
 
 cdef extern from "flint/nmod_vec.h":

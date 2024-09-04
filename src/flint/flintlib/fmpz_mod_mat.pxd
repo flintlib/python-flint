@@ -1,4 +1,4 @@
-from flint.flintlib.flint cimport (
+from flint.flintlib.types.flint cimport (
     __FLINT_RELEASE,
     ulong,
     slong,

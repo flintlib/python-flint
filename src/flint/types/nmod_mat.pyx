@@ -1,6 +1,6 @@
 cimport cython
 
-from flint.flintlib.flint cimport ulong, mp_limb_t
+from flint.flintlib.types.flint cimport ulong, mp_limb_t
 from flint.flintlib.nmod cimport nmod_t
 
 from flint.flintlib.nmod_poly cimport (

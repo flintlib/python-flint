@@ -15,7 +15,7 @@ from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
 from flint.flintlib.fmpq_mat cimport fmpq_mat_nrows, fmpq_mat_ncols
 from flint.flintlib.mag cimport *
 from flint.flintlib.arb cimport *
-from flint.flintlib.arb_types cimport (
+from flint.flintlib.types.arb cimport (
     mag_struct,
     arb_radref,
     arb_midref,
@@ -27,7 +27,7 @@ from flint.flintlib.arb_mat cimport *
 from flint.flintlib.arf cimport *
 from flint.flintlib.acb cimport *
 from flint.flintlib.acb_mat cimport *
-from flint.flintlib.acb_types cimport (
+from flint.flintlib.types.acb cimport (
     acb_realref,
     acb_imagref,
     acb_mat_struct,

@@ -6,7 +6,7 @@ from flint.flint_base.flint_base cimport flint_scalar
 from flint.flint_base.flint_base cimport flint_poly
 
 from flint.types.fmpz cimport fmpz
-from flint.flintlib.flint cimport *
+from flint.flintlib.types.flint cimport *
 
 cdef flint_rand_t global_random_state
 

@@ -1,5 +1,5 @@
-from flint.flintlib.acb_types cimport acb_ptr, acb_srcptr
-from flint.flintlib.flint cimport slong
+from flint.flintlib.types.acb cimport acb_ptr, acb_srcptr
+from flint.flintlib.types.flint cimport slong
 
 # unknown type acb_dft_bluestein_t
 # unknown type acb_dft_crt_t

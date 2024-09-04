@@ -1,4 +1,4 @@
-from flint.flintlib.flint cimport flint_rand_t, slong
+from flint.flintlib.types.flint cimport flint_rand_t, slong
 from flint.flintlib.fq cimport fq_ctx_t, fq_struct
 from flint.flintlib.nmod_mat cimport nmod_mat_t
 from flint.flintlib.fmpz_mat cimport fmpz_mat_t

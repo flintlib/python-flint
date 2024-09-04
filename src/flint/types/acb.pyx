@@ -13,14 +13,14 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 from flint.types.dirichlet cimport dirichlet_char
 
-from flint.flintlib.flint cimport FMPZ_TMP, FMPZ_REF, FMPZ_UNKNOWN
+from flint.flintlib.types.flint cimport FMPZ_TMP, FMPZ_REF, FMPZ_UNKNOWN
 from flint.flintlib.mag cimport *
 from flint.flintlib.arb cimport *
-from flint.flintlib.arb_types cimport arb_midref, arb_radref
+from flint.flintlib.types.arb cimport arb_midref, arb_radref
 from flint.flintlib.arf cimport *
-from flint.flintlib.arf_types cimport ARF_RND_NEAR
+from flint.flintlib.types.arf cimport ARF_RND_NEAR
 from flint.flintlib.acb cimport *
-from flint.flintlib.acb_types cimport acb_struct, acb_realref, acb_imagref
+from flint.flintlib.types.acb cimport acb_struct, acb_realref, acb_imagref
 from flint.flintlib.acb_modular cimport *
 from flint.flintlib.acb_hypgeom cimport *
 from flint.flintlib.acb_dirichlet cimport *

@@ -1,5 +1,5 @@
 from flint.flintlib.nmod_mpoly cimport nmod_mpoly_ctx_t, nmod_mpoly_struct, nmod_mpoly_t
-from flint.flintlib.flint cimport slong, ulong, mp_limb_t
+from flint.flintlib.types.flint cimport slong, ulong, mp_limb_t
 from flint.flintlib.fmpz cimport fmpz_struct
 
 

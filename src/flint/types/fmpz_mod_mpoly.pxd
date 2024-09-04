@@ -6,7 +6,7 @@ from flint.flintlib.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_init,
     fmpz_mod_mpoly_struct
 )
-from flint.flintlib.flint cimport slong
+from flint.flintlib.types.flint cimport slong
 
 cdef inline init_fmpz_mod_mpoly(fmpz_mod_mpoly var, fmpz_mod_mpoly_ctx ctx):
     var.ctx = ctx

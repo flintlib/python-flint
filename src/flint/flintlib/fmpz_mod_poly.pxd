@@ -1,5 +1,5 @@
-from flint.flintlib.flint cimport ulong, slong, flint_rand_t
-from flint.flintlib.fmpz_types cimport (
+from flint.flintlib.types.flint cimport ulong, slong, flint_rand_t
+from flint.flintlib.types.fmpz cimport (
     fmpz_t,
     fmpz_struct,
     fmpz_poly_t,

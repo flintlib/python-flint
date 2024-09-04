@@ -15,7 +15,7 @@ from flint.types.fmpz_mod cimport fmpz_mod
 
 from flint.types.nmod cimport nmod
 
-from flint.flintlib.flint cimport SIZEOF_ULONG
+from flint.flintlib.types.flint cimport SIZEOF_ULONG
 from flint.flintlib.fmpz cimport fmpz_set
 from flint.flintlib.nmod cimport fmpz_get_nmod
 from flint.flintlib.nmod_mpoly cimport (

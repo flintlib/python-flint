@@ -1,4 +1,4 @@
-from flint.flintlib.flint cimport mp_limb_t, mp_bitcnt_t, ulong, nmod_t
+from flint.flintlib.types.flint cimport mp_limb_t, mp_bitcnt_t, ulong, nmod_t
 from flint.flintlib.fmpz cimport fmpz_t
 
 cdef extern from "flint/nmod.h":

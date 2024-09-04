@@ -1,6 +1,6 @@
 from flint.flintlib.fmpz_poly cimport fmpz_poly_t
 from flint.flintlib.fmpz cimport fmpz_t
-from flint.flintlib.flint cimport slong, flint_rand_t, ulong, mp_limb_t
+from flint.flintlib.types.flint cimport slong, flint_rand_t, ulong, mp_limb_t
 
 from flint.flintlib.nmod cimport nmod_t
 from flint.flintlib.nmod_poly cimport nmod_poly_t
