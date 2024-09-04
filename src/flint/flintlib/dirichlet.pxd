@@ -1,34 +1,16 @@
-from flint.flintlib.types.flint cimport ulong, slong
-from flint.flintlib.nmod cimport nmod_t
+from flint.flintlib.types.dirichlet cimport dirichlet_char_t, dirichlet_group_t
+from flint.flintlib.types.flint cimport slong, ulong
+
+
 
 cdef extern from "flint/dirichlet.h":
-    ctypedef struct dirichlet_group_struct:
-        ulong q
-        ulong q_even
-        nmod_t mod
-        ulong rad_q
-        ulong phi_q
-        long neven
-        long num
-        ulong expo
-        void * P
-        ulong * generators
-        ulong * PHI
-    ctypedef dirichlet_group_struct dirichlet_group_t[1]
-
-    ctypedef struct dirichlet_char_struct:
-        ulong n
-        ulong * log
-    ctypedef dirichlet_char_struct dirichlet_char_t[1]
-
-# from here on is parsed
     int dirichlet_group_init(dirichlet_group_t G, ulong q)
     void dirichlet_subgroup_init(dirichlet_group_t H, const dirichlet_group_t G, ulong h)
     void dirichlet_group_clear(dirichlet_group_t G)
     ulong dirichlet_group_size(const dirichlet_group_t G)
     ulong dirichlet_group_num_primitive(const dirichlet_group_t G)
     void dirichlet_group_dlog_precompute(dirichlet_group_t G, ulong num)
-    void dirichlet_group_dlog_clear(dirichlet_group_t G, ulong num)
+    void dirichlet_group_dlog_clear(dirichlet_group_t G)
     void dirichlet_char_init(dirichlet_char_t chi, const dirichlet_group_t G)
     void dirichlet_char_clear(dirichlet_char_t chi)
     void dirichlet_char_print(const dirichlet_group_t G, const dirichlet_char_t chi)
@@ -53,9 +35,6 @@ cdef extern from "flint/dirichlet.h":
     ulong dirichlet_order_char(const dirichlet_group_t G, const dirichlet_char_t x)
     int dirichlet_char_is_real(const dirichlet_group_t G, const dirichlet_char_t chi)
     int dirichlet_char_is_primitive(const dirichlet_group_t G, const dirichlet_char_t chi)
-
-    cdef ulong DIRICHLET_CHI_NULL
-
     ulong dirichlet_pairing(const dirichlet_group_t G, ulong m, ulong n)
     ulong dirichlet_pairing_char(const dirichlet_group_t G, const dirichlet_char_t chi, const dirichlet_char_t psi)
     ulong dirichlet_chi(const dirichlet_group_t G, const dirichlet_char_t chi, ulong n)

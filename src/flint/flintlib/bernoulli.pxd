@@ -1,9 +1,11 @@
-from flint.flintlib.types.flint cimport ulong, slong
-from flint.flintlib.fmpq cimport fmpq_t, fmpq_struct
-from flint.flintlib.fmpz cimport fmpz_t
+from flint.flintlib.fmpq cimport fmpq_struct, fmpq_t
+from flint.flintlib.types.flint cimport slong, ulong
+from flint.flintlib.types.fmpz cimport fmpz_t
+
+# unknown type bernoulli_rev_t
+
 
 cdef extern from "flint/bernoulli.h":
-# from here on is parsed
     # void bernoulli_rev_init(bernoulli_rev_t iter, ulong n)
     # void bernoulli_rev_next(fmpz_t numer, fmpz_t denom, bernoulli_rev_t iter)
     # void bernoulli_rev_clear(bernoulli_rev_t iter)
@@ -15,4 +17,3 @@ cdef extern from "flint/bernoulli.h":
     void _bernoulli_fmpq_ui_multi_mod(fmpz_t num, fmpz_t den, ulong n, double alpha)
     void _bernoulli_fmpq_ui(fmpz_t num, fmpz_t den, ulong n)
     void bernoulli_fmpq_ui(fmpq_t b, ulong n)
-
