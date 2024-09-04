@@ -40,11 +40,16 @@ TODO: don't import self
 #  recognize a function definition in rst
 is_func = re.compile(r"\.\.( )+(c:)?function( )*::")
 # rename types to avoid python -- c name collisions
-rename_types = [(re.compile(r"\bfmpz\b"),"fmpz_struct"),(re.compile(r"\bfmpq\b"), "fmpq_struct")]
+rename_types = [
+    (re.compile(r"\bfmpz\b"),"fmpz_struct"),
+    (re.compile(r"\bfmpq\b"), "fmpq_struct"),
+    (re.compile(r"\bin\b"), "in_"),
+    (re.compile(r"\blambda\b"), "lambda_"),
+]
 # comment out functions which use these types
 comment_types = re.compile(r"(\bFILE\b)|(\bmpz_t\b)|(\bmpq_t\b)")
 comment_set = set(["FILE", "mpz_t", "mpq_t"])
-c_types = set(["char", "short", "long", "int", "float", "double"])
+c_types = set(["void", "char", "short", "long", "int", "float", "double"])
 type_modifers = re.compile(r"\*|(\bconst\b)|(\bunsigned\b)|(\bsigned\b)")
 import_dict = {}
 
@@ -79,13 +84,15 @@ def undecorate(str):
     remove variable name, const, ``*``, etc. to just get types
     """
     ret = str.strip()
-    ret = ret[:ret.rfind(' ')]
+    if ' ' in ret:
+        ret = ret[:ret.rfind(' ')]
     ret = re.sub(type_modifers, '', ret)
     return ret.strip()
 
 def get_parameter_types(str):
     params = str[str.find("(") + 1 : str.rfind(")")].split(",")
-    return [undecorate(s) for s in params]
+    params.append(str.split()[0])
+    return [undecorate(s) for s in params if s]
 
 def clean_types(function):
     ret = function.strip()
@@ -98,8 +105,15 @@ def get_functions(file):
     Get a list of functions from an rst file
     """
     ret = []
+    macros = []
     in_list = False
     for line in file:
+        # Keep track of the macros
+        # We want to give them types in cython...
+        if line.startswith('.. macro'):
+            macros.append(line.strip())
+            continue
+
         m = is_func.match(line)
         if m:
             ret.append( clean_types(line[m.end():]))
@@ -110,7 +124,7 @@ def get_functions(file):
                     in_list = False
                 else:
                     ret.append(clean_types(line))
-    return ret
+    return ret, macros
 
 def get_all_types(function_list):
     ret = set()
@@ -118,6 +132,11 @@ def get_all_types(function_list):
         for t in get_parameter_types(f):
             ret.add(t)
     return ret
+
+
+def has_types(line, types):
+    return any(t in types for t in get_parameter_types(line))
+
 
 def gen_imports(function_list):
     """
@@ -132,10 +151,12 @@ def gen_imports(function_list):
             imports[import_dict[t]].append(t)
         else:
             ret.add(t)
-    for k,v in imports.items():
-        types = ", ".join(v)
+    for k,v in sorted(imports.items()):
+        types = ", ".join(sorted(v))
         print("from flint.flintlib." + k + " cimport " + types)
-    return ret
+    return sorted(ret)
+
+
 
 def generate_pxd_file(h_name, opts):
     fill_import_dict(opts.flint_lib_dir)
@@ -146,14 +167,18 @@ def generate_pxd_file(h_name, opts):
         docdir = opts.flint_doc_dir
         name = name[6:]
     with open(os.path.join(docdir, name + ".rst")) as f:
-        l = get_functions(f)
-        s = gen_imports(l)
+        l, macros = get_functions(f)
+        unknown_types = gen_imports(l)
         print()
-        print ("\n# unimported types ", s - comment_set)
+        for t in unknown_types:
+            print("# unknown type " + t)
+        print()
+        for m in macros:
+            print("# " + m)
         print()
         print(r'cdef extern from "' + h_name +r'.h":')
         for f in l:
-            if comment_types.search(f):
+            if has_types(f, unknown_types):
                 print("    # " + f)
             else:
                 print("    " + f)

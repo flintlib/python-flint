@@ -1,6 +1,5 @@
-from flint.flintlib.fmpz cimport fmpz_t
+from flint.flintlib.fmpz_types cimport fmpz_t, fmpz_poly_struct, fmpz_poly_t
 from flint.flintlib.flint cimport flint_bitcnt_t, ulong, mp_limb_t, slong, fmpz_struct, flint_rand_t
-from flint.flintlib.fmpz_poly cimport fmpz_poly_struct, fmpz_poly_t
 from flint.flintlib.mpoly cimport mpoly_ctx_t, ordering_t
 from flint.flintlib.fmpz_mod cimport fmpz_mod_ctx_t
 

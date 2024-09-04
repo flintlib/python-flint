@@ -1,23 +1,14 @@
-from flint.flintlib.flint cimport flint_rand_t, ulong, slong
-from flint.flintlib.acb cimport acb_ptr, acb_t, acb_srcptr
-from flint.flintlib.arb_poly cimport arb_poly_t
+from flint.flintlib.acb_types cimport acb_poly_t, acb_ptr, acb_srcptr, acb_t
+from flint.flintlib.arb_types cimport arb_poly_t, arb_ptr, mag_t
+from flint.flintlib.flint cimport flint_rand_t, slong, ulong
 from flint.flintlib.fmpq_poly cimport fmpq_poly_t
-from flint.flintlib.fmpz_poly cimport fmpz_poly_t
-from flint.flintlib.mag cimport mag_t
-from flint.flintlib.fmpz cimport fmpz_t
-from flint.flintlib.arb cimport arb_ptr
+from flint.flintlib.fmpz_types cimport fmpz_poly_t, fmpz_t
+
+# unknown type FILE
+
+# .. macro:: acb_poly_get_coeff_ptr(poly, n)
 
 cdef extern from "flint/acb_poly.h":
-    ctypedef struct acb_poly_struct:
-        acb_ptr coeffs
-        long length
-        long alloc
-
-    ctypedef acb_poly_struct acb_poly_t[1]
-
-#macros
-    acb_ptr acb_poly_get_coeff_ptr(arb_poly_t poly, long n)
-# from here on is parsed
     void acb_poly_init(acb_poly_t poly)
     void acb_poly_clear(acb_poly_t poly)
     void acb_poly_fit_length(acb_poly_t poly, slong len)
@@ -46,6 +37,7 @@ cdef extern from "flint/acb_poly.h":
     void acb_poly_truncate(acb_poly_t poly, slong n)
     slong acb_poly_valuation(const acb_poly_t poly)
     void acb_poly_printd(const acb_poly_t poly, slong digits)
+    # void acb_poly_fprintd(FILE * file, const acb_poly_t poly, slong digits)
     void acb_poly_randtest(acb_poly_t poly, flint_rand_t state, slong len, slong prec, slong mag_bits)
     int acb_poly_equal(const acb_poly_t A, const acb_poly_t B)
     int acb_poly_contains(const acb_poly_t poly1, const acb_poly_t poly2)
@@ -95,32 +87,12 @@ cdef extern from "flint/acb_poly.h":
     void _acb_poly_divrem(acb_ptr Q, acb_ptr R, acb_srcptr A, slong lenA, acb_srcptr B, slong lenB, slong prec)
     int acb_poly_divrem(acb_poly_t Q, acb_poly_t R, const acb_poly_t A, const acb_poly_t B, slong prec)
     void _acb_poly_div_root(acb_ptr Q, acb_t R, acb_srcptr A, slong len, const acb_t c, slong prec)
-    void _acb_poly_taylor_shift_horner(acb_ptr g, const acb_t c, slong n, slong prec)
-    void acb_poly_taylor_shift_horner(acb_poly_t g, const acb_poly_t f, const acb_t c, slong prec)
-    void _acb_poly_taylor_shift_divconquer(acb_ptr g, const acb_t c, slong n, slong prec)
-    void acb_poly_taylor_shift_divconquer(acb_poly_t g, const acb_poly_t f, const acb_t c, slong prec)
-    void _acb_poly_taylor_shift_convolution(acb_ptr g, const acb_t c, slong n, slong prec)
-    void acb_poly_taylor_shift_convolution(acb_poly_t g, const acb_poly_t f, const acb_t c, slong prec)
     void _acb_poly_taylor_shift(acb_ptr g, const acb_t c, slong n, slong prec)
     void acb_poly_taylor_shift(acb_poly_t g, const acb_poly_t f, const acb_t c, slong prec)
-    void _acb_poly_compose_horner(acb_ptr res, acb_srcptr poly1, slong len1, acb_srcptr poly2, slong len2, slong prec)
-    void acb_poly_compose_horner(acb_poly_t res, const acb_poly_t poly1, const acb_poly_t poly2, slong prec)
-    void _acb_poly_compose_divconquer(acb_ptr res, acb_srcptr poly1, slong len1, acb_srcptr poly2, slong len2, slong prec)
-    void acb_poly_compose_divconquer(acb_poly_t res, const acb_poly_t poly1, const acb_poly_t poly2, slong prec)
     void _acb_poly_compose(acb_ptr res, acb_srcptr poly1, slong len1, acb_srcptr poly2, slong len2, slong prec)
     void acb_poly_compose(acb_poly_t res, const acb_poly_t poly1, const acb_poly_t poly2, slong prec)
-    void _acb_poly_compose_series_horner(acb_ptr res, acb_srcptr poly1, slong len1, acb_srcptr poly2, slong len2, slong n, slong prec)
-    void acb_poly_compose_series_horner(acb_poly_t res, const acb_poly_t poly1, const acb_poly_t poly2, slong n, slong prec)
-    void _acb_poly_compose_series_brent_kung(acb_ptr res, acb_srcptr poly1, slong len1, acb_srcptr poly2, slong len2, slong n, slong prec)
-    void acb_poly_compose_series_brent_kung(acb_poly_t res, const acb_poly_t poly1, const acb_poly_t poly2, slong n, slong prec)
     void _acb_poly_compose_series(acb_ptr res, acb_srcptr poly1, slong len1, acb_srcptr poly2, slong len2, slong n, slong prec)
     void acb_poly_compose_series(acb_poly_t res, const acb_poly_t poly1, const acb_poly_t poly2, slong n, slong prec)
-    void _acb_poly_revert_series_lagrange(acb_ptr h, acb_srcptr f, slong flen, slong n, slong prec)
-    void acb_poly_revert_series_lagrange(acb_poly_t h, const acb_poly_t f, slong n, slong prec)
-    void _acb_poly_revert_series_newton(acb_ptr h, acb_srcptr f, slong flen, slong n, slong prec)
-    void acb_poly_revert_series_newton(acb_poly_t h, const acb_poly_t f, slong n, slong prec)
-    void _acb_poly_revert_series_lagrange_fast(acb_ptr h, acb_srcptr f, slong flen, slong n, slong prec)
-    void acb_poly_revert_series_lagrange_fast(acb_poly_t h, const acb_poly_t f, slong n, slong prec)
     void _acb_poly_revert_series(acb_ptr h, acb_srcptr f, slong flen, slong n, slong prec)
     void acb_poly_revert_series(acb_poly_t h, const acb_poly_t f, slong n, slong prec)
     void _acb_poly_evaluate_horner(acb_t y, acb_srcptr f, slong len, const acb_t x, slong prec)
@@ -155,6 +127,8 @@ cdef extern from "flint/acb_poly.h":
     void acb_poly_interpolate_fast(acb_poly_t poly, acb_srcptr xs, acb_srcptr ys, slong n, slong prec)
     void _acb_poly_derivative(acb_ptr res, acb_srcptr poly, slong len, slong prec)
     void acb_poly_derivative(acb_poly_t res, const acb_poly_t poly, slong prec)
+    void _acb_poly_nth_derivative(acb_ptr res, acb_srcptr poly, ulong n, slong len, slong prec)
+    void acb_poly_nth_derivative(acb_poly_t res, const acb_poly_t poly, ulong n, slong prec)
     void _acb_poly_integral(acb_ptr res, acb_srcptr poly, slong len, slong prec)
     void acb_poly_integral(acb_poly_t res, const acb_poly_t poly, slong prec)
     void _acb_poly_borel_transform(acb_ptr res, acb_srcptr poly, slong len, slong prec)
@@ -168,7 +142,7 @@ cdef extern from "flint/acb_poly.h":
     void _acb_poly_binomial_transform(acb_ptr b, acb_srcptr a, slong alen, slong len, slong prec)
     void acb_poly_binomial_transform(acb_poly_t b, const acb_poly_t a, slong len, slong prec)
     void _acb_poly_graeffe_transform(acb_ptr b, acb_srcptr a, slong len, slong prec)
-    void acb_poly_graeffe_transform(acb_poly_t b, acb_poly_t a, slong prec)
+    void acb_poly_graeffe_transform(acb_poly_t b, const acb_poly_t a, slong prec)
     void _acb_poly_pow_ui_trunc_binexp(acb_ptr res, acb_srcptr f, slong flen, ulong exp, slong len, slong prec)
     void acb_poly_pow_ui_trunc_binexp(acb_poly_t res, const acb_poly_t poly, ulong exp, slong len, slong prec)
     void _acb_poly_pow_ui(acb_ptr res, acb_srcptr f, slong flen, ulong exp, slong prec)
@@ -193,10 +167,6 @@ cdef extern from "flint/acb_poly.h":
     void acb_poly_exp_series(acb_poly_t f, const acb_poly_t h, slong n, slong prec)
     void _acb_poly_exp_pi_i_series(acb_ptr f, acb_srcptr h, slong hlen, slong n, slong prec)
     void acb_poly_exp_pi_i_series(acb_poly_t f, const acb_poly_t h, slong n, slong prec)
-    void _acb_poly_sin_cos_series_basecase(acb_ptr s, acb_ptr c, acb_srcptr h, slong hlen, slong n, slong prec, int times_pi)
-    void acb_poly_sin_cos_series_basecase(acb_poly_t s, acb_poly_t c, const acb_poly_t h, slong n, slong prec, int times_pi)
-    void _acb_poly_sin_cos_series_tangent(acb_ptr s, acb_ptr c, acb_srcptr h, slong hlen, slong n, slong prec, int times_pi)
-    void acb_poly_sin_cos_series_tangent(acb_poly_t s, acb_poly_t c, const acb_poly_t h, slong n, slong prec, int times_pi)
     void _acb_poly_sin_cos_series(acb_ptr s, acb_ptr c, acb_srcptr h, slong hlen, slong n, slong prec)
     void acb_poly_sin_cos_series(acb_poly_t s, acb_poly_t c, const acb_poly_t h, slong n, slong prec)
     void _acb_poly_sin_series(acb_ptr s, acb_srcptr h, slong hlen, slong n, slong prec)
@@ -266,7 +236,6 @@ cdef extern from "flint/acb_poly.h":
     void acb_poly_root_bound_fujiwara(mag_t bound, acb_poly_t poly)
     void _acb_poly_root_inclusion(acb_t r, const acb_t m, acb_srcptr poly, acb_srcptr polyder, slong len, slong prec)
     slong _acb_poly_validate_roots(acb_ptr roots, acb_srcptr poly, slong len, slong prec)
-    void _acb_poly_refine_roots_durand_kerner(acb_ptr roots, acb_srcptr poly, slong len, slong prec)
     slong _acb_poly_find_roots(acb_ptr roots, acb_srcptr poly, acb_srcptr initial, slong len, slong maxiter, slong prec)
     slong acb_poly_find_roots(acb_ptr roots, const acb_poly_t poly, acb_srcptr initial, slong maxiter, slong prec)
     int _acb_poly_validate_real_roots(acb_srcptr roots, acb_srcptr poly, slong len, slong prec)

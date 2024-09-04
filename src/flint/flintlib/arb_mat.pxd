@@ -1,26 +1,15 @@
-from flint.flintlib.arb cimport arb_ptr, arb_struct
-from flint.flintlib.fmpz_mat cimport fmpz_mat_t
+from flint.flintlib.arb_types cimport arb_mat_t, arb_poly_t, arb_ptr, arb_srcptr, arb_t, mag_srcptr, mag_t
+from flint.flintlib.flint cimport flint_rand_t, slong, ulong
 from flint.flintlib.fmpq_mat cimport fmpq_mat_t
-from flint.flintlib.mag cimport mag_t, mag_srcptr
-from flint.flintlib.flint cimport ulong, slong, flint_rand_t
-from flint.flintlib.fmpz cimport fmpz_t
-from flint.flintlib.arb cimport arb_t, arb_srcptr
-from flint.flintlib.arb_poly cimport arb_poly_t
+from flint.flintlib.fmpz_types cimport fmpz_mat_t, fmpz_t
+
+# unknown type FILE
+
+# .. macro:: arb_mat_entry(mat, i, j)
+# .. macro:: arb_mat_nrows(mat)
+# .. macro:: arb_mat_ncols(mat)
 
 cdef extern from "flint/arb_mat.h":
-    ctypedef struct arb_mat_struct:
-        arb_ptr entries
-        long r
-        long c
-        arb_ptr * rows
-
-    ctypedef arb_mat_struct arb_mat_t[1]
-#macros
-    arb_struct * arb_mat_entry(arb_mat_t mat, long i, long j)
-
-    long arb_mat_nrows(const arb_mat_t x)
-    long arb_mat_ncols(const arb_mat_t x)
-# from here on is parsed
     void arb_mat_init(arb_mat_t mat, slong r, slong c)
     void arb_mat_clear(arb_mat_t mat)
     slong arb_mat_allocated_bytes(const arb_mat_t x)
@@ -31,7 +20,10 @@ cdef extern from "flint/arb_mat.h":
     void arb_mat_set_round_fmpz_mat(arb_mat_t dest, const fmpz_mat_t src, slong prec)
     void arb_mat_set_fmpq_mat(arb_mat_t dest, const fmpq_mat_t src, slong prec)
     void arb_mat_randtest(arb_mat_t mat, flint_rand_t state, slong prec, slong mag_bits)
+    void arb_mat_randtest_cho(arb_mat_t mat, flint_rand_t state, slong prec, slong mag_bits)
+    void arb_mat_randtest_spd(arb_mat_t mat, flint_rand_t state, slong prec, slong mag_bits)
     void arb_mat_printd(const arb_mat_t mat, slong digits)
+    # void arb_mat_fprintd(FILE * file, const arb_mat_t mat, slong digits)
     int arb_mat_equal(const arb_mat_t mat1, const arb_mat_t mat2)
     int arb_mat_overlaps(const arb_mat_t mat1, const arb_mat_t mat2)
     int arb_mat_contains(const arb_mat_t mat1, const arb_mat_t mat2)
@@ -82,6 +74,10 @@ cdef extern from "flint/arb_mat.h":
     void arb_mat_scalar_div_si(arb_mat_t B, const arb_mat_t A, slong c, slong prec)
     void arb_mat_scalar_div_fmpz(arb_mat_t B, const arb_mat_t A, const fmpz_t c, slong prec)
     void arb_mat_scalar_div_arb(arb_mat_t B, const arb_mat_t A, const arb_t c, slong prec)
+    void _arb_mat_vector_mul_row(arb_ptr res, arb_srcptr v, const arb_mat_t A, slong prec)
+    void _arb_mat_vector_mul_col(arb_ptr res, const arb_mat_t A, arb_srcptr v, slong prec)
+    void arb_mat_vector_mul_row(arb_ptr res, arb_srcptr v, const arb_mat_t A, slong prec)
+    void arb_mat_vector_mul_col(arb_ptr res, const arb_mat_t A, arb_srcptr v, slong prec)
     int arb_mat_lu_classical(slong * perm, arb_mat_t LU, const arb_mat_t A, slong prec)
     int arb_mat_lu_recursive(slong * perm, arb_mat_t LU, const arb_mat_t A, slong prec)
     int arb_mat_lu(slong * perm, arb_mat_t LU, const arb_mat_t A, slong prec)
@@ -132,3 +128,6 @@ cdef extern from "flint/arb_mat.h":
     slong arb_mat_count_not_is_zero(const arb_mat_t mat)
     void arb_mat_get_mid(arb_mat_t B, const arb_mat_t A)
     void arb_mat_add_error_mag(arb_mat_t mat, const mag_t err)
+    int arb_mat_spd_get_fmpz_mat(fmpz_mat_t B, const arb_mat_t A, slong prec)
+    void arb_mat_spd_lll_reduce(fmpz_mat_t U, const arb_mat_t A, slong prec)
+    int arb_mat_spd_is_lll_reduced(const arb_mat_t A, slong tol_exp, slong prec)

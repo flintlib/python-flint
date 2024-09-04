@@ -3,9 +3,8 @@ from flint.flintlib.dirichlet cimport dirichlet_group_t, dirichlet_char_t
 from flint.flintlib.flint cimport ulong, slong
 from flint.flintlib.acb_poly cimport acb_poly_t
 from flint.flintlib.fmpz cimport fmpz_t
-from flint.flintlib.arb cimport arb_t, arb_ptr
-from flint.flintlib.mag cimport mag_t, mag_struct
-from flint.flintlib.acb cimport acb_struct, acb_srcptr
+from flint.flintlib.arb_types cimport mag_t, mag_struct, arb_t, arb_ptr
+from flint.flintlib.acb_types cimport acb_struct, acb_srcptr
 from flint.flintlib.fmpq cimport fmpq_t
 from flint.flintlib.arf cimport arf_t
 from flint.flintlib.arb cimport arb_srcptr
