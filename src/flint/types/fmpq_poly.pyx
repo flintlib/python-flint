@@ -14,7 +14,7 @@ from flint.flintlib.fmpq cimport fmpq_is_zero
 from flint.flintlib.fmpq_poly cimport *
 from flint.flintlib.arith cimport arith_bernoulli_polynomial
 from flint.flintlib.arith cimport arith_euler_polynomial
-from flint.flintlib.arith cimport arith_legendre_polynomial
+from flint.flintlib.arith_types cimport arith_legendre_polynomial
 
 from flint.utils.flint_exceptions import DomainError
 

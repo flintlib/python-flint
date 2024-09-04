@@ -1,36 +1,26 @@
-from flint.flintlib.acb_types cimport (
-    acb_t,
-    acb_srcptr,
-    acb_ptr,
-    acb_poly_struct,
-    acb_poly_t,
-)
-from flint.flintlib.arb cimport arb_t, arb_ptr, arb_srcptr
-from flint.flintlib.flint cimport ulong, slong, flint_rand_t
-from flint.flintlib.fmpz_types cimport fmpz_mat_t, fmpz_mat_struct
-from flint.flintlib.acb_mat cimport acb_mat_t
-from flint.flintlib.arb_mat cimport arb_mat_t
-from flint.flintlib.arf cimport arf_t
+from flint.flintlib.acb_types cimport acb_mat_t, acb_poly_struct, acb_poly_t, acb_ptr, acb_srcptr, acb_t, acb_theta_eld_t, acb_theta_naive_worker_t, acb_theta_ql_worker_t
+from flint.flintlib.arb_types cimport arb_mat_t, arb_ptr, arb_srcptr, arb_t
+from flint.flintlib.arf_types cimport arf_t
+from flint.flintlib.flint cimport flint_rand_t, slong, ulong
+from flint.flintlib.fmpz_types cimport fmpz_mat_struct, fmpz_mat_t
 
+
+# .. macro:: acb_theta_eld_dim(E)
+# .. macro:: acb_theta_eld_ambient_dim(E)
+# .. macro:: acb_theta_eld_coord(E, k)
+# .. macro:: acb_theta_eld_min(E)
+# .. macro:: acb_theta_eld_mid(E)
+# .. macro:: acb_theta_eld_max(E)
+# .. macro:: acb_theta_eld_nr(E)
+# .. macro:: acb_theta_eld_nl(E)
+# .. macro:: acb_theta_eld_rchild(E, k)
+# .. macro:: acb_theta_eld_lchild(E, k)
+# .. macro:: acb_theta_eld_nb_pts(E)
+# .. macro:: acb_theta_eld_nb_border(E)
+# .. macro:: acb_theta_eld_box(E, k)
+# .. macro:: ACB_THETA_G2_COV_NB
 
 cdef extern from "flint/acb_theta.h":
-    ctypedef struct acb_theta_eld_struct:
-        slong dim
-        slong ambient_dim
-        slong * last_coords
-        slong min
-        slong mid
-        slong max
-        slong nr
-        slong nl
-        acb_theta_eld_struct * rchildren
-        acb_theta_eld_struct * lchildren
-        slong nb_pts, nb_border
-        slong * box
-    ctypedef acb_theta_eld_struct acb_theta_eld_t[1]
-    ctypedef void (*acb_theta_naive_worker_t)(acb_ptr, acb_srcptr, acb_srcptr, const slong *, slong, const acb_t, const slong *, slong, slong, slong, slong)
-    ctypedef int (*acb_theta_ql_worker_t)(acb_ptr, acb_srcptr, acb_srcptr, arb_srcptr, arb_srcptr, const acb_mat_t, slong, slong)
-
     void acb_theta_all(acb_ptr th, acb_srcptr z, const acb_mat_t tau, int sqr, slong prec)
     void acb_theta_naive_fixed_ab(acb_ptr th, ulong ab, acb_srcptr zs, slong nb, const acb_mat_t tau, slong prec)
     void acb_theta_naive_all(acb_ptr th, acb_srcptr zs, slong nb, const acb_mat_t tau, slong prec)

@@ -1,39 +1,14 @@
-from flint.flintlib.acb cimport acb_t, acb_ptr
-from flint.flintlib.dirichlet cimport dirichlet_group_t, dirichlet_char_t
-from flint.flintlib.flint cimport ulong, slong
-from flint.flintlib.acb_poly cimport acb_poly_t
-from flint.flintlib.fmpz cimport fmpz_t
-from flint.flintlib.arb_types cimport mag_t, mag_struct, arb_t, arb_ptr
-from flint.flintlib.acb_types cimport acb_struct, acb_srcptr
+from flint.flintlib.acb_types cimport acb_dirichlet_hurwitz_precomp_t, acb_dirichlet_roots_t, acb_poly_t, acb_ptr, acb_srcptr, acb_t
+from flint.flintlib.arb_types cimport arb_ptr, arb_srcptr, arb_t, mag_t
+from flint.flintlib.arf_types cimport arf_t
+from flint.flintlib.dirichlet cimport dirichlet_char_t, dirichlet_group_t
+from flint.flintlib.flint cimport slong, ulong
 from flint.flintlib.fmpq cimport fmpq_t
-from flint.flintlib.arf cimport arf_t
-from flint.flintlib.arb cimport arb_srcptr
+from flint.flintlib.fmpz_types cimport fmpz_t
+
+
 
 cdef extern from "flint/acb_dirichlet.h":
-    ctypedef struct acb_dirichlet_roots_struct:
-        ulong order
-        ulong reduced_order
-        acb_t z
-        slong size
-        slong depth
-        acb_ptr Z
-        int use_pow
-
-    ctypedef acb_dirichlet_roots_struct acb_dirichlet_roots_t[1]
-
-    ctypedef struct acb_dirichlet_hurwitz_precomp_struct:
-        acb_struct s
-        mag_struct err
-        acb_ptr coeffs
-        int deflate
-        slong A
-        slong N
-        slong K
-
-    ctypedef acb_dirichlet_hurwitz_precomp_struct acb_dirichlet_hurwitz_precomp_t[1]
-
-
-# from here on is parsed
     void acb_dirichlet_roots_init(acb_dirichlet_roots_t roots, ulong n, slong num, slong prec)
     void acb_dirichlet_roots_clear(acb_dirichlet_roots_t roots)
     void acb_dirichlet_root(acb_t res, const acb_dirichlet_roots_t roots, ulong k, slong prec)
@@ -51,13 +26,13 @@ cdef extern from "flint/acb_dirichlet.h":
     void acb_dirichlet_zeta_rs_bound(mag_t err, const acb_t s, slong K)
     void acb_dirichlet_zeta_rs_r(acb_t res, const acb_t s, slong K, slong prec)
     void acb_dirichlet_zeta_rs(acb_t res, const acb_t s, slong K, slong prec)
-    void acb_dirichlet_zeta_jet_rs(acb_t res, const acb_t s, slong len, slong prec)
+    void acb_dirichlet_zeta_jet_rs(acb_ptr res, const acb_t s, slong len, slong prec)
     void acb_dirichlet_hurwitz(acb_t res, const acb_t s, const acb_t a, slong prec)
-    void acb_dirichlet_hurwitz_precomp_init(acb_dirichlet_hurwitz_precomp_t pre, const acb_t s, int deflate, ulong A, ulong K, ulong N, slong prec)
+    void acb_dirichlet_hurwitz_precomp_init(acb_dirichlet_hurwitz_precomp_t pre, const acb_t s, int deflate, slong A, slong K, slong N, slong prec)
     void acb_dirichlet_hurwitz_precomp_init_num(acb_dirichlet_hurwitz_precomp_t pre, const acb_t s, int deflate, double num_eval, slong prec)
     void acb_dirichlet_hurwitz_precomp_clear(acb_dirichlet_hurwitz_precomp_t pre)
     void acb_dirichlet_hurwitz_precomp_choose_param(ulong * A, ulong * K, ulong * N, const acb_t s, double num_eval, slong prec)
-    void acb_dirichlet_hurwitz_precomp_bound(mag_t res, const acb_t s, ulong A, ulong K, ulong N)
+    void acb_dirichlet_hurwitz_precomp_bound(mag_t res, const acb_t s, slong A, slong K, slong N)
     void acb_dirichlet_hurwitz_precomp_eval(acb_t res, const acb_dirichlet_hurwitz_precomp_t pre, ulong p, ulong q, slong prec)
     void acb_dirichlet_lerch_phi_integral(acb_t res, const acb_t z, const acb_t s, const acb_t a, slong prec)
     void acb_dirichlet_lerch_phi_direct(acb_t res, const acb_t z, const acb_t s, const acb_t a, slong prec)
@@ -69,10 +44,9 @@ cdef extern from "flint/acb_dirichlet.h":
     void acb_dirichlet_pairing_char(acb_t res, const dirichlet_group_t G, const dirichlet_char_t a, const dirichlet_char_t b, slong prec)
     void acb_dirichlet_gauss_sum_naive(acb_t res, const dirichlet_group_t G, const dirichlet_char_t chi, slong prec)
     void acb_dirichlet_gauss_sum_factor(acb_t res, const dirichlet_group_t G, const dirichlet_char_t chi, slong prec)
-    void acb_dirichlet_gauss_sum_order2(acb_t res, const dirichlet_char_t chi, slong prec)
+    void acb_dirichlet_gauss_sum_order2(acb_t res, const dirichlet_group_t G, const dirichlet_char_t chi, slong prec)
     void acb_dirichlet_gauss_sum_theta(acb_t res, const dirichlet_group_t G, const dirichlet_char_t chi, slong prec)
     void acb_dirichlet_gauss_sum(acb_t res, const dirichlet_group_t G, const dirichlet_char_t chi, slong prec)
-    void acb_dirichlet_gauss_sum_ui(acb_t res, const dirichlet_group_t G, ulong a, slong prec)
     void acb_dirichlet_jacobi_sum_naive(acb_t res, const dirichlet_group_t G, const dirichlet_char_t chi1, const dirichlet_char_t chi2, slong prec)
     void acb_dirichlet_jacobi_sum_factor(acb_t res,  const dirichlet_group_t G, const dirichlet_char_t chi1, const dirichlet_char_t chi2, slong prec)
     void acb_dirichlet_jacobi_sum_gauss(acb_t res, const dirichlet_group_t G, const dirichlet_char_t chi1, const dirichlet_char_t chi2, slong prec)
@@ -81,8 +55,8 @@ cdef extern from "flint/acb_dirichlet.h":
     void acb_dirichlet_chi_theta_arb(acb_t res, const dirichlet_group_t G, const dirichlet_char_t chi, const arb_t t, slong prec)
     void acb_dirichlet_ui_theta_arb(acb_t res, const dirichlet_group_t G, ulong a, const arb_t t, slong prec)
     ulong acb_dirichlet_theta_length(ulong q, const arb_t t, slong prec)
-    void acb_dirichlet_qseries_powers_naive(acb_t res, const arb_t x, int p, const ulong * a, const acb_dirichlet_roots_t z, slong len, slong prec)
-    void acb_dirichlet_qseries_powers_smallorder(acb_t res, const arb_t x, int p, const ulong * a, const acb_dirichlet_roots_t z, slong len, slong prec)
+    void acb_dirichlet_qseries_arb_powers_naive(acb_t res, const arb_t x, int p, const ulong * a, const acb_dirichlet_roots_t z, slong len, slong prec)
+    void acb_dirichlet_qseries_arb_powers_smallorder(acb_t res, const arb_t x, int p, const ulong * a, const acb_dirichlet_roots_t z, slong len, slong prec)
     void acb_dirichlet_dft_conrey(acb_ptr w, acb_srcptr v, const dirichlet_group_t G, slong prec)
     void acb_dirichlet_dft(acb_ptr w, acb_srcptr v, const dirichlet_group_t G, slong prec)
     void acb_dirichlet_root_number_theta(acb_t res, const dirichlet_group_t G, const dirichlet_char_t chi, slong prec)
@@ -98,7 +72,7 @@ cdef extern from "flint/acb_dirichlet.h":
     void _acb_dirichlet_l_series(acb_ptr res, acb_srcptr s, slong slen, const dirichlet_group_t G, const dirichlet_char_t chi, int deflate, slong len, slong prec)
     void acb_dirichlet_l_series(acb_poly_t res, const acb_poly_t s, const dirichlet_group_t G, const dirichlet_char_t chi, int deflate, slong len, slong prec)
     void acb_dirichlet_hardy_theta(acb_ptr res, const acb_t t, const dirichlet_group_t G, const dirichlet_char_t chi, slong len, slong prec)
-    void acb_dirichlet_hardy_z(acb_t res, const acb_t t, const dirichlet_group_t G, const dirichlet_char_t chi, slong len, slong prec)
+    void acb_dirichlet_hardy_z(acb_ptr res, const acb_t t, const dirichlet_group_t G, const dirichlet_char_t chi, slong len, slong prec)
     void _acb_dirichlet_hardy_theta_series(acb_ptr res, acb_srcptr t, slong tlen, const dirichlet_group_t G, const dirichlet_char_t chi, slong len, slong prec)
     void acb_dirichlet_hardy_theta_series(acb_poly_t res, const acb_poly_t t, const dirichlet_group_t G, const dirichlet_char_t chi, slong len, slong prec)
     void _acb_dirichlet_hardy_z_series(acb_ptr res, acb_srcptr t, slong tlen, const dirichlet_group_t G, const dirichlet_char_t chi, slong len, slong prec)

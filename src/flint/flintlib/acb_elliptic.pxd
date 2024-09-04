@@ -1,9 +1,9 @@
-from flint.flintlib.acb cimport acb_t, acb_ptr, acb_srcptr
-from flint.flintlib.acb_poly cimport acb_poly_t
+from flint.flintlib.acb_types cimport acb_poly_t, acb_ptr, acb_srcptr, acb_t
 from flint.flintlib.flint cimport slong
 
+
+
 cdef extern from "flint/acb_elliptic.h":
-# from here on is parsed
     void acb_elliptic_k(acb_t res, const acb_t m, slong prec)
     void acb_elliptic_k_jet(acb_ptr res, const acb_t m, slong len, slong prec)
     void _acb_elliptic_k_series(acb_ptr res, acb_srcptr m, slong mlen, slong len, slong prec)

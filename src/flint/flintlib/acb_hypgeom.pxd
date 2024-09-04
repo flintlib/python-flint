@@ -1,15 +1,10 @@
-from flint.flintlib.flint cimport ulong, slong
-from flint.flintlib.acb_types cimport (
-    acb_t,
-    acb_srcptr,
-    acb_ptr,
-    acb_poly_t,
-    acb_poly_struct,
-)
+from flint.flintlib.acb_types cimport acb_poly_struct, acb_poly_t, acb_ptr, acb_srcptr, acb_t
 from flint.flintlib.arb_types cimport mag_t
+from flint.flintlib.flint cimport slong, ulong
+
+
 
 cdef extern from "flint/acb_hypgeom.h":
-# from here on is parsed
     void acb_hypgeom_rising_ui_forward(acb_t res, const acb_t x, ulong n, slong prec)
     void acb_hypgeom_rising_ui_bs(acb_t res, const acb_t x, ulong n, slong prec)
     void acb_hypgeom_rising_ui_rs(acb_t res, const acb_t x, ulong n, ulong m, slong prec)
