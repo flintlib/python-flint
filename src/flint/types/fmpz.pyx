@@ -862,7 +862,7 @@ cdef class fmpz(flint_scalar):
             605263138639095300
         """
         cdef fmpz v = fmpz()
-        arith_divisor_sigma(v.val, k, n.val)
+        fmpz_divisor_sigma(v.val, k, n.val)
         return v
 
     def euler_phi(n):
@@ -875,7 +875,7 @@ cdef class fmpz(flint_scalar):
             39366
         """
         cdef fmpz v = fmpz()
-        arith_euler_phi(v.val, n.val)
+        fmpz_euler_phi(v.val, n.val)
         return v
 
     def __hash__(self):

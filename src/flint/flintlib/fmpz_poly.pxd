@@ -1,8 +1,8 @@
-from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, nn_ptr, nn_srcptr, slong, ulong
 from flint.flintlib.fmpq cimport fmpq_struct, fmpq_t
-from flint.flintlib.types.fmpz cimport fmpz_poly_factor_t, fmpz_poly_t, fmpz_preinvn_t, fmpz_t
 from flint.flintlib.nmod_poly cimport nmod_poly_t
 from flint.flintlib.nmod_poly_factor cimport nmod_poly_factor_t
+from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, nn_ptr, nn_srcptr, slong, ulong
+from flint.flintlib.types.fmpz cimport fmpz_poly_factor_t, fmpz_poly_t, fmpz_preinvn_t, fmpz_t
 
 # unknown type FILE
 # unknown type fmpz_poly_mul_precache_t

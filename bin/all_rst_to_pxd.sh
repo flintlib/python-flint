@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 
-FLINT_DOC_DIR=$1
-
 set -e
+
+if [ $# -eq 0 ]
+  then
+    echo "Usage: bin/all_rst_to_pxd.sh /path/to/flint/doc/source"
+    exit 1
+fi
+
+FLINT_DOC_DIR=$1
 
 modules=(
     "acb_calc"

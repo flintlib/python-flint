@@ -1,12 +1,11 @@
-from flint.flintlib.arb cimport arb_t, arb_srcptr, arb_ptr
-from flint.flintlib.arb_poly cimport arb_poly_t
-from flint.flintlib.fmpz cimport fmpz_t, fmpz_struct
-from flint.flintlib.types.flint cimport ulong, slong
-from flint.flintlib.mag cimport mag_t
-from flint.flintlib.fmpq cimport fmpq_t, fmpq_struct
+from flint.flintlib.fmpq cimport fmpq_struct, fmpq_t
+from flint.flintlib.types.arb cimport arb_poly_t, arb_ptr, arb_srcptr, arb_t, mag_t
+from flint.flintlib.types.flint cimport fmpz_struct, slong, ulong
+from flint.flintlib.types.fmpz cimport fmpz_t
+
+
 
 cdef extern from "flint/arb_hypgeom.h":
-# from here on is parsed
     void _arb_hypgeom_rising_coeffs_1(ulong * c, ulong k, slong n)
     void _arb_hypgeom_rising_coeffs_2(ulong * c, ulong k, slong n)
     void _arb_hypgeom_rising_coeffs_fmpz(fmpz_struct * c, ulong k, slong n)
@@ -37,9 +36,9 @@ cdef extern from "flint/arb_hypgeom.h":
     void arb_hypgeom_1f1(arb_t res, const arb_t a, const arb_t b, const arb_t z, int regularized, slong prec)
     void arb_hypgeom_1f1_integration(arb_t res, const arb_t a, const arb_t b, const arb_t z, int regularized, slong prec)
     void arb_hypgeom_u(arb_t res, const arb_t a, const arb_t b, const arb_t z, slong prec)
-    void arb_hypgeom_u_integration(arb_t res, const arb_t a, const arb_t b, const arb_t z, int regularized, slong prec)
+    void arb_hypgeom_u_integration(arb_t res, const arb_t a, const arb_t b, const arb_t z, slong prec)
     void arb_hypgeom_2f1(arb_t res, const arb_t a, const arb_t b, const arb_t c, const arb_t z, int regularized, slong prec)
-    void arb_hypgeom_2f1_integration(arb_t res, const arb_t a, const arb_t b, const arb_t z, int regularized, slong prec)
+    void arb_hypgeom_2f1_integration(arb_t res, const arb_t a, const arb_t b, const arb_t c, const arb_t z, int regularized, slong prec)
     void arb_hypgeom_erf(arb_t res, const arb_t z, slong prec)
     void _arb_hypgeom_erf_series(arb_ptr res, arb_srcptr z, slong zlen, slong len, slong prec)
     void arb_hypgeom_erf_series(arb_poly_t res, const arb_poly_t z, slong len, slong prec)
@@ -126,7 +125,7 @@ cdef extern from "flint/arb_hypgeom.h":
     void arb_hypgeom_legendre_p_ui_zero(arb_t res, arb_t res_prime, ulong n, const arb_t x, slong K, slong prec)
     void arb_hypgeom_legendre_p_ui_one(arb_t res, arb_t res_prime, ulong n, const arb_t x, slong K, slong prec)
     void arb_hypgeom_legendre_p_ui_asymp(arb_t res, arb_t res_prime, ulong n, const arb_t x, slong K, slong prec)
-    void arb_hypgeom_legendre_p_rec(arb_t res, arb_t res_prime, ulong n, const arb_t x, slong prec)
+    void arb_hypgeom_legendre_p_ui_rec(arb_t res, arb_t res_prime, ulong n, const arb_t x, slong prec)
     void arb_hypgeom_legendre_p_ui(arb_t res, arb_t res_prime, ulong n, const arb_t x, slong prec)
     void arb_hypgeom_legendre_p_ui_root(arb_t res, arb_t weight, ulong n, ulong k, slong prec)
     void arb_hypgeom_dilog(arb_t res, const arb_t z, slong prec)

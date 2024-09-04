@@ -22,6 +22,7 @@ from flint.flintlib.ulong_extras cimport n_is_prime
 from flint.flintlib.fmpz_poly cimport *
 from flint.flintlib.fmpz_poly_factor cimport *
 from flint.flintlib.arith cimport *
+from flint.flintlib.types.arith cimport arith_chebyshev_t_polynomial, arith_chebyshev_u_polynomial
 from flint.flintlib.acb cimport *
 from flint.flintlib.arb_poly cimport *
 from flint.flintlib.arb_fmpz_poly cimport *

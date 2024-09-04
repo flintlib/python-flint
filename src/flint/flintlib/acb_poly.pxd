@@ -1,7 +1,7 @@
+from flint.flintlib.fmpq_poly cimport fmpq_poly_t
 from flint.flintlib.types.acb cimport acb_poly_t, acb_ptr, acb_srcptr, acb_t
 from flint.flintlib.types.arb cimport arb_poly_t, arb_ptr, mag_t
 from flint.flintlib.types.flint cimport flint_rand_t, slong, ulong
-from flint.flintlib.fmpq_poly cimport fmpq_poly_t
 from flint.flintlib.types.fmpz cimport fmpz_poly_t, fmpz_t
 
 # unknown type FILE
