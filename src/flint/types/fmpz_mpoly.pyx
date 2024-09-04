@@ -20,8 +20,11 @@ from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_clear,
     fmpz_mpoly_compose_fmpz_mpoly,
     fmpz_mpoly_ctx_init,
+    fmpz_mpoly_deflate,
+    fmpz_mpoly_deflation,
     fmpz_mpoly_degrees_fmpz,
     fmpz_mpoly_derivative,
+    fmpz_mpoly_discriminant,
     fmpz_mpoly_div,
     fmpz_mpoly_divides,
     fmpz_mpoly_divrem,
@@ -42,8 +45,10 @@ from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_mul,
     fmpz_mpoly_neg,
     fmpz_mpoly_pow_fmpz,
+    fmpz_mpoly_primitive_part,
     fmpz_mpoly_push_term_fmpz_ffmpz,
     fmpz_mpoly_reduction_primitive_part,
+    fmpz_mpoly_resultant,
     fmpz_mpoly_scalar_mul_fmpz,
     fmpz_mpoly_set,
     fmpz_mpoly_set_coeff_fmpz_fmpz,
@@ -54,6 +59,7 @@ from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_sqrt_heap,
     fmpz_mpoly_sub,
     fmpz_mpoly_sub_fmpz,
+    fmpz_mpoly_term_content,
     fmpz_mpoly_total_degree_fmpz,
     fmpz_mpoly_vec_autoreduction,
     fmpz_mpoly_vec_autoreduction_groebner,
@@ -748,6 +754,89 @@ cdef class fmpz_mpoly(flint_mpoly):
         fmpz_mpoly_gcd(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
         return res
 
+    def term_content(self):
+        """
+        Return the GCD of the terms of `self`. If `self` is zero, then the result will
+        be zero, otherwise it will be a monomial with positive coefficient.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> x0, x1 = ctx.gens()
+            >>> f = 3 * x0**2 * x1 + 6 * x0 * x1
+            >>> f.term_content()
+            3*x0*x1
+        """
+        cdef fmpz_mpoly res = create_fmpz_mpoly(self.ctx)
+        fmpz_mpoly_term_content(res.val, self.val, self.ctx.val)
+        return res
+
+    def resultant(self, other, var):
+        """
+        Return the resultant of `self` and `other` with respect to variable `var`.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> x0, x1 = ctx.gens()
+            >>> f = x0**2 * x1 + x0 * x1
+            >>> g = x0 + x1
+            >>> f.resultant(g, 'x1')
+            x0^3 + x0^2
+        """
+        cdef:
+            fmpz_mpoly res
+            slong i
+
+        if not typecheck(other, fmpz_mpoly):
+            raise TypeError("argument must be a fmpz_mpoly")
+        elif (<fmpz_mpoly>self).ctx is not (<fmpz_mpoly>other).ctx:
+            raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
+
+        i = self.ctx.variable_to_index(var)
+        res = create_fmpz_mpoly(self.ctx)
+        if not fmpz_mpoly_resultant(res.val, self.val, (<fmpz_mpoly>other).val, i, self.ctx.val):
+            raise RuntimeError(f"failed to compute resultant with respect to {var}")
+        return res
+
+    def discriminant(self, var):
+        """
+        Return the discriminant of `self` with respect to variable `var`.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> x0, x1 = ctx.gens()
+            >>> f = (x0 + x1)**2 + 1
+            >>> f.discriminant('x1')
+            -4
+
+        """
+        cdef:
+            fmpz_mpoly res
+            slong i
+
+        i = self.ctx.variable_to_index(var)
+        res = create_fmpz_mpoly(self.ctx)
+        if not fmpz_mpoly_discriminant(res.val, self.val, i, self.ctx.val):
+            raise RuntimeError(f"failed to compute discriminant with respect to {var}")
+        return res
+
+    def primitive_part(self):
+        """
+        Return the primitive part of `self` obtained by dividing out the content of
+        all coefficients and normalizing the leading coefficient to be positive.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> x, y = ctx.gens()
+            >>> f = x**2 * y + x * y
+            >>> f.primitive_part()
+            x0^2*x1 + x0*x1
+        """
+        cdef fmpz_mpoly res
+
+        res = create_fmpz_mpoly(self.ctx)
+        fmpz_mpoly_primitive_part(res.val, self.val, self.ctx.val)
+        return res
+
     def sqrt(self, assume_perfect_square: bool = False):
         """
         Return the square root of self.
@@ -976,6 +1065,18 @@ cdef class fmpz_mpoly(flint_mpoly):
         self.ctx.compatible_context_check((<fmpz_mpoly_vec>vec).ctx)
         fmpz_mpoly_reduction_primitive_part(res.val, self.val, (<fmpz_mpoly_vec>vec).val, self.ctx.val)
         return res
+
+    def deflation(self):
+        """
+        """
+        cdef:
+            fmpz_vec shift = fmpz_vec(self.ctx.nvars())
+            fmpz_vec stride = fmpz_vec(self.ctx.nvars())
+            fmpz_mpoly res = create_fmpz_mpoly(self.ctx)
+
+        fmpz_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
+        fmpz_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
+        return res, stride
 
 
 cdef class fmpz_mpoly_vec:

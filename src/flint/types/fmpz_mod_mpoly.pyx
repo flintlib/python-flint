@@ -22,8 +22,11 @@ from flint.flintlib.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_compose_fmpz_mod_mpoly,
     fmpz_mod_mpoly_ctx_get_modulus,
     fmpz_mod_mpoly_ctx_init,
+    fmpz_mod_mpoly_deflate,
+    fmpz_mod_mpoly_deflation,
     fmpz_mod_mpoly_degrees_fmpz,
     fmpz_mod_mpoly_derivative,
+    fmpz_mod_mpoly_discriminant,
     fmpz_mod_mpoly_div,
     fmpz_mod_mpoly_divides,
     fmpz_mod_mpoly_divrem,
@@ -44,16 +47,18 @@ from flint.flintlib.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_neg,
     fmpz_mod_mpoly_pow_fmpz,
     fmpz_mod_mpoly_push_term_fmpz_ffmpz,
+    fmpz_mod_mpoly_resultant,
     fmpz_mod_mpoly_scalar_mul_fmpz,
     fmpz_mod_mpoly_set,
     fmpz_mod_mpoly_set_coeff_fmpz_fmpz,
     fmpz_mod_mpoly_set_fmpz,
     fmpz_mod_mpoly_set_str_pretty,
     fmpz_mod_mpoly_sort_terms,
+    fmpz_mod_mpoly_sqrt,
     fmpz_mod_mpoly_sub,
     fmpz_mod_mpoly_sub_fmpz,
+    fmpz_mod_mpoly_term_content,
     fmpz_mod_mpoly_total_degree_fmpz,
-    fmpz_mod_mpoly_sqrt,
 )
 from flint.flintlib.fmpz_mod_mpoly_factor cimport (
     fmpz_mod_mpoly_factor,
@@ -842,6 +847,79 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         fmpz_mod_mpoly_gcd(res.val, (<fmpz_mod_mpoly>self).val, (<fmpz_mod_mpoly>other).val, res.ctx.val)
         return res
 
+    def term_content(self):
+        """
+        Return the GCD of the terms of `self`. If `self` is zero, then the result will
+        be zero, otherwise it will be a monomial with positive coefficient.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> x0, x1 = ctx.gens()
+            >>> f = 3 * x0**2 * x1 + 6 * x0 * x1
+            >>> f.term_content()
+            x0*x1
+        """
+        if not self.ctx.is_prime():
+            raise DomainError("gcd with non-prime modulus is not supported")
+
+        cdef fmpz_mod_mpoly res = create_fmpz_mod_mpoly(self.ctx)
+        fmpz_mod_mpoly_term_content(res.val, self.val, self.ctx.val)
+        return res
+
+    def resultant(self, other, var):
+        """
+        Return the resultant of `self` and `other` with respect to variable `var`.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> x0, x1 = ctx.gens()
+            >>> f = x0**2 * x1 + x0 * x1
+            >>> g = x0 + x1
+            >>> f.resultant(g, 'x1')
+            x0^3 + x0^2
+        """
+        cdef:
+            fmpz_mod_mpoly res
+            slong i
+
+        if not typecheck(other, fmpz_mod_mpoly):
+            raise TypeError("argument must be a fmpz_mod_mpoly")
+        elif (<fmpz_mod_mpoly>self).ctx is not (<fmpz_mod_mpoly>other).ctx:
+            raise IncompatibleContextError(f"{(<fmpz_mod_mpoly>self).ctx} is not {(<fmpz_mod_mpoly>other).ctx}")
+        elif not self.ctx.is_prime():
+            raise DomainError("gcd with non-prime modulus is not supported")
+
+        i = self.ctx.variable_to_index(var)
+        res = create_fmpz_mod_mpoly(self.ctx)
+        if not fmpz_mod_mpoly_resultant(res.val, self.val, (<fmpz_mod_mpoly>other).val, i, self.ctx.val):
+            raise RuntimeError(f"failed to compute resultant with respect to {var}")
+        return res
+
+    def discriminant(self, var):
+        """
+        Return the discriminant of `self` with respect to variable `var`.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> x0, x1 = ctx.gens()
+            >>> f = (x0 + x1)**2 + 1
+            >>> f.discriminant('x1')
+            7
+
+        """
+        cdef:
+            fmpz_mod_mpoly res
+            slong i
+
+        if not self.ctx.is_prime():
+            raise DomainError("gcd with non-prime modulus is not supported")
+
+        i = self.ctx.variable_to_index(var)
+        res = create_fmpz_mod_mpoly(self.ctx)
+        if not fmpz_mod_mpoly_discriminant(res.val, self.val, i, self.ctx.val):
+            raise RuntimeError(f"failed to compute discriminant with respect to {var}")
+        return res
+
     def sqrt(self):
         """
         Return the square root of self.
@@ -1002,6 +1080,19 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
         fmpz_mod_mpoly_derivative(res.val, self.val, i, self.ctx.val)
         return res
+
+    def deflation(self):
+        """
+        """
+        cdef:
+            fmpz_vec shift = fmpz_vec(self.ctx.nvars())
+            fmpz_vec stride = fmpz_vec(self.ctx.nvars())
+            fmpz_mod_mpoly res = create_fmpz_mod_mpoly(self.ctx)
+
+        fmpz_mod_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
+        fmpz_mod_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
+
+        return res, stride
 
 
 cdef class fmpz_mod_mpoly_vec:
