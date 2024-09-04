@@ -91,7 +91,7 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
     :param ordering:  The term order for the ring
     :param names:  A tuple containing the names of the variables of the ring.
 
-    Do not construct one of these directly, use `fmpz_mpoly_ctx.get_context`.
+    Do not construct one of these directly, use ``fmpz_mpoly_ctx.get_context``.
     """
 
     _ctx_cache = _fmpz_mpoly_ctx_cache
@@ -138,7 +138,7 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
 
     def gen(self, slong i):
         """
-        Return the `i`th generator of the polynomial ring
+        Return the ``i`` th generator of the polynomial ring
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(3, Ordering.degrevlex, 'z')
@@ -281,8 +281,8 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def __getitem__(self, x):
         """
-        Return the coefficient of the term with the exponent vector `x`.
-        Always returns a value, missing keys will return `0`.
+        Return the coefficient of the term with the exponent vector ``x``.
+        Always returns a value, missing keys will return ``0``.
         Negative exponents are made positive.
 
             >>> from flint import Ordering
@@ -307,7 +307,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def __setitem__(self, x, y):
         """
-        Set the coefficient of the term with the exponent vector `x` to `y`.
+        Set the coefficient of the term with the exponent vector ``x`` to ``y``.
         Will always set a value, missing keys will create a new term.
         Negative exponents are made positive.
 
@@ -639,7 +639,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def coefficient(self, slong i):
         """
-        Return the coefficient at index `i`.
+        Return the coefficient at index ``i``.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
@@ -657,7 +657,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def monomial(self, slong i):
         """
-        Return the exponent vector at index `i` as a tuple.
+        Return the exponent vector at index ``i`` as a tuple.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
@@ -756,7 +756,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def term_content(self):
         """
-        Return the GCD of the terms of `self`. If `self` is zero, then the result will
+        Return the GCD of the terms of ``self``. If ``self`` is zero, then the result will
         be zero, otherwise it will be a monomial with positive coefficient.
 
             >>> from flint import Ordering
@@ -772,7 +772,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def resultant(self, other, var):
         """
-        Return the resultant of `self` and `other` with respect to variable `var`.
+        Return the resultant of ``self`` and ``other`` with respect to variable ``var``.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
@@ -799,7 +799,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def discriminant(self, var):
         """
-        Return the discriminant of `self` with respect to variable `var`.
+        Return the discriminant of ``self`` with respect to variable ``var``.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
@@ -821,7 +821,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def primitive_part(self):
         """
-        Return the primitive part of `self` obtained by dividing out the content of
+        Return the primitive part of ``self`` obtained by dividing out the content of
         all coefficients and normalizing the leading coefficient to be positive.
 
             >>> from flint import Ordering
@@ -840,7 +840,7 @@ cdef class fmpz_mpoly(flint_mpoly):
     def sqrt(self, assume_perfect_square: bool = False):
         """
         Return the square root of self.
-        If self is known to be a perfect square provide `assume_perfect_square=True` for a more efficient
+        If self is known to be a perfect square provide ``assume_perfect_square=True`` for a more efficient
         result. If self is not a square root the result is not guaranteed to be correct.
 
             >>> from flint import Ordering
@@ -1022,7 +1022,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def spoly(self, g):
         """
-        Compute the S-polynomial of `self` and `g`, scaled to an integer polynomial
+        Compute the S-polynomial of ``self`` and ``g``, scaled to an integer polynomial
         by computing the LCM of the leading coefficients.
 
             >>> from flint import Ordering
@@ -1044,7 +1044,7 @@ cdef class fmpz_mpoly(flint_mpoly):
     def reduction_primitive_part(self, vec):
         """
         Compute the the primitive part of the reduction (remainder of multivariate
-        quasi-division with remainder) with respect to the polynomials `vec`.
+        quasi-division with remainder) with respect to the polynomials ``vec``.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
@@ -1068,7 +1068,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def deflation(self):
         """
-        Compute the deflation of `self`. See Flint documentation for
+        Compute the deflation of ``self``. See Flint documentation for
         details. Returns deflated polynomial and the stride vector.
 
             >>> from flint import Ordering
@@ -1182,8 +1182,8 @@ cdef class fmpz_mpoly_vec:
 
     def is_groebner(self, other=None) -> bool:
         """
-        Check if self is a Gröbner basis. If `other` is not None then check if self
-        is a Gröbner basis for `other`.
+        Check if self is a Gröbner basis. If ``other`` is not None then check if self
+        is a Gröbner basis for ``other``.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
@@ -1235,9 +1235,9 @@ cdef class fmpz_mpoly_vec:
 
     def autoreduction(self, groebner=False) -> fmpz_mpoly_vec:
         """
-        Compute the autoreduction of `self`. If `groebner` is True and `self` is a
-        Gröbner basis, compute the reduced reduced Gröbner basis of `self`, throws an
-        `RuntimeError` otherwise.
+        Compute the autoreduction of ``self``. If ``groebner`` is True and ``self`` is a
+        Gröbner basis, compute the reduced reduced Gröbner basis of ``self``, throws an
+        ``RuntimeError`` otherwise.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
@@ -1260,7 +1260,7 @@ cdef class fmpz_mpoly_vec:
         if groebner:
             if not self.is_groebner():
                 raise RuntimeError(
-                    "reduced Gröbner basis construction requires that `self` is a "
+                    "reduced Gröbner basis construction requires that ``self`` is a "
                     "Gröbner basis."
                 )
             fmpz_mpoly_vec_autoreduction_groebner(h.val, self.val, self.ctx.val)
@@ -1271,21 +1271,21 @@ cdef class fmpz_mpoly_vec:
 
     def buchberger_naive(self, limits=None):
         """
-        Compute the Gröbner basis of `self` using a naive implementation of
+        Compute the Gröbner basis of ``self`` using a naive implementation of
         Buchberger’s algorithm.
 
-        Provide `limits` in the form of a tuple of `(ideal_len_limit, poly_len_limit,
-        poly_bits_limit)` to halt execution if the length of the ideal basis set exceeds
-        `ideal_len_limit`, the length of any polynomial exceeds `poly_len_limit`, or the
-        size of the coefficients of any polynomial exceeds `poly_bits_limit`.
+        Provide ``limits`` in the form of a tuple of ``(ideal_len_limit, poly_len_limit,
+        poly_bits_limit)`` to halt execution if the length of the ideal basis set exceeds
+        ``ideal_len_limit``, the length of any polynomial exceeds ``poly_len_limit``, or the
+        size of the coefficients of any polynomial exceeds ``poly_bits_limit``.
 
-        If limits is provided return a tuple of `(result, success)`. If `success` is
-        False then `result` is a valid basis for `self`, but it may not be a Gröbner
+        If limits is provided return a tuple of ``(result, success)``. If ``success`` is
+        False then ``result`` is a valid basis for ``self``, but it may not be a Gröbner
         basis.
 
         NOTE: This function is exposed only for convenience, it is a naive
         implementation and does not compute a reduced basis. To construct a reduced
-        basis use `autoreduce`.
+        basis use ``autoreduce``.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))

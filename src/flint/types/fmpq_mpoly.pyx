@@ -90,7 +90,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
     :param ordering:  The term order for the ring
     :param names:  A tuple containing the names of the variables of the ring.
 
-    Do not construct one of these directly, use `fmpz_mpoly_ctx.get_context`.
+    Do not construct one of these directly, use ``fmpz_mpoly_ctx.get_context``.
     """
 
     _ctx_cache = _fmpq_mpoly_ctx_cache
@@ -139,7 +139,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
 
     def gen(self, slong i):
         """
-        Return the `i`th generator of the polynomial ring
+        Return the ``i`` th generator of the polynomial ring
 
             >>> from flint import Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(3, Ordering.degrevlex, 'z')
@@ -299,8 +299,8 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def __getitem__(self, x):
         """
-        Return the coefficient of the term with the exponent vector `x`.
-        Always returns a value, missing keys will return `0`.
+        Return the coefficient of the term with the exponent vector ``x``.
+        Always returns a value, missing keys will return ``0``.
         Negative exponents are made positive.
 
             >>> from flint import Ordering
@@ -325,7 +325,7 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def __setitem__(self, x, y):
         """
-        Set the coefficient of the term with the exponent vector `x` to `y`.
+        Set the coefficient of the term with the exponent vector ``x`` to ``y``.
         Will always set a value, missing keys will create a new term.
         Negative exponents are made positive.
 
@@ -657,7 +657,7 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def coefficient(self, slong i):
         """
-        Return the coefficient at index `i`.
+        Return the coefficient at index ``i``.
 
             >>> from flint import Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
@@ -675,7 +675,7 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def monomial(self, slong i):
         """
-        Return the exponent vector at index `i` as a tuple.
+        Return the exponent vector at index ``i`` as a tuple.
 
             >>> from flint import Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
@@ -776,7 +776,7 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def term_content(self):
         """
-        Return the GCD of the terms of `self`. If `self` is zero, then the result will
+        Return the GCD of the terms of ``self``. If ``self`` is zero, then the result will
         be zero, otherwise it will be a monomial with positive coefficient.
 
             >>> from flint import Ordering
@@ -792,7 +792,7 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def resultant(self, other, var):
         """
-        Return the resultant of `self` and `other` with respect to variable `var`.
+        Return the resultant of ``self`` and ``other`` with respect to variable ``var``.
 
             >>> from flint import Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
@@ -819,7 +819,7 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def discriminant(self, var):
         """
-        Return the discriminant of `self` with respect to variable `var`.
+        Return the discriminant of ``self`` with respect to variable ``var``.
 
             >>> from flint import Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
@@ -988,7 +988,7 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def deflation(self):
         """
-        Compute the deflation of `self`. See Flint documentation for
+        Compute the deflation of ``self``. See Flint documentation for
         details. Returns deflated polynomial and the stride vector.
 
             >>> from flint import Ordering

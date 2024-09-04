@@ -229,7 +229,7 @@ cdef class flint_poly(flint_elem):
         integer root and *m* is the multiplicity of the root.
 
         To compute complex roots of a polynomial, instead use
-        the `.complex_roots()` method, which is available on
+        the ``.complex_roots()`` method, which is available on
         certain polynomial rings.
 
             >>> from flint import fmpz_poly
@@ -322,9 +322,9 @@ cdef class flint_mpoly_context(flint_elem):
     @staticmethod
     def create_variable_names(slong nvars, names: str):
         """
-        Create a tuple of variable names based on the comma separated `names` string.
+        Create a tuple of variable names based on the comma separated ``names`` string.
 
-        If `names` contains a single value, and `nvars` > 1, then the variables are numbered, e.g.
+        If ``names`` contains a single value, and ``nvars`` > 1, then the variables are numbered, e.g.
 
             >>> flint_mpoly_context.create_variable_names(3, "x")
             ('x0', 'x1', 'x2')
@@ -344,24 +344,24 @@ cdef class flint_mpoly_context(flint_elem):
         Create a key for the context cache via the number of variables, the ordering, and
         either a variable name string, or a tuple of variable names.
         """
-        # A type hint of `ordering: Ordering` results in the error "TypeError: an integer is required" if a Ordering
+        # A type hint of ``ordering: Ordering`` results in the error "TypeError: an integer is required" if a Ordering
         # object is not provided. This is pretty obtuse so we check its type ourselves
         if not isinstance(ordering, Ordering):
-            raise TypeError(f"`ordering` ('{ordering}') is not an instance of flint.Ordering")
+            raise TypeError(f"``ordering`` ('{ordering}') is not an instance of flint.Ordering")
 
         if nametup is not None:
             key = nvars, ordering, nametup
         elif nametup is None and names is not None:
             key = nvars, ordering, cls.create_variable_names(nvars, names)
         else:
-            raise ValueError("must provide either `names` or `nametup`")
+            raise ValueError("must provide either ``names`` or ``nametup``")
         return key
 
     @classmethod
     def get_context(cls, *args, **kwargs):
         """
-        Retrieve a context via the number of variables, `nvars`, the ordering, `ordering`, and either a variable
-        name string, `names`, or a tuple of variable names, `nametup`.
+        Retrieve a context via the number of variables, ``nvars``, the ordering, ``ordering``, and either a variable
+        name string, ``names``, or a tuple of variable names, ``nametup``.
         """
         key = cls.create_context_key(*args, **kwargs)
 
@@ -725,7 +725,7 @@ cdef class flint_mpoly(flint_elem):
 
     def __contains__(self, x):
         """
-        Returns True if `self` contains a term with exponent vector `x` and a non-zero coefficient.
+        Returns True if ``self`` contains a term with exponent vector ``x`` and a non-zero coefficient.
 
             >>> from flint import fmpq_mpoly_ctx, Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
