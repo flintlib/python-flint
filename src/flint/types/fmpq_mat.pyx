@@ -4,10 +4,10 @@ from flint.types.fmpq_poly cimport fmpq_poly
 from flint.types.fmpq cimport any_as_fmpq
 from flint.types.fmpz cimport any_as_fmpz
 
-from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
-from flint.flintlib.fmpq cimport fmpq_set, fmpq_numref, fmpq_denref
-from flint.flintlib.fmpq_poly cimport fmpq_poly_init
-from flint.flintlib.fmpq_mat cimport *
+from flint.flintlib.functions.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
+from flint.flintlib.functions.fmpq cimport fmpq_set, fmpq_numref, fmpq_denref
+from flint.flintlib.functions.fmpq_poly cimport fmpq_poly_init
+from flint.flintlib.functions.fmpq_mat cimport *
 
 cimport cython
 

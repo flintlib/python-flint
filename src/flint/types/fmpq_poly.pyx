@@ -8,12 +8,12 @@ from flint.types.fmpq cimport any_as_fmpq
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 
-from flint.flintlib.fmpz cimport fmpz_is_zero
-from flint.flintlib.fmpz cimport fmpz_set
-from flint.flintlib.fmpq cimport fmpq_is_zero
-from flint.flintlib.fmpq_poly cimport *
-from flint.flintlib.arith cimport arith_bernoulli_polynomial
-from flint.flintlib.arith cimport arith_euler_polynomial
+from flint.flintlib.functions.fmpz cimport fmpz_is_zero
+from flint.flintlib.functions.fmpz cimport fmpz_set
+from flint.flintlib.functions.fmpq cimport fmpq_is_zero
+from flint.flintlib.functions.fmpq_poly cimport *
+from flint.flintlib.functions.arith cimport arith_bernoulli_polynomial
+from flint.flintlib.functions.arith cimport arith_euler_polynomial
 from flint.flintlib.types.arith cimport arith_legendre_polynomial
 
 from flint.utils.flint_exceptions import DomainError

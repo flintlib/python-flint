@@ -1,4 +1,4 @@
-from flint.flintlib.fmpz cimport fmpz_struct
+from flint.flintlib.functions.fmpz cimport fmpz_struct
 from flint.flintlib.types.flint cimport slong
 
 cdef class fmpz_vec:

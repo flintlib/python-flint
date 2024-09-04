@@ -15,11 +15,11 @@ from flint.types.dirichlet cimport dirichlet_char
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 from flint.types.fmpz cimport any_as_fmpz
-from flint.flintlib.acb cimport *
-from flint.flintlib.acb_poly cimport *
-from flint.flintlib.acb_modular cimport *
-from flint.flintlib.acb_hypgeom cimport *
-from flint.flintlib.acb_dirichlet cimport *
+from flint.flintlib.functions.acb cimport *
+from flint.flintlib.functions.acb_poly cimport *
+from flint.flintlib.functions.acb_modular cimport *
+from flint.flintlib.functions.acb_hypgeom cimport *
+from flint.flintlib.functions.acb_dirichlet cimport *
 
 cimport cython
 cimport libc.stdlib

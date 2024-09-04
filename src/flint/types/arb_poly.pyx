@@ -13,8 +13,8 @@ from flint.types.acb cimport acb
 from flint.types.acb_poly cimport acb_poly
 
 from flint.flintlib.types.arb cimport arb_struct, arb_poly_set_arb
-from flint.flintlib.arb cimport *
-from flint.flintlib.arb_poly cimport *
+from flint.flintlib.functions.arb cimport *
+from flint.flintlib.functions.arb_poly cimport *
 cimport libc.stdlib
 
 cdef arb_poly_coerce_operands(x, y):

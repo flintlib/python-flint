@@ -14,8 +14,8 @@ from flint.types.fmpz_vec cimport fmpz_vec
 from flint.types.fmpz_mod cimport fmpz_mod
 from flint.types.nmod cimport nmod
 
-from flint.flintlib.fmpz cimport fmpz_set
-from flint.flintlib.fmpz_mod_mpoly cimport (
+from flint.flintlib.functions.fmpz cimport fmpz_set
+from flint.flintlib.functions.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_add,
     fmpz_mod_mpoly_add_fmpz,
     fmpz_mod_mpoly_clear,
@@ -55,7 +55,7 @@ from flint.flintlib.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_total_degree_fmpz,
     fmpz_mod_mpoly_sqrt,
 )
-from flint.flintlib.fmpz_mod_mpoly_factor cimport (
+from flint.flintlib.functions.fmpz_mod_mpoly_factor cimport (
     fmpz_mod_mpoly_factor,
     fmpz_mod_mpoly_factor_clear,
     fmpz_mod_mpoly_factor_init,

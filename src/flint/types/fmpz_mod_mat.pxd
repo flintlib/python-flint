@@ -1,6 +1,6 @@
 from flint.flintlib.types.flint cimport slong
-from flint.flintlib.fmpz cimport fmpz_t
-from flint.flintlib.fmpz_mod_mat cimport fmpz_mod_mat_t
+from flint.flintlib.functions.fmpz cimport fmpz_t
+from flint.flintlib.functions.fmpz_mod_mat cimport fmpz_mod_mat_t
 
 from flint.flint_base.flint_base cimport flint_mat
 from flint.types.fmpz_mod cimport fmpz_mod_ctx, fmpz_mod

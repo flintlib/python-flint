@@ -1,6 +1,6 @@
 from flint.flint_base.flint_base cimport flint_poly
 
-from flint.flintlib.nmod_poly cimport nmod_poly_t
+from flint.flintlib.functions.nmod_poly cimport nmod_poly_t
 from flint.flintlib.types.flint cimport mp_limb_t
 
 cdef class nmod_poly(flint_poly):

@@ -1,12 +1,12 @@
 from flint.flint_base.flint_context cimport getprec
 from flint.types.acb cimport acb
 from flint.types.acb_mat cimport acb_mat
-from flint.flintlib.acb cimport *
+from flint.flintlib.functions.acb cimport *
 from flint.flintlib.types.acb cimport (
     acb_mat_entry,
 )
-from flint.flintlib.acb_mat cimport *
-from flint.flintlib.acb_theta cimport *
+from flint.flintlib.functions.acb_mat cimport *
+from flint.flintlib.functions.acb_theta cimport *
 
 
 def acb_theta(acb_mat z, acb_mat tau, ulong square=False):

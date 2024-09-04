@@ -1,4 +1,4 @@
-from flint.flintlib.fmpq cimport fmpq_struct
+from flint.flintlib.functions.fmpq cimport fmpq_struct
 from flint.flintlib.types.flint cimport slong
 
 cdef class fmpq_vec:

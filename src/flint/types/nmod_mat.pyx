@@ -1,16 +1,16 @@
 cimport cython
 
 from flint.flintlib.types.flint cimport ulong, mp_limb_t
-from flint.flintlib.nmod cimport nmod_t
+from flint.flintlib.functions.nmod cimport nmod_t
 
-from flint.flintlib.nmod_poly cimport (
+from flint.flintlib.functions.nmod_poly cimport (
     nmod_poly_init,
 )
 
-from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
-from flint.flintlib.fmpz_mat cimport fmpz_mat_get_nmod_mat
+from flint.flintlib.functions.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
+from flint.flintlib.functions.fmpz_mat cimport fmpz_mat_get_nmod_mat
 
-from flint.flintlib.nmod_mat cimport (
+from flint.flintlib.functions.nmod_mat cimport (
     nmod_mat_struct,
     nmod_mat_init,
     nmod_mat_init_set,

@@ -5,11 +5,11 @@ from flint.utils.conversion cimport str_from_chars, _str_trunc
 cimport libc.stdlib
 
 from flint.flintlib.types.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN, COEFF_IS_MPZ
-from flint.flintlib.fmpz cimport *
+from flint.flintlib.functions.fmpz cimport *
 from flint.flintlib.types.fmpz cimport fmpz_factor_expand
-from flint.flintlib.fmpz_factor cimport *
-from flint.flintlib.arith cimport *
-from flint.flintlib.partitions cimport *
+from flint.flintlib.functions.fmpz_factor cimport *
+from flint.flintlib.functions.arith cimport *
+from flint.flintlib.functions.partitions cimport *
 
 from flint.utils.flint_exceptions import DomainError
 

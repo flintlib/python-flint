@@ -11,10 +11,10 @@ from flint.types.acb cimport any_as_acb
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 
-from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
-from flint.flintlib.fmpq_mat cimport fmpq_mat_nrows, fmpq_mat_ncols
-from flint.flintlib.mag cimport *
-from flint.flintlib.arb cimport *
+from flint.flintlib.functions.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
+from flint.flintlib.functions.fmpq_mat cimport fmpq_mat_nrows, fmpq_mat_ncols
+from flint.flintlib.functions.mag cimport *
+from flint.flintlib.functions.arb cimport *
 from flint.flintlib.types.arb cimport (
     mag_struct,
     arb_radref,
@@ -23,10 +23,10 @@ from flint.flintlib.types.arb cimport (
     arb_mat_nrows,
     arb_mat_ncols,
 )
-from flint.flintlib.arb_mat cimport *
-from flint.flintlib.arf cimport *
-from flint.flintlib.acb cimport *
-from flint.flintlib.acb_mat cimport *
+from flint.flintlib.functions.arb_mat cimport *
+from flint.flintlib.functions.arf cimport *
+from flint.flintlib.functions.acb cimport *
+from flint.flintlib.functions.acb_mat cimport *
 from flint.flintlib.types.acb cimport (
     acb_realref,
     acb_imagref,

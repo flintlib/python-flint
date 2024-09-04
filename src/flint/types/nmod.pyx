@@ -6,13 +6,13 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 
 from flint.flintlib.types.flint cimport ulong
-from flint.flintlib.fmpz cimport fmpz_t
-from flint.flintlib.nmod cimport nmod_pow_fmpz
-from flint.flintlib.nmod_vec cimport *
-from flint.flintlib.fmpz cimport fmpz_fdiv_ui, fmpz_init, fmpz_clear
-from flint.flintlib.fmpz cimport fmpz_set_ui, fmpz_get_ui
-from flint.flintlib.fmpq cimport fmpq_mod_fmpz
-from flint.flintlib.ulong_extras cimport n_gcdinv, n_sqrtmod
+from flint.flintlib.functions.fmpz cimport fmpz_t
+from flint.flintlib.functions.nmod cimport nmod_pow_fmpz
+from flint.flintlib.functions.nmod_vec cimport *
+from flint.flintlib.functions.fmpz cimport fmpz_fdiv_ui, fmpz_init, fmpz_clear
+from flint.flintlib.functions.fmpz cimport fmpz_set_ui, fmpz_get_ui
+from flint.flintlib.functions.fmpq cimport fmpq_mod_fmpz
+from flint.flintlib.functions.ulong_extras cimport n_gcdinv, n_sqrtmod
 
 from flint.utils.flint_exceptions import DomainError
 

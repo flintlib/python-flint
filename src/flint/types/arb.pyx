@@ -12,11 +12,11 @@ from flint.types.fmpq cimport fmpq
 from flint.types.fmpz cimport fmpz
 
 from flint.flintlib.types.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
-from flint.flintlib.mag cimport *
-from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear
-from flint.flintlib.arf cimport *
+from flint.flintlib.functions.mag cimport *
+from flint.flintlib.functions.fmpz cimport fmpz_init, fmpz_clear
+from flint.flintlib.functions.arf cimport *
 from flint.flintlib.types.arf cimport ARF_RND_NEAR, ARF_RND_DOWN
-from flint.flintlib.arb cimport *
+from flint.flintlib.functions.arb cimport *
 from flint.flintlib.types.arb cimport (
     arb_struct,
     arb_midref,
@@ -25,8 +25,8 @@ from flint.flintlib.types.arb cimport (
     ARB_STR_MORE,
     ARB_STR_CONDENSE,
 )
-from flint.flintlib.arb_hypgeom cimport *
-from flint.flintlib.acb_dirichlet cimport *
+from flint.flintlib.functions.arb_hypgeom cimport *
+from flint.flintlib.functions.acb_dirichlet cimport *
 
 cimport libc.stdlib
 cimport cython

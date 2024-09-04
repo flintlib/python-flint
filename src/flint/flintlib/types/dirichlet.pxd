@@ -1,5 +1,5 @@
 from flint.flintlib.types.flint cimport ulong
-from flint.flintlib.nmod cimport nmod_t
+from flint.flintlib.functions.nmod cimport nmod_t
 
 
 cdef extern from "flint/dirichlet.h":

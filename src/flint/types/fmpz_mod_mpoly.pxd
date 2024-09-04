@@ -1,6 +1,6 @@
 from flint.flint_base.flint_base cimport flint_mpoly, flint_mpoly_context
 
-from flint.flintlib.fmpz_mod_mpoly cimport (
+from flint.flintlib.functions.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_ctx_t,
     fmpz_mod_mpoly_t,
     fmpz_mod_mpoly_init,

@@ -1,4 +1,4 @@
-from flint.flintlib.arf cimport arf_rnd_t
+from flint.flintlib.functions.arf cimport arf_rnd_t
 from flint.flint_base.flint_base cimport flint_mat
 from flint.flint_base.flint_base cimport flint_mpoly
 from flint.flint_base.flint_base cimport flint_series
