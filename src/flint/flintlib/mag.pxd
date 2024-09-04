@@ -1,11 +1,12 @@
-from flint.flintlib.flint cimport ulong, mp_limb_t, slong, flint_rand_t
-from flint.flintlib.fmpz cimport fmpz_struct, fmpz_t
-from flint.flintlib.fmpq cimport fmpq_struct, fmpq_t
-from flint.flintlib.arb_types cimport mag_t, mag_ptr
+from flint.flintlib.arb_types cimport mag_ptr, mag_t
+from flint.flintlib.flint cimport flint_rand_t, slong, ulong
+from flint.flintlib.fmpq cimport fmpq_t
+from flint.flintlib.fmpz_types cimport fmpz_t
+
+# unknown type FILE
+
 
 cdef extern from "flint/mag.h":
-
-# from here on is parsed
     void mag_init(mag_t x)
     void mag_clear(mag_t x)
     void mag_swap(mag_t x, mag_t y)
@@ -22,7 +23,6 @@ cdef extern from "flint/mag.h":
     void mag_init_set(mag_t res, const mag_t x)
     void mag_set(mag_t res, const mag_t x)
     void mag_set_d(mag_t res, double x)
-    # void mag_set_fmpr(mag_t res, const fmpr_t x)
     void mag_set_ui(mag_t res, ulong x)
     void mag_set_fmpz(mag_t res, const fmpz_t x)
     void mag_set_d_lower(mag_t res, double x)
@@ -35,7 +35,6 @@ cdef extern from "flint/mag.h":
     void mag_set_fmpz_2exp_fmpz_lower(mag_t res, const fmpz_t x, const fmpz_t y)
     double mag_get_d(const mag_t x)
     double mag_get_d_log2_approx(const mag_t x)
-    # void mag_get_fmpr(fmpr_t res, const mag_t x)
     void mag_get_fmpq(fmpq_t res, const mag_t x)
     void mag_get_fmpz(fmpz_t res, const mag_t x)
     void mag_get_fmpz_lower(fmpz_t res, const mag_t x)
@@ -45,8 +44,11 @@ cdef extern from "flint/mag.h":
     void mag_min(mag_t res, const mag_t x, const mag_t y)
     void mag_max(mag_t res, const mag_t x, const mag_t y)
     void mag_print(const mag_t x)
+    # void mag_fprint(FILE * file, const mag_t x)
     char * mag_dump_str(const mag_t x)
     int mag_load_str(mag_t x, const char * str)
+    # int mag_dump_file(FILE * stream, const mag_t x)
+    # int mag_load_file(mag_t x, FILE * stream)
     void mag_randtest(mag_t res, flint_rand_t state, slong expbits)
     void mag_randtest_special(mag_t res, flint_rand_t state, slong expbits)
     void mag_add(mag_t res, const mag_t x, const mag_t y)

@@ -37,3 +37,15 @@ cdef extern from "flint/acb_mat.h":
 
 cdef extern from "flint/acb_poly.h":
     acb_ptr acb_poly_get_coeff_ptr(arb_poly_t poly, slong n)
+
+cdef extern from "flint/acb_calc.h":
+    ctypedef int (*acb_calc_func_t)(acb_ptr out, const acb_t inp, void * param, slong order, slong prec)
+
+    ctypedef struct acb_calc_integrate_opt_struct:
+        slong deg_limit
+        slong eval_limit
+        slong depth_limit
+        int use_heap
+        int verbose
+
+    ctypedef acb_calc_integrate_opt_struct acb_calc_integrate_opt_t[1]

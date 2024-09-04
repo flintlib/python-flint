@@ -62,8 +62,14 @@ def get_cython_struct_types(file):
         l = line.strip()
         if l[:8] == "ctypedef":
             if l[-1] == ']':
+                # ctypedef foo foo_t[0]
                 l = l[:l.rfind('[')]
+            elif '(' in l:
+                # ctypedef int (*foo_func)(...)
+                l = l[l.index('('):].lstrip('(*')
+                l = l[:l.index(')')]
             else:
+                # ctypedef foo:
                 l = l.strip(':')
             ret.append(l.split()[-1])
     return ret
