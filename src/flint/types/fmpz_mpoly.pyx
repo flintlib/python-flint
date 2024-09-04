@@ -1068,6 +1068,15 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def deflation(self):
         """
+        Compute the deflation of `self`. See Flint documentation for
+        details. Returns deflated polynomial and the stride vector.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**3 * y + x * y**4 + x * y
+            >>> f.deflation()
+            (x + y + 1, fmpz_vec(['2', '3'], 2))
         """
         cdef:
             fmpz_vec shift = fmpz_vec(self.ctx.nvars())
