@@ -186,15 +186,15 @@ cdef class nmod_mpoly_ctx(flint_mpoly_context):
         Return whether the modulus is prime
 
             >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(4, Ordering.degrevlex, 2**127, 'z')
+            >>> ctx = nmod_mpoly_ctx.get_context(4, Ordering.degrevlex, 2**32, 'z')
             >>> ctx.is_prime()
             False
-            >>> ctx = nmod_mpoly_ctx.get_context(4, Ordering.degrevlex, 2**127 - 1, 'z')
+            >>> ctx = nmod_mpoly_ctx.get_context(4, Ordering.degrevlex, 2**32 - 17, 'z')
             >>> ctx.is_prime()
             True
         """
         if self.__prime_modulus is None:
-            self.__prime_modulus = n_is_prime(self.modulus())
+            self.__prime_modulus = <bint>n_is_prime(self.modulus())
         return self.__prime_modulus
 
     def gen(self, slong i):
@@ -380,7 +380,7 @@ cdef class nmod_mpoly(flint_mpoly):
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p[1, 1] = 20
             >>> p
-            20*x0*x1 + 2*x1
+            9*x0*x1 + 2*x1
 
         """
         cdef:
@@ -803,7 +803,7 @@ cdef class nmod_mpoly(flint_mpoly):
             >>> f = ctx.from_dict({(1, 1): 4, (0, 0): 1})
             >>> g = ctx.from_dict({(0, 1): 2, (1, 0): 2})
             >>> (f * g).gcd(f)
-            4*x0*x1 + 1
+            x0*x1 + 3
         """
         cdef nmod_mpoly res
         if not typecheck(other, nmod_mpoly):
@@ -849,9 +849,9 @@ cdef class nmod_mpoly(flint_mpoly):
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*z + 3*x + 3*z + 3", ctx)
             >>> (p1 * p2).factor()
-            (6, [(z + 1, 1), (x + 2, 1), (x + 1, 1)])
+            (6, [(z + 1, 1), (x + 1, 1), (x + 2, 1)])
             >>> (p2 * p1 * p2).factor()
-            (18, [(z + 1, 2), (x + 2, 1), (x + 1, 2)])
+            (7, [(z + 1, 2), (x + 2, 1), (x + 1, 2)])
         """
         cdef:
             nmod_mpoly_factor_t fac
@@ -893,7 +893,7 @@ cdef class nmod_mpoly(flint_mpoly):
             >>> (p1 * p2).factor_squarefree()
             (6, [(y + 1, 1), (x^2 + 3*x + 2, 1)])
             >>> (p1 * p2 * p1).factor_squarefree()
-            (12, [(y + 1, 1), (x + 1, 1), (x + 2, 2)])
+            (1, [(y + 1, 1), (x + 1, 1), (x + 2, 2)])
         """
         cdef:
             nmod_mpoly_factor_t fac

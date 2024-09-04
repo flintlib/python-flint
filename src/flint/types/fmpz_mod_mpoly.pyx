@@ -203,7 +203,7 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
             True
         """
         if self.__prime_modulus is None:
-            self.__prime_modulus = self.modulus().is_prime()
+            self.__prime_modulus = <bint>self.modulus().is_prime()
         return self.__prime_modulus
 
     def gen(self, slong i):
@@ -406,7 +406,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p[1, 1] = 20
             >>> p
-            20*x0*x1 + 2*x1
+            9*x0*x1 + 2*x1
 
         """
         cdef:
@@ -829,7 +829,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             >>> f = ctx.from_dict({(1, 1): 4, (0, 0): 1})
             >>> g = ctx.from_dict({(0, 1): 2, (1, 0): 2})
             >>> (f * g).gcd(f)
-            4*x0*x1 + 1
+            x0*x1 + 3
         """
         cdef fmpz_mod_mpoly res
         if not typecheck(other, fmpz_mod_mpoly):
@@ -875,9 +875,9 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*z + 3*x + 3*z + 3", ctx)
             >>> (p1 * p2).factor()
-            (6, [(z + 1, 1), (x + 2, 1), (x + 1, 1)])
+            (6, [(z + 1, 1), (x + 1, 1), (x + 2, 1)])
             >>> (p2 * p1 * p2).factor()
-            (18, [(z + 1, 2), (x + 2, 1), (x + 1, 2)])
+            (7, [(z + 1, 2), (x + 2, 1), (x + 1, 2)])
         """
         cdef:
             fmpz_mod_mpoly_factor_t fac
@@ -920,7 +920,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             >>> (p1 * p2).factor_squarefree()
             (6, [(y + 1, 1), (x^2 + 3*x + 2, 1)])
             >>> (p1 * p2 * p1).factor_squarefree()
-            (12, [(y + 1, 1), (x + 1, 1), (x + 2, 2)])
+            (1, [(y + 1, 1), (x + 1, 1), (x + 2, 2)])
         """
         cdef:
             fmpz_mod_mpoly_factor_t fac
