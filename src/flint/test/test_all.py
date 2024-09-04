@@ -3229,6 +3229,27 @@ def test_mpolys():
             assert raises(lambda: quick_poly().gcd(None), TypeError)
             assert raises(lambda: quick_poly().gcd(P(ctx=ctx1)), IncompatibleContextError)
 
+        x0, x1 = ctx.gens()
+        assert (2*x0**3 + 4*x0**2 + 6*x0).term_content() == x0 if is_field else 2*x0
+        assert (3*x0**2*x1 + 6*x0*x1**2 + 9*x1**3).term_content() == x1 if is_field else 3*x1
+
+        assert (x0**2 - 1).resultant(x0**2 - 2*x0 + 1, 'x0') == 0
+        assert (x0**2 + x1**2 - 1).resultant(x0 - x1, 'x0') == 2*x1**2 - 1
+
+        assert (x0**3 - 6*x0**2 + 11*x0 - 6).discriminant('x0') == 4
+        assert (x0**2 + 4*x0*x1 + 4*x1**2 - 1).discriminant('x0') == 4
+
+        res, stride = (3*x0**2*x1**2 + 6*x0*x1**2 + 9*x1**2).deflation()
+        assert res == 3*x0**2 + 6*x0 + 9
+        assert stride.to_tuple() == (1, 0)
+
+        res, stride = ((x0**2 + x1**2)**3 + (x0**2 + x1**2)**2 + 1).deflation()
+        assert res == x0**3 + 3*x0**2*x1 + x0**2 + 3*x0*x1**2 + 2*x0*x1 + x1**3 + x1**2 + 1
+        assert stride.to_tuple() == (2, 2)
+
+        if P is flint.fmpz_mpoly:
+            assert (x0**2 * x1 + x0 * x1).primitive_part() == x0**2*x1 + x0*x1
+
         if composite_characteristic:
             # Factorisation not allowed over Z/nZ for n not prime.
             # Flint would abort so we raise an exception instead:

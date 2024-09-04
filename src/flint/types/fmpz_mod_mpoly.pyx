@@ -859,8 +859,6 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             >>> f.term_content()
             x0*x1
         """
-        if not self.ctx.is_prime():
-            raise DomainError("gcd with non-prime modulus is not supported")
 
         cdef fmpz_mod_mpoly res = create_fmpz_mod_mpoly(self.ctx)
         fmpz_mod_mpoly_term_content(res.val, self.val, self.ctx.val)
@@ -886,8 +884,6 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             raise TypeError("argument must be a fmpz_mod_mpoly")
         elif (<fmpz_mod_mpoly>self).ctx is not (<fmpz_mod_mpoly>other).ctx:
             raise IncompatibleContextError(f"{(<fmpz_mod_mpoly>self).ctx} is not {(<fmpz_mod_mpoly>other).ctx}")
-        elif not self.ctx.is_prime():
-            raise DomainError("gcd with non-prime modulus is not supported")
 
         i = self.ctx.variable_to_index(var)
         res = create_fmpz_mod_mpoly(self.ctx)
@@ -910,9 +906,6 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         cdef:
             fmpz_mod_mpoly res
             slong i
-
-        if not self.ctx.is_prime():
-            raise DomainError("gcd with non-prime modulus is not supported")
 
         i = self.ctx.variable_to_index(var)
         res = create_fmpz_mod_mpoly(self.ctx)
