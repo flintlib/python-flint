@@ -5,7 +5,7 @@ from flint.flintlib.types.flint cimport (
     slong
 )
 from flint.utils.flint_exceptions import DomainError
-from flint.flintlib.functions.mpoly cimport ordering_t
+from flint.flintlib.types.mpoly cimport ordering_t
 from flint.flint_base.flint_context cimport thectx
 from flint.flint_base.flint_base cimport Ordering
 from flint.utils.typecheck cimport typecheck

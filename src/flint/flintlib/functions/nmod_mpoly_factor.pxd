@@ -1,18 +1,9 @@
-from flint.flintlib.functions.nmod_mpoly cimport nmod_mpoly_ctx_t, nmod_mpoly_struct, nmod_mpoly_t
-from flint.flintlib.types.flint cimport slong, ulong, mp_limb_t
-from flint.flintlib.functions.fmpz cimport fmpz_struct
+from flint.flintlib.types.flint cimport slong, ulong
+from flint.flintlib.types.nmod cimport nmod_mpoly_ctx_t, nmod_mpoly_factor_t, nmod_mpoly_t
+
 
 
 cdef extern from "flint/nmod_mpoly_factor.h":
-    ctypedef struct nmod_mpoly_factor_struct:
-        mp_limb_t constant
-        nmod_mpoly_struct * poly
-        fmpz_struct * exp
-        slong num
-        slong alloc
-
-    ctypedef nmod_mpoly_factor_struct nmod_mpoly_factor_t[1]
-
     void nmod_mpoly_factor_init(nmod_mpoly_factor_t f, const nmod_mpoly_ctx_t ctx)
     void nmod_mpoly_factor_clear(nmod_mpoly_factor_t f, const nmod_mpoly_ctx_t ctx)
     void nmod_mpoly_factor_swap(nmod_mpoly_factor_t f, nmod_mpoly_factor_t g, const nmod_mpoly_ctx_t ctx)

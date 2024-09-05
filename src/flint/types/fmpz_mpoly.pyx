@@ -11,7 +11,10 @@ from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 from flint.types.fmpz cimport any_as_fmpz, fmpz
 from flint.types.fmpz_vec cimport fmpz_vec
 
+from flint.flintlib.types.flint cimport slong
+from flint.flintlib.types.fmpz cimport fmpz_mpoly_vec_entry
 from flint.flintlib.functions.fmpz cimport fmpz_set
+
 from flint.flintlib.functions.fmpz_mpoly cimport (
     fmpz_mpoly_add,
     fmpz_mpoly_add_fmpz,
@@ -58,7 +61,6 @@ from flint.flintlib.functions.fmpz_mpoly cimport (
     fmpz_mpoly_vec_autoreduction,
     fmpz_mpoly_vec_autoreduction_groebner,
     fmpz_mpoly_vec_clear,
-    fmpz_mpoly_vec_entry,
     fmpz_mpoly_vec_init,
     fmpz_mpoly_vec_is_autoreduced,
     fmpz_mpoly_vec_is_groebner,

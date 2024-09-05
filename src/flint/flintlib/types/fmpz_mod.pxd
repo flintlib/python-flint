@@ -1,5 +1,6 @@
-from flint.flintlib.types.flint cimport ulong, slong, fmpz_struct, fmpz_t, nmod_t
+from flint.flintlib.types.flint cimport ulong, slong, fmpz_struct, fmpz_t, nmod_t, flint_bitcnt_t
 from flint.flintlib.types.fmpz cimport fmpz_struct, fmpz_preinvn_struct, fmpz_mat_struct
+from flint.flintlib.types.mpoly cimport mpoly_ctx_t
 
 
 cdef extern from "flint/fmpz_mod_types.h":
@@ -35,22 +36,30 @@ cdef extern from "flint/fmpz_mod_types.h":
 
     ctypedef fmpz_mod_poly_factor_struct fmpz_mod_poly_factor_t[1]
 
-    # ctypedef struct fmpz_mod_mpoly_struct:
-    #    fmpz_struct * coeffs
-    #    ulong * exps
-    #    slong length
-    #    flint_bitcnt_t bits
-    #    slong coeffs_alloc
-    #    slong exps_alloc
+    ctypedef struct fmpz_mod_mpoly_ctx_struct:
+        mpoly_ctx_t minfo
+        fmpz_mod_ctx_t ffinfo
 
-    # ctypedef fmpz_mod_mpoly_struct fmpz_mod_mpoly_t[1]
+    ctypedef fmpz_mod_mpoly_ctx_struct fmpz_mod_mpoly_ctx_t[1]
 
-    # ctypedef struct fmpz_mod_mpoly_factor_struct:
-    #    fmpz_t constant
-    #    fmpz_mod_mpoly_struct * poly
-    #    fmpz * exp
-    #    slong num
-    #    slong alloc
+    ctypedef struct fmpz_mod_mpoly_struct:
+        fmpz_struct * coeffs
+        ulong * exps
+        slong length
+        flint_bitcnt_t bits
+        slong coeffs_alloc
+        slong exps_alloc
+
+    ctypedef fmpz_mod_mpoly_struct fmpz_mod_mpoly_t[1]
+
+    ctypedef struct fmpz_mod_mpoly_factor_struct:
+        fmpz_t constant
+        fmpz_mod_mpoly_struct * poly
+        fmpz_struct * exp
+        slong num
+        slong alloc
+
+    ctypedef fmpz_mod_mpoly_factor_struct fmpz_mod_mpoly_factor_t[1]
 
 
 cdef extern from "flint/fmpz_mod.h":

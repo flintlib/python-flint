@@ -1,18 +1,9 @@
-from flint.flintlib.types.flint cimport slong
-from flint.flintlib.functions.fmpz cimport fmpz_t, fmpz_struct
-from flint.flintlib.functions.fmpz_mod_mpoly cimport fmpz_mod_mpoly_ctx_t, fmpz_mod_mpoly_t, fmpz_mod_mpoly_struct
+from flint.flintlib.types.flint cimport fmpz_t, slong
+from flint.flintlib.types.fmpz_mod cimport fmpz_mod_mpoly_ctx_t, fmpz_mod_mpoly_factor_t, fmpz_mod_mpoly_t
+
 
 
 cdef extern from "flint/fmpz_mod_mpoly_factor.h":
-    ctypedef struct fmpz_mod_mpoly_factor_struct:
-        fmpz_t constant
-        fmpz_mod_mpoly_struct * poly
-        fmpz_struct * exp
-        slong num
-        slong alloc
-
-    ctypedef fmpz_mod_mpoly_factor_struct fmpz_mod_mpoly_factor_t[1]
-
     void fmpz_mod_mpoly_factor_init(fmpz_mod_mpoly_factor_t f, const fmpz_mod_mpoly_ctx_t ctx)
     void fmpz_mod_mpoly_factor_clear(fmpz_mod_mpoly_factor_t f, const fmpz_mod_mpoly_ctx_t ctx)
     void fmpz_mod_mpoly_factor_swap(fmpz_mod_mpoly_factor_t f, fmpz_mod_mpoly_factor_t g, const fmpz_mod_mpoly_ctx_t ctx)

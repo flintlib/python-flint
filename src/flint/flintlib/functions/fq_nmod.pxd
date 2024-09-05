@@ -5,6 +5,7 @@ from flint.flintlib.types.flint cimport mp_ptr, mp_limb_t, slong, mp_srcptr, fli
 from flint.flintlib.functions.nmod cimport nmod_t
 from flint.flintlib.functions.nmod_mat cimport nmod_mat_t
 from flint.flintlib.functions.nmod_poly cimport nmod_poly_struct, nmod_poly_t
+from flint.flintlib.types.mpoly cimport mpoly_ctx_t
 
 cdef extern from "flint/fq_nmod.h":
     # Type definitions **********************************************/
@@ -40,6 +41,12 @@ cdef extern from "flint/fq_nmod.h":
         slong s
         fq_nmod_struct ** rows
     ctypedef fq_nmod_mat_struct fq_nmod_mat_t[1]
+
+    ctypedef struct fq_nmod_mpoly_ctx_struct:
+        mpoly_ctx_t minfo
+        fq_nmod_ctx_t fqctx
+
+    ctypedef fq_nmod_mpoly_ctx_struct fq_nmod_mpoly_ctx_t[1]
 
     # Parsed from here **********************************************/
     void fq_nmod_ctx_init(fq_nmod_ctx_t ctx, const fmpz_t p, slong d, const char *var)

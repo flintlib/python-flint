@@ -1,4 +1,5 @@
 from flint.flintlib.types.flint cimport ulong, slong, nmod_t, fmpz_struct, nn_ptr, flint_bitcnt_t
+from flint.flintlib.types.mpoly cimport mpoly_ctx_t
 
 
 cdef extern from "flint/nmod_types.h":
@@ -43,6 +44,12 @@ cdef extern from "flint/nmod_types.h":
 
     ctypedef nmod_poly_mat_struct nmod_poly_mat_t[1]
 
+    ctypedef struct nmod_mpoly_ctx_struct:
+        mpoly_ctx_t minfo
+        nmod_t mod
+
+    ctypedef nmod_mpoly_ctx_struct nmod_mpoly_ctx_t[1]
+
     ctypedef struct nmod_mpoly_struct:
         ulong * coeffs
         ulong * exps
@@ -52,6 +59,14 @@ cdef extern from "flint/nmod_types.h":
         slong exps_alloc
 
     ctypedef nmod_mpoly_struct nmod_mpoly_t[1]
+
+    ctypedef struct nmod_mpoly_univar_struct:
+        nmod_mpoly_struct * coeffs
+        fmpz_struct * exps
+        slong alloc
+        slong length
+
+    ctypedef nmod_mpoly_univar_struct nmod_mpoly_univar_t[1]
 
     ctypedef struct nmod_mpoly_factor_struct:
         ulong constant
