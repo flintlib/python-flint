@@ -7,7 +7,7 @@ from flint.types.fmpz_poly cimport fmpz_poly
 from flint.types.nmod cimport any_as_nmod
 from flint.types.nmod cimport nmod
 
-from flint.flintlib.functions.nmod_vec cimport *
+from flint.flintlib.functions.nmod cimport nmod_init
 from flint.flintlib.functions.nmod_poly cimport *
 from flint.flintlib.functions.nmod_poly_factor cimport *
 from flint.flintlib.functions.fmpz_poly cimport fmpz_poly_get_nmod_poly
