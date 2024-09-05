@@ -1,5 +1,5 @@
-from flint.flintlib.fmpz cimport fmpz_struct, fmpz_set, fmpz_init_set
-from flint.flintlib.fmpz_vec cimport _fmpz_vec_init, _fmpz_vec_clear
+from flint.flintlib.functions.fmpz cimport fmpz_struct, fmpz_set, fmpz_init_set
+from flint.flintlib.functions.fmpz_vec cimport _fmpz_vec_init, _fmpz_vec_clear
 
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 

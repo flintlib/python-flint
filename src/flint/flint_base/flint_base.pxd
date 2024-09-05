@@ -1,4 +1,4 @@
-from flint.flintlib.mpoly cimport ordering_t
+from flint.flintlib.types.mpoly cimport ordering_t
 
 cdef class flint_elem:
     pass

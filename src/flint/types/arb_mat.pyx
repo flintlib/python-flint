@@ -12,18 +12,18 @@ from flint.types.acb cimport acb
 from flint.types.acb_mat cimport acb_mat
 from flint.types.acb cimport any_as_acb
 
-from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
-from flint.flintlib.fmpq_mat cimport fmpq_mat_nrows, fmpq_mat_ncols
-from flint.flintlib.arf cimport *
-from flint.flintlib.arb cimport *
-from flint.flintlib.arb_types cimport (
+from flint.flintlib.functions.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
+from flint.flintlib.functions.fmpq_mat cimport fmpq_mat_nrows, fmpq_mat_ncols
+from flint.flintlib.functions.arf cimport *
+from flint.flintlib.functions.arb cimport *
+from flint.flintlib.types.arb cimport (
     arb_radref,
     arb_midref,
     arb_mat_nrows,
     arb_mat_ncols,
     arb_mat_entry,
 )
-from flint.flintlib.arb_mat cimport *
+from flint.flintlib.functions.arb_mat cimport *
 cimport cython
 
 cdef arb_mat_coerce_operands(x, y):

@@ -1,9 +1,9 @@
 from cpython.long cimport PyLong_Check
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.conversion cimport chars_from_str
-from flint.flintlib.flint cimport slong, pylong_as_slong
-from flint.flintlib.flint cimport PyObject
-from flint.flintlib.fmpz cimport fmpz_t, fmpz_set_str, fmpz_set_si
+from flint.flintlib.types.flint cimport slong, pylong_as_slong
+from flint.flintlib.types.flint cimport PyObject
+from flint.flintlib.functions.fmpz cimport fmpz_t, fmpz_set_str, fmpz_set_si
 
 cdef int fmpz_set_any_ref(fmpz_t x, obj)
 cdef fmpz_get_intlong(fmpz_t x)

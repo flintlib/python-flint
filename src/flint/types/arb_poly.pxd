@@ -1,5 +1,5 @@
 from flint.flint_base.flint_base cimport flint_poly
-from flint.flintlib.arb_poly cimport arb_poly_t
+from flint.flintlib.functions.arb_poly cimport arb_poly_t
 
 cdef arb_poly_set_list(arb_poly_t poly, list val, long prec)
 

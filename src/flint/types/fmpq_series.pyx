@@ -15,8 +15,8 @@ from flint.types.acb_poly cimport acb_poly
 from flint.types.acb_series cimport acb_series
 from flint.types.fmpz cimport any_as_fmpz
 
-from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_set, fmpz_equal
-from flint.flintlib.fmpq_poly cimport *
+from flint.flintlib.functions.fmpz cimport fmpz_is_zero, fmpz_set, fmpz_equal
+from flint.flintlib.functions.fmpq_poly cimport *
 
 cdef fmpq_series_coerce_operands(x, y):
     if isinstance(y, (int, fmpz, fmpz_poly, fmpz_series, fmpq, fmpq_poly)):

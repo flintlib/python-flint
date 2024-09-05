@@ -1,10 +1,10 @@
 from cpython.list cimport PyList_GET_SIZE
 
 from flint.pyflint cimport global_random_state
-from flint.flintlib.fmpz_mod cimport fmpz_mod_neg, fmpz_mod_set_fmpz
-from flint.flintlib.fmpz_mod_poly cimport *
-from flint.flintlib.fmpz_mod_poly_factor cimport *
-from flint.flintlib.fmpz cimport(
+from flint.flintlib.functions.fmpz_mod cimport fmpz_mod_neg, fmpz_mod_set_fmpz
+from flint.flintlib.functions.fmpz_mod_poly cimport *
+from flint.flintlib.functions.fmpz_mod_poly_factor cimport *
+from flint.flintlib.functions.fmpz cimport(
     fmpz_init,
     fmpz_clear,
     fmpz_is_one
