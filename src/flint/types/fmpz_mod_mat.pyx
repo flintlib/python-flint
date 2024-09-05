@@ -7,7 +7,7 @@ from flint.flintlib.functions.fmpz cimport (
     fmpz_init_set,
     fmpz_set,
 )
-from flint.flintlib.functions.fmpz_mod_mat cimport (
+from flint.flintlib.types.fmpz_mod_mat_compat cimport (
     compat_fmpz_mod_mat_init,
     compat_fmpz_mod_mat_init_set,
     compat_fmpz_mod_mat_clear,

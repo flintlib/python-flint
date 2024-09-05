@@ -1,50 +1,9 @@
-from flint.flintlib.types.flint cimport ulong, slong
-from flint.flintlib.types.fmpz cimport fmpz_t, fmpz_struct, fmpz_preinvn_struct
-from flint.flintlib.functions.nmod cimport nmod_t
+from flint.flintlib.types.flint cimport fmpz_struct, fmpz_t, slong, ulong
+from flint.flintlib.types.fmpz_mod cimport fmpz_mod_ctx_t, fmpz_mod_discrete_log_pohlig_hellman_t
+
+
 
 cdef extern from "flint/fmpz_mod.h":
-    #
-    # fmpz_mod structs, a la Pohlig - Hellman
-    #
-    ctypedef struct fmpz_mod_ctx_struct:
-        fmpz_t n
-        nmod_t mod
-        ulong n_limbs[3]
-        ulong ninv_limbs[3]
-        fmpz_preinvn_struct * ninv_huge
-    ctypedef fmpz_mod_ctx_struct fmpz_mod_ctx_t[1]
-
-    #
-    # discrete logs structs, a la Pohlig - Hellman
-    #
-
-    ctypedef struct fmpz_mod_discrete_log_pohlig_hellman_table_entry_struct:
-        fmpz_t gammapow
-        ulong cm
-
-    ctypedef struct fmpz_mod_discrete_log_pohlig_hellman_entry_struct:
-        slong exp
-        ulong prime
-        fmpz_t gamma
-        fmpz_t gammainv
-        fmpz_t startingbeta
-        fmpz_t co
-        fmpz_t startinge
-        fmpz_t idem
-        ulong cbound
-        ulong dbound
-        fmpz_mod_discrete_log_pohlig_hellman_table_entry_struct * table # length cbound */
-
-    ctypedef struct fmpz_mod_discrete_log_pohlig_hellman_struct:
-        fmpz_mod_ctx_t fpctx
-        fmpz_t pm1         # p - 1 */
-        fmpz_t alpha       # p.r. of p */
-        fmpz_t alphainv
-        slong num_factors  # factors of p - 1
-        fmpz_mod_discrete_log_pohlig_hellman_entry_struct * entries
-    ctypedef fmpz_mod_discrete_log_pohlig_hellman_struct fmpz_mod_discrete_log_pohlig_hellman_t[1]
-
-    # Parsed from here
     void fmpz_mod_ctx_init(fmpz_mod_ctx_t ctx, const fmpz_t n)
     void fmpz_mod_ctx_clear(fmpz_mod_ctx_t ctx)
     void fmpz_mod_ctx_set_modulus(fmpz_mod_ctx_t ctx, const fmpz_t n)
@@ -71,6 +30,6 @@ cdef extern from "flint/fmpz_mod.h":
     void fmpz_mod_discrete_log_pohlig_hellman_init(fmpz_mod_discrete_log_pohlig_hellman_t L)
     void fmpz_mod_discrete_log_pohlig_hellman_clear(fmpz_mod_discrete_log_pohlig_hellman_t L)
     double fmpz_mod_discrete_log_pohlig_hellman_precompute_prime(fmpz_mod_discrete_log_pohlig_hellman_t L, const fmpz_t p)
-    const fmpz_struct * fmpz_mod_discrete_log_pohlig_hellman_primitive_root(const fmpz_mod_discrete_log_pohlig_hellman_t L)
+    const fmpz_struct * fmpz_mod_discrete_log_pohlig_hellman_primitive_root(fmpz_mod_discrete_log_pohlig_hellman_t L)
     void fmpz_mod_discrete_log_pohlig_hellman_run(fmpz_t x, const fmpz_mod_discrete_log_pohlig_hellman_t L, const fmpz_t y)
     int fmpz_next_smooth_prime(fmpz_t a, const fmpz_t b)

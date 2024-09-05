@@ -1,6 +1,7 @@
-from flint.flintlib.types.flint cimport slong, fmpz_struct
-from flint.flintlib.functions.fmpz_mod cimport fmpz_mod_ctx_t
-from flint.flintlib.functions.fmpz cimport fmpz_t
+from flint.flintlib.types.flint cimport fmpz_struct, fmpz_t, slong
+from flint.flintlib.types.fmpz_mod cimport fmpz_mod_ctx_t
+
+
 
 cdef extern from "flint/fmpz_mod_vec.h":
     void _fmpz_mod_vec_set_fmpz_vec(fmpz_struct * A, const fmpz_struct * B, slong len, const fmpz_mod_ctx_t ctx)
