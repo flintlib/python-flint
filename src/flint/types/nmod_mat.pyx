@@ -3,25 +3,30 @@ cimport cython
 from flint.utils.typecheck cimport typecheck
 from flint.pyflint cimport global_random_state
 
-from flint.flintlib.flint cimport ulong, mp_limb_t
 from flint.flint_base.flint_context cimport thectx
 from flint.flint_base.flint_base cimport flint_mat
 
-from flint.flintlib.fmpz_mat cimport (
+from flint.flintlib.functions.fmpz_mat cimport (
     fmpz_mat_nrows,
     fmpz_mat_ncols,
     fmpz_mat_get_nmod_mat,
 )
 
-from flint.flintlib.nmod_mat cimport (
-    nmod_mat_struct,
+from flint.flintlib.types.flint cimport ulong, mp_limb_t
+
+from flint.flintlib.types.nmod cimport nmod_mat_struct
+
+from flint.flintlib.types.nmod cimport (
+    nmod_mat_is_square,
+    nmod_mat_entry,
+)
+
+from flint.flintlib.functions.nmod_mat cimport (
     nmod_mat_init,
     nmod_mat_init_set,
     nmod_mat_clear,
     nmod_mat_nrows,
     nmod_mat_ncols,
-    nmod_mat_is_square,
-    nmod_mat_entry,
     nmod_mat_set_entry,
     nmod_mat_equal,
     nmod_mat_is_zero,

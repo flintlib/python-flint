@@ -1,16 +1,8 @@
 cimport cython
 
-from flint.flint_base.flint_base cimport flint_poly
-from flint.utils.typecheck cimport typecheck
-
-from flint.flintlib.flint cimport mp_limb_t, ulong, slong
-from flint.flintlib.fmpz_poly cimport fmpz_poly_get_nmod_poly
-
-from flint.types.fmpz cimport fmpz, any_as_fmpz
-from flint.types.fmpz_poly cimport fmpz_poly
-from flint.types.nmod cimport nmod
-
-from flint.flintlib.nmod_poly cimport (
+from flint.flintlib.types.flint cimport mp_limb_t, ulong, slong
+from flint.flintlib.functions.fmpz_poly cimport fmpz_poly_get_nmod_poly
+from flint.flintlib.functions.nmod_poly cimport (
     nmod_poly_init,
     nmod_poly_clear,
     nmod_poly_set,
@@ -48,8 +40,7 @@ from flint.flintlib.nmod_poly cimport (
     nmod_poly_deflation,
     nmod_poly_deflate,
 )
-
-from flint.flintlib.nmod_poly_factor cimport (
+from flint.flintlib.functions.nmod_poly_factor cimport (
     nmod_poly_factor_t,
     nmod_poly_factor_init,
     nmod_poly_factor_clear,
@@ -58,6 +49,13 @@ from flint.flintlib.nmod_poly_factor cimport (
     nmod_poly_factor_with_cantor_zassenhaus,
     nmod_poly_factor_squarefree,
 )
+
+from flint.flint_base.flint_base cimport flint_poly
+from flint.utils.typecheck cimport typecheck
+
+from flint.types.fmpz cimport fmpz, any_as_fmpz
+from flint.types.fmpz_poly cimport fmpz_poly
+from flint.types.nmod cimport nmod
 
 from flint.utils.flint_exceptions import DomainError
 

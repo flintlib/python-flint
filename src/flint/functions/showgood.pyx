@@ -8,8 +8,8 @@ from flint.types.arb cimport arb
 from flint.types.acb cimport acb
 from flint.types.arb_series cimport arb_series
 from flint.types.acb_series cimport acb_series
-from flint.flintlib.arb cimport *
-from flint.flintlib.acb cimport *
+from flint.flintlib.functions.arb cimport *
+from flint.flintlib.functions.acb cimport *
 
 ctx = thectx
 

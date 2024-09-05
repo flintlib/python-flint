@@ -2,19 +2,19 @@ cimport cython
 
 from cpython.list cimport PyList_GET_SIZE
 
-from flint.utils.typecheck cimport typecheck
-from flint.flint_base.flint_base cimport flint_poly
+from flint.flintlib.types.flint cimport mp_limb_t, ulong
+from flint.flintlib.types.nmod cimport nmod_t, nmod_poly_t
 
-from flint.flintlib.flint cimport mp_limb_t, ulong
-from flint.flintlib.fmpz_poly cimport fmpz_poly_get_nmod_poly
-
-from flint.flintlib.nmod cimport nmod_t
-from flint.flintlib.nmod_poly cimport (
+from flint.flintlib.functions.fmpz_poly cimport fmpz_poly_get_nmod_poly
+from flint.flintlib.functions.nmod_poly cimport (
     nmod_poly_t,
     nmod_poly_init_preinv,
     nmod_poly_fit_length,
     nmod_poly_set_coeff_ui,
 )
+
+from flint.utils.typecheck cimport typecheck
+from flint.flint_base.flint_base cimport flint_poly
 
 from flint.types.fmpz_poly cimport fmpz_poly, any_as_fmpz_poly
 from flint.types.nmod cimport nmod_ctx, nmod

@@ -1,20 +1,20 @@
 cimport cython
 
-from flint.utils.typecheck cimport typecheck
-from flint.flint_base.flint_base cimport flint_mat
+from flint.flintlib.types.flint cimport mp_limb_t, ulong
+from flint.flintlib.types.nmod cimport nmod_t, nmod_mat_t
 
-from flint.flintlib.flint cimport mp_limb_t, ulong
-from flint.flintlib.fmpz_mat cimport (
+from flint.flintlib.functions.fmpz_mat cimport (
     fmpz_mat_nrows,
     fmpz_mat_ncols,
     fmpz_mat_get_nmod_mat,
 )
-from flint.flintlib.nmod cimport nmod_t
-from flint.flintlib.nmod_mat cimport (
-    nmod_mat_t,
+from flint.flintlib.functions.nmod_mat cimport (
     nmod_mat_init,
     nmod_mat_init_set,
 )
+
+from flint.utils.typecheck cimport typecheck
+from flint.flint_base.flint_base cimport flint_mat
 
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpz_mat cimport fmpz_mat, any_as_fmpz_mat

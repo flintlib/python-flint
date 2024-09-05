@@ -59,7 +59,7 @@ build-backend = "mesonpy"
 #            resolved.
 max-line-length = 120
 ignore = ['E129','E501','E741','E743']
-exclude = 'src/flint/flintlib/.*'
+exclude = 'src/flint/flintlib/functions.*'
 
 [tool.spin]
 package = "flint"

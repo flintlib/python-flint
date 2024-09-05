@@ -15,16 +15,17 @@ from flint.types.arb cimport any_as_arb_or_notimplemented
 from flint.types.arb cimport arb
 from flint.types.acb cimport any_as_acb_or_notimplemented
 cimport libc.stdlib
-from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear, fmpz_set
-from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_is_one, fmpz_equal_si, fmpz_equal
-from flint.flintlib.acb_modular cimport *
-from flint.flintlib.ulong_extras cimport n_is_prime
-from flint.flintlib.fmpz_poly cimport *
-from flint.flintlib.fmpz_poly_factor cimport *
-from flint.flintlib.arith cimport *
-from flint.flintlib.acb cimport *
-from flint.flintlib.arb_poly cimport *
-from flint.flintlib.arb_fmpz_poly cimport *
+from flint.flintlib.functions.fmpz cimport fmpz_init, fmpz_clear, fmpz_set
+from flint.flintlib.functions.fmpz cimport fmpz_is_zero, fmpz_is_one, fmpz_equal_si, fmpz_equal
+from flint.flintlib.functions.acb_modular cimport *
+from flint.flintlib.functions.ulong_extras cimport n_is_prime
+from flint.flintlib.functions.fmpz_poly cimport *
+from flint.flintlib.functions.fmpz_poly_factor cimport *
+from flint.flintlib.functions.arith cimport *
+from flint.flintlib.types.arith cimport arith_chebyshev_t_polynomial, arith_chebyshev_u_polynomial
+from flint.flintlib.functions.acb cimport *
+from flint.flintlib.functions.arb_poly cimport *
+from flint.flintlib.functions.arb_fmpz_poly cimport *
 
 from flint.utils.flint_exceptions import DomainError
 

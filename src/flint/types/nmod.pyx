@@ -5,10 +5,15 @@ from flint.utils.typecheck cimport typecheck
 from flint.types.fmpz cimport any_as_fmpz
 from flint.types.fmpz cimport fmpz
 
-from flint.flintlib.flint cimport ulong
-from flint.flintlib.nmod cimport nmod_pow_fmpz
-from flint.flintlib.nmod_vec cimport *
-from flint.flintlib.ulong_extras cimport n_gcdinv, n_sqrtmod
+from flint.flintlib.types.flint cimport ulong, mp_limb_t
+from flint.flintlib.functions.nmod cimport (
+    nmod_pow_fmpz,
+    nmod_neg,
+    nmod_add,
+    nmod_sub,
+    nmod_mul,
+)
+from flint.flintlib.functions.ulong_extras cimport n_gcdinv, n_sqrtmod
 
 from flint.utils.flint_exceptions import DomainError
 

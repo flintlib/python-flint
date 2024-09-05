@@ -1,5 +1,5 @@
-from flint.flintlib.arf cimport ARF_RND_DOWN
-from flint.flintlib.flint cimport (
+from flint.flintlib.types.arf cimport arf_rnd_t
+from flint.flintlib.types.flint cimport (
     flint_cleanup,
     flint_get_num_threads,
     flint_set_num_threads
@@ -12,7 +12,7 @@ cdef class FlintContext:
 
     def default(self):
         self.pretty = True
-        self.rnd = ARF_RND_DOWN
+        self.rnd = arf_rnd_t.ARF_RND_DOWN
         self.prec = 53
         self.unicode = False
         self.threads = 1

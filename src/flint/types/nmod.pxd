@@ -1,16 +1,13 @@
 cimport cython
 
-from flint.flint_base.flint_base cimport flint_scalar
-from flint.utils.typecheck cimport typecheck
+from flint.flintlib.types.flint cimport mp_limb_t, ulong
+from flint.flintlib.types.fmpz cimport fmpz_t
+from flint.flintlib.types.nmod cimport nmod_t
 
-from flint.flintlib.flint cimport mp_limb_t, ulong
-from flint.flintlib.nmod cimport nmod_t, nmod_init
-from flint.flintlib.ulong_extras cimport n_is_prime
-
-from flint.flintlib.fmpz cimport fmpz_t
-from flint.flintlib.fmpq cimport fmpq_mod_fmpz
-
-from flint.flintlib.fmpz cimport (
+from flint.flintlib.functions.nmod cimport nmod_init
+from flint.flintlib.functions.ulong_extras cimport n_is_prime
+from flint.flintlib.functions.fmpq cimport fmpq_mod_fmpz
+from flint.flintlib.functions.fmpz cimport (
     fmpz_t,
     fmpz_fdiv_ui,
     fmpz_init,
@@ -18,6 +15,9 @@ from flint.flintlib.fmpz cimport (
     fmpz_set_ui,
     fmpz_get_ui,
 )
+
+from flint.flint_base.flint_base cimport flint_scalar
+from flint.utils.typecheck cimport typecheck
 
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 from flint.types.fmpq cimport fmpq, any_as_fmpq

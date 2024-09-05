@@ -13,17 +13,20 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 from flint.types.dirichlet cimport dirichlet_char
 
-from flint.flintlib.flint cimport FMPZ_TMP, FMPZ_REF, FMPZ_UNKNOWN
-from flint.flintlib.mag cimport *
-from flint.flintlib.arb cimport *
-from flint.flintlib.arf cimport *
-from flint.flintlib.acb cimport *
-from flint.flintlib.acb_modular cimport *
-from flint.flintlib.acb_hypgeom cimport *
-from flint.flintlib.acb_dirichlet cimport *
-from flint.flintlib.acb_elliptic cimport *
-from flint.flintlib.acb_calc cimport *
-from flint.flintlib.acb_dft cimport *
+from flint.flintlib.types.flint cimport FMPZ_TMP, FMPZ_REF, FMPZ_UNKNOWN
+from flint.flintlib.functions.mag cimport *
+from flint.flintlib.functions.arb cimport *
+from flint.flintlib.types.arb cimport arb_midref, arb_radref
+from flint.flintlib.functions.arf cimport *
+from flint.flintlib.types.arf cimport ARF_RND_NEAR
+from flint.flintlib.functions.acb cimport *
+from flint.flintlib.types.acb cimport acb_struct, acb_realref, acb_imagref
+from flint.flintlib.functions.acb_modular cimport *
+from flint.flintlib.functions.acb_hypgeom cimport *
+from flint.flintlib.functions.acb_dirichlet cimport *
+from flint.flintlib.functions.acb_elliptic cimport *
+from flint.flintlib.functions.acb_calc cimport *
+from flint.flintlib.functions.acb_dft cimport *
 
 cimport libc.stdlib
 cimport cython
