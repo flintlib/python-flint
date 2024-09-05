@@ -45,7 +45,6 @@ from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_mul,
     fmpz_mpoly_neg,
     fmpz_mpoly_pow_fmpz,
-    fmpz_mpoly_primitive_part,
     fmpz_mpoly_push_term_fmpz_ffmpz,
     fmpz_mpoly_reduction_primitive_part,
     fmpz_mpoly_resultant,
@@ -1092,6 +1091,14 @@ cdef class fmpz_mpoly(flint_mpoly):
         self.ctx.compatible_context_check((<fmpz_mpoly_vec>vec).ctx)
         fmpz_mpoly_reduction_primitive_part(res.val, self.val, (<fmpz_mpoly_vec>vec).val, self.ctx.val)
         return res
+
+    # def inflate(self):
+    #     pass
+
+    # def deflate(self):
+    #     pass
+
+    # def deflation(self, stride: fmpz_vec | None, shift: fmpz_vec | None):
 
     def deflation(self):
         """
