@@ -76,6 +76,7 @@ from flint.flintlib.fmpz_mpoly_factor cimport (
     fmpz_mpoly_factor_squarefree,
     fmpz_mpoly_factor_t,
 )
+from flint.flintlib.fmpz_vec cimport _fmpz_vec_content
 
 from cpython.object cimport Py_EQ, Py_NE
 cimport libc.stdlib
@@ -752,6 +753,21 @@ cdef class fmpz_mpoly(flint_mpoly):
             raise IncompatibleContextError(f"{(<fmpz_mpoly>self).ctx} is not {(<fmpz_mpoly>other).ctx}")
         res = create_fmpz_mpoly(self.ctx)
         fmpz_mpoly_gcd(res.val, (<fmpz_mpoly>self).val, (<fmpz_mpoly>other).val, res.ctx.val)
+        return res
+
+    def content(self):
+        """
+        Return the GCD of the coefficients of ``self``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> x0, x1 = ctx.gens()
+            >>> f = 3 * x0**2 * x1 + 6 * x0 * x1
+            >>> f.content()
+            3
+        """
+        cdef fmpz res = fmpz()
+        _fmpz_vec_content(res.val, self.val.coeffs, self.val.length)
         return res
 
     def term_content(self):

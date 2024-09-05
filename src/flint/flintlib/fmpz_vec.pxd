@@ -66,3 +66,6 @@ cdef extern from "flint/fmpz_vec.h":
     void _fmpz_vec_lcm(fmpz_t res, const fmpz_struct * vec, slong len)
     void _fmpz_vec_dot(fmpz_t res, const fmpz_struct * vec1, const fmpz_struct * vec2, slong len2)
     void _fmpz_vec_dot_ptr(fmpz_t res, const fmpz_struct * vec1, fmpz_struct ** const vec2, slong offset, slong len)
+
+    # Undocumented internal functions
+    void _fmpz_vec_content(fmpz_t res, const fmpz_struct * vec, slong len)

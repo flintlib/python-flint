@@ -25,6 +25,7 @@ from flint.flintlib.arith cimport *
 from flint.flintlib.acb cimport *
 from flint.flintlib.arb_poly cimport *
 from flint.flintlib.arb_fmpz_poly cimport *
+from flint.flintlib.fmpz_vec cimport _fmpz_vec_content
 
 from flint.utils.flint_exceptions import DomainError
 
@@ -647,3 +648,14 @@ cdef class fmpz_poly(flint_poly):
                     return int(i)
         libc.stdlib.free(phi)
         return 0
+
+    def content(self):
+        """
+        Return the GCD of the coefficients of ``self``.
+
+            >>> fmpz_poly([3, 6, 0]).content()
+            3
+        """
+        cdef fmpz res = fmpz()
+        _fmpz_vec_content(res.val, self.val.coeffs, self.val.length)
+        return res
