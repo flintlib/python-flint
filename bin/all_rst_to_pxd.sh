@@ -84,5 +84,7 @@ modules=(
 
 for module in ${modules[@]}; do
     echo "Processing $module"
-    bin/rst_to_pxd.py flint/$module --flint-doc-dir=$FLINT_DOC_DIR > src/flint/flintlib/$module.pxd
+    bin/rst_to_pxd.py flint/$module \
+        --flint-doc-dir=$FLINT_DOC_DIR \
+        > src/flint/flintlib/functions/$module.pxd
 done
