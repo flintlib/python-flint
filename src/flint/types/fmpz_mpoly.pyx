@@ -850,23 +850,19 @@ cdef class fmpz_mpoly(flint_mpoly):
             raise RuntimeError(f"failed to compute discriminant with respect to {var}")
         return res
 
-    def primitive_part(self):
+    def primitive(self):
         """
-        Return the primitive part of ``self`` obtained by dividing out the content of
-        all coefficients and normalizing the leading coefficient to be positive.
+        Return the content and primitive of ``self``.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
             >>> x, y = ctx.gens()
-            >>> f = x**2 * y + x * y
-            >>> f.primitive_part()
-            x0^2*x1 + x0*x1
+            >>> f = 4*x + 2*x*y
+            >>> f.primitive()
+            (2, x0*x1 + 2*x0)
         """
-        cdef fmpz_mpoly res
-
-        res = create_fmpz_mpoly(self.ctx)
-        fmpz_mpoly_primitive_part(res.val, self.val, self.ctx.val)
-        return res
+        cdef fmpz content = self.content()
+        return content, self._truediv_scalar_(content, True)
 
     def sqrt(self, assume_perfect_square: bool = False):
         """
