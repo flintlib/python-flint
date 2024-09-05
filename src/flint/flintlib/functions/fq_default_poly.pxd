@@ -1,25 +1,13 @@
-from flint.flintlib.functions.fq_default cimport fq_default_ctx_t, fq_default_t
-from flint.flintlib.functions.nmod_poly cimport nmod_poly_t
-from flint.flintlib.types.flint cimport slong, ulong, flint_rand_t
-from flint.flintlib.functions.fmpz_poly cimport fmpz_poly_t
-from flint.flintlib.functions.fmpz cimport fmpz_t
-from flint.flintlib.functions.fmpz_mod_poly cimport fmpz_mod_poly_t
-from flint.flintlib.functions.fq_poly cimport fq_poly_t
-from flint.flintlib.functions.fq_nmod_poly cimport fq_nmod_poly_t
-from flint.flintlib.functions.fq_zech_poly cimport fq_zech_poly_t
+from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, slong, ulong
+from flint.flintlib.types.fmpz cimport fmpz_poly_t
+from flint.flintlib.types.fmpz_mod cimport fmpz_mod_poly_t
+from flint.flintlib.types.fq_default cimport fq_default_ctx_t, fq_default_poly_t, fq_default_t
+from flint.flintlib.types.nmod cimport nmod_poly_t
+
+# unknown type FILE
 
 
 cdef extern from "flint/fq_default_poly.h":
-    # Type definitions **********************************************/
-    ctypedef union fq_default_poly_struct:
-        fq_poly_t fq
-        fq_nmod_poly_t fq_nmod
-        fq_zech_poly_t fq_zech
-        nmod_poly_t nmod
-        fmpz_mod_poly_t fmpz_mod
-    ctypedef fq_default_poly_struct fq_default_poly_t[1]
-
-    # Parsed from here **********************************************/
     void fq_default_poly_init(fq_default_poly_t poly, const fq_default_ctx_t ctx)
     void fq_default_poly_init2(fq_default_poly_t poly, slong alloc, const fq_default_ctx_t ctx)
     void fq_default_poly_realloc(fq_default_poly_t poly, slong alloc, const fq_default_ctx_t ctx)

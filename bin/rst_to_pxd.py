@@ -87,13 +87,6 @@ def fill_import_dict(pyflintlibdir):
                     for t in get_cython_struct_types(pxd):
                         import_dict[t] = 'types.' + f.name.split('.')[0]
 
-    with os.scandir(pyflintlibdir + '/functions') as entry:
-        for f in entry:
-            if fnmatch.fnmatch(f.name, "*.pxd"):
-                with open(f.path) as pxd:
-                    for t in get_cython_struct_types(pxd):
-                        import_dict[t] = 'functions.' + f.name.split('.')[0]
-
 def undecorate(str):
     """
     remove variable name, const, ``*``, etc. to just get types

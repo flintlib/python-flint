@@ -1,28 +1,14 @@
-from flint.flintlib.types.flint cimport flint_rand_t, slong
-from flint.flintlib.functions.fq cimport fq_ctx_t, fq_struct
-from flint.flintlib.functions.nmod_mat cimport nmod_mat_t
-from flint.flintlib.functions.fmpz_mat cimport fmpz_mat_t
-from flint.flintlib.functions.fmpz_mod_mat cimport fmpz_mod_mat_t
-from flint.flintlib.functions.fmpz cimport fmpz_t
-from flint.flintlib.functions.fq_default cimport fq_default_t, fq_default_ctx_t
-from flint.flintlib.functions.fq_default_poly cimport fq_default_poly_t
-from flint.flintlib.functions.fq_mat cimport fq_mat_t
-from flint.flintlib.functions.fq_nmod_mat cimport fq_nmod_mat_t
-from flint.flintlib.functions.fq_zech_mat cimport fq_zech_mat_t
-from flintlib.nmod_mat cimport nmod_mat_t
-from flintlib.fmpz_mod_mat cimport fmpz_mod_mat_t
+from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, slong
+from flint.flintlib.types.fmpz cimport fmpz_mat_t
+from flint.flintlib.types.fmpz_mod cimport fmpz_mod_mat_t
+from flint.flintlib.types.fq cimport fq_ctx_t, fq_mat_t, fq_struct
+from flint.flintlib.types.fq_default cimport fq_default_ctx_t, fq_default_mat_t, fq_default_poly_t, fq_default_t
+from flint.flintlib.types.nmod cimport nmod_mat_t
+
+# unknown type FILE
+
 
 cdef extern from "flint/fq_default_mat.h":
-    # Type definitions **********************************************/
-    ctypedef union fq_default_mat_struct:
-        fq_mat_t fq
-        fq_nmod_mat_t fq_nmod
-        fq_zech_mat_t fq_zech
-        nmod_mat_t nmod
-        fmpz_mod_mat_t fmpz_mod
-    ctypedef fq_default_mat_struct fq_default_mat_t[1]
-
-    # Parsed from here **********************************************/
     void fq_default_mat_init(fq_default_mat_t mat, slong rows, slong cols, const fq_default_ctx_t ctx)
     void fq_default_mat_init_set(fq_default_mat_t mat, const fq_default_mat_t src, const fq_default_ctx_t ctx)
     void fq_default_mat_clear(fq_default_mat_t mat, const fq_default_ctx_t ctx)

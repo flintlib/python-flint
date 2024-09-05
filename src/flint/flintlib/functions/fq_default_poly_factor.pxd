@@ -1,23 +1,9 @@
-from flint.flintlib.functions.fq_default cimport fq_default_t, fq_default_ctx_t
-from flint.flintlib.types.flint cimport ulong, slong
-from flint.flintlib.functions.fq_default_poly cimport fq_default_poly_t
-from flint.flintlib.functions.fq_poly_factor cimport fq_poly_factor_t
-from flint.flintlib.functions.fq_nmod_poly_factor cimport fq_nmod_poly_factor_t
-from flint.flintlib.functions.fq_zech_poly_factor cimport fq_zech_poly_factor_t
-from flint.flintlib.functions.nmod_poly_factor cimport nmod_poly_factor_t
-from flint.flintlib.functions.fmpz_mod_poly_factor cimport fmpz_mod_poly_factor_t
+from flint.flintlib.types.flint cimport slong, ulong
+from flint.flintlib.types.fq_default cimport fq_default_ctx_t, fq_default_poly_factor_t, fq_default_poly_t, fq_default_t
+
+
 
 cdef extern from "flint/fq_default_poly_factor.h":
-    # Type definitions **********************************************/
-    ctypedef union fq_default_poly_factor_struct:
-        fq_poly_factor_t fq
-        fq_nmod_poly_factor_t fq_nmod
-        fq_zech_poly_factor_t fq_zech
-        nmod_poly_factor_t nmod
-        fmpz_mod_poly_factor_t fmpz_mod
-    ctypedef fq_default_poly_factor_struct fq_default_poly_factor_t[1]
-
-    # Parsed from here **********************************************/
     void fq_default_poly_factor_init(fq_default_poly_factor_t fac, const fq_default_ctx_t ctx)
     void fq_default_poly_factor_clear(fq_default_poly_factor_t fac, const fq_default_ctx_t ctx)
     void fq_default_poly_factor_realloc(fq_default_poly_factor_t fac, slong alloc, const fq_default_ctx_t ctx)

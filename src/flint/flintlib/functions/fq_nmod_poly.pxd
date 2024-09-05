@@ -1,11 +1,12 @@
-from flint.flintlib.functions.fq_nmod cimport fq_nmod_struct, fq_nmod_ctx_t, fq_nmod_t, fq_nmod_poly_t, fq_nmod_mat_t
-from flint.flintlib.types.flint cimport ulong, slong, flint_rand_t
-from flint.flintlib.functions.fmpz_mod_poly cimport fmpz_mod_poly_t
-from flint.flintlib.functions.nmod_poly cimport nmod_poly_t
-from flint.flintlib.functions.fmpz cimport fmpz_t
+from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, slong, ulong
+from flint.flintlib.types.fmpz_mod cimport fmpz_mod_poly_t
+from flint.flintlib.types.fq_nmod cimport fq_nmod_ctx_t, fq_nmod_mat_t, fq_nmod_poly_t, fq_nmod_struct, fq_nmod_t
+from flint.flintlib.types.nmod cimport nmod_poly_t
+
+# unknown type FILE
+
 
 cdef extern from "flint/fq_nmod_poly.h":
-    # Parsed from here **********************************************/
     void fq_nmod_poly_init(fq_nmod_poly_t poly, const fq_nmod_ctx_t ctx)
     void fq_nmod_poly_init2(fq_nmod_poly_t poly, slong alloc, const fq_nmod_ctx_t ctx)
     void fq_nmod_poly_realloc(fq_nmod_poly_t poly, slong alloc, const fq_nmod_ctx_t ctx)

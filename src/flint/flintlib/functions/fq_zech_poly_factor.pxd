@@ -1,17 +1,9 @@
 from flint.flintlib.types.flint cimport flint_rand_t, slong, ulong
-from flint.flintlib.functions.fq_zech cimport fq_zech_ctx_t, fq_zech_t, fq_zech_struct
-from flint.flintlib.functions.fq_zech cimport fq_zech_poly_struct, fq_zech_poly_t
+from flint.flintlib.types.fq_zech cimport fq_zech_ctx_t, fq_zech_poly_factor_t, fq_zech_poly_t, fq_zech_struct, fq_zech_t
+
+
 
 cdef extern from "flint/fq_zech_poly_factor.h":
-    # Type definitions **********************************************/
-    ctypedef struct fq_zech_poly_factor_struct:
-        fq_zech_poly_struct * poly
-        slong * exp
-        slong num
-        slong alloc
-    ctypedef fq_zech_poly_factor_struct fq_zech_poly_factor_t[1]
-
-    # Parsed from here **********************************************/
     void fq_zech_poly_factor_init(fq_zech_poly_factor_t fac, const fq_zech_ctx_t ctx)
     void fq_zech_poly_factor_clear(fq_zech_poly_factor_t fac, const fq_zech_ctx_t ctx)
     void fq_zech_poly_factor_realloc(fq_zech_poly_factor_t fac, slong alloc, const fq_zech_ctx_t ctx)
