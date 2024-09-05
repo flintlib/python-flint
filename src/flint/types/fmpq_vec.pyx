@@ -1,4 +1,5 @@
-from flint.flintlib.functions.fmpq cimport fmpq_struct, fmpq_set, fmpq_init
+from flint.flintlib.types.fmpq cimport fmpq_struct
+from flint.flintlib.functions.fmpq cimport fmpq_set, fmpq_init
 from flint.flintlib.functions.fmpq_vec cimport _fmpq_vec_init, _fmpq_vec_clear
 
 from flint.types.fmpq cimport fmpq, any_as_fmpq

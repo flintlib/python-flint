@@ -1,6 +1,5 @@
-from flint.flintlib.functions.nmod_poly cimport nmod_poly_t
 from flint.flintlib.types.flint cimport flint_rand_t, nmod_t, nn_srcptr, slong, ulong
-from flint.flintlib.types.nmod cimport nmod_poly_factor_t
+from flint.flintlib.types.nmod cimport nmod_poly_factor_t, nmod_poly_t
 
 
 

@@ -2,7 +2,7 @@ from flint.flintlib.functions.fmpq_poly cimport fmpq_poly_t, fmpq_poly_struct
 from flint.flintlib.types.flint cimport slong, mp_limb_t, ulong, flint_bitcnt_t, fmpz_struct, flint_rand_t
 from flint.flintlib.functions.fmpz cimport fmpz_t
 from flint.flintlib.functions.fmpz_mpoly cimport fmpz_mpoly_ctx_t, fmpz_mpoly_t, fmpz_mpoly_struct
-from flint.flintlib.functions.fmpq cimport fmpq_struct, fmpq_t
+from flint.flintlib.types.fmpq cimport fmpq_struct, fmpq_t
 from flint.flintlib.functions.mpoly cimport ordering_t
 
 

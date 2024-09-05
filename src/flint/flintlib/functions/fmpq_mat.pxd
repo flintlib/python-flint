@@ -1,19 +1,10 @@
-from flint.flintlib.types.flint cimport flint_rand_t, mp_bitcnt_t,slong,flint_bitcnt_t
-from flint.flintlib.functions.fmpz cimport fmpz_struct, fmpz_t
-from flint.flintlib.functions.fmpq cimport fmpq_struct, fmpq_t
-from flint.flintlib.functions.fmpz_mat cimport fmpz_mat_t
-from flint.flintlib.functions.fmpq_poly cimport fmpq_poly_t
+from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, slong
+from flint.flintlib.types.fmpq cimport fmpq_mat_t, fmpq_poly_t, fmpq_struct, fmpq_t
+from flint.flintlib.types.fmpz cimport fmpz_mat_t
+
+
 
 cdef extern from "flint/fmpq_mat.h":
-    ctypedef struct fmpq_mat_struct:
-        fmpq_struct * entries
-        long r
-        long c
-        fmpq_struct ** rows
-    ctypedef fmpq_mat_struct fmpq_mat_t[1]
-
-
-# from here on is parsed
     void fmpq_mat_init(fmpq_mat_t mat, slong rows, slong cols)
     void fmpq_mat_init_set(fmpq_mat_t mat1, const fmpq_mat_t mat2)
     void fmpq_mat_clear(fmpq_mat_t mat)
@@ -100,4 +91,3 @@ cdef extern from "flint/fmpq_mat.h":
     void fmpq_mat_charpoly(fmpq_poly_t pol, const fmpq_mat_t mat)
     slong _fmpq_mat_minpoly(fmpz_struct * coeffs, fmpz_t den, const fmpq_mat_t mat)
     void fmpq_mat_minpoly(fmpq_poly_t pol, const fmpq_mat_t mat)
-

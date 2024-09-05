@@ -1,7 +1,6 @@
-from flint.flintlib.functions.fmpq cimport fmpq_t
 from flint.flintlib.types.arb cimport mag_ptr, mag_t
-from flint.flintlib.types.flint cimport flint_rand_t, slong, ulong
-from flint.flintlib.types.fmpz cimport fmpz_t
+from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, slong, ulong
+from flint.flintlib.types.fmpq cimport fmpq_t
 
 # unknown type FILE
 

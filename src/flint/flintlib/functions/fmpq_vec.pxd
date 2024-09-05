@@ -1,9 +1,8 @@
-from flint.flintlib.types.flint cimport flint_bitcnt_t, fmpz_struct, slong, flint_rand_t
-from flint.flintlib.functions.fmpq cimport fmpq_t, fmpq_struct
-from flint.flintlib.functions.fmpz cimport fmpz_t
+from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, slong
+from flint.flintlib.types.fmpq cimport fmpq_struct, fmpq_t
 
+# unknown type FILE
 
-# unimported types  set()
 
 cdef extern from "flint/fmpq_vec.h":
     fmpq_struct * _fmpq_vec_init(slong n)

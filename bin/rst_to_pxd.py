@@ -78,6 +78,8 @@ def fill_import_dict(pyflintlibdir):
     """
     Get a map from cython structs to the pxd that defines them
     """
+    import_dict['fmpq_struct'] = 'types.fmpq'
+
     with os.scandir(pyflintlibdir + '/types') as entry:
         for f in entry:
             if fnmatch.fnmatch(f.name, "*.pxd"):

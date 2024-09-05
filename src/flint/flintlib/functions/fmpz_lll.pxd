@@ -1,5 +1,5 @@
-from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, slong
-from flint.flintlib.types.fmpz cimport fmpz_lll_t, fmpz_mat_t, fmpz_t, gram_type, rep_type
+from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_t, slong
+from flint.flintlib.types.fmpz cimport fmpz_lll_t, fmpz_mat_t, gram_type, rep_type
 
 # unknown type d_mat_t
 # unknown type fmpz_gram_t

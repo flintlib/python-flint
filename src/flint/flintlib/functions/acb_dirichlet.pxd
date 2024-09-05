@@ -1,11 +1,10 @@
-from flint.flintlib.functions.fmpq cimport fmpq_t
 from flint.flintlib.types.acb cimport acb_poly_t, acb_ptr, acb_srcptr, acb_t
 from flint.flintlib.types.acb_dirichlet cimport acb_dirichlet_hurwitz_precomp_t, acb_dirichlet_roots_t
 from flint.flintlib.types.arb cimport arb_ptr, arb_srcptr, arb_t, mag_t
 from flint.flintlib.types.arf cimport arf_t
 from flint.flintlib.types.dirichlet cimport dirichlet_char_t, dirichlet_group_t
-from flint.flintlib.types.flint cimport slong, ulong
-from flint.flintlib.types.fmpz cimport fmpz_t
+from flint.flintlib.types.flint cimport fmpz_t, slong, ulong
+from flint.flintlib.types.fmpq cimport fmpq_t
 
 
 

@@ -37,8 +37,10 @@ cdef extern from "flint/fmpz.h":
     ctypedef const ulong * nn_srcptr
 
 ctypedef slong fmpz_struct
+ctypedef fmpz_struct fmpz_t[1]
 
 cdef extern from "flint/fmpz.h":
+    # Macros
     int COEFF_IS_MPZ(fmpz_struct x)
 
 cdef extern from *:
@@ -73,6 +75,10 @@ cdef extern from "flint/flint.h":
         mp_limb_t n
         mp_limb_t ninv
         flint_bitcnt_t norm
+
+    ctypedef struct fmpq:
+        fmpz_struct num
+        fmpz_struct den
 
 cdef extern from *:
     """

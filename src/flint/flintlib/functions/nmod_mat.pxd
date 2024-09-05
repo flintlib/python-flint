@@ -1,7 +1,5 @@
-from flint.flintlib.functions.nmod_poly cimport nmod_poly_t
-from flint.flintlib.types.flint cimport flint_rand_t, nn_ptr, nn_srcptr, slong, ulong
-from flint.flintlib.types.fmpz cimport fmpz_t
-from flint.flintlib.types.nmod cimport nmod_mat_t
+from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, nn_ptr, nn_srcptr, slong, ulong
+from flint.flintlib.types.nmod cimport nmod_mat_t, nmod_poly_t
 
 # unknown type FILE
 # unknown type thread_pool_handle

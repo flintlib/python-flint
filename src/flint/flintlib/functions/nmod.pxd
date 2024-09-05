@@ -1,5 +1,4 @@
-from flint.flintlib.types.flint cimport nmod_t, ulong
-from flint.flintlib.types.fmpz cimport fmpz_t
+from flint.flintlib.types.flint cimport fmpz_t, nmod_t, ulong
 
 # unknown type nmod_discrete_log_pohlig_hellman_t
 

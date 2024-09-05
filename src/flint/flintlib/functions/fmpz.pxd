@@ -1,5 +1,5 @@
-from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, nmod_t, nn_ptr, nn_srcptr, slong, ulong
-from flint.flintlib.types.fmpz cimport fmpz_factor_t, fmpz_preinvn_t, fmpz_t
+from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, nmod_t, nn_ptr, nn_srcptr, slong, ulong
+from flint.flintlib.types.fmpz cimport fmpz_factor_t, fmpz_preinvn_t
 
 # unknown type FILE
 # unknown type fmpz_comb_t

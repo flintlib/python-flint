@@ -1,7 +1,6 @@
 from flint.flintlib.types.arb cimport arb_t
 from flint.flintlib.types.arf cimport arf_t
-from flint.flintlib.types.flint cimport slong, ulong
-from flint.flintlib.types.fmpz cimport fmpz_t
+from flint.flintlib.types.flint cimport fmpz_t, slong, ulong
 
 
 

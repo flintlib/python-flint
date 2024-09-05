@@ -1,6 +1,7 @@
 from flint.flintlib.types.flint cimport (
     mp_ptr,
     fmpz_struct,
+    fmpz_t,
     ulong,
     slong,
     flint_bitcnt_t,
@@ -8,8 +9,6 @@ from flint.flintlib.types.flint cimport (
 
 
 cdef extern from "flint/fmpz_types.h":
-
-    ctypedef fmpz_struct fmpz_t[1]
 
     ctypedef struct fmpz_preinvn_struct:
         mp_ptr dinv

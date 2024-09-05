@@ -1,7 +1,6 @@
-from flint.flintlib.functions.fmpq cimport fmpq_struct, fmpq_t
-from flint.flintlib.functions.fmpq_poly cimport fmpq_poly_t
-from flint.flintlib.types.flint cimport fmpz_struct, nmod_t, nn_ptr, slong, ulong
-from flint.flintlib.types.fmpz cimport fmpz_mat_t, fmpz_poly_t, fmpz_t
+from flint.flintlib.types.flint cimport fmpz_struct, fmpz_t, nmod_t, nn_ptr, slong, ulong
+from flint.flintlib.types.fmpq cimport fmpq_poly_t, fmpq_struct, fmpq_t
+from flint.flintlib.types.fmpz cimport fmpz_mat_t, fmpz_poly_t
 
 # unknown type mpfr_t
 # unknown type trig_prod_t

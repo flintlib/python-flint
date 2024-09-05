@@ -1,6 +1,5 @@
-from flint.flintlib.functions.fmpq cimport fmpq_struct, fmpq_t
-from flint.flintlib.types.flint cimport slong, ulong
-from flint.flintlib.types.fmpz cimport fmpz_t
+from flint.flintlib.types.flint cimport fmpz_t, slong, ulong
+from flint.flintlib.types.fmpq cimport fmpq_struct, fmpq_t
 
 # unknown type bernoulli_rev_t
 
