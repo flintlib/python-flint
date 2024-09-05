@@ -49,6 +49,8 @@ from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_push_term_fmpz_ffmpz,
     fmpz_mpoly_reduction_primitive_part,
     fmpz_mpoly_resultant,
+    fmpz_mpoly_scalar_divexact_fmpz,
+    fmpz_mpoly_scalar_divides_fmpz,
     fmpz_mpoly_scalar_mul_fmpz,
     fmpz_mpoly_set,
     fmpz_mpoly_set_coeff_fmpz_fmpz,
@@ -399,6 +401,19 @@ cdef class fmpz_mpoly(flint_mpoly):
         quotient = create_fmpz_mpoly(self.ctx)
         fmpz_mpoly_div(quotient.val, self.val, other.val, self.ctx.val)
         return quotient
+
+    cdef _truediv_scalar_(self, arg, assume_exact: bool):
+        cdef fmpz_mpoly quotient,
+        cdef fmpz other = <fmpz>arg
+        quotient = create_fmpz_mpoly(self.ctx)
+        if assume_exact:
+            fmpz_mpoly_scalar_divexact_fmpz(quotient.val, self.val, other.val, self.ctx.val)
+            return quotient
+
+        if fmpz_mpoly_scalar_divides_fmpz(quotient.val, self.val, other.val, self.ctx.val):
+            return quotient
+        else:
+            raise DomainError("fmpz_mpoly division is not exact")
 
     cdef _truediv_mpoly_(self, arg):
         cdef fmpz_mpoly quotient, other = <fmpz_mpoly>arg

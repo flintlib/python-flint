@@ -405,7 +405,7 @@ cdef class flint_mpoly(flint_elem):
 
     def _division_check(self, other):
         if not other:
-            raise ZeroDivisionError("nmod_mpoly division by zero")
+            raise ZeroDivisionError(f"{self.__class__.__name__} division by zero")
 
     cdef _add_scalar_(self, other):
         return NotImplemented
@@ -429,6 +429,9 @@ cdef class flint_mpoly(flint_elem):
         return NotImplemented
 
     cdef _floordiv_mpoly_(self, other):
+        return NotImplemented
+
+    cdef _truediv_scalar_(self, other, assume_exact: bool):
         return NotImplemented
 
     cdef _truediv_mpoly_(self, other):
@@ -589,8 +592,12 @@ cdef class flint_mpoly(flint_elem):
         if other is NotImplemented:
             return NotImplemented
 
-        other = self.context().scalar_as_mpoly(other)
         self._division_check(other)
+        res = self._truediv_scalar_(other, False)
+        if res is not NotImplemented:
+            return res
+
+        other = self.context().scalar_as_mpoly(other)
         return self._truediv_mpoly_(other)
 
     def __rtruediv__(self, other):

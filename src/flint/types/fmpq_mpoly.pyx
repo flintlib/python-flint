@@ -49,6 +49,7 @@ from flint.flintlib.fmpq_mpoly cimport (
     fmpq_mpoly_push_term_fmpq_ffmpz,
     fmpq_mpoly_reduce,
     fmpq_mpoly_resultant,
+    fmpq_mpoly_scalar_div_fmpq,
     fmpq_mpoly_scalar_mul_fmpq,
     fmpq_mpoly_set,
     fmpq_mpoly_set_coeff_fmpq_fmpz,
@@ -415,6 +416,13 @@ cdef class fmpq_mpoly(flint_mpoly):
         cdef fmpq_mpoly quotient, other = <fmpq_mpoly>arg
         quotient = create_fmpq_mpoly(self.ctx)
         fmpq_mpoly_div(quotient.val, self.val, other.val, self.ctx.val)
+        return quotient
+
+    cdef _truediv_scalar_(self, arg, _: bool):
+        cdef fmpq_mpoly quotient
+        cdef fmpq other = <fmpq>arg
+        quotient = create_fmpq_mpoly(self.ctx)
+        fmpq_mpoly_scalar_div_fmpq(quotient.val, self.val, other.val, self.ctx.val)
         return quotient
 
     cdef _truediv_mpoly_(self, arg):

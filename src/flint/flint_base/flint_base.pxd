@@ -23,6 +23,7 @@ cdef class flint_mpoly(flint_elem):
     cdef _mul_mpoly_(self, other)
 
     cdef _divmod_mpoly_(self, other)
+    cdef _truediv_scalar_(self, other, assume_exact: bool)
     cdef _floordiv_mpoly_(self, other)
     cdef _truediv_mpoly_(self, other)
     cdef _mod_mpoly_(self, other)
