@@ -107,9 +107,6 @@ cdef class fmpq(flint_scalar):
 
     def __richcmp__(s, t, int op):
         cdef bint res
-        s = any_as_fmpq(s)
-        if s is NotImplemented:
-            return s
         t = any_as_fmpq(t)
         if t is NotImplemented:
             return t
@@ -119,17 +116,17 @@ cdef class fmpq(flint_scalar):
                 res = not res
             return res
         else:
-            # todo: use fmpq_cmp when available
+            res = fmpq_cmp(s.val, (<fmpq>t).val)
             if op == 0:
-                res = (s-t).p < 0
+                res = res < 0
             elif op == 1:
-                res = (s-t).p <= 0
+                res = res <= 0
             elif op == 4:
-                res = (s-t).p > 0
+                res = res > 0
             elif op == 5:
-                res = (s-t).p >= 0
+                res = res >= 0
             else:
-                raise ValueError
+                assert False
             return res
 
     def numer(self):
@@ -442,9 +439,9 @@ cdef class fmpq(flint_scalar):
         import sys
         from fractions import Fraction
         if sys.version_info < (3, 12):
-            return hash(Fraction(int(self.p), int(self.q), _normalize=False))
+            return hash(Fraction(int(self.p), int(self.q), _normalize=False))  # pragma: no cover
         else:
-            return hash(Fraction._from_coprime_ints(int(self.p), int(self.q)))
+            return hash(Fraction._from_coprime_ints(int(self.p), int(self.q)))  # pragma: no cover
 
     def height_bits(self, bint signed=False):
         """

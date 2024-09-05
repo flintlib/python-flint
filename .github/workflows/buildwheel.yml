@@ -193,7 +193,7 @@ jobs:
 
   # Test that we can make a coverage build and report coverage
   test_coverage_build:
-    name: Test coverage setuptools build
+    name: Test coverage build
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -202,7 +202,7 @@ jobs:
           python-version: '3.12'
       - run: sudo apt-get update
       - run: sudo apt-get install libflint-dev
-      # Need Cython's master branch until 3.1 is released because of:
+      # Need Cython's master branch until 3.1 is released because we need:
       # https://github.com/cython/cython/pull/6341
       - run: pip install git+https://github.com/cython/cython.git@master
       - run: pip install -r requirements-dev.txt

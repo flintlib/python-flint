@@ -396,18 +396,15 @@ cdef class fmpz(flint_scalar):
         return u
 
     def __pow__(s, t, m):
-        cdef fmpz_struct sval[1]
-        cdef fmpz_struct tval[1]
-        cdef fmpz_struct mval[1]
-        cdef int stype = FMPZ_UNKNOWN
+        cdef fmpz_t tval
+        cdef fmpz_t mval
         cdef int ttype = FMPZ_UNKNOWN
         cdef int mtype = FMPZ_UNKNOWN
         cdef int success
         u = NotImplemented
 
         try:
-            stype = fmpz_set_any_ref(sval, s)
-            if stype == FMPZ_UNKNOWN:
+            if not typecheck(s, fmpz):
                 return NotImplemented
             ttype = fmpz_set_any_ref(tval, t)
             if ttype == FMPZ_UNKNOWN:
@@ -441,12 +438,10 @@ cdef class fmpz(flint_scalar):
                     raise ValueError("pow(): negative modulus not supported")
 
                 u = fmpz.__new__(fmpz)
-                fmpz_powm((<fmpz>u).val, sval, tval, mval)
+                fmpz_powm((<fmpz>u).val, s.val, tval, mval)
 
                 return u
         finally:
-            if stype == FMPZ_TMP:
-                fmpz_clear(sval)
             if ttype == FMPZ_TMP:
                 fmpz_clear(tval)
             if mtype == FMPZ_TMP:

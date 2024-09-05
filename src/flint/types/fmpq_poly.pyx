@@ -120,9 +120,6 @@ cdef class fmpq_poly(flint_poly):
         cdef bint r
         if op != 2 and op != 3:
             raise TypeError("polynomials cannot be ordered")
-        self = any_as_fmpq_poly(self)
-        if self is NotImplemented:
-            return self
         other = any_as_fmpq_poly(other)
         if other is NotImplemented:
             return other
@@ -476,15 +473,8 @@ cdef class fmpq_poly(flint_poly):
             1/2*x + 1/2
 
         """
-        d = self.denom()
-        n = self.numer()
-        d, r = d.sqrtrem()
-        if r != 0:
-            raise ValueError(f"Cannot compute square root of {self}")
-        n = n.sqrt()
-        if n is None:
-            raise ValueError(f"Cannot compute square root of {self}")
-        return fmpq_poly(n, d)
+        d = self.denom().sqrt()
+        return fmpq_poly(self.numer().sqrt(), d)
 
     def deflation(self):
         num, n = self.numer().deflation()

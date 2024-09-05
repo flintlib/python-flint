@@ -107,9 +107,6 @@ cdef class fmpz_poly(flint_poly):
         cdef bint r
         if op != 2 and op != 3:
             raise TypeError("polynomials cannot be ordered")
-        self = any_as_fmpz_poly(self)
-        if self is NotImplemented:
-            return self
         other = any_as_fmpz_poly(other)
         if other is NotImplemented:
             return other
@@ -456,7 +453,7 @@ cdef class fmpz_poly(flint_poly):
             return []
         flags = 0
         if verbose:
-            flags = 1
+            flags = 1  # pragma: no cover
         roots = []
         fmpz_poly_factor_init(fac)
         fmpz_poly_factor_squarefree(fac, self.val)
@@ -551,8 +548,8 @@ cdef class fmpz_poly(flint_poly):
             arb_poly_init(t)
             arb_poly_swinnerton_dyer_ui(t, n, 0)
             if not arb_poly_get_unique_fmpz_poly((<fmpz_poly>u).val, t):
-                arb_poly_clear(t)
-                raise ValueError("insufficient precision")
+                arb_poly_clear(t)                           # pragma: no cover
+                raise ValueError("insufficient precision")  # pragma: no cover
             arb_poly_clear(t)
         else:
             fmpz_poly_swinnerton_dyer((<fmpz_poly>u).val, n)

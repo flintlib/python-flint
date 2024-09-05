@@ -305,14 +305,16 @@ cdef class fmpz_mat(flint_mat):
     def __pow__(self, e, m):
         cdef fmpz_mat t
         cdef ulong ee
-        if not typecheck(self, fmpz_mat):
-            return NotImplemented
-        if not fmpz_mat_is_square((<fmpz_mat>self).val):
+        if not fmpz_mat_is_square(self.val):
             raise ValueError("matrix must be square")
         if m is not None:
             raise NotImplementedError("modular matrix exponentiation")
+        if e < 0:
+            # Allow unimodular?
+            raise DomainError("negative power of integer matrix: M**%i" % e)
         ee = e
-        t = fmpz_mat(self)   # XXX
+        t = fmpz_mat.__new__(fmpz_mat)
+        fmpz_mat_init_set(t.val, self.val)
         fmpz_mat_pow(t.val, t.val, ee)
         return t
 
@@ -520,7 +522,7 @@ cdef class fmpz_mat(flint_mat):
             >>> A.solve(B, integer=True)
             Traceback (most recent call last):
               ...
-            ValueError: matrix is not invertible over the integers
+            flint.utils.flint_exceptions.DomainError: matrix is not invertible over the integers
             >>> fmpz_mat([[1,2], [3,5]]).solve(B, integer=True)
             [ 6,  3, 0]
             [-3, -1, 1]
@@ -556,11 +558,11 @@ cdef class fmpz_mat(flint_mat):
                           fmpz_mat_ncols((<fmpz_mat>t).val))
             d = fmpz.__new__(fmpz)
             result = fmpz_mat_solve(u.val, d.val, self.val, (<fmpz_mat>t).val)
-            if not fmpz_is_pm1(d.val):
-                raise ValueError("matrix is not invertible over the integers")
-            u *= d
             if not result:
                 raise ZeroDivisionError("singular matrix in solve()")
+            if not fmpz_is_pm1(d.val):
+                raise DomainError("matrix is not invertible over the integers")
+            u *= d
             return u
 
     def rref(self, inplace=False):
@@ -642,7 +644,10 @@ cdef class fmpz_mat(flint_mat):
         if rep == "zbasis":
             rt = rep_type.Z_BASIS
         elif rep == "gram":
+            # XXX: This consumes all memory and crashes. Maybe the parameters
+            # need to be different or something?
             rt = rep_type.GRAM
+            assert False, "rep = gram does not currently work."
         else:
             raise ValueError("rep must be 'zbasis' or 'gram'")
         if gram == "approx":
