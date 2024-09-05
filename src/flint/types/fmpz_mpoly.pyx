@@ -510,7 +510,7 @@ cdef class fmpz_mpoly(flint_mpoly):
         res = []
         for i in range(len(self)):
             fmpz_mpoly_get_term_exp_fmpz(vec.double_indirect, self.val, i, self.ctx.val)
-            res.append(vec.to_tuple())
+            res.append(tuple(vec))
 
         return res
 
@@ -688,7 +688,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             raise IndexError("term index out of range")
         res = fmpz_vec(nvars, double_indirect=True)
         fmpz_mpoly_get_term_exp_fmpz(res.double_indirect, self.val, i, self.ctx.val)
-        return res.to_tuple()
+        return tuple(res)
 
     def degrees(self):
         """
@@ -705,7 +705,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
         res = fmpz_vec(nvars, double_indirect=True)
         fmpz_mpoly_degrees_fmpz(res.double_indirect, self.val, self.ctx.val)
-        return res.to_tuple()
+        return tuple(res)
 
     def total_degree(self):
         """
@@ -1208,8 +1208,12 @@ cdef class fmpz_mpoly_vec:
         else:
             return NotImplemented
 
-    def to_tuple(self):
-        return tuple(self[i] for i in range(self.val.length))
+    def __iter__(self):
+        cdef fmpz_mpoly z
+        for i in range(self.val.length):
+            z = create_fmpz_mpoly(self.ctx)
+            fmpz_mpoly_set(z.val, fmpz_mpoly_vec_entry(self.val, i), self.ctx.val)
+            yield z
 
     def is_groebner(self, other=None) -> bool:
         """

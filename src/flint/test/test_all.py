@@ -3241,14 +3241,15 @@ def test_mpolys():
 
         res, stride = (3*x0**2*x1**2 + 6*x0*x1**2 + 9*x1**2).deflation()
         assert res == 3*x0**2 + 6*x0 + 9
-        assert stride.to_tuple() == (1, 0)
+        assert tuple(stride) == (1, 0)
 
         res, stride = ((x0**2 + x1**2)**3 + (x0**2 + x1**2)**2 + 1).deflation()
         assert res == x0**3 + 3*x0**2*x1 + x0**2 + 3*x0*x1**2 + 2*x0*x1 + x1**3 + x1**2 + 1
-        assert stride.to_tuple() == (2, 2)
+        assert tuple(stride) == (2, 2)
 
         if P is flint.fmpz_mpoly:
-            assert (x0**2 * x1 + x0 * x1).primitive_part() == x0**2*x1 + x0*x1
+            assert (x0**2 * x1 + x0 * x1).primitive() == (1, x0**2*x1 + x0*x1)
+            assert (4 * x0 + 2 * x0 * x1).primitive() == (2, x0 * x1 + 2 * x0)
 
         if composite_characteristic:
             # Factorisation not allowed over Z/nZ for n not prime.
@@ -3325,7 +3326,7 @@ def test_fmpz_mpoly_vec():
         assert vec != mpoly_vec([x, x * y, ctx.from_dict({})], ctx)
         assert vec != mpoly_vec([ctx.from_dict({})], ctx)
         assert vec != mpoly_vec([ctx1.from_dict({})], ctx1)
-        assert vec.to_tuple() == mpoly_vec([ctx.from_dict({}), x * y, ctx.from_dict({})], ctx).to_tuple()
+        assert tuple(vec) == tuple(mpoly_vec([ctx.from_dict({}), x * y, ctx.from_dict({})], ctx))
         assert raises(lambda: vec.__setitem__(None, 0), TypeError)
         assert raises(lambda: vec.__setitem__(-1, 0), IndexError)
         assert raises(lambda: vec.__setitem__(0, 0), TypeError)

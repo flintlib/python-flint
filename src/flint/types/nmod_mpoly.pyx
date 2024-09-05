@@ -575,7 +575,7 @@ cdef class nmod_mpoly(flint_mpoly):
         res = []
         for i in range(len(self)):
             nmod_mpoly_get_term_exp_fmpz(vec.double_indirect, self.val, i, self.ctx.val)
-            res.append(vec.to_tuple())
+            res.append(tuple(vec))
 
         return res
 
@@ -737,7 +737,7 @@ cdef class nmod_mpoly(flint_mpoly):
             raise IndexError("term index out of range")
         res = fmpz_vec(nvars, double_indirect=True)
         nmod_mpoly_get_term_exp_fmpz(res.double_indirect, self.val, i, self.ctx.val)
-        return res.to_tuple()
+        return tuple(res)
 
     def degrees(self):
         """
@@ -754,7 +754,7 @@ cdef class nmod_mpoly(flint_mpoly):
 
         res = fmpz_vec(nvars, double_indirect=True)
         nmod_mpoly_degrees_fmpz(res.double_indirect, self.val, self.ctx.val)
-        return res.to_tuple()
+        return tuple(res)
 
     def total_degree(self):
         """
@@ -1142,5 +1142,9 @@ cdef class nmod_mpoly_vec:
     def __repr__(self):
         return f"nmod_mpoly_vec({self}, ctx={self.ctx})"
 
-    def to_tuple(self):
-        return tuple(self[i] for i in range(self.val.length))
+    def __iter__(self):
+        cdef nmod_mpoly z
+        for i in range(self.length):
+            z = create_nmod_mpoly(self.ctx)
+            nmod_mpoly_set(z.val, &self.val[i], self.ctx.val)
+            yield z
