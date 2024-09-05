@@ -144,6 +144,9 @@ def get_all_types(function_list):
 
 
 def has_types(line, types):
+    #ts = set(t for t in get_parameter_types(line) if t in types)
+    #if ts:
+    #    print(ts, file=sys.stderr)
     return any(t in types for t in get_parameter_types(line))
 
 
