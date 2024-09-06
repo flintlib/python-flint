@@ -38,6 +38,7 @@ from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_get_str_pretty,
     fmpz_mpoly_get_term_coeff_fmpz,
     fmpz_mpoly_get_term_exp_fmpz,
+    fmpz_mpoly_inflate,
     fmpz_mpoly_integral,
     fmpz_mpoly_is_one,
     fmpz_mpoly_is_zero,
@@ -46,6 +47,7 @@ from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_neg,
     fmpz_mpoly_pow_fmpz,
     fmpz_mpoly_push_term_fmpz_ffmpz,
+    fmpz_mpoly_push_term_ui_ffmpz,
     fmpz_mpoly_reduction_primitive_part,
     fmpz_mpoly_resultant,
     fmpz_mpoly_scalar_divexact_fmpz,
@@ -1092,34 +1094,94 @@ cdef class fmpz_mpoly(flint_mpoly):
         fmpz_mpoly_reduction_primitive_part(res.val, self.val, (<fmpz_mpoly_vec>vec).val, self.ctx.val)
         return res
 
-    # def inflate(self):
-    #     pass
+    def inflate(self, N: list[int]) -> fmpz_mpoly:
+        """q  s.t.  q(X) = p(X^N)"""
+        cdef nvars = self.ctx.nvars()
 
-    # def deflate(self):
-    #     pass
+        if nvars != len(N):
+            raise ValueError(f"expected list of length {nvars}, got {len(N)}")
+        elif any(n < 0 for n in N):
+            raise ValueError("all inflate strides must be non-negative")
 
-    # def deflation(self, stride: fmpz_vec | None, shift: fmpz_vec | None):
-
-    def deflation(self):
-        """
-        Compute the deflation of ``self``. See Flint documentation for
-        details. Returns deflated polynomial and the stride vector.
-
-            >>> from flint import Ordering
-            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
-            >>> x, y = ctx.gens()
-            >>> f = x**3 * y + x * y**4 + x * y
-            >>> f.deflation()
-            (x + y + 1, fmpz_vec(['2', '3'], 2))
-        """
         cdef:
-            fmpz_vec shift = fmpz_vec(self.ctx.nvars())
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(N)
+            fmpz_mpoly res = create_fmpz_mpoly(self.ctx)
+
+        fmpz_mpoly_inflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
+        return res
+
+    def deflate(self, N: list[int]) -> fmpz_mpoly:
+        """q  s.t.  p(X) = q(X^N)"""
+        cdef slong nvars = self.ctx.nvars()
+
+        if nvars != len(N):
+            raise ValueError(f"expected list of length {nvars}, got {len(N)}")
+
+        cdef:
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(N)
+            fmpz_mpoly res = create_fmpz_mpoly(self.ctx)
+
+        fmpz_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
+        return res
+
+    def deflation(self) -> (fmpz_mpoly, list[int]):
+        """(q, N)  s.t.  p(X) = q(X^N)  for maximal N"""
+        cdef:
+            fmpz_vec _shift = fmpz_vec(self.ctx.nvars())
             fmpz_vec stride = fmpz_vec(self.ctx.nvars())
             fmpz_mpoly res = create_fmpz_mpoly(self.ctx)
 
+        fmpz_mpoly_deflation(_shift.val, stride.val, self.val, self.ctx.val)
+
+        cdef fmpz_vec zero_shift = fmpz_vec(self.ctx.nvars())
+        fmpz_mpoly_deflate(res.val, self.val, zero_shift.val, stride.val, self.ctx.val)
+
+        return res, list(stride)
+
+    def deflation_monom(self) -> (fmpz_mpoly, list[int], fmpz_mpoly):
+        """(q, N, m)  s.t.  p(X) = m * q(X^N)  for maximal N and monomial m"""
+        cdef:
+            fmpz_mpoly res, monom = create_fmpz_mpoly(self.ctx)
+
+        res, stride, _shift = self.deflation_index()
+
+        fmpz_mpoly_push_term_ui_ffmpz(monom.val, 1, fmpz_vec(_shift).val, self.ctx.val)
+        return res, list(stride), monom
+
+    def deflation_index(self) -> (fmpz_mpoly, list[int], list[int]):
+        """(N, I)  s.t.  p(X) = X^I * q(X^N)  for maximal N and I"""
+        cdef:
+            slong nvars = self.ctx.nvars()
+            fmpz_mpoly res = create_fmpz_mpoly(self.ctx)
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(nvars)
+
         fmpz_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
         fmpz_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
-        return res, stride
+        return res, list(stride), list(shift)
+
+    # def deflation(self):
+    #     """
+    #     Compute the deflation of ``self``. See Flint documentation for
+    #     details. Returns deflated polynomial and the stride vector.
+
+    #         >>> from flint import Ordering
+    #         >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+    #         >>> x, y = ctx.gens()
+    #         >>> f = x**3 * y + x * y**4 + x * y
+    #         >>> f.deflation()
+    #         (x + y + 1, fmpz_vec(['2', '3'], 2))
+    #     """
+    #     cdef:
+    #         fmpz_vec shift = fmpz_vec(self.ctx.nvars())
+    #         fmpz_vec stride = fmpz_vec(self.ctx.nvars())
+    #         fmpz_mpoly res = create_fmpz_mpoly(self.ctx)
+
+    #     fmpz_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
+    #     fmpz_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
+    #     return res, stride
 
 
 cdef class fmpz_mpoly_vec:

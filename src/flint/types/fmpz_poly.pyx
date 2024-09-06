@@ -593,18 +593,52 @@ cdef class fmpz_poly(flint_poly):
         else:
             raise DomainError(f"Cannot compute square root of {self}")
 
-    def deflation(self):
-        cdef fmpz_poly v
+    def inflate(self, n: int) -> fmpz_poly:
+        """q  s.t.  q(x) = p(x^n)"""
+        cdef fmpz_poly res = fmpz_poly()
+        fmpz_poly_inflate(res.val, self.val, n)
+        return res
+
+    def deflate(self, n: int) -> fmpz_poly:
+        """q  s.t.  p(x) = q(x^n)"""
+        cdef fmpz_poly res = fmpz_poly()
+        if n > 0:
+            fmpz_poly_deflate(res.val, self.val, n)
+            return res
+        else:
+            raise ValueError("deflate requires n > 0")
+
+    def deflation(self) -> (fmpz_poly, int):
         cdef ulong n
         if fmpz_poly_is_zero(self.val):
             return self, 1
-        n = arb_fmpz_poly_deflation(self.val)
-        if n == 1:
-            return self, int(n)
-        else:
-            v = fmpz_poly()
-            arb_fmpz_poly_deflate(v.val, self.val, n)
-            return v, int(n)
+        n = fmpz_poly_deflation(self.val)
+        return self if n <= 1 else self.deflate(n), int(n)
+
+    def deflation_monom(self) -> (fmpz_poly, int, fmpz_poly):
+        """(q, n, m)  s.t.  p(x) = m * q(x^n)  for maximal n and monomial m"""
+        q, n, m = self.deflation_index()
+
+        cdef fmpz_poly monom = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_set_coeff_ui(monom.val, m, 1)
+
+        return q, n, monom
+
+    def deflation_index(self) -> (fmpz_poly, int, int):
+        """(q, n, i)  s.t.  p(x) = x^i * q(x^n)  for maximal n and i"""
+        cdef fmpz_poly res = fmpz_poly.__new__(fmpz_poly)
+        cdef slong length = fmpz_poly_length(self.val)
+
+        if length <= 0:
+            return self, 0, fmpz_poly([1])
+
+        # Find the smallest non-zero power, that is the gcd of the monomials
+        for i in range(1, length + 1):
+            if not fmpz_is_zero(&self.val.coeffs[length - i]):
+                break
+
+        fmpz_poly_shift_right(res.val, self.val, i)
+        return *res.deflation(), int(i)
 
     def is_cyclotomic(self):
         cdef long * phi
