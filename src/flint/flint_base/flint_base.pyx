@@ -391,6 +391,24 @@ cdef class flint_mpoly_context(flint_elem):
         elif other is not self:
             raise IncompatibleContextError(f"{other} is not {self}")
 
+    def term(self, coeff = None, exp_vec = None):
+        """
+        Create a monomial from a coefficient and exponent vector. ``coeff`` defaults
+        to ``1``. ``exp_vec``` defaults to ``(0,) * self.nvars()```.
+
+            >>> from flint import fmpz_mpoly_ctx, Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx.term(coeff=5, exp_vec=(2, 3))
+            5*x0^2*x1^3
+            >>> ctx.term()
+            1
+        """
+        if coeff is None:
+            coeff = 1
+        if exp_vec is None:
+            exp_vec = (0,) * self.nvars()
+        return self.from_dict({tuple(exp_vec): coeff})
+
 
 cdef class flint_mpoly(flint_elem):
     """
