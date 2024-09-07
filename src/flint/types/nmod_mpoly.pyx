@@ -43,6 +43,7 @@ from flint.flintlib.nmod_mpoly cimport (
     nmod_mpoly_get_str_pretty,
     nmod_mpoly_get_term_coeff_ui,
     nmod_mpoly_get_term_exp_fmpz,
+    nmod_mpoly_inflate,
     nmod_mpoly_is_one,
     nmod_mpoly_is_zero,
     nmod_mpoly_length,
@@ -1046,26 +1047,139 @@ cdef class nmod_mpoly(flint_mpoly):
         nmod_mpoly_derivative(res.val, self.val, i, self.ctx.val)
         return res
 
-    def deflation(self):
+    def inflate(self, N: list[int]) -> nmod_mpoly:
         """
-        Compute the deflation of ``self``. See Flint documentation for
-        details. Returns deflated polynomial and the stride vector.
+        Compute the inflation of ``self`` for a provided ``N``, that is return ``q``
+        such that ``q(X) = p(X^N)``.
+
+            >>> from flint import Ordering
+            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x + y + 1
+            >>> f.inflate([2, 3])
+            x^2 + y^3 + 1
+        """
+
+        cdef nvars = self.ctx.nvars()
+
+        if nvars != len(N):
+            raise ValueError(f"expected list of length {nvars}, got {len(N)}")
+        elif any(n < 0 for n in N):
+            raise ValueError("all inflate strides must be non-negative")
+
+        cdef:
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(N)
+            nmod_mpoly res = create_nmod_mpoly(self.ctx)
+
+        nmod_mpoly_inflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
+        return res
+
+    def deflate(self, N: list[int]) -> nmod_mpoly:
+        """
+        Compute the deflation of ``self`` for a provided ``N``, that is return ``q``
+        such that ``q(X) = p(X^(1/N))``.
 
             >>> from flint import Ordering
             >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
             >>> x, y = ctx.gens()
             >>> f = x**3 * y + x * y**4 + x * y
-            >>> f.deflation()
-            (x + y + 1, fmpz_vec(['2', '3'], 2))
+            >>> f.deflate([2, 3])
+            x + y + 1
+        """
+        cdef slong nvars = self.ctx.nvars()
+
+        if nvars != len(N):
+            raise ValueError(f"expected list of length {nvars}, got {len(N)}")
+
+        cdef:
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(N)
+            nmod_mpoly res = create_nmod_mpoly(self.ctx)
+
+        nmod_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
+        return res
+
+    def deflation(self) -> tuple[nmod_mpoly, list[int]]:
+        """
+        Compute the deflation of ``self``, that is ``p(X^(1/N))`` for maximal
+        N. Returns ``q, N`` such that ``self == q.inflate(N)``.
+
+            >>> from flint import Ordering
+            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**3 * y + x * y**4 + x * y
+            >>> q, N = f.deflation()
+            >>> q, N
+            (x + y + 1, [2, 3])
         """
         cdef:
-            fmpz_vec shift = fmpz_vec(self.ctx.nvars())
+            fmpz_vec _shift = fmpz_vec(self.ctx.nvars())
             fmpz_vec stride = fmpz_vec(self.ctx.nvars())
             nmod_mpoly res = create_nmod_mpoly(self.ctx)
 
+        nmod_mpoly_deflation(_shift.val, stride.val, self.val, self.ctx.val)
+
+        cdef fmpz_vec zero_shift = fmpz_vec(self.ctx.nvars())
+        nmod_mpoly_deflate(res.val, self.val, zero_shift.val, stride.val, self.ctx.val)
+
+        return res, list(stride)
+
+    def deflation_monom(self) -> tuple[list[int], nmod_mpoly]:
+        """
+        Compute the exponent vector ``N`` and monomial ``m`` such that ``p(X^(1/N))
+        = m * q(X^N)`` for maximal N. Importantly the deflation itself is not computed
+        here. The returned monomial allows the undo-ing of the deflation.
+
+            >>> from flint import Ordering
+            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**3 * y + x * y**4 + x * y
+            >>> N, m = f.deflation_monom()
+            >>> N, m
+            ([2, 3], x*y)
+            >>> f_deflated = f.deflate(N)
+            >>> f_deflated
+            x + y + 1
+            >>> m * f_deflated.inflate(N)
+            x^3*y + x*y^4 + x*y
+        """
+        cdef nmod_mpoly monom = create_nmod_mpoly(self.ctx)
+
+        stride, _shift = self.deflation_index()
+
+        nmod_mpoly_push_term_ui_ffmpz(monom.val, 1, fmpz_vec(_shift).val, self.ctx.val)
+        return list(stride), monom
+
+    def deflation_index(self) -> tuple[list[int], list[int]]:
+        """
+        Compute the exponent vectors ``N`` and ``I`` such that ``p(X^(1/N)) = X^I *
+        q(X^N)`` for maximal N. Importantly the deflation itself is not computed
+        here. The returned exponent vector ``I`` is the shift that was applied to the
+        exponents. It is the exponent vector of the monomial returned by
+        ``deflation_monom``.
+
+            >>> from flint import Ordering
+            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**3 * y + x * y**4 + x * y
+            >>> N, I = f.deflation_index()
+            >>> N, I
+            ([2, 3], [1, 1])
+            >>> f_deflated = f.deflate(N)
+            >>> f_deflated
+            x + y + 1
+            >>> m = ctx.term(exp_vec=I)
+            >>> m * f_deflated.inflate(N)
+            x^3*y + x*y^4 + x*y
+        """
+        cdef:
+            slong nvars = self.ctx.nvars()
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(nvars)
+
         nmod_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
-        nmod_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
-        return res, stride
+        return list(stride), list(shift)
 
 
 cdef class nmod_mpoly_vec:

@@ -1095,7 +1095,18 @@ cdef class fmpz_mpoly(flint_mpoly):
         return res
 
     def inflate(self, N: list[int]) -> fmpz_mpoly:
-        """q  s.t.  q(X) = p(X^N)"""
+        """
+        Compute the inflation of ``self`` for a provided ``N``, that is return ``q``
+        such that ``q(X) = p(X^N)``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x + y + 1
+            >>> f.inflate([2, 3])
+            x^2 + y^3 + 1
+        """
+
         cdef nvars = self.ctx.nvars()
 
         if nvars != len(N):
@@ -1112,7 +1123,17 @@ cdef class fmpz_mpoly(flint_mpoly):
         return res
 
     def deflate(self, N: list[int]) -> fmpz_mpoly:
-        """q  s.t.  p(X) = q(X^N)"""
+        """
+        Compute the deflation of ``self`` for a provided ``N``, that is return ``q``
+        such that ``q(X) = p(X^(1/N))``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**3 * y + x * y**4 + x * y
+            >>> f.deflate([2, 3])
+            x + y + 1
+        """
         cdef slong nvars = self.ctx.nvars()
 
         if nvars != len(N):
@@ -1126,8 +1147,19 @@ cdef class fmpz_mpoly(flint_mpoly):
         fmpz_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
         return res
 
-    def deflation(self) -> (fmpz_mpoly, list[int]):
-        """(q, N)  s.t.  p(X) = q(X^N)  for maximal N"""
+    def deflation(self) -> tuple[fmpz_mpoly, list[int]]:
+        """
+        Compute the deflation of ``self``, that is ``p(X^(1/N))`` for maximal
+        N. Returns ``q, N`` such that ``self == q.inflate(N)``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**3 * y + x * y**4 + x * y
+            >>> q, N = f.deflation()
+            >>> q, N
+            (x + y + 1, [2, 3])
+        """
         cdef:
             fmpz_vec _shift = fmpz_vec(self.ctx.nvars())
             fmpz_vec stride = fmpz_vec(self.ctx.nvars())
@@ -1140,48 +1172,61 @@ cdef class fmpz_mpoly(flint_mpoly):
 
         return res, list(stride)
 
-    def deflation_monom(self) -> (fmpz_mpoly, list[int], fmpz_mpoly):
-        """(q, N, m)  s.t.  p(X) = m * q(X^N)  for maximal N and monomial m"""
-        cdef:
-            fmpz_mpoly res, monom = create_fmpz_mpoly(self.ctx)
+    def deflation_monom(self) -> tuple[list[int], fmpz_mpoly]:
+        """
+        Compute the exponent vector ``N`` and monomial ``m`` such that ``p(X^(1/N))
+        = m * q(X^N)`` for maximal N. Importantly the deflation itself is not computed
+        here. The returned monomial allows the undo-ing of the deflation.
 
-        res, stride, _shift = self.deflation_index()
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**3 * y + x * y**4 + x * y
+            >>> N, m = f.deflation_monom()
+            >>> N, m
+            ([2, 3], x*y)
+            >>> f_deflated = f.deflate(N)
+            >>> f_deflated
+            x + y + 1
+            >>> m * f_deflated.inflate(N)
+            x^3*y + x*y^4 + x*y
+        """
+        cdef fmpz_mpoly monom = create_fmpz_mpoly(self.ctx)
+
+        stride, _shift = self.deflation_index()
 
         fmpz_mpoly_push_term_ui_ffmpz(monom.val, 1, fmpz_vec(_shift).val, self.ctx.val)
-        return res, list(stride), monom
+        return list(stride), monom
 
-    def deflation_index(self) -> (fmpz_mpoly, list[int], list[int]):
-        """(N, I)  s.t.  p(X) = X^I * q(X^N)  for maximal N and I"""
+    def deflation_index(self) -> tuple[list[int], list[int]]:
+        """
+        Compute the exponent vectors ``N`` and ``I`` such that ``p(X^(1/N)) = X^I *
+        q(X^N)`` for maximal N. Importantly the deflation itself is not computed
+        here. The returned exponent vector ``I`` is the shift that was applied to the
+        exponents. It is the exponent vector of the monomial returned by
+        ``deflation_monom``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**3 * y + x * y**4 + x * y
+            >>> N, I = f.deflation_index()
+            >>> N, I
+            ([2, 3], [1, 1])
+            >>> f_deflated = f.deflate(N)
+            >>> f_deflated
+            x + y + 1
+            >>> m = ctx.term(exp_vec=I)
+            >>> m * f_deflated.inflate(N)
+            x^3*y + x*y^4 + x*y
+        """
         cdef:
             slong nvars = self.ctx.nvars()
-            fmpz_mpoly res = create_fmpz_mpoly(self.ctx)
             fmpz_vec shift = fmpz_vec(nvars)
             fmpz_vec stride = fmpz_vec(nvars)
 
         fmpz_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
-        fmpz_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
-        return res, list(stride), list(shift)
-
-    # def deflation(self):
-    #     """
-    #     Compute the deflation of ``self``. See Flint documentation for
-    #     details. Returns deflated polynomial and the stride vector.
-
-    #         >>> from flint import Ordering
-    #         >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
-    #         >>> x, y = ctx.gens()
-    #         >>> f = x**3 * y + x * y**4 + x * y
-    #         >>> f.deflation()
-    #         (x + y + 1, fmpz_vec(['2', '3'], 2))
-    #     """
-    #     cdef:
-    #         fmpz_vec shift = fmpz_vec(self.ctx.nvars())
-    #         fmpz_vec stride = fmpz_vec(self.ctx.nvars())
-    #         fmpz_mpoly res = create_fmpz_mpoly(self.ctx)
-
-    #     fmpz_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
-    #     fmpz_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
-    #     return res, stride
+        return list(stride), list(shift)
 
 
 cdef class fmpz_mpoly_vec:

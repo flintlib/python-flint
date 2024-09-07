@@ -161,3 +161,4 @@ cdef extern from "flint/nmod_mpoly.h":
     # These functions seem to be undocumented but appear in the header.
     void nmod_mpoly_deflation(fmpz_struct * shift, fmpz_struct * stride, const nmod_mpoly_t A, const nmod_mpoly_ctx_t ctx)
     void nmod_mpoly_deflate(nmod_mpoly_t A, const nmod_mpoly_t B, const fmpz_struct * shift, const fmpz_struct * stride, const nmod_mpoly_ctx_t ctx)
+    void nmod_mpoly_inflate(nmod_mpoly_t A, const nmod_mpoly_t B, const fmpz_struct * shift, const fmpz_struct * stride, const nmod_mpoly_ctx_t ctx)

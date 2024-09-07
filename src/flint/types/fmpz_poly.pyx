@@ -594,13 +594,27 @@ cdef class fmpz_poly(flint_poly):
             raise DomainError(f"Cannot compute square root of {self}")
 
     def inflate(self, n: int) -> fmpz_poly:
-        """q  s.t.  q(x) = p(x^n)"""
+        """
+        Compute the inflation of ``self`` for a provided ``n``, that is return ``q``
+        such that ``q(x) = p(x^n)``.
+
+            >>> f = fmpz_poly([1, 1])
+            >>> f.inflate(2)
+            x^2 + 1
+        """
         cdef fmpz_poly res = fmpz_poly()
         fmpz_poly_inflate(res.val, self.val, n)
         return res
 
     def deflate(self, n: int) -> fmpz_poly:
-        """q  s.t.  p(x) = q(x^n)"""
+        """
+        Compute the deflation of ``self`` for a provided ``n``, that is return ``q``
+        such that ``q(x) = p(x^(1/n))``.
+
+            >>> f = fmpz_poly([1, 0, 1])
+            >>> f.deflate(2)
+            x + 1
+        """
         cdef fmpz_poly res = fmpz_poly()
         if n > 0:
             fmpz_poly_deflate(res.val, self.val, n)
@@ -608,24 +622,50 @@ cdef class fmpz_poly(flint_poly):
         else:
             raise ValueError("deflate requires n > 0")
 
-    def deflation(self) -> (fmpz_poly, int):
+    def deflation(self) -> tuple[fmpz_poly, int]:
+        """
+        Compute the deflation of ``self``, that is ``p(x^(1/n))`` for maximal
+        n. returns ``q, n`` such that ``self == q.inflate(n)``.
+
+            >>> f = fmpz_poly([1, 0, 1])
+            >>> f.deflation()
+            (x + 1, 2)
+        """
         cdef ulong n
         if fmpz_poly_is_zero(self.val):
             return self, 1
         n = fmpz_poly_deflation(self.val)
         return self if n <= 1 else self.deflate(n), int(n)
 
-    def deflation_monom(self) -> (fmpz_poly, int, fmpz_poly):
-        """(q, n, m)  s.t.  p(x) = m * q(x^n)  for maximal n and monomial m"""
-        q, n, m = self.deflation_index()
+    def deflation_monom(self) -> tuple[fmpz_poly, int, fmpz_poly]:
+        """
+        Compute the exponent vector ``n`` and monomial ``m`` such that ``p(x^(1/n))
+        = m * q(x^n)`` for maximal n. Importantly the deflation itself is not computed
+        here. The returned monomial allows the undo-ing of the deflation.
+
+            >>> f = fmpz_poly([1, 0, 1])
+            >>> f.deflation()
+            (1, x)
+        """
+        n, m = self.deflation_index()
 
         cdef fmpz_poly monom = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_set_coeff_ui(monom.val, m, 1)
 
-        return q, n, monom
+        return n, monom
 
-    def deflation_index(self) -> (fmpz_poly, int, int):
-        """(q, n, i)  s.t.  p(x) = x^i * q(x^n)  for maximal n and i"""
+    def deflation_index(self) -> tuple[int, int]:
+        """
+        Compute the exponent vectors ``N`` and ``I`` such that ``p(X^(1/N)) = X^I *
+        q(X^N)`` for maximal N. Importantly the deflation itself is not computed
+        here. The returned exponent vector ``I`` is the shift that was applied to the
+        exponents. It is the exponent vector of the monomial returned by
+        ``deflation_monom``.
+
+            >>> f = fmpz_poly([1, 0, 1])
+            >>> f.deflation()
+            (1, 1)
+        """
         cdef fmpz_poly res = fmpz_poly.__new__(fmpz_poly)
         cdef slong length = fmpz_poly_length(self.val)
 
@@ -638,7 +678,7 @@ cdef class fmpz_poly(flint_poly):
                 break
 
         fmpz_poly_shift_right(res.val, self.val, i)
-        return *res.deflation(), int(i)
+        return int(fmpz_poly_deflation(res.val)), int(i)
 
     def is_cyclotomic(self):
         cdef long * phi
