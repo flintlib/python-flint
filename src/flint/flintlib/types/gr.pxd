@@ -8,12 +8,10 @@ from flint.flintlib.types.flint cimport (
 
 cdef extern from "flint/gr.h":
 
-    cdef enum truth_t_enum:
-        T_TRUE
-        T_FALSE
-        T_UNKNOWN
-
-    ctypedef truth_t_enum truth_t
+    ctypedef int truth_t
+    cdef int T_TRUE
+    cdef int T_FALSE
+    cdef int T_UNKNOWN
 
     # Macros
     cdef int GR_SUCCESS

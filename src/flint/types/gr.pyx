@@ -6,6 +6,17 @@ from flint.flintlib.functions.gr cimport (
     gr_ctx_clear,
     gr_heap_clear,
 
+    gr_zero,
+    gr_one,
+    gr_i,
+    gr_pos_inf,
+    gr_neg_inf,
+    gr_uinf,
+    gr_undefined,
+    gr_unknown,
+
+    gr_set_si,
+
     gr_neg,
     gr_add,
     gr_add_si,
@@ -21,6 +32,7 @@ from flint.flintlib.functions.gr cimport (
 from flint.flintlib.functions.gr_domains cimport (
     gr_ctx_init_fmpz,
     gr_ctx_init_fmpq,
+    gr_ctx_init_fmpzi,
 
     gr_ctx_is_finite,
     gr_ctx_is_multiplicative_group,
@@ -39,6 +51,8 @@ from flint.flintlib.functions.gr_domains cimport (
     gr_ctx_set_real_prec,
     gr_ctx_get_real_prec,
 )
+
+from flint.utils.flint_exceptions import DomainError, UnableError, UnknownError
 
 
 @cython.no_gc
@@ -120,7 +134,7 @@ cdef class gr_ctx(flint_ctx):
     @property
     def real_prec(self) -> int:
         cdef slong prec
-        if gr_ctx_has_real_prec(self.ctx_t) != truth_t.T_TRUE:
+        if gr_ctx_has_real_prec(self.ctx_t) != T_TRUE:
             raise ValueError("Real precision is not available")
         if gr_ctx_get_real_prec(&prec, self.ctx_t) != GR_SUCCESS:
             raise ValueError("Failed to get real precision")
@@ -128,7 +142,7 @@ cdef class gr_ctx(flint_ctx):
 
     @real_prec.setter
     def real_prec(self, prec: slong) -> None:
-        if gr_ctx_has_real_prec(self.ctx_t) != truth_t.T_TRUE:
+        if gr_ctx_has_real_prec(self.ctx_t) != T_TRUE:
             raise ValueError("Real precision is not available")
         if gr_ctx_set_real_prec(self.ctx_t, prec) != GR_SUCCESS:
             raise ValueError("Failed to set real precision")
@@ -136,9 +150,74 @@ cdef class gr_ctx(flint_ctx):
     def __call__(self, arg) -> gr:
         return self.from_str(str(arg))
 
+    def zero(self) -> gr:
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_zero(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create zero")
+        return res
+
+    def one(self) -> gr:
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_one(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create one")
+        return res
+
+    def i(self) -> gr:
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_i(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create sqrt(-1)")
+        return res
+
+    def pos_inf(self) -> gr:
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_pos_inf(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create +inf")
+        return res
+
+    def neg_inf(self) -> gr:
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_neg_inf(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create -inf")
+        return res
+
+    def uinf(self) -> gr:
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_uinf(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create uinf")
+        return res
+
+    def undefined(self) -> gr:
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_undefined(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create undefined")
+        return res
+
+    def unknown(self) -> gr:
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_unknown(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create unknown")
+        return res
+
 
 cdef _gr_fmpz_ctx gr_fmpz_ctx_c
 cdef _gr_fmpq_ctx gr_fmpq_ctx_c
+cdef _gr_fmpzi_ctx gr_fmpzi_ctx_c
 
 
 @cython.no_gc
@@ -179,13 +258,34 @@ cdef class _gr_fmpq_ctx(gr_ctx):
         return "gr_fmpq_ctx"
 
 
+@cython.no_gc
+cdef class _gr_fmpzi_ctx(gr_ctx):
+
+    @staticmethod
+    def new() -> _gr_fmpzi_ctx:
+        return gr_fmpzi_ctx_c
+
+    @staticmethod
+    cdef _gr_fmpzi_ctx _new():
+        cdef _gr_fmpzi_ctx ctx
+        ctx = _gr_fmpzi_ctx.__new__(_gr_fmpzi_ctx)
+        gr_ctx_init_fmpzi(ctx.ctx_t)
+        ctx._init = True
+        return ctx
+
+    def __repr__(self):
+        return "gr_fmpzi_ctx"
+
+
 # Global contexts for Cython code
 gr_fmpz_ctx_c = _gr_fmpz_ctx._new()
 gr_fmpq_ctx_c = _gr_fmpq_ctx._new()
+gr_fmpzi_ctx_c = _gr_fmpzi_ctx._new()
 
 # Global contexts for Python code
 gr_fmpz_ctx = gr_fmpz_ctx_c
 gr_fmpq_ctx = gr_fmpq_ctx_c
+gr_fmpzi_ctx = gr_fmpzi_ctx_c
 
 
 @cython.no_gc
@@ -199,93 +299,66 @@ cdef class gr(flint_scalar):
     def __repr__(self):
         return self.ctx.to_str(self)
 
-    def _neg(self) -> gr:
-        cdef int err
-        cdef gr res = self.ctx.new_gr()
-        err = gr_neg(res.pval, self.pval, self.ctx.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Failed to negate gr object")
-        return res
+    def is_zero(self):
+        return truth_to_py(self._is_zero())
 
-    def _add(self, other: gr) -> gr:
-        cdef int err
-        cdef gr res = self.ctx.new_gr()
-        err = gr_add(res.pval, self.pval, other.pval, self.ctx.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Failed to add gr objects")
-        return res
+    def is_one(self):
+        return truth_to_py(self._is_one())
 
-    def _add_si(self, other: int) -> gr:
-        cdef int err
-        cdef gr res = self.ctx.new_gr()
-        err = gr_add_si(res.pval, self.pval, other, self.ctx.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Failed to add gr object and int")
-        return res
+    def is_neg_one(self):
+        return truth_to_py(self._is_neg_one())
 
-    def _sub(self, other: gr) -> gr:
-        cdef int err
-        cdef gr res = self.ctx.new_gr()
-        err = gr_sub(res.pval, self.pval, other.pval, self.ctx.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Failed to subtract gr objects")
-        return res
+    def is_integer(self):
+        return truth_to_py(self._is_integer())
 
-    def _sub_si(self, other: int) -> gr:
-        cdef int err
-        cdef gr res = self.ctx.new_gr()
-        err = gr_sub_si(res.pval, self.pval, other, self.ctx.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Failed to subtract gr object and int")
-        return res
+    def is_rational(self):
+        return truth_to_py(self._is_rational())
 
-    def _mul(self, other: gr) -> gr:
-        cdef int err
-        cdef gr res = self.ctx.new_gr()
-        err = gr_mul(res.pval, self.pval, other.pval, self.ctx.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Failed to multiply gr objects")
-        return res
+    def __bool__(self):
+        return not truth_to_bool(self._is_zero())
 
-    def _mul_si(self, other: int) -> gr:
+    def __richcmp__(self, other, int op):
         cdef int err
-        cdef gr res = self.ctx.new_gr()
-        err = gr_mul_si(res.pval, self.pval, other, self.ctx.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Failed to multiply gr object and int")
-        return res
+        cdef gr other_gr
+        cdef truth_t res
 
-    def _inv(self) -> gr:
-        cdef int err
-        cdef gr res = self.ctx.new_gr()
-        err = gr_inv(res.pval, self.pval, self.ctx.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Failed to invert gr object")
-        return res
+        if isinstance(other, int):
+            other_gr = self.ctx.new_gr()
+            err = gr_set_si(other_gr.pval, other, self.ctx.ctx_t)
+            if err != GR_SUCCESS:
+                raise self.ctx._error(err, "Cannot set gr from int")
+        elif not isinstance(other, gr):
+            raise NotImplementedError("Cannot compare gr with non-gr objects")
 
-    def _div(self, other: gr) -> gr:
-        cdef int err
-        cdef gr res = self.ctx.new_gr()
-        err = gr_div(res.pval, self.pval, other.pval, self.ctx.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Failed to divide gr objects")
-        return res
+        if self.ctx != other_gr.ctx:
+            raise NotImplementedError("Cannot compare gr with different contexts")
 
-    def _div_si(self, other: int) -> gr:
-        cdef int err
-        cdef gr res = self.ctx.new_gr()
-        err = gr_div_si(res.pval, self.pval, other, self.ctx.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Failed to divide gr object and int")
-        return res
+        other_gr = other
 
-    def _pow_si(self, other: int) -> gr:
-        cdef int err
-        cdef gr res = self.ctx.new_gr()
-        err = gr_pow_si(res.pval, self.pval, other, self.ctx.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Failed to raise gr object to an integer power")
-        return res
+        if op == 0:
+            raise NotImplementedError("Cannot compare gr with <")
+            # res = self._lt(other_gr)
+        elif op == 1:
+            raise NotImplementedError("Cannot compare gr with <=")
+            # res = self._le(other_gr)
+        elif op == 2:
+            res = self._equal(other_gr)
+        elif op == 3:
+            res = self._equal(other_gr)
+            if res == T_TRUE:
+                res = T_FALSE
+            elif res == T_FALSE:
+                res = T_TRUE
+        elif op == 4:
+            raise NotImplementedError("Cannot compare gr with >")
+            # res = self._gt(other_gr)
+        elif op == 5:
+            raise NotImplementedError("Cannot compare gr with >=")
+            # res = self._ge(other_gr)
+        else:
+            assert False, "Invalid rich comparison operator"
+
+        return truth_to_py(res)
 
     def __neg__(self) -> gr:
         return self._neg()
@@ -295,8 +368,7 @@ cdef class gr(flint_scalar):
     #     return self
 
     def __add__(self, other) -> gr:
-        cdef gr_ctx ctx
-        cdef gr other_gr, res
+        cdef gr other_gr
         if isinstance(other, gr):
             other_gr = other
             if self.ctx != other_gr.ctx:
@@ -308,14 +380,13 @@ cdef class gr(flint_scalar):
             return NotImplemented
 
     def __radd__(self, other) -> gr:
-        cdef gr res
         if isinstance(other, int):
             return self._add_si(other)
         else:
             return NotImplemented
 
     def __sub__(self, other) -> gr:
-        cdef gr other_gr, res
+        cdef gr other_gr
         if isinstance(other, gr):
             other_gr = other
             if self.ctx != other_gr.ctx:
@@ -327,14 +398,13 @@ cdef class gr(flint_scalar):
             return NotImplemented
 
     def __rsub__(self, other) -> gr:
-        cdef gr res
         if isinstance(other, int):
             return self._neg()._add_si(other)
         else:
             return NotImplemented
 
     def __mul__(self, other) -> gr:
-        cdef gr other_gr, res
+        cdef gr other_gr
         if isinstance(other, gr):
             other_gr = other
             if self.ctx != other._grctx:
@@ -346,7 +416,6 @@ cdef class gr(flint_scalar):
             return NotImplemented
 
     def __rmul__(self, other) -> gr:
-        cdef gr res
         if isinstance(other, int):
             return self._mul_si(other)
         else:
@@ -376,3 +445,83 @@ cdef class gr(flint_scalar):
             return self._pow_si(other)
         else:
             return NotImplemented
+
+    def is_square(self):
+        return truth_to_py(self._is_square())
+
+    def sqrt(self):
+        return self._sqrt()
+
+    def rsqrt(self):
+        return self._rqsrt()
+
+    def gcd(self, other):
+        cdef gr other_gr
+        if not isinstance(other, gr):
+            raise TypeError("gcd when other is not gr.")
+        other_gr = other
+        if not self.ctx == other.ctx:
+            raise TypeError("gcd of gr with different contexts.")
+        return self._gcd(other_gr)
+
+    def lcm(self, other):
+        cdef gr other_gr
+        if not isinstance(other, gr):
+            raise TypeError("gcd when other is not gr.")
+        other_gr = other
+        if not self.ctx == other.ctx:
+            raise TypeError("gcd of gr with different contexts.")
+        return self._gcd(other_gr)
+
+    def factor(self):
+        return self._factor()
+
+    def numer(self) -> gr:
+        return self._numerator()
+
+    def denom(self) -> gr:
+        return self._denominator()
+
+    def __floor__(self) -> gr:
+        return self._floor()
+
+    def __ceil__(self) -> gr:
+        return self._ceil()
+
+    def __trunc__(self) -> gr:
+        return self._trunc()
+
+    def __round__(self, ndigits: int = 0) -> gr:
+        if ndigits != 0:
+            raise NotImplementedError("Rounding to a specific number of digits is not supported")
+        return self._nint()
+
+    # def __int__(self) -> int:
+    #     return self._floor().to_int()
+
+    # def __float__(self) -> float:
+    #     return ...
+
+    def __abs__(self) -> gr:
+        return self._abs()
+
+    def conjugate(self) -> gr:
+        return self._conj()
+
+    @property
+    def real(self) -> gr:
+        return self._re()
+
+    @property
+    def imag(self) -> gr:
+        return self._im()
+
+    # XXX: Return -1, 0, 1 as int?
+    def sgn(self) -> gr:
+        return self._sgn()
+
+    def csgn(self) -> gr:
+        return self._csgn()
+
+    def arg(self) -> gr:
+        return self._arg()
