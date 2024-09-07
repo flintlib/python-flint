@@ -1,11 +1,24 @@
+from flint.flintlib.types.flint cimport (
+    FLINT_FILE,
+    slong,
+    ulong,
+    flint_bitcnt_t,
+)
+
+
 cdef extern from "flint/gr.h":
 
     cdef enum truth_t_enum:
         T_TRUE
         T_FALSE
-        T_UNKOWN
+        T_UNKNOWN
 
     ctypedef truth_t_enum truth_t
+
+    # Macros
+    cdef int GR_SUCCESS
+    cdef int GR_DOMAIN
+    cdef int GR_UNABLE
 
     ctypedef struct gr_stream_struct:
         FLINT_FILE * fp
@@ -15,11 +28,9 @@ cdef extern from "flint/gr.h":
 
     ctypedef gr_stream_struct gr_stream_t[1]
 
-    ctypedef int (*gr_funcptr)(void)
+    ctypedef int (*gr_funcptr)()
 
     cdef const int GR_CTX_STRUCT_DATA_BYTES
-
-    ctypedef int (*gr_funcptr)(void)
 
     cdef struct gr_ctx_struct:
         char data[GR_CTX_STRUCT_DATA_BYTES]

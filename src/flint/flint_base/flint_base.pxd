@@ -1,5 +1,8 @@
 from flint.flintlib.types.mpoly cimport ordering_t
 
+cdef class flint_ctx:
+    pass
+
 cdef class flint_elem:
     pass
 
