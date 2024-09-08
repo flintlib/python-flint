@@ -69,5 +69,5 @@ except ImportError:
 
     runner = None
 
-    def test_docstrings(module, test):
+    def test_docstrings(test):
         pass
