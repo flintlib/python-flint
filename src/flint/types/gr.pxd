@@ -2,7 +2,27 @@ cimport cython
 
 from flint.flintlib.types.flint cimport (
     slong,
+    ulong,
+    fmpz_t,
 )
+from flint.flintlib.types.fmpz cimport (
+    fmpz_poly_t,
+)
+from flint.flintlib.types.fmpq cimport (
+    fmpq_poly_t,
+)
+from flint.flintlib.functions.fmpz cimport (
+    fmpz_init_set,
+)
+from flint.flintlib.functions.fmpz_poly cimport (
+    fmpz_poly_init,
+    fmpz_poly_set,
+)
+from flint.flintlib.functions.fmpq_poly cimport (
+    fmpq_poly_init,
+    fmpq_poly_set,
+)
+
 from flint.flintlib.types.gr cimport (
     truth_t,
     T_TRUE,
@@ -17,6 +37,31 @@ from flint.flintlib.types.gr cimport (
     gr_ptr,
     gr_vec_t,
 )
+from flint.flintlib.functions.gr_domains cimport (
+    gr_ctx_init_fmpz,
+    gr_ctx_init_fmpq,
+    gr_ctx_init_fmpzi,
+    gr_ctx_init_nmod,
+    gr_ctx_init_fmpz_mod,
+    gr_ctx_init_fq,
+    gr_ctx_init_fq_nmod,
+    gr_ctx_init_fq_zech,
+    gr_ctx_init_nf,
+    gr_ctx_init_nf_fmpz_poly,
+    gr_ctx_init_real_qqbar,
+    gr_ctx_init_complex_qqbar,
+    gr_ctx_init_real_ca,
+    gr_ctx_init_complex_ca,
+    gr_ctx_init_real_algebraic_ca,
+    gr_ctx_init_complex_algebraic_ca,
+    gr_ctx_init_complex_extended_ca,
+    gr_ctx_init_real_float_arf,
+    gr_ctx_init_complex_float_acf,
+    gr_ctx_init_real_arb,
+    gr_ctx_init_complex_acb,
+
+    _gr_ctx_qqbar_set_limits,
+)
 from flint.flintlib.functions.gr cimport (
     gr_heap_init,
     gr_set_str,
@@ -26,7 +71,16 @@ from flint.flintlib.functions.gr cimport (
 
     gr_zero,
     gr_one,
+    gr_gen,
+    gr_gens,
+    gr_gens_recursive,
+
     gr_i,
+    gr_pos_inf,
+    gr_neg_inf,
+    gr_uinf,
+    gr_undefined,
+    gr_unknown,
 
     gr_is_zero,
     gr_is_one,
@@ -85,6 +139,11 @@ from flint.flintlib.functions.gr_vec cimport (
 )
 
 from flint.flint_base.flint_base cimport flint_ctx, flint_scalar
+
+from flint.types.fmpz cimport fmpz
+from flint.types.fmpz_poly cimport fmpz_poly
+from flint.types.fmpq_poly cimport fmpq_poly
+
 
 # XXX: Can't import from Python modules in a .pxd file
 # from flint.utils.flint_exceptions import DomainError, UnableError, UknownError
@@ -161,6 +220,127 @@ cdef class gr_ctx(flint_ctx):
         else:
             return AssertionError("Bad error code")
 
+    @cython.final
+    cdef inline gr _zero(self):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_zero(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create zero")
+        return res
+
+    @cython.final
+    cdef inline gr _one(self):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_one(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create one")
+        return res
+
+    @cython.final
+    cdef inline gr _i(self):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_i(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create sqrt(-1)")
+        return res
+
+    @cython.final
+    cdef inline gr _pos_inf(self):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_pos_inf(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create +inf")
+        return res
+
+    @cython.final
+    cdef inline gr _neg_inf(self):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_neg_inf(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create -inf")
+        return res
+
+    @cython.final
+    cdef inline gr _uinf(self):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_uinf(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create uinf")
+        return res
+
+    @cython.final
+    cdef inline gr _undefined(self):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_undefined(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create undefined")
+        return res
+
+    @cython.final
+    cdef inline gr _unknown(self):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_unknown(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create unknown")
+        return res
+
+    @cython.final
+    cdef inline gr _gen(self):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_gen(res.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot create generator")
+        return res
+
+    @cython.final
+    cdef inline _gens(self):
+        cdef int err
+        cdef gr g
+        cdef gr_vec_t gens
+        gr_vec_init(gens, 0, self.ctx_t)
+        err = gr_gens(gens, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot get generators")
+        length = gr_vec_length(gens, self.ctx_t)
+        py_gens = [None] * length
+        for 0 <= i < length:
+            g = self.new_gr()
+            err = gr_set(g.pval, gr_vec_entry_ptr(gens, i, self.ctx_t), self.ctx_t)
+            if err != GR_SUCCESS:
+                raise self._error(err, "Failed to copy generator.")
+            py_gens[i] = g
+        gr_vec_clear(gens, self.ctx_t)
+        return py_gens
+
+    @cython.final
+    cdef inline gr _gens_recursive(self):
+        cdef int err
+        cdef gr g
+        cdef gr_vec_t gens
+        gr_vec_init(gens, 0, self.ctx_t)
+        err = gr_gens_recursive(gens, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot get recursive generators")
+        length = gr_vec_length(gens, self.ctx_t)
+        py_gens = [None] * length
+        for 0 <= i < length:
+            g = self.new_gr()
+            err = gr_set(g.pval, gr_vec_entry_ptr(gens, i, self.ctx_t), self.ctx_t)
+            if err != GR_SUCCESS:
+                raise self._error(err, "Failed to copy generator.")
+            py_gens[i] = g
+        gr_vec_clear(gens, self.ctx_t)
+        return py_gens
+
 
 cdef class gr_scalar_ctx(gr_ctx):
     pass
@@ -190,40 +370,344 @@ cdef class gr_matrix_ring_ctx(gr_ctx):
 cdef class _gr_fmpz_ctx(gr_scalar_ctx):
 
     @staticmethod
-    cdef _gr_fmpz_ctx _new()
+    cdef inline _gr_fmpz_ctx _new():
+        cdef _gr_fmpz_ctx ctx
+        ctx = _gr_fmpz_ctx.__new__(_gr_fmpz_ctx)
+        gr_ctx_init_fmpz(ctx.ctx_t)
+        ctx._init = True
+        return ctx
 
 
 @cython.no_gc
 cdef class _gr_fmpq_ctx(gr_scalar_ctx):
 
     @staticmethod
-    cdef _gr_fmpq_ctx _new()
+    cdef inline _gr_fmpq_ctx _new():
+        cdef _gr_fmpq_ctx ctx
+        ctx = _gr_fmpq_ctx.__new__(_gr_fmpq_ctx)
+        gr_ctx_init_fmpq(ctx.ctx_t)
+        ctx._init = True
+        return ctx
 
 
 @cython.no_gc
 cdef class _gr_fmpzi_ctx(gr_scalar_ctx):
 
     @staticmethod
-    cdef _gr_fmpzi_ctx _new()
+    cdef inline _gr_fmpzi_ctx _new():
+        cdef _gr_fmpzi_ctx ctx
+        ctx = _gr_fmpzi_ctx.__new__(_gr_fmpzi_ctx)
+        gr_ctx_init_fmpzi(ctx.ctx_t)
+        ctx._init = True
+        return ctx
+
+
+
+@cython.no_gc
+cdef class gr_nmod_ctx(gr_scalar_ctx):
+    cdef ulong n
+
+    @staticmethod
+    cdef inline gr_nmod_ctx _new(ulong n):
+        cdef gr_nmod_ctx ctx
+        ctx = gr_nmod_ctx.__new__(gr_nmod_ctx)
+        ctx.n = n
+        gr_ctx_init_nmod(ctx.ctx_t, n)
+        ctx._init = True
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_fmpz_mod_ctx(gr_scalar_ctx):
+    cdef fmpz_t n
+
+    @staticmethod
+    cdef inline gr_fmpz_mod_ctx _new(fmpz n):
+        cdef gr_fmpz_mod_ctx ctx
+        ctx = gr_fmpz_mod_ctx.__new__(gr_fmpz_mod_ctx)
+        fmpz_init_set(ctx.n, n.val)
+        gr_ctx_init_fmpz_mod(ctx.ctx_t, ctx.n)
+        ctx._init = True
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_fq_ctx(gr_scalar_ctx):
+    cdef fmpz_t p
+    cdef slong d
+
+    @staticmethod
+    cdef inline gr_fq_ctx _new(fmpz p, slong d, char* name):
+        cdef gr_fq_ctx ctx
+        ctx = gr_fq_ctx.__new__(gr_fq_ctx)
+        ctx.d = d
+        fmpz_init_set(ctx.p, p.val)
+        gr_ctx_init_fq(ctx.ctx_t, ctx.p, d, name)
+        ctx._init = True
+        # XXX: free name_c?
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_fq_nmod_ctx(gr_scalar_ctx):
+    cdef ulong p
+    cdef slong d
+
+    @staticmethod
+    cdef inline gr_fq_nmod_ctx _new(ulong p, slong d, char* name):
+        cdef gr_fq_nmod_ctx ctx
+        ctx = gr_fq_nmod_ctx.__new__(gr_fq_nmod_ctx)
+        ctx.p = p
+        ctx.d = d
+        gr_ctx_init_fq_nmod(ctx.ctx_t, p, d, name)
+        ctx._init = True
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_fq_zech_ctx(gr_scalar_ctx):
+    cdef ulong p
+    cdef slong d
+
+    @staticmethod
+    cdef inline gr_fq_zech_ctx _new(ulong p, slong d, char* name):
+        cdef gr_fq_zech_ctx ctx
+        ctx = gr_fq_zech_ctx.__new__(gr_fq_zech_ctx)
+        ctx.p = p
+        ctx.d = d
+        gr_ctx_init_fq_zech(ctx.ctx_t, p, d, name)
+        ctx._init = True
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_nf_ctx(gr_scalar_ctx):
+    cdef fmpq_poly_t poly
+
+    @staticmethod
+    cdef inline gr_nf_ctx _new(fmpq_poly poly):
+        cdef gr_nf_ctx ctx
+        ctx = gr_nf_ctx.__new__(gr_nf_ctx)
+        fmpq_poly_init(ctx.poly)
+        fmpq_poly_set(ctx.poly, poly.val)
+        gr_ctx_init_nf(ctx.ctx_t, ctx.poly)
+        ctx._init = True
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_nf_fmpz_poly_ctx(gr_scalar_ctx):
+    cdef fmpz_poly_t poly
+
+    @staticmethod
+    cdef inline gr_nf_fmpz_poly_ctx _new(fmpz_poly poly):
+        cdef gr_nf_fmpz_poly_ctx ctx
+        ctx = gr_nf_fmpz_poly_ctx.__new__(gr_nf_fmpz_poly_ctx)
+        fmpz_poly_init(ctx.poly)
+        fmpz_poly_set(ctx.poly, poly.val)
+        gr_ctx_init_nf_fmpz_poly(ctx.ctx_t, ctx.poly)
+        ctx._init = True
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_real_qqbar_ctx(gr_scalar_ctx):
+    cdef slong deg_limit
+    cdef slong bits_limit
+
+    @staticmethod
+    cdef inline gr_real_qqbar_ctx _new(slong deg_limit, slong bits_limit):
+        cdef gr_real_qqbar_ctx ctx
+        ctx = gr_real_qqbar_ctx.__new__(gr_real_qqbar_ctx)
+        gr_ctx_init_real_qqbar(ctx.ctx_t)
+        ctx._init = True
+        ctx.deg_limit = deg_limit
+        ctx.bits_limit = bits_limit
+        if deg_limit != -1 or bits_limit != -1:
+            # Maybe add setters for these?
+            _gr_ctx_qqbar_set_limits(ctx.ctx_t, deg_limit, bits_limit)
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_complex_qqbar_ctx(gr_scalar_ctx):
+    cdef slong deg_limit
+    cdef slong bits_limit
+
+    @staticmethod
+    cdef inline gr_complex_qqbar_ctx _new(slong deg_limit, slong bits_limit):
+        cdef gr_complex_qqbar_ctx ctx
+        ctx = gr_complex_qqbar_ctx.__new__(gr_complex_qqbar_ctx)
+        gr_ctx_init_complex_qqbar(ctx.ctx_t)
+        ctx._init = True
+        ctx.deg_limit = deg_limit
+        ctx.bits_limit = bits_limit
+        if deg_limit != -1 or bits_limit != -1:
+            # Maybe add setters for these?
+            _gr_ctx_qqbar_set_limits(ctx.ctx_t, deg_limit, bits_limit)
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_real_ca_ctx(gr_scalar_ctx):
+    cdef dict options
+
+    @staticmethod
+    cdef inline gr_real_ca_ctx _new(dict options):
+        cdef gr_real_ca_ctx ctx
+        if options:
+            raise NotImplementedError("Options not implemented yet")
+        ctx = gr_real_ca_ctx.__new__(gr_real_ca_ctx)
+        gr_ctx_init_real_ca(ctx.ctx_t)
+        ctx._init = True
+        ctx.options = options.copy()
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_complex_ca_ctx(gr_scalar_ctx):
+    cdef dict options
+
+    @staticmethod
+    cdef inline gr_complex_ca_ctx _new(dict options):
+        cdef gr_complex_ca_ctx ctx
+        if options:
+            raise NotImplementedError("Options not implemented yet")
+        ctx = gr_complex_ca_ctx.__new__(gr_complex_ca_ctx)
+        gr_ctx_init_complex_ca(ctx.ctx_t)
+        ctx._init = True
+        ctx.options = options.copy()
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_real_algebraic_ca_ctx(gr_scalar_ctx):
+    cdef dict options
+
+    @staticmethod
+    cdef inline gr_real_algebraic_ca_ctx _new(dict options):
+        cdef gr_real_algebraic_ca_ctx ctx
+        if options:
+            raise NotImplementedError("Options not implemented yet")
+        ctx = gr_real_algebraic_ca_ctx.__new__(gr_real_algebraic_ca_ctx)
+        gr_ctx_init_real_algebraic_ca(ctx.ctx_t)
+        ctx._init = True
+        ctx.options = options.copy()
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_complex_algebraic_ca_ctx(gr_scalar_ctx):
+    cdef dict options
+
+    @staticmethod
+    cdef inline gr_complex_algebraic_ca_ctx _new(dict options):
+        cdef gr_complex_algebraic_ca_ctx ctx
+        if options:
+            raise NotImplementedError("Options not implemented yet")
+        ctx = gr_complex_algebraic_ca_ctx.__new__(gr_complex_algebraic_ca_ctx)
+        gr_ctx_init_complex_algebraic_ca(ctx.ctx_t)
+        ctx._init = True
+        ctx.options = options.copy()
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_complex_extended_ca_ctx(gr_scalar_ctx):
+    cdef dict options
+
+    @staticmethod
+    cdef inline gr_complex_extended_ca_ctx _new(dict options):
+        cdef gr_complex_extended_ca_ctx ctx
+        if options:
+            raise NotImplementedError("Options not implemented yet")
+        ctx = gr_complex_extended_ca_ctx.__new__(gr_complex_extended_ca_ctx)
+        gr_ctx_init_complex_extended_ca(ctx.ctx_t)
+        ctx._init = True
+        ctx.options = options.copy()
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_real_float_arf_ctx(gr_scalar_ctx):
+    cdef slong prec
+
+    @staticmethod
+    cdef inline gr_real_float_arf_ctx _new(slong prec):
+        cdef gr_real_float_arf_ctx ctx
+        ctx = gr_real_float_arf_ctx.__new__(gr_real_float_arf_ctx)
+        gr_ctx_init_real_float_arf(ctx.ctx_t, prec)
+        ctx._init = True
+        ctx.prec = prec
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_complex_float_acf_ctx(gr_scalar_ctx):
+    cdef slong prec
+
+    @staticmethod
+    cdef inline gr_complex_float_acf_ctx _new(slong prec):
+        cdef gr_complex_float_acf_ctx ctx
+        ctx = gr_complex_float_acf_ctx.__new__(gr_complex_float_acf_ctx)
+        gr_ctx_init_complex_float_acf(ctx.ctx_t, prec)
+        ctx._init = True
+        ctx.prec = prec
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_real_arb_ctx(gr_scalar_ctx):
+    cdef slong prec
+
+    @staticmethod
+    cdef inline gr_real_arb_ctx _new(slong prec):
+        cdef gr_real_arb_ctx ctx
+        ctx = gr_real_arb_ctx.__new__(gr_real_arb_ctx)
+        gr_ctx_init_real_arb(ctx.ctx_t, prec)
+        ctx._init = True
+        ctx.prec = prec
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_complex_acb_ctx(gr_scalar_ctx):
+    cdef slong prec
+
+    @staticmethod
+    cdef inline gr_complex_acb_ctx _new(slong prec):
+        cdef gr_complex_acb_ctx ctx
+        ctx = gr_complex_acb_ctx.__new__(gr_complex_acb_ctx)
+        gr_ctx_init_complex_acb(ctx.ctx_t, prec)
+        ctx._init = True
+        ctx.prec = prec
+        return ctx
+
+
+# @cython.no_gc
+# cdef class gr_fexpr_ctx(gr_scalar_ctx):
+#
+#    @staticmethod
+#    cdef gr_fexpr_ctx _new()
 
 
 # @cython.no_gc
 # cdef class _gr_fmpz_poly_ctx(gr_poly_ctx):
-# 
+#
 #     @staticmethod
 #     cdef _gr_fmpz_poly_ctx _new()
 
 
 # @cython.no_gc
 # cdef class _gr_fmpq_poly_ctx(gr_poly_ctx):
-# 
+#
 #     @staticmethod
 #     cdef _gr_fmpq_poly_ctx _new()
 
 
 # @cython.no_gc
 # cdef class _gr_gr_poly_ctx(gr_poly_ctx):
-# 
+#
 #     @staticmethod
 #     cdef _gr_gr_poly_ctx _new()
 

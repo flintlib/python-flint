@@ -6,34 +6,9 @@ from flint.flintlib.functions.gr cimport (
     gr_ctx_clear,
     gr_heap_clear,
 
-    gr_zero,
-    gr_one,
-    gr_i,
-    gr_pos_inf,
-    gr_neg_inf,
-    gr_uinf,
-    gr_undefined,
-    gr_unknown,
-
     gr_set_si,
-
-    gr_neg,
-    gr_add,
-    gr_add_si,
-    gr_sub,
-    gr_sub_si,
-    gr_mul,
-    gr_mul_si,
-    gr_inv,
-    gr_div,
-    gr_div_si,
-    gr_pow_si,
 )
 from flint.flintlib.functions.gr_domains cimport (
-    gr_ctx_init_fmpz,
-    gr_ctx_init_fmpq,
-    gr_ctx_init_fmpzi,
-
     gr_ctx_is_finite,
     gr_ctx_is_multiplicative_group,
     gr_ctx_is_ring,
@@ -51,8 +26,6 @@ from flint.flintlib.functions.gr_domains cimport (
     gr_ctx_set_real_prec,
     gr_ctx_get_real_prec,
 )
-
-from flint.utils.flint_exceptions import DomainError, UnableError, UnknownError
 
 
 @cython.no_gc
@@ -151,68 +124,37 @@ cdef class gr_ctx(flint_ctx):
         return self.from_str(str(arg))
 
     def zero(self) -> gr:
-        cdef int err
-        cdef gr res = self.new_gr()
-        err = gr_zero(res.pval, self.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Cannot create zero")
-        return res
+        return self._zero()
 
     def one(self) -> gr:
-        cdef int err
-        cdef gr res = self.new_gr()
-        err = gr_one(res.pval, self.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Cannot create one")
-        return res
+        return self._one()
 
     def i(self) -> gr:
-        cdef int err
-        cdef gr res = self.new_gr()
-        err = gr_i(res.pval, self.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Cannot create sqrt(-1)")
-        return res
+        return self._i()
 
     def pos_inf(self) -> gr:
-        cdef int err
-        cdef gr res = self.new_gr()
-        err = gr_pos_inf(res.pval, self.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Cannot create +inf")
-        return res
+        return self._pos_inf()
 
     def neg_inf(self) -> gr:
-        cdef int err
-        cdef gr res = self.new_gr()
-        err = gr_neg_inf(res.pval, self.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Cannot create -inf")
-        return res
+        return self._neg_inf()
 
     def uinf(self) -> gr:
-        cdef int err
-        cdef gr res = self.new_gr()
-        err = gr_uinf(res.pval, self.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Cannot create uinf")
-        return res
+        return self._uinf()
 
     def undefined(self) -> gr:
-        cdef int err
-        cdef gr res = self.new_gr()
-        err = gr_undefined(res.pval, self.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Cannot create undefined")
-        return res
+        return self._undefined()
 
     def unknown(self) -> gr:
-        cdef int err
-        cdef gr res = self.new_gr()
-        err = gr_unknown(res.pval, self.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Cannot create unknown")
-        return res
+        return self._unknown()
+
+    def gen(self) -> gr:
+        return self._gen()
+
+    def gens(self) -> list[gr]:
+        return self._gens()
+
+    def gens_recursive(self) -> list[gr]:
+        return self._gens_recursive()
 
 
 cdef class gr_scalar_ctx(gr_ctx):
@@ -239,7 +181,6 @@ cdef class gr_matrix_ring_ctx(gr_ctx):
     pass
 
 
-
 cdef _gr_fmpz_ctx gr_fmpz_ctx_c
 cdef _gr_fmpq_ctx gr_fmpq_ctx_c
 cdef _gr_fmpzi_ctx gr_fmpzi_ctx_c
@@ -252,14 +193,6 @@ cdef class _gr_fmpz_ctx(gr_scalar_ctx):
     def new() -> _gr_fmpz_ctx:
         return gr_fmpz_ctx_c
 
-    @staticmethod
-    cdef _gr_fmpz_ctx _new():
-        cdef _gr_fmpz_ctx ctx
-        ctx = _gr_fmpz_ctx.__new__(_gr_fmpz_ctx)
-        gr_ctx_init_fmpz(ctx.ctx_t)
-        ctx._init = True
-        return ctx
-
     def __repr__(self):
         return "gr_fmpz_ctx"
 
@@ -271,14 +204,6 @@ cdef class _gr_fmpq_ctx(gr_scalar_ctx):
     def new() -> _gr_fmpq_ctx:
         return gr_fmpq_ctx_c
 
-    @staticmethod
-    cdef _gr_fmpq_ctx _new():
-        cdef _gr_fmpq_ctx ctx
-        ctx = _gr_fmpq_ctx.__new__(_gr_fmpq_ctx)
-        gr_ctx_init_fmpq(ctx.ctx_t)
-        ctx._init = True
-        return ctx
-
     def __repr__(self):
         return "gr_fmpq_ctx"
 
@@ -289,14 +214,6 @@ cdef class _gr_fmpzi_ctx(gr_scalar_ctx):
     @staticmethod
     def new() -> _gr_fmpzi_ctx:
         return gr_fmpzi_ctx_c
-
-    @staticmethod
-    cdef _gr_fmpzi_ctx _new():
-        cdef _gr_fmpzi_ctx ctx
-        ctx = _gr_fmpzi_ctx.__new__(_gr_fmpzi_ctx)
-        gr_ctx_init_fmpzi(ctx.ctx_t)
-        ctx._init = True
-        return ctx
 
     def __repr__(self):
         return "gr_fmpzi_ctx"
@@ -311,6 +228,274 @@ gr_fmpzi_ctx_c = _gr_fmpzi_ctx._new()
 gr_fmpz_ctx = gr_fmpz_ctx_c
 gr_fmpq_ctx = gr_fmpq_ctx_c
 gr_fmpzi_ctx = gr_fmpzi_ctx_c
+
+
+@cython.no_gc
+cdef class gr_nmod_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(ulong n) -> gr_nmod_ctx:
+        return gr_nmod_ctx._new(n)
+
+    def __repr__(self):
+        return f"gr_nmod_ctx({self.n})"
+
+
+@cython.no_gc
+cdef class gr_fmpz_mod_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(n) -> gr_fmpz_mod_ctx:
+        n = fmpz(n)
+        return gr_fmpz_mod_ctx._new(n)
+
+    def modulus(self):
+        cdef fmpz n = fmpz.__new__(fmpz)
+        fmpz_init_set(n.val, self.n)
+        return n
+
+    def __repr__(self):
+        return f"gr_fmpz_mod_ctx({self.modulus()})"
+
+
+@cython.no_gc
+cdef class gr_fq_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(p, d, name=None) -> gr_fq_ctx:
+        cdef bytes name_b
+        cdef char *name_c
+        if name is not None:
+            name_b = name.encode('utf-8')
+            name_c = name_b
+        else:
+            name_c = NULL
+        p = fmpz(p)
+        return gr_fq_ctx._new(p, d, name_c)
+
+    def characteristic(self):
+        cdef fmpz p = fmpz.__new__(fmpz)
+        fmpz_init_set(p.val, self.p)
+        return p
+
+    def degree(self):
+        return self.d
+
+    def __repr__(self):
+        return f"gr_fq_ctx({self.characteristic()}, {self.degree()})"
+
+
+@cython.no_gc
+cdef class gr_fq_nmod_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(p, d, name=None) -> gr_fq_nmod_ctx:
+        cdef bytes name_b
+        cdef char *name_c
+        if name is not None:
+            name_b = name.encode('utf-8')
+            name_c = name_b
+        else:
+            name_c = NULL
+        return gr_fq_nmod_ctx._new(p, d, name_c)
+
+    def characteristic(self):
+        return self.p
+
+    def degree(self):
+        return self.d
+
+    def __repr__(self):
+        return f"gr_fq_nmod_ctx({self.characteristic()}, {self.degree()})"
+
+
+@cython.no_gc
+cdef class gr_fq_zech_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(p, d, name=None) -> gr_fq_zech_ctx:
+        cdef bytes name_b
+        cdef char *name_c
+        if name is not None:
+            name_b = name.encode('utf-8')
+            name_c = name_b
+        else:
+            name_c = NULL
+        return gr_fq_zech_ctx._new(p, d, name_c)
+
+    def characteristic(self):
+        return self.p
+
+    def degree(self):
+        return self.d
+
+    def __repr__(self):
+        return f"gr_fq_zech_ctx({self.characteristic()}, {self.degree()})"
+
+
+@cython.no_gc
+cdef class gr_nf_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(poly) -> gr_nf_ctx:
+        poly = fmpq_poly(poly)
+        return gr_nf_ctx._new(poly)
+
+    def modulus(self):
+        cdef fmpq_poly poly = fmpq_poly.__new__(fmpq_poly)
+        fmpq_poly_init(poly.val)
+        fmpq_poly_set(poly.val, self.poly)
+        return poly
+
+    def __repr__(self):
+        return f"gr_nf_ctx({self.modulus()})"
+
+
+@cython.no_gc
+cdef class gr_nf_fmpz_poly_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(poly) -> gr_nf_fmpz_poly_ctx:
+        poly = fmpz_poly(poly)
+        return gr_nf_fmpz_poly_ctx._new(poly)
+
+    def modulus(self):
+        cdef fmpz_poly poly = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_init(poly.val)
+        fmpz_poly_set(poly.val, self.poly)
+        return poly
+
+    def __repr__(self):
+        return f"gr_nf_fmpz_poly_ctx({self.modulus()})"
+
+
+@cython.no_gc
+cdef class gr_real_qqbar_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(deg_limit=-1, bits_limit=-1) -> gr_real_qqbar_ctx:
+        assert deg_limit == -1 and bits_limit == -1 or deg_limit > 0 and bits_limit > 0
+        return gr_real_qqbar_ctx._new(deg_limit, bits_limit)
+
+    def limits(self):
+        return {'deg_limit': self.deg_limit, 'bits_limit': self.bits_limit}
+
+    def __repr__(self):
+        return f"gr_real_qqbar_ctx({self.deg_limit}, {self.bits_limit})"
+
+
+@cython.no_gc
+cdef class gr_complex_qqbar_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(deg_limit=-1, bits_limit=-1) -> gr_complex_qqbar_ctx:
+        assert deg_limit == -1 and bits_limit == -1 or deg_limit > 0 and bits_limit > 0
+        return gr_complex_qqbar_ctx._new(deg_limit, bits_limit)
+
+    def limits(self):
+        return {'deg_limit': self.deg_limit, 'bits_limit': self.bits_limit}
+
+    def __repr__(self):
+        return f"gr_complex_qqbar_ctx({self.deg_limit}, {self.bits_limit})"
+
+
+@cython.no_gc
+cdef class gr_real_ca_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(**options) -> gr_real_ca_ctx:
+        return gr_real_ca_ctx._new(options)
+
+    def __repr__(self):
+        return f"gr_real_ca_ctx({self.options})"
+
+
+@cython.no_gc
+cdef class gr_complex_ca_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(**options) -> gr_complex_ca_ctx:
+        return gr_complex_ca_ctx._new(options)
+
+    def __repr__(self):
+        return f"gr_complex_ca_ctx({self.options})"
+
+
+@cython.no_gc
+cdef class gr_real_algebraic_ca_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(**options) -> gr_real_algebraic_ca_ctx:
+        return gr_real_algebraic_ca_ctx._new(options)
+
+    def __repr__(self):
+        return f"gr_real_algebraic_ca_ctx({self.options})"
+
+
+@cython.no_gc
+cdef class gr_complex_algebraic_ca_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(**options) -> gr_complex_algebraic_ca_ctx:
+        return gr_complex_algebraic_ca_ctx._new(options)
+
+    def __repr__(self):
+        return f"gr_complex_algebraic_ca_ctx({self.options})"
+
+
+@cython.no_gc
+cdef class gr_complex_extended_ca_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(**options) -> gr_complex_extended_ca_ctx:
+        return gr_complex_extended_ca_ctx._new(options)
+
+    def __repr__(self):
+        return f"gr_complex_extended_ca_ctx({self.options})"
+
+
+@cython.no_gc
+cdef class gr_real_float_arf_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(prec) -> gr_real_float_arf_ctx:
+        return gr_real_float_arf_ctx._new(prec)
+
+    def __repr__(self):
+        return f"gr_real_float_arf_ctx({self.prec})"
+
+
+@cython.no_gc
+cdef class gr_complex_float_acf_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(prec) -> gr_complex_float_acf_ctx:
+        return gr_complex_float_acf_ctx._new(prec)
+
+    def __repr__(self):
+        return f"gr_complex_float_acf_ctx({self.prec})"
+
+
+@cython.no_gc
+cdef class gr_real_arb_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(prec) -> gr_real_arb_ctx:
+        return gr_real_arb_ctx._new(prec)
+
+    def __repr__(self):
+        return f"gr_real_arb_ctx({self.prec})"
+
+
+@cython.no_gc
+cdef class gr_complex_acb_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    def new(prec) -> gr_complex_acb_ctx:
+        return gr_complex_acb_ctx._new(prec)
+
+    def __repr__(self):
+        return f"gr_complex_acb_ctx({self.prec})"
 
 
 @cython.no_gc
@@ -447,7 +632,7 @@ cdef class gr(flint_scalar):
             return NotImplemented
 
     def __truediv__(self, other) -> gr:
-        cdef gr other_gr, res
+        cdef gr other_gr
         if isinstance(other, gr):
             other_gr = other
             if self.ctx != other_gr.ctx:
@@ -459,7 +644,6 @@ cdef class gr(flint_scalar):
             return NotImplemented
 
     def __rtruediv__(self, other) -> gr:
-        cdef gr res
         if isinstance(other, int):
             return self._div_si(other)._inv()
         else:
