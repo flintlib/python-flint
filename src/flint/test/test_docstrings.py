@@ -70,7 +70,8 @@ try:
         [
             test for _, test_set in find_doctests(flint)
             for test in test_set
-        ]
+        ],
+        ids=lambda test: test.name,
     )
     def test_docstrings(test):
         runner.run(test)
