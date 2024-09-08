@@ -644,7 +644,7 @@ cdef class fmpz_poly(flint_poly):
         here. The returned monomial allows the undo-ing of the deflation.
 
             >>> f = fmpz_poly([1, 0, 1])
-            >>> f.deflation()
+            >>> f.deflation_monom()
             (1, x)
         """
         n, m = self.deflation_index()
@@ -663,7 +663,7 @@ cdef class fmpz_poly(flint_poly):
         ``deflation_monom``.
 
             >>> f = fmpz_poly([1, 0, 1])
-            >>> f.deflation()
+            >>> f.deflation_index()
             (1, 1)
         """
         cdef fmpz_poly res = fmpz_poly.__new__(fmpz_poly)

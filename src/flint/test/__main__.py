@@ -8,15 +8,10 @@ import sys
 import doctest
 import traceback
 import argparse
-import pkgutil
-import importlib
-import re
 
 import flint
 from flint.test.test_all import all_tests
-
-
-dunder_test_regex = re.compile(r'^(.*?)__test__\..*?\.(.*) \(line (\d+)\)$')
+from flint.test.test_docstrings import find_doctests
 
 
 def run_tests(verbose=None):
@@ -52,29 +47,6 @@ def run_tests(verbose=None):
         total += 1
 
     return failed, total
-
-
-def find_doctests(module):
-    finder = doctest.DocTestFinder()
-    tests = []
-    for module_info in pkgutil.walk_packages(module.__path__, flint.__name__ + "."):
-        try:
-            module = importlib.import_module(module_info.name)
-
-            res = []
-            for test in filter(lambda x: bool(x.examples), finder.find(module)):
-                m = dunder_test_regex.match(test.name)
-                if m is not None:
-                    groups = m.groups()
-                    test.name = groups[0] + groups[1]
-                    test.lineno = int(groups[2])
-                    res.append(test)
-
-            tests.append((module_info.name, res))
-
-        except Exception as e:
-            print(f"Error importing {module_info.name}: {e}")
-    return tests
 
 
 def run_doctests(tests, verbose=False):
