@@ -59,6 +59,7 @@ from flint.flintlib.functions.gr_domains cimport (
     gr_ctx_init_complex_float_acf,
     gr_ctx_init_real_arb,
     gr_ctx_init_complex_acb,
+    gr_ctx_init_fexpr,
 
     _gr_ctx_qqbar_set_limits,
 )
@@ -403,6 +404,25 @@ cdef class _gr_fmpzi_ctx(gr_scalar_ctx):
 
 
 @cython.no_gc
+cdef class _gr_fexpr_ctx(gr_scalar_ctx):
+
+    @staticmethod
+    cdef inline _gr_fexpr_ctx _new():
+        cdef _gr_fexpr_ctx ctx
+        ctx = _gr_fexpr_ctx.__new__(_gr_fexpr_ctx)
+        gr_ctx_init_fexpr(ctx.ctx_t)
+        ctx._init = True
+        return ctx
+
+
+# The global contexts for use in cython code:
+cdef _gr_fmpz_ctx gr_fmpz_ctx_c
+cdef _gr_fmpq_ctx gr_fmpq_ctx_c
+cdef _gr_fmpzi_ctx gr_fmpzi_ctx_c
+cdef _gr_fexpr_ctx gr_fexpr_ctx_c
+
+
+@cython.no_gc
 cdef class gr_nmod_ctx(gr_scalar_ctx):
     cdef ulong n
 
@@ -684,13 +704,6 @@ cdef class gr_complex_acb_ctx(gr_scalar_ctx):
 
 
 # @cython.no_gc
-# cdef class gr_fexpr_ctx(gr_scalar_ctx):
-#
-#    @staticmethod
-#    cdef gr_fexpr_ctx _new()
-
-
-# @cython.no_gc
 # cdef class _gr_fmpz_poly_ctx(gr_poly_ctx):
 #
 #     @staticmethod
@@ -709,12 +722,6 @@ cdef class gr_complex_acb_ctx(gr_scalar_ctx):
 #
 #     @staticmethod
 #     cdef _gr_gr_poly_ctx _new()
-
-
-# The global contexts for use in cython code:
-cdef _gr_fmpz_ctx gr_fmpz_ctx_c
-cdef _gr_fmpq_ctx gr_fmpq_ctx_c
-cdef _gr_fmpzi_ctx gr_fmpzi_ctx_c
 
 
 @cython.no_gc

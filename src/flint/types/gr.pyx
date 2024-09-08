@@ -181,9 +181,17 @@ cdef class gr_matrix_ring_ctx(gr_ctx):
     pass
 
 
-cdef _gr_fmpz_ctx gr_fmpz_ctx_c
-cdef _gr_fmpq_ctx gr_fmpq_ctx_c
-cdef _gr_fmpzi_ctx gr_fmpzi_ctx_c
+# Global contexts for Cython code
+cdef _gr_fmpz_ctx gr_fmpz_ctx_c = _gr_fmpz_ctx._new()
+cdef _gr_fmpq_ctx gr_fmpq_ctx_c = _gr_fmpq_ctx._new()
+cdef _gr_fmpzi_ctx gr_fmpzi_ctx_c = _gr_fmpzi_ctx._new()
+cdef _gr_fexpr_ctx gr_fexpr_ctx_c = _gr_fexpr_ctx._new()
+
+# Global contexts for Python code
+gr_fmpz_ctx = gr_fmpz_ctx_c
+gr_fmpq_ctx = gr_fmpq_ctx_c
+gr_fmpzi_ctx = gr_fmpzi_ctx_c
+gr_fexpr_ctx = gr_fexpr_ctx_c
 
 
 @cython.no_gc
@@ -219,15 +227,15 @@ cdef class _gr_fmpzi_ctx(gr_scalar_ctx):
         return "gr_fmpzi_ctx"
 
 
-# Global contexts for Cython code
-gr_fmpz_ctx_c = _gr_fmpz_ctx._new()
-gr_fmpq_ctx_c = _gr_fmpq_ctx._new()
-gr_fmpzi_ctx_c = _gr_fmpzi_ctx._new()
+@cython.no_gc
+cdef class _gr_fexpr_ctx(gr_scalar_ctx):
 
-# Global contexts for Python code
-gr_fmpz_ctx = gr_fmpz_ctx_c
-gr_fmpq_ctx = gr_fmpq_ctx_c
-gr_fmpzi_ctx = gr_fmpzi_ctx_c
+    @staticmethod
+    def new() -> _gr_fexpr_ctx:
+        return gr_fexpr_ctx_c
+
+    def __repr__(self):
+        return "gr_fexpr_ctx"
 
 
 @cython.no_gc
