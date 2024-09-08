@@ -1,4 +1,4 @@
-from flint.flintlib.fq_default cimport *
+from flint.flintlib.functions.fq_default cimport *
 from flint.types.fmpz cimport fmpz
 from flint.flint_base.flint_base cimport flint_scalar
 

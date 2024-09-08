@@ -3,10 +3,11 @@ from flint.types.acb cimport any_as_acb
 from flint.types.acb cimport acb
 from flint.types.fmpz cimport fmpz
 
-from flint.flintlib.ulong_extras cimport n_gcd
-from flint.flintlib.fmpz cimport fmpz_get_ui
-from flint.flintlib.dirichlet cimport *
-from flint.flintlib.acb_dirichlet cimport *
+from flint.flintlib.functions.ulong_extras cimport n_gcd
+from flint.flintlib.functions.fmpz cimport fmpz_get_ui
+from flint.flintlib.functions.dirichlet cimport *
+from flint.flintlib.types.dirichlet cimport DIRICHLET_CHI_NULL
+from flint.flintlib.functions.acb_dirichlet cimport *
 
 cdef dict _dirichlet_group_cache = {}
 

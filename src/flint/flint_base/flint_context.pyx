@@ -1,5 +1,5 @@
-from flint.flintlib.arf_types cimport arf_rnd_t
-from flint.flintlib.flint cimport (
+from flint.flintlib.types.arf cimport arf_rnd_t
+from flint.flintlib.types.flint cimport (
     flint_cleanup,
     flint_get_num_threads,
     flint_set_num_threads

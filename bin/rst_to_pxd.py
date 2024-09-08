@@ -62,8 +62,14 @@ def get_cython_struct_types(file):
         l = line.strip()
         if l[:8] == "ctypedef":
             if l[-1] == ']':
+                # ctypedef foo foo_t[0]
                 l = l[:l.rfind('[')]
+            elif '(' in l:
+                # ctypedef int (*foo_func)(...)
+                l = l[l.index('('):].lstrip('(*')
+                l = l[:l.index(')')]
             else:
+                # ctypedef foo:
                 l = l.strip(':')
             ret.append(l.split()[-1])
     return ret
@@ -72,12 +78,14 @@ def fill_import_dict(pyflintlibdir):
     """
     Get a map from cython structs to the pxd that defines them
     """
-    with os.scandir(pyflintlibdir) as entry:
+    import_dict['fmpq_struct'] = 'types.fmpq'
+
+    with os.scandir(pyflintlibdir + '/types') as entry:
         for f in entry:
             if fnmatch.fnmatch(f.name, "*.pxd"):
                 with open(f.path) as pxd:
                     for t in get_cython_struct_types(pxd):
-                        import_dict[t] = f.name.split('.')[0]
+                        import_dict[t] = 'types.' + f.name.split('.')[0]
 
 def undecorate(str):
     """
@@ -86,12 +94,13 @@ def undecorate(str):
     ret = str.strip()
     if ' ' in ret:
         ret = ret[:ret.rfind(' ')]
-    ret = re.sub(type_modifers, '', ret)
-    return ret.strip()
+    ret = re.sub(type_modifers, '', ret).strip()
+    return ret
 
 def get_parameter_types(str):
     params = str[str.find("(") + 1 : str.rfind(")")].split(",")
-    params.append(str.split()[0])
+    ret_type = str.split('(')[0].rsplit(' ', 1)[0]
+    params.append(ret_type)
     return [undecorate(s) for s in params if s]
 
 def clean_types(function):

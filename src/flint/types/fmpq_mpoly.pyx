@@ -15,8 +15,8 @@ from flint.types.fmpq_vec cimport fmpq_vec
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 from flint.types.fmpz_mpoly cimport fmpz_mpoly
 
-from flint.flintlib.fmpq cimport fmpq_set, fmpq_one
-from flint.flintlib.fmpq_mpoly cimport (
+from flint.flintlib.functions.fmpq cimport fmpq_set, fmpq_one
+from flint.flintlib.functions.fmpq_mpoly cimport (
     fmpq_mpoly_add,
     fmpq_mpoly_add_fmpq,
     fmpq_mpoly_clear,
@@ -63,7 +63,7 @@ from flint.flintlib.fmpq_mpoly cimport (
     fmpq_mpoly_term_content,
     fmpq_mpoly_total_degree_fmpz,
 )
-from flint.flintlib.fmpq_mpoly_factor cimport (
+from flint.flintlib.functions.fmpq_mpoly_factor cimport (
     fmpq_mpoly_factor,
     fmpq_mpoly_factor_clear,
     fmpq_mpoly_factor_init,
@@ -71,8 +71,8 @@ from flint.flintlib.fmpq_mpoly_factor cimport (
     fmpq_mpoly_factor_t,
 )
 
-from flint.flintlib.fmpz cimport fmpz_init_set
-from flint.flintlib.fmpz_mpoly cimport (
+from flint.flintlib.functions.fmpz cimport fmpz_init_set
+from flint.flintlib.functions.fmpz_mpoly cimport (
     fmpz_mpoly_set,
     fmpz_mpoly_deflate,
     fmpz_mpoly_deflation,

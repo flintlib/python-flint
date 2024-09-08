@@ -15,10 +15,10 @@ from flint.types.fmpz_mod cimport fmpz_mod
 
 from flint.types.nmod cimport nmod
 
-from flint.flintlib.flint cimport SIZEOF_ULONG
-from flint.flintlib.fmpz cimport fmpz_set
-from flint.flintlib.nmod cimport fmpz_get_nmod
-from flint.flintlib.nmod_mpoly cimport (
+from flint.flintlib.types.flint cimport SIZEOF_ULONG
+from flint.flintlib.functions.fmpz cimport fmpz_set, fmpz_get_nmod
+
+from flint.flintlib.functions.nmod_mpoly cimport (
     nmod_mpoly_add,
     nmod_mpoly_add_ui,
     nmod_mpoly_clear,
@@ -64,14 +64,14 @@ from flint.flintlib.nmod_mpoly cimport (
     nmod_mpoly_term_content,
     nmod_mpoly_total_degree_fmpz,
 )
-from flint.flintlib.nmod_mpoly_factor cimport (
+from flint.flintlib.functions.nmod_mpoly_factor cimport (
     nmod_mpoly_factor,
     nmod_mpoly_factor_clear,
     nmod_mpoly_factor_init,
     nmod_mpoly_factor_squarefree,
     nmod_mpoly_factor_t,
 )
-from flint.flintlib.ulong_extras cimport n_is_prime
+from flint.flintlib.functions.ulong_extras cimport n_is_prime
 
 from cpython.object cimport Py_EQ, Py_NE
 cimport libc.stdlib

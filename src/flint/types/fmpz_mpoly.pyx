@@ -11,8 +11,11 @@ from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 from flint.types.fmpz cimport any_as_fmpz, fmpz
 from flint.types.fmpz_vec cimport fmpz_vec
 
-from flint.flintlib.fmpz cimport fmpz_set
-from flint.flintlib.fmpz_mpoly cimport (
+from flint.flintlib.types.flint cimport slong
+from flint.flintlib.types.fmpz cimport fmpz_mpoly_vec_entry
+from flint.flintlib.functions.fmpz cimport fmpz_set
+
+from flint.flintlib.functions.fmpz_mpoly cimport (
     fmpz_mpoly_add,
     fmpz_mpoly_add_fmpz,
     fmpz_mpoly_buchberger_naive,
@@ -67,19 +70,18 @@ from flint.flintlib.fmpz_mpoly cimport (
     fmpz_mpoly_vec_autoreduction,
     fmpz_mpoly_vec_autoreduction_groebner,
     fmpz_mpoly_vec_clear,
-    fmpz_mpoly_vec_entry,
     fmpz_mpoly_vec_init,
     fmpz_mpoly_vec_is_autoreduced,
     fmpz_mpoly_vec_is_groebner,
 )
-from flint.flintlib.fmpz_mpoly_factor cimport (
+from flint.flintlib.functions.fmpz_mpoly_factor cimport (
     fmpz_mpoly_factor,
     fmpz_mpoly_factor_clear,
     fmpz_mpoly_factor_init,
     fmpz_mpoly_factor_squarefree,
     fmpz_mpoly_factor_t,
 )
-from flint.flintlib.fmpz_vec cimport _fmpz_vec_content
+from flint.flintlib.functions.fmpz_vec cimport _fmpz_vec_content
 
 from cpython.object cimport Py_EQ, Py_NE
 cimport libc.stdlib

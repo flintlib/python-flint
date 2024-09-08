@@ -8,19 +8,19 @@ from flint.pyflint cimport global_random_state
 from flint.types.fmpq cimport any_as_fmpq
 cimport cython
 
-from flint.flintlib.fmpz cimport fmpz_set, fmpz_init, fmpz_clear
-from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_is_pm1
-from flint.flintlib.fmpz_types cimport (
+from flint.flintlib.functions.fmpz cimport fmpz_set, fmpz_init, fmpz_clear
+from flint.flintlib.functions.fmpz cimport fmpz_is_zero, fmpz_is_pm1
+from flint.flintlib.types.fmpz cimport (
     fmpz_mat_struct,
     rep_type,
     gram_type,
 )
-from flint.flintlib.fmpz_poly cimport fmpz_poly_init
-from flint.flintlib.fmpz_mat cimport *
-from flint.flintlib.fmpz_lll cimport *
-from flint.flintlib.fmpq_mat cimport fmpq_mat_init
-from flint.flintlib.fmpq_mat cimport fmpq_mat_set_fmpz_mat_div_fmpz
-from flint.flintlib.fmpq_mat cimport fmpq_mat_solve_fmpz_mat
+from flint.flintlib.functions.fmpz_poly cimport fmpz_poly_init
+from flint.flintlib.functions.fmpz_mat cimport *
+from flint.flintlib.functions.fmpz_lll cimport *
+from flint.flintlib.functions.fmpq_mat cimport fmpq_mat_init
+from flint.flintlib.functions.fmpq_mat cimport fmpq_mat_set_fmpz_mat_div_fmpz
+from flint.flintlib.functions.fmpq_mat cimport fmpq_mat_solve_fmpz_mat
 
 from flint.utils.flint_exceptions import DomainError
 
