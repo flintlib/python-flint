@@ -3239,13 +3239,23 @@ def test_mpolys():
         assert (x0**3 - 6*x0**2 + 11*x0 - 6).discriminant('x0') == 4
         assert (x0**2 + 4*x0*x1 + 4*x1**2 - 1).discriminant('x0') == 4
 
-        res, stride = (3*x0**2*x1**2 + 6*x0*x1**2 + 9*x1**2).deflation()
+        f1 = 3*x0**2*x1**2 + 6*x0*x1**2 + 9*x1**2
+        res, stride = f1.deflation()
         assert res == 3*x0**2 + 6*x0 + 9
         assert tuple(stride) == (1, 0)
 
-        res, stride = ((x0**2 + x1**2)**3 + (x0**2 + x1**2)**2 + 1).deflation()
+        g1 = ((x0**2 + x1**2)**3 + (x0**2 + x1**2)**2 + 1)
+        res, stride = g1.deflation()
         assert res == x0**3 + 3*x0**2*x1 + x0**2 + 3*x0*x1**2 + 2*x0*x1 + x1**3 + x1**2 + 1
         assert tuple(stride) == (2, 2)
+
+        for p in [f1, g1]:
+            n, m = p.deflation_monom()
+            assert m * p.deflate(n).inflate(n) == p
+
+            n, i = p.deflation_index()
+            m = ctx.term(exp_vec=i)
+            assert p.deflate(n).inflate(n) * m == p
 
         if P is flint.fmpz_mpoly:
             assert (x0**2 * x1 + x0 * x1).primitive() == (1, x0**2*x1 + x0*x1)

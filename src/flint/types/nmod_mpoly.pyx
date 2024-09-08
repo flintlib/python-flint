@@ -1102,8 +1102,7 @@ cdef class nmod_mpoly(flint_mpoly):
 
     def deflation(self) -> tuple[nmod_mpoly, list[int]]:
         """
-        Compute the deflation of ``self``, that is ``p(X^(1/N))`` for maximal
-        N. Returns ``q, N`` such that ``self == q.inflate(N)``.
+        Compute the deflation of ``self``, that is ``p(X^(1/N))`` for maximal N.
 
             >>> from flint import Ordering
             >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
