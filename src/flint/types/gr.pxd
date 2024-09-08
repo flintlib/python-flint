@@ -402,7 +402,6 @@ cdef class _gr_fmpzi_ctx(gr_scalar_ctx):
         return ctx
 
 
-
 @cython.no_gc
 cdef class gr_nmod_ctx(gr_scalar_ctx):
     cdef ulong n
