@@ -11,6 +11,9 @@ from flint.flintlib.types.fmpz cimport (
 from flint.flintlib.types.fmpq cimport (
     fmpq_poly_t,
 )
+from flint.flintlib.functions.ulong_extras cimport (
+    n_is_prime,
+)
 from flint.flintlib.functions.fmpz cimport (
     fmpz_init_set,
 )
@@ -41,27 +44,35 @@ from flint.flintlib.functions.gr_domains cimport (
     gr_ctx_init_fmpz,
     gr_ctx_init_fmpq,
     gr_ctx_init_fmpzi,
+
     gr_ctx_init_nmod,
     gr_ctx_init_fmpz_mod,
+    # gr_ctx_set_is_field,
+
     gr_ctx_init_fq,
     gr_ctx_init_fq_nmod,
     gr_ctx_init_fq_zech,
+
     gr_ctx_init_nf,
     gr_ctx_init_nf_fmpz_poly,
+
     gr_ctx_init_real_qqbar,
     gr_ctx_init_complex_qqbar,
+    _gr_ctx_qqbar_set_limits,
+
     gr_ctx_init_real_ca,
     gr_ctx_init_complex_ca,
     gr_ctx_init_real_algebraic_ca,
     gr_ctx_init_complex_algebraic_ca,
     gr_ctx_init_complex_extended_ca,
+
     gr_ctx_init_real_float_arf,
     gr_ctx_init_complex_float_acf,
+
     gr_ctx_init_real_arb,
     gr_ctx_init_complex_acb,
     gr_ctx_init_fexpr,
 
-    _gr_ctx_qqbar_set_limits,
 )
 from flint.flintlib.functions.gr cimport (
     gr_heap_init,
@@ -425,28 +436,42 @@ cdef _gr_fexpr_ctx gr_fexpr_ctx_c
 @cython.no_gc
 cdef class gr_nmod_ctx(gr_scalar_ctx):
     cdef ulong n
+    cdef bint is_field
 
     @staticmethod
     cdef inline gr_nmod_ctx _new(ulong n):
         cdef gr_nmod_ctx ctx
+        cdef bint is_prime = n_is_prime(n)
         ctx = gr_nmod_ctx.__new__(gr_nmod_ctx)
         ctx.n = n
+        ctx.is_field = is_prime
         gr_ctx_init_nmod(ctx.ctx_t, n)
         ctx._init = True
+        # if is_prime:
+        #     gr_ctx_set_is_field(ctx.ctx_t, T_TRUE)
+        # else:
+        #     gr_ctx_set_is_field(ctx.ctx_t, T_FALSE)
         return ctx
 
 
 @cython.no_gc
 cdef class gr_fmpz_mod_ctx(gr_scalar_ctx):
     cdef fmpz_t n
+    cdef bint is_field
 
     @staticmethod
     cdef inline gr_fmpz_mod_ctx _new(fmpz n):
         cdef gr_fmpz_mod_ctx ctx
+        cdef bint is_prime = n.is_prime()
         ctx = gr_fmpz_mod_ctx.__new__(gr_fmpz_mod_ctx)
+        ctx.is_field = is_prime
         fmpz_init_set(ctx.n, n.val)
         gr_ctx_init_fmpz_mod(ctx.ctx_t, ctx.n)
         ctx._init = True
+        # if is_prime:
+        #     gr_ctx_set_is_field(ctx.ctx_t, T_TRUE)
+        # else:
+        #     gr_ctx_set_is_field(ctx.ctx_t, T_FALSE)
         return ctx
 
 

@@ -245,6 +245,13 @@ cdef class gr_nmod_ctx(gr_scalar_ctx):
     def new(ulong n) -> gr_nmod_ctx:
         return gr_nmod_ctx._new(n)
 
+    @property
+    def is_prime(self) -> bool:
+        return self._is_prime()
+
+    def modulus(self):
+        return self.n
+
     def __repr__(self):
         return f"gr_nmod_ctx({self.n})"
 
@@ -256,6 +263,10 @@ cdef class gr_fmpz_mod_ctx(gr_scalar_ctx):
     def new(n) -> gr_fmpz_mod_ctx:
         n = fmpz(n)
         return gr_fmpz_mod_ctx._new(n)
+
+    @property
+    def is_prime(self) -> bool:
+        return self._is_prime()
 
     def modulus(self):
         cdef fmpz n = fmpz.__new__(fmpz)

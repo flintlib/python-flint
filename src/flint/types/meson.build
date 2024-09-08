@@ -48,7 +48,7 @@ exts = [
   'fmpz_mod_mpoly',
   'fmpq_mpoly',
 
-  'gr',
+  '_gr',
 ]
 
 if have_acb_theta
