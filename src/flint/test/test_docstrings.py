@@ -36,7 +36,7 @@ class PyTestDocTestRunner(doctest.DocTestRunner):
     def report_failure(self, out, test, example, got):
         pytest.fail(
             "\n".join([
-                f"Failed: {test.name}, line: {test.lineno}",
+                f"{test.name}, line: {test.lineno}",
                 "Failed example:",
                 f"\t{example.source.strip()}",
                 "Expected:",
