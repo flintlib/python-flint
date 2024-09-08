@@ -630,8 +630,11 @@ cdef class fmpz_poly(flint_poly):
         n. returns ``q, n`` such that ``self == q.inflate(n)``.
 
             >>> f = fmpz_poly([1, 0, 1])
-            >>> f.deflation()
+            >>> q, n = f.deflation()
+            >>> q, n
             (x + 1, 2)
+            >>> q.inflate(n) == f
+            True
         """
         cdef ulong n
         if fmpz_poly_is_zero(self.val):
@@ -647,14 +650,17 @@ cdef class fmpz_poly(flint_poly):
 
             >>> f = fmpz_poly([1, 0, 1])
             >>> f.deflation_monom()
-            (1, x)
+            (x^2 + 1, 1, x)
         """
         n, m = self.deflation_index()
 
         cdef fmpz_poly monom = fmpz_poly.__new__(fmpz_poly)
-        fmpz_poly_set_coeff_ui(monom.val, m, 1)
+        cdef fmpz_poly res = fmpz_poly.__new__(fmpz_poly)
 
-        return n, monom
+        fmpz_poly_set_coeff_ui(monom.val, m, 1)
+        fmpz_poly_deflate(res.val, self.val, n)
+
+        return res, n, monom
 
     def deflation_index(self) -> tuple[int, int]:
         """

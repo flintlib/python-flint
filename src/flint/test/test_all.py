@@ -3241,8 +3241,8 @@ def test_mpolys():
 
         f1 = 3*x0**2*x1**2 + 6*x0*x1**2 + 9*x1**2
         res, stride = f1.deflation()
-        assert res == 3*x0**2 + 6*x0 + 9
-        assert tuple(stride) == (1, 0)
+        assert res == 3*x0**2*x1 + 6*x0*x1 + 9*x1
+        assert tuple(stride) == (1, 2)
 
         g1 = ((x0**2 + x1**2)**3 + (x0**2 + x1**2)**2 + 1)
         res, stride = g1.deflation()
@@ -3250,12 +3250,17 @@ def test_mpolys():
         assert tuple(stride) == (2, 2)
 
         for p in [f1, g1]:
-            n, m = p.deflation_monom()
-            assert m * p.deflate(n).inflate(n) == p
+            pd, n = p.deflation()
+            assert pd.inflate(n) == p
+            assert p.deflate(n).inflate(n) == p
 
-            n, i = p.deflation_index()
-            m = ctx.term(exp_vec=i)
-            assert p.deflate(n).inflate(n) * m == p
+            pd, n, m = p.deflation_monom()
+            assert m * pd.inflate(n) == p
+
+            if not composite_characteristic:
+                n, i = p.deflation_index()
+                m = ctx.term(exp_vec=i)
+                assert (p / m).deflate(n).inflate(n) * m == p
 
         if P is flint.fmpz_mpoly:
             assert (x0**2 * x1 + x0 * x1).primitive() == (1, x0**2*x1 + x0*x1)

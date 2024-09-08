@@ -1156,24 +1156,30 @@ cdef class fmpz_mpoly(flint_mpoly):
             >>> from flint import Ordering
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
             >>> x, y = ctx.gens()
-            >>> f = x**3 * y + x * y**4 + x * y
+            >>> f = x**2 * y**2 + x * y**2
             >>> q, N = f.deflation()
             >>> q, N
-            (x + y + 1, [2, 3])
+            (x^2*y + x*y, [1, 2])
+            >>> q.inflate(N) == f
+            True
         """
         cdef:
-            fmpz_vec _shift = fmpz_vec(self.ctx.nvars())
-            fmpz_vec stride = fmpz_vec(self.ctx.nvars())
+            slong nvars = self.ctx.nvars()
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(nvars)
             fmpz_mpoly res = create_fmpz_mpoly(self.ctx)
 
-        fmpz_mpoly_deflation(_shift.val, stride.val, self.val, self.ctx.val)
+        fmpz_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
 
-        cdef fmpz_vec zero_shift = fmpz_vec(self.ctx.nvars())
-        fmpz_mpoly_deflate(res.val, self.val, zero_shift.val, stride.val, self.ctx.val)
+        for i in range(nvars):
+            stride[i] = shift[i].gcd(stride[i])
+            shift[i] = 0
+
+        fmpz_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
 
         return res, list(stride)
 
-    def deflation_monom(self) -> tuple[list[int], fmpz_mpoly]:
+    def deflation_monom(self) -> tuple[fmpz_mpoly, list[int], fmpz_mpoly]:
         """
         Compute the exponent vector ``N`` and monomial ``m`` such that ``p(X^(1/N))
         = m * q(X^N)`` for maximal N. Importantly the deflation itself is not computed
@@ -1183,21 +1189,24 @@ cdef class fmpz_mpoly(flint_mpoly):
             >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
             >>> x, y = ctx.gens()
             >>> f = x**3 * y + x * y**4 + x * y
-            >>> N, m = f.deflation_monom()
-            >>> N, m
-            ([2, 3], x*y)
-            >>> f_deflated = f.deflate(N)
-            >>> f_deflated
-            x + y + 1
-            >>> m * f_deflated.inflate(N)
+            >>> fd, N, m = f.deflation_monom()
+            >>> fd, N, m
+            (x + y + 1, [2, 3], x*y)
+            >>> m * fd.inflate(N)
             x^3*y + x*y^4 + x*y
         """
-        cdef fmpz_mpoly monom = create_fmpz_mpoly(self.ctx)
+        cdef:
+            slong nvars = self.ctx.nvars()
+            fmpz_mpoly res = create_fmpz_mpoly(self.ctx)
+            fmpz_mpoly monom = create_fmpz_mpoly(self.ctx)
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(nvars)
 
-        stride, _shift = self.deflation_index()
+        fmpz_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
+        fmpz_mpoly_push_term_ui_ffmpz(monom.val, 1, fmpz_vec(shift).val, self.ctx.val)
+        fmpz_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
 
-        fmpz_mpoly_push_term_ui_ffmpz(monom.val, 1, fmpz_vec(_shift).val, self.ctx.val)
-        return list(stride), monom
+        return res, list(stride), monom
 
     def deflation_index(self) -> tuple[list[int], list[int]]:
         """
