@@ -327,13 +327,13 @@ cdef class gr(flint_scalar):
             err = gr_set_si(other_gr.pval, other, self.ctx.ctx_t)
             if err != GR_SUCCESS:
                 raise self.ctx._error(err, "Cannot set gr from int")
-        elif not isinstance(other, gr):
+        elif isinstance(other, gr):
+            other_gr = other
+        else:
             raise NotImplementedError("Cannot compare gr with non-gr objects")
 
         if self.ctx != other_gr.ctx:
             raise NotImplementedError("Cannot compare gr with different contexts")
-
-        other_gr = other
 
         if op == 0:
             raise NotImplementedError("Cannot compare gr with <")
@@ -460,7 +460,7 @@ cdef class gr(flint_scalar):
         if not isinstance(other, gr):
             raise TypeError("gcd when other is not gr.")
         other_gr = other
-        if not self.ctx == other.ctx:
+        if not self.ctx == other_gr.ctx:
             raise TypeError("gcd of gr with different contexts.")
         return self._gcd(other_gr)
 
@@ -469,7 +469,7 @@ cdef class gr(flint_scalar):
         if not isinstance(other, gr):
             raise TypeError("gcd when other is not gr.")
         other_gr = other
-        if not self.ctx == other.ctx:
+        if not self.ctx == other_gr.ctx:
             raise TypeError("gcd of gr with different contexts.")
         return self._gcd(other_gr)
 

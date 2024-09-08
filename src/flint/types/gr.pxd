@@ -162,25 +162,70 @@ cdef class gr_ctx(flint_ctx):
             return AssertionError("Bad error code")
 
 
+cdef class gr_scalar_ctx(gr_ctx):
+    pass
+
+
+cdef class gr_poly_ctx(gr_ctx):
+    pass
+
+
+cdef class gr_mpoly_ctx(gr_ctx):
+    pass
+
+
+cdef class gr_matrix_domain_ctx(gr_ctx):
+    pass
+
+
+cdef class gr_matrix_space_ctx(gr_ctx):
+    pass
+
+
+cdef class gr_matrix_ring_ctx(gr_ctx):
+    pass
+
+
 @cython.no_gc
-cdef class _gr_fmpz_ctx(gr_ctx):
+cdef class _gr_fmpz_ctx(gr_scalar_ctx):
 
     @staticmethod
     cdef _gr_fmpz_ctx _new()
 
 
 @cython.no_gc
-cdef class _gr_fmpq_ctx(gr_ctx):
+cdef class _gr_fmpq_ctx(gr_scalar_ctx):
 
     @staticmethod
     cdef _gr_fmpq_ctx _new()
 
 
 @cython.no_gc
-cdef class _gr_fmpzi_ctx(gr_ctx):
+cdef class _gr_fmpzi_ctx(gr_scalar_ctx):
 
     @staticmethod
     cdef _gr_fmpzi_ctx _new()
+
+
+@cython.no_gc
+cdef class _gr_fmpz_poly_ctx(gr_poly_ctx):
+
+    @staticmethod
+    cdef _gr_fmpz_poly_ctx _new()
+
+
+@cython.no_gc
+cdef class _gr_fmpq_poly_ctx(gr_poly_ctx):
+
+    @staticmethod
+    cdef _gr_fmpq_poly_ctx _new()
+
+
+@cython.no_gc
+cdef class _gr_gr_poly_ctx(gr_poly_ctx):
+
+    @staticmethod
+    cdef _gr_gr_poly_ctx _new()
 
 
 # The global contexts for use in cython code:
@@ -362,7 +407,6 @@ cdef class gr(flint_scalar):
             raise self._error(err, "Failed to compute lcm of gr objects")
         return res
 
-    # XXX: Needs gr_vec_t
     cdef inline _factor(self):
         cdef int err, i
         cdef slong length, exp_s
