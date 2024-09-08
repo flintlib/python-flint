@@ -5,8 +5,7 @@ from flint.flintlib.types.gr cimport gr_ctx_t, truth_t
 from flint.flintlib.types.mpoly cimport ordering_t
 
 
-# XXX: Need to fix the header from gr_domain.h to gr.h:
-# Needs hard-coding in rst_to_pxd.py
+
 cdef extern from "flint/gr.h":
     int gr_ctx_cmp_coercion(gr_ctx_t ctx1, gr_ctx_t ctx2)
     truth_t gr_ctx_is_finite(gr_ctx_t ctx)
