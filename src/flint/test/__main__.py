@@ -53,7 +53,7 @@ def run_doctests(tests, verbose=False):
     runner = doctest.DocTestRunner()
     for module, test_set in tests:
         if test_set:
-            print(f"{module}...", end="", flush=True)
+            print(f"{module}...", end="" if not verbose else "\n", flush=True)
             for test in test_set:
                 if verbose:
                     print("\tTesting:", test.name)

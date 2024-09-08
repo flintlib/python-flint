@@ -51,6 +51,18 @@ try:
                 pytrace=False,
             )
 
+        def report_unexpected_exception(self, out, test, example, exc_info):
+            pytest.fail(
+                "\n".join([
+                    f"{test.name}, line: {test.lineno}",
+                    "Failed example:",
+                    f"\t{example.source.strip()}",
+                    "Exception raised:",
+                    doctest._indent(doctest._exception_traceback(exc_info))
+                ]),
+                pytrace=False,
+            )
+
     runner = PyTestDocTestRunner()
 
     @pytest.mark.parametrize(
