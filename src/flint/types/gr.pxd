@@ -207,25 +207,25 @@ cdef class _gr_fmpzi_ctx(gr_scalar_ctx):
     cdef _gr_fmpzi_ctx _new()
 
 
-@cython.no_gc
-cdef class _gr_fmpz_poly_ctx(gr_poly_ctx):
-
-    @staticmethod
-    cdef _gr_fmpz_poly_ctx _new()
-
-
-@cython.no_gc
-cdef class _gr_fmpq_poly_ctx(gr_poly_ctx):
-
-    @staticmethod
-    cdef _gr_fmpq_poly_ctx _new()
+# @cython.no_gc
+# cdef class _gr_fmpz_poly_ctx(gr_poly_ctx):
+# 
+#     @staticmethod
+#     cdef _gr_fmpz_poly_ctx _new()
 
 
-@cython.no_gc
-cdef class _gr_gr_poly_ctx(gr_poly_ctx):
+# @cython.no_gc
+# cdef class _gr_fmpq_poly_ctx(gr_poly_ctx):
+# 
+#     @staticmethod
+#     cdef _gr_fmpq_poly_ctx _new()
 
-    @staticmethod
-    cdef _gr_gr_poly_ctx _new()
+
+# @cython.no_gc
+# cdef class _gr_gr_poly_ctx(gr_poly_ctx):
+# 
+#     @staticmethod
+#     cdef _gr_gr_poly_ctx _new()
 
 
 # The global contexts for use in cython code:

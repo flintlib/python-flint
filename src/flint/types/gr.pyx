@@ -215,13 +215,38 @@ cdef class gr_ctx(flint_ctx):
         return res
 
 
+cdef class gr_scalar_ctx(gr_ctx):
+    pass
+
+
+cdef class gr_poly_ctx(gr_ctx):
+    pass
+
+
+cdef class gr_mpoly_ctx(gr_ctx):
+    pass
+
+
+cdef class gr_matrix_domain_ctx(gr_ctx):
+    pass
+
+
+cdef class gr_matrix_space_ctx(gr_ctx):
+    pass
+
+
+cdef class gr_matrix_ring_ctx(gr_ctx):
+    pass
+
+
+
 cdef _gr_fmpz_ctx gr_fmpz_ctx_c
 cdef _gr_fmpq_ctx gr_fmpq_ctx_c
 cdef _gr_fmpzi_ctx gr_fmpzi_ctx_c
 
 
 @cython.no_gc
-cdef class _gr_fmpz_ctx(gr_ctx):
+cdef class _gr_fmpz_ctx(gr_scalar_ctx):
 
     @staticmethod
     def new() -> _gr_fmpz_ctx:
@@ -240,7 +265,7 @@ cdef class _gr_fmpz_ctx(gr_ctx):
 
 
 @cython.no_gc
-cdef class _gr_fmpq_ctx(gr_ctx):
+cdef class _gr_fmpq_ctx(gr_scalar_ctx):
 
     @staticmethod
     def new() -> _gr_fmpq_ctx:
@@ -259,7 +284,7 @@ cdef class _gr_fmpq_ctx(gr_ctx):
 
 
 @cython.no_gc
-cdef class _gr_fmpzi_ctx(gr_ctx):
+cdef class _gr_fmpzi_ctx(gr_scalar_ctx):
 
     @staticmethod
     def new() -> _gr_fmpzi_ctx:
