@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, slong, ulong
+from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, mp_limb_t, slong, ulong
 from flint.flintlib.types.mpoly cimport ordering_t
 from flint.flintlib.types.nmod cimport nmod_mpoly_ctx_t, nmod_mpoly_struct, nmod_mpoly_t, nmod_mpoly_univar_t, nmod_poly_struct, nmod_poly_t
 
@@ -6,10 +6,10 @@ from flint.flintlib.types.nmod cimport nmod_mpoly_ctx_t, nmod_mpoly_struct, nmod
 
 
 cdef extern from "flint/nmod_mpoly.h":
-    void nmod_mpoly_ctx_init(nmod_mpoly_ctx_t ctx, slong nvars, const ordering_t ord, ulong n)
+    void nmod_mpoly_ctx_init(nmod_mpoly_ctx_t ctx, slong nvars, const ordering_t ord, mp_limb_t n)
     slong nmod_mpoly_ctx_nvars(const nmod_mpoly_ctx_t ctx)
     ordering_t nmod_mpoly_ctx_ord(const nmod_mpoly_ctx_t ctx)
-    ulong nmod_mpoly_ctx_modulus(const nmod_mpoly_ctx_t ctx)
+    mp_limb_t nmod_mpoly_ctx_modulus(const nmod_mpoly_ctx_t ctx)
     void nmod_mpoly_ctx_clear(nmod_mpoly_ctx_t ctx)
     void nmod_mpoly_init(nmod_mpoly_t A, const nmod_mpoly_ctx_t ctx)
     void nmod_mpoly_init2(nmod_mpoly_t A, slong alloc, const nmod_mpoly_ctx_t ctx)
@@ -51,7 +51,7 @@ cdef extern from "flint/nmod_mpoly.h":
     void nmod_mpoly_set_coeff_ui_ui(nmod_mpoly_t A, ulong c, const ulong * exp, const nmod_mpoly_ctx_t ctx)
     void nmod_mpoly_get_coeff_vars_ui(nmod_mpoly_t C, const nmod_mpoly_t A, const slong * vars, const ulong * exps, slong length, const nmod_mpoly_ctx_t ctx)
     int nmod_mpoly_cmp(const nmod_mpoly_t A, const nmod_mpoly_t B, const nmod_mpoly_ctx_t ctx)
-    ulong * nmod_mpoly_term_coeff_ref(nmod_mpoly_t A, slong i, const nmod_mpoly_ctx_t ctx)
+    mp_limb_t * nmod_mpoly_term_coeff_ref(nmod_mpoly_t A, slong i, const nmod_mpoly_ctx_t ctx)
     int nmod_mpoly_is_canonical(const nmod_mpoly_t A, const nmod_mpoly_ctx_t ctx)
     slong nmod_mpoly_length(const nmod_mpoly_t A, const nmod_mpoly_ctx_t ctx)
     void nmod_mpoly_resize(nmod_mpoly_t A, slong new_length, const nmod_mpoly_ctx_t ctx)
@@ -76,7 +76,7 @@ cdef extern from "flint/nmod_mpoly.h":
     void nmod_mpoly_reverse(nmod_mpoly_t A, const nmod_mpoly_t B, const nmod_mpoly_ctx_t ctx)
     void nmod_mpoly_randtest_bound(nmod_mpoly_t A, flint_rand_t state, slong length, ulong exp_bound, const nmod_mpoly_ctx_t ctx)
     void nmod_mpoly_randtest_bounds(nmod_mpoly_t A, flint_rand_t state, slong length, ulong * exp_bounds, const nmod_mpoly_ctx_t ctx)
-    void nmod_mpoly_randtest_bits(nmod_mpoly_t A, flint_rand_t state, slong length, ulong exp_bits, const nmod_mpoly_ctx_t ctx)
+    void nmod_mpoly_randtest_bits(nmod_mpoly_t A, flint_rand_t state, slong length, mp_limb_t exp_bits, const nmod_mpoly_ctx_t ctx)
     void nmod_mpoly_add_ui(nmod_mpoly_t A, const nmod_mpoly_t B, ulong c, const nmod_mpoly_ctx_t ctx)
     void nmod_mpoly_sub_ui(nmod_mpoly_t A, const nmod_mpoly_t B, ulong c, const nmod_mpoly_ctx_t ctx)
     void nmod_mpoly_add(nmod_mpoly_t A, const nmod_mpoly_t B, const nmod_mpoly_t C, const nmod_mpoly_ctx_t ctx)

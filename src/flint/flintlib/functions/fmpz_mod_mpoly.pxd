@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, slong, ulong
+from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, mp_limb_t, slong, ulong
 from flint.flintlib.types.fmpz cimport fmpz_poly_struct, fmpz_poly_t
 from flint.flintlib.types.fmpz_mod cimport fmpz_mod_mpoly_ctx_t, fmpz_mod_mpoly_struct, fmpz_mod_mpoly_t
 from flint.flintlib.types.mpoly cimport ordering_t
@@ -91,7 +91,7 @@ cdef extern from "flint/fmpz_mod_mpoly.h":
     void fmpz_mod_mpoly_reverse(fmpz_mod_mpoly_t A, const fmpz_mod_mpoly_t B, const fmpz_mod_mpoly_ctx_t ctx)
     void fmpz_mod_mpoly_randtest_bound(fmpz_mod_mpoly_t A, flint_rand_t state, slong length, ulong exp_bound, const fmpz_mod_mpoly_ctx_t ctx)
     void fmpz_mod_mpoly_randtest_bounds(fmpz_mod_mpoly_t A, flint_rand_t state, slong length, ulong * exp_bounds, const fmpz_mod_mpoly_ctx_t ctx)
-    void fmpz_mod_mpoly_randtest_bits(fmpz_mod_mpoly_t A, flint_rand_t state, slong length, ulong exp_bits, const fmpz_mod_mpoly_ctx_t ctx)
+    void fmpz_mod_mpoly_randtest_bits(fmpz_mod_mpoly_t A, flint_rand_t state, slong length, mp_limb_t exp_bits, const fmpz_mod_mpoly_ctx_t ctx)
     void fmpz_mod_mpoly_add_fmpz(fmpz_mod_mpoly_t A, const fmpz_mod_mpoly_t B, const fmpz_t c, const fmpz_mod_mpoly_ctx_t ctx)
     void fmpz_mod_mpoly_add_ui(fmpz_mod_mpoly_t A, const fmpz_mod_mpoly_t B, ulong c, const fmpz_mod_mpoly_ctx_t ctx)
     void fmpz_mod_mpoly_add_si(fmpz_mod_mpoly_t A, const fmpz_mod_mpoly_t B, slong c, const fmpz_mod_mpoly_ctx_t ctx)

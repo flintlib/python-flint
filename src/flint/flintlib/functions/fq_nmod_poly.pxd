@@ -4,6 +4,7 @@ from flint.flintlib.types.fq_nmod cimport fq_nmod_ctx_t, fq_nmod_mat_t, fq_nmod_
 from flint.flintlib.types.nmod cimport nmod_poly_t
 
 # unknown type FILE
+# unknown type mp_limb_signed_t
 
 
 cdef extern from "flint/fq_nmod_poly.h":
@@ -136,7 +137,7 @@ cdef extern from "flint/fq_nmod_poly.h":
     void fq_nmod_poly_inv_series_newton(fq_nmod_poly_t Qinv, const fq_nmod_poly_t Q, slong n, const fq_nmod_ctx_t ctx)
     void _fq_nmod_poly_inv_series(fq_nmod_struct * Qinv, const fq_nmod_struct * Q, slong n, const fq_nmod_t cinv, const fq_nmod_ctx_t ctx)
     void fq_nmod_poly_inv_series(fq_nmod_poly_t Qinv, const fq_nmod_poly_t Q, slong n, const fq_nmod_ctx_t ctx)
-    void _fq_nmod_poly_div_series(fq_nmod_struct * Q, const fq_nmod_struct * A, slong Alen, const fq_nmod_struct * B, slong Blen, slong n, const fq_nmod_ctx_t ctx)
+    # void _fq_nmod_poly_div_series(fq_nmod_struct * Q, const fq_nmod_struct * A, mp_limb_signed_t Alen, const fq_nmod_struct * B, mp_limb_signed_t Blen, mp_limb_signed_t n, const fq_nmod_ctx_t ctx)
     void fq_nmod_poly_div_series(fq_nmod_poly_t Q, const fq_nmod_poly_t A, const fq_nmod_poly_t B, slong n, fq_nmod_ctx_t ctx)
     void fq_nmod_poly_gcd(fq_nmod_poly_t rop, const fq_nmod_poly_t op1, const fq_nmod_poly_t op2, const fq_nmod_ctx_t ctx)
     slong _fq_nmod_poly_gcd(fq_nmod_struct * G, const fq_nmod_struct * A, slong lenA, const fq_nmod_struct * B, slong lenB, const fq_nmod_ctx_t ctx)
