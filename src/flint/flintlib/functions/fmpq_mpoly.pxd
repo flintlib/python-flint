@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, slong, ulong
+from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, mp_limb_t, slong, ulong
 from flint.flintlib.types.fmpq cimport fmpq_mpoly_ctx_t, fmpq_mpoly_struct, fmpq_mpoly_t, fmpq_poly_struct, fmpq_poly_t, fmpq_struct, fmpq_t
 from flint.flintlib.types.fmpz cimport fmpz_mpoly_struct
 from flint.flintlib.types.mpoly cimport ordering_t
@@ -95,9 +95,9 @@ cdef extern from "flint/fmpq_mpoly.h":
     void fmpq_mpoly_sort_terms(fmpq_mpoly_t A, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_combine_like_terms(fmpq_mpoly_t A, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_reverse(fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpq_mpoly_ctx_t ctx)
-    void fmpq_mpoly_randtest_bound(fmpq_mpoly_t A, flint_rand_t state, slong length, ulong coeff_bits, ulong exp_bound, const fmpq_mpoly_ctx_t ctx)
-    void fmpq_mpoly_randtest_bounds(fmpq_mpoly_t A, flint_rand_t state, slong length, ulong coeff_bits, ulong * exp_bounds, const fmpq_mpoly_ctx_t ctx)
-    void fmpq_mpoly_randtest_bits(fmpq_mpoly_t A, flint_rand_t state, slong length, ulong coeff_bits, ulong exp_bits, const fmpq_mpoly_ctx_t ctx)
+    void fmpq_mpoly_randtest_bound(fmpq_mpoly_t A, flint_rand_t state, slong length, mp_limb_t coeff_bits, ulong exp_bound, const fmpq_mpoly_ctx_t ctx)
+    void fmpq_mpoly_randtest_bounds(fmpq_mpoly_t A, flint_rand_t state, slong length, mp_limb_t coeff_bits, ulong * exp_bounds, const fmpq_mpoly_ctx_t ctx)
+    void fmpq_mpoly_randtest_bits(fmpq_mpoly_t A, flint_rand_t state, slong length, mp_limb_t coeff_bits, mp_limb_t exp_bits, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_add_fmpq(fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpq_t c, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_add_fmpz(fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpz_t c, const fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_add_ui(fmpq_mpoly_t A, const fmpq_mpoly_t B, ulong c, const fmpq_mpoly_ctx_t ctx)
