@@ -4,15 +4,15 @@ from flint.types.fmpz cimport fmpz_set_any_ref
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 
-from flint.flintlib.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
-from flint.flintlib.fmpz cimport fmpz_set, fmpz_one
-from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_sgn
-from flint.flintlib.fmpz cimport fmpz_fdiv_q, fmpz_bits
-from flint.flintlib.fmpz cimport fmpz_cdiv_q
-from flint.flintlib.fmpz cimport fmpz_tdiv_q
-from flint.flintlib.fmpz cimport fmpz_clear
-from flint.flintlib.fmpq cimport *
-from flint.flintlib.bernoulli cimport *
+from flint.flintlib.types.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
+from flint.flintlib.functions.fmpz cimport fmpz_set, fmpz_one
+from flint.flintlib.functions.fmpz cimport fmpz_is_zero, fmpz_sgn
+from flint.flintlib.functions.fmpz cimport fmpz_fdiv_q, fmpz_bits
+from flint.flintlib.functions.fmpz cimport fmpz_cdiv_q
+from flint.flintlib.functions.fmpz cimport fmpz_tdiv_q
+from flint.flintlib.functions.fmpz cimport fmpz_clear
+from flint.flintlib.functions.fmpq cimport *
+from flint.flintlib.functions.bernoulli cimport *
 
 cdef int fmpq_set_any_ref(fmpq_t x, obj):
     cdef int status
@@ -67,7 +67,7 @@ cdef class fmpq(flint_scalar):
 
     def __init__(self, *args):
         if not args:
-            return # zero
+            return  # zero
         elif len(args) == 2:
             p, q = args
         elif len(args) == 1:

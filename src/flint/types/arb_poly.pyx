@@ -12,8 +12,9 @@ from flint.types.fmpq cimport fmpq
 from flint.types.acb cimport acb
 from flint.types.acb_poly cimport acb_poly
 
-from flint.flintlib.arb cimport *
-from flint.flintlib.arb_poly cimport *
+from flint.flintlib.types.arb cimport arb_struct, arb_poly_set_arb
+from flint.flintlib.functions.arb cimport *
+from flint.flintlib.functions.arb_poly cimport *
 cimport libc.stdlib
 
 cdef arb_poly_coerce_operands(x, y):
@@ -194,7 +195,7 @@ cdef class arb_poly(flint_poly):
         return u
 
     def __pos__(self):
-        return self # ?
+        return self  # ?
 
     def __neg__(s):
         u = arb_poly.__new__(arb_poly)
@@ -258,7 +259,7 @@ cdef class arb_poly(flint_poly):
         q = arb_poly.__new__(arb_poly)
         r = arb_poly.__new__(arb_poly)
         if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
-                (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
+                           (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
             return q
         else:
             raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")
@@ -278,7 +279,7 @@ cdef class arb_poly(flint_poly):
         q = arb_poly.__new__(arb_poly)
         r = arb_poly.__new__(arb_poly)
         if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
-                (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
+                           (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
             return r
         else:
             raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")
@@ -298,7 +299,7 @@ cdef class arb_poly(flint_poly):
         q = arb_poly.__new__(arb_poly)
         r = arb_poly.__new__(arb_poly)
         if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
-                (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
+                           (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
             return q, r
         else:
             raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")

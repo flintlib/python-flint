@@ -1,11 +1,11 @@
-from flint.flintlib.flint cimport (
+from flint.flintlib.types.flint cimport (
     FLINT_BITS as _FLINT_BITS,
     FLINT_VERSION as _FLINT_VERSION,
     __FLINT_RELEASE as _FLINT_RELEASE,
     slong
 )
 from flint.utils.flint_exceptions import DomainError
-from flint.flintlib.mpoly cimport ordering_t
+from flint.flintlib.types.mpoly cimport ordering_t
 from flint.flint_base.flint_context cimport thectx
 from flint.flint_base.flint_base cimport Ordering
 from flint.utils.typecheck cimport typecheck
@@ -229,7 +229,7 @@ cdef class flint_poly(flint_elem):
         integer root and *m* is the multiplicity of the root.
 
         To compute complex roots of a polynomial, instead use
-        the `.complex_roots()` method, which is available on
+        the ``.complex_roots()`` method, which is available on
         certain polynomial rings.
 
             >>> from flint import fmpz_poly
@@ -322,9 +322,9 @@ cdef class flint_mpoly_context(flint_elem):
     @staticmethod
     def create_variable_names(slong nvars, names: str):
         """
-        Create a tuple of variable names based on the comma separated `names` string.
+        Create a tuple of variable names based on the comma separated ``names`` string.
 
-        If `names` contains a single value, and `nvars` > 1, then the variables are numbered, e.g.
+        If ``names`` contains a single value, and ``nvars`` > 1, then the variables are numbered, e.g.
 
             >>> flint_mpoly_context.create_variable_names(3, "x")
             ('x0', 'x1', 'x2')
@@ -344,24 +344,24 @@ cdef class flint_mpoly_context(flint_elem):
         Create a key for the context cache via the number of variables, the ordering, and
         either a variable name string, or a tuple of variable names.
         """
-        # A type hint of `ordering: Ordering` results in the error "TypeError: an integer is required" if a Ordering
+        # A type hint of ``ordering: Ordering`` results in the error "TypeError: an integer is required" if a Ordering
         # object is not provided. This is pretty obtuse so we check its type ourselves
         if not isinstance(ordering, Ordering):
-            raise TypeError(f"`ordering` ('{ordering}') is not an instance of flint.Ordering")
+            raise TypeError(f"'ordering' ('{ordering}') is not an instance of flint.Ordering")
 
         if nametup is not None:
             key = nvars, ordering, nametup
         elif nametup is None and names is not None:
             key = nvars, ordering, cls.create_variable_names(nvars, names)
         else:
-            raise ValueError("must provide either `names` or `nametup`")
+            raise ValueError("must provide either 'names' or 'nametup'")
         return key
 
     @classmethod
     def get_context(cls, *args, **kwargs):
         """
-        Retrieve a context via the number of variables, `nvars`, the ordering, `ordering`, and either a variable
-        name string, `names`, or a tuple of variable names, `nametup`.
+        Retrieve a context via the number of variables, ``nvars``, the ordering, ``ordering``, and either a variable
+        name string, ``names``, or a tuple of variable names, ``nametup``.
         """
         key = cls.create_context_key(*args, **kwargs)
 
@@ -391,6 +391,24 @@ cdef class flint_mpoly_context(flint_elem):
         elif other is not self:
             raise IncompatibleContextError(f"{other} is not {self}")
 
+    def term(self, coeff = None, exp_vec = None):
+        """
+        Create a monomial from a coefficient and exponent vector. ``coeff`` defaults
+        to ``1``. ``exp_vec``` defaults to ``(0,) * self.nvars()```.
+
+            >>> from flint import fmpz_mpoly_ctx, Ordering
+            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx.term(coeff=5, exp_vec=(2, 3))
+            5*x0^2*x1^3
+            >>> ctx.term()
+            1
+        """
+        if coeff is None:
+            coeff = 1
+        if exp_vec is None:
+            exp_vec = (0,) * self.nvars()
+        return self.from_dict({tuple(exp_vec): coeff})
+
 
 cdef class flint_mpoly(flint_elem):
     """
@@ -405,7 +423,7 @@ cdef class flint_mpoly(flint_elem):
 
     def _division_check(self, other):
         if not other:
-            raise ZeroDivisionError("nmod_mpoly division by zero")
+            raise ZeroDivisionError(f"{self.__class__.__name__} division by zero")
 
     cdef _add_scalar_(self, other):
         return NotImplemented
@@ -429,6 +447,12 @@ cdef class flint_mpoly(flint_elem):
         return NotImplemented
 
     cdef _floordiv_mpoly_(self, other):
+        return NotImplemented
+
+    cdef _truediv_scalar_(self, other):
+        return NotImplemented
+
+    cdef _divexact_scalar_(self, other):
         return NotImplemented
 
     cdef _truediv_mpoly_(self, other):
@@ -589,8 +613,12 @@ cdef class flint_mpoly(flint_elem):
         if other is NotImplemented:
             return NotImplemented
 
-        other = self.context().scalar_as_mpoly(other)
         self._division_check(other)
+        res = self._truediv_scalar_(other)
+        if res is not NotImplemented:
+            return res
+
+        other = self.context().scalar_as_mpoly(other)
         return self._truediv_mpoly_(other)
 
     def __rtruediv__(self, other):
@@ -725,7 +753,7 @@ cdef class flint_mpoly(flint_elem):
 
     def __contains__(self, x):
         """
-        Returns True if `self` contains a term with exponent vector `x` and a non-zero coefficient.
+        Returns True if ``self`` contains a term with exponent vector ``x`` and a non-zero coefficient.
 
             >>> from flint import fmpq_mpoly_ctx, Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
@@ -780,7 +808,9 @@ cdef class flint_mat(flint_elem):
     def repr(self):
         # XXX
         return "%s(%i, %i, [%s])" % (type(self).__name__,
-            self.nrows(), self.ncols(), (", ".join(map(str, self.entries()))))
+                                     self.nrows(),
+                                     self.ncols(),
+                                     ", ".join(map(str, self.entries())))
 
     def str(self, *args, **kwargs):
         tab = self.table()
@@ -827,7 +857,7 @@ cdef class flint_mat(flint_elem):
 
 cdef ordering_t ordering_py_to_c(ordering):  # Cython does not like an "Ordering" type hint here
     if not isinstance(ordering, Ordering):
-        raise TypeError(f"`ordering` ('{ordering}') is not an instance of flint.Ordering")
+        raise TypeError(f"'ordering' ('{ordering}') is not an instance of flint.Ordering")
 
     if ordering == Ordering.lex:
         return ordering_t.ORD_LEX

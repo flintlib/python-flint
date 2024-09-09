@@ -1921,7 +1921,7 @@ def test_fmpz_mod_poly():
     R_other = fmpz_mod_poly_ctx(F_other)
 
     assert raises(lambda: fmpz_mod_poly(1, "A"), TypeError) # Need a valid context
-    assert raises(lambda: R(R_other([1,2,3])), ValueError), f"{R(R_other([1,2,3])) = }" # moduli must match
+    assert raises(lambda: R(R_other([1,2,3])), ValueError) # moduli must match
     assert raises(lambda: R(F_other(2)), ValueError) # moduli must match
     assert raises(lambda: R([F(1), F_other(2)]), ValueError) # moduli must match
     assert raises(lambda: R([F(1), "A"]), TypeError) # need to be able to cast to fmpz_mod
@@ -2120,7 +2120,7 @@ def test_fmpz_mod_poly():
         assert raises(lambda: f % f_bad, ValueError)
         assert raises(lambda: 123 % f_bad, DomainError)
         assert raises(lambda: f % "AAA", TypeError)
-        assert raises(lambda: tuple() % f, TypeError), f'{"AAA" % f = }'
+        assert raises(lambda: tuple() % f, TypeError)
 
         assert f % 1 == 0
         assert R_test.one() % 1 == 0
@@ -2550,7 +2550,7 @@ def test_polys():
         assert P([S(1)]) == P([1]) == P(P([1])) == P(1)
 
         assert raises(lambda: P([None]), TypeError)
-        assert raises(lambda: P(object()), TypeError), f"{P(object()) = }"
+        assert raises(lambda: P(object()), TypeError)
         assert raises(lambda: P(None), TypeError)
         assert raises(lambda: P(None, None), TypeError)
         assert raises(lambda: P([1,2], None), TypeError)
@@ -2903,7 +2903,7 @@ def test_mpolys():
         assert ctx.constant(1) == mpoly({(0, 0): 1}) == P(1, ctx=ctx)
 
         assert raises(lambda: P([None]), TypeError)
-        assert raises(lambda: P(object()), TypeError), f"{P(object()) = }"
+        assert raises(lambda: P(object()), TypeError)
         assert raises(lambda: P(None), TypeError)
         assert raises(lambda: P(None, None), TypeError)
         assert raises(lambda: P([1,2], None), TypeError)
@@ -3229,6 +3229,43 @@ def test_mpolys():
             assert raises(lambda: quick_poly().gcd(None), TypeError)
             assert raises(lambda: quick_poly().gcd(P(ctx=ctx1)), IncompatibleContextError)
 
+        x0, x1 = ctx.gens()
+        assert (2*x0**3 + 4*x0**2 + 6*x0).term_content() == x0 if is_field else 2*x0
+        assert (3*x0**2*x1 + 6*x0*x1**2 + 9*x1**3).term_content() == x1 if is_field else 3*x1
+
+        assert (x0**2 - 1).resultant(x0**2 - 2*x0 + 1, 'x0') == 0
+        assert (x0**2 + x1**2 - 1).resultant(x0 - x1, 'x0') == 2*x1**2 - 1
+
+        assert (x0**3 - 6*x0**2 + 11*x0 - 6).discriminant('x0') == 4
+        assert (x0**2 + 4*x0*x1 + 4*x1**2 - 1).discriminant('x0') == 4
+
+        f1 = 3*x0**2*x1**2 + 6*x0*x1**2 + 9*x1**2
+        res, stride = f1.deflation()
+        assert res == 3*x0**2*x1 + 6*x0*x1 + 9*x1
+        assert tuple(stride) == (1, 2)
+
+        g1 = ((x0**2 + x1**2)**3 + (x0**2 + x1**2)**2 + 1)
+        res, stride = g1.deflation()
+        assert res == x0**3 + 3*x0**2*x1 + x0**2 + 3*x0*x1**2 + 2*x0*x1 + x1**3 + x1**2 + 1
+        assert tuple(stride) == (2, 2)
+
+        for p in [f1, g1]:
+            pd, n = p.deflation()
+            assert pd.inflate(n) == p
+            assert p.deflate(n).inflate(n) == p
+
+            pd, n, m = p.deflation_monom()
+            assert m * pd.inflate(n) == p
+
+            if not composite_characteristic:
+                n, i = p.deflation_index()
+                m = ctx.term(exp_vec=i)
+                assert (p / m).deflate(n).inflate(n) * m == p
+
+        if P is flint.fmpz_mpoly:
+            assert (x0**2 * x1 + x0 * x1).primitive() == (1, x0**2*x1 + x0*x1)
+            assert (4 * x0 + 2 * x0 * x1).primitive() == (2, x0 * x1 + 2 * x0)
+
         if composite_characteristic:
             # Factorisation not allowed over Z/nZ for n not prime.
             # Flint would abort so we raise an exception instead:
@@ -3304,7 +3341,7 @@ def test_fmpz_mpoly_vec():
         assert vec != mpoly_vec([x, x * y, ctx.from_dict({})], ctx)
         assert vec != mpoly_vec([ctx.from_dict({})], ctx)
         assert vec != mpoly_vec([ctx1.from_dict({})], ctx1)
-        assert vec.to_tuple() == mpoly_vec([ctx.from_dict({}), x * y, ctx.from_dict({})], ctx).to_tuple()
+        assert tuple(vec) == tuple(mpoly_vec([ctx.from_dict({}), x * y, ctx.from_dict({})], ctx))
         assert raises(lambda: vec.__setitem__(None, 0), TypeError)
         assert raises(lambda: vec.__setitem__(-1, 0), IndexError)
         assert raises(lambda: vec.__setitem__(0, 0), TypeError)
@@ -4424,7 +4461,11 @@ def test_fq_default_poly():
         assert raises(lambda: f.compose_mod(g, R_test.zero()), ZeroDivisionError)
 
         # inverse_mod
-        f = R_test.random_element()
+        while True:
+            # Ensure f is invertible
+            f = R_test.random_element()
+            if not f.constant_coefficient().is_zero():
+                break
         while True:
             h = R_test.random_element()
             if f.gcd(h).is_one():

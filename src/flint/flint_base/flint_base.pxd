@@ -1,4 +1,4 @@
-from flint.flintlib.mpoly cimport ordering_t
+from flint.flintlib.types.mpoly cimport ordering_t
 
 cdef class flint_elem:
     pass
@@ -23,6 +23,8 @@ cdef class flint_mpoly(flint_elem):
     cdef _mul_mpoly_(self, other)
 
     cdef _divmod_mpoly_(self, other)
+    cdef _truediv_scalar_(self, other)
+    cdef _divexact_scalar_(self, other)
     cdef _floordiv_mpoly_(self, other)
     cdef _truediv_mpoly_(self, other)
     cdef _mod_mpoly_(self, other)

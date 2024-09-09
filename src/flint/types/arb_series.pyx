@@ -15,9 +15,9 @@ from flint.types.acb cimport acb
 from flint.types.acb_poly cimport acb_poly
 from flint.types.acb_series cimport acb_series
 
-from flint.flintlib.arb cimport *
-from flint.flintlib.arb_poly cimport *
-from flint.flintlib.arb_hypgeom cimport *
+from flint.flintlib.functions.arb cimport *
+from flint.flintlib.functions.arb_poly cimport *
+from flint.flintlib.functions.arb_hypgeom cimport *
 
 ctx = thectx
 
@@ -697,7 +697,7 @@ cdef class arb_series(flint_series):
         F = arb_series.__new__(arb_series)
         G = arb_series.__new__(arb_series)
         arb_hypgeom_coulomb_series((<arb_series>F).val, (<arb_series>G).val,
-            (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
+                                   (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
         (<arb_series>F).prec = cap
         (<arb_series>G).prec = cap
         return F, G
@@ -710,7 +710,7 @@ cdef class arb_series(flint_series):
         cap = min(cap, (<arb_series>self).prec)
         F = arb_series.__new__(arb_series)
         arb_hypgeom_coulomb_series((<arb_series>F).val, NULL,
-            (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
+                                   (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
         (<arb_series>F).prec = cap
         return F
 
@@ -722,7 +722,7 @@ cdef class arb_series(flint_series):
         cap = min(cap, (<arb_series>self).prec)
         G = arb_series.__new__(arb_series)
         arb_hypgeom_coulomb_series(NULL, (<arb_series>G).val,
-            (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
+                                   (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
         (<arb_series>G).prec = cap
         return G
 
@@ -830,9 +830,6 @@ cdef class arb_series(flint_series):
                 v = f(arb_series([arb(m, r)]))
                 if v[0] != 0:
                     continue
-                #ctx.cap = 1
-                #fa = xsgn(f(arb_series(a))[0])
-                #fb = xsgn(f(arb_series(b))[0])
                 ctx.cap = 2
                 if fa * fb < 0 and f(arb_series([arb(m, r), 1]))[1] != 0:
                     roots.append((a, b))

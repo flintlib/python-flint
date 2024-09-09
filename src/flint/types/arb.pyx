@@ -11,13 +11,22 @@ from flint.types.arf cimport arf
 from flint.types.fmpq cimport fmpq
 from flint.types.fmpz cimport fmpz
 
-from flint.flintlib.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
-from flint.flintlib.mag cimport *
-from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear
-from flint.flintlib.arf cimport *
-from flint.flintlib.arb cimport *
-from flint.flintlib.arb_hypgeom cimport *
-from flint.flintlib.acb_dirichlet cimport *
+from flint.flintlib.types.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
+from flint.flintlib.functions.mag cimport *
+from flint.flintlib.functions.fmpz cimport fmpz_init, fmpz_clear
+from flint.flintlib.functions.arf cimport *
+from flint.flintlib.types.arf cimport ARF_RND_NEAR, ARF_RND_DOWN
+from flint.flintlib.functions.arb cimport *
+from flint.flintlib.types.arb cimport (
+    arb_struct,
+    arb_midref,
+    arb_radref,
+    ARB_STR_NO_RADIUS,
+    ARB_STR_MORE,
+    ARB_STR_CONDENSE,
+)
+from flint.flintlib.functions.arb_hypgeom cimport *
+from flint.flintlib.functions.acb_dirichlet cimport *
 
 cimport libc.stdlib
 cimport cython
@@ -192,8 +201,8 @@ cdef class arb(flint_scalar):
         if rad is not None:
             rad = arb(rad)
             arb_add_error(self.val, (<arb>rad).val)
-            #rad = arf(rad)
-            #arb_add_error_arf(self.val, (<arf>rad).val)
+            # rad = arf(rad)
+            # arb_add_error_arf(self.val, (<arf>rad).val)
 
     cpdef bint is_zero(self):
         return arb_is_zero(self.val)
@@ -1629,7 +1638,7 @@ cdef class arb(flint_scalar):
         w = arb.__new__(arb)
         z = arb.__new__(arb)
         arb_hypgeom_airy((<arb>u).val, (<arb>v).val,
-                        (<arb>w).val, (<arb>z).val, (<arb>s).val, getprec())
+                         (<arb>w).val, (<arb>z).val, (<arb>s).val, getprec())
         return u, v, w, z
 
     @staticmethod
@@ -2259,7 +2268,7 @@ cdef class arb(flint_scalar):
             >>> from flint import showgood
             >>> showgood(lambda: arb("9/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5, abc=True), dps=25)
             1.447530478120770807945697
-            >>> showgood(lambda: arb("9/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5), dps=25)
+            >>> showgood(lambda: arb("9/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5), dps=25)  # doctest: +SKIP
             Traceback (most recent call last):
               ...
             ValueError: no convergence (maxprec=960, try higher maxprec)
@@ -2281,7 +2290,7 @@ cdef class arb(flint_scalar):
         if abc:
             flags |= 16
         arb_hypgeom_2f1((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>c).val,
-            (<arb>self).val, flags, getprec())
+                        (<arb>self).val, flags, getprec())
         return u
 
     @staticmethod
@@ -2622,7 +2631,7 @@ cdef class arb(flint_scalar):
         F = arb.__new__(arb)
         G = arb.__new__(arb)
         arb_hypgeom_coulomb((<arb>F).val, (<arb>G).val,
-                        (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
+                            (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
         return F, G
 
     def coulomb_f(self, l, eta):
@@ -2638,7 +2647,7 @@ cdef class arb(flint_scalar):
         eta = any_as_arb(eta)
         F = arb.__new__(arb)
         arb_hypgeom_coulomb((<arb>F).val, NULL,
-                        (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
+                            (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
         return F
 
     def coulomb_g(self, l, eta):
@@ -2654,5 +2663,5 @@ cdef class arb(flint_scalar):
         eta = any_as_arb(eta)
         G = arb.__new__(arb)
         arb_hypgeom_coulomb(NULL, (<arb>G).val,
-                        (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
+                            (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
         return G

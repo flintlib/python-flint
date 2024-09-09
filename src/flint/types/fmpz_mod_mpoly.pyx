@@ -14,16 +14,19 @@ from flint.types.fmpz_vec cimport fmpz_vec
 from flint.types.fmpz_mod cimport fmpz_mod
 from flint.types.nmod cimport nmod
 
-from flint.flintlib.fmpz cimport fmpz_set
-from flint.flintlib.fmpz_mod_mpoly cimport (
+from flint.flintlib.functions.fmpz cimport fmpz_set
+from flint.flintlib.functions.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_add,
     fmpz_mod_mpoly_add_fmpz,
     fmpz_mod_mpoly_clear,
     fmpz_mod_mpoly_compose_fmpz_mod_mpoly,
     fmpz_mod_mpoly_ctx_get_modulus,
     fmpz_mod_mpoly_ctx_init,
+    fmpz_mod_mpoly_deflate,
+    fmpz_mod_mpoly_deflation,
     fmpz_mod_mpoly_degrees_fmpz,
     fmpz_mod_mpoly_derivative,
+    fmpz_mod_mpoly_discriminant,
     fmpz_mod_mpoly_div,
     fmpz_mod_mpoly_divides,
     fmpz_mod_mpoly_divrem,
@@ -37,6 +40,7 @@ from flint.flintlib.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_get_str_pretty,
     fmpz_mod_mpoly_get_term_coeff_fmpz,
     fmpz_mod_mpoly_get_term_exp_fmpz,
+    fmpz_mod_mpoly_inflate,
     fmpz_mod_mpoly_is_one,
     fmpz_mod_mpoly_is_zero,
     fmpz_mod_mpoly_length,
@@ -44,18 +48,21 @@ from flint.flintlib.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_neg,
     fmpz_mod_mpoly_pow_fmpz,
     fmpz_mod_mpoly_push_term_fmpz_ffmpz,
+    fmpz_mod_mpoly_push_term_ui_ffmpz,
+    fmpz_mod_mpoly_resultant,
     fmpz_mod_mpoly_scalar_mul_fmpz,
     fmpz_mod_mpoly_set,
     fmpz_mod_mpoly_set_coeff_fmpz_fmpz,
     fmpz_mod_mpoly_set_fmpz,
     fmpz_mod_mpoly_set_str_pretty,
     fmpz_mod_mpoly_sort_terms,
+    fmpz_mod_mpoly_sqrt,
     fmpz_mod_mpoly_sub,
     fmpz_mod_mpoly_sub_fmpz,
+    fmpz_mod_mpoly_term_content,
     fmpz_mod_mpoly_total_degree_fmpz,
-    fmpz_mod_mpoly_sqrt,
 )
-from flint.flintlib.fmpz_mod_mpoly_factor cimport (
+from flint.flintlib.functions.fmpz_mod_mpoly_factor cimport (
     fmpz_mod_mpoly_factor,
     fmpz_mod_mpoly_factor_clear,
     fmpz_mod_mpoly_factor_init,
@@ -77,7 +84,7 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
     :param ordering:  The term order for the ring
     :param names:  A tuple containing the names of the variables of the ring.
 
-    Do not construct one of these directly, use `fmpz_mod_mpoly_ctx.get_context`.
+    Do not construct one of these directly, use ``fmpz_mod_mpoly_ctx.get_context``.
     """
 
     _ctx_cache = _fmpz_mod_mpoly_ctx_cache
@@ -107,14 +114,14 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
         Create a key for the context cache via the number of variables, the ordering, the modulus, and either a
         variable name string, or a tuple of variable names.
         """
-        # A type hint of `ordering: Ordering` results in the error "TypeError: an integer is required" if a Ordering
+        # A type hint of ``ordering: Ordering`` results in the error "TypeError: an integer is required" if a Ordering
         # object is not provided. This is pretty obtuse so we check its type ourselves
         if not isinstance(ordering, Ordering):
-            raise TypeError(f"`ordering` ('{ordering}') is not an instance of flint.Ordering")
+            raise TypeError(f"'ordering' ('{ordering}') is not an instance of flint.Ordering")
         elif not typecheck(modulus, fmpz):
             m = any_as_fmpz(modulus)
             if m is NotImplemented:
-                raise TypeError(f"`modulus` ('{modulus}') is not coercible to fmpz")
+                raise TypeError(f"'modulus' ('{modulus}') is not coercible to fmpz")
             else:
                 modulus = m
 
@@ -123,7 +130,7 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
         elif nametup is None and names is not None:
             key = nvars, ordering, cls.create_variable_names(nvars, names), modulus
         else:
-            raise ValueError("must provide either `names` or `nametup`")
+            raise ValueError("must provide either 'names' or 'nametup'")
         return key
 
     def any_as_scalar(self, other):
@@ -203,12 +210,12 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
             True
         """
         if self.__prime_modulus is None:
-            self.__prime_modulus = self.modulus().is_prime()
+            self.__prime_modulus = <bint>self.modulus().is_prime()
         return self.__prime_modulus
 
     def gen(self, slong i):
         """
-        Return the `i`th generator of the polynomial ring
+        Return the ``i`` th generator of the polynomial ring
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mod_mpoly_ctx.get_context(3, Ordering.degrevlex, 11, 'z')
@@ -281,7 +288,7 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
 cdef class fmpz_mod_mpoly(flint_mpoly):
     """
     The *fmpz_mod_mpoly* type represents sparse multivariate polynomials over
-    the integers modulo `n`, for large `n`.
+    the integers modulo ``n``, for large ``n``.
     """
 
     def __cinit__(self):
@@ -371,8 +378,8 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
     def __getitem__(self, x):
         """
-        Return the coefficient of the term with the exponent vector `x`.
-        Always returns a value, missing keys will return `0`.
+        Return the coefficient of the term with the exponent vector ``x``.
+        Always returns a value, missing keys will return ``0``.
         Negative exponents are made positive.
 
             >>> from flint import Ordering
@@ -397,7 +404,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
     def __setitem__(self, x, y):
         """
-        Set the coefficient of the term with the exponent vector `x` to `y`.
+        Set the coefficient of the term with the exponent vector ``x`` to ``y``.
         Will always set a value, missing keys will create a new term.
         Negative exponents are made positive.
 
@@ -406,7 +413,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p[1, 1] = 20
             >>> p
-            20*x0*x1 + 2*x1
+            9*x0*x1 + 2*x1
 
         """
         cdef:
@@ -583,7 +590,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         res = []
         for i in range(len(self)):
             fmpz_mod_mpoly_get_term_exp_fmpz(vec.double_indirect, self.val, i, self.ctx.val)
-            res.append(vec.to_tuple())
+            res.append(tuple(vec))
 
         return res
 
@@ -725,7 +732,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
     def coefficient(self, slong i):
         """
-        Return the coefficient at index `i`.
+        Return the coefficient at index ``i``.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
@@ -743,7 +750,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
     def monomial(self, slong i):
         """
-        Return the exponent vector at index `i` as a tuple.
+        Return the exponent vector at index ``i`` as a tuple.
 
             >>> from flint import Ordering
             >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
@@ -758,7 +765,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             raise IndexError("term index out of range")
         res = fmpz_vec(nvars, double_indirect=True)
         fmpz_mod_mpoly_get_term_exp_fmpz(res.double_indirect, self.val, i, self.ctx.val)
-        return res.to_tuple()
+        return tuple(res)
 
     def degrees(self):
         """
@@ -775,7 +782,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
         res = fmpz_vec(nvars, double_indirect=True)
         fmpz_mod_mpoly_degrees_fmpz(res.double_indirect, self.val, self.ctx.val)
-        return res.to_tuple()
+        return tuple(res)
 
     def total_degree(self):
         """
@@ -829,7 +836,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             >>> f = ctx.from_dict({(1, 1): 4, (0, 0): 1})
             >>> g = ctx.from_dict({(0, 1): 2, (1, 0): 2})
             >>> (f * g).gcd(f)
-            4*x0*x1 + 1
+            x0*x1 + 3
         """
         cdef fmpz_mod_mpoly res
         if not typecheck(other, fmpz_mod_mpoly):
@@ -840,6 +847,72 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             raise DomainError("gcd with non-prime modulus is not supported")
         res = create_fmpz_mod_mpoly(self.ctx)
         fmpz_mod_mpoly_gcd(res.val, (<fmpz_mod_mpoly>self).val, (<fmpz_mod_mpoly>other).val, res.ctx.val)
+        return res
+
+    def term_content(self):
+        """
+        Return the GCD of the terms of ``self``. If ``self`` is zero, then the result will
+        be zero, otherwise it will be a monomial with positive coefficient.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> x0, x1 = ctx.gens()
+            >>> f = 3 * x0**2 * x1 + 6 * x0 * x1
+            >>> f.term_content()
+            x0*x1
+        """
+
+        cdef fmpz_mod_mpoly res = create_fmpz_mod_mpoly(self.ctx)
+        fmpz_mod_mpoly_term_content(res.val, self.val, self.ctx.val)
+        return res
+
+    def resultant(self, other, var):
+        """
+        Return the resultant of ``self`` and ``other`` with respect to variable ``var``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> x0, x1 = ctx.gens()
+            >>> f = x0**2 * x1 + x0 * x1
+            >>> g = x0 + x1
+            >>> f.resultant(g, 'x1')
+            x0^3 + x0^2
+        """
+        cdef:
+            fmpz_mod_mpoly res
+            slong i
+
+        if not typecheck(other, fmpz_mod_mpoly):
+            raise TypeError("argument must be a fmpz_mod_mpoly")
+        elif (<fmpz_mod_mpoly>self).ctx is not (<fmpz_mod_mpoly>other).ctx:
+            raise IncompatibleContextError(f"{(<fmpz_mod_mpoly>self).ctx} is not {(<fmpz_mod_mpoly>other).ctx}")
+
+        i = self.ctx.variable_to_index(var)
+        res = create_fmpz_mod_mpoly(self.ctx)
+        if not fmpz_mod_mpoly_resultant(res.val, self.val, (<fmpz_mod_mpoly>other).val, i, self.ctx.val):
+            raise RuntimeError(f"failed to compute resultant with respect to {var}")
+        return res
+
+    def discriminant(self, var):
+        """
+        Return the discriminant of ``self`` with respect to variable ``var``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> x0, x1 = ctx.gens()
+            >>> f = (x0 + x1)**2 + 1
+            >>> f.discriminant('x1')
+            7
+
+        """
+        cdef:
+            fmpz_mod_mpoly res
+            slong i
+
+        i = self.ctx.variable_to_index(var)
+        res = create_fmpz_mod_mpoly(self.ctx)
+        if not fmpz_mod_mpoly_discriminant(res.val, self.val, i, self.ctx.val):
+            raise RuntimeError(f"failed to compute discriminant with respect to {var}")
         return res
 
     def sqrt(self):
@@ -875,9 +948,9 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*z + 3*x + 3*z + 3", ctx)
             >>> (p1 * p2).factor()
-            (6, [(z + 1, 1), (x + 2, 1), (x + 1, 1)])
+            (6, [(z + 1, 1), (x + 1, 1), (x + 2, 1)])
             >>> (p2 * p1 * p2).factor()
-            (18, [(z + 1, 2), (x + 2, 1), (x + 1, 2)])
+            (7, [(z + 1, 2), (x + 2, 1), (x + 1, 2)])
         """
         cdef:
             fmpz_mod_mpoly_factor_t fac
@@ -920,7 +993,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             >>> (p1 * p2).factor_squarefree()
             (6, [(y + 1, 1), (x^2 + 3*x + 2, 1)])
             >>> (p1 * p2 * p1).factor_squarefree()
-            (12, [(y + 1, 1), (x + 1, 1), (x + 2, 2)])
+            (1, [(y + 1, 1), (x + 1, 1), (x + 2, 2)])
         """
         cdef:
             fmpz_mod_mpoly_factor_t fac
@@ -1003,6 +1076,151 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         fmpz_mod_mpoly_derivative(res.val, self.val, i, self.ctx.val)
         return res
 
+    def inflate(self, N: list[int]) -> fmpz_mod_mpoly:
+        """
+        Compute the inflation of ``self`` for a provided ``N``, that is return ``q``
+        such that ``q(X) = p(X^N)``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x + y + 1
+            >>> f.inflate([2, 3])
+            x^2 + y^3 + 1
+        """
+
+        cdef nvars = self.ctx.nvars()
+
+        if nvars != len(N):
+            raise ValueError(f"expected list of length {nvars}, got {len(N)}")
+        elif any(n < 0 for n in N):
+            raise ValueError("all inflate strides must be non-negative")
+
+        cdef:
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(N)
+            fmpz_mod_mpoly res = create_fmpz_mod_mpoly(self.ctx)
+
+        fmpz_mod_mpoly_inflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
+        return res
+
+    def deflate(self, N: list[int]) -> fmpz_mod_mpoly:
+        """
+        Compute the deflation of ``self`` for a provided ``N``, that is return ``q``
+        such that ``q(X) = p(X^(1/N))``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**3 * y + x * y**4 + x * y
+            >>> f.deflate([2, 3])
+            x + y + 1
+        """
+        cdef slong nvars = self.ctx.nvars()
+
+        if nvars != len(N):
+            raise ValueError(f"expected list of length {nvars}, got {len(N)}")
+
+        cdef:
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(N)
+            fmpz_mod_mpoly res = create_fmpz_mod_mpoly(self.ctx)
+
+        fmpz_mod_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
+        return res
+
+    def deflation(self) -> tuple[fmpz_mod_mpoly, list[int]]:
+        """
+        Compute the deflation of ``self``, that is ``p(X^(1/N))`` for maximal
+        N. Returns ``q, N`` such that ``self == q.inflate(N)``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**2 * y**2 + x * y**2
+            >>> q, N = f.deflation()
+            >>> q, N
+            (x^2*y + x*y, [1, 2])
+            >>> q.inflate(N) == f
+            True
+        """
+        cdef:
+            slong nvars = self.ctx.nvars()
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(nvars)
+            fmpz_mod_mpoly res = create_fmpz_mod_mpoly(self.ctx)
+
+        fmpz_mod_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
+
+        for i in range(nvars):
+            stride[i] = shift[i].gcd(stride[i])
+            shift[i] = 0
+
+        fmpz_mod_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
+
+        return res, list(stride)
+
+    def deflation_monom(self) -> tuple[fmpz_mod_mpoly, list[int], fmpz_mod_mpoly]:
+        """
+        Compute the exponent vector ``N`` and monomial ``m`` such that ``p(X^(1/N))
+        = m * q(X^N)`` for maximal N. The returned monomial allows the undo-ing of the
+        deflation.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**3 * y + x * y**4 + x * y
+            >>> fd, N, m = f.deflation_monom()
+            >>> fd, N, m
+            (x + y + 1, [2, 3], x*y)
+            >>> m * fd.inflate(N)
+            x^3*y + x*y^4 + x*y
+        """
+        cdef:
+            slong nvars = self.ctx.nvars()
+            fmpz_mod_mpoly res = create_fmpz_mod_mpoly(self.ctx)
+            fmpz_mod_mpoly monom = create_fmpz_mod_mpoly(self.ctx)
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(nvars)
+
+        fmpz_mod_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
+        fmpz_mod_mpoly_push_term_ui_ffmpz(monom.val, 1, fmpz_vec(shift).val, self.ctx.val)
+        fmpz_mod_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
+
+        return res, list(stride), monom
+
+    def deflation_index(self) -> tuple[list[int], list[int]]:
+        """
+        Compute the exponent vectors ``N`` and ``I`` such that ``p(X^(1/N)) = X^I *
+        q(X^N)`` for maximal N. Importantly the deflation itself is not computed
+        here. The returned exponent vector ``I`` is the shift that was applied to the
+        exponents. It is the exponent vector of the monomial returned by
+        ``deflation_monom``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**3 * y + x * y**4 + x * y
+            >>> N, I = f.deflation_index()
+            >>> N, I
+            ([2, 3], [1, 1])
+            >>> f_deflated = f.deflate(N)
+            >>> f_deflated
+            x + y + 1
+            >>> m = ctx.term(exp_vec=I)
+            >>> m
+            x*y
+            >>> m * f_deflated.inflate(N)
+            x^3*y + x*y^4 + x*y
+        """
+        cdef:
+            slong nvars = self.ctx.nvars()
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(nvars)
+
+        fmpz_mod_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
+        return list(stride), list(shift)
+
 
 cdef class fmpz_mod_mpoly_vec:
     """
@@ -1078,5 +1296,9 @@ cdef class fmpz_mod_mpoly_vec:
     def __repr__(self):
         return f"fmpz_mod_mpoly_vec({self}, ctx={self.ctx})"
 
-    def to_tuple(self):
-        return tuple(self[i] for i in range(self.val.length))
+    def __iter__(self):
+        cdef fmpz_mod_mpoly z
+        for i in range(self.val.length):
+            z = create_fmpz_mod_mpoly(self.ctx)
+            fmpz_mod_mpoly_set(z.val, &self.val[i], self.ctx.val)
+            yield z

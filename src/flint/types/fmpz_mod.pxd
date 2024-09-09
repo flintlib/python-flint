@@ -1,6 +1,6 @@
 from flint.flint_base.flint_base cimport flint_scalar
-from flint.flintlib.fmpz cimport fmpz_struct, fmpz_t
-from flint.flintlib.fmpz_mod cimport (
+from flint.flintlib.functions.fmpz cimport fmpz_struct, fmpz_t
+from flint.flintlib.functions.fmpz_mod cimport (
     fmpz_mod_ctx_t,
     fmpz_mod_discrete_log_pohlig_hellman_t
 )

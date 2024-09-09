@@ -14,16 +14,16 @@ from flint.types.acb cimport acb
 from flint.types.acb_poly cimport acb_poly
 from flint.types.acb_series cimport acb_series
 
-from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_is_pm1
-from flint.flintlib.fmpz_poly cimport *
+from flint.flintlib.functions.fmpz cimport fmpz_is_zero, fmpz_is_pm1
+from flint.flintlib.functions.fmpz_poly cimport *
 
 cdef fmpz_series_coerce_operands(x, y):
     if isinstance(y, (int, fmpz, fmpz_poly)):
         return x, fmpz_series(y)
     if isinstance(y, (fmpq, fmpq_poly, fmpq_series)):
         return fmpq_series(x), fmpq_series(y)
-    #if isinstance(y, (nmod, nmod_poly, nmod_series)):
-    #    return nmod_series(x), nmod_series(y)
+    # if isinstance(y, (nmod, nmod_poly, nmod_series)):
+    #     return nmod_series(x), nmod_series(y)
     if isinstance(y, (float, arb, arb_poly, arb_series)):
         return arb_series(x), arb_series(y)
     if isinstance(y, (complex, acb, acb_poly, acb_series)):

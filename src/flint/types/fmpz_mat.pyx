@@ -8,14 +8,19 @@ from flint.pyflint cimport global_random_state
 from flint.types.fmpq cimport any_as_fmpq
 cimport cython
 
-from flint.flintlib.fmpz cimport fmpz_set, fmpz_init, fmpz_clear
-from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_is_pm1
-from flint.flintlib.fmpz_poly cimport fmpz_poly_init
-from flint.flintlib.fmpz_mat cimport *
-from flint.flintlib.fmpz_lll cimport *
-from flint.flintlib.fmpq_mat cimport fmpq_mat_init
-from flint.flintlib.fmpq_mat cimport fmpq_mat_set_fmpz_mat_div_fmpz
-from flint.flintlib.fmpq_mat cimport fmpq_mat_solve_fmpz_mat
+from flint.flintlib.functions.fmpz cimport fmpz_set, fmpz_init, fmpz_clear
+from flint.flintlib.functions.fmpz cimport fmpz_is_zero, fmpz_is_pm1
+from flint.flintlib.types.fmpz cimport (
+    fmpz_mat_struct,
+    rep_type,
+    gram_type,
+)
+from flint.flintlib.functions.fmpz_poly cimport fmpz_poly_init
+from flint.flintlib.functions.fmpz_mat cimport *
+from flint.flintlib.functions.fmpz_lll cimport *
+from flint.flintlib.functions.fmpq_mat cimport fmpq_mat_init
+from flint.flintlib.functions.fmpq_mat cimport fmpq_mat_set_fmpz_mat_div_fmpz
+from flint.flintlib.functions.fmpq_mat cimport fmpq_mat_solve_fmpz_mat
 
 from flint.utils.flint_exceptions import DomainError
 
@@ -548,7 +553,7 @@ cdef class fmpz_mat(flint_mat):
         else:
             u = fmpz_mat.__new__(fmpz_mat)
             fmpz_mat_init(u.val, fmpz_mat_nrows((<fmpz_mat>t).val),
-                fmpz_mat_ncols((<fmpz_mat>t).val))
+                          fmpz_mat_ncols((<fmpz_mat>t).val))
             d = fmpz.__new__(fmpz)
             result = fmpz_mat_solve(u.val, d.val, self.val, (<fmpz_mat>t).val)
             if not fmpz_is_pm1(d.val):
@@ -632,18 +637,18 @@ cdef class fmpz_mat(flint_mat):
         cdef fmpz_mat u, v
         cdef fmpz_lll_t ctx
         cdef long i
-        cdef int rt
-        cdef int gt
+        cdef rep_type rt
+        cdef gram_type gt
         if rep == "zbasis":
-            rt = 1
+            rt = rep_type.Z_BASIS
         elif rep == "gram":
-            rt = 0
+            rt = rep_type.GRAM
         else:
             raise ValueError("rep must be 'zbasis' or 'gram'")
         if gram == "approx":
-            gt = 0
+            gt = gram_type.APPROX
         elif gram == "exact":
-            gt = 1
+            gt = gram_type.EXACT
         else:
             raise ValueError("gram must be 'approx' or 'exact'")
         fmpz_lll_context_init(ctx, delta, eta, rt, gt)

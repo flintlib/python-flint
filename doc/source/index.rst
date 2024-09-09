@@ -73,9 +73,13 @@ Polynomial types
    :maxdepth: 1
 
    fmpz_poly.rst
+   fmpz_mpoly.rst
    fmpq_poly.rst
+   fmpq_mpoly.rst
    nmod_poly.rst
+   nmod_mpoly.rst
    fmpz_mod_poly.rst
+   fmpz_mod_mpoly.rst
    fq_default_poly.rst
    arb_poly.rst
    acb_poly.rst

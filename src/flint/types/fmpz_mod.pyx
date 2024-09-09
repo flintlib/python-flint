@@ -1,5 +1,5 @@
 from flint.pyflint cimport global_random_state
-from flint.flintlib.fmpz cimport(
+from flint.flintlib.functions.fmpz cimport(
     fmpz_t,
     fmpz_one,
     fmpz_zero,
@@ -17,8 +17,8 @@ from flint.flintlib.fmpz cimport(
     fmpz_is_zero,
     fmpz_randm
 )
-from flint.flintlib.fmpz cimport fmpz_mod as fmpz_type_mod
-from flint.flintlib.fmpz_mod cimport *
+from flint.flintlib.functions.fmpz cimport fmpz_mod as fmpz_type_mod
+from flint.flintlib.functions.fmpz_mod cimport *
 
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_scalar
@@ -246,7 +246,7 @@ cdef class fmpz_mod(flint_scalar):
         self.ctx = ctx
         check = self.ctx.set_any_as_fmpz_mod(self.val, val)
         if check is NotImplemented:
-            raise NotImplementedError(f"Cannot convert {val} to type `fmpz_mod`")
+            raise NotImplementedError(f"Cannot convert {val} to type 'fmpz_mod'")
 
     def is_zero(self):
         """

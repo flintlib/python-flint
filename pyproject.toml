@@ -40,9 +40,22 @@ requires = ["meson-python>=0.13", "cython>=3.0,<3.1"]
 build-backend = "mesonpy"
 
 [tool.cython-lint]
+# E129 visually indented line with same indent as next logical line
+# Reasoning: this rule is a little controversial
+#            (see https://github.com/PyCQA/pycodestyle/issues/386)
+#            and we ignore it to avoid needing additional indentation after
+#            long logical statements.
+#
+# E501 line too long (128 > 120 characters)
+# Reasoning: this is a work in progress and will be enforced once a line length
+#            and refactor has taken place. See issue #214
+#
+# E741 ambiguous variable name
+# Reasoning: many places it makes sense to use l or other letters as variable
+#            names as it is standard in mathematical notation.
 max-line-length = 120
-ignore = ['E128','E129','E202','E221','E222','E261','E262','E265','E501','E731','E741']
-exclude = 'src/flint/flintlib/.*'
+ignore = ['E129','E501','E741']
+exclude = 'src/flint/flintlib/functions.*'
 
 [tool.spin]
 package = "flint"

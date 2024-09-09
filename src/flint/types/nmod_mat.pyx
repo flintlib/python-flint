@@ -1,24 +1,26 @@
 cimport cython
 
-from flint.flintlib.flint cimport ulong, mp_limb_t
-from flint.flintlib.nmod cimport nmod_t
+from flint.flintlib.types.flint cimport ulong, mp_limb_t
+from flint.flintlib.functions.nmod cimport nmod_t
 
-from flint.flintlib.nmod_poly cimport (
+from flint.flintlib.functions.nmod_poly cimport (
     nmod_poly_init,
 )
 
-from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
-from flint.flintlib.fmpz_mat cimport fmpz_mat_get_nmod_mat
+from flint.flintlib.functions.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
+from flint.flintlib.functions.fmpz_mat cimport fmpz_mat_get_nmod_mat
 
-from flint.flintlib.nmod_mat cimport (
-    nmod_mat_struct,
+from flint.flintlib.types.nmod cimport nmod_mat_struct
+
+from flint.flintlib.types.nmod cimport nmod_mat_entry
+from flint.flintlib.types.undocumented cimport nmod_mat_is_square
+
+from flint.flintlib.functions.nmod_mat cimport (
     nmod_mat_init,
     nmod_mat_init_set,
     nmod_mat_clear,
     nmod_mat_nrows,
     nmod_mat_ncols,
-    nmod_mat_is_square,
-    nmod_mat_entry,
     nmod_mat_set_entry,
     nmod_mat_equal,
     nmod_mat_is_zero,
@@ -100,7 +102,7 @@ cdef class nmod_mat(flint_mat):
             val = args[0]
             if typecheck(val, fmpz_mat):
                 nmod_mat_init(self.val, fmpz_mat_nrows((<fmpz_mat>val).val),
-                    fmpz_mat_ncols((<fmpz_mat>val).val), mod)
+                              fmpz_mat_ncols((<fmpz_mat>val).val), mod)
                 fmpz_mat_get_nmod_mat(self.val, (<fmpz_mat>val).val)
             elif isinstance(val, (list, tuple)):
                 m = len(val)
@@ -198,7 +200,7 @@ cdef class nmod_mat(flint_mat):
         i, j = index
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
             raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
-        x = nmod(nmod_mat_entry(self.val, i, j), self.modulus()) # XXX: slow
+        x = nmod(nmod_mat_entry(self.val, i, j), self.modulus())  # XXX: slow
         return x
 
     def __setitem__(self, index, value):
@@ -387,7 +389,7 @@ cdef class nmod_mat(flint_mat):
             raise ValueError("matrix must be square")
         u = nmod_mat.__new__(nmod_mat)
         nmod_mat_init(u.val, nmod_mat_nrows(self.val),
-            nmod_mat_ncols(self.val), self.val.mod.n)
+                      nmod_mat_ncols(self.val), self.val.mod.n)
         if not nmod_mat_inv(u.val, self.val):
             raise ZeroDivisionError("matrix is singular")
         return u
@@ -404,7 +406,7 @@ cdef class nmod_mat(flint_mat):
         cdef nmod_mat u
         u = nmod_mat.__new__(nmod_mat)
         nmod_mat_init(u.val, nmod_mat_ncols(self.val),
-            nmod_mat_nrows(self.val), self.val.mod.n)
+                      nmod_mat_nrows(self.val), self.val.mod.n)
         nmod_mat_transpose(u.val, self.val)
         return u
 
@@ -441,7 +443,7 @@ cdef class nmod_mat(flint_mat):
             raise ValueError("need a square system and compatible right hand side")
         u = nmod_mat.__new__(nmod_mat)
         nmod_mat_init(u.val, nmod_mat_nrows((<nmod_mat>t).val),
-            nmod_mat_ncols((<nmod_mat>t).val), self.val.mod.n)
+                      nmod_mat_ncols((<nmod_mat>t).val), self.val.mod.n)
         result = nmod_mat_solve(u.val, self.val, (<nmod_mat>t).val)
         if not result:
             raise ZeroDivisionError("singular matrix in solve()")

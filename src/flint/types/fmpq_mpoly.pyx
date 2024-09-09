@@ -15,8 +15,8 @@ from flint.types.fmpq_vec cimport fmpq_vec
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 from flint.types.fmpz_mpoly cimport fmpz_mpoly
 
-from flint.flintlib.fmpq cimport fmpq_set, fmpq_one
-from flint.flintlib.fmpq_mpoly cimport (
+from flint.flintlib.functions.fmpq cimport fmpq_set, fmpq_one
+from flint.flintlib.functions.fmpq_mpoly cimport (
     fmpq_mpoly_add,
     fmpq_mpoly_add_fmpq,
     fmpq_mpoly_clear,
@@ -24,6 +24,7 @@ from flint.flintlib.fmpq_mpoly cimport (
     fmpq_mpoly_ctx_init,
     fmpq_mpoly_degrees_fmpz,
     fmpq_mpoly_derivative,
+    fmpq_mpoly_discriminant,
     fmpq_mpoly_div,
     fmpq_mpoly_divides,
     fmpq_mpoly_divrem,
@@ -46,7 +47,10 @@ from flint.flintlib.fmpq_mpoly cimport (
     fmpq_mpoly_neg,
     fmpq_mpoly_pow_fmpz,
     fmpq_mpoly_push_term_fmpq_ffmpz,
+    fmpq_mpoly_push_term_ui_ffmpz,
     fmpq_mpoly_reduce,
+    fmpq_mpoly_resultant,
+    fmpq_mpoly_scalar_div_fmpq,
     fmpq_mpoly_scalar_mul_fmpq,
     fmpq_mpoly_set,
     fmpq_mpoly_set_coeff_fmpq_fmpz,
@@ -56,9 +60,10 @@ from flint.flintlib.fmpq_mpoly cimport (
     fmpq_mpoly_sqrt,
     fmpq_mpoly_sub,
     fmpq_mpoly_sub_fmpq,
+    fmpq_mpoly_term_content,
     fmpq_mpoly_total_degree_fmpz,
 )
-from flint.flintlib.fmpq_mpoly_factor cimport (
+from flint.flintlib.functions.fmpq_mpoly_factor cimport (
     fmpq_mpoly_factor,
     fmpq_mpoly_factor_clear,
     fmpq_mpoly_factor_init,
@@ -66,8 +71,13 @@ from flint.flintlib.fmpq_mpoly_factor cimport (
     fmpq_mpoly_factor_t,
 )
 
-from flint.flintlib.fmpz cimport fmpz_init_set
-from flint.flintlib.fmpz_mpoly cimport fmpz_mpoly_set
+from flint.flintlib.functions.fmpz cimport fmpz_init_set
+from flint.flintlib.functions.fmpz_mpoly cimport (
+    fmpz_mpoly_set,
+    fmpz_mpoly_deflate,
+    fmpz_mpoly_deflation,
+    fmpz_mpoly_inflate,
+)
 
 from cpython.object cimport Py_EQ, Py_NE
 cimport libc.stdlib
@@ -83,7 +93,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
     :param ordering:  The term order for the ring
     :param names:  A tuple containing the names of the variables of the ring.
 
-    Do not construct one of these directly, use `fmpz_mpoly_ctx.get_context`.
+    Do not construct one of these directly, use ``fmpz_mpoly_ctx.get_context``.
     """
 
     _ctx_cache = _fmpq_mpoly_ctx_cache
@@ -132,7 +142,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
 
     def gen(self, slong i):
         """
-        Return the `i`th generator of the polynomial ring
+        Return the ``i`` th generator of the polynomial ring
 
             >>> from flint import Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(3, Ordering.degrevlex, 'z')
@@ -292,8 +302,8 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def __getitem__(self, x):
         """
-        Return the coefficient of the term with the exponent vector `x`.
-        Always returns a value, missing keys will return `0`.
+        Return the coefficient of the term with the exponent vector ``x``.
+        Always returns a value, missing keys will return ``0``.
         Negative exponents are made positive.
 
             >>> from flint import Ordering
@@ -318,7 +328,7 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def __setitem__(self, x, y):
         """
-        Set the coefficient of the term with the exponent vector `x` to `y`.
+        Set the coefficient of the term with the exponent vector ``x`` to ``y``.
         Will always set a value, missing keys will create a new term.
         Negative exponents are made positive.
 
@@ -409,6 +419,16 @@ cdef class fmpq_mpoly(flint_mpoly):
         quotient = create_fmpq_mpoly(self.ctx)
         fmpq_mpoly_div(quotient.val, self.val, other.val, self.ctx.val)
         return quotient
+
+    cdef _truediv_scalar_(self, arg):
+        cdef fmpq_mpoly quotient
+        cdef fmpq other = <fmpq>arg
+        quotient = create_fmpq_mpoly(self.ctx)
+        fmpq_mpoly_scalar_div_fmpq(quotient.val, self.val, other.val, self.ctx.val)
+        return quotient
+
+    cdef _divexact_scalar_(self, arg):
+        return self._truediv_scalar_(arg)
 
     cdef _truediv_mpoly_(self, arg):
         cdef fmpq_mpoly quotient, other = <fmpq_mpoly>arg
@@ -505,7 +525,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         res = []
         for i in range(len(self)):
             fmpq_mpoly_get_term_exp_fmpz(vec.double_indirect, self.val, i, self.ctx.val)
-            res.append(vec.to_tuple())
+            res.append(tuple(vec))
 
         return res
 
@@ -650,7 +670,7 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def coefficient(self, slong i):
         """
-        Return the coefficient at index `i`.
+        Return the coefficient at index ``i``.
 
             >>> from flint import Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
@@ -668,7 +688,7 @@ cdef class fmpq_mpoly(flint_mpoly):
 
     def monomial(self, slong i):
         """
-        Return the exponent vector at index `i` as a tuple.
+        Return the exponent vector at index ``i`` as a tuple.
 
             >>> from flint import Ordering
             >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
@@ -683,7 +703,7 @@ cdef class fmpq_mpoly(flint_mpoly):
             raise IndexError("term index out of range")
         res = fmpz_vec(nvars, double_indirect=True)
         fmpq_mpoly_get_term_exp_fmpz(res.double_indirect, self.val, i, self.ctx.val)
-        return res.to_tuple()
+        return tuple(res)
 
     def degrees(self):
         """
@@ -700,7 +720,7 @@ cdef class fmpq_mpoly(flint_mpoly):
 
         res = fmpz_vec(nvars, double_indirect=True)
         fmpq_mpoly_degrees_fmpz(res.double_indirect, self.val, self.ctx.val)
-        return res.to_tuple()
+        return tuple(res)
 
     def total_degree(self):
         """
@@ -765,6 +785,71 @@ cdef class fmpq_mpoly(flint_mpoly):
             raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
         res = create_fmpq_mpoly(self.ctx)
         fmpq_mpoly_gcd(res.val, (<fmpq_mpoly>self).val, (<fmpq_mpoly>other).val, res.ctx.val)
+        return res
+
+    def term_content(self):
+        """
+        Return the GCD of the terms of ``self``. If ``self`` is zero, then the result will
+        be zero, otherwise it will be a monomial with positive coefficient.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> x0, x1 = ctx.gens()
+            >>> f = 3 * x0**2 * x1 + 6 * x0 * x1
+            >>> f.term_content()
+            x0*x1
+        """
+        cdef fmpq_mpoly res = create_fmpq_mpoly(self.ctx)
+        fmpq_mpoly_term_content(res.val, self.val, self.ctx.val)
+        return res
+
+    def resultant(self, other, var):
+        """
+        Return the resultant of ``self`` and ``other`` with respect to variable ``var``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> x0, x1 = ctx.gens()
+            >>> f = x0**2 * x1 + x0 * x1
+            >>> g = x0 + x1
+            >>> f.resultant(g, 'x1')
+            x0^3 + x0^2
+        """
+        cdef:
+            fmpq_mpoly res
+            slong i
+
+        if not typecheck(other, fmpq_mpoly):
+            raise TypeError("argument must be a fmpq_mpoly")
+        elif (<fmpq_mpoly>self).ctx is not (<fmpq_mpoly>other).ctx:
+            raise IncompatibleContextError(f"{(<fmpq_mpoly>self).ctx} is not {(<fmpq_mpoly>other).ctx}")
+
+        i = self.ctx.variable_to_index(var)
+        res = create_fmpq_mpoly(self.ctx)
+        if not fmpq_mpoly_resultant(res.val, self.val, (<fmpq_mpoly>other).val, i, self.ctx.val):
+            raise RuntimeError(f"failed to compute resultant with respect to {var}")
+        return res
+
+    def discriminant(self, var):
+        """
+        Return the discriminant of ``self`` with respect to variable ``var``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> x0, x1 = ctx.gens()
+            >>> f = (x0 + x1)**2 + 1
+            >>> f.discriminant('x1')
+            -4
+
+        """
+        cdef:
+            fmpq_mpoly res
+            slong i
+
+        i = self.ctx.variable_to_index(var)
+        res = create_fmpq_mpoly(self.ctx)
+        if not fmpq_mpoly_discriminant(res.val, self.val, i, self.ctx.val):
+            raise RuntimeError(f"failed to compute discriminant with respect to {var}")
         return res
 
     def sqrt(self):
@@ -914,6 +999,154 @@ cdef class fmpq_mpoly(flint_mpoly):
         fmpq_mpoly_integral(res.val, self.val, i, self.ctx.val)
         return res
 
+    def inflate(self, N: list[int]) -> fmpq_mpoly:
+        """
+        Compute the inflation of ``self`` for a provided ``N``, that is return ``q``
+        such that ``q(X) = p(X^N)``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x + y + 1
+            >>> f.inflate([2, 3])
+            x^2 + y^3 + 1
+        """
+
+        cdef nvars = self.ctx.nvars()
+
+        if nvars != len(N):
+            raise ValueError(f"expected list of length {nvars}, got {len(N)}")
+        elif any(n < 0 for n in N):
+            raise ValueError("all inflate strides must be non-negative")
+
+        cdef:
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(N)
+            fmpq_mpoly res = create_fmpq_mpoly(self.ctx)
+
+        fmpz_mpoly_inflate(res.val.zpoly, self.val.zpoly, shift.val, stride.val, self.ctx.val.zctx)
+        fmpq_set(res.val.content, self.val.content)
+        return res
+
+    def deflate(self, N: list[int]) -> fmpq_mpoly:
+        """
+        Compute the deflation of ``self`` for a provided ``N``, that is return ``q``
+        such that ``q(X) = p(X^(1/N))``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**3 * y + x * y**4 + x * y
+            >>> f.deflate([2, 3])
+            x + y + 1
+        """
+        cdef slong nvars = self.ctx.nvars()
+
+        if nvars != len(N):
+            raise ValueError(f"expected list of length {nvars}, got {len(N)}")
+
+        cdef:
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(N)
+            fmpq_mpoly res = create_fmpq_mpoly(self.ctx)
+
+        fmpz_mpoly_deflate(res.val.zpoly, self.val.zpoly, shift.val, stride.val, self.ctx.val.zctx)
+        fmpq_set(res.val.content, self.val.content)
+        return res
+
+    def deflation(self) -> tuple[fmpq_mpoly, list[int]]:
+        """
+        Compute the deflation of ``self``, that is ``p(X^(1/N))`` for maximal N.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**2 * y**2 + x * y**2
+            >>> q, N = f.deflation()
+            >>> q, N
+            (x^2*y + x*y, [1, 2])
+            >>> q.inflate(N) == f
+            True
+        """
+        cdef:
+            slong nvars = self.ctx.nvars()
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(nvars)
+            fmpq_mpoly res = create_fmpq_mpoly(self.ctx)
+
+        fmpz_mpoly_deflation(shift.val, stride.val, self.val.zpoly, self.ctx.val.zctx)
+
+        for i in range(nvars):
+            stride[i] = shift[i].gcd(stride[i])
+            shift[i] = 0
+
+        fmpz_mpoly_deflate(res.val.zpoly, self.val.zpoly, shift.val, stride.val, self.ctx.val.zctx)
+        fmpq_set(res.val.content, self.val.content)
+
+        return res, list(stride)
+
+    def deflation_monom(self) -> tuple[fmpq_mpoly, list[int], fmpq_mpoly]:
+        """
+        Compute the exponent vector ``N`` and monomial ``m`` such that ``p(X^(1/N))
+        = m * q(X^N)`` for maximal N. The returned monomial allows the undo-ing of the
+        deflation.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**3 * y + x * y**4 + x * y
+            >>> fd, N, m = f.deflation_monom()
+            >>> fd, N, m
+            (x + y + 1, [2, 3], x*y)
+            >>> m * fd.inflate(N)
+            x^3*y + x*y^4 + x*y
+        """
+        cdef:
+            slong nvars = self.ctx.nvars()
+            fmpq_mpoly res = create_fmpq_mpoly(self.ctx)
+            fmpq_mpoly monom = create_fmpq_mpoly(self.ctx)
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(nvars)
+
+        fmpz_mpoly_deflation(shift.val, stride.val, self.val.zpoly, self.ctx.val.zctx)
+        fmpq_mpoly_push_term_ui_ffmpz(monom.val, 1, fmpz_vec(shift).val, self.ctx.val)
+        fmpz_mpoly_deflate(res.val.zpoly, self.val.zpoly, shift.val, stride.val, self.ctx.val.zctx)
+        fmpq_set(res.val.content, self.val.content)
+
+        return res, list(stride), monom
+
+    def deflation_index(self) -> tuple[list[int], list[int]]:
+        """
+        Compute the exponent vectors ``N`` and ``I`` such that ``p(X^(1/N)) = X^I *
+        q(X^N)`` for maximal N. Importantly the deflation itself is not computed
+        here. The returned exponent vector ``I`` is the shift that was applied to the
+        exponents. It is the exponent vector of the monomial returned by
+        ``deflation_monom``.
+
+            >>> from flint import Ordering
+            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, nametup=('x', 'y'))
+            >>> x, y = ctx.gens()
+            >>> f = x**3 * y + x * y**4 + x * y
+            >>> N, I = f.deflation_index()
+            >>> N, I
+            ([2, 3], [1, 1])
+            >>> f_deflated = f.deflate(N)
+            >>> f_deflated
+            x + y + 1
+            >>> m = ctx.term(exp_vec=I)
+            >>> m
+            x*y
+            >>> m * f_deflated.inflate(N)
+            x^3*y + x*y^4 + x*y
+        """
+        cdef:
+            slong nvars = self.ctx.nvars()
+            fmpz_vec shift = fmpz_vec(nvars)
+            fmpz_vec stride = fmpz_vec(nvars)
+
+        fmpz_mpoly_deflation(shift.val, stride.val, self.val.zpoly, self.ctx.val.zctx)
+        return list(stride), list(shift)
+
 
 cdef class fmpq_mpoly_vec:
     """
@@ -1000,5 +1233,9 @@ cdef class fmpq_mpoly_vec:
         else:
             return NotImplemented
 
-    def to_tuple(self):
-        return tuple(self[i] for i in range(self.length))
+    def __iter__(self):
+        cdef fmpq_mpoly z
+        for i in range(self.length):
+            z = create_fmpq_mpoly(self.ctx)
+            fmpq_mpoly_set(z.val, &self.val[i], self.ctx.val)
+            yield z

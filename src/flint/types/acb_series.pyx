@@ -15,11 +15,11 @@ from flint.types.dirichlet cimport dirichlet_char
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 from flint.types.fmpz cimport any_as_fmpz
-from flint.flintlib.acb cimport *
-from flint.flintlib.acb_poly cimport *
-from flint.flintlib.acb_modular cimport *
-from flint.flintlib.acb_hypgeom cimport *
-from flint.flintlib.acb_dirichlet cimport *
+from flint.flintlib.functions.acb cimport *
+from flint.flintlib.functions.acb_poly cimport *
+from flint.flintlib.functions.acb_modular cimport *
+from flint.flintlib.functions.acb_hypgeom cimport *
+from flint.flintlib.functions.acb_dirichlet cimport *
 
 cimport cython
 cimport libc.stdlib
@@ -731,8 +731,9 @@ cdef class acb_series(flint_series):
         G = acb_series.__new__(acb_series)
         Hpos = acb_series.__new__(acb_series)
         Hneg = acb_series.__new__(acb_series)
-        acb_hypgeom_coulomb_series((<acb_series>F).val, (<acb_series>G).val, (<acb_series>Hpos).val, (<acb_series>Hneg).val,
-            (<acb>l).val, (<acb>eta).val, (<acb_series>self).val, cap, getprec())
+        acb_hypgeom_coulomb_series((<acb_series>F).val, (<acb_series>G).val, (<acb_series>Hpos).val,
+                                   (<acb_series>Hneg).val, (<acb>l).val, (<acb>eta).val,
+                                   (<acb_series>self).val, cap, getprec())
         (<acb_series>F).prec = cap
         (<acb_series>G).prec = cap
         (<acb_series>Hpos).prec = cap
@@ -747,7 +748,7 @@ cdef class acb_series(flint_series):
         cap = min(cap, (<acb_series>self).prec)
         F = acb_series.__new__(acb_series)
         acb_hypgeom_coulomb_series((<acb_series>F).val, NULL, NULL, NULL,
-            (<acb>l).val, (<acb>eta).val, (<acb_series>self).val, cap, getprec())
+                                   (<acb>l).val, (<acb>eta).val, (<acb_series>self).val, cap, getprec())
         (<acb_series>F).prec = cap
         return F
 
@@ -759,7 +760,7 @@ cdef class acb_series(flint_series):
         cap = min(cap, (<acb_series>self).prec)
         G = acb_series.__new__(acb_series)
         acb_hypgeom_coulomb_series(NULL, (<acb_series>G).val, NULL, NULL,
-            (<acb>l).val, (<acb>eta).val, (<acb_series>self).val, cap, getprec())
+                                   (<acb>l).val, (<acb>eta).val, (<acb_series>self).val, cap, getprec())
         (<acb_series>G).prec = cap
         return G
 
