@@ -53,12 +53,8 @@ build-backend = "mesonpy"
 # E741 ambiguous variable name
 # Reasoning: many places it makes sense to use l or other letters as variable
 #            names as it is standard in mathematical notation.
-#
-# E743 ambiguous function definition
-# Reasoning: this is a work in progress and will be enforced after #210 is
-#            resolved.
 max-line-length = 120
-ignore = ['E129','E501','E741','E743']
+ignore = ['E129','E501','E741']
 exclude = 'src/flint/flintlib/functions.*'
 
 [tool.spin]
