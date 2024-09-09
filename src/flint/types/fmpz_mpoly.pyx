@@ -405,18 +405,21 @@ cdef class fmpz_mpoly(flint_mpoly):
         fmpz_mpoly_div(quotient.val, self.val, other.val, self.ctx.val)
         return quotient
 
-    cdef _truediv_scalar_(self, arg, assume_exact: bool):
+    cdef _truediv_scalar_(self, arg):
         cdef fmpz_mpoly quotient,
         cdef fmpz other = <fmpz>arg
         quotient = create_fmpz_mpoly(self.ctx)
-        if assume_exact:
-            fmpz_mpoly_scalar_divexact_fmpz(quotient.val, self.val, other.val, self.ctx.val)
-            return quotient
-
         if fmpz_mpoly_scalar_divides_fmpz(quotient.val, self.val, other.val, self.ctx.val):
             return quotient
         else:
             raise DomainError("fmpz_mpoly division is not exact")
+
+    cdef _divexact_scalar_(self, arg):
+        cdef fmpz_mpoly quotient,
+        cdef fmpz other = <fmpz>arg
+        quotient = create_fmpz_mpoly(self.ctx)
+        fmpz_mpoly_scalar_divexact_fmpz(quotient.val, self.val, other.val, self.ctx.val)
+        return quotient
 
     cdef _truediv_mpoly_(self, arg):
         cdef fmpz_mpoly quotient, other = <fmpz_mpoly>arg
@@ -865,7 +868,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             (2, x0*x1 + 2*x0)
         """
         cdef fmpz content = self.content()
-        return content, self._truediv_scalar_(content, True)
+        return content, self._divexact_scalar_(content)
 
     def sqrt(self, assume_perfect_square: bool = False):
         """

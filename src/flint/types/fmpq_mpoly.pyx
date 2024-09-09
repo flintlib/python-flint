@@ -420,12 +420,15 @@ cdef class fmpq_mpoly(flint_mpoly):
         fmpq_mpoly_div(quotient.val, self.val, other.val, self.ctx.val)
         return quotient
 
-    cdef _truediv_scalar_(self, arg, _: bool):
+    cdef _truediv_scalar_(self, arg):
         cdef fmpq_mpoly quotient
         cdef fmpq other = <fmpq>arg
         quotient = create_fmpq_mpoly(self.ctx)
         fmpq_mpoly_scalar_div_fmpq(quotient.val, self.val, other.val, self.ctx.val)
         return quotient
+
+    cdef _divexact_scalar_(self, arg):
+        return self._truediv_scalar_(arg)
 
     cdef _truediv_mpoly_(self, arg):
         cdef fmpq_mpoly quotient, other = <fmpq_mpoly>arg

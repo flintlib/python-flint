@@ -449,7 +449,10 @@ cdef class flint_mpoly(flint_elem):
     cdef _floordiv_mpoly_(self, other):
         return NotImplemented
 
-    cdef _truediv_scalar_(self, other, assume_exact: bool):
+    cdef _truediv_scalar_(self, other):
+        return NotImplemented
+
+    cdef _divexact_scalar_(self, other):
         return NotImplemented
 
     cdef _truediv_mpoly_(self, other):
@@ -611,7 +614,7 @@ cdef class flint_mpoly(flint_elem):
             return NotImplemented
 
         self._division_check(other)
-        res = self._truediv_scalar_(other, False)
+        res = self._truediv_scalar_(other)
         if res is not NotImplemented:
             return res
 
