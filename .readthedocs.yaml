@@ -16,7 +16,8 @@ build:
     - xz-utils
     - ninja-build
   commands:
-    - bin/install_latest_flint_ubuntu.sh
+    - bin/build_dependencies_unix.sh --skip-gmp --skip-mpfr
+    - spin build -- --pkg-config-path=.local/lib/pkgconfig -Dadd_flint_rpath=true
     - spin docs
     - mv doc/build/html $READTHEDOCS_OUTPUT/html
 
