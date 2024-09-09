@@ -1208,6 +1208,8 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             >>> f_deflated
             x + y + 1
             >>> m = ctx.term(exp_vec=I)
+            >>> m
+            x*y
             >>> m * f_deflated.inflate(N)
             x^3*y + x*y^4 + x*y
         """

@@ -644,7 +644,7 @@ cdef class fmpz_poly(flint_poly):
 
     def deflation_monom(self) -> tuple[fmpz_poly, int, fmpz_poly]:
         """
-        Compute the exponent vector ``n`` and monomial ``m`` such that ``p(x^(1/n))
+        Compute the exponent ``n`` and monomial ``m`` such that ``p(x^(1/n))
         = m * q(x^n)`` for maximal n. Importantly the deflation itself is not computed
         here. The returned monomial allows the undo-ing of the deflation.
 
@@ -664,10 +664,10 @@ cdef class fmpz_poly(flint_poly):
 
     def deflation_index(self) -> tuple[int, int]:
         """
-        Compute the exponent vectors ``N`` and ``I`` such that ``p(X^(1/N)) = X^I *
-        q(X^N)`` for maximal N. Importantly the deflation itself is not computed
-        here. The returned exponent vector ``I`` is the shift that was applied to the
-        exponents. It is the exponent vector of the monomial returned by
+        Compute the exponent ``n`` and ``i`` such that ``p(x^(1/n)) = x^i *
+        q(x^n)`` for maximal ``n``. Importantly the deflation itself is not computed
+        here. The returned exponent ``i`` is the shift that was applied to the
+        exponents. It is the exponent of the monomial returned by
         ``deflation_monom``.
 
             >>> f = fmpz_poly([1, 0, 1])
