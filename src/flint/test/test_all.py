@@ -4461,7 +4461,11 @@ def test_fq_default_poly():
         assert raises(lambda: f.compose_mod(g, R_test.zero()), ZeroDivisionError)
 
         # inverse_mod
-        f = R_test.random_element()
+        while True:
+            # Ensure f is invertible
+            f = R_test.random_element()
+            if not f.constant_coefficient().is_zero():
+                break
         while True:
             h = R_test.random_element()
             if f.gcd(h).is_one():
