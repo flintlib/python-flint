@@ -1,5 +1,5 @@
 **nmod_mpoly** -- multivariate polynomials over the integers mod n (word-size n)
-===============================================================================
+================================================================================
 
 .. autoclass :: flint.nmod_mpoly_ctx
   :members:
