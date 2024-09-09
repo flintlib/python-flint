@@ -13,9 +13,6 @@ cdef extern from "flint/nmod_types.h":
 
     ctypedef nmod_mat_struct nmod_mat_t[1]
 
-    # XXX: Undocumented function:
-    int nmod_mat_is_square(const nmod_mat_t mat)
-
     # Macros:
     ulong nmod_mat_entry(nmod_mat_t mat, slong i, slong j)
 

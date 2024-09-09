@@ -25,8 +25,6 @@ from flint.flintlib.functions.nmod_mpoly cimport (
     nmod_mpoly_compose_nmod_mpoly,
     nmod_mpoly_ctx_init,
     nmod_mpoly_ctx_modulus,
-    nmod_mpoly_deflate,
-    nmod_mpoly_deflation,
     nmod_mpoly_degrees_fmpz,
     nmod_mpoly_derivative,
     nmod_mpoly_discriminant,
@@ -43,7 +41,6 @@ from flint.flintlib.functions.nmod_mpoly cimport (
     nmod_mpoly_get_str_pretty,
     nmod_mpoly_get_term_coeff_ui,
     nmod_mpoly_get_term_exp_fmpz,
-    nmod_mpoly_inflate,
     nmod_mpoly_is_one,
     nmod_mpoly_is_zero,
     nmod_mpoly_length,
@@ -72,6 +69,11 @@ from flint.flintlib.functions.nmod_mpoly_factor cimport (
     nmod_mpoly_factor_t,
 )
 from flint.flintlib.functions.ulong_extras cimport n_is_prime
+from flint.flintlib.types.undocumented cimport (
+    nmod_mpoly_deflate,
+    nmod_mpoly_deflation,
+    nmod_mpoly_inflate,
+)
 
 from cpython.object cimport Py_EQ, Py_NE
 cimport libc.stdlib
