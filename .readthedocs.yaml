@@ -11,7 +11,7 @@ build:
   tools:
     python: "3.12"
   commands:
-    - spin --help
+    - pip install -r requirements-dev.txt
     - bin/build_dependencies_unix.sh --use-gmp-github-mirror
     - spin build -- --pkg-config-path=.local/lib/pkgconfig -Dadd_flint_rpath=true
     - spin docs
@@ -29,6 +29,6 @@ sphinx:
 # Optional but recommended, declare the Python requirements required
 # to build your documentation
 # See https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html
-python:
-  install:
-    - requirements: requirements-dev.txt
+# python:
+#   install:
+#    - requirements: requirements-dev.txt
