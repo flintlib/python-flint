@@ -116,14 +116,14 @@ cdef class nmod_mpoly_ctx(flint_mpoly_context):
         # A type hint of ``ordering: Ordering`` results in the error "TypeError: an integer is required" if a Ordering
         # object is not provided. This is pretty obtuse so we check its type ourselves
         if not isinstance(ordering, Ordering):
-            raise TypeError(f"`ordering` ('{ordering}') is not an instance of flint.Ordering")
+            raise TypeError(f"'ordering' ('{ordering}') is not an instance of flint.Ordering")
 
         if nametup is not None:
             key = nvars, ordering, nametup, modulus
         elif nametup is None and names is not None:
             key = nvars, ordering, cls.create_variable_names(nvars, names), modulus
         else:
-            raise ValueError("must provide either `names` or `nametup`")
+            raise ValueError("must provide either 'names' or 'nametup'")
         return key
 
     def any_as_scalar(self, other):

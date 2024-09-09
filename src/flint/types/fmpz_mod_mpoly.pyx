@@ -117,11 +117,11 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
         # A type hint of ``ordering: Ordering`` results in the error "TypeError: an integer is required" if a Ordering
         # object is not provided. This is pretty obtuse so we check its type ourselves
         if not isinstance(ordering, Ordering):
-            raise TypeError(f"`ordering` ('{ordering}') is not an instance of flint.Ordering")
+            raise TypeError(f"'ordering' ('{ordering}') is not an instance of flint.Ordering")
         elif not typecheck(modulus, fmpz):
             m = any_as_fmpz(modulus)
             if m is NotImplemented:
-                raise TypeError(f"`modulus` ('{modulus}') is not coercible to fmpz")
+                raise TypeError(f"'modulus' ('{modulus}') is not coercible to fmpz")
             else:
                 modulus = m
 
@@ -130,7 +130,7 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
         elif nametup is None and names is not None:
             key = nvars, ordering, cls.create_variable_names(nvars, names), modulus
         else:
-            raise ValueError("must provide either `names` or `nametup`")
+            raise ValueError("must provide either 'names' or 'nametup'")
         return key
 
     def any_as_scalar(self, other):

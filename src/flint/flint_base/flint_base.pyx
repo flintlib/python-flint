@@ -347,14 +347,14 @@ cdef class flint_mpoly_context(flint_elem):
         # A type hint of ``ordering: Ordering`` results in the error "TypeError: an integer is required" if a Ordering
         # object is not provided. This is pretty obtuse so we check its type ourselves
         if not isinstance(ordering, Ordering):
-            raise TypeError(f"``ordering`` ('{ordering}') is not an instance of flint.Ordering")
+            raise TypeError(f"'ordering' ('{ordering}') is not an instance of flint.Ordering")
 
         if nametup is not None:
             key = nvars, ordering, nametup
         elif nametup is None and names is not None:
             key = nvars, ordering, cls.create_variable_names(nvars, names)
         else:
-            raise ValueError("must provide either ``names`` or ``nametup``")
+            raise ValueError("must provide either 'names' or 'nametup'")
         return key
 
     @classmethod
@@ -854,7 +854,7 @@ cdef class flint_mat(flint_elem):
 
 cdef ordering_t ordering_py_to_c(ordering):  # Cython does not like an "Ordering" type hint here
     if not isinstance(ordering, Ordering):
-        raise TypeError(f"`ordering` ('{ordering}') is not an instance of flint.Ordering")
+        raise TypeError(f"'ordering' ('{ordering}') is not an instance of flint.Ordering")
 
     if ordering == Ordering.lex:
         return ordering_t.ORD_LEX

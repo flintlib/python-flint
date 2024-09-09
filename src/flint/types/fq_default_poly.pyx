@@ -188,7 +188,7 @@ cdef class fq_default_poly_ctx:
         """
         cdef slong length
         if not (isinstance(monic, bool) and isinstance(irreducible, bool) and isinstance(not_zero, bool)):
-            raise TypeError("All of `not_zero`, `monic` and `irreducible` must be of type bool")
+            raise TypeError("All of 'not_zero', 'monic' and 'irreducible' must be of type bool")
 
         length = degree + 1
         if length <= 0:
@@ -748,7 +748,7 @@ cdef class fq_default_poly(flint_poly):
         # Case when right is not fq_default_poly, try to convert to fmpz
         other = self.ctx.any_as_fq_default_poly(other)
         if other is NotImplemented:
-            raise TypeError(f"Cannot convert {other} to `fq_default_poly` type.")
+            raise TypeError(f"Cannot convert {other} to 'fq_default_poly' type.")
 
         if other.is_zero():
             raise ZeroDivisionError("Cannot divide by zero")
