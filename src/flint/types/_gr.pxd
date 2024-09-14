@@ -11,6 +11,9 @@ from flint.flintlib.types.fmpz cimport (
 from flint.flintlib.types.fmpq cimport (
     fmpq_poly_t,
 )
+from flint.flintlib.types.mpoly cimport (
+    ordering_t,
+)
 from flint.flintlib.functions.ulong_extras cimport (
     n_is_prime,
 )
@@ -25,6 +28,7 @@ from flint.flintlib.functions.fmpq_poly cimport (
     fmpq_poly_init,
     fmpq_poly_set,
 )
+
 
 from flint.flintlib.types.gr cimport (
     truth_t,
@@ -44,6 +48,7 @@ from flint.flintlib.functions.gr_domains cimport (
     gr_ctx_init_fmpz,
     gr_ctx_init_fmpq,
     gr_ctx_init_fmpzi,
+    gr_ctx_init_fexpr,
 
     gr_ctx_init_nmod,
     gr_ctx_init_fmpz_mod,
@@ -71,8 +76,12 @@ from flint.flintlib.functions.gr_domains cimport (
 
     gr_ctx_init_real_arb,
     gr_ctx_init_complex_acb,
-    gr_ctx_init_fexpr,
 
+    gr_ctx_init_gr_poly,
+    gr_ctx_init_gr_mpoly,
+    gr_ctx_init_fmpz_mpoly_q,
+    # gr_ctx_init_series_mod_gr_poly,
+    gr_ctx_init_gr_series,
 )
 from flint.flintlib.functions.gr cimport (
     gr_heap_init,
@@ -150,7 +159,12 @@ from flint.flintlib.functions.gr_vec cimport (
     gr_vec_entry_ptr,
 )
 
-from flint.flint_base.flint_base cimport flint_ctx, flint_scalar
+from flint.flint_base.flint_base cimport (
+    flint_ctx,
+    flint_scalar,
+    Ordering,
+    ordering_py_to_c,
+)
 
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpz_poly cimport fmpz_poly
@@ -314,7 +328,7 @@ cdef class gr_ctx(flint_ctx):
         return res
 
     @cython.final
-    cdef inline _gens(self):
+    cdef inline list _gens(self):
         cdef int err
         cdef gr g
         cdef gr_vec_t gens
@@ -334,7 +348,7 @@ cdef class gr_ctx(flint_ctx):
         return py_gens
 
     @cython.final
-    cdef inline gr _gens_recursive(self):
+    cdef inline list _gens_recursive(self):
         cdef int err
         cdef gr g
         cdef gr_vec_t gens
@@ -747,6 +761,90 @@ cdef class gr_complex_acb_ctx(gr_scalar_ctx):
 #
 #     @staticmethod
 #     cdef _gr_gr_poly_ctx _new()
+
+
+@cython.no_gc
+cdef class gr_gr_poly_ctx(gr_poly_ctx):
+    cdef gr_ctx base_ctx
+
+    @staticmethod
+    cdef inline gr_gr_poly_ctx _new(gr_ctx base_ctx):
+        cdef gr_gr_poly_ctx ctx
+        ctx = gr_gr_poly_ctx.__new__(gr_gr_poly_ctx)
+        gr_ctx_init_gr_poly(ctx.ctx_t, base_ctx.ctx_t)
+        ctx._init = True
+        ctx.base_ctx = base_ctx
+        return ctx
+
+
+@cython.no_gc
+cdef class gr_gr_mpoly_ctx(gr_mpoly_ctx):
+    cdef gr_ctx base_ctx
+    cdef ordering_t _order
+    cdef slong _nvars
+
+    @staticmethod
+    cdef inline gr_gr_mpoly_ctx _new(gr_ctx base_ctx, slong nvars, Ordering order):
+        cdef gr_gr_mpoly_ctx ctx
+        cdef ordering_t ord_c
+        ord_c = ordering_py_to_c(order)
+        ctx = gr_gr_mpoly_ctx.__new__(gr_gr_mpoly_ctx)
+        gr_ctx_init_gr_mpoly(ctx.ctx_t, base_ctx.ctx_t, nvars, ord_c)
+        ctx._init = True
+        ctx.base_ctx = base_ctx
+        ctx._order = ord_c
+        ctx._nvars = nvars
+        return ctx
+
+
+# @cython.no_gc
+# cdef class gr_fmpz_mpoly_q_ctx(gr_mpoly_ctx):
+#     cdef ordering_t _order
+#     cdef slong _nvars
+#
+#     @staticmethod
+#     cdef inline gr_fmpz_mpoly_q_ctx _new(slong nvars, Ordering order):
+#         cdef gr_fmpz_mpoly_q_ctx ctx
+#         cdef ordering_t ord_c
+#         ord_c = ordering_py_to_c(order)
+#         ctx = gr_fmpz_mpoly_q_ctx.__new__(gr_fmpz_mpoly_q_ctx)
+#         gr_ctx_init_fmpz_mpoly_q(ctx.ctx_t, nvars, ord_c)
+#         ctx._init = True
+#         ctx._order = ord_c
+#         ctx._nvars = nvars
+#         return ctx
+
+
+# @cython.no_gc
+# cdef class gr_series_mod_gr_poly_ctx(gr_ctx):
+#     cdef gr_ctx base_ctx
+#     cdef slong _n
+#
+#     @staticmethod
+#     cdef inline gr_series_mod_gr_poly_ctx _new(gr_ctx base_ctx, slong n):
+#         cdef gr_series_mod_gr_poly_ctx ctx
+#         ctx = gr_series_mod_gr_poly_ctx.__new__(gr_series_mod_gr_poly_ctx)
+#         gr_ctx_init_series_mod_gr_poly(ctx.ctx_t, base_ctx.ctx_t, n)
+#         ctx._init = True
+#         ctx.base_ctx = base_ctx
+#         ctx._n = n
+#         return ctx
+
+
+@cython.no_gc
+cdef class gr_series_ctx(gr_ctx):
+    cdef gr_ctx base_ctx
+    cdef slong _prec
+
+    @staticmethod
+    cdef inline gr_series_ctx _new(gr_ctx base_ctx, slong prec):
+        cdef gr_series_ctx ctx
+        ctx = gr_series_ctx.__new__(gr_series_ctx)
+        gr_ctx_init_gr_series(ctx.ctx_t, base_ctx.ctx_t, prec)
+        ctx._init = True
+        ctx.base_ctx = base_ctx
+        ctx._prec = prec
+        return ctx
 
 
 @cython.no_gc

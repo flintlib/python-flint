@@ -27,6 +27,8 @@ from flint.flintlib.functions.gr_domains cimport (
     gr_ctx_get_real_prec,
 )
 
+from flint.flint_base.flint_base cimport Ordering, ordering_c_to_py
+
 
 @cython.no_gc
 cdef class gr_ctx(flint_ctx):
@@ -518,6 +520,105 @@ cdef class gr_complex_acb_ctx(gr_scalar_ctx):
 
 
 @cython.no_gc
+cdef class gr_gr_poly_ctx(gr_poly_ctx):
+
+    @staticmethod
+    def new(base_ring) -> gr_gr_poly_ctx:
+        return gr_gr_poly_ctx._new(base_ring)
+
+    def __repr__(self):
+        return f"gr_gr_poly_ctx({self.base_ring})"
+
+    @property
+    def base_ring(self):
+        return self.base_ctx
+
+
+@cython.no_gc
+cdef class gr_gr_mpoly_ctx(gr_mpoly_ctx):
+
+    @staticmethod
+    def new(base_ring, nvars, order=None) -> gr_gr_mpoly_ctx:
+        if order is None:
+            order = Ordering.lex
+        return gr_gr_mpoly_ctx._new(base_ring, nvars, order)
+
+    def __repr__(self):
+        return f"gr_gr_mpoly_ctx({self.base_ring}, {self.nvars}, {self.order})"
+
+    @property
+    def base_ring(self):
+        return self.base_ctx
+
+    @property
+    def nvars(self):
+        return self._nvars
+
+    @property
+    def order(self):
+        return ordering_c_to_py(self._order)
+
+
+# @cython.no_gc
+# cdef class gr_mpoly_q_ctx(gr_mpoly_ctx):
+#
+#     @staticmethod
+#     def new(nvars, order=None) -> gr_gr_mpoly_q_ctx:
+#         if order is None:
+#             order = Ordering.lex
+#         return gr_mpoly_q_ctx._new(nvars, order)
+#
+#     def __repr__(self):
+#         return f"gr_mpoly_q_ctx({self.nvars}, {self.order})"
+#
+#     @property
+#     def nvars(self):
+#         return self._nvars
+#
+#     @property
+#     def order(self):
+#         return ordering_c_to_py(self._order)
+
+
+# @cython.no_gc
+# cdef class gr_series_mod_gr_poly_ctx(gr_ctx):
+#
+#     @staticmethod
+#     def new(base_ring, n) -> gr_series_mod_gr_poly_ctx:
+#         return gr_series_mod_gr_poly_ctx._new(base_ring, n)
+#
+#     def __repr__(self):
+#         return f"gr_series_mod_gr_poly_ctx({self.base_ring}, {self.nvars})"
+#
+#     @property
+#     def base_ring(self):
+#         return self.base_ctx
+#
+#     @property
+#     def n(self):
+#         return self._n
+
+
+@cython.no_gc
+cdef class gr_series_ctx(gr_ctx):
+
+    @staticmethod
+    def new(base_ring, prec) -> gr_series_ctx:
+        return gr_series_ctx._new(base_ring, prec)
+
+    def __repr__(self):
+        return f"gr_series_mod_gr_poly_ctx({self.base_ring}, {self.prec})"
+
+    @property
+    def base_ring(self):
+        return self.base_ctx
+
+    @property
+    def prec(self):
+        return self._prec
+
+
+@cython.no_gc
 cdef class gr(flint_scalar):
 
     def __dealloc__(self):
@@ -636,7 +737,7 @@ cdef class gr(flint_scalar):
         cdef gr other_gr
         if isinstance(other, gr):
             other_gr = other
-            if self.ctx != other._grctx:
+            if self.ctx != other_gr.ctx:
                 raise ValueError("Cannot multiply elements from different contexts")
             return self._mul(other_gr)
         elif isinstance(other, int):
