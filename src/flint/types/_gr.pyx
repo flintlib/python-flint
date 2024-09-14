@@ -538,17 +538,21 @@ cdef class gr_gr_poly_ctx(gr_poly_ctx):
 cdef class gr_gr_mpoly_ctx(gr_mpoly_ctx):
 
     @staticmethod
-    def new(base_ring, nvars, order=None) -> gr_gr_mpoly_ctx:
+    def new(base_ring, names, order=None) -> gr_gr_mpoly_ctx:
         if order is None:
             order = Ordering.lex
-        return gr_gr_mpoly_ctx._new(base_ring, nvars, order)
+        return gr_gr_mpoly_ctx._new(base_ring, tuple(names), order)
 
     def __repr__(self):
-        return f"gr_gr_mpoly_ctx({self.base_ring}, {self.nvars}, {self.order})"
+        return f"gr_gr_mpoly_ctx({self.base_ring}, {self.names}, {self.order})"
 
     @property
     def base_ring(self):
         return self.base_ctx
+
+    @property
+    def names(self):
+        return self._names
 
     @property
     def nvars(self):

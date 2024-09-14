@@ -1,4 +1,5 @@
 cimport cython
+cimport libc.stdlib
 
 from flint.flintlib.types.flint cimport (
     slong,
@@ -79,7 +80,7 @@ from flint.flintlib.functions.gr_domains cimport (
 
     gr_ctx_init_gr_poly,
     gr_ctx_init_gr_mpoly,
-    gr_ctx_init_fmpz_mpoly_q,
+    # gr_ctx_init_fmpz_mpoly_q,
     # gr_ctx_init_series_mod_gr_poly,
     gr_ctx_init_gr_series,
 )
@@ -95,6 +96,7 @@ from flint.flintlib.functions.gr cimport (
     gr_gen,
     gr_gens,
     gr_gens_recursive,
+    gr_ctx_set_gen_names,
 
     gr_i,
     gr_pos_inf,
@@ -781,12 +783,20 @@ cdef class gr_gr_poly_ctx(gr_poly_ctx):
 cdef class gr_gr_mpoly_ctx(gr_mpoly_ctx):
     cdef gr_ctx base_ctx
     cdef ordering_t _order
+    cdef tuple _names
     cdef slong _nvars
 
     @staticmethod
-    cdef inline gr_gr_mpoly_ctx _new(gr_ctx base_ctx, slong nvars, Ordering order):
+    cdef inline gr_gr_mpoly_ctx _new(gr_ctx base_ctx, tuple names, Ordering order):
         cdef gr_gr_mpoly_ctx ctx
         cdef ordering_t ord_c
+        cdef slong nvars
+        cdef const char **names_c
+        cdef int status
+
+        nvars = len(names)
+        names_b = [name.encode('utf-8') for name in names]
+
         ord_c = ordering_py_to_c(order)
         ctx = gr_gr_mpoly_ctx.__new__(gr_gr_mpoly_ctx)
         gr_ctx_init_gr_mpoly(ctx.ctx_t, base_ctx.ctx_t, nvars, ord_c)
@@ -794,6 +804,20 @@ cdef class gr_gr_mpoly_ctx(gr_mpoly_ctx):
         ctx.base_ctx = base_ctx
         ctx._order = ord_c
         ctx._nvars = nvars
+        ctx._names = names
+
+        names_c = <const char **>libc.stdlib.malloc(nvars * sizeof(const char *))
+        if names_c == NULL:
+            raise MemoryError("Failed to allocate memory for generator names")
+        try:
+            for i in range(nvars):
+                names_c[i] = names_b[i]
+            status = gr_ctx_set_gen_names(ctx.ctx_t, names_c)
+        finally:
+            libc.stdlib.free(names_c)
+        if status != GR_SUCCESS:
+            raise MemoryError("Failed to set generator names")
+
         return ctx
 
 
