@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, nmod_t, nn_ptr, nn_srcptr, slong, ulong
+from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, mp_limb_t, mp_ptr, mp_size_t, mp_srcptr, nmod_t, slong, ulong
 
 # unknown type FILE
 
@@ -11,17 +11,17 @@ cdef extern from "flint/fmpz_vec.h":
     slong _fmpz_vec_max_bits(const fmpz_struct * vec, slong len)
     slong _fmpz_vec_max_bits_ref(const fmpz_struct * vec, slong len)
     void _fmpz_vec_sum_max_bits(slong * sumabs, slong * maxabs, const fmpz_struct * vec, slong len)
-    slong _fmpz_vec_max_limbs(const fmpz_struct * vec, slong len)
+    mp_size_t _fmpz_vec_max_limbs(const fmpz_struct * vec, slong len)
     void _fmpz_vec_height(fmpz_t height, const fmpz_struct * vec, slong len)
     slong _fmpz_vec_height_index(const fmpz_struct * vec, slong len)
     # int _fmpz_vec_fread(FILE * file, fmpz_struct ** vec, slong * len)
     int _fmpz_vec_read(fmpz_struct ** vec, slong * len)
     # int _fmpz_vec_fprint(FILE * file, const fmpz_struct * vec, slong len)
     int _fmpz_vec_print(const fmpz_struct * vec, slong len)
-    void _fmpz_vec_get_nmod_vec(nn_ptr res, const fmpz_struct * poly, slong len, nmod_t mod)
-    void _fmpz_vec_set_nmod_vec(fmpz_struct * res, nn_srcptr poly, slong len, nmod_t mod)
-    void _fmpz_vec_get_fft(ulong ** coeffs_f, const fmpz_struct * coeffs_m, slong l, slong length)
-    void _fmpz_vec_set_fft(fmpz_struct * coeffs_m, slong length, const nn_ptr * coeffs_f, slong limbs, slong sign)
+    void _fmpz_vec_get_nmod_vec(mp_ptr res, const fmpz_struct * poly, slong len, nmod_t mod)
+    void _fmpz_vec_set_nmod_vec(fmpz_struct * res, mp_srcptr poly, slong len, nmod_t mod)
+    void _fmpz_vec_get_fft(mp_limb_t ** coeffs_f, const fmpz_struct * coeffs_m, slong l, slong length)
+    void _fmpz_vec_set_fft(fmpz_struct * coeffs_m, slong length, const mp_ptr * coeffs_f, slong limbs, slong sign)
     slong _fmpz_vec_get_d_vec_2exp(double * appv, const fmpz_struct * vec, slong len)
     void _fmpz_vec_set(fmpz_struct * vec1, const fmpz_struct * vec2, slong len2)
     void _fmpz_vec_swap(fmpz_struct * vec1, fmpz_struct * vec2, slong len2)

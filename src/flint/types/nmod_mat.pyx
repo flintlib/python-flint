@@ -12,10 +12,8 @@ from flint.flintlib.functions.fmpz_mat cimport fmpz_mat_get_nmod_mat
 
 from flint.flintlib.types.nmod cimport nmod_mat_struct
 
-from flint.flintlib.types.nmod cimport (
-    nmod_mat_is_square,
-    nmod_mat_entry,
-)
+from flint.flintlib.types.nmod cimport nmod_mat_entry
+from flint.flintlib.types.undocumented cimport nmod_mat_is_square
 
 from flint.flintlib.functions.nmod_mat cimport (
     nmod_mat_init,

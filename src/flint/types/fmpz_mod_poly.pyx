@@ -130,7 +130,7 @@ cdef class fmpz_mod_poly_ctx:
         """
         cdef slong length
         if not (isinstance(monic, bool) and isinstance(irreducible, bool)):
-            raise ValueError("Both `monic` and `irreducible` must be of type bool")
+            raise ValueError("Both 'monic' and 'irreducible' must be of type bool")
 
         length = degree + 1
         if length <= 0:
@@ -292,7 +292,7 @@ cdef class fmpz_mod_poly_ctx:
         for i in range(n):
             check = self.mod.set_any_as_fmpz_mod(&xs.val[i], vals[i])
             if check is NotImplemented:
-                raise ValueError(f"Unable to cast {vals[i]} to an `fmpz_mod`")
+                raise ValueError(f"Unable to cast {vals[i]} to an 'fmpz_mod'")
 
         res = self.new_ctype_poly()
         fmpz_mod_poly_minpoly(res.val, xs.val, n, self.mod.val)
@@ -482,7 +482,7 @@ cdef class fmpz_mod_poly(flint_poly):
         # Case when right is not fmpz_mod_poly, try to convert to fmpz
         right = self.ctx.any_as_fmpz_mod_poly(right)
         if right is NotImplemented:
-            raise TypeError(f"Cannot convert {right} to `fmpz_mod_poly` type.")
+            raise TypeError(f"Cannot convert {right} to 'fmpz_mod_poly' type.")
 
         if right == 0:
             raise ZeroDivisionError("Cannot divide by zero")
@@ -765,7 +765,7 @@ cdef class fmpz_mod_poly(flint_poly):
         for i in range(n):
             check = self.ctx.mod.set_any_as_fmpz_mod(&xs.val[i], vals[i])
             if check is NotImplemented:
-                raise ValueError(f"Unable to cast {vals[i]} to an `fmpz_mod`")
+                raise ValueError(f"Unable to cast {vals[i]} to an 'fmpz_mod'")
 
         # Call for multipoint eval, iterative horner will be used
         # for small arrays (len < 32) and a fast eval for larger ones

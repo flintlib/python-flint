@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, slong, ulong
+from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, mp_limb_t, slong
 from flint.flintlib.types.fmpq cimport fmpq_t
 from flint.flintlib.types.fmpz cimport fmpz_mpoly_ctx_t, fmpz_mpoly_q_t, fmpz_mpoly_t
 
@@ -27,7 +27,7 @@ cdef extern from "flint/fmpz_mpoly_q.h":
     void fmpz_mpoly_q_print_pretty(const fmpz_mpoly_q_t f, const char ** x, const fmpz_mpoly_ctx_t ctx)
     char * fmpz_mpoly_q_get_str_pretty(const fmpz_mpoly_q_t f, const char ** x, const fmpz_mpoly_ctx_t ctx)
     int fmpz_mpoly_q_set_str_pretty(fmpz_mpoly_q_t res, const char * s, const char ** x, fmpz_mpoly_ctx_t ctx)
-    void fmpz_mpoly_q_randtest(fmpz_mpoly_q_t res, flint_rand_t state, slong length, ulong coeff_bits, slong exp_bound, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_q_randtest(fmpz_mpoly_q_t res, flint_rand_t state, slong length, mp_limb_t coeff_bits, slong exp_bound, const fmpz_mpoly_ctx_t ctx)
     int fmpz_mpoly_q_equal(const fmpz_mpoly_q_t x, const fmpz_mpoly_q_t y, const fmpz_mpoly_ctx_t ctx)
     void fmpz_mpoly_q_neg(fmpz_mpoly_q_t res, const fmpz_mpoly_q_t x, const fmpz_mpoly_ctx_t ctx)
     void fmpz_mpoly_q_add(fmpz_mpoly_q_t res, const fmpz_mpoly_q_t x, const fmpz_mpoly_q_t y, const fmpz_mpoly_ctx_t ctx)

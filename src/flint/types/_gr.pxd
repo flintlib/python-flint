@@ -164,7 +164,6 @@ from flint.flintlib.functions.gr_vec cimport (
 from flint.flint_base.flint_base cimport (
     flint_ctx,
     flint_scalar,
-    Ordering,
     ordering_py_to_c,
 )
 
@@ -787,7 +786,7 @@ cdef class gr_gr_mpoly_ctx(gr_mpoly_ctx):
     cdef slong _nvars
 
     @staticmethod
-    cdef inline gr_gr_mpoly_ctx _new(gr_ctx base_ctx, tuple names, Ordering order):
+    cdef inline gr_gr_mpoly_ctx _new(gr_ctx base_ctx, tuple names, order):
         cdef gr_gr_mpoly_ctx ctx
         cdef ordering_t ord_c
         cdef slong nvars
@@ -827,7 +826,7 @@ cdef class gr_gr_mpoly_ctx(gr_mpoly_ctx):
 #     cdef slong _nvars
 #
 #     @staticmethod
-#     cdef inline gr_fmpz_mpoly_q_ctx _new(slong nvars, Ordering order):
+#     cdef inline gr_fmpz_mpoly_q_ctx _new(slong nvars, order):
 #         cdef gr_fmpz_mpoly_q_ctx ctx
 #         cdef ordering_t ord_c
 #         ord_c = ordering_py_to_c(order)

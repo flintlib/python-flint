@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport fmpz_struct, fmpz_t, nmod_t, nn_ptr, slong, ulong
+from flint.flintlib.types.flint cimport fmpz_struct, fmpz_t, mp_limb_t, mp_ptr, nmod_t, slong, ulong
 from flint.flintlib.types.fmpq cimport fmpq_poly_t, fmpq_struct, fmpq_t
 from flint.flintlib.types.fmpz cimport fmpz_mat_t, fmpz_poly_t
 
@@ -7,6 +7,7 @@ from flint.flintlib.types.fmpz cimport fmpz_mat_t, fmpz_poly_t
 
 
 cdef extern from "flint/arith.h":
+    void arith_primorial(fmpz_t res, slong n)
     void _arith_harmonic_number(fmpz_t num, fmpz_t den, slong n)
     void arith_harmonic_number(fmpq_t x, slong n)
     void arith_stirling_number_1u(fmpz_t s, ulong n, ulong k)
@@ -27,11 +28,11 @@ cdef extern from "flint/arith.h":
     void arith_bell_number_vec(fmpz_struct * b, slong n)
     void arith_bell_number_vec_recursive(fmpz_struct * b, slong n)
     void arith_bell_number_vec_multi_mod(fmpz_struct * b, slong n)
-    ulong arith_bell_number_nmod(ulong n, nmod_t mod)
-    void arith_bell_number_nmod_vec(nn_ptr b, slong n, nmod_t mod)
-    void arith_bell_number_nmod_vec_recursive(nn_ptr b, slong n, nmod_t mod)
-    void arith_bell_number_nmod_vec_ogf(nn_ptr b, slong n, nmod_t mod)
-    int arith_bell_number_nmod_vec_series(nn_ptr b, slong n, nmod_t mod)
+    mp_limb_t arith_bell_number_nmod(ulong n, nmod_t mod)
+    void arith_bell_number_nmod_vec(mp_ptr b, slong n, nmod_t mod)
+    void arith_bell_number_nmod_vec_recursive(mp_ptr b, slong n, nmod_t mod)
+    void arith_bell_number_nmod_vec_ogf(mp_ptr b, slong n, nmod_t mod)
+    int arith_bell_number_nmod_vec_series(mp_ptr b, slong n, nmod_t mod)
     double arith_bell_number_size(ulong n)
     void _arith_bernoulli_number(fmpz_t num, fmpz_t den, ulong n)
     void arith_bernoulli_number(fmpq_t x, ulong n)
@@ -46,14 +47,22 @@ cdef extern from "flint/arith.h":
     void arith_euler_number_vec(fmpz_struct * res, slong n)
     double arith_euler_number_size(ulong n)
     void arith_euler_polynomial(fmpq_poly_t poly, ulong n)
+    void arith_euler_phi(fmpz_t res, const fmpz_t n)
+    int arith_moebius_mu(const fmpz_t n)
+    void arith_divisor_sigma(fmpz_t res, ulong k, const fmpz_t n)
     void arith_divisors(fmpz_poly_t res, const fmpz_t n)
     void arith_ramanujan_tau(fmpz_t res, const fmpz_t n)
     void arith_ramanujan_tau_series(fmpz_poly_t res, slong n)
     void arith_landau_function_vec(fmpz_struct * res, slong len)
+    void arith_dedekind_sum_naive(fmpq_t s, const fmpz_t h, const fmpz_t k)
+    double arith_dedekind_sum_coprime_d(double h, double k)
+    void arith_dedekind_sum_coprime_large(fmpq_t s, const fmpz_t h, const fmpz_t k)
+    void arith_dedekind_sum_coprime(fmpq_t s, const fmpz_t h, const fmpz_t k)
+    void arith_dedekind_sum(fmpq_t s, const fmpz_t h, const fmpz_t k)
     void arith_number_of_partitions_vec(fmpz_struct * res, slong len)
-    void arith_number_of_partitions_nmod_vec(nn_ptr res, slong len, nmod_t mod)
+    void arith_number_of_partitions_nmod_vec(mp_ptr res, slong len, nmod_t mod)
     # void trig_prod_init(trig_prod_t prod)
-    # void arith_hrr_expsum_factored(trig_prod_t prod, ulong k, ulong n)
+    # void arith_hrr_expsum_factored(trig_prod_t prod, mp_limb_t k, mp_limb_t n)
     # void arith_number_of_partitions_mpfr(mpfr_t x, ulong n)
     void arith_number_of_partitions(fmpz_t x, ulong n)
     void arith_sum_of_squares(fmpz_t r, ulong k, const fmpz_t n)

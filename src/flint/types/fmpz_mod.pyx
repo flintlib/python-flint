@@ -246,7 +246,7 @@ cdef class fmpz_mod(flint_scalar):
         self.ctx = ctx
         check = self.ctx.set_any_as_fmpz_mod(self.val, val)
         if check is NotImplemented:
-            raise NotImplementedError(f"Cannot convert {val} to type `fmpz_mod`")
+            raise NotImplementedError(f"Cannot convert {val} to type 'fmpz_mod'")
 
     def is_zero(self):
         """

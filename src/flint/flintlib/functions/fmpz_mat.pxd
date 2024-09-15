@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, slong, ulong
+from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, mp_limb_t, slong, ulong
 from flint.flintlib.types.fmpq cimport fmpq_t
 from flint.flintlib.types.fmpz cimport fmpz_mat_t, fmpz_poly_t
 from flint.flintlib.types.nmod cimport nmod_mat_t
@@ -132,7 +132,7 @@ cdef extern from "flint/fmpz_mat.h":
     int fmpz_mat_solve_cramer(fmpz_mat_t X, fmpz_t den, const fmpz_mat_t A, const fmpz_mat_t B)
     void fmpz_mat_solve_bound(fmpz_t N, fmpz_t D, const fmpz_mat_t A, const fmpz_mat_t B)
     int fmpz_mat_solve_dixon(fmpz_mat_t X, fmpz_t M, const fmpz_mat_t A, const fmpz_mat_t B)
-    void _fmpz_mat_solve_dixon_den(fmpz_mat_t X, fmpz_t den, const fmpz_mat_t A, const fmpz_mat_t B, const nmod_mat_t Ainv, ulong p, const fmpz_t N, const fmpz_t D)
+    void _fmpz_mat_solve_dixon_den(fmpz_mat_t X, fmpz_t den, const fmpz_mat_t A, const fmpz_mat_t B, const nmod_mat_t Ainv, mp_limb_t p, const fmpz_t N, const fmpz_t D)
     int fmpz_mat_solve_dixon_den(fmpz_mat_t X, fmpz_t den, const fmpz_mat_t A, const fmpz_mat_t B)
     int fmpz_mat_solve_multi_mod_den(fmpz_mat_t X, fmpz_t den, const fmpz_mat_t A, const fmpz_mat_t B)
     int fmpz_mat_can_solve_multi_mod_den(fmpz_mat_t X, fmpz_t den, const fmpz_mat_t A, const fmpz_mat_t B)
@@ -167,8 +167,8 @@ cdef extern from "flint/fmpz_mat.h":
     int fmpz_mat_hadamard(fmpz_mat_t H)
     # int fmpz_mat_get_d_mat(d_mat_t B, const fmpz_mat_t A)
     # int fmpz_mat_get_d_mat_transpose(d_mat_t B, const fmpz_mat_t A)
-    # void fmpz_mat_chol_d(d_mat_t R, const fmpz_mat_t A)
     void fmpz_mat_is_spd(const fmpz_mat_t A)
+    # void fmpz_mat_chol_d(d_mat_t R, const fmpz_mat_t A)
     int fmpz_mat_is_reduced(const fmpz_mat_t A, double delta, double eta)
     int fmpz_mat_is_reduced_gram(const fmpz_mat_t A, double delta, double eta)
     int fmpz_mat_is_reduced_with_removal(const fmpz_mat_t A, double delta, double eta, const fmpz_t gs_B, int newd)

@@ -27,7 +27,8 @@ from flint.flintlib.functions.gr_domains cimport (
     gr_ctx_get_real_prec,
 )
 
-from flint.flint_base.flint_base cimport Ordering, ordering_c_to_py
+from flint.flint_base.flint_base cimport ordering_c_to_py
+from flint.flint_base.flint_base import Ordering
 
 
 @cython.no_gc
