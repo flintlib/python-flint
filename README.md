@@ -164,6 +164,7 @@ Contributors (0.7.0):
 - Giacomo Pope (GP)
 - Joris Roos (JR)
 - Edgar Costa (EC)
+- Frédéric Chapoton (FC)
 - Oscar Benjamin (OB)
 
 Highlights (0.7.0):
@@ -176,6 +177,8 @@ Highlights (0.7.0):
   [gh-164](https://github.com/flintlib/python-flint/pull/164),
   [gh-190](https://github.com/flintlib/python-flint/pull/190),
   [gh-192](https://github.com/flintlib/python-flint/pull/192):
+  [gh-216](https://github.com/flintlib/python-flint/pull/216):
+  [gh-225](https://github.com/flintlib/python-flint/pull/225):
   Add `fmpz_mpoly`, `fmpq_mpoly`, `nmod_poly` and `fmpz_mod_poly`
   types for multivariate polynomials with integer, rational or
   integers mod n coefficients. (JM)
@@ -183,10 +186,23 @@ Highlights (0.7.0):
   Add `acb_theta` module for the numerical evaluation of [theta
   functions](https://flintlib.org/doc/acb_theta.html) (only
   available for `Flint >= 3.1`). (EC)
+- [gh-218](https://github.com/flintlib/python-flint/pull/218)
+  An experimental interface for FLINT's generic rings has been
+  added. This provides access to many of FLINT's types that
+  are not yet wrapped by python-flint such as Gaussian integer,
+  number fields, qqbar, calcium, as well as both univariate and
+  multivariate polynomials and series over these rings (no
+  matrices yet though). (OB)
 - [gh-129](https://github.com/flintlib/python-flint/pull/129)
+  [gh-208](https://github.com/flintlib/python-flint/pull/208)
   Use meson/meson-python instead of setuptools as the build system
   for parallel builds and better detection of build and dependency
   requirements. (OB)
+- [gh-201](https://github.com/flintlib/python-flint/pull/201)
+  [gh-202](https://github.com/flintlib/python-flint/pull/202)
+  The documentation has been updated and is now at
+  [readthedocs](https://python-flint.readthedocs.io/en/latest/).
+  (OB)
 
 Compatibility break (0.7.0):
 
@@ -198,11 +214,23 @@ Compatibility break (0.7.0):
 
 Other changes (0.7.0):
 
+- [gh-215](https://github.com/flintlib/python-flint/pull/215)
+  [gh-219](https://github.com/flintlib/python-flint/pull/219)
+  The FLINT binding declarations are now fully generated
+  automatically from the FLINT docs. (OB)
+- [gh-203](https://github.com/flintlib/python-flint/pull/203)
+  [gh-204](https://github.com/flintlib/python-flint/pull/204)
+  [gh-205](https://github.com/flintlib/python-flint/pull/205)
+  [gh-206](https://github.com/flintlib/python-flint/pull/206)
+  [gh-207](https://github.com/flintlib/python-flint/pull/207)
+  [gh-211](https://github.com/flintlib/python-flint/pull/211)
+  [gh-212](https://github.com/flintlib/python-flint/pull/212)
+  Various linting fixes and codebase improvements (FC and GP).
 - [gh-189](https://github.com/flintlib/python-flint/pull/189)
   All scalar and poly types now have `sqrt`. All poly types now
   have `factor_squarefree` and `leading_coefficient` methods.
   Exception types raised in a number of places were changed to
-  `DomainError` for better consistency.
+  `DomainError` for better consistency. (OB)
 - [gh-196](https://github.com/flintlib/python-flint/pull/196)
   Supported Python versions are 3.10-3.13 (3.9 dropped). CI
   Testing added for 3.13 free-threaded CPython.
