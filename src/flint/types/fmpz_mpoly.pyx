@@ -106,7 +106,7 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         fmpz_mpoly_ctx_init(self.val, nvars, ordering_py_to_c(ordering))
         super().__init__(nvars, names)
 
-    def any_as_scalar(self, other):
+    def _any_as_scalar(self, other):
         if isinstance(other, int):
             return any_as_fmpz(other)
         elif typecheck(other, fmpz):
@@ -116,8 +116,8 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         else:
             return NotImplemented
 
-    def scalar_as_mpoly(self, other: fmpz):
-        # non-fmpz scalars should first be converted via self.any_as_scalar
+    def _scalar_as_mpoly(self, other: fmpz):
+        # non-fmpz scalars should first be converted via self._any_as_scalar
         return self.constant(<fmpz>other)
 
     def nvars(self):

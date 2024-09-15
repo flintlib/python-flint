@@ -379,10 +379,10 @@ cdef class flint_mpoly_context(flint_elem):
             nametup=ctx.names()
         )
 
-    def any_as_scalar(self, other):
+    def _any_as_scalar(self, other):
         raise NotImplementedError("abstract method")
 
-    def scalar_as_mpoly(self, other):
+    def _scalar_as_mpoly(self, other):
         raise NotImplementedError("abstract method")
 
     def compatible_context_check(self, other):
@@ -505,7 +505,7 @@ cdef class flint_mpoly(flint_elem):
             self.context().compatible_context_check(other.context())
             return self._add_mpoly_(other)
 
-        other = self.context().any_as_scalar(other)
+        other = self.context()._any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
@@ -516,7 +516,7 @@ cdef class flint_mpoly(flint_elem):
             self.context().compatible_context_check(other.context())
             return self._add_mpoly_(other)
 
-        other = self.context().any_as_scalar(other)
+        other = self.context()._any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
@@ -527,7 +527,7 @@ cdef class flint_mpoly(flint_elem):
             self.context().compatible_context_check(other.context())
             return self._sub_mpoly_(other)
 
-        other = self.context().any_as_scalar(other)
+        other = self.context()._any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
@@ -538,7 +538,7 @@ cdef class flint_mpoly(flint_elem):
             self.context().compatible_context_check(other.context())
             return self._rsub_mpoly_(other)
 
-        other = self.context().any_as_scalar(other)
+        other = self.context()._any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
@@ -549,7 +549,7 @@ cdef class flint_mpoly(flint_elem):
             self.context().compatible_context_check(other.context())
             return self._mul_mpoly_(other)
 
-        other = self.context().any_as_scalar(other)
+        other = self.context()._any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
@@ -560,7 +560,7 @@ cdef class flint_mpoly(flint_elem):
             self.context().compatible_context_check(other.context())
             return self._mul_mpoly_(other)
 
-        other = self.context().any_as_scalar(other)
+        other = self.context()._any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
@@ -586,20 +586,20 @@ cdef class flint_mpoly(flint_elem):
             self._division_check(other)
             return self._divmod_mpoly_(other)
 
-        other = self.context().any_as_scalar(other)
+        other = self.context()._any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
-        other = self.context().scalar_as_mpoly(other)
+        other = self.context()._scalar_as_mpoly(other)
         self._division_check(other)
         return self._divmod_mpoly_(other)
 
     def __rdivmod__(self, other):
-        other = self.context().any_as_scalar(other)
+        other = self.context()._any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
-        other = self.context().scalar_as_mpoly(other)
+        other = self.context()._scalar_as_mpoly(other)
         other._division_check(self)
         return self._rdivmod_mpoly_(other)
 
@@ -609,7 +609,7 @@ cdef class flint_mpoly(flint_elem):
             self._division_check(other)
             return self._truediv_mpoly_(other)
 
-        other = self.context().any_as_scalar(other)
+        other = self.context()._any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
@@ -618,15 +618,15 @@ cdef class flint_mpoly(flint_elem):
         if res is not NotImplemented:
             return res
 
-        other = self.context().scalar_as_mpoly(other)
+        other = self.context()._scalar_as_mpoly(other)
         return self._truediv_mpoly_(other)
 
     def __rtruediv__(self, other):
-        other = self.context().any_as_scalar(other)
+        other = self.context()._any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
-        other = self.context().scalar_as_mpoly(other)
+        other = self.context()._scalar_as_mpoly(other)
         other._division_check(self)
         return self._rtruediv_mpoly_(other)
 
@@ -636,20 +636,20 @@ cdef class flint_mpoly(flint_elem):
             self._division_check(other)
             return self._floordiv_mpoly_(other)
 
-        other = self.context().any_as_scalar(other)
+        other = self.context()._any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
-        other = self.context().scalar_as_mpoly(other)
+        other = self.context()._scalar_as_mpoly(other)
         self._division_check(other)
         return self._floordiv_mpoly_(other)
 
     def __rfloordiv__(self, other):
-        other = self.context().any_as_scalar(other)
+        other = self.context()._any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
-        other = self.context().scalar_as_mpoly(other)
+        other = self.context()._scalar_as_mpoly(other)
         other._division_check(self)
         return self._rfloordiv_mpoly_(other)
 
@@ -659,20 +659,20 @@ cdef class flint_mpoly(flint_elem):
             self._division_check(other)
             return self._mod_mpoly_(other)
 
-        other = self.context().any_as_scalar(other)
+        other = self.context()._any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
-        other = self.context().scalar_as_mpoly(other)
+        other = self.context()._scalar_as_mpoly(other)
         self._division_check(other)
         return self._mod_mpoly_(other)
 
     def __rmod__(self, other):
-        other = self.context().any_as_scalar(other)
+        other = self.context()._any_as_scalar(other)
         if other is NotImplemented:
             return NotImplemented
 
-        other = self.context().scalar_as_mpoly(other)
+        other = self.context()._scalar_as_mpoly(other)
         other._division_check(self)
         return self._rmod_mpoly_(other)
 
@@ -695,7 +695,7 @@ cdef class flint_mpoly(flint_elem):
             self._iadd_mpoly_(other)
             return
 
-        other_scalar = self.context().any_as_scalar(other)
+        other_scalar = self.context()._any_as_scalar(other)
         if other_scalar is NotImplemented:
             raise NotImplementedError(f"cannot add {type(self)} and {type(other)}")
 
@@ -720,7 +720,7 @@ cdef class flint_mpoly(flint_elem):
             self._isub_mpoly_(other)
             return
 
-        other_scalar = self.context().any_as_scalar(other)
+        other_scalar = self.context()._any_as_scalar(other)
         if other_scalar is NotImplemented:
             raise NotImplementedError(f"cannot subtract {type(self)} and {type(other)}")
 
@@ -745,7 +745,7 @@ cdef class flint_mpoly(flint_elem):
             self._imul_mpoly_(other)
             return
 
-        other_scalar = self.context().any_as_scalar(other)
+        other_scalar = self.context()._any_as_scalar(other)
         if other_scalar is NotImplemented:
             raise NotImplementedError(f"cannot multiply {type(self)} and {type(other)}")
 

@@ -102,7 +102,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
         fmpq_mpoly_ctx_init(self.val, nvars, ordering_py_to_c(ordering))
         super().__init__(nvars, names)
 
-    def any_as_scalar(self, other):
+    def _any_as_scalar(self, other):
         if isinstance(other, int):
             return any_as_fmpq(other)
         elif typecheck(other, fmpz):
@@ -114,8 +114,8 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
         else:
             return NotImplemented
 
-    def scalar_as_mpoly(self, other: fmpq):
-        # non-fmpq scalars should first be converted via self.any_as_scalar
+    def _scalar_as_mpoly(self, other: fmpq):
+        # non-fmpq scalars should first be converted via self._any_as_scalar
         return self.constant(<fmpq>other)
 
     def nvars(self):

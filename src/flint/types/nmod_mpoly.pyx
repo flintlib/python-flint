@@ -128,7 +128,7 @@ cdef class nmod_mpoly_ctx(flint_mpoly_context):
             raise ValueError("must provide either 'names' or 'nametup'")
         return key
 
-    def any_as_scalar(self, other):
+    def _any_as_scalar(self, other):
         if isinstance(other, int):
             try:
                 return <ulong>other
@@ -151,8 +151,8 @@ cdef class nmod_mpoly_ctx(flint_mpoly_context):
         else:
             return NotImplemented
 
-    def scalar_as_mpoly(self, other: ulong):
-        # non-ulong scalars should first be converted via self.any_as_scalar
+    def _scalar_as_mpoly(self, other: ulong):
+        # non-ulong scalars should first be converted via self._any_as_scalar
         return self.constant(<ulong>other)
 
     def nvars(self):
@@ -259,7 +259,7 @@ cdef class nmod_mpoly_ctx(flint_mpoly_context):
                 continue
 
             exp_vec = fmpz_vec(exps)
-            coeff_scalar = self.any_as_scalar(coeff)
+            coeff_scalar = self._any_as_scalar(coeff)
             if coeff_scalar is NotImplemented:
                 raise TypeError(f"cannot coerce {repr(coeff)} to nmod_mpoly coefficient")
 
@@ -402,7 +402,7 @@ cdef class nmod_mpoly(flint_mpoly):
 
         exp_vec = fmpz_vec(x, double_indirect=True)
 
-        coeff = self.ctx.any_as_scalar(y)
+        coeff = self.ctx._any_as_scalar(y)
         if coeff is NotImplemented:
             raise TypeError("provided coefficient not coercible to ulong")
         nmod_mpoly_set_coeff_ui_fmpz(self.val, coeff, exp_vec.double_indirect, self.ctx.val)
@@ -542,7 +542,7 @@ cdef class nmod_mpoly(flint_mpoly):
         if nargs != nvars:
             raise ValueError("number of generators does not match number of arguments")
 
-        args = [self.ctx.any_as_scalar(x) for x in args]
+        args = [self.ctx._any_as_scalar(x) for x in args]
         cdef:
             # Using sizeof(ulong) here breaks on 64 windows machines because of the ``ctypedef unsigned long ulong`` in
             # flintlib/flint.pxd. Cython will inline this definition and then allocate the wrong amount of memory.
@@ -634,7 +634,7 @@ cdef class nmod_mpoly(flint_mpoly):
             nmod_mpoly res
             slong i
 
-        args = tuple((self.ctx.variable_to_index(k), self.ctx.any_as_scalar(v)) for k, v in dict_args.items())
+        args = tuple((self.ctx.variable_to_index(k), self.ctx._any_as_scalar(v)) for k, v in dict_args.items())
         for (_, v), old in zip(args, dict_args.values()):
             if v is NotImplemented:
                 raise TypeError(f"cannot coerce {type(old)} to ulong")

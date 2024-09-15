@@ -133,7 +133,7 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
             raise ValueError("must provide either 'names' or 'nametup'")
         return key
 
-    def any_as_scalar(self, other):
+    def _any_as_scalar(self, other):
         if isinstance(other, int):
             return any_as_fmpz(other)
         elif typecheck(other, nmod):
@@ -157,8 +157,8 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
         else:
             return NotImplemented
 
-    def scalar_as_mpoly(self, other: fmpz):
-        # non-fmpz scalars should first be converted via self.any_as_scalar
+    def _scalar_as_mpoly(self, other: fmpz):
+        # non-fmpz scalars should first be converted via self._any_as_scalar
         return self.constant(<fmpz>other)
 
     def nvars(self):
@@ -270,7 +270,7 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
                 continue
 
             exp_vec = fmpz_vec(exps)
-            coeff_scalar = self.any_as_scalar(coeff)
+            coeff_scalar = self._any_as_scalar(coeff)
             if coeff_scalar is NotImplemented:
                 raise TypeError(f"cannot coerce {repr(coeff)} to nmod_mpoly coefficient")
 
@@ -425,7 +425,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             raise ValueError("exponent vector provided does not match number of variables")
         exp_vec = fmpz_vec(x, double_indirect=True)
 
-        coeff = self.ctx.any_as_scalar(y)
+        coeff = self.ctx._any_as_scalar(y)
         if coeff is NotImplemented:
             raise TypeError("provided coefficient not coercible to fmpz")
         fmpz_mod_mpoly_set_coeff_fmpz_fmpz(self.val, (<fmpz>coeff).val, exp_vec.double_indirect, self.ctx.val)
@@ -566,7 +566,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
         if nargs != nvars:
             raise ValueError("number of generators does not match number of arguments")
-        args = [self.ctx.any_as_scalar(x) for x in args]
+        args = [self.ctx._any_as_scalar(x) for x in args]
         V = fmpz_vec(args, double_indirect=True)
         vres = fmpz.__new__(fmpz)
         fmpz_mod_mpoly_evaluate_all_fmpz(vres.val, self.val, V.double_indirect, self.ctx.val)
@@ -656,7 +656,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             fmpz_mod_mpoly res
             slong i
 
-        args = tuple((self.ctx.variable_to_index(k), self.ctx.any_as_scalar(v)) for k, v in dict_args.items())
+        args = tuple((self.ctx.variable_to_index(k), self.ctx._any_as_scalar(v)) for k, v in dict_args.items())
         for (_, v), old in zip(args, dict_args.values()):
             if v is NotImplemented:
                 raise TypeError(f"cannot coerce {type(old)} to fmpz")
