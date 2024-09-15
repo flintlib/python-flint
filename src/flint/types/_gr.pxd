@@ -64,7 +64,7 @@ from flint.flintlib.functions.gr_domains cimport (
 
     gr_ctx_init_real_qqbar,
     gr_ctx_init_complex_qqbar,
-    _gr_ctx_qqbar_set_limits,
+    # _gr_ctx_qqbar_set_limits,
 
     gr_ctx_init_real_ca,
     gr_ctx_init_complex_ca,
@@ -89,13 +89,14 @@ from flint.flintlib.functions.gr cimport (
     gr_set_str,
     gr_get_str,
     gr_set,
+    gr_set_si,
     gr_get_si,
 
     gr_zero,
     gr_one,
     gr_gen,
     gr_gens,
-    gr_gens_recursive,
+    # gr_gens_recursive,
     gr_ctx_set_gen_names,
 
     gr_i,
@@ -225,6 +226,15 @@ cdef class gr_ctx(flint_ctx):
         return py_val
 
     @cython.final
+    cdef inline gr from_si(self, slong n):
+        cdef gr py_val
+        py_val = self.new_gr()
+        err = gr_set_si(py_val.pval, n, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Failed to parse string")
+        return py_val
+
+    @cython.final
     cdef inline str to_str(self, val: gr):
         cdef str py_str
         cdef char *s
@@ -348,25 +358,25 @@ cdef class gr_ctx(flint_ctx):
         gr_vec_clear(gens, self.ctx_t)
         return py_gens
 
-    @cython.final
-    cdef inline list _gens_recursive(self):
-        cdef int err
-        cdef gr g
-        cdef gr_vec_t gens
-        gr_vec_init(gens, 0, self.ctx_t)
-        err = gr_gens_recursive(gens, self.ctx_t)
-        if err != GR_SUCCESS:
-            raise self._error(err, "Cannot get recursive generators")
-        length = gr_vec_length(gens, self.ctx_t)
-        py_gens = [None] * length
-        for 0 <= i < length:
-            g = self.new_gr()
-            err = gr_set(g.pval, gr_vec_entry_ptr(gens, i, self.ctx_t), self.ctx_t)
-            if err != GR_SUCCESS:
-                raise self._error(err, "Failed to copy generator.")
-            py_gens[i] = g
-        gr_vec_clear(gens, self.ctx_t)
-        return py_gens
+    # @cython.final
+    # cdef inline list _gens_recursive(self):
+    #     cdef int err
+    #     cdef gr g
+    #     cdef gr_vec_t gens
+    #     gr_vec_init(gens, 0, self.ctx_t)
+    #     err = gr_gens_recursive(gens, self.ctx_t)
+    #     if err != GR_SUCCESS:
+    #         raise self._error(err, "Cannot get recursive generators")
+    #     length = gr_vec_length(gens, self.ctx_t)
+    #     py_gens = [None] * length
+    #     for 0 <= i < length:
+    #         g = self.new_gr()
+    #         err = gr_set(g.pval, gr_vec_entry_ptr(gens, i, self.ctx_t), self.ctx_t)
+    #         if err != GR_SUCCESS:
+    #             raise self._error(err, "Failed to copy generator.")
+    #         py_gens[i] = g
+    #     gr_vec_clear(gens, self.ctx_t)
+    #     return py_gens
 
 
 cdef class gr_scalar_ctx(gr_ctx):
@@ -584,7 +594,9 @@ cdef class gr_real_qqbar_ctx(gr_scalar_ctx):
         ctx.bits_limit = bits_limit
         if deg_limit != -1 or bits_limit != -1:
             # Maybe add setters for these?
-            _gr_ctx_qqbar_set_limits(ctx.ctx_t, deg_limit, bits_limit)
+            # XXX: Not available in FLINT 3.0.1
+            # _gr_ctx_qqbar_set_limits(ctx.ctx_t, deg_limit, bits_limit)
+            pass
         return ctx
 
 
@@ -603,7 +615,9 @@ cdef class gr_complex_qqbar_ctx(gr_scalar_ctx):
         ctx.bits_limit = bits_limit
         if deg_limit != -1 or bits_limit != -1:
             # Maybe add setters for these?
-            _gr_ctx_qqbar_set_limits(ctx.ctx_t, deg_limit, bits_limit)
+            # XXX: Not available in FLINT 3.0.1
+            # _gr_ctx_qqbar_set_limits(ctx.ctx_t, deg_limit, bits_limit)
+            pass
         return ctx
 
 
