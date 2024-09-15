@@ -13,6 +13,9 @@ cdef class flint_mpoly_context(flint_elem):
     cdef public object py_names
     cdef const char ** c_names
 
+cdef class flint_mod_mpoly_context(flint_mpoly_context):
+    cdef readonly bint __prime_modulus
+
 cdef class flint_mpoly(flint_elem):
     cdef _add_scalar_(self, other)
     cdef _sub_scalar_(self, other)

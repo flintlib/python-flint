@@ -1,6 +1,6 @@
 from flint.flint_base.flint_base cimport (
     flint_mpoly,
-    flint_mpoly_context,
+    flint_mod_mpoly_context,
     ordering_py_to_c,
     ordering_c_to_py,
 )
@@ -76,7 +76,7 @@ cimport libc.stdlib
 cdef dict _fmpz_mod_mpoly_ctx_cache = {}
 
 
-cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
+cdef class fmpz_mod_mpoly_ctx(flint_mod_mpoly_context):
     """
     A class for storing the polynomial context
 
@@ -97,60 +97,20 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
                 raise TypeError(f"modulus ({modulus}) is not coercible to fmpz")
         else:
             m = modulus
+
+        super().__init__(nvars, names, m.is_prime())
         fmpz_mod_mpoly_ctx_init(self.val, nvars, ordering_py_to_c(ordering), m.val)
-        self.__prime_modulus = None
-        super().__init__(nvars, names)
-
-    @classmethod
-    def create_context_key(
-            cls,
-            slong nvars=1,
-            ordering=Ordering.lex,
-            modulus = None,
-            names: Optional[str] = "x",
-            nametup: Optional[tuple] = None,
-    ):
-        """
-        Create a key for the context cache via the number of variables, the ordering, the modulus, and either a
-        variable name string, or a tuple of variable names.
-        """
-        # A type hint of ``ordering: Ordering`` results in the error "TypeError: an integer is required" if a Ordering
-        # object is not provided. This is pretty obtuse so we check its type ourselves
-        if not isinstance(ordering, Ordering):
-            raise TypeError(f"'ordering' ('{ordering}') is not an instance of flint.Ordering")
-        elif not typecheck(modulus, fmpz):
-            m = any_as_fmpz(modulus)
-            if m is NotImplemented:
-                raise TypeError(f"'modulus' ('{modulus}') is not coercible to fmpz")
-            else:
-                modulus = m
-
-        if nametup is not None:
-            key = nvars, ordering, nametup, modulus
-        elif nametup is None and names is not None:
-            key = nvars, ordering, cls.create_variable_names(nvars, names), modulus
-        else:
-            raise ValueError("must provide either 'names' or 'nametup'")
-        return key
 
     def _any_as_scalar(self, other):
         if isinstance(other, int):
             return any_as_fmpz(other)
         elif typecheck(other, nmod):
-            if (<nmod>other).modulus() != self.modulus():
-                raise DomainError(
-                    f"modulus does not match, got {(<nmod>other).modulus()}, expected {self.modulus()}"
-                )
             return any_as_fmpz((<nmod>other).val)
         elif typecheck(other, fmpz):
             res = fmpz.__new__(fmpz)
             fmpz_set((<fmpz>res).val, (<fmpz>other).val)
             return res
         elif typecheck(other, fmpz_mod):
-            if (<fmpz_mod>other).ctx.modulus() != self.modulus():
-                raise DomainError(
-                    f"modulus does not match, got {(<fmpz_mod>other).ctx.modulus()}, expected {self.modulus()}"
-                )
             res = fmpz.__new__(fmpz)
             fmpz_set((<fmpz>res).val, (<fmpz_mod>other).val)
             return res
@@ -196,22 +156,6 @@ cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
         cdef fmpz m = fmpz.__new__(fmpz)
         fmpz_mod_mpoly_ctx_get_modulus(m.val, self.val)
         return m
-
-    def is_prime(self):
-        """
-        Return whether the modulus is prime
-
-            >>> from flint import Ordering
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.degrevlex, 2**127, 'z')
-            >>> ctx.is_prime()
-            False
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.degrevlex, 2**127 - 1, 'z')
-            >>> ctx.is_prime()
-            True
-        """
-        if self.__prime_modulus is None:
-            self.__prime_modulus = <bint>self.modulus().is_prime()
-        return self.__prime_modulus
 
     def gen(self, slong i):
         """

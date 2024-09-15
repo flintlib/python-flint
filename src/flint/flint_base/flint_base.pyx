@@ -409,6 +409,51 @@ cdef class flint_mpoly_context(flint_elem):
             exp_vec = (0,) * self.nvars()
         return self.from_dict({tuple(exp_vec): coeff})
 
+cdef class flint_mod_mpoly_context(flint_mpoly_context):
+    def __init__(self, nvars, names, prime_modulus):
+        super().__init__(nvars, names)
+        self.__prime_modulus = <bint>prime_modulus
+
+    @classmethod
+    def create_context_key(
+            cls,
+            slong nvars=1,
+            ordering=Ordering.lex,
+            modulus = None,
+            names: Optional[str] = "x",
+            nametup: Optional[tuple] = None,
+    ):
+        """
+        Create a key for the context cache via the number of variables, the ordering, the modulus, and either a
+        variable name string, or a tuple of variable names.
+        """
+        # A type hint of ``ordering: Ordering`` results in the error "TypeError: an integer is required" if a Ordering
+        # object is not provided. This is pretty obtuse so we check its type ourselves
+        if not isinstance(ordering, Ordering):
+            raise TypeError(f"'ordering' ('{ordering}') is not an instance of flint.Ordering")
+
+        if nametup is not None:
+            key = nvars, ordering, nametup, modulus
+        elif nametup is None and names is not None:
+            key = nvars, ordering, cls.create_variable_names(nvars, names), modulus
+        else:
+            raise ValueError("must provide either 'names' or 'nametup'")
+        return key
+
+    def is_prime(self):
+        """
+        Return whether the modulus is prime
+
+            >>> from flint import Ordering, fmpz_mod_mpoly_ctx
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.degrevlex, 2**127, 'z')
+            >>> ctx.is_prime()
+            False
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.degrevlex, 2**127 - 1, 'z')
+            >>> ctx.is_prime()
+            True
+        """
+        return self.__prime_modulus
+
 
 cdef class flint_mpoly(flint_elem):
     """

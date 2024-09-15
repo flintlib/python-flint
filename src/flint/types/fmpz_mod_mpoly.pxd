@@ -1,4 +1,4 @@
-from flint.flint_base.flint_base cimport flint_mpoly, flint_mpoly_context
+from flint.flint_base.flint_base cimport flint_mpoly, flint_mod_mpoly_context
 
 from flint.flintlib.functions.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_ctx_t,
@@ -21,9 +21,8 @@ cdef inline fmpz_mod_mpoly create_fmpz_mod_mpoly(fmpz_mod_mpoly_ctx ctx):
     var._init = True
     return var
 
-cdef class fmpz_mod_mpoly_ctx(flint_mpoly_context):
+cdef class fmpz_mod_mpoly_ctx(flint_mod_mpoly_context):
     cdef fmpz_mod_mpoly_ctx_t val
-    cdef readonly object __prime_modulus
 
 cdef class fmpz_mod_mpoly(flint_mpoly):
     cdef fmpz_mod_mpoly_t val

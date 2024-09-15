@@ -1,6 +1,6 @@
 from flint.flint_base.flint_base cimport (
     flint_mpoly,
-    flint_mpoly_context,
+    flint_mod_mpoly_context,
     ordering_py_to_c,
     ordering_c_to_py,
 )
@@ -81,7 +81,7 @@ cimport libc.stdlib
 cdef dict _nmod_mpoly_ctx_cache = {}
 
 
-cdef class nmod_mpoly_ctx(flint_mpoly_context):
+cdef class nmod_mpoly_ctx(flint_mod_mpoly_context):
     """
     A class for storing the polynomial context
 
@@ -98,35 +98,8 @@ cdef class nmod_mpoly_ctx(flint_mpoly_context):
         if modulus <= 0:
             raise ValueError("modulus must be positive")
 
+        super().__init__(nvars, names, <bint>n_is_prime(modulus))
         nmod_mpoly_ctx_init(self.val, nvars, ordering_py_to_c(ordering), modulus)
-        self.__prime_modulus = None
-        super().__init__(nvars, names)
-
-    @classmethod
-    def create_context_key(
-            cls,
-            slong nvars=1,
-            ordering=Ordering.lex,
-            modulus = None,
-            names: Optional[str] = "x",
-            nametup: Optional[tuple] = None,
-    ):
-        """
-        Create a key for the context cache via the number of variables, the ordering, the modulus, and either a
-        variable name string, or a tuple of variable names.
-        """
-        # A type hint of ``ordering: Ordering`` results in the error "TypeError: an integer is required" if a Ordering
-        # object is not provided. This is pretty obtuse so we check its type ourselves
-        if not isinstance(ordering, Ordering):
-            raise TypeError(f"'ordering' ('{ordering}') is not an instance of flint.Ordering")
-
-        if nametup is not None:
-            key = nvars, ordering, nametup, modulus
-        elif nametup is None and names is not None:
-            key = nvars, ordering, cls.create_variable_names(nvars, names), modulus
-        else:
-            raise ValueError("must provide either 'names' or 'nametup'")
-        return key
 
     def _any_as_scalar(self, other):
         if isinstance(other, int):
@@ -135,18 +108,10 @@ cdef class nmod_mpoly_ctx(flint_mpoly_context):
             except OverflowError:
                 return <ulong>(other % self.modulus())
         elif typecheck(other, nmod):
-            if (<nmod>other).modulus() != self.modulus():
-                raise DomainError(
-                    f"modulus does not match, got {(<nmod>other).modulus()}, expected {self.modulus()}"
-                )
             return (<nmod>other).val
         elif typecheck(other, fmpz):
             return fmpz_get_nmod((<fmpz>other).val, self.val.mod)
         elif typecheck(other, fmpz_mod):
-            if (<fmpz_mod>other).ctx.modulus() != self.modulus():
-                raise DomainError(
-                    f"modulus does not match, got {(<fmpz_mod>other).ctx.modulus()}, expected {self.modulus()}"
-                )
             return fmpz_get_nmod((<fmpz_mod>other).val, self.val.mod)
         else:
             return NotImplemented
@@ -188,22 +153,6 @@ cdef class nmod_mpoly_ctx(flint_mpoly_context):
 
         """
         return nmod_mpoly_ctx_modulus(self.val)
-
-    def is_prime(self):
-        """
-        Return whether the modulus is prime
-
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(4, Ordering.degrevlex, 2**32, 'z')
-            >>> ctx.is_prime()
-            False
-            >>> ctx = nmod_mpoly_ctx.get_context(4, Ordering.degrevlex, 2**32 - 17, 'z')
-            >>> ctx.is_prime()
-            True
-        """
-        if self.__prime_modulus is None:
-            self.__prime_modulus = <bint>n_is_prime(self.modulus())
-        return self.__prime_modulus
 
     def gen(self, slong i):
         """
