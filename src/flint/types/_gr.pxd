@@ -381,16 +381,16 @@ cdef class gr_mpoly_ctx(gr_ctx):
     pass
 
 
-cdef class gr_matrix_domain_ctx(gr_ctx):
-    pass
+# cdef class gr_matrix_domain_ctx(gr_ctx):
+#     pass
 
 
-cdef class gr_matrix_space_ctx(gr_ctx):
-    pass
+# cdef class gr_matrix_space_ctx(gr_ctx):
+#     pass
 
 
-cdef class gr_matrix_ring_ctx(gr_ctx):
-    pass
+# cdef class gr_matrix_ring_ctx(gr_ctx):
+#     pass
 
 
 @cython.no_gc

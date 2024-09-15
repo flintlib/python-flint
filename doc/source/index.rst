@@ -100,6 +100,6 @@ Experimental generic rings interface
 ....................................
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    _gr.rst

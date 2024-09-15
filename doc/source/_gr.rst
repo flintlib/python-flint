@@ -26,6 +26,9 @@ variables over the Gaussian integers :math:`\mathbb{Z}[i][x,y]` we would do::
     >>> p
     x^2 + 2*x*y + (2*I)*x + y^2 + (2*I)*y - 1
 
+Some domains such as ``gr_fmpzi_ctx`` are global and do not need to be created.
+Others such as ``gr_gr_mpoly_ctx`` are created using :meth:`gr_ctx.new`.
+
 .. autoclass :: flint.types._gr.gr_ctx
   :members:
   :undoc-members:
@@ -39,18 +42,6 @@ variables over the Gaussian integers :math:`\mathbb{Z}[i][x,y]` we would do::
    :undoc-members:
 
 .. autoclass :: flint.types._gr.gr_mpoly_ctx
-   :members:
-   :undoc-members:
-
-.. autoclass :: flint.types._gr.gr_matrix_domain_ctx
-   :members:
-   :undoc-members:
-
-.. autoclass :: flint.types._gr.gr_matrix_space_ctx
-   :members:
-   :undoc-members:
-
-.. autoclass :: flint.types._gr.gr_matrix_ring_ctx
    :members:
    :undoc-members:
 
