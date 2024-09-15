@@ -4,7 +4,6 @@ from flint.flint_base.flint_base cimport (
     ordering_py_to_c,
     ordering_c_to_py,
 )
-from flint.flint_base.flint_base import Ordering
 
 from flint.utils.typecheck cimport typecheck
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError

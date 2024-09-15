@@ -2,7 +2,6 @@ from flint.flintlib.types.flint cimport (
     FLINT_BITS as _FLINT_BITS,
     FLINT_VERSION as _FLINT_VERSION,
     __FLINT_RELEASE as _FLINT_RELEASE,
-    slong
 )
 from flint.utils.flint_exceptions import DomainError
 from flint.flintlib.types.mpoly cimport ordering_t
@@ -10,7 +9,6 @@ from flint.flint_base.flint_context cimport thectx
 from flint.utils.typecheck cimport typecheck
 cimport libc.stdlib
 
-from typing import Optional
 from collections.abc import Iterable
 from flint.utils.flint_exceptions import IncompatibleContextError
 
