@@ -176,12 +176,13 @@ Highlights (0.7.0):
 - [gh-132](https://github.com/flintlib/python-flint/pull/132),
   [gh-164](https://github.com/flintlib/python-flint/pull/164),
   [gh-190](https://github.com/flintlib/python-flint/pull/190),
+  [gh-191](https://github.com/flintlib/python-flint/pull/191):
   [gh-192](https://github.com/flintlib/python-flint/pull/192):
   [gh-216](https://github.com/flintlib/python-flint/pull/216):
   [gh-225](https://github.com/flintlib/python-flint/pull/225):
   Add `fmpz_mpoly`, `fmpq_mpoly`, `nmod_poly` and `fmpz_mod_poly`
   types for multivariate polynomials with integer, rational or
-  integers mod n coefficients. (JM)
+  integers mod `n` coefficients. (JM)
 - [gh-142](https://github.com/flintlib/python-flint/pull/142)
   Add `acb_theta` module for the numerical evaluation of [theta
   functions](https://flintlib.org/doc/acb_theta.html) (only
