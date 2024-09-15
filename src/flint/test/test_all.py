@@ -2859,11 +2859,11 @@ def test_mpolys():
         # division is exact or not.
         composite_characteristic = characteristic != 0 and not characteristic.is_prime()
 
-        ctx = get_context((("x", 2),))
+        ctx = get_context(("x", 2))
 
         assert raises(lambda : ctx.__class__("x", flint.Ordering.lex), RuntimeError)
-        assert raises(lambda: get_context((("x", 2),), ordering="bad"), ValueError)
-        assert raises(lambda: get_context((("x", -1),)), ValueError)
+        assert raises(lambda: get_context(("x", 2), ordering="bad"), ValueError)
+        assert raises(lambda: get_context(("x", -1)), ValueError)
         assert raises(lambda: ctx.constant("bad"), TypeError)
         assert raises(lambda: ctx.from_dict("bad"), ValueError)
         assert raises(lambda: ctx.from_dict({(0, 0): "bad"}), TypeError)
@@ -2891,10 +2891,10 @@ def test_mpolys():
         assert ctx.nvars() == 2
         assert ctx.ordering() == flint.Ordering.lex
 
-        ctx1 = get_context((("x", 4),))
+        ctx1 = get_context(("x", 4))
         assert [ctx1.name(i) for i in range(4)] == ['x0', 'x1', 'x2', 'x3']
         for order in list(flint.Ordering):
-            ctx1 = get_context((("x", 4),), ordering=order)
+            ctx1 = get_context(("x", 4), ordering=order)
             assert ctx1.ordering() == order
 
         assert ctx.constant(1) == mpoly({(0, 0): 1}) == P(1, ctx=ctx)
