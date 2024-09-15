@@ -264,7 +264,7 @@ cdef class flint_poly(flint_elem):
         raise NotImplementedError("Complex roots are not supported for this polynomial")
 
 
-class Ordering(enum.StrEnum):
+class Ordering(enum.Enum):
     lex = "lex"
     deglex = "deglex"
     degrevlex = "degrevlex"
