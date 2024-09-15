@@ -438,7 +438,7 @@ cdef class flint_mpoly_context(flint_elem):
         Create a monomial from a coefficient and exponent vector. ``coeff`` defaults
         to ``1``. ``exp_vec``` defaults to ``(0,) * self.nvars()```.
 
-            >>> from flint import fmpz_mpoly_ctx, Ordering
+            >>> from flint import fmpz_mpoly_ctx
             >>> ctx = fmpz_mpoly_ctx.get(('x', 2), 'lex')
             >>> ctx.term(coeff=5, exp_vec=(2, 3))
             5*x0^2*x1^3
@@ -839,7 +839,7 @@ cdef class flint_mpoly(flint_elem):
         """
         Returns True if ``self`` contains a term with exponent vector ``x`` and a non-zero coefficient.
 
-            >>> from flint import fmpq_mpoly_ctx, Ordering
+            >>> from flint import fmpq_mpoly_ctx
             >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> (1, 1) in p
@@ -860,7 +860,7 @@ cdef class flint_mpoly(flint_elem):
         """
         Return the exponent vectors and coefficient of each term.
 
-            >>> from flint import fmpq_mpoly_ctx, Ordering
+            >>> from flint import fmpq_mpoly_ctx
             >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> list(f.terms())

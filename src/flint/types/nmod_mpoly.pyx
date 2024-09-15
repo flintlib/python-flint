@@ -712,7 +712,7 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         Leading coefficient in the monomial ordering.
 
-            >>> ctx = nmod_mpoly_ctx.get(('x', 'y'), 11, Ordering.lex)
+            >>> ctx = nmod_mpoly_ctx.get(('x', 'y'), 11, 'lex')
             >>> x, y = ctx.gens()
             >>> p = 2*x*y + 3*x + 4*y**2 + 5
             >>> p
