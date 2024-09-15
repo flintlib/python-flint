@@ -2861,6 +2861,7 @@ def test_mpolys():
 
         ctx = get_context((("x", 2),))
 
+        assert raises(lambda : ctx.__class__("x", flint.Ordering.lex), RuntimeError)
         assert raises(lambda: get_context((("x", 2),), ordering="bad"), ValueError)
         assert raises(lambda: get_context((("x", -1),)), ValueError)
         assert raises(lambda: ctx.constant("bad"), TypeError)

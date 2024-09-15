@@ -298,11 +298,31 @@ cdef class flint_mpoly_context(flint_elem):
 
     _ctx_cache = None
 
-    def __init__(self, names: Iterable[str]):
+    def __init__(self, *_, **_2):
+        raise RuntimeError(
+            f"{self.__class__.__name__} should not be constructed directly. "
+            f"Use '{self.__class__.__name__}.get' instead."
+        )
+
+    @classmethod
+    def _new_(_, flint_mpoly_context self, names: Iterable[str]):
+        """
+        Constructor for all mpoly context types. This method is not intended for
+        user-face use. See ``get`` instead.
+
+        Construction via ``__init__`` is disabled to prevent the accidental creation of
+        new mpoly contexts. By ensuring each context is unique they can be compared via
+        pointer comparisons.
+
+        Each concrete subclass should maintain their own context cache in
+        ``_ctx_cache``, and the ``get`` method should insert newly created contexts into
+        the cache.
+        """
         self.py_names = tuple(name.encode("ascii") if not isinstance(name, bytes) else name for name in names)
         self.c_names = <const char**> libc.stdlib.malloc(len(names) * sizeof(const char *))
         for i in range(len(names)):
             self.c_names[i] = self.py_names[i]
+        return self
 
     def __dealloc__(self):
         libc.stdlib.free(self.c_names)
@@ -342,15 +362,17 @@ cdef class flint_mpoly_context(flint_elem):
         return i
 
     @staticmethod
-    def create_variable_names(names: Iterable[str | tuple[str, int]]) -> tuple[str]:
+    def create_variable_names(names: str | Iterable[str | tuple[str, int]]) -> tuple[str]:
         """
-        Create a tuple of variable names based off either ``Iterable[str]``,
+        Create a tuple of variable names based off either ``str``, ``Iterable[str]``,
         ``tuple[str, int]``, or ``Iterable[tuple[str, int]]``.
 
-            >>> flint_mpoly_context.create_variable_names([('x', 3), 'y'])
-            ('x0', 'x1', 'x2', 'y')
+            >>> flint_mpoly_context.create_variable_names('x')
+            ('x',)
             >>> flint_mpoly_context.create_variable_names(('x', 3))
             ('x0', 'x1', 'x2')
+            >>> flint_mpoly_context.create_variable_names([('x', 3), 'y'])
+            ('x0', 'x1', 'x2', 'y')
         """
         res: list[str] = []
 
@@ -372,7 +394,7 @@ cdef class flint_mpoly_context(flint_elem):
     @classmethod
     def create_context_key(
             cls,
-            names: Iterable[str | tuple[str, int]],
+            names: str | Iterable[str | tuple[str, int]],
             ordering: Ordering | str = Ordering.lex
     ):
         """
@@ -391,7 +413,7 @@ cdef class flint_mpoly_context(flint_elem):
 
         ctx = cls._ctx_cache.get(key)
         if ctx is None:
-            ctx = cls._ctx_cache.setdefault(key, cls(*key))
+            ctx = cls._ctx_cache.setdefault(key, cls._new_(*key))
         return ctx
 
     @classmethod
@@ -432,9 +454,12 @@ cdef class flint_mpoly_context(flint_elem):
         return self.from_dict({tuple(exp_vec): coeff})
 
 cdef class flint_mod_mpoly_context(flint_mpoly_context):
-    def __init__(self, names, prime_modulus):
-        super().__init__(names)
+    @classmethod
+    def _new_(_, flint_mod_mpoly_context self, names, prime_modulus):
+        super()._new_(self, names)
         self.__prime_modulus = <bint>prime_modulus
+
+        return self
 
     @classmethod
     def create_context_key(

@@ -101,9 +101,12 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
 
     _ctx_cache = _fmpz_mpoly_ctx_cache
 
-    def __init__(self, names, ordering):
-        super().__init__(names)
+    @classmethod
+    def _new_(cls, names, ordering):
+        cdef fmpz_mpoly_ctx self = cls.__new__(cls)
+        super()._new_(self, names)
         fmpz_mpoly_ctx_init(self.val, len(names), ordering_py_to_c(ordering))
+        return self
 
     def _any_as_scalar(self, other):
         if isinstance(other, int):
