@@ -424,7 +424,7 @@ cdef class flint_mpoly_context(flint_elem):
         to ``1``. ``exp_vec``` defaults to ``(0,) * self.nvars()```.
 
             >>> from flint import fmpz_mpoly_ctx, Ordering
-            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpz_mpoly_ctx.get_context(('x', 2), 'lex')
             >>> ctx.term(coeff=5, exp_vec=(2, 3))
             5*x0^2*x1^3
             >>> ctx.term()
@@ -465,11 +465,11 @@ cdef class flint_mod_mpoly_context(flint_mpoly_context):
         """
         Return whether the modulus is prime
 
-            >>> from flint import Ordering, fmpz_mod_mpoly_ctx
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.degrevlex, 2**127, 'z')
+            >>> from flint import fmpz_mod_mpoly_ctx
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(('z',), 2**127, 'degrevlex')
             >>> ctx.is_prime()
             False
-            >>> ctx = fmpz_mod_mpoly_ctx.get_context(4, Ordering.degrevlex, 2**127 - 1, 'z')
+            >>> ctx = fmpz_mod_mpoly_ctx.get_context(('z',), 2**127 - 1, 'degrevlex')
             >>> ctx.is_prime()
             True
         """
@@ -746,8 +746,8 @@ cdef class flint_mpoly(flint_elem):
         """
         In-place addition, mutates self.
 
-            >>> from flint import Ordering, fmpz_mpoly_ctx
-            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> from flint import fmpz_mpoly_ctx
+            >>> ctx = fmpz_mpoly_ctx.get_context(('x', 2), 'lex')
             >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f
             4*x0*x1 + 2*x0 + 3*x1
@@ -771,8 +771,8 @@ cdef class flint_mpoly(flint_elem):
         """
         In-place subtraction, mutates self.
 
-            >>> from flint import Ordering, fmpz_mpoly_ctx
-            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> from flint import fmpz_mpoly_ctx
+            >>> ctx = fmpz_mpoly_ctx.get_context(('x', 2), 'lex')
             >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f
             4*x0*x1 + 2*x0 + 3*x1
@@ -796,8 +796,8 @@ cdef class flint_mpoly(flint_elem):
         """
         In-place multiplication, mutates self.
 
-            >>> from flint import Ordering, fmpz_mpoly_ctx
-            >>> ctx = fmpz_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> from flint import fmpz_mpoly_ctx
+            >>> ctx = fmpz_mpoly_ctx.get_context(('x', 2), 'lex')
             >>> f = ctx.from_dict({(1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f
             4*x0*x1 + 2*x0 + 3*x1
@@ -822,7 +822,7 @@ cdef class flint_mpoly(flint_elem):
         Returns True if ``self`` contains a term with exponent vector ``x`` and a non-zero coefficient.
 
             >>> from flint import fmpq_mpoly_ctx, Ordering
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> (1, 1) in p
             True
@@ -843,7 +843,7 @@ cdef class flint_mpoly(flint_elem):
         Return the exponent vectors and coefficient of each term.
 
             >>> from flint import fmpq_mpoly_ctx, Ordering
-            >>> ctx = fmpq_mpoly_ctx.get_context(2, Ordering.lex, 'x')
+            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
             >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> list(f.terms())
             [((1, 1), 4), ((1, 0), 2), ((0, 1), 3), ((0, 0), 1)]

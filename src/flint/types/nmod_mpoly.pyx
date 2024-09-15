@@ -124,8 +124,7 @@ cdef class nmod_mpoly_ctx(flint_mod_mpoly_context):
         """
         Return the number of variables in the context
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(4, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 4), 11, 'lex')
             >>> ctx.nvars()
             4
         """
@@ -135,10 +134,9 @@ cdef class nmod_mpoly_ctx(flint_mod_mpoly_context):
         """
         Return the term order of the context object.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(4, Ordering.deglex, 11, 'w')
+            >>> ctx = nmod_mpoly_ctx.get_context(('w', 4), 11, 'deglex')
             >>> ctx.ordering()
-            <Ordering.deglex: 1>
+            <Ordering.deglex: 'deglex'>
         """
         return ordering_c_to_py(self.val.minfo.ord)
 
@@ -146,8 +144,7 @@ cdef class nmod_mpoly_ctx(flint_mod_mpoly_context):
         """
         Return the modulus of the context object.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(4, Ordering.deglex, 2, 'w')
+            >>> ctx = nmod_mpoly_ctx.get_context(('w', 4), 2, 'deglex')
             >>> ctx.modulus()
             2
 
@@ -158,8 +155,7 @@ cdef class nmod_mpoly_ctx(flint_mod_mpoly_context):
         """
         Return the ``i`` th generator of the polynomial ring
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(3, Ordering.degrevlex, 11, 'z')
+            >>> ctx = nmod_mpoly_ctx.get_context(('z', 3), 11, 'degrevlex')
             >>> ctx.gen(1)
             z1
         """
@@ -186,8 +182,7 @@ cdef class nmod_mpoly_ctx(flint_mod_mpoly_context):
         The dictionary's keys are tuples of ints (or anything that implicitly converts
         to fmpz) representing exponents, and corresponding values of fmpz.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x,y')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 'y'), 11, 'lex')
             >>> ctx.from_dict({(1,0):2, (1,1):3, (0,1):1})
             3*x*y + 2*x + y
         """
@@ -308,8 +303,7 @@ cdef class nmod_mpoly(flint_mpoly):
         Always returns a value, missing keys will return ``0``.
         Negative exponents are made positive.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p[1, 1]
             3
@@ -332,8 +326,7 @@ cdef class nmod_mpoly(flint_mpoly):
         Will always set a value, missing keys will create a new term.
         Negative exponents are made positive.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p[1, 1] = 20
             >>> p
@@ -513,8 +506,7 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         Return the exponent vectors of each term as a tuple of fmpz.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
             >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f.monoms()
             [(1, 1), (1, 0), (0, 1), (0, 0)]
@@ -535,8 +527,7 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         Return the coefficients of each term as a fmpz
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
             >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f.coeffs()
             [4, 2, 3, 1]
@@ -548,8 +539,7 @@ cdef class nmod_mpoly(flint_mpoly):
     #     """
     #     Return the terms of this polynomial as a list of nmod_mpolys.
 
-    #         >>> from flint import Ordering
-    #         >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+    #         >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
     #         >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
     #         >>> f.terms()
     #         [4*x0*x1, 2*x0, 3*x1, 1]
@@ -572,8 +562,7 @@ cdef class nmod_mpoly(flint_mpoly):
         Partial evaluate this polynomial with select constants. Keys must be generator names or generator indices,
         all values must be fmpz.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
             >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f.subs({"x1": 0})
             2*x0 + 1
@@ -601,9 +590,8 @@ cdef class nmod_mpoly(flint_mpoly):
         Compose this polynomial with other nmod_mpolys. All arguments must share the same context, it may different
         from this polynomials context.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(1, Ordering.lex, 11, 'x')
-            >>> ctx1 = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'y')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x',), 11, 'lex')
+            >>> ctx1 = nmod_mpoly_ctx.get_context(('y', 2), 11, 'lex')
             >>> f = ctx.from_dict({(2,): 1})
             >>> g = ctx1.from_dict({(1, 0): 1, (0, 1): 1})
             >>> f
@@ -649,8 +637,7 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         Return the context object for this polynomials.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
             >>> p = ctx.from_dict({(0, 1): 2})
             >>> ctx is p.context()
             True
@@ -661,8 +648,7 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         Return the coefficient at index ``i``.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p.coefficient(1)
             2
@@ -676,8 +662,7 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         Return the exponent vector at index ``i`` as a tuple.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p.monomial(1)
             (0, 1)
@@ -695,8 +680,7 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         Return a dictionary of variable name to degree.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(4, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 4), 11, 'lex')
             >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
             >>> p.degrees()
             (1, 2, 3, 0)
@@ -712,8 +696,7 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         Return the total degree.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(4, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 4), 11, 'lex')
             >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
             >>> p.total_degree()
             3
@@ -726,8 +709,7 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         Leading coefficient in the monomial ordering.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx(2, Ordering.lex, ['x', 'y'], 11)
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 'y'), 11, Ordering.lex)
             >>> x, y = ctx.gens()
             >>> p = 2*x*y + 3*x + 4*y**2 + 5
             >>> p
@@ -755,8 +737,7 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         Return the gcd of self and other.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
             >>> f = ctx.from_dict({(1, 1): 4, (0, 0): 1})
             >>> g = ctx.from_dict({(0, 1): 2, (1, 0): 2})
             >>> (f * g).gcd(f)
@@ -778,8 +759,7 @@ cdef class nmod_mpoly(flint_mpoly):
         Return the GCD of the terms of ``self``. If ``self`` is zero, then the result will
         be zero, otherwise it will be a monomial with positive coefficient.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
             >>> x0, x1 = ctx.gens()
             >>> f = 3 * x0**2 * x1 + 6 * x0 * x1
             >>> f.term_content()
@@ -794,8 +774,7 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         Return the resultant of ``self`` and ``other`` with respect to variable ``var``.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
             >>> x0, x1 = ctx.gens()
             >>> f = x0**2 * x1 + x0 * x1
             >>> g = x0 + x1
@@ -821,8 +800,7 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         Return the discriminant of ``self`` with respect to variable ``var``.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
             >>> x0, x1 = ctx.gens()
             >>> f = (x0 + x1)**2 + 1
             >>> f.discriminant('x1')
@@ -843,8 +821,7 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         Return the square root of self.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
             >>> f = ctx.from_dict({(1, 1): 4, (0, 0): 1})
             >>> (f * f).sqrt()
             4*x0*x1 + 1
@@ -866,9 +843,8 @@ cdef class nmod_mpoly(flint_mpoly):
         (c, factors) where c is the content of the coefficients and
         factors is a list of (poly, exp) pairs.
 
-            >>> from flint import Ordering
             >>> Zm = nmod_mpoly
-            >>> ctx = nmod_mpoly_ctx.get_context(3, Ordering.lex, 11, 'x,y,z')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 'y', 'z'), 11, 'lex')
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*z + 3*x + 3*z + 3", ctx)
             >>> (p1 * p2).factor()
@@ -908,9 +884,8 @@ cdef class nmod_mpoly(flint_mpoly):
         (c, factors) where c is the content of the coefficients and
         factors is a list of (poly, exp) pairs.
 
-            >>> from flint import Ordering
             >>> Zm = nmod_mpoly
-            >>> ctx = nmod_mpoly_ctx.get_context(3, Ordering.lex, 11, 'x,y,z')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 'y', 'z'), 11, 'lex')
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*y + 3*x + 3*y + 3", ctx)
             >>> (p1 * p2).factor_squarefree()
@@ -978,8 +953,7 @@ cdef class nmod_mpoly(flint_mpoly):
         The argument can either be the variable as a string, or the index of the
         variable in the context.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, 'x')
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 2), 11, 'lex')
             >>> p = ctx.from_dict({(0, 3): 2, (2, 1): 3})
             >>> p
             3*x0^2*x1 + 2*x1^3
@@ -1003,8 +977,7 @@ cdef class nmod_mpoly(flint_mpoly):
         Compute the inflation of ``self`` for a provided ``N``, that is return ``q``
         such that ``q(X) = p(X^N)``.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 'y'), 11, 'lex')
             >>> x, y = ctx.gens()
             >>> f = x + y + 1
             >>> f.inflate([2, 3])
@@ -1031,8 +1004,7 @@ cdef class nmod_mpoly(flint_mpoly):
         Compute the deflation of ``self`` for a provided ``N``, that is return ``q``
         such that ``q(X) = p(X^(1/N))``.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 'y'), 11, 'lex')
             >>> x, y = ctx.gens()
             >>> f = x**3 * y + x * y**4 + x * y
             >>> f.deflate([2, 3])
@@ -1055,8 +1027,7 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         Compute the deflation of ``self``, that is ``p(X^(1/N))`` for maximal N.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 'y'), 11, 'lex')
             >>> x, y = ctx.gens()
             >>> f = x**2 * y**2 + x * y**2
             >>> q, N = f.deflation()
@@ -1087,8 +1058,7 @@ cdef class nmod_mpoly(flint_mpoly):
         = m * q(X^N)`` for maximal N. The returned monomial allows the undo-ing of the
         deflation.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 'y'), 11, 'lex')
             >>> x, y = ctx.gens()
             >>> f = x**3 * y + x * y**4 + x * y
             >>> fd, N, m = f.deflation_monom()
@@ -1118,8 +1088,7 @@ cdef class nmod_mpoly(flint_mpoly):
         exponents. It is the exponent vector of the monomial returned by
         ``deflation_monom``.
 
-            >>> from flint import Ordering
-            >>> ctx = nmod_mpoly_ctx.get_context(2, Ordering.lex, 11, nametup=('x', 'y'))
+            >>> ctx = nmod_mpoly_ctx.get_context(('x', 'y'), 11, 'lex')
             >>> x, y = ctx.gens()
             >>> f = x**3 * y + x * y**4 + x * y
             >>> N, I = f.deflation_index()
