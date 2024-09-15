@@ -19,12 +19,16 @@ variables over the Gaussian integers :math:`\mathbb{Z}[i][x,y]` we would do::
     >>> ctx = gr_gr_mpoly_ctx.new(gr_fmpzi_ctx, ["x", "y"])
     >>> ctx.gens()
     [x, y]
-    >>> ctx.gens_recursive()
-    [I, x, y]
-    >>> I, x, y = ctx.gens_recursive()
-    >>> p = (x + y + I)**2
+
+    # XXX: gens_recursive not available in FLINT < 3.1
+    # >>> ctx.gens_recursive()
+    # [I, x, y]
+    # >>> I, x, y = ctx.gens_recursive()
+
+    >>> x, y = ctx.gens()
+    >>> p = (x + y)**2
     >>> p
-    x^2 + 2*x*y + (2*I)*x + y^2 + (2*I)*y - 1
+    x^2 + 2*x*y + y^2
 
 Some domains such as ``gr_fmpzi_ctx`` are global and do not need to be created.
 Others such as ``gr_gr_mpoly_ctx`` are created using :meth:`gr_ctx.new`.
