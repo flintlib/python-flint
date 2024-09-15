@@ -89,9 +89,8 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
     """
     A class for storing the polynomial context
 
-    :param nvars: The number of variables in the ring
-    :param ordering:  The term order for the ring
     :param names:  A tuple containing the names of the variables of the ring.
+    :param ordering:  The term order for the ring.
 
     Do not construct one of these directly, use ``fmpz_mpoly_ctx.get``.
     """
