@@ -94,12 +94,12 @@ cdef class nmod_mpoly_ctx(flint_mod_mpoly_context):
 
     _ctx_cache = _nmod_mpoly_ctx_cache
 
-    def __init__(self, slong nvars, ordering, names, modulus: int):
+    def __init__(self, names, ordering, modulus: int):
         if modulus <= 0:
             raise ValueError("modulus must be positive")
 
-        super().__init__(nvars, names, <bint>n_is_prime(modulus))
-        nmod_mpoly_ctx_init(self.val, nvars, ordering_py_to_c(ordering), modulus)
+        super().__init__(names, <bint>n_is_prime(modulus))
+        nmod_mpoly_ctx_init(self.val, len(names), ordering_py_to_c(ordering), modulus)
 
     def _any_as_scalar(self, other):
         if isinstance(other, int):

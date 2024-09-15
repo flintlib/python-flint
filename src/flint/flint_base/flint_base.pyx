@@ -7,15 +7,16 @@ from flint.flintlib.types.flint cimport (
 from flint.utils.flint_exceptions import DomainError
 from flint.flintlib.types.mpoly cimport ordering_t
 from flint.flint_base.flint_context cimport thectx
-from flint.flint_base.flint_base cimport Ordering
 from flint.utils.typecheck cimport typecheck
 cimport libc.stdlib
 
 from typing import Optional
+from collections.abc import Iterable
 from flint.utils.flint_exceptions import IncompatibleContextError
 
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 
+import enum
 
 FLINT_BITS = _FLINT_BITS
 FLINT_VERSION = _FLINT_VERSION.decode("ascii")
@@ -265,6 +266,31 @@ cdef class flint_poly(flint_elem):
         raise NotImplementedError("Complex roots are not supported for this polynomial")
 
 
+class Ordering(enum.StrEnum):
+    lex = "lex"
+    deglex = "deglex"
+    degrevlex = "degrevlex"
+
+
+cdef ordering_t ordering_py_to_c(ordering):
+    if ordering == Ordering.lex:
+        return ordering_t.ORD_LEX
+    elif ordering == Ordering.deglex:
+        return ordering_t.ORD_DEGLEX
+    elif ordering == Ordering.degrevlex:
+        return ordering_t.ORD_DEGREVLEX
+
+cdef ordering_c_to_py(ordering_t ordering):
+    if ordering == ordering_t.ORD_LEX:
+        return Ordering.lex
+    elif ordering == ordering_t.ORD_DEGLEX:
+        return Ordering.deglex
+    elif ordering == ordering_t.ORD_DEGREVLEX:
+        return Ordering.degrevlex
+    else:
+        raise ValueError("unimplemented term order %d" % ordering)
+
+
 cdef class flint_mpoly_context(flint_elem):
     """
     Base class for multivariate ring contexts
@@ -272,14 +298,10 @@ cdef class flint_mpoly_context(flint_elem):
 
     _ctx_cache = None
 
-    def __init__(self, int nvars, names):
-        if nvars < 0:
-            raise ValueError("cannot have a negative amount of variables")
-        elif len(names) != nvars:
-            raise ValueError("number of variables must match number of variable names")
+    def __init__(self, names: Iterable[str]):
         self.py_names = tuple(name.encode("ascii") if not isinstance(name, bytes) else name for name in names)
-        self.c_names = <const char**> libc.stdlib.malloc(nvars * sizeof(const char *))
-        for i in range(nvars):
+        self.c_names = <const char**> libc.stdlib.malloc(len(names) * sizeof(const char *))
+        for i in range(len(names)):
             self.c_names[i] = self.py_names[i]
 
     def __dealloc__(self):
@@ -292,18 +314,18 @@ cdef class flint_mpoly_context(flint_elem):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.nvars()}, '{repr(self.ordering())}', {self.names()})"
 
-    def name(self, long i):
+    def name(self, i: int):
         if not 0 <= i < len(self.py_names):
             raise IndexError("variable name index out of range")
         return self.py_names[i].decode("ascii")
 
-    def names(self):
+    def names(self) -> tuple[str]:
         return tuple(name.decode("ascii") for name in self.py_names)
 
     def gens(self):
         return tuple(self.gen(i) for i in range(self.nvars()))
 
-    def variable_to_index(self, var: Union[int, str]):
+    def variable_to_index(self, var: Union[int, str]) -> int:
         """Convert a variable name string or possible index to its index in the context."""
         if isinstance(var, str):
             try:
@@ -320,48 +342,55 @@ cdef class flint_mpoly_context(flint_elem):
         return i
 
     @staticmethod
-    def create_variable_names(slong nvars, names: str):
+    def create_variable_names(names: Iterable[str | tuple[str, int]]) -> tuple[str]:
         """
-        Create a tuple of variable names based on the comma separated ``names`` string.
+        Create a tuple of variable names based off either ``Iterable[str]``,
+        ``tuple[str, int]``, or ``Iterable[tuple[str, int]]``.
 
-        If ``names`` contains a single value, and ``nvars`` > 1, then the variables are numbered, e.g.
-
-            >>> flint_mpoly_context.create_variable_names(3, "x")
+            >>> flint_mpoly_context.create_variable_names([('x', 3), 'y'])
+            ('x0', 'x1', 'x2', 'y')
+            >>> flint_mpoly_context.create_variable_names(('x', 3))
             ('x0', 'x1', 'x2')
-
         """
-        nametup = tuple(name.strip() for name in names.split(','))
-        if len(nametup) != nvars:
-            if len(nametup) == 1:
-                nametup = tuple(nametup[0] + str(i) for i in range(nvars))
+        res: list[str] = []
+
+        # Provide a convenience method to avoid having to pass a nested tuple
+        if len(names) == 2 and isinstance(names[0], str) and isinstance(names[1], int):
+            names = (names,)
+
+        for name in names:
+            if isinstance(name, str):
+                res.append(name)
             else:
-                raise ValueError("number of variables does not equal number of names")
-        return nametup
+                base, num = name
+                if num < 0:
+                    raise ValueError("cannot create a negative number of variables")
+                res.extend(base + str(i) for i in range(num))
+
+        return tuple(res)
 
     @classmethod
-    def create_context_key(cls, slong nvars=1, ordering=Ordering.lex, names: Optional[str] = "x", nametup: Optional[tuple] = None):
+    def create_context_key(
+            cls,
+            names: Iterable[str | tuple[str, int]],
+            ordering: Ordering | str = Ordering.lex
+    ):
         """
-        Create a key for the context cache via the number of variables, the ordering, and
-        either a variable name string, or a tuple of variable names.
+        Create a key for the context cache via the variable names and the ordering.
         """
         # A type hint of ``ordering: Ordering`` results in the error "TypeError: an integer is required" if a Ordering
         # object is not provided. This is pretty obtuse so we check its type ourselves
-        if not isinstance(ordering, Ordering):
-            raise TypeError(f"'ordering' ('{ordering}') is not an instance of flint.Ordering")
+        # if not isinstance(ordering, Ordering):
+        #     raise TypeError(f"'ordering' ('{ordering}') is not an instance of flint.Ordering")
 
-        if nametup is not None:
-            key = nvars, ordering, nametup
-        elif nametup is None and names is not None:
-            key = nvars, ordering, cls.create_variable_names(nvars, names)
-        else:
-            raise ValueError("must provide either 'names' or 'nametup'")
-        return key
+        return cls.create_variable_names(names), Ordering(ordering) if not isinstance(ordering, Ordering) else ordering
 
     @classmethod
     def get_context(cls, *args, **kwargs):
         """
-        Retrieve a context via the number of variables, ``nvars``, the ordering, ``ordering``, and either a variable
-        name string, ``names``, or a tuple of variable names, ``nametup``.
+        Retrieve or create a context via generator names, ``names`` and the ordering, ``ordering``.
+
+        See ``create_variable_names`` for naming schemes.
         """
         key = cls.create_context_key(*args, **kwargs)
 
@@ -373,10 +402,8 @@ cdef class flint_mpoly_context(flint_elem):
     @classmethod
     def from_context(cls, ctx: flint_mpoly_context):
         return cls.get_context(
-            nvars=ctx.nvars(),
             ordering=ctx.ordering(),
-            names=None,
-            nametup=ctx.names()
+            names=ctx.names(),
         )
 
     def _any_as_scalar(self, other):
@@ -410,35 +437,29 @@ cdef class flint_mpoly_context(flint_elem):
         return self.from_dict({tuple(exp_vec): coeff})
 
 cdef class flint_mod_mpoly_context(flint_mpoly_context):
-    def __init__(self, nvars, names, prime_modulus):
-        super().__init__(nvars, names)
+    def __init__(self, names, prime_modulus):
+        super().__init__(names)
         self.__prime_modulus = <bint>prime_modulus
 
     @classmethod
     def create_context_key(
             cls,
-            slong nvars=1,
-            ordering=Ordering.lex,
-            modulus = None,
-            names: Optional[str] = "x",
-            nametup: Optional[tuple] = None,
+            names: Iterable[str | tuple[str, int]],
+            modulus,
+            ordering: Ordering | str = Ordering.lex
     ):
         """
-        Create a key for the context cache via the number of variables, the ordering, the modulus, and either a
-        variable name string, or a tuple of variable names.
+        Create a key for the context cache via the variable names, modulus, and the ordering.
         """
-        # A type hint of ``ordering: Ordering`` results in the error "TypeError: an integer is required" if a Ordering
-        # object is not provided. This is pretty obtuse so we check its type ourselves
-        if not isinstance(ordering, Ordering):
-            raise TypeError(f"'ordering' ('{ordering}') is not an instance of flint.Ordering")
+        return *super().create_context_key(names, ordering), modulus
 
-        if nametup is not None:
-            key = nvars, ordering, nametup, modulus
-        elif nametup is None and names is not None:
-            key = nvars, ordering, cls.create_variable_names(nvars, names), modulus
-        else:
-            raise ValueError("must provide either 'names' or 'nametup'")
-        return key
+    @classmethod
+    def from_context(cls, ctx: flint_mod_mpoly_context):
+        return cls.get_context(
+            names=ctx.names(),
+            modulus=ctx.modulus(),
+            ordering=ctx.ordering(),
+        )
 
     def is_prime(self):
         """
@@ -898,26 +919,3 @@ cdef class flint_mat(flint_elem):
 
     # supports mpmath conversions
     tolist = table
-
-
-cdef ordering_t ordering_py_to_c(ordering):  # Cython does not like an "Ordering" type hint here
-    if not isinstance(ordering, Ordering):
-        raise TypeError(f"'ordering' ('{ordering}') is not an instance of flint.Ordering")
-
-    if ordering == Ordering.lex:
-        return ordering_t.ORD_LEX
-    elif ordering == Ordering.deglex:
-        return ordering_t.ORD_DEGLEX
-    elif ordering == Ordering.degrevlex:
-        return ordering_t.ORD_DEGREVLEX
-
-
-cdef ordering_c_to_py(ordering_t ordering):
-    if ordering == ordering_t.ORD_LEX:
-        return Ordering.lex
-    elif ordering == ordering_t.ORD_DEGLEX:
-        return Ordering.deglex
-    elif ordering == ordering_t.ORD_DEGREVLEX:
-        return Ordering.degrevlex
-    else:
-        raise ValueError("unimplemented term order %d" % ordering)

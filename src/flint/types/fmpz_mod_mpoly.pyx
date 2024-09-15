@@ -89,7 +89,7 @@ cdef class fmpz_mod_mpoly_ctx(flint_mod_mpoly_context):
 
     _ctx_cache = _fmpz_mod_mpoly_ctx_cache
 
-    def __init__(self, slong nvars, ordering, names, modulus):
+    def __init__(self, names, ordering, modulus):
         cdef fmpz m
         if not typecheck(modulus, fmpz):
             m = any_as_fmpz(modulus)
@@ -98,8 +98,8 @@ cdef class fmpz_mod_mpoly_ctx(flint_mod_mpoly_context):
         else:
             m = modulus
 
-        super().__init__(nvars, names, m.is_prime())
-        fmpz_mod_mpoly_ctx_init(self.val, nvars, ordering_py_to_c(ordering), m.val)
+        super().__init__(names, m.is_prime())
+        fmpz_mod_mpoly_ctx_init(self.val, len(names), ordering_py_to_c(ordering), m.val)
 
     def _any_as_scalar(self, other):
         if isinstance(other, int):

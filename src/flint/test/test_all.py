@@ -2859,14 +2859,10 @@ def test_mpolys():
         # division is exact or not.
         composite_characteristic = characteristic != 0 and not characteristic.is_prime()
 
-        ctx = get_context(nvars=2)
+        ctx = get_context((("x", 2),))
 
-        assert raises(lambda: get_context(nvars=2, ordering="bad"), TypeError)
-        assert raises(lambda: get_context(nvars=-1), ValueError)
-        if ctx.__class__ is flint.fmpz_mod_mpoly_ctx or ctx.__class__ is flint.nmod_mpoly_ctx:
-            assert raises(lambda: ctx.__class__(-1, flint.Ordering.lex, [], 4), ValueError)
-        else:
-            assert raises(lambda: ctx.__class__(-1, flint.Ordering.lex, []), ValueError)
+        assert raises(lambda: get_context((("x", 2),), ordering="bad"), ValueError)
+        assert raises(lambda: get_context((("x", -1),)), ValueError)
         assert raises(lambda: ctx.constant("bad"), TypeError)
         assert raises(lambda: ctx.from_dict("bad"), ValueError)
         assert raises(lambda: ctx.from_dict({(0, 0): "bad"}), TypeError)
@@ -2875,7 +2871,7 @@ def test_mpolys():
         assert raises(lambda: ctx.gen(-1), IndexError)
         assert raises(lambda: ctx.gen(10), IndexError)
 
-        assert raises(lambda: P(val=get_context(nvars=1).constant(0), ctx=ctx), IncompatibleContextError)
+        assert raises(lambda: P(val=get_context(("x",)).constant(0), ctx=ctx), IncompatibleContextError)
         assert raises(lambda: P(val={}, ctx=None), ValueError)
         assert raises(lambda: P(val={"bad": 1}, ctx=None), ValueError)
         assert raises(lambda: P(val="1", ctx=None), ValueError)
@@ -2894,10 +2890,10 @@ def test_mpolys():
         assert ctx.nvars() == 2
         assert ctx.ordering() == flint.Ordering.lex
 
-        ctx1 = get_context(4)
+        ctx1 = get_context((("x", 4),))
         assert [ctx1.name(i) for i in range(4)] == ['x0', 'x1', 'x2', 'x3']
         for order in list(flint.Ordering):
-            ctx1 = get_context(4, order)
+            ctx1 = get_context((("x", 4),), ordering=order)
             assert ctx1.ordering() == order
 
         assert ctx.constant(1) == mpoly({(0, 0): 1}) == P(1, ctx=ctx)
@@ -2948,7 +2944,7 @@ def test_mpolys():
         assert P({(0, 1): 3}, ctx=ctx) == ctx.from_dict({(0, 1): 3})
 
         if P is flint.fmpq_mpoly:
-            ctx_z = flint.fmpz_mpoly_ctx.get_context(2)
+            ctx_z = flint.fmpz_mpoly_ctx.get_context((("x", 2),))
             assert quick_poly() == P(ctx_z.from_dict({(0, 0): 1, (0, 1): 2, (1, 0): 3, (2, 2): 4}))
             assert P(ctx_z.from_dict({(0, 0): 1}), ctx=ctx) == P({(0, 0): 1}, ctx=ctx)
 
@@ -2997,8 +2993,8 @@ def test_mpolys():
 
         assert raises(lambda: p.__setitem__((2, 1), None), TypeError)
 
-        assert P(ctx=ctx).repr() == f"{ctx.__class__.__name__}(2, '<Ordering.lex: 0>', ('x0', 'x1')).from_dict({{}})"
-        assert P(1, ctx=ctx).repr() == f"{ctx.__class__.__name__}(2, '<Ordering.lex: 0>', ('x0', 'x1')).from_dict({{(0, 0): 1}})"
+        assert P(ctx=ctx).repr() == f"{ctx.__class__.__name__}(2, '<Ordering.lex: 'lex'>', ('x0', 'x1')).from_dict({{}})"
+        assert P(1, ctx=ctx).repr() == f"{ctx.__class__.__name__}(2, '<Ordering.lex: 'lex'>', ('x0', 'x1')).from_dict({{(0, 0): 1}})"
         assert str(quick_poly()) == repr(quick_poly()) == '4*x0^2*x1^2 + 3*x0 + 2*x1 + 1'
 
         assert p.monomial(0) == (2, 2)
@@ -3039,7 +3035,7 @@ def test_mpolys():
         assert raises(lambda: p.subs({"a": 1}), ValueError)
         assert raises(lambda: p.subs({"x0": 0, "x1": 1, "x2": 2}), ValueError)
 
-        no_gens_ctx = get_context(0)
+        no_gens_ctx = get_context(tuple())
         no_gens_p = P("2", no_gens_ctx)
         assert no_gens_p.compose(ctx=ctx1).context() is ctx1
         assert raises(lambda: no_gens_p.compose(), ValueError)
@@ -3318,8 +3314,8 @@ def test_fmpz_mpoly_vec():
     for context, mpoly_vec in _all_mpoly_vecs():
         has_groebner_functions = mpoly_vec is flint.fmpz_mpoly_vec
 
-        ctx = context.get_context(nvars=2)
-        ctx1 = context.get_context(nvars=4)
+        ctx = context.get_context((("x", 2),))
+        ctx1 = context.get_context((("x", 4),))
         x, y = ctx.gens()
 
         vec = mpoly_vec(3, ctx)
@@ -3348,7 +3344,7 @@ def test_fmpz_mpoly_vec():
         assert raises(lambda: vec.__setitem__(0, ctx1.from_dict({})), IncompatibleContextError)
 
         if has_groebner_functions:
-            ctx = context.get_context(3, flint.Ordering.lex, nametup=('x', 'y', 'z'))
+            ctx = context.get_context(("x", "y", "z"))
 
             # Examples here cannibalised from
             # https://en.wikipedia.org/wiki/Gr%C3%B6bner_basis#Example_and_counterexample
@@ -3412,7 +3408,7 @@ def _all_polys_mpolys():
         yield P, S, [x, y], is_field, characteristic
 
     for P, get_context, S, is_field, characteristic in _all_mpolys():
-        ctx = get_context(2, flint.Ordering.lex, nametup=("x", "y"))
+        ctx = get_context(("x", "y"))
         x, y = ctx.gens()
         assert isinstance(x, (
             flint.fmpz_mpoly,
