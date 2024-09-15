@@ -93,7 +93,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
     :param ordering:  The term order for the ring
     :param names:  A tuple containing the names of the variables of the ring.
 
-    Do not construct one of these directly, use ``fmpz_mpoly_ctx.get_context``.
+    Do not construct one of these directly, use ``fmpz_mpoly_ctx.get``.
     """
 
     _ctx_cache = _fmpq_mpoly_ctx_cache
@@ -122,7 +122,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
         """
         Return the number of variables in the context
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 4), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 4), 'lex')
             >>> ctx.nvars()
             4
         """
@@ -132,7 +132,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
         """
         Return the term order of the context object.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('w', 4), 'deglex')
+            >>> ctx = fmpq_mpoly_ctx.get(('w', 4), 'deglex')
             >>> ctx.ordering()
             <Ordering.deglex: 'deglex'>
         """
@@ -142,7 +142,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
         """
         Return the ``i`` th generator of the polynomial ring
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('z', 3), 'degrevlex')
+            >>> ctx = fmpq_mpoly_ctx.get(('z', 3), 'degrevlex')
             >>> ctx.gen(1)
             z1
         """
@@ -172,7 +172,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
         The dictionary's keys are tuples of ints (or anything that implicitly converts
         to fmpz) representing exponents, and corresponding coefficient values of fmpq.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 'y'), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 'y'), 'lex')
             >>> ctx.from_dict({(1,0):2, (1,1):3, (0,1):1})
             3*x*y + 2*x + y
         """
@@ -302,7 +302,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         Always returns a value, missing keys will return ``0``.
         Negative exponents are made positive.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p[1, 1]
             3
@@ -327,7 +327,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         Will always set a value, missing keys will create a new term.
         Negative exponents are made positive.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p[1, 1] = 20
             >>> p
@@ -505,7 +505,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the exponent vectors of each term as a tuple of fmpz.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f.monoms()
             [(1, 1), (1, 0), (0, 1), (0, 0)]
@@ -526,7 +526,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the coefficients of each term as a fmpq.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f.coeffs()
             [4, 2, 3, 1]
@@ -548,7 +548,7 @@ cdef class fmpq_mpoly(flint_mpoly):
     #     """
     #     Return the terms of this polynomial as a list of fmpq_mpolys.
 
-    #         >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+    #         >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
     #         >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
     #         >>> f.terms()
     #         [4*x0*x1, 2*x0, 3*x1, 1]
@@ -571,7 +571,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         Partial evaluate this polynomial with select constants. Keys must be generator names or generator indices,
         all values must be fmpq.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
             >>> f.subs({"x1": 0})
             2*x0 + 1
@@ -600,8 +600,8 @@ cdef class fmpq_mpoly(flint_mpoly):
         Compose this polynomial with other fmpq_mpolys. All arguments must share the same context, it may different
         from this polynomials context.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x',), 'lex')
-            >>> ctx1 = fmpq_mpoly_ctx.get_context(('y', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x',), 'lex')
+            >>> ctx1 = fmpq_mpoly_ctx.get(('y', 2), 'lex')
             >>> f = ctx.from_dict({(2,): 1})
             >>> g = ctx1.from_dict({(1, 0): 1, (0, 1): 1})
             >>> f
@@ -649,7 +649,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the context object for this polynomials.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> p = ctx.from_dict({(0, 1): 2})
             >>> ctx is p.context()
             True
@@ -660,7 +660,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the coefficient at index ``i``.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p.coefficient(1)
             2
@@ -677,7 +677,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the exponent vector at index ``i`` as a tuple.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> p = ctx.from_dict({(0, 1): 2, (1, 1): 3})
             >>> p.monomial(1)
             (0, 1)
@@ -695,7 +695,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return a dictionary of variable name to degree.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 4), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 4), 'lex')
             >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
             >>> p.degrees()
             (1, 2, 3, 0)
@@ -711,7 +711,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the total degree.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 4), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 4), 'lex')
             >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
             >>> p.total_degree()
             3
@@ -724,7 +724,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Leading coefficient in the monomial ordering.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 'y'), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 'y'), 'lex')
             >>> x, y = ctx.gens()
             >>> p = 2*x*y + 3*x + 4*y**2 + 5
             >>> p
@@ -753,7 +753,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the gcd of self and other.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> f = ctx.from_dict({(1, 1): 4, (0, 0): 1})
             >>> g = ctx.from_dict({(0, 1): 2, (1, 0): 2})
             >>> (f * g).gcd(f)
@@ -774,7 +774,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         Return the GCD of the terms of ``self``. If ``self`` is zero, then the result will
         be zero, otherwise it will be a monomial with positive coefficient.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> x0, x1 = ctx.gens()
             >>> f = 3 * x0**2 * x1 + 6 * x0 * x1
             >>> f.term_content()
@@ -788,7 +788,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the resultant of ``self`` and ``other`` with respect to variable ``var``.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> x0, x1 = ctx.gens()
             >>> f = x0**2 * x1 + x0 * x1
             >>> g = x0 + x1
@@ -814,7 +814,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the discriminant of ``self`` with respect to variable ``var``.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> x0, x1 = ctx.gens()
             >>> f = (x0 + x1)**2 + 1
             >>> f.discriminant('x1')
@@ -835,7 +835,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Return the square root of self.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> f = ctx.from_dict({(1, 1): 4, (0, 0): 1})
             >>> (f * f).sqrt()
             4*x0*x1 + 1
@@ -855,7 +855,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         factors is a list of (poly, exp) pairs.
 
             >>> Zm = fmpq_mpoly
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 'y', 'z'), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 'y', 'z'), 'lex')
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*z + 3*x + 3*z + 3", ctx)
             >>> (p1 * p2).factor()
@@ -893,7 +893,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         factors is a list of (poly, exp) pairs.
 
             >>> Zm = fmpq_mpoly
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 'y', 'z'), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 'y', 'z'), 'lex')
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*y + 3*x + 3*y + 3", ctx)
             >>> (p1 * p2).factor_squarefree()
@@ -930,7 +930,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         The argument can either be the variable as a string, or the index of the
         variable in the context.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> p = ctx.from_dict({(0, 3): 2, (2, 1): 3})
             >>> p
             3*x0^2*x1 + 2*x1^3
@@ -954,7 +954,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         Return the integral of this polynomial with respect to the provided variable The argument can either be the
         variable as a string, or the index of the variable in the context.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 2), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
             >>> p = ctx.from_dict({(0, 3): 2, (2, 1): 3})
             >>> p
             3*x0^2*x1 + 2*x1^3
@@ -978,7 +978,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         Compute the inflation of ``self`` for a provided ``N``, that is return ``q``
         such that ``q(X) = p(X^N)``.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 'y'), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 'y'), 'lex')
             >>> x, y = ctx.gens()
             >>> f = x + y + 1
             >>> f.inflate([2, 3])
@@ -1006,7 +1006,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         Compute the deflation of ``self`` for a provided ``N``, that is return ``q``
         such that ``q(X) = p(X^(1/N))``.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 'y'), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 'y'), 'lex')
             >>> x, y = ctx.gens()
             >>> f = x**3 * y + x * y**4 + x * y
             >>> f.deflate([2, 3])
@@ -1030,7 +1030,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         Compute the deflation of ``self``, that is ``p(X^(1/N))`` for maximal N.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 'y'), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 'y'), 'lex')
             >>> x, y = ctx.gens()
             >>> f = x**2 * y**2 + x * y**2
             >>> q, N = f.deflation()
@@ -1062,7 +1062,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         = m * q(X^N)`` for maximal N. The returned monomial allows the undo-ing of the
         deflation.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 'y'), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 'y'), 'lex')
             >>> x, y = ctx.gens()
             >>> f = x**3 * y + x * y**4 + x * y
             >>> fd, N, m = f.deflation_monom()
@@ -1093,7 +1093,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         exponents. It is the exponent vector of the monomial returned by
         ``deflation_monom``.
 
-            >>> ctx = fmpq_mpoly_ctx.get_context(('x', 'y'), 'lex')
+            >>> ctx = fmpq_mpoly_ctx.get(('x', 'y'), 'lex')
             >>> x, y = ctx.gens()
             >>> f = x**3 * y + x * y**4 + x * y
             >>> N, I = f.deflation_index()

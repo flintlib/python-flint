@@ -2104,7 +2104,7 @@ def test_fmpz_mod_poly():
         assert pow(f, 2**60, g) == pow(pow(f, 2**30, g), 2**30, g)
         assert pow(R_gen, 2**60, g) == pow(pow(R_gen, 2**30, g), 2**30, g)
 
-        # Check other typechecks for pow_mod 
+        # Check other typechecks for pow_mod
         assert raises(lambda: pow(f, -2, g), ValueError)
         assert raises(lambda: pow(f, 1, "A"), TypeError)
         assert raises(lambda: pow(f, "A", g), TypeError)
@@ -2756,7 +2756,7 @@ def test_polys():
         assert P([1, 1]) ** 2 == P([1, 2, 1])
         assert raises(lambda: P([1, 1]) ** -1, ValueError)
         assert raises(lambda: P([1, 1]) ** None, TypeError)
-        
+
         # XXX: Not sure what this should do in general:
         p = P([1, 1])
         mod = P([1, 1])
@@ -2816,32 +2816,32 @@ def test_polys():
 
 def _all_mpolys():
     return [
-        (flint.fmpz_mpoly, flint.fmpz_mpoly_ctx.get_context, flint.fmpz, False, flint.fmpz(0)),
-        (flint.fmpq_mpoly, flint.fmpq_mpoly_ctx.get_context, flint.fmpq, True, flint.fmpz(0)),
+        (flint.fmpz_mpoly, flint.fmpz_mpoly_ctx.get, flint.fmpz, False, flint.fmpz(0)),
+        (flint.fmpq_mpoly, flint.fmpq_mpoly_ctx.get, flint.fmpq, True, flint.fmpz(0)),
         (
             flint.fmpz_mod_mpoly,
-            lambda *args, **kwargs: flint.fmpz_mod_mpoly_ctx.get_context(*args, **kwargs, modulus=101),
+            lambda *args, **kwargs: flint.fmpz_mod_mpoly_ctx.get(*args, **kwargs, modulus=101),
             lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(101)),
             True,
             flint.fmpz(101),
         ),
         (
             flint.fmpz_mod_mpoly,
-            lambda *args, **kwargs: flint.fmpz_mod_mpoly_ctx.get_context(*args, **kwargs, modulus=100),
+            lambda *args, **kwargs: flint.fmpz_mod_mpoly_ctx.get(*args, **kwargs, modulus=100),
             lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(100)),
             False,
             flint.fmpz(100),
         ),
         (
             flint.nmod_mpoly,
-            lambda *args, **kwargs: flint.nmod_mpoly_ctx.get_context(*args, **kwargs, modulus=101),
+            lambda *args, **kwargs: flint.nmod_mpoly_ctx.get(*args, **kwargs, modulus=101),
             lambda x: flint.nmod(x, 101),
             True,
             flint.fmpz(101),
         ),
         (
             flint.nmod_mpoly,
-            lambda *args, **kwargs: flint.nmod_mpoly_ctx.get_context(*args, **kwargs, modulus=100),
+            lambda *args, **kwargs: flint.nmod_mpoly_ctx.get(*args, **kwargs, modulus=100),
             lambda x: flint.nmod(x, 100),
             False,
             flint.fmpz(100),
@@ -2944,7 +2944,7 @@ def test_mpolys():
         assert P({(0, 1): 3}, ctx=ctx) == ctx.from_dict({(0, 1): 3})
 
         if P is flint.fmpq_mpoly:
-            ctx_z = flint.fmpz_mpoly_ctx.get_context((("x", 2),))
+            ctx_z = flint.fmpz_mpoly_ctx.get((("x", 2),))
             assert quick_poly() == P(ctx_z.from_dict({(0, 0): 1, (0, 1): 2, (1, 0): 3, (2, 2): 4}))
             assert P(ctx_z.from_dict({(0, 0): 1}), ctx=ctx) == P({(0, 0): 1}, ctx=ctx)
 
@@ -3314,8 +3314,8 @@ def test_fmpz_mpoly_vec():
     for context, mpoly_vec in _all_mpoly_vecs():
         has_groebner_functions = mpoly_vec is flint.fmpz_mpoly_vec
 
-        ctx = context.get_context((("x", 2),))
-        ctx1 = context.get_context((("x", 4),))
+        ctx = context.get((("x", 2),))
+        ctx1 = context.get((("x", 4),))
         x, y = ctx.gens()
 
         vec = mpoly_vec(3, ctx)
@@ -3344,7 +3344,7 @@ def test_fmpz_mpoly_vec():
         assert raises(lambda: vec.__setitem__(0, ctx1.from_dict({})), IncompatibleContextError)
 
         if has_groebner_functions:
-            ctx = context.get_context(("x", "y", "z"))
+            ctx = context.get(("x", "y", "z"))
 
             # Examples here cannibalised from
             # https://en.wikipedia.org/wiki/Gr%C3%B6bner_basis#Example_and_counterexample
@@ -3407,8 +3407,8 @@ def _all_polys_mpolys():
         ))
         yield P, S, [x, y], is_field, characteristic
 
-    for P, get_context, S, is_field, characteristic in _all_mpolys():
-        ctx = get_context(("x", "y"))
+    for P, get, S, is_field, characteristic in _all_mpolys():
+        ctx = get(("x", "y"))
         x, y = ctx.gens()
         assert isinstance(x, (
             flint.fmpz_mpoly,
@@ -4159,7 +4159,7 @@ def test_fq_default():
 
     # p must be prime
     assert raises(lambda: flint.fq_default_ctx(10), ValueError)
-    
+
     # degree must be positive
     assert raises(lambda: flint.fq_default_ctx(11, -1), ValueError)
 
