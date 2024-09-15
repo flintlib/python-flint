@@ -96,3 +96,10 @@ Power series types
    arb_series.rst
    acb_series.rst
 
+Experimental generic rings interface
+....................................
+
+.. toctree::
+   :maxdepth: 1
+
+   _gr.rst
