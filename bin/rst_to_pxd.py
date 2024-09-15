@@ -52,6 +52,9 @@ comment_set = set(["FILE", "mpz_t", "mpq_t"])
 c_types = set(["void", "char", "short", "long", "int", "float", "double"])
 type_modifers = re.compile(r"\*|(\bconst\b)|(\bunsigned\b)|(\bsigned\b)")
 import_dict = {}
+# gr_domains.rst lists functions that are in gr.h
+doc_to_header = {'flint/gr_domains': 'flint/gr'}
+
 
 def get_cython_struct_types(file):
     """
@@ -144,6 +147,9 @@ def get_all_types(function_list):
 
 
 def has_types(line, types):
+    #ts = set(t for t in get_parameter_types(line) if t in types)
+    #if ts:
+    #    print(ts, file=sys.stderr)
     return any(t in types for t in get_parameter_types(line))
 
 
@@ -171,7 +177,9 @@ def generate_pxd_file(h_name, opts):
     fill_import_dict(opts.flint_lib_dir)
     l=[]
     docdir = opts.arb_doc_dir
-    name = h_name 
+    name = h_name
+    h_name = doc_to_header.get(h_name, h_name)
+
     if name[:6] == "flint/":
         docdir = opts.flint_doc_dir
         name = name[6:]
