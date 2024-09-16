@@ -45,13 +45,14 @@ cdef extern from "flint/fmpz.h":
 
 cdef extern from *:
     """
-    /*
-     * Functions renamed in Flint 3.2.0
-     */
     #if __FLINT_RELEASE < 30200 /* Flint < 3.2.0 */
 
+    /* Functions renamed in Flint 3.2.0 */
     #define flint_rand_init flint_randinit
     #define flint_rand_clear flint_randclear
+
+    /* Functions added in Flint 3.2.0 */
+    #define fmpz_mod_mpoly_compose_fmpz_mod_mpoly_gen(...) (void)0
 
     #endif
     """

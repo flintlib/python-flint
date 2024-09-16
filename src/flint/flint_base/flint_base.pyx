@@ -950,7 +950,7 @@ cdef class flint_mpoly(flint_elem):
         )
         return new_ctx, self.coerce_to_context(new_ctx)
 
-    def coerce_to_context(self, ctx, mapping: dict[str | int, str | int] = None):
+    def coerce_to_context(self, other_ctx, mapping: dict[str | int, str | int] = None):
         """
         Coerce this polynomial to a different context.
 
@@ -975,23 +975,24 @@ cdef class flint_mpoly(flint_elem):
             slong *c_mapping
             slong i
 
-        if not typecheck(ctx, type(self.ctx)):
+        ctx = self.context()
+        if not typecheck(other_ctx, type(ctx)):
             raise ValueError(
-                f"provided context is not a {self.ctx.__class__.__name__}"
+                f"provided context is not a {ctx.__class__.__name__}"
             )
-        elif self.ctx is ctx:
+        elif ctx is other_ctx:
             return self
 
         if mapping is None:
-            mapping = self.ctx.infer_generator_mapping(ctx)
+            mapping = ctx.infer_generator_mapping(other_ctx)
         else:
             mapping = {
-                self.ctx.variable_to_index(k): ctx.variable_to_index(v)
+                ctx.variable_to_index(k): ctx.variable_to_index(v)
                 for k, v in mapping.items()
             }
 
         try:
-            c_mapping = <slong *> libc.stdlib.malloc(self.ctx.nvars() * sizeof(slong *))
+            c_mapping = <slong *> libc.stdlib.malloc(ctx.nvars() * sizeof(slong *))
             if c_mapping is NULL:
                 raise MemoryError("malloc returned a null pointer")
 
@@ -1001,11 +1002,11 @@ cdef class flint_mpoly(flint_elem):
             for k, v in mapping.items():
                 c_mapping[k] = <slong>v
 
-            return self._compose_gens_(ctx, c_mapping)
+            return self._compose_gens_(other_ctx, c_mapping)
         finally:
             libc.stdlib.free(c_mapping)
 
-    cdef _compose_gens_(self, ctx, slong *mapping):
+    cdef _compose_gens_(self, other_ctx, slong *mapping):
         raise NotImplementedError("abstract method")
 
 
