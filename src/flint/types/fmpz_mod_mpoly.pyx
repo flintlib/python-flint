@@ -18,7 +18,9 @@ from flint.flintlib.functions.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_add,
     fmpz_mod_mpoly_add_fmpz,
     fmpz_mod_mpoly_clear,
+    fmpz_mod_mpoly_combine_like_terms,
     fmpz_mod_mpoly_compose_fmpz_mod_mpoly,
+    fmpz_mod_mpoly_compose_fmpz_mod_mpoly_gen,
     fmpz_mod_mpoly_ctx_get_modulus,
     fmpz_mod_mpoly_ctx_init,
     fmpz_mod_mpoly_deflate,
@@ -40,6 +42,7 @@ from flint.flintlib.functions.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_get_term_coeff_fmpz,
     fmpz_mod_mpoly_get_term_exp_fmpz,
     fmpz_mod_mpoly_inflate,
+    fmpz_mod_mpoly_is_canonical,
     fmpz_mod_mpoly_is_one,
     fmpz_mod_mpoly_is_zero,
     fmpz_mod_mpoly_length,
@@ -1135,6 +1138,22 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
         fmpz_mod_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
         return list(stride), list(shift)
+
+    cdef _compose_gens_(self, ctx, slong *mapping):
+        cdef fmpz_mod_mpoly res = create_fmpz_mod_mpoly(ctx)
+        fmpz_mod_mpoly_compose_fmpz_mod_mpoly_gen(
+            res.val,
+            self.val,
+            mapping,
+            self.ctx.val,
+            (<fmpz_mod_mpoly_ctx>ctx).val
+        )
+
+        if not fmpz_mod_mpoly_is_canonical(res.val, res.ctx.val):
+            fmpz_mod_mpoly_sort_terms(res.val, res.ctx.val)
+            fmpz_mod_mpoly_combine_like_terms(res.val, res.ctx.val)
+
+        return res
 
 
 cdef class fmpz_mod_mpoly_vec:

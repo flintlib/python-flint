@@ -20,7 +20,9 @@ from flint.flintlib.functions.fmpq_mpoly cimport (
     fmpq_mpoly_add,
     fmpq_mpoly_add_fmpq,
     fmpq_mpoly_clear,
+    fmpq_mpoly_combine_like_terms,
     fmpq_mpoly_compose_fmpq_mpoly,
+    fmpq_mpoly_compose_fmpq_mpoly_gen,
     fmpq_mpoly_ctx_init,
     fmpq_mpoly_degrees_fmpz,
     fmpq_mpoly_derivative,
@@ -40,6 +42,7 @@ from flint.flintlib.functions.fmpq_mpoly cimport (
     fmpq_mpoly_get_term_coeff_fmpq,
     fmpq_mpoly_get_term_exp_fmpz,
     fmpq_mpoly_integral,
+    fmpq_mpoly_is_canonical,
     fmpq_mpoly_is_one,
     fmpq_mpoly_is_zero,
     fmpq_mpoly_length,
@@ -1118,6 +1121,22 @@ cdef class fmpq_mpoly(flint_mpoly):
 
         fmpz_mpoly_deflation(shift.val, stride.val, self.val.zpoly, self.ctx.val.zctx)
         return list(stride), list(shift)
+
+    cdef _compose_gens_(self, ctx, slong *mapping):
+        cdef fmpq_mpoly res = create_fmpq_mpoly(ctx)
+        fmpq_mpoly_compose_fmpq_mpoly_gen(
+            res.val,
+            self.val,
+            mapping,
+            self.ctx.val,
+            (<fmpq_mpoly_ctx>ctx).val
+        )
+
+        if not fmpq_mpoly_is_canonical(res.val, res.ctx.val):
+            fmpq_mpoly_sort_terms(res.val, res.ctx.val)
+            fmpq_mpoly_combine_like_terms(res.val, res.ctx.val)
+
+        return res
 
 
 cdef class fmpq_mpoly_vec:

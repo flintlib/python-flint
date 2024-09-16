@@ -21,7 +21,9 @@ from flint.flintlib.functions.fmpz_mpoly cimport (
     fmpz_mpoly_buchberger_naive,
     fmpz_mpoly_buchberger_naive_with_limits,
     fmpz_mpoly_clear,
+    fmpz_mpoly_combine_like_terms,
     fmpz_mpoly_compose_fmpz_mpoly,
+    fmpz_mpoly_compose_fmpz_mpoly_gen,
     fmpz_mpoly_ctx_init,
     fmpz_mpoly_deflate,
     fmpz_mpoly_deflation,
@@ -43,6 +45,7 @@ from flint.flintlib.functions.fmpz_mpoly cimport (
     fmpz_mpoly_get_term_exp_fmpz,
     fmpz_mpoly_inflate,
     fmpz_mpoly_integral,
+    fmpz_mpoly_is_canonical,
     fmpz_mpoly_is_one,
     fmpz_mpoly_is_zero,
     fmpz_mpoly_length,
@@ -686,12 +689,14 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def degrees(self):
         """
-        Return a dictionary of variable name to degree.
+        Return a tuple of degrees.
 
             >>> ctx = fmpz_mpoly_ctx.get(('x', 4), 'lex')
-            >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
+            >>> p = sum(x**(2 * i) for i, x in enumerate(ctx.gens()))
+            >>> p
+            x1 + x2^2 + x3^3 + 1
             >>> p.degrees()
-            (1, 2, 3, 0)
+            (0, 1, 2, 3)
         """
         cdef:
             slong nvars = self.ctx.nvars()
@@ -946,32 +951,21 @@ cdef class fmpz_mpoly(flint_mpoly):
         fmpz_mpoly_factor_clear(fac, self.ctx.val)
         return c, res
 
-    # TODO: Rethink context conversions, particularly the proposed methods in #132
-    # def coerce_to_context(self, ctx):
-    #     cdef:
-    #         fmpz_mpoly res
-    #         slong *C
-    #         slong i
+    cdef _compose_gens_(self, ctx, slong *mapping):
+        cdef fmpz_mpoly res = create_fmpz_mpoly(ctx)
+        fmpz_mpoly_compose_fmpz_mpoly_gen(
+            res.val,
+            self.val,
+            mapping,
+            self.ctx.val,
+            (<fmpz_mpoly_ctx>ctx).val
+        )
 
-    #     if not typecheck(ctx, fmpz_mpoly_ctx):
-    #         raise ValueError("provided context is not a fmpz_mpoly_ctx")
+        if not fmpz_mpoly_is_canonical(res.val, res.ctx.val):
+            fmpz_mpoly_sort_terms(res.val, res.ctx.val)
+            fmpz_mpoly_combine_like_terms(res.val, res.ctx.val)
 
-    #     if self.ctx is ctx:
-    #         return self
-
-    #     C = <slong *> libc.stdlib.malloc(self.ctx.val.minfo.nvars * sizeof(slong *))
-    #     if C is NULL:
-    #         raise MemoryError("malloc returned a null pointer")
-    #     res = create_fmpz_mpoly(self.ctx)
-
-    #     vars = {x: i for i, x in enumerate(ctx.py_names)}
-    #     for i, var in enumerate(self.ctx.py_names):
-    #         C[i] = <slong>vars[var]
-
-    #     fmpz_mpoly_compose_fmpz_mpoly_gen(res.val, self.val, C, self.ctx.val, (<fmpz_mpoly_ctx>ctx).val)
-
-    #     libc.stdlib.free(C)
-    #     return res
+        return res
 
     def derivative(self, var):
         """
