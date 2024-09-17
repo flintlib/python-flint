@@ -430,7 +430,7 @@ cdef class flint_mpoly_context(flint_elem):
         """
         return cls.get(
             names=ctx.names() if names is None else names,
-            ordering=ctx.ordering() if ordering is None else names,
+            ordering=ctx.ordering() if ordering is None else ordering,
         )
 
     def _any_as_scalar(self, other):
@@ -493,8 +493,11 @@ cdef class flint_mpoly_context(flint_elem):
             >>> from flint import fmpz_mpoly_ctx
             >>> ctx = fmpz_mpoly_ctx.get(('x', 'y', 'z', 'a', 'b'))
             >>> ctx2 = fmpz_mpoly_ctx.get(('b', 'a'))
-            >>> ctx.infer_generator_mapping(ctx2)
+            >>> mapping = ctx.infer_generator_mapping(ctx2)
+            >>> mapping  # doctest: +SKIP
             {3: 1, 4: 0}
+            >>> list(sorted(mapping.items()))  # Set ordering is not stable
+            [(3, 1), (4, 0)]
         """
         gens_to_idxs = {x: i for i, x in enumerate(self.names())}
         other_gens_to_idxs = {x: i for i, x in enumerate(ctx.names())}
