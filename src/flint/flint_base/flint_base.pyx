@@ -987,7 +987,7 @@ cdef class flint_mpoly(flint_elem):
             mapping = ctx.infer_generator_mapping(other_ctx)
         else:
             mapping = {
-                ctx.variable_to_index(k): ctx.variable_to_index(v)
+                ctx.variable_to_index(k): other_ctx.variable_to_index(v)
                 for k, v in mapping.items()
             }
 
@@ -996,7 +996,7 @@ cdef class flint_mpoly(flint_elem):
             if c_mapping is NULL:
                 raise MemoryError("malloc returned a null pointer")
 
-            for i in range(self.ctx.nvars()):
+            for i in range(ctx.nvars()):
                 c_mapping[i] = <slong>-1
 
             for k, v in mapping.items():

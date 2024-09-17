@@ -702,9 +702,11 @@ cdef class fmpq_mpoly(flint_mpoly):
         Return a dictionary of variable name to degree.
 
             >>> ctx = fmpq_mpoly_ctx.get(('x', 4), 'lex')
-            >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
+            >>> p = sum(x**i for i, x in enumerate(ctx.gens()))
+            >>> p
+            x1 + x2^2 + x3^3 + 1
             >>> p.degrees()
-            (1, 2, 3, 0)
+            (0, 1, 2, 3)
         """
         cdef:
             slong nvars = self.ctx.nvars()

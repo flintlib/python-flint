@@ -692,7 +692,7 @@ cdef class fmpz_mpoly(flint_mpoly):
         Return a tuple of degrees.
 
             >>> ctx = fmpz_mpoly_ctx.get(('x', 4), 'lex')
-            >>> p = sum(x**(2 * i) for i, x in enumerate(ctx.gens()))
+            >>> p = sum(x**i for i, x in enumerate(ctx.gens()))
             >>> p
             x1 + x2^2 + x3^3 + 1
             >>> p.degrees()
@@ -960,10 +960,6 @@ cdef class fmpz_mpoly(flint_mpoly):
             self.ctx.val,
             (<fmpz_mpoly_ctx>ctx).val
         )
-
-        if not fmpz_mpoly_is_canonical(res.val, res.ctx.val):
-            fmpz_mpoly_sort_terms(res.val, res.ctx.val)
-            fmpz_mpoly_combine_like_terms(res.val, res.ctx.val)
 
         return res
 
