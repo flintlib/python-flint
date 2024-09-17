@@ -64,14 +64,23 @@ cdef extern from "flint/flint.h":
     """
     int SIZEOF_ULONG
     int SIZEOF_SLONG
+
+    ctypedef struct __FLINT_FILE:
+        pass
+    ctypedef __FLINT_FILE FLINT_FILE
+
     const char * FLINT_VERSION
     const int __FLINT_RELEASE
+
     const int FLINT_BITS
+
     ctypedef void * flint_rand_t
     void flint_rand_init(flint_rand_t state)
     void flint_rand_clear(flint_rand_t state)
+
     void flint_set_num_threads(long)
     long flint_get_num_threads()
+
     void flint_cleanup()
 
     ctypedef struct nmod_t:
