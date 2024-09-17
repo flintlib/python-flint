@@ -486,6 +486,17 @@ cdef class flint_mpoly_context(flint_elem):
 
         return self.from_context(self, names=remaining_gens)
 
+    def append_gens(self, *gens: str):
+        """
+        Get a context with the specified generators appended.
+
+            >>> from flint import fmpz_mpoly_ctx
+            >>> ctx = fmpz_mpoly_ctx.get(('x', 'y', 'z'))
+            >>> ctx.append_gens('a', 'b')
+            fmpz_mpoly_ctx(5, '<Ordering.lex: 'lex'>', ('x', 'y', 'z', 'a', 'b'))
+        """
+        return self.from_context(self, names=self.names() + gens)
+
     def infer_generator_mapping(self, ctx: flint_mpoly_context):
         """
         Infer a mapping of generator indexes from this contexts generators, to the

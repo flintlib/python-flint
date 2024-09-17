@@ -2910,6 +2910,8 @@ def test_mpolys():
             new_ctx = new_ctx.from_context(new_ctx, ordering=ctx.ordering())
             assert new_ctx == ctx
             assert new_poly.coerce_to_context(new_ctx) == quick_poly()
+
+            assert ctx.append_gens(*ctx1.names()[-2:]) == ctx1
         else:
             assert raises(lambda: quick_poly().coerce_to_context(ctx1), NotImplementedError)
 
