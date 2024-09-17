@@ -1141,11 +1141,10 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         return list(stride), list(shift)
 
     cdef _compose_gens_(self, ctx, slong *mapping):
-        if FLINT_RELEASE < 30200:
-            raise NotImplementedError(
-                "this function is not supported below FLINT 3.2.0, "
-                f"current version is {FLINT_VERSION}"
-            )
+        raise NotImplementedError(
+            "this function is not supported below FLINT 3.2.0, "
+            f"current version is {FLINT_VERSION}"
+        )
 
         cdef fmpz_mod_mpoly res = create_fmpz_mod_mpoly(ctx)
         fmpz_mod_mpoly_compose_fmpz_mod_mpoly_gen(
