@@ -21,7 +21,6 @@ from flint.flintlib.functions.nmod_mpoly cimport (
     nmod_mpoly_add,
     nmod_mpoly_add_ui,
     nmod_mpoly_clear,
-    nmod_mpoly_combine_like_terms,
     nmod_mpoly_compose_nmod_mpoly_gen,
     nmod_mpoly_compose_nmod_mpoly,
     nmod_mpoly_ctx_init,
@@ -42,7 +41,6 @@ from flint.flintlib.functions.nmod_mpoly cimport (
     nmod_mpoly_get_str_pretty,
     nmod_mpoly_get_term_coeff_ui,
     nmod_mpoly_get_term_exp_fmpz,
-    nmod_mpoly_is_canonical,
     nmod_mpoly_is_one,
     nmod_mpoly_is_zero,
     nmod_mpoly_length,
@@ -1128,10 +1126,6 @@ cdef class nmod_mpoly(flint_mpoly):
             self.ctx.val,
             (<nmod_mpoly_ctx>ctx).val
         )
-
-        if not nmod_mpoly_is_canonical(res.val, res.ctx.val):
-            nmod_mpoly_sort_terms(res.val, res.ctx.val)
-            nmod_mpoly_combine_like_terms(res.val, res.ctx.val)
 
         return res
 

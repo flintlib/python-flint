@@ -959,8 +959,6 @@ cdef class flint_mpoly(flint_elem):
         of the generators. Generators with names that are not found within the other
         context are mapped to 0. The mapping can be explicitly provided.
 
-        The resulting polynomial is also normalised.
-
             >>> from flint import fmpz_mpoly_ctx
             >>> ctx = fmpz_mpoly_ctx.get(('x', 'y', 'a', 'b'))
             >>> ctx2 = fmpz_mpoly_ctx.get(('a', 'b'))
