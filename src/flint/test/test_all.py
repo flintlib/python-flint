@@ -2861,6 +2861,12 @@ def test_mpolys():
 
         ctx = get_context(("x", 2))
 
+        def mpoly(x):
+            return ctx.from_dict(x)
+
+        def quick_poly():
+            return mpoly({(0, 0): 1, (0, 1): 2, (1, 0): 3, (2, 2): 4})
+
         assert raises(lambda : ctx.__class__("x", flint.Ordering.lex), RuntimeError)
         assert raises(lambda: get_context(("x", 2), ordering="bad"), ValueError)
         assert raises(lambda: get_context(("x", -1)), ValueError)
@@ -2877,16 +2883,40 @@ def test_mpolys():
         assert raises(lambda: P(val={"bad": 1}, ctx=None), ValueError)
         assert raises(lambda: P(val="1", ctx=None), ValueError)
 
+        ctx1 = get_context(("x", 4))
+        ctx2 = get_context(("x", 4), ordering="deglex")
+        assert ctx1.drop_gens(*ctx1.names()).names() == tuple()
+        assert ctx1.drop_gens(ctx1.name(1), ctx1.name(2)).names() == (ctx1.name(0), ctx1.name(3))
+        assert ctx1.drop_gens().names() == ctx1.names()
+        assert ctx1.drop_gens(-1).names() == ctx1.names()[:-1]
+
+        assert ctx.infer_generator_mapping(ctx) == {i: i for i in range(ctx.nvars())}
+        assert ctx1.infer_generator_mapping(ctx) == {0: 0, 1: 1}
+        assert ctx1.drop_gens(*ctx.names()).infer_generator_mapping(ctx) == {}
+
+        # FIXME: Remove this guard when https://github.com/flintlib/flint/pull/2068 is
+        # resolved
+        if P is not flint.fmpz_mod_mpoly:
+            assert quick_poly().coerce_to_context(ctx1) == \
+                ctx1.from_dict(
+                    {(0, 0, 0, 0): 1, (0, 1, 0, 0): 2, (1, 0, 0, 0): 3, (2, 2, 0, 0): 4}
+                )
+            assert quick_poly().coerce_to_context(ctx1).drop_unused_gens() == (ctx, quick_poly())
+
+            new_ctx, new_poly = quick_poly().coerce_to_context(ctx2).drop_unused_gens()
+            assert new_ctx != ctx
+            assert new_poly != quick_poly()
+
+            new_ctx = new_ctx.from_context(new_ctx, ordering=ctx.ordering())
+            assert new_ctx == ctx
+            assert new_poly.coerce_to_context(new_ctx) == quick_poly()
+        else:
+            assert raises(lambda: quick_poly().coerce_to_context(ctx1), NotImplementedError)
+
         assert P(val={(0, 0): 1}, ctx=ctx) == ctx.from_dict({(0, 0): 1})
         assert P(ctx=ctx).context() == ctx
         assert P(1, ctx=ctx).is_one()
         assert ctx.gen(1) == ctx.from_dict({(0, 1): 1})
-
-        def mpoly(x):
-            return ctx.from_dict(x)
-
-        def quick_poly():
-            return mpoly({(0, 0): 1, (0, 1): 2, (1, 0): 3, (2, 2): 4})
 
         assert ctx.nvars() == 2
         assert ctx.ordering() == flint.Ordering.lex

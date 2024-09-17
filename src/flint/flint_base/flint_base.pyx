@@ -478,10 +478,11 @@ cdef class flint_mpoly_context(flint_elem):
         if len(gens) > nvars:
             raise ValueError(f"expected at most {nvars} unique generators, got {len(gens)}")
 
+        names = self.names()
         remaining_gens = []
         for i in range(nvars):
             if i not in gen_idxs:
-                remaining_gens.append(self.py_names[i])
+                remaining_gens.append(names[i])
 
         return self.from_context(self, names=remaining_gens)
 
