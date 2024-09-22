@@ -2894,29 +2894,24 @@ def test_mpolys():
         assert ctx1.infer_generator_mapping(ctx) == {0: 0, 1: 1}
         assert ctx1.drop_gens(ctx.names()).infer_generator_mapping(ctx) == {}
 
-        # FIXME: Remove this guard when https://github.com/flintlib/flint/pull/2068 is
-        # resolved
-        if P is not flint.fmpz_mod_mpoly:
-            assert quick_poly().project_to_context(ctx1) == \
-                ctx1.from_dict(
-                    {(0, 0, 0, 0): 1, (0, 1, 0, 0): 2, (1, 0, 0, 0): 3, (2, 2, 0, 0): 4}
-                )
-            new_poly = quick_poly().project_to_context(ctx1)
-            assert ctx1.drop_gens(new_poly.unused_gens()) == ctx
-            assert new_poly.project_to_context(ctx) == quick_poly()
+        assert quick_poly().project_to_context(ctx1) == \
+            ctx1.from_dict(
+                {(0, 0, 0, 0): 1, (0, 1, 0, 0): 2, (1, 0, 0, 0): 3, (2, 2, 0, 0): 4}
+            )
+        new_poly = quick_poly().project_to_context(ctx1)
+        assert ctx1.drop_gens(new_poly.unused_gens()) == ctx
+        assert new_poly.project_to_context(ctx) == quick_poly()
 
-            new_poly = quick_poly().project_to_context(ctx2)
-            new_ctx = ctx2.drop_gens(new_poly.unused_gens())
-            assert new_ctx != ctx
-            assert new_poly != quick_poly()
+        new_poly = quick_poly().project_to_context(ctx2)
+        new_ctx = ctx2.drop_gens(new_poly.unused_gens())
+        assert new_ctx != ctx
+        assert new_poly != quick_poly()
 
-            new_ctx = new_ctx.from_context(new_ctx, ordering=ctx.ordering())
-            assert new_ctx == ctx
-            assert new_poly.project_to_context(new_ctx) == quick_poly()
+        new_ctx = new_ctx.from_context(new_ctx, ordering=ctx.ordering())
+        assert new_ctx == ctx
+        assert new_poly.project_to_context(new_ctx) == quick_poly()
 
-            assert ctx.append_gens(*ctx1.names()[-2:]) == ctx1
-        else:
-            assert raises(lambda: quick_poly().project_to_context(ctx1), NotImplementedError)
+        assert ctx.append_gens(*ctx1.names()[-2:]) == ctx1
 
         assert P(val={(0, 0): 1}, ctx=ctx) == ctx.from_dict({(0, 0): 1})
         assert P(ctx=ctx).context() == ctx
