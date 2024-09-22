@@ -949,7 +949,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         return c, res
 
     # TODO: Rethink context conversions, particularly the proposed methods in #132
-    # def coerce_to_context(self, ctx):
+    # def project_to_context(self, ctx):
     #     cdef:
     #         fmpz_mod_mpoly res
     #         slong *C

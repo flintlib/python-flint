@@ -965,9 +965,9 @@ cdef class flint_mpoly(flint_elem):
         )
         return new_ctx, self.coerce_to_context(new_ctx)
 
-    def coerce_to_context(self, other_ctx, mapping: dict[str | int, str | int] = None):
+    def project_to_context(self, other_ctx, mapping: dict[str | int, str | int] = None):
         """
-        Coerce this polynomial to a different context.
+        Project this polynomial to a different context.
 
         This is equivalent to composing this polynomial with the generators of another
         context. By default the mapping between contexts is inferred based on the name
@@ -979,9 +979,9 @@ cdef class flint_mpoly(flint_elem):
             >>> ctx2 = fmpz_mpoly_ctx.get(('a', 'b'))
             >>> x, y, a, b = ctx.gens()
             >>> f = x + 2*y + 3*a + 4*b
-            >>> f.coerce_to_context(ctx2)
+            >>> f.project_to_context(ctx2)
             3*a + 4*b
-            >>> f.coerce_to_context(ctx2, mapping={"x": "a", "b": 0})
+            >>> f.project_to_context(ctx2, mapping={"x": "a", "b": 0})
             5*a
         """
         cdef:
