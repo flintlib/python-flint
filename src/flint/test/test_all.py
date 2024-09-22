@@ -2885,35 +2885,38 @@ def test_mpolys():
 
         ctx1 = get_context(("x", 4))
         ctx2 = get_context(("x", 4), ordering="deglex")
-        assert ctx1.drop_gens(*ctx1.names()).names() == tuple()
-        assert ctx1.drop_gens(ctx1.name(1), ctx1.name(2)).names() == (ctx1.name(0), ctx1.name(3))
-        assert ctx1.drop_gens().names() == ctx1.names()
-        assert ctx1.drop_gens(-1).names() == ctx1.names()[:-1]
+        assert ctx1.drop_gens(ctx1.names()).names() == tuple()
+        assert ctx1.drop_gens((ctx1.name(1), ctx1.name(2))).names() == (ctx1.name(0), ctx1.name(3))
+        assert ctx1.drop_gens(tuple()).names() == ctx1.names()
+        assert ctx1.drop_gens((-1,)).names() == ctx1.names()[:-1]
 
         assert ctx.infer_generator_mapping(ctx) == {i: i for i in range(ctx.nvars())}
         assert ctx1.infer_generator_mapping(ctx) == {0: 0, 1: 1}
-        assert ctx1.drop_gens(*ctx.names()).infer_generator_mapping(ctx) == {}
+        assert ctx1.drop_gens(ctx.names()).infer_generator_mapping(ctx) == {}
 
         # FIXME: Remove this guard when https://github.com/flintlib/flint/pull/2068 is
         # resolved
         if P is not flint.fmpz_mod_mpoly:
-            assert quick_poly().coerce_to_context(ctx1) == \
+            assert quick_poly().project_to_context(ctx1) == \
                 ctx1.from_dict(
                     {(0, 0, 0, 0): 1, (0, 1, 0, 0): 2, (1, 0, 0, 0): 3, (2, 2, 0, 0): 4}
                 )
-            assert quick_poly().coerce_to_context(ctx1).drop_unused_gens() == (ctx, quick_poly())
+            new_poly = quick_poly().project_to_context(ctx1)
+            assert ctx1.drop_gens(new_poly.unused_gens()) == ctx
+            assert new_poly.project_to_context(ctx) == quick_poly()
 
-            new_ctx, new_poly = quick_poly().coerce_to_context(ctx2).drop_unused_gens()
+            new_poly = quick_poly().project_to_context(ctx2)
+            new_ctx = ctx2.drop_gens(new_poly.unused_gens())
             assert new_ctx != ctx
             assert new_poly != quick_poly()
 
             new_ctx = new_ctx.from_context(new_ctx, ordering=ctx.ordering())
             assert new_ctx == ctx
-            assert new_poly.coerce_to_context(new_ctx) == quick_poly()
+            assert new_poly.project_to_context(new_ctx) == quick_poly()
 
             assert ctx.append_gens(*ctx1.names()[-2:]) == ctx1
         else:
-            assert raises(lambda: quick_poly().coerce_to_context(ctx1), NotImplementedError)
+            assert raises(lambda: quick_poly().project_to_context(ctx1), NotImplementedError)
 
         assert P(val={(0, 0): 1}, ctx=ctx) == ctx.from_dict({(0, 0): 1})
         assert P(ctx=ctx).context() == ctx
