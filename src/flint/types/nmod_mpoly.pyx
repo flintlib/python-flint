@@ -539,28 +539,6 @@ cdef class nmod_mpoly(flint_mpoly):
         """
         return [nmod_mpoly_get_term_coeff_ui(self.val, i, self.ctx.val) for i in range(len(self))]
 
-    # def terms(self):
-    #     """
-    #     Return the terms of this polynomial as a list of nmod_mpolys.
-
-    #         >>> ctx = nmod_mpoly_ctx.get(('x', 2), 11, 'lex')
-    #         >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
-    #         >>> f.terms()
-    #         [4*x0*x1, 2*x0, 3*x1, 1]
-
-    #     """
-    #     cdef:
-    #         nmod_mpoly term
-    #         slong i
-
-    #     res = []
-    #     for i in range(len(self)):
-    #         term = create_nmod_mpoly(self.ctx)
-    #         nmod_mpoly_get_term(term.val, self.val, i, self.ctx.val)
-    #         res.append(term)
-
-    #     return res
-
     def subs(self, dict_args) -> nmod_mpoly:
         """
         Partial evaluate this polynomial with select constants. Keys must be generator names or generator indices,
@@ -925,33 +903,6 @@ cdef class nmod_mpoly(flint_mpoly):
         constant = nmod(fac.constant, self.ctx.modulus())
         nmod_mpoly_factor_clear(fac, self.ctx.val)
         return constant, res
-
-    # TODO: Rethink context conversions, particularly the proposed methods in #132
-    # def project_to_context(self, ctx):
-    #     cdef:
-    #         nmod_mpoly res
-    #         slong *C
-    #         slong i
-
-    #     if not typecheck(ctx, nmod_mpoly_ctx):
-    #         raise ValueError("provided context is not a nmod_mpoly_ctx")
-
-    #     if self.ctx is ctx:
-    #         return self
-
-    #     C = <slong *> libc.stdlib.malloc(self.ctx.val.minfo.nvars * sizeof(slong *))
-    #     if C is NULL:
-    #         raise MemoryError("malloc returned a null pointer")
-    #     res = create_nmod_mpoly(self.ctx)
-
-    #     vars = {x: i for i, x in enumerate(ctx.py_names)}
-    #     for i, var in enumerate(self.ctx.py_names):
-    #         C[i] = <slong>vars[var]
-
-    #     nmod_mpoly_compose_nmod_mpoly_gen(res.val, self.val, C, self.ctx.val, (<nmod_mpoly_ctx>ctx).val)
-
-    #     libc.stdlib.free(C)
-    #     return res
 
     def derivative(self, var):
         """

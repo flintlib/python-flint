@@ -548,28 +548,6 @@ cdef class fmpq_mpoly(flint_mpoly):
 
         return res
 
-    # def terms(self):
-    #     """
-    #     Return the terms of this polynomial as a list of fmpq_mpolys.
-
-    #         >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
-    #         >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
-    #         >>> f.terms()
-    #         [4*x0*x1, 2*x0, 3*x1, 1]
-
-    #     """
-    #     cdef:
-    #         fmpq_mpoly term
-    #         slong i
-
-    #     res = []
-    #     for i in range(len(self)):
-    #         term = create_fmpq_mpoly(self.ctx)
-    #         fmpq_mpoly_get_term(term.val, self.val, i, self.ctx.val)
-    #         res.append(term)
-
-    #     return res
-
     def subs(self, dict_args) -> fmpq_mpoly:
         """
         Partial evaluate this polynomial with select constants. Keys must be generator names or generator indices,
