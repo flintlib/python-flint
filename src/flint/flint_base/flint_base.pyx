@@ -463,13 +463,13 @@ cdef class flint_mpoly_context(flint_elem):
             exp_vec = (0,) * self.nvars()
         return self.from_dict({tuple(exp_vec): coeff})
 
-    def drop_gens(self, *gens: str | int):
+    def drop_gens(self, gens: Iterable[str | int]):
         """
         Get a context with the specified generators removed.
 
             >>> from flint import fmpz_mpoly_ctx
             >>> ctx = fmpz_mpoly_ctx.get(('x', 'y', 'z', 'a', 'b'))
-            >>> ctx.drop_gens('x', -2)
+            >>> ctx.drop_gens(('x', -2))
             fmpz_mpoly_ctx(3, '<Ordering.lex: 'lex'>', ('y', 'z', 'b'))
         """
         nvars = self.nvars()
