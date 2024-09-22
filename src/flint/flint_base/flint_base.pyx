@@ -2,6 +2,7 @@ from flint.flintlib.types.flint cimport (
     FLINT_BITS as _FLINT_BITS,
     FLINT_VERSION as _FLINT_VERSION,
     __FLINT_RELEASE as _FLINT_RELEASE,
+    slong,
 )
 from flint.utils.flint_exceptions import DomainError
 from flint.flintlib.types.mpoly cimport ordering_t
@@ -344,13 +345,20 @@ cdef class flint_mpoly_context(flint_elem):
         return tuple(self.gen(i) for i in range(self.nvars()))
 
     def variable_to_index(self, var: Union[int, str]) -> int:
-        """Convert a variable name string or possible index to its index in the context."""
+        """
+        Convert a variable name string or possible index to its index in the context.
+
+        If ``var`` is negative, return the index of the ``self.nvars() + var``
+        """
         if isinstance(var, str):
             try:
                 i = self.names().index(var)
             except ValueError:
                 raise ValueError("variable not in context")
         elif isinstance(var, int):
+            if var < 0:
+                var = self.nvars() + var
+
             if not 0 <= var < self.nvars():
                 raise IndexError("generator index out of range")
             i = var
@@ -379,7 +387,7 @@ cdef class flint_mpoly_context(flint_elem):
             names = (names,)
 
         for name in names:
-            if isinstance(name, str):
+            if isinstance(name, (str, bytes)):
                 res.append(name)
             else:
                 base, num = name
@@ -415,10 +423,14 @@ cdef class flint_mpoly_context(flint_elem):
         return ctx
 
     @classmethod
-    def from_context(cls, ctx: flint_mpoly_context):
+    def from_context(cls, ctx: flint_mpoly_context, names=None, ordering=None):
+        """
+        Get a new context from an existing one. Optionally override ``names`` or
+        ``ordering``.
+        """
         return cls.get(
-            ordering=ctx.ordering(),
-            names=ctx.names(),
+            names=ctx.names() if names is None else names,
+            ordering=ctx.ordering() if ordering is None else ordering,
         )
 
     def _any_as_scalar(self, other):
@@ -451,6 +463,62 @@ cdef class flint_mpoly_context(flint_elem):
             exp_vec = (0,) * self.nvars()
         return self.from_dict({tuple(exp_vec): coeff})
 
+    def drop_gens(self, gens: Iterable[str | int]):
+        """
+        Get a context with the specified generators removed.
+
+            >>> from flint import fmpz_mpoly_ctx
+            >>> ctx = fmpz_mpoly_ctx.get(('x', 'y', 'z', 'a', 'b'))
+            >>> ctx.drop_gens(('x', -2))
+            fmpz_mpoly_ctx(3, '<Ordering.lex: 'lex'>', ('y', 'z', 'b'))
+        """
+        nvars = self.nvars()
+        gen_idxs = set(self.variable_to_index(i) for i in gens)
+
+        if len(gens) > nvars:
+            raise ValueError(f"expected at most {nvars} unique generators, got {len(gens)}")
+
+        names = self.names()
+        remaining_gens = []
+        for i in range(nvars):
+            if i not in gen_idxs:
+                remaining_gens.append(names[i])
+
+        return self.from_context(self, names=remaining_gens)
+
+    def append_gens(self, *gens: str):
+        """
+        Get a context with the specified generators appended.
+
+            >>> from flint import fmpz_mpoly_ctx
+            >>> ctx = fmpz_mpoly_ctx.get(('x', 'y', 'z'))
+            >>> ctx.append_gens('a', 'b')
+            fmpz_mpoly_ctx(5, '<Ordering.lex: 'lex'>', ('x', 'y', 'z', 'a', 'b'))
+        """
+        return self.from_context(self, names=self.names() + gens)
+
+    def infer_generator_mapping(self, ctx: flint_mpoly_context):
+        """
+        Infer a mapping of generator indexes from this contexts generators, to the
+        provided contexts generators. Inference is done based upon generator names.
+
+            >>> from flint import fmpz_mpoly_ctx
+            >>> ctx = fmpz_mpoly_ctx.get(('x', 'y', 'z', 'a', 'b'))
+            >>> ctx2 = fmpz_mpoly_ctx.get(('b', 'a'))
+            >>> mapping = ctx.infer_generator_mapping(ctx2)
+            >>> mapping  # doctest: +SKIP
+            {3: 1, 4: 0}
+            >>> list(sorted(mapping.items()))  # Set ordering is not stable
+            [(3, 1), (4, 0)]
+        """
+        gens_to_idxs = {x: i for i, x in enumerate(self.names())}
+        other_gens_to_idxs = {x: i for i, x in enumerate(ctx.names())}
+        return {
+            gens_to_idxs[k]: other_gens_to_idxs[k]
+            for k in (gens_to_idxs.keys() & other_gens_to_idxs.keys())
+        }
+
+
 cdef class flint_mod_mpoly_context(flint_mpoly_context):
     @classmethod
     def _new_(_, flint_mod_mpoly_context self, names, prime_modulus):
@@ -472,11 +540,15 @@ cdef class flint_mod_mpoly_context(flint_mpoly_context):
         return *super().create_context_key(names, ordering), modulus
 
     @classmethod
-    def from_context(cls, ctx: flint_mod_mpoly_context):
+    def from_context(cls, ctx: flint_mod_mpoly_context, names=None, ordering=None, modulus=None):
+        """
+        Get a new context from an existing one. Optionally override ``names``,
+        ``modulus``, or ``ordering``.
+        """
         return cls.get(
-            names=ctx.names(),
-            modulus=ctx.modulus(),
-            ordering=ctx.ordering(),
+            names=ctx.names() if names is None else names,
+            modulus=ctx.modulus() if modulus is None else modulus,
+            ordering=ctx.ordering() if ordering is None else ordering,
         )
 
     def is_prime(self):
@@ -868,6 +940,81 @@ cdef class flint_mpoly(flint_elem):
 
         """
         return zip(self.monoms(), self.coeffs())
+
+    def unused_gens(self):
+        """
+        Report the unused generators from this polynomial.
+
+        A generator is unused if it's maximum degree is 0.
+
+            >>> from flint import fmpz_mpoly_ctx
+            >>> ctx = fmpz_mpoly_ctx.get(('x', 4))
+            >>> ctx2 = fmpz_mpoly_ctx.get(('x1', 'x2'))
+            >>> f = sum(ctx.gens()[1:3])
+            >>> f
+            x1 + x2
+            >>> f.unused_gens()
+            ('x0', 'x3')
+        """
+        names = self.context().names()
+        return tuple(names[i] for i, x in enumerate(self.degrees()) if not x)
+
+    def project_to_context(self, other_ctx, mapping: dict[str | int, str | int] = None):
+        """
+        Project this polynomial to a different context.
+
+        This is equivalent to composing this polynomial with the generators of another
+        context. By default the mapping between contexts is inferred based on the name
+        of the generators. Generators with names that are not found within the other
+        context are mapped to 0. The mapping can be explicitly provided.
+
+            >>> from flint import fmpz_mpoly_ctx
+            >>> ctx = fmpz_mpoly_ctx.get(('x', 'y', 'a', 'b'))
+            >>> ctx2 = fmpz_mpoly_ctx.get(('a', 'b'))
+            >>> x, y, a, b = ctx.gens()
+            >>> f = x + 2*y + 3*a + 4*b
+            >>> f.project_to_context(ctx2)
+            3*a + 4*b
+            >>> f.project_to_context(ctx2, mapping={"x": "a", "b": 0})
+            5*a
+        """
+        cdef:
+            slong *c_mapping
+            slong i
+
+        ctx = self.context()
+        if not typecheck(other_ctx, type(ctx)):
+            raise ValueError(
+                f"provided context is not a {ctx.__class__.__name__}"
+            )
+        elif ctx is other_ctx:
+            return self
+
+        if mapping is None:
+            mapping = ctx.infer_generator_mapping(other_ctx)
+        else:
+            mapping = {
+                ctx.variable_to_index(k): other_ctx.variable_to_index(v)
+                for k, v in mapping.items()
+            }
+
+        try:
+            c_mapping = <slong *> libc.stdlib.malloc(ctx.nvars() * sizeof(slong *))
+            if c_mapping is NULL:
+                raise MemoryError("malloc returned a null pointer")
+
+            for i in range(ctx.nvars()):
+                c_mapping[i] = <slong>-1
+
+            for k, v in mapping.items():
+                c_mapping[k] = <slong>v
+
+            return self._compose_gens_(other_ctx, c_mapping)
+        finally:
+            libc.stdlib.free(c_mapping)
+
+    cdef _compose_gens_(self, other_ctx, slong *mapping):
+        raise NotImplementedError("abstract method")
 
 
 cdef class flint_series(flint_elem):

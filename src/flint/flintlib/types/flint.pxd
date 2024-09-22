@@ -45,22 +45,26 @@ cdef extern from "flint/fmpz.h":
 
 cdef extern from *:
     """
-    /*
-     * Functions renamed in Flint 3.2.0
-     */
     #if __FLINT_RELEASE < 30200 /* Flint < 3.2.0 */
 
+    /* Functions renamed in Flint 3.2.0 */
     #define flint_rand_init flint_randinit
     #define flint_rand_clear flint_randclear
 
     #endif
+
+    /* FIXME: add version guard when https://github.com/flintlib/flint/pull/2068 */
+    /* is resolved */
+    #define fmpz_mod_mpoly_compose_fmpz_mod_mpoly_gen(...) (void)0
     """
 
 cdef extern from "flint/flint.h":
     """
     #define SIZEOF_ULONG sizeof(ulong)
+    #define SIZEOF_SLONG sizeof(slong)
     """
     int SIZEOF_ULONG
+    int SIZEOF_SLONG
 
     ctypedef struct __FLINT_FILE:
         pass

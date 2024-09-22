@@ -21,6 +21,7 @@ from flint.flintlib.functions.fmpq_mpoly cimport (
     fmpq_mpoly_add_fmpq,
     fmpq_mpoly_clear,
     fmpq_mpoly_compose_fmpq_mpoly,
+    fmpq_mpoly_compose_fmpq_mpoly_gen,
     fmpq_mpoly_ctx_init,
     fmpq_mpoly_degrees_fmpz,
     fmpq_mpoly_derivative,
@@ -547,28 +548,6 @@ cdef class fmpq_mpoly(flint_mpoly):
 
         return res
 
-    # def terms(self):
-    #     """
-    #     Return the terms of this polynomial as a list of fmpq_mpolys.
-
-    #         >>> ctx = fmpq_mpoly_ctx.get(('x', 2), 'lex')
-    #         >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
-    #         >>> f.terms()
-    #         [4*x0*x1, 2*x0, 3*x1, 1]
-
-    #     """
-    #     cdef:
-    #         fmpq_mpoly term
-    #         slong i
-
-    #     res = []
-    #     for i in range(len(self)):
-    #         term = create_fmpq_mpoly(self.ctx)
-    #         fmpq_mpoly_get_term(term.val, self.val, i, self.ctx.val)
-    #         res.append(term)
-
-    #     return res
-
     def subs(self, dict_args) -> fmpq_mpoly:
         """
         Partial evaluate this polynomial with select constants. Keys must be generator names or generator indices,
@@ -699,9 +678,11 @@ cdef class fmpq_mpoly(flint_mpoly):
         Return a dictionary of variable name to degree.
 
             >>> ctx = fmpq_mpoly_ctx.get(('x', 4), 'lex')
-            >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
+            >>> p = sum(x**i for i, x in enumerate(ctx.gens()))
+            >>> p
+            x1 + x2^2 + x3^3 + 1
             >>> p.degrees()
-            (1, 2, 3, 0)
+            (0, 1, 2, 3)
         """
         cdef:
             slong nvars = self.ctx.nvars()
@@ -1118,6 +1099,18 @@ cdef class fmpq_mpoly(flint_mpoly):
 
         fmpz_mpoly_deflation(shift.val, stride.val, self.val.zpoly, self.ctx.val.zctx)
         return list(stride), list(shift)
+
+    cdef _compose_gens_(self, ctx, slong *mapping):
+        cdef fmpq_mpoly res = create_fmpq_mpoly(ctx)
+        fmpq_mpoly_compose_fmpq_mpoly_gen(
+            res.val,
+            self.val,
+            mapping,
+            self.ctx.val,
+            (<fmpq_mpoly_ctx>ctx).val
+        )
+
+        return res
 
 
 cdef class fmpq_mpoly_vec:

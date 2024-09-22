@@ -1,4 +1,5 @@
 from flint.flintlib.types.mpoly cimport ordering_t
+from flint.flintlib.types.flint cimport slong
 
 cdef class flint_ctx:
     pass
@@ -53,6 +54,7 @@ cdef class flint_mpoly(flint_elem):
     cdef _isub_mpoly_(self, other)
     cdef _imul_mpoly_(self, other)
 
+    cdef _compose_gens_(self, ctx, slong *mapping)
 
 cdef class flint_mat(flint_elem):
     pass

@@ -22,6 +22,7 @@ from flint.flintlib.functions.fmpz_mpoly cimport (
     fmpz_mpoly_buchberger_naive_with_limits,
     fmpz_mpoly_clear,
     fmpz_mpoly_compose_fmpz_mpoly,
+    fmpz_mpoly_compose_fmpz_mpoly_gen,
     fmpz_mpoly_ctx_init,
     fmpz_mpoly_deflate,
     fmpz_mpoly_deflation,
@@ -537,28 +538,6 @@ cdef class fmpz_mpoly(flint_mpoly):
 
         return res
 
-    # def terms(self):
-    #     """
-    #     Return the terms of this polynomial as a list of fmpz_mpolys.
-
-    #         >>> ctx = fmpz_mpoly_ctx.get(('x', 2), 'lex')
-    #         >>> f = ctx.from_dict({(0, 0): 1, (1, 0): 2, (0, 1): 3, (1, 1): 4})
-    #         >>> f.terms()
-    #         [4*x0*x1, 2*x0, 3*x1, 1]
-
-    #     """
-    #     cdef:
-    #         fmpz_mpoly term
-    #         slong i
-
-    #     res = []
-    #     for i in range(len(self)):
-    #         term = create_fmpz_mpoly(self.ctx)
-    #         fmpz_mpoly_get_term(term.val, self.val, i, self.ctx.val)
-    #         res.append(term)
-
-    #     return res
-
     def subs(self, dict_args) -> fmpz_mpoly:
         """
         Partial evaluate this polynomial with select constants. Keys must be generator names or generator indices,
@@ -686,12 +665,14 @@ cdef class fmpz_mpoly(flint_mpoly):
 
     def degrees(self):
         """
-        Return a dictionary of variable name to degree.
+        Return a tuple of degrees.
 
             >>> ctx = fmpz_mpoly_ctx.get(('x', 4), 'lex')
-            >>> p = ctx.from_dict({(1, 0, 0, 0): 1, (0, 2, 0, 0): 2, (0, 0, 3, 0): 3})
+            >>> p = sum(x**i for i, x in enumerate(ctx.gens()))
+            >>> p
+            x1 + x2^2 + x3^3 + 1
             >>> p.degrees()
-            (1, 2, 3, 0)
+            (0, 1, 2, 3)
         """
         cdef:
             slong nvars = self.ctx.nvars()
@@ -946,32 +927,17 @@ cdef class fmpz_mpoly(flint_mpoly):
         fmpz_mpoly_factor_clear(fac, self.ctx.val)
         return c, res
 
-    # TODO: Rethink context conversions, particularly the proposed methods in #132
-    # def coerce_to_context(self, ctx):
-    #     cdef:
-    #         fmpz_mpoly res
-    #         slong *C
-    #         slong i
+    cdef _compose_gens_(self, ctx, slong *mapping):
+        cdef fmpz_mpoly res = create_fmpz_mpoly(ctx)
+        fmpz_mpoly_compose_fmpz_mpoly_gen(
+            res.val,
+            self.val,
+            mapping,
+            self.ctx.val,
+            (<fmpz_mpoly_ctx>ctx).val
+        )
 
-    #     if not typecheck(ctx, fmpz_mpoly_ctx):
-    #         raise ValueError("provided context is not a fmpz_mpoly_ctx")
-
-    #     if self.ctx is ctx:
-    #         return self
-
-    #     C = <slong *> libc.stdlib.malloc(self.ctx.val.minfo.nvars * sizeof(slong *))
-    #     if C is NULL:
-    #         raise MemoryError("malloc returned a null pointer")
-    #     res = create_fmpz_mpoly(self.ctx)
-
-    #     vars = {x: i for i, x in enumerate(ctx.py_names)}
-    #     for i, var in enumerate(self.ctx.py_names):
-    #         C[i] = <slong>vars[var]
-
-    #     fmpz_mpoly_compose_fmpz_mpoly_gen(res.val, self.val, C, self.ctx.val, (<fmpz_mpoly_ctx>ctx).val)
-
-    #     libc.stdlib.free(C)
-    #     return res
+        return res
 
     def derivative(self, var):
         """
