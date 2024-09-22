@@ -941,10 +941,9 @@ cdef class flint_mpoly(flint_elem):
         """
         return zip(self.monoms(), self.coeffs())
 
-    def drop_unused_gens(self):
+    def unused_gens(self):
         """
-        Remove unused generators from this polynomial. Returns a potentially new
-        context, and potentially new polynomial.
+        Report the unused generators from this polynomial.
 
         A generator is unused if it's maximum degree is 0.
 
@@ -954,16 +953,11 @@ cdef class flint_mpoly(flint_elem):
             >>> f = sum(ctx.gens()[1:3])
             >>> f
             x1 + x2
-            >>> new_ctx, new_f = f.drop_unused_gens()
-            >>> new_ctx
-            fmpz_mpoly_ctx(2, '<Ordering.lex: 'lex'>', ('x1', 'x2'))
-            >>> new_f
-            x1 + x2
+            >>> f.unused_gens()
+            ('x0', 'x3')
         """
-        new_ctx = self.context().drop_gens(
-            *(i for i, x in enumerate(self.degrees()) if not x)
-        )
-        return new_ctx, self.coerce_to_context(new_ctx)
+        names = self.context().names()
+        return tuple(names[i] for i, x in enumerate(self.degrees()) if not x)
 
     def project_to_context(self, other_ctx, mapping: dict[str | int, str | int] = None):
         """
