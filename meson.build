@@ -78,6 +78,12 @@ add_project_arguments(
     language : 'cython'
 )
 
+# Enable free-threading if Cython is new enough:
+#cy = meson.get_compiler('cython')
+#if cy.version().version_compare('>=3.1.0')
+#    add_project_arguments('-Xfreethreading_compatible=true', language : 'cython')
+#endif
+
 if get_option('coverage')
    add_project_arguments('-X', 'linetrace=True', language : 'cython')
    add_project_arguments('-DCYTHON_TRACE=1', language : 'c')
