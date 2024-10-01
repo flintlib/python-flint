@@ -216,7 +216,7 @@ jobs:
       # Can't use actions/setup-python
       # https://github.com/actions/setup-python/issues/771
       # deadsnakes only works for Ubuntu...
-      - uses: deadsnakes/action@v3.1.0
+      - uses: deadsnakes/action@v3.2.0
         with:
           python-version: ${{ matrix.python-version }}
           nogil: true
