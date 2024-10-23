@@ -253,6 +253,37 @@ jobs:
       - run: pip install sympy==${{ matrix.sympy-version }}
       - run: python -c 'import sympy; sympy.test(parallel=True)'
 
+  # Push nightly wheels to Anaconda scientific-python nightly channel
+  # https://scientific-python.org/specs/spec-0004/
+  # https://anaconda.org/scientific-python-nightly-wheels/python-flint
+  # https://github.com/scientific-python/upload-nightly-action/issues/111
+
+  nightly-wheels-upload:
+    name: Upload Anaconda Scientific Python nightly wheels
+    needs: [build_wheels]
+    # Run on push/merge to main
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+        # Downloads all artifacts
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: wheelhouse
+          merge-multiple: true
+
+      - name: Copy the wheels into dist
+        run: mkdir dist && cp wheelhouse/*.whl dist
+
+      - name: Upload wheels
+        uses: scientific-python/upload-nightly-action@82396a2ed4269ba06c6b2988bb4fd568ef3c3d6b # 0.6.1
+        with:
+          artifacts_path: dist
+          # This token is generated from anaconda.org
+          # https://github.com/scientific-python/upload-nightly-action/issues/111
+          anaconda_nightly_upload_token: ${{ secrets.ANACONDA_ORG_UPLOAD_TOKEN }}
+
   # Deploy wheels and sdist to PyPI
 
   pypi_release:
