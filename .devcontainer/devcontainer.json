@@ -1,0 +1,17 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {"ghcr.io/devcontainers/features/anaconda:1": {}
+  }"latest" (default)
+}...{
+    "nombre": "mi-proyecto-devcontainer",
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu", // Cualquier imagen genérica basada en Debian.
+    "características": {
+        "ghcr.io/devcontainers/features/go:1": {
+            "versión": "1.18"
+        },
+        "ghcr.io/devcontainers/features/docker-in-docker:1": {
+            "versión": "más reciente",
+            "moby": verdadero
+        }
+    }
+}
