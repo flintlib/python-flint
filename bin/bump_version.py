@@ -7,6 +7,7 @@ filenames_default = [
     "src/flint/test/test_all.py",
 ]
 
+
 def main(version2=None, *filenames):
     """Bump version number in files.
 
@@ -39,6 +40,7 @@ def main(version2=None, *filenames):
             text = f.read()
         with open(filename, "w") as f:
             f.write(text.replace(version1, version2))
+
 
 if __name__ == "__main__":
     import sys

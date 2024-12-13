@@ -40,13 +40,14 @@ TODO: don't import self
 #  recognize a function definition in rst
 is_func = re.compile(r"\.\.( )+(c:)?function( )*::")
 # rename types to avoid python -- c name collisions
-rename_types = [(re.compile(r"\bfmpz\b"),"fmpz_struct"),(re.compile(r"\bfmpq\b"), "fmpq_struct")]
+rename_types = [(re.compile(r"\bfmpz\b"), "fmpz_struct"), (re.compile(r"\bfmpq\b"), "fmpq_struct")]
 # comment out functions which use these types
 comment_types = re.compile(r"(\bFILE\b)|(\bmpz_t\b)|(\bmpq_t\b)")
 comment_set = set(["FILE", "mpz_t", "mpq_t"])
 c_types = set(["char", "short", "long", "int", "float", "double"])
 type_modifers = re.compile(r"\*|(\bconst\b)|(\bunsigned\b)|(\bsigned\b)")
 import_dict = {}
+
 
 def get_cython_struct_types(file):
     """
@@ -63,6 +64,7 @@ def get_cython_struct_types(file):
             ret.append(l.split()[-1])
     return ret
 
+
 def fill_import_dict(pyflintlibdir):
     """
     Get a map from cython structs to the pxd that defines them
@@ -74,6 +76,7 @@ def fill_import_dict(pyflintlibdir):
                     for t in get_cython_struct_types(pxd):
                         import_dict[t] = f.name.split('.')[0]
 
+
 def undecorate(str):
     """
     remove variable name, const, ``*``, etc. to just get types
@@ -83,15 +86,18 @@ def undecorate(str):
     ret = re.sub(type_modifers, '', ret)
     return ret.strip()
 
+
 def get_parameter_types(str):
     params = str[str.find("(") + 1 : str.rfind(")")].split(",")
     return [undecorate(s) for s in params]
+
 
 def clean_types(function):
     ret = function.strip()
     for old, new in rename_types:
         ret = re.sub(old, new, ret)
     return ret
+
 
 def get_functions(file):
     """
@@ -102,7 +108,7 @@ def get_functions(file):
     for line in file:
         m = is_func.match(line)
         if m:
-            ret.append( clean_types(line[m.end():]))
+            ret.append(clean_types(line[m.end():]))
             in_list = True
         else:
             if in_list:
@@ -112,12 +118,14 @@ def get_functions(file):
                     ret.append(clean_types(line))
     return ret
 
+
 def get_all_types(function_list):
     ret = set()
     for f in function_list:
         for t in get_parameter_types(f):
             ret.add(t)
     return ret
+
 
 def gen_imports(function_list):
     """
@@ -132,16 +140,17 @@ def gen_imports(function_list):
             imports[import_dict[t]].append(t)
         else:
             ret.add(t)
-    for k,v in imports.items():
+    for k, v in imports.items():
         types = ", ".join(v)
         print("from flint.flintlib." + k + " cimport " + types)
     return ret
 
+
 def generate_pxd_file(h_name, opts):
     fill_import_dict(opts.flint_lib_dir)
-    l=[]
+    l = []
     docdir = opts.arb_doc_dir
-    name = h_name 
+    name = h_name
     if name[:6] == "flint/":
         docdir = opts.flint_doc_dir
         name = name[6:]
@@ -149,9 +158,9 @@ def generate_pxd_file(h_name, opts):
         l = get_functions(f)
         s = gen_imports(l)
         print()
-        print ("\n# unimported types ", s - comment_set)
+        print("\n# unimported types ", s - comment_set)
         print()
-        print(r'cdef extern from "' + h_name +r'.h":')
+        print(r'cdef extern from "' + h_name + r'.h":')
         for f in l:
             if comment_types.search(f):
                 print("    # " + f)
@@ -181,4 +190,3 @@ def main(*args):
 
 if __name__ == "__main__":
     main(*sys.argv[1:])
-
