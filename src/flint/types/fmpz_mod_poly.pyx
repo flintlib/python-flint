@@ -1,10 +1,10 @@
 from cpython.list cimport PyList_GET_SIZE
 
 from flint.pyflint cimport global_random_state
-from flint.flintlib.fmpz_mod cimport fmpz_mod_neg, fmpz_mod_set_fmpz
-from flint.flintlib.fmpz_mod_poly cimport *
-from flint.flintlib.fmpz_mod_poly_factor cimport *
-from flint.flintlib.fmpz cimport(
+from flint.flintlib.functions.fmpz_mod cimport fmpz_mod_neg, fmpz_mod_set_fmpz
+from flint.flintlib.functions.fmpz_mod_poly cimport *
+from flint.flintlib.functions.fmpz_mod_poly_factor cimport *
+from flint.flintlib.functions.fmpz cimport(
     fmpz_init,
     fmpz_clear,
     fmpz_is_one
@@ -39,7 +39,7 @@ cdef class fmpz_mod_poly_ctx:
         # Allow context to be made from fmpz_mod_ctx
         if typecheck(mod, fmpz_mod_ctx):
             self.mod = mod
-        else: # Otherwise attempt to create context from moduli
+        else:  # Otherwise attempt to create context from moduli
             self.mod = fmpz_mod_ctx(mod)
 
     def modulus(self):
@@ -130,7 +130,7 @@ cdef class fmpz_mod_poly_ctx:
         """
         cdef slong length
         if not (isinstance(monic, bool) and isinstance(irreducible, bool)):
-            raise ValueError("Both `monic` and `irreducible` must be of type bool")
+            raise ValueError("Both 'monic' and 'irreducible' must be of type bool")
 
         length = degree + 1
         if length <= 0:
@@ -292,7 +292,7 @@ cdef class fmpz_mod_poly_ctx:
         for i in range(n):
             check = self.mod.set_any_as_fmpz_mod(&xs.val[i], vals[i])
             if check is NotImplemented:
-                raise ValueError(f"Unable to cast {vals[i]} to an `fmpz_mod`")
+                raise ValueError(f"Unable to cast {vals[i]} to an 'fmpz_mod'")
 
         res = self.new_ctype_poly()
         fmpz_mod_poly_minpoly(res.val, xs.val, n, self.mod.val)
@@ -482,7 +482,7 @@ cdef class fmpz_mod_poly(flint_poly):
         # Case when right is not fmpz_mod_poly, try to convert to fmpz
         right = self.ctx.any_as_fmpz_mod_poly(right)
         if right is NotImplemented:
-            raise TypeError(f"Cannot convert {right} to `fmpz_mod_poly` type.")
+            raise TypeError(f"Cannot convert {right} to 'fmpz_mod_poly' type.")
 
         if right == 0:
             raise ZeroDivisionError("Cannot divide by zero")
@@ -579,7 +579,7 @@ cdef class fmpz_mod_poly(flint_poly):
             fmpz_mod_poly_shift_left(
                 res.val, self.val, n, self.ctx.mod.val
             )
-        else: # do nothing, just copy self
+        else:  # do nothing, just copy self
             fmpz_mod_poly_set(
                 res.val, self.val, self.ctx.mod.val
             )
@@ -612,7 +612,7 @@ cdef class fmpz_mod_poly(flint_poly):
             fmpz_mod_poly_shift_right(
                 res.val, self.val, n, self.ctx.mod.val
             )
-        else: # do nothing, just copy self
+        else:  # do nothing, just copy self
             fmpz_mod_poly_set(
                 res.val, self.val, self.ctx.mod.val
             )
@@ -765,7 +765,7 @@ cdef class fmpz_mod_poly(flint_poly):
         for i in range(n):
             check = self.ctx.mod.set_any_as_fmpz_mod(&xs.val[i], vals[i])
             if check is NotImplemented:
-                raise ValueError(f"Unable to cast {vals[i]} to an `fmpz_mod`")
+                raise ValueError(f"Unable to cast {vals[i]} to an 'fmpz_mod'")
 
         # Call for multipoint eval, iterative horner will be used
         # for small arrays (len < 32) and a fast eval for larger ones
@@ -1004,9 +1004,9 @@ cdef class fmpz_mod_poly(flint_poly):
         length = fmpz_mod_poly_degree(self.val, self.ctx.mod.val)
         res = self.ctx.new_ctype_poly()
 
-        if n <= 0: # return zero
+        if n <= 0:  # return zero
             return res
-        elif n > length: # do nothing
+        elif n > length:  # do nothing
             fmpz_mod_poly_set(
                 res.val, self.val, self.ctx.mod.val
             )
@@ -1186,7 +1186,7 @@ cdef class fmpz_mod_poly(flint_poly):
         # For larger exponents we need to cast e to an fmpz first
         e_fmpz = any_as_fmpz(e)
         if e_fmpz is NotImplemented:
-            raise TypeError(f"exponent cannot be cast to an fmpz type: {e = }")
+            raise TypeError(f"exponent cannot be cast to an fmpz type: {e}")
 
         # To optimise powering, we precompute the inverse of the reverse of the modulus
         if mod_rev_inv is not None:
@@ -1716,7 +1716,7 @@ cdef class fmpz_mod_poly(flint_poly):
             self.val, self.ctx.mod.val
         )
         if n > n_max:
-            raise ValueError(f"Cannot deflate with {n = }, maximum allowed value is {n_max = }")
+            raise ValueError(f"Cannot deflate with n = {n}, maximum allowed value is n_max = {n_max}")
 
         res = self.ctx.new_ctype_poly()
         fmpz_mod_poly_deflate(

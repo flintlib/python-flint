@@ -1,6 +1,8 @@
 from cpython.list cimport PyList_GET_SIZE
 from cpython.long cimport PyLong_Check
 
+cimport libc.stdlib
+
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
@@ -14,17 +16,18 @@ from flint.types.acb cimport acb
 from flint.types.arb cimport any_as_arb_or_notimplemented
 from flint.types.arb cimport arb
 from flint.types.acb cimport any_as_acb_or_notimplemented
-cimport libc.stdlib
-from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear, fmpz_set
-from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_is_one, fmpz_equal_si, fmpz_equal
-from flint.flintlib.acb_modular cimport *
-from flint.flintlib.ulong_extras cimport n_is_prime
-from flint.flintlib.fmpz_poly cimport *
-from flint.flintlib.fmpz_poly_factor cimport *
-from flint.flintlib.arith cimport *
-from flint.flintlib.acb cimport *
-from flint.flintlib.arb_poly cimport *
-from flint.flintlib.arb_fmpz_poly cimport *
+from flint.flintlib.functions.fmpz cimport fmpz_init, fmpz_clear, fmpz_set
+from flint.flintlib.functions.fmpz cimport fmpz_is_zero, fmpz_is_one, fmpz_equal_si, fmpz_equal
+from flint.flintlib.functions.acb_modular cimport *
+from flint.flintlib.functions.ulong_extras cimport n_is_prime
+from flint.flintlib.functions.fmpz_poly cimport *
+from flint.flintlib.functions.fmpz_poly_factor cimport *
+from flint.flintlib.functions.arith cimport *
+from flint.flintlib.types.arith cimport arith_chebyshev_t_polynomial, arith_chebyshev_u_polynomial
+from flint.flintlib.functions.acb cimport *
+from flint.flintlib.functions.arb_poly cimport *
+from flint.flintlib.functions.arb_fmpz_poly cimport *
+from flint.flintlib.functions.fmpz_vec cimport _fmpz_vec_content
 
 from flint.utils.flint_exceptions import DomainError
 
@@ -592,18 +595,98 @@ cdef class fmpz_poly(flint_poly):
         else:
             raise DomainError(f"Cannot compute square root of {self}")
 
-    def deflation(self):
-        cdef fmpz_poly v
+    def inflate(self, n: int) -> fmpz_poly:
+        """
+        Compute the inflation of ``self`` for a provided ``n``, that is return ``q``
+        such that ``q(x) = p(x^n)``.
+
+            >>> f = fmpz_poly([1, 1])
+            >>> f.inflate(2)
+            x^2 + 1
+        """
+        cdef fmpz_poly res = fmpz_poly()
+        fmpz_poly_inflate(res.val, self.val, n)
+        return res
+
+    def deflate(self, n: int) -> fmpz_poly:
+        """
+        Compute the deflation of ``self`` for a provided ``n``, that is return ``q``
+        such that ``q(x) = p(x^(1/n))``.
+
+            >>> f = fmpz_poly([1, 0, 1])
+            >>> f.deflate(2)
+            x + 1
+        """
+        cdef fmpz_poly res = fmpz_poly()
+        if n > 0:
+            fmpz_poly_deflate(res.val, self.val, n)
+            return res
+        else:
+            raise ValueError("deflate requires n > 0")
+
+    def deflation(self) -> tuple[fmpz_poly, int]:
+        """
+        Compute the deflation of ``self``, that is ``p(x^(1/n))`` for maximal
+        n. returns ``q, n`` such that ``self == q.inflate(n)``.
+
+            >>> f = fmpz_poly([1, 0, 1])
+            >>> q, n = f.deflation()
+            >>> q, n
+            (x + 1, 2)
+            >>> q.inflate(n) == f
+            True
+        """
         cdef ulong n
         if fmpz_poly_is_zero(self.val):
             return self, 1
-        n = arb_fmpz_poly_deflation(self.val)
-        if n == 1:
-            return self, int(n)
-        else:
-            v = fmpz_poly()
-            arb_fmpz_poly_deflate(v.val, self.val, n)
-            return v, int(n)
+        n = fmpz_poly_deflation(self.val)
+        return self if n <= 1 else self.deflate(n), int(n)
+
+    def deflation_monom(self) -> tuple[fmpz_poly, int, fmpz_poly]:
+        """
+        Compute the exponent ``n`` and monomial ``m`` such that ``p(x^(1/n)) = m *
+        q(x^n)`` for maximal n. The returned monomial allows the undo-ing of the
+        deflation.
+
+            >>> f = fmpz_poly([1, 0, 1])
+            >>> f.deflation_monom()
+            (x^2 + 1, 1, x)
+        """
+        n, m = self.deflation_index()
+
+        cdef fmpz_poly monom = fmpz_poly.__new__(fmpz_poly)
+        cdef fmpz_poly res = fmpz_poly.__new__(fmpz_poly)
+
+        fmpz_poly_set_coeff_ui(monom.val, m, 1)
+        fmpz_poly_deflate(res.val, self.val, n)
+
+        return res, n, monom
+
+    def deflation_index(self) -> tuple[int, int]:
+        """
+        Compute the exponent ``n`` and ``i`` such that ``p(x^(1/n)) = x^i *
+        q(x^n)`` for maximal ``n``. Importantly the deflation itself is not computed
+        here. The returned exponent ``i`` is the shift that was applied to the
+        exponents. It is the exponent of the monomial returned by
+        ``deflation_monom``.
+
+            >>> f = fmpz_poly([1, 0, 1])
+            >>> f.deflation_index()
+            (1, 1)
+        """
+        cdef fmpz_poly res = fmpz_poly.__new__(fmpz_poly)
+        cdef slong length = fmpz_poly_length(self.val)
+
+        if length <= 0:
+            return self, 0, fmpz_poly([1])
+
+        # Find the smallest non-zero power, that is the gcd of the monomials
+        for i in range(1, length + 1):
+            if not fmpz_is_zero(&self.val.coeffs[length - i]):
+                break
+
+        fmpz_poly_shift_right(res.val, self.val, i)
+        return int(fmpz_poly_deflation(res.val)), int(i)
 
     def is_cyclotomic(self):
         cdef long * phi
@@ -647,3 +730,14 @@ cdef class fmpz_poly(flint_poly):
                     return int(i)
         libc.stdlib.free(phi)
         return 0
+
+    def content(self):
+        """
+        Return the GCD of the coefficients of ``self``.
+
+            >>> fmpz_poly([3, 6, 0]).content()
+            3
+        """
+        cdef fmpz res = fmpz()
+        _fmpz_vec_content(res.val, self.val.coeffs, self.val.length)
+        return res

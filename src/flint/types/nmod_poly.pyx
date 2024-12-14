@@ -7,10 +7,10 @@ from flint.types.fmpz_poly cimport fmpz_poly
 from flint.types.nmod cimport any_as_nmod
 from flint.types.nmod cimport nmod
 
-from flint.flintlib.nmod_vec cimport *
-from flint.flintlib.nmod_poly cimport *
-from flint.flintlib.nmod_poly_factor cimport *
-from flint.flintlib.fmpz_poly cimport fmpz_poly_get_nmod_poly
+from flint.flintlib.functions.nmod cimport nmod_init
+from flint.flintlib.functions.nmod_poly cimport *
+from flint.flintlib.functions.nmod_poly_factor cimport *
+from flint.flintlib.functions.fmpz_poly cimport fmpz_poly_get_nmod_poly
 
 from flint.utils.flint_exceptions import DomainError
 
@@ -38,7 +38,7 @@ cdef nmod_poly_set_list(nmod_poly_t poly, list val):
     cdef long i, n
     cdef nmod_t mod
     cdef mp_limb_t v
-    nmod_init(&mod, nmod_poly_modulus(poly)) # XXX
+    nmod_init(&mod, nmod_poly_modulus(poly))  # XXX
     n = PyList_GET_SIZE(val)
     nmod_poly_fit_length(poly, n)
     for i from 0 <= i < n:
@@ -262,7 +262,7 @@ cdef class nmod_poly(flint_poly):
             45*x^4 + 23*x^3 + 159*x^2 + 151*x + 110
         """
         if n <= 0:
-            raise ValueError(f"{n = } must be positive")
+            raise ValueError(f"n = {n} must be positive")
 
         if self.is_zero():
             raise ValueError("cannot invert the zero element")
@@ -315,11 +315,11 @@ cdef class nmod_poly(flint_poly):
         cdef nmod_poly res
         g = any_as_nmod_poly(other, self.val.mod)
         if g is NotImplemented:
-            raise TypeError(f"cannot convert {other = } to nmod_poly")
+            raise TypeError(f"cannot convert other = {other} to nmod_poly")
 
         h = any_as_nmod_poly(modulus, self.val.mod)
         if h is NotImplemented:
-            raise TypeError(f"cannot convert {modulus = } to nmod_poly")
+            raise TypeError(f"cannot convert modulus = {modulus} to nmod_poly")
 
         if modulus.is_zero():
             raise ZeroDivisionError("cannot reduce modulo zero")
@@ -549,7 +549,7 @@ cdef class nmod_poly(flint_poly):
         # For larger exponents we need to cast e to an fmpz first
         e_fmpz = any_as_fmpz(e)
         if e_fmpz is NotImplemented:
-            raise TypeError(f"exponent cannot be cast to an fmpz type: {e = }")
+            raise TypeError(f"exponent cannot be cast to an fmpz type: {e}")
 
         # To optimise powering, we precompute the inverse of the reverse of the modulus
         if mod_rev_inv is not None:
@@ -676,7 +676,7 @@ cdef class nmod_poly(flint_poly):
         for 0 <= i < fac.num:
             u = nmod_poly.__new__(nmod_poly)
             nmod_poly_init_preinv((<nmod_poly>u).val,
-                (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
+                                  (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
             nmod_poly_set((<nmod_poly>u).val, &fac.p[i])
             exp = fac.exp[i]
             res[i] = (u, exp)

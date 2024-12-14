@@ -12,11 +12,13 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 from flint.types.arb cimport arb
 
-from flint.flintlib.mag cimport *
-from flint.flintlib.arf cimport *
-from flint.flintlib.arb cimport *
-from flint.flintlib.acb cimport *
-from flint.flintlib.acb_poly cimport *
+from flint.flintlib.functions.mag cimport *
+from flint.flintlib.functions.arf cimport *
+from flint.flintlib.functions.arb cimport *
+from flint.flintlib.types.arb cimport arb_midref
+from flint.flintlib.functions.acb cimport *
+from flint.flintlib.types.acb cimport acb_struct
+from flint.flintlib.functions.acb_poly cimport *
 cimport libc.stdlib
 
 cdef acb_poly_coerce_operands(x, y):
@@ -197,7 +199,7 @@ cdef class acb_poly(flint_poly):
         return u
 
     def __pos__(self):
-        return self # ?
+        return self  # ?
 
     def __neg__(s):
         u = acb_poly.__new__(acb_poly)
@@ -261,7 +263,7 @@ cdef class acb_poly(flint_poly):
         q = acb_poly.__new__(acb_poly)
         r = acb_poly.__new__(acb_poly)
         if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
-                (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
+                           (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
             return q
         else:
             raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")
@@ -281,7 +283,7 @@ cdef class acb_poly(flint_poly):
         q = acb_poly.__new__(acb_poly)
         r = acb_poly.__new__(acb_poly)
         if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
-                (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
+                           (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
             return r
         else:
             raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")
@@ -301,7 +303,7 @@ cdef class acb_poly(flint_poly):
         q = acb_poly.__new__(acb_poly)
         r = acb_poly.__new__(acb_poly)
         if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
-                (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
+                           (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
             return q, r
         else:
             raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")

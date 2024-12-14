@@ -4,11 +4,12 @@ from flint.utils.conversion cimport chars_from_str
 from flint.utils.conversion cimport str_from_chars, _str_trunc
 cimport libc.stdlib
 
-from flint.flintlib.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN
-from flint.flintlib.fmpz cimport *
-from flint.flintlib.fmpz_factor cimport *
-from flint.flintlib.arith cimport *
-from flint.flintlib.partitions cimport *
+from flint.flintlib.types.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN, COEFF_IS_MPZ
+from flint.flintlib.functions.fmpz cimport *
+from flint.flintlib.types.fmpz cimport fmpz_factor_expand
+from flint.flintlib.functions.fmpz_factor cimport *
+from flint.flintlib.functions.arith cimport *
+from flint.flintlib.functions.partitions cimport *
 
 from flint.utils.flint_exceptions import DomainError
 
@@ -77,7 +78,7 @@ cdef class fmpz(flint_scalar):
         if typecheck(val, fmpz):
             fmpz_set(self.val, (<fmpz>val).val)
         else:
-            if fmpz_set_any_ref(self.val, val) == FMPZ_UNKNOWN: # XXX
+            if fmpz_set_any_ref(self.val, val) == FMPZ_UNKNOWN:  # XXX
                 if typecheck(val, str):
                     if fmpz_set_str(self.val, chars_from_str(val), 10) != 0:
                         raise ValueError("invalid string for fmpz")
@@ -527,45 +528,29 @@ cdef class fmpz(flint_scalar):
             fmpz_clear(tval)
         return u
 
-    # This is the correct code when fmpz_or is fixed (in flint 3.0.0)
-    #
-    #def __or__(self, other):
-    #    cdef fmpz_struct tval[1]
-    #    cdef int ttype = FMPZ_UNKNOWN
-    #    ttype = fmpz_set_any_ref(tval, other)
-    #    if ttype == FMPZ_UNKNOWN:
-    #        return NotImplemented
-    #    u = fmpz.__new__(fmpz)
-    #    fmpz_or((<fmpz>u).val, self.val, tval)
-    #    if ttype == FMPZ_TMP:
-    #        fmpz_clear(tval)
-    #    return u
-    #
-    #def __ror__(self, other):
-    #    cdef fmpz_struct tval[1]
-    #    cdef int ttype = FMPZ_UNKNOWN
-    #    ttype = fmpz_set_any_ref(tval, other)
-    #    if ttype == FMPZ_UNKNOWN:
-    #        return NotImplemented
-    #    u = fmpz.__new__(fmpz)
-    #    fmpz_or((<fmpz>u).val, tval, self.val)
-    #    if ttype == FMPZ_TMP:
-    #        fmpz_clear(tval)
-    #    return u
-
     def __or__(self, other):
-        if typecheck(other, fmpz):
-            other = int(other)
-        if typecheck(other, int):
-            return fmpz(int(self) | other)
-        else:
+        cdef fmpz_struct tval[1]
+        cdef int ttype = FMPZ_UNKNOWN
+        ttype = fmpz_set_any_ref(tval, other)
+        if ttype == FMPZ_UNKNOWN:
             return NotImplemented
+        u = fmpz.__new__(fmpz)
+        fmpz_or((<fmpz>u).val, self.val, tval)
+        if ttype == FMPZ_TMP:
+            fmpz_clear(tval)
+        return u
 
     def __ror__(self, other):
-        if typecheck(other, int):
-            return fmpz(other | int(self))
-        else:
+        cdef fmpz_struct tval[1]
+        cdef int ttype = FMPZ_UNKNOWN
+        ttype = fmpz_set_any_ref(tval, other)
+        if ttype == FMPZ_UNKNOWN:
             return NotImplemented
+        u = fmpz.__new__(fmpz)
+        fmpz_or((<fmpz>u).val, tval, self.val)
+        if ttype == FMPZ_TMP:
+            fmpz_clear(tval)
+        return u
 
     def __xor__(self, other):
         cdef fmpz_struct tval[1]
@@ -877,7 +862,7 @@ cdef class fmpz(flint_scalar):
             605263138639095300
         """
         cdef fmpz v = fmpz()
-        arith_divisor_sigma(v.val, k, n.val)
+        fmpz_divisor_sigma(v.val, k, n.val)
         return v
 
     def euler_phi(n):
@@ -890,7 +875,7 @@ cdef class fmpz(flint_scalar):
             39366
         """
         cdef fmpz v = fmpz()
-        arith_euler_phi(v.val, n.val)
+        fmpz_euler_phi(v.val, n.val)
         return v
 
     def __hash__(self):

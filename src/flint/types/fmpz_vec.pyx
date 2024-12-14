@@ -1,5 +1,5 @@
-from flint.flintlib.fmpz cimport fmpz_struct, fmpz_set, fmpz_init_set
-from flint.flintlib.fmpz_vec cimport _fmpz_vec_init, _fmpz_vec_clear
+from flint.flintlib.functions.fmpz cimport fmpz_struct, fmpz_set, fmpz_init_set
+from flint.flintlib.functions.fmpz_vec cimport _fmpz_vec_init, _fmpz_vec_clear
 
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 
@@ -66,6 +66,13 @@ cdef class fmpz_vec:
     def __repr__(self):
         return self.repr()
 
+    def __iter__(self):
+        cdef fmpz z
+        for i in range(self.length):
+            z = fmpz.__new__(fmpz)
+            fmpz_init_set(z.val, &self.val[i])
+            yield z
+
     def str(self, *args):
         s = [None] * self.length
         for i in range(self.length):
@@ -76,6 +83,3 @@ cdef class fmpz_vec:
 
     def repr(self, *args):
         return f"fmpz_vec({self.str(*args)}, {self.length})"
-
-    def to_tuple(self):
-        return tuple(self[i] for i in range(self.length))

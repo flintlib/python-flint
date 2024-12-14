@@ -8,3 +8,4 @@ coverage
 pytest-cov
 sphinx
 sphinx-rtd-theme
+furo

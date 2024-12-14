@@ -3,10 +3,11 @@ from flint.types.acb cimport any_as_acb
 from flint.types.acb cimport acb
 from flint.types.fmpz cimport fmpz
 
-from flint.flintlib.ulong_extras cimport n_gcd
-from flint.flintlib.fmpz cimport fmpz_get_ui
-from flint.flintlib.dirichlet cimport *
-from flint.flintlib.acb_dirichlet cimport *
+from flint.flintlib.functions.ulong_extras cimport n_gcd
+from flint.flintlib.functions.fmpz cimport fmpz_get_ui
+from flint.flintlib.functions.dirichlet cimport *
+from flint.flintlib.types.dirichlet cimport DIRICHLET_CHI_NULL
+from flint.flintlib.functions.acb_dirichlet cimport *
 
 cdef dict _dirichlet_group_cache = {}
 
@@ -169,17 +170,17 @@ cdef class dirichlet_char(object):
         else:
             return fmpz(v)
 
-    def l(self, s):
+    def l_function(self, s):
         """
         Evaluates the Dirichlet L-function of this character at the given
         complex number s.
 
             >>> from flint import showgood
             >>> chi = dirichlet_char(1, 1)
-            >>> showgood(lambda: chi.l(2), dps=25)
+            >>> showgood(lambda: chi.l_function(2), dps=25)
             1.644934066848226436472415
             >>> chi = dirichlet_char(7, 3)
-            >>> showgood(lambda: chi.l(2+3j), dps=25)
+            >>> showgood(lambda: chi.l_function(2+3j), dps=25)
             1.273313649440490751755284 - 0.07432329442559421607102118j
 
         """
@@ -188,6 +189,13 @@ cdef class dirichlet_char(object):
         v = acb.__new__(acb)
         acb_dirichlet_l((<acb>v).val, (<acb>s).val, self.G.val, self.val, getprec())
         return v
+
+    # For backwards compatibility we allow self.l(s) see Issue #210
+    def l(self, s):  # no-cython-lint
+        """
+        Alias for :meth:`l_function`
+        """
+        return self.l_function(s)
 
     def hardy_z(self, s):
         """

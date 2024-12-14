@@ -17,3 +17,18 @@ class IncompatibleContextError(FlintError):
     incompatible contexts.
     """
     pass
+
+
+class UnableError(FlintError):
+    """
+    Exception intended to be called when the implementation is unable to
+    perform the requested operation.
+    """
+    pass
+
+
+class UnknownError(FlintError):
+    """
+    Exception intended to be called when the value of a predicate is unknown.
+    """
+    pass

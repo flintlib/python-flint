@@ -11,14 +11,30 @@ from flint.types.acb cimport any_as_acb
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 
-from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
-from flint.flintlib.fmpq_mat cimport fmpq_mat_nrows, fmpq_mat_ncols
-from flint.flintlib.mag cimport *
-from flint.flintlib.arb cimport *
-from flint.flintlib.arb_mat cimport *
-from flint.flintlib.arf cimport *
-from flint.flintlib.acb cimport *
-from flint.flintlib.acb_mat cimport *
+from flint.flintlib.functions.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
+from flint.flintlib.functions.fmpq_mat cimport fmpq_mat_nrows, fmpq_mat_ncols
+from flint.flintlib.functions.mag cimport *
+from flint.flintlib.functions.arb cimport *
+from flint.flintlib.types.arb cimport (
+    mag_struct,
+    arb_radref,
+    arb_midref,
+    arb_mat_entry,
+    arb_mat_nrows,
+    arb_mat_ncols,
+)
+from flint.flintlib.functions.arb_mat cimport *
+from flint.flintlib.functions.arf cimport *
+from flint.flintlib.functions.acb cimport *
+from flint.flintlib.functions.acb_mat cimport *
+from flint.flintlib.types.acb cimport (
+    acb_realref,
+    acb_imagref,
+    acb_mat_struct,
+    acb_mat_entry,
+    acb_mat_nrows,
+    acb_mat_ncols,
+)
 
 cimport cython
 
@@ -775,29 +791,29 @@ cdef class acb_mat(flint_mat):
         if n != 0:
             if algorithm == "approx":
                 acb_mat_approx_eig_qr(acb_mat_entry(E.val, 0, 0),
-                    LP, RP,  s.val, magp, maxiter, getprec())
+                                      LP, RP,  s.val, magp, maxiter, getprec())
             else:
                 acb_mat_approx_eig_qr(acb_mat_entry(E.val, 0, 0),
-                    NULL, RP, s.val, magp, maxiter, getprec())
+                                      NULL, RP, s.val, magp, maxiter, getprec())
                 if multiple:
                     if left or right:
                         raise NotImplementedError("eigenvectors not supported with multiple=True")
                     if algorithm == "rump":
                         success = acb_mat_eig_multiple_rump(acb_mat_entry(E.val, 0, 0),
-                            s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                            s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                     else:
                         success = acb_mat_eig_multiple(acb_mat_entry(E.val, 0, 0),
-                            s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                       s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                 else:
                     if algorithm == "rump":
                         success = acb_mat_eig_simple_rump(acb_mat_entry(E.val, 0, 0),
-                            LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                          LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                     elif algorithm == "vdhoeven_mourrain":
                         success = acb_mat_eig_simple_vdhoeven_mourrain(acb_mat_entry(E.val, 0, 0),
-                            LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                                       LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                     else:
                         success = acb_mat_eig_simple(acb_mat_entry(E.val, 0, 0),
-                            LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                     LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                 if not (nonstop or success):
                     raise ValueError("failed to isolate eigenvalues (try higher prec, multiple=True for multiple eigenvalues, or nonstop=True to avoid the exception)")
         if tol is not None:
