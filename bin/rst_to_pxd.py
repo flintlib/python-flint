@@ -56,6 +56,7 @@ import_dict = {}
 doc_to_header = {'flint/gr_domains': 'flint/gr'}
 
 
+
 def get_cython_struct_types(file):
     """
     Extract cython types from a pxd file.
@@ -77,6 +78,7 @@ def get_cython_struct_types(file):
             ret.append(l.split()[-1])
     return ret
 
+
 def fill_import_dict(pyflintlibdir):
     """
     Get a map from cython structs to the pxd that defines them
@@ -90,6 +92,7 @@ def fill_import_dict(pyflintlibdir):
                     for t in get_cython_struct_types(pxd):
                         import_dict[t] = 'types.' + f.name.split('.')[0]
 
+
 def undecorate(str):
     """
     remove variable name, const, ``*``, etc. to just get types
@@ -100,17 +103,20 @@ def undecorate(str):
     ret = re.sub(type_modifers, '', ret).strip()
     return ret
 
+
 def get_parameter_types(str):
     params = str[str.find("(") + 1 : str.rfind(")")].split(",")
     ret_type = str.split('(')[0].rsplit(' ', 1)[0]
     params.append(ret_type)
     return [undecorate(s) for s in params if s]
 
+
 def clean_types(function):
     ret = function.strip()
     for old, new in rename_types:
         ret = re.sub(old, new, ret)
     return ret
+
 
 def get_functions(file):
     """
@@ -128,7 +134,7 @@ def get_functions(file):
 
         m = is_func.match(line)
         if m:
-            ret.append( clean_types(line[m.end():]))
+            ret.append(clean_types(line[m.end():]))
             in_list = True
         else:
             if in_list:
@@ -137,6 +143,7 @@ def get_functions(file):
                 else:
                     ret.append(clean_types(line))
     return ret, macros
+
 
 def get_all_types(function_list):
     ret = set()
@@ -166,16 +173,17 @@ def gen_imports(function_list):
             imports[import_dict[t]].append(t)
         else:
             ret.add(t)
-    for k,v in sorted(imports.items()):
+    for k, v in sorted(imports.items()):
         types = ", ".join(sorted(v))
         print("from flint.flintlib." + k + " cimport " + types)
     return sorted(ret)
 
 
 
+
 def generate_pxd_file(h_name, opts):
     fill_import_dict(opts.flint_lib_dir)
-    l=[]
+    l = []
     docdir = opts.arb_doc_dir
     name = h_name
     h_name = doc_to_header.get(h_name, h_name)
@@ -193,7 +201,7 @@ def generate_pxd_file(h_name, opts):
         for m in macros:
             print("# " + m)
         print()
-        print(r'cdef extern from "' + h_name +r'.h":')
+        print(r'cdef extern from "' + h_name + r'.h":')
         for f in l:
             if has_types(f, unknown_types):
                 print("    # " + f)
@@ -223,4 +231,3 @@ def main(*args):
 
 if __name__ == "__main__":
     main(*sys.argv[1:])
-

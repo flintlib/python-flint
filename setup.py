@@ -63,7 +63,7 @@ if os.getenv('PYTHON_FLINT_COVERAGE'):
     compiler_directives['linetrace'] = True
 
 
-packages=[
+packages = [
     'flint',
     'flint.flintlib',
     'flint.flint_base',
