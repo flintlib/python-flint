@@ -841,6 +841,10 @@ def test_fmpq():
     assert raises(lambda: Q(1,2) / Q(0), ZeroDivisionError)
     assert raises(lambda: Q(1,2) / 0, ZeroDivisionError)
 
+    assert Q(2,3).gcd(Q(4,9)) == Q(2,9)
+    assert Q(2,3).gcd(5) == Q(1,3)
+    assert raises(lambda: Q(2,3).gcd([]), TypeError)
+
     assert Q(5,3).floor() == flint.fmpz(1)
     assert Q(-5,3).floor() == flint.fmpz(-2)
     assert Q(5,3).ceil() == flint.fmpz(2)
