@@ -288,6 +288,24 @@ cdef class fmpq(flint_scalar):
     def __rtruediv__(s, t):
         return fmpq._div_(t, s)
 
+    def gcd(s, t):
+        """GCD of two rational numbers.
+
+            >>> fmpq(1,2).gcd(fmpq(3,4))
+            1/4
+
+        The GCD is defined as the GCD of the numerators divided by the LCM of
+        the denominators. This is consistent with ``fmpz.gcd()`` but not with
+        ``fmpq_poly.gcd()``.
+        """
+        cdef fmpq r
+        t = any_as_fmpq(t)
+        if t is NotImplemented:
+            raise TypeError("fmpq expected")
+        r = fmpq.__new__(fmpq)
+        fmpq_gcd(r.val, (<fmpq>s).val, (<fmpq>t).val)
+        return r
+
     def next(s, bint signed=True, bint minimal=True):
         """
         Returns the next rational number after *s* as ordered by
