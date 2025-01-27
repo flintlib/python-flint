@@ -67,7 +67,8 @@ as follows:
 See the documentation for further notes on building and installing
 python-flint:
 
-* https://python-flint.readthedocs.io/en/latest/setup.html
+* https://python-flint.readthedocs.io/en/latest/build.html
+* https://python-flint.readthedocs.io/en/latest/install.html
 
 Examples
 -------------------------------------
