@@ -6,6 +6,8 @@ from flint.flintlib.types.flint cimport (
 )
 from flint.utils.conversion cimport prec_to_dps, dps_to_prec
 
+from functools import wraps
+
 cdef class FlintContext:
     def __init__(self):
         self.default()
@@ -91,6 +93,24 @@ class PrecisionManager:
 
         self.eprec = eprec
         self.edps = edps
+
+    def __call__(self, func):
+        @wraps(func)
+        def wrapped(*args, **kwargs):
+            _oldprec = self.ctx.prec
+
+            try:
+                if self.eprec is not None:
+                    self.ctx.prec = self.eprec
+
+                if self.edps is not None:
+                    self.ctx.dps = self.edps
+
+                return func(*args, **kwargs)
+            finally:
+                self.ctx.prec = _oldprec
+
+        return wrapped
 
     def __enter__(self):
         self._oldprec = self.ctx.prec
