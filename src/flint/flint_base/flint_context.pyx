@@ -57,6 +57,18 @@ cdef class FlintContext:
         assert num >= 1 and num <= 64
         flint_set_num_threads(num)
 
+    def extraprec(self, n):
+        return self.workprec(n + self.prec)
+
+    def extradps(self, n):
+        return self.workdps(n + self.dps)
+
+    def workprec(self, n):
+        return PrecisionManager(self, eprec=n)
+
+    def workdps(self, n):
+        return PrecisionManager(self, edps=n)
+
     def __repr__(self):
         return "pretty = %-8s  # pretty-print repr() output\n" \
                "unicode = %-8s # use unicode characters in output\n" \
@@ -68,5 +80,29 @@ cdef class FlintContext:
 
     def cleanup(self):
         flint_cleanup()
+
+
+class PrecisionManager:
+    def __init__(self, ctx, eprec=None, edps=None):
+        if eprec is not None and edps is not None:
+            raise ValueError("two different precisions requested")
+
+        self.ctx = ctx
+
+        self.eprec = eprec
+        self.edps = edps
+
+    def __enter__(self):
+        self._oldprec = self.ctx.prec
+
+        if self.eprec is not None:
+            self.ctx.prec = self.eprec
+
+        if self.edps is not None:
+            self.ctx.dps = self.edps
+
+    def __exit__(self, type, value, traceback):
+        self.ctx.prec = self._oldprec
+
 
 cdef FlintContext thectx = FlintContext()
