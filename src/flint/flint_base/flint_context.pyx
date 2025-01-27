@@ -60,15 +60,85 @@ cdef class FlintContext:
         flint_set_num_threads(num)
 
     def extraprec(self, n):
+        """
+        Adds n bits of precision to the current flint context.
+
+            >>> from flint import arb, ctx
+            >>> with ctx.extraprec(5): x = arb(2).sqrt().str()
+            >>> x
+            '[1.414213562373095 +/- 5.53e-17]'
+
+        This function also works as a wrapper:
+
+            >>> from flint import arb, ctx
+            >>> @ctx.extraprec(10)
+            ... def f(x):
+            ...     return x.sqrt().str()
+            >>> f(arb(2))
+            '[1.41421356237309505 +/- 1.46e-18]'
+        """
         return self.workprec(n + self.prec)
 
     def extradps(self, n):
+        """
+        Adds n digits of precision to the current flint context.
+
+            >>> from flint import arb, ctx
+            >>> with ctx.extradps(5): x = arb(2).sqrt().str()
+            >>> x
+            '[1.4142135623730950488 +/- 2.76e-21]'
+
+        This function also works as a wrapper:
+
+            >>> from flint import arb, ctx
+            >>> @ctx.extradps(10)
+            ... def f(x):
+            ...     return x.sqrt().str()
+            >>> f(arb(2))
+            '[1.414213562373095048801689 +/- 3.13e-25]'
+        """
         return self.workdps(n + self.dps)
 
     def workprec(self, n):
+        """
+        Sets the working precision for the current flint context,
+        using a python context manager.
+
+            >>> from flint import arb, ctx
+            >>> with ctx.workprec(5): x = arb(2).sqrt().str()
+            >>> x
+            '[1e+0 +/- 0.438]'
+
+        This function also works as a wrapper:
+
+            >>> from flint import arb, ctx
+            >>> @ctx.workprec(24)
+            ... def f(x):
+            ...     return x.sqrt().str()
+            >>> f(arb(2))
+            '[1.41421 +/- 3.66e-6]'
+        """
         return PrecisionManager(self, eprec=n)
 
     def workdps(self, n):
+        """
+        Sets the working precision in digits for the current
+        flint context, using a python context manager.
+
+            >>> from flint import arb, ctx
+            >>> with ctx.workdps(5): x = arb(2).sqrt().str()
+            >>> x
+            '[1.4142 +/- 1.51e-5]'
+
+        This function also works as a wrapper:
+
+            >>> from flint import arb, ctx
+            >>> @ctx.workdps(10)
+            ... def f(x):
+            ...     return x.sqrt().str()
+            >>> f(arb(2))
+            '[1.414213562 +/- 3.85e-10]'
+        """
         return PrecisionManager(self, edps=n)
 
     def __repr__(self):
