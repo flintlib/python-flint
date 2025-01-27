@@ -119,7 +119,7 @@ cdef class nmod_mat(flint_mat):
                     row = val[i]
                     for j from 0 <= j < n:
                         x = nmod(row[j], mod)
-                        self.val.rows[i][j] = (<nmod>x).val
+                        nmod_mat_set_entry(self.val, i, j, x.val)
             else:
                 raise TypeError("cannot create nmod_mat from input of type %s" % type(val))
         elif len(args) == 2:
@@ -134,7 +134,7 @@ cdef class nmod_mat(flint_mat):
             for i from 0 <= i < m:
                 for j from 0 <= j < n:
                     x = nmod(entries[i*n + j], mod)         # XXX: slow
-                    self.val.rows[i][j] = (<nmod>x).val
+                    nmod_mat_set_entry(self.val, i, j, x.val)
         else:
             raise TypeError("nmod_mat: expected 1-3 arguments plus modulus")
 
