@@ -4,6 +4,8 @@ import operator
 import pickle
 import doctest
 import platform
+import random
+from threading import Thread
 
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
@@ -1635,6 +1637,35 @@ def test_pickling():
         s = pickle.dumps(obj)
         obj2 = pickle.loads(s)
         assert obj == obj2
+
+def test_python_threads():
+    iterations = 10**5
+    threads = 3 + 1
+    size = 3
+    M = flint.fmpz_mat([[0]*size for _ in range(size)])
+
+    def set_values():
+        for i in range(iterations // 5):
+            i = random.randrange(M.nrows())
+            j = random.randrange(M.ncols())
+            if random.uniform(0, 1) > 0.5:
+                # Bigger than 2**62:
+                M[i,j] = 10**128
+            else:
+                # Smaller than 2**62:
+                M[i,j] = 0
+
+    def get_dets():
+        for i in range(iterations):
+            M.det()
+
+    threads = [Thread(target=set_values) for _ in range(threads-1)]
+    threads.append(Thread(target=get_dets))
+
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
 
 def test_fmpz_mod():
     from flint import fmpz_mod_ctx, fmpz, fmpz_mod
@@ -4633,6 +4664,7 @@ all_tests = [
     test_arb,
 
     test_pickling,
+    test_python_threads,
 
     test_all_tests,
 ]
