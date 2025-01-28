@@ -378,6 +378,18 @@ cdef class gr_ctx(flint_ctx):
         gr_vec_clear(gens, self.ctx_t)
         return py_gens
 
+    @cython.final
+    cdef inline truth_t _is_zero(self, gr x):
+        return gr_is_zero(x.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline truth_t _is_one(self, gr x):
+        return gr_is_one(x.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline truth_t _is_neg_one(self, gr x):
+        return gr_is_neg_one(x.pval, self.ctx_t)
+
     # @cython.final
     # cdef inline list _gens_recursive(self):
     #     cdef int err

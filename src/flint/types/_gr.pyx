@@ -355,6 +355,48 @@ cdef class gr_ctx(flint_ctx):
         """
         return self._gens()
 
+    def is_zero(self, x) -> bool | None:
+        """
+        Returns whether x is equal to the ring element 0.
+
+            >>> from flint.types._gr import gr_real_arb_ctx
+            >>> ctx = gr_real_arb_ctx.new(10)
+            >>> ctx.is_zero(ctx(0))
+            True
+            >>> ctx.is_zero(ctx(1))
+            False
+            >>> ctx.is_zero(ctx("[0 +/- 0.1]"))
+        """
+        return truth_to_py(self._is_zero(x))
+
+    def is_one(self, x) -> bool | None:
+        """
+        Returns whether x is equal to the ring element 1.
+
+            >>> from flint.types._gr import gr_real_arb_ctx
+            >>> ctx = gr_real_arb_ctx.new(10)
+            >>> ctx.is_one(ctx(0))
+            False
+            >>> ctx.is_one(ctx(1))
+            True
+            >>> ctx.is_one(ctx("[1 +/- 0.1]"))
+        """
+        return truth_to_py(self._is_one(x))
+
+    def is_neg_one(self, x) -> bool | None:
+        """
+        Returns whether x is equal to the ring element -1.
+
+            >>> from flint.types._gr import gr_real_arb_ctx
+            >>> ctx = gr_real_arb_ctx.new(10)
+            >>> ctx.is_neg_one(ctx(1))
+            False
+            >>> ctx.is_neg_one(ctx(-1))
+            True
+            >>> ctx.is_neg_one(ctx("[-1 +/- 0.1]"))
+        """
+        return truth_to_py(self._is_neg_one(x))
+
     # def gens_recursive(self) -> list[gr]:
     #     """Return all generators of the domain
 
