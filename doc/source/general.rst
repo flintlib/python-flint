@@ -55,6 +55,28 @@ The special method ``ctx.cleanup()`` frees up internal caches
 used by MPFR, FLINT and Arb. The user does normally not have to
 worry about this.
 
+The context object ``flint.ctx`` can be controlled locally to increase the
+working precision using python context managers::
+
+    >>> arb(2).sqrt()
+    [1.41421356237309 +/- 5.15e-15]
+    >>> with ctx.extraprec(15):
+    ...     arb(2).sqrt()
+    ...
+    [1.414213562373095049 +/- 2.10e-19]
+
+In the same manner, it is possible to exactly set the working precision,
+or to update it in terms of digits::
+
+    >>> with ctx.extradps(15):
+    ...     arb(2).sqrt()
+    ...
+    [1.41421356237309504880168872421 +/- 6.27e-31]
+    >>> with ctx.workprec(15):
+    ...     arb(2).sqrt()
+    ...
+    [1.414 +/- 2.46e-4]
+
 Types and methods
 -----------------
 
