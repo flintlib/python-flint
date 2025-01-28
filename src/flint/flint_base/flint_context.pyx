@@ -154,9 +154,14 @@ cdef class FlintContext:
         flint_cleanup()
 
 
-class PrecisionManager:
-    def __init__(self, ctx, eprec=None, edps=None):
-        if eprec is not None and edps is not None:
+cdef class PrecisionManager:
+    cdef FlintContext ctx
+    cdef int eprec
+    cdef int edps
+    cdef int _oldprec
+
+    def __init__(self, ctx, eprec=-1, edps=-1):
+        if eprec != -1 and edps != -1:
             raise ValueError("two different precisions requested")
 
         self.ctx = ctx
@@ -170,10 +175,10 @@ class PrecisionManager:
             _oldprec = self.ctx.prec
 
             try:
-                if self.eprec is not None:
+                if self.eprec != -1:
                     self.ctx.prec = self.eprec
 
-                if self.edps is not None:
+                if self.edps != -1:
                     self.ctx.dps = self.edps
 
                 return func(*args, **kwargs)
@@ -185,10 +190,10 @@ class PrecisionManager:
     def __enter__(self):
         self._oldprec = self.ctx.prec
 
-        if self.eprec is not None:
+        if self.eprec != -1:
             self.ctx.prec = self.eprec
 
-        if self.edps is not None:
+        if self.edps != -1:
             self.ctx.dps = self.edps
 
     def __exit__(self, type, value, traceback):
