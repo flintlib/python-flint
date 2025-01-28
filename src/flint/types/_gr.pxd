@@ -86,6 +86,8 @@ from flint.flintlib.functions.gr_domains cimport (
 )
 from flint.flintlib.functions.gr cimport (
     gr_heap_init,
+    gr_set_d,
+    gr_set_other,
     gr_set_str,
     gr_get_str,
     gr_set,
@@ -212,6 +214,24 @@ cdef class gr_ctx(flint_ctx):
         py_val.pval = pval
         py_val.ctx = self
         py_val._init = True
+        return py_val
+
+    @cython.final
+    cdef inline gr from_d(self, double d):
+        cdef gr py_val
+        py_val = self.new_gr()
+        err = gr_set_d(py_val.pval, d, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Incorrect conversion from a double")
+        return py_val
+
+    @cython.final
+    cdef inline gr from_other(self, gr x):
+        cdef gr py_val
+        py_val = self.new_gr()
+        err = gr_set_other(py_val.pval, x.pval, x.ctx.ctx_t, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Incorrect conversion")
         return py_val
 
     @cython.final
