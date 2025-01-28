@@ -224,11 +224,23 @@ cdef class gr_ctx(flint_ctx):
     def __call__(self, arg) -> gr:
         """Create a new element of the domain.
 
-        >>> from flint.types._gr import gr_fmpz_ctx
-        >>> ctx = gr_fmpz_ctx
-        >>> ctx(2)
-        2
+            >>> from flint.types._gr import gr_fmpz_ctx
+            >>> ctx = gr_fmpz_ctx
+            >>> ctx(2)
+            2
+            >>> ctx(18446744073709551615)
+            18446744073709551615
         """
+        if isinstance(arg, gr):
+            return self.from_other(arg)
+        if type(arg) is int:
+            try:
+                return self.from_si(arg)
+            except OverflowError:
+                pass
+        if type(arg) is float:
+            return self.from_d(arg)
+        # TODO: fmpz & fmpq ?
         try:
             return self.from_str(str(arg))
         except AssertionError:
