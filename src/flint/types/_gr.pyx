@@ -397,6 +397,80 @@ cdef class gr_ctx(flint_ctx):
         """
         return truth_to_py(self._is_neg_one(x))
 
+    def neg(self, x):
+        """
+        Returns `-x`.
+
+            >>> from flint.types._gr import gr_complex_acb_ctx, gr_real_arb_ctx
+            >>> arb = gr_real_arb_ctx.new(53); acb = gr_complex_acb_ctx.new(106)
+            >>> c = acb("2 + I").sqrt(); c
+            ([1.4553466902253548081226618397097 +/- 3.48e-32] + [0.3435607497225124641385657439146 +/- 5.23e-32]*I)
+            >>> arb.neg(c)
+            [-1.455346690225355 +/- 1.92e-16]
+        """
+        return self._neg(x)
+
+    def add(self, x, y) -> gr:
+        """
+        Returns `x + y`
+
+        """
+        if isinstance(x, gr) and isinstance(y, gr):
+            if x.ctx == self and y.ctx == self:
+                return self._add(x, y)
+            if x.ctx == self:
+                return self._add_other(x, y)
+            if y.ctx == self:
+                return self._other_add(x, y)
+
+        if isinstance(x, gr) and x.ctx == self and type(y) is int:
+            try:
+                return self._add_si(x, y)
+            except OverflowError:
+                pass
+
+        # NOTE: By default, convert everything to the required
+        # context before performing the operation
+        return self._add(self(x), self(y))
+
+    def sub(self, x, y):
+        if isinstance(x, gr) and isinstance(y, gr):
+            if x.ctx == self and y.ctx == self:
+                return self._sub(x, y)
+            if x.ctx == self:
+                return self._sub_other(x, y)
+            if y.ctx == self:
+                return self._other_sub(x, y)
+
+        if isinstance(x, gr) and x.ctx == self and type(y) is int:
+            try:
+                return self._sub_si(x, y)
+            except OverflowError:
+                pass
+
+        # NOTE: By default, convert everything to the required
+        # context before performing the operation
+        return self._sub(self(x), self(y))
+
+    def mul(self, x, y):
+        if isinstance(x, gr) and isinstance(y, gr):
+            if x.ctx == self and y.ctx == self:
+                return self._mul(x, y)
+            if x.ctx == self:
+                return self._mul_other(x, y)
+            if y.ctx == self:
+                return self._other_mul(x, y)
+
+        if isinstance(x, gr) and x.ctx == self and type(y) is int:
+            try:
+                return self._mul_si(x, y)
+            except OverflowError:
+                pass
+
+        # NOTE: By default, convert everything to the required
+        # context before performing the operation
+        return self._mul(self(x), self(y))
+
     # def gens_recursive(self) -> list[gr]:
     #     """Return all generators of the domain
 

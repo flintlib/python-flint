@@ -119,10 +119,16 @@ from flint.flintlib.functions.gr cimport (
     gr_neg,
     gr_add,
     gr_add_si,
+    gr_add_other,
+    gr_other_add,
     gr_sub,
     gr_sub_si,
+    gr_sub_other,
+    gr_other_sub,
     gr_mul,
     gr_mul_si,
+    gr_mul_other,
+    gr_other_mul,
     gr_inv,
     gr_div,
     gr_div_si,
@@ -389,6 +395,123 @@ cdef class gr_ctx(flint_ctx):
     @cython.final
     cdef inline truth_t _is_neg_one(self, gr x):
         return gr_is_neg_one(x.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline gr _neg(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_neg(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot negate x in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _add(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_add(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot add x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _add_other(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_add_other(res.pval, x.pval, y.pval, y.ctx.ctx_t, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot add x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _other_add(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_other_add(res.pval, x.pval, x.ctx.ctx_t, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot add x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _add_si(self, gr x, slong y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_add_si(res.pval, x.pval, y, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot add x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _sub(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_sub(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot sub x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _sub_other(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_sub_other(res.pval, x.pval, y.pval, y.ctx.ctx_t, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot sub x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _other_sub(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_other_sub(res.pval, x.pval, x.ctx.ctx_t, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot sub x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _sub_si(self, gr x, slong y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_sub_si(res.pval, x.pval, y, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot sub x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _mul(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_mul(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot mul x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _mul_other(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_mul_other(res.pval, x.pval, y.pval, y.ctx.ctx_t, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot mul x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _other_mul(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_other_mul(res.pval, x.pval, x.ctx.ctx_t, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot mul x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _mul_si(self, gr x, slong y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_mul_si(res.pval, x.pval, y, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot mul x and y in this context")
+        return res
 
     # @cython.final
     # cdef inline list _gens_recursive(self):
@@ -919,7 +1042,7 @@ cdef class gr_series_ctx(gr_ctx):
 @cython.no_gc
 cdef class gr(flint_scalar):
     cdef gr_ptr pval
-    cdef gr_ctx ctx
+    cdef public gr_ctx ctx
     cdef bint _init
 
     @cython.final
