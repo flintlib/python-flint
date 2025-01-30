@@ -232,6 +232,8 @@ cdef class gr_ctx(flint_ctx):
             18446744073709551615
         """
         if isinstance(arg, gr):
+            if arg.ctx == self:
+                return arg
             return self.from_other(arg)
         if type(arg) is int:
             try:
@@ -397,7 +399,25 @@ cdef class gr_ctx(flint_ctx):
         """
         return truth_to_py(self._is_neg_one(x))
 
-    def neg(self, x):
+    def equal(self, x, y) -> bool | None:
+        """
+        Returns whether the elements `x` and `y` are equal.
+        """
+        return self._equal(self(x), self(y))
+
+    # def is_integer(self, x):
+    #     """
+    #     Returns whether `x` represents an integer.
+    #     """
+    #     return self._is_integer(self(x))
+    #
+    # def is_rational(self, x):
+    #     """
+    #     Returns whether x represents a rational number.
+    #     """
+    #     return self._is_rational(self(x))
+
+    def neg(self, x) -> gr:
         """
         Returns `-x`.
 
@@ -405,10 +425,13 @@ cdef class gr_ctx(flint_ctx):
             >>> arb = gr_real_arb_ctx.new(53); acb = gr_complex_acb_ctx.new(106)
             >>> c = acb("2 + I").sqrt(); c
             ([1.4553466902253548081226618397097 +/- 3.48e-32] + [0.3435607497225124641385657439146 +/- 5.23e-32]*I)
-            >>> arb.neg(c)
-            [-1.455346690225355 +/- 1.92e-16]
+            >>> acb.neg(c)
+            ([-1.4553466902253548081226618397097 +/- 3.48e-32] + [-0.3435607497225124641385657439146 +/- 5.23e-32]*I)
         """
-        return self._neg(x)
+        return self._neg(self(x))
+
+    ###
+    # Arithmetic methods
 
     def add(self, x, y) -> gr:
         """
@@ -433,7 +456,7 @@ cdef class gr_ctx(flint_ctx):
         # context before performing the operation
         return self._add(self(x), self(y))
 
-    def sub(self, x, y):
+    def sub(self, x, y) -> gr:
         if isinstance(x, gr) and isinstance(y, gr):
             if x.ctx == self and y.ctx == self:
                 return self._sub(x, y)
@@ -452,7 +475,7 @@ cdef class gr_ctx(flint_ctx):
         # context before performing the operation
         return self._sub(self(x), self(y))
 
-    def mul(self, x, y):
+    def mul(self, x, y) -> gr:
         if isinstance(x, gr) and isinstance(y, gr):
             if x.ctx == self and y.ctx == self:
                 return self._mul(x, y)
@@ -471,12 +494,290 @@ cdef class gr_ctx(flint_ctx):
         # context before performing the operation
         return self._mul(self(x), self(y))
 
-    # def gens_recursive(self) -> list[gr]:
-    #     """Return all generators of the domain
+    ###
+    # Division
 
-    #     See :meth:`gens` for an example.
+    def is_invertible(self, x) -> bool | None:
+        """
+        Returns whether `x` has a multiplicative inverse in the present ring, i.e. whether `x` is a unit.
+        """
+        return self._is_invertible(self(x))
+
+    def inv(self, x) -> gr:
+        """
+        Returns the multiplicative inverse of `x` in the present ring, if such an element exists.
+        """
+        return self._inv(self(x))
+
+    def div(self, x, y) -> gr:
+        """
+        Returns the quotient `x/y`
+        """
+        if isinstance(x, gr) and isinstance(y, gr):
+            if x.ctx == self and y.ctx == self:
+                return self._div(x, y)
+            if x.ctx == self:
+                return self._div_other(x, y)
+            if y.ctx == self:
+                return self._other_div(x, y)
+
+        if isinstance(x, gr) and x.ctx == self and type(y) is int:
+            try:
+                return self._div_si(x, y)
+            except OverflowError:
+                pass
+
+        # NOTE: By default, convert everything to the required
+        # context before performing the operation
+        return self._div(self(x), self(y))
+
+    def divexact(self, x, y) -> gr:
+        """
+        Returns the quotient `x/y`, assuming that the quotient is exact in the current context.
+        """
+        if isinstance(x, gr) and isinstance(y, gr):
+            if x.ctx == self and y.ctx == self:
+                return self._divexact(x, y)
+            if x.ctx == self:
+                return self._divexact_other(x, y)
+            if y.ctx == self:
+                return self._other_divexact(x, y)
+
+        if isinstance(x, gr) and x.ctx == self and type(y) is int:
+            try:
+                return self._divexact_si(x, y)
+            except OverflowError:
+                pass
+
+        # NOTE: By default, convert everything to the required
+        # context before performing the operation
+        return self._divexact(self(x), self(y))
+
+    def div_nonunique(self, x, y) -> gr:
+        """
+        Returns an arbitrary solution `q` of the equation `x = qy`.
+        """
+        return self._div_nonunique(self(x), self(y))
+
+    def divides(self, d, x) -> bool | None:
+        """
+        Returns whether `d | x`; that is, whether there is an element `q` such that `x = qd`.
+        """
+        return self._divides(self(d), self(x))
+
+    def euclidean_div(self, x, y) -> gr:
+        return self._euclidean_div(self(x), self(y))
+
+    def euclidean_rem(self, x, y) -> gr:
+        return self._euclidean_rem(self(x), self(y))
+
+    def euclidean_divrem(self, x, y) -> tuple[gr, gr]:
+        return self._euclidean_divrem(self(x), self(y))
+
+    ###
+    # Powering
+
+    def pow(self, x, y) -> gr:
+        """
+        Returns the power x^y, the interpretation of which depends on the ring when y ∉ ℤ
+        """
+        if isinstance(x, gr) and isinstance(y, gr):
+            if x.ctx == self and y.ctx == self:
+                return self._pow(x, y)
+            if x.ctx == self:
+                return self._pow_other(x, y)
+            if y.ctx == self:
+                return self._other_pow(x, y)
+
+        if isinstance(x, gr) and x.ctx == self and type(y) is int:
+            try:
+                return self._pow_si(x, y)
+            except OverflowError:
+                pass
+
+        # NOTE: By default, convert everything to the required
+        # context before performing the operation
+        return self._pow(self(x), self(y))
+
+    ###
+    # Square Roots
+
+    def is_square(self, x) -> bool | None:
+        """
+        Returns whether x is a perfect square in the context.
+        """
+        return self._is_square(self(x))
+
+    def sqrt(self, x) -> gr:
+        """
+        Returns the square root of `x`.
+        """
+        return self._sqrt(self(x))
+
+    def rsqrt(self, x) -> gr:
+        """
+        Returns the reciprocal square root of `x`.
+        """
+        return self._rsqrt(self(x))
+
+    ###
+    # Greatest Common Divisors
+
+    def gcd(self, x, y) -> gr:
+        """
+        Returns a greatest common divisor (GCD) of `x` and `y`.
+        Since the GCD is unique only up to multiplication by a unit,
+        an implementation-defined representative is chosen.
+        """
+        return self._gcd(self(x), self(y))
+
+    def lcm(self, x, y) -> gr:
+        """
+        Returns a least common multiple (LCM) of x and y.
+        Since the LCM is unique only up to multiplication by a unit,
+        an implementation-defined representative is chosen.
+        """
+        return self._lcm(self(x), self(y))
+
+    ###
+    # Factorization
+
+    # def factor(self, x) -> tuple[gr, list[gr], list[gr]]:
     #     """
-    #        return self._gens_recursive()
+    #     Given an element of the context, this returns a factorization (c, f, e):
+    #         x = c f₁^e₁ ··· fₙ^eₙ, where fₖ will be irreducible or prime depending on the ring.
+    #     The prefactor c stores a unit, sign or coefficient.
+    #     Note that c is an element of the same ring as x.
+    #     """
+    #     return self._factor(self(x))
+
+    ###
+    # Fractions
+
+    def numerator(self, x) -> gr:
+        """
+        Return a numerator p such that x = p / q.
+        For typical fraction fields, the denominator will be minimal and canonical.
+        However, some rings may return an arbitrary denominator as long as the numerator matches.
+        The default implementations simply returns p = x.
+        """
+        return self._numerator(self(x))
+
+    def denominator(self, x) -> gr:
+        """
+        Return a denominator q such that x = p / q.
+        For typical fraction fields, the denominator will be minimal and canonical.
+        However, some rings may return an arbitrary denominator as long as the numerator matches.
+        The default implementations simply returns q = 1.
+        """
+        return self._denominator(self(x))
+
+    ###
+    # Integer and Complex parts
+
+    def floor(self, x) -> gr:
+        return self._floor(self(x))
+
+    def ceil(self, x) -> gr:
+        return self._ceil(self(x))
+
+    def trunc(self, x) -> gr:
+        return self._trunc(self(x))
+
+    def nint(self, x) -> gr:
+        return self._nint(self(x))
+
+    def abs(self, x) -> gr:
+        return self._abs(self(x))
+
+    def conj(self, x) -> gr:
+        return self._conj(self(x))
+
+    def re(self, x) -> gr:
+        return self._re(self(x))
+
+    def im(self, x) -> gr:
+        return self._im(self(x))
+
+    def sgn(self, x) -> gr:
+        return self._sgn(self(x))
+
+    def csgn(self, x) -> gr:
+        return self._csgn(self(x))
+
+    def arg(self, x) -> gr:
+        return self._arg(self(x))
+
+    ###
+    # Ordering methods
+
+    def cmp(self, x, y) -> int:
+        """
+        Returns:
+        - -1 if x < y
+        -  0 if x = y
+        -  1 if x > y
+        """
+        if isinstance(x, gr) and isinstance(y, gr):
+            if x.ctx == self and y.ctx != self:
+                return self._cmp_other(x, y)
+
+            if y.ctx == self and x.ctx != self:
+                return -self._cmp_other(y, x)
+
+            if x.ctx == self == y.ctx:
+                return self._cmp(x, y)
+
+        return self._cmp(self(x), self(y))
+
+    def cmpabs(self, x, y) -> int:
+        """
+        Returns:
+        - -1 if |x| < |y|
+        -  0 if |x| = |y|
+        -  1 if |x| > |y|
+        """
+        if isinstance(x, gr) and isinstance(y, gr):
+            if x.ctx == self and y.ctx != self:
+                return self._cmpabs_other(x, y)
+
+            if y.ctx == self and x.ctx != self:
+                return -self._cmpabs_other(y, x)
+
+            if x.ctx == self == y.ctx:
+                return self._cmpabs(x, y)
+
+        return self._cmpabs(self(x), self(y))
+
+    def le(self, x, y) -> bool | None:
+        return truth_to_py(self._le(self(x), self(y)))
+
+    def abs_le(self, x, y) -> bool | None:
+        return truth_to_py(self._abs_le(self(x), self(y)))
+
+    def lt(self, x, y) -> bool | None:
+        return truth_to_py(self._lt(self(x), self(y)))
+
+    def abs_lt(self, x, y) -> bool | None:
+        return truth_to_py(self._abs_lt(self(x), self(y)))
+
+    def ge(self, x, y) -> bool | None:
+        return truth_to_py(self._ge(self(x), self(y)))
+
+    def abs_ge(self, x, y) -> bool | None:
+        return truth_to_py(self._abs_ge(self(x), self(y)))
+
+    def gt(self, x, y) -> bool | None:
+        return truth_to_py(self._gt(self(x), self(y)))
+
+    def abs_gt(self, x, y) -> bool | None:
+        return truth_to_py(self._abs_gt(self(x), self(y)))
+
+    def min(self, x, y) -> gr:
+        return self._min(self(x), self(y))
+
+    def max(self, x, y) -> gr:
+        return self._max(self(x), self(y))
 
 
 cdef class gr_scalar_ctx(gr_ctx):
