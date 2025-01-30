@@ -767,17 +767,37 @@ cdef class gr_ctx(flint_ctx):
     ###
     # Factorization
 
-    # @cython.final
-    # cdef inline tuple[gr, list[gr], list[fmpz]] _factor(self, gr x):
-    #     cdef int err
-    #     cdef gr c = self.new_gr()
-    #     cdef gr_vec_t factors
-    #     gr_vec_init(factors, 0, self.ctx_t)
-    #     cdef gr_vec_t exponents
-    #     gr_vec_init(exponents, 0, self.ctx_t)
-    #     err = gr_factor(c.pval, factors, exponents, x.pval, 0, self.ctx_t)
-    #     if err != GR_SUCCESS:
-    #         raise self._error(err, "Cannot factorize x in this context")
+    @cython.final
+    cdef inline tuple[gr, list[tuple[gr, int]]] _factor(self, gr x):
+        cdef int err, i
+        cdef slong length, exp_s
+        cdef gr c, f
+        cdef gr_ptr fac_i, exp_i
+        cdef gr_vec_t factors, exponents
+        cdef int flags = 0  # XXX: What is flags?
+        c = self.new_gr()
+        gr_vec_init(factors, 0, self.ctx_t)
+        gr_vec_init(exponents, 0, gr_fmpz_ctx_c.ctx_t)
+        err = gr_factor(c.pval, factors, exponents, x.pval, flags, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Failed to factor gr object")
+        length = gr_vec_length(factors, self.ctx_t)
+        py_factors = [None] * length
+        for 0 <= i < length:
+            f = self.new_gr()
+            fac_i = gr_vec_entry_ptr(factors, i, self.ctx_t)
+            err = gr_set(f.pval, fac_i, self.ctx_t)
+            if err != GR_SUCCESS:
+                raise self._error(err, "Failed to copy factor.")
+            exp_i = gr_vec_entry_ptr(exponents, i, gr_fmpz_ctx_c.ctx_t)
+            err = gr_get_si(&exp_s, exp_i, gr_fmpz_ctx_c.ctx_t)
+            if err != GR_SUCCESS:
+                raise self._error(err, "Failed to get integer value of exponent.")
+            exp = exp_s
+            py_factors[i] = (f, exp)
+        gr_vec_clear(factors, self.ctx_t)
+        gr_vec_clear(exponents, gr_fmpz_ctx_c.ctx_t)
+        return c, py_factors
 
     ###
     # Fractions
