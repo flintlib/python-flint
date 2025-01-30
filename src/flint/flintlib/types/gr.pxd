@@ -5,6 +5,26 @@ from flint.flintlib.types.flint cimport (
     flint_bitcnt_t,
 )
 
+cdef extern from *:
+    """
+    /*
+     * The following functions were introduced in FLINT 3.2.0
+     */
+
+    #if __FLINT_RELEASE < 30200
+    #define gr_min(res, x, y, ctx) GR_UNABLE
+    #define gr_max(res, x, y, ctx) GR_UNABLE
+    #define gr_le(x, y, ctx) T_UNKNOWN
+    #define gr_lt(x, y, ctx) T_UNKNOWN
+    #define gr_ge(x, y, ctx) T_UNKNOWN
+    #define gr_gt(x, y, ctx) T_UNKNOWN
+    #define gr_abs_le(x, y, ctx) T_UNKNOWN
+    #define gr_abs_lt(x, y, ctx) T_UNKNOWN
+    #define gr_abs_ge(x, y, ctx) T_UNKNOWN
+    #define gr_abs_gt(x, y, ctx) T_UNKNOWN
+    #endif
+    """
+
 
 cdef extern from "flint/gr.h":
 
