@@ -1850,10 +1850,7 @@ cdef class gr(flint_scalar):
             return NotImplemented
 
     def __pow__(self, other) -> gr:
-        if isinstance(other, int):
-            return self._pow_si(other)
-        else:
-            return NotImplemented
+        return self.ctx.pow(self, other)
 
     def is_square(self):
         """Return whether the element is a square (may return ``None``).
@@ -1866,7 +1863,7 @@ cdef class gr(flint_scalar):
         >>> Q(4).sqrt()
         2
         """
-        return truth_to_py(self._is_square())
+        return truth_to_py(self.ctx.is_square(self))
 
     def sqrt(self):
         """Return the square root of the element if it exists.
@@ -1875,7 +1872,7 @@ cdef class gr(flint_scalar):
         >>> Z(4).sqrt()
         2
         """
-        return self._sqrt()
+        return self.ctx.sqrt(self)
 
     def rsqrt(self):
         """Return the reciprocal square root of the element if it exists.
@@ -1884,7 +1881,7 @@ cdef class gr(flint_scalar):
         >>> Q(4).rsqrt()
         1/2
         """
-        return self._rsqrt()
+        return self.ctx.rsqrt(self)
 
     def gcd(self, other):
         """Return the greatest common divisor of two elements.
@@ -1914,7 +1911,7 @@ cdef class gr(flint_scalar):
         other_gr = other
         if not self.ctx == other_gr.ctx:
             raise TypeError("gcd of gr with different contexts.")
-        return self._lcm(other_gr)
+        return self.ctx.lcm(self, other_gr)
 
     def factor(self):
         """Return the factorization of the element.
@@ -1923,7 +1920,7 @@ cdef class gr(flint_scalar):
         >>> Z(12).factor()
         (1, [(2, 2), (3, 1)])
         """
-        return self._factor()
+        return self.ctx.factor(self)
 
     def numer(self) -> gr:
         """Return the numerator of the element.
@@ -1937,7 +1934,7 @@ cdef class gr(flint_scalar):
 
         See also :meth:`denom`.
         """
-        return self._numerator()
+        return self.ctx.numerator(self)
 
     def denom(self) -> gr:
         """Return the denominator of the element.
@@ -1951,21 +1948,21 @@ cdef class gr(flint_scalar):
 
         See also :meth:`numer`.
         """
-        return self._denominator()
+        return self.ctx.denominator(self)
 
     def __floor__(self) -> gr:
-        return self._floor()
+        return self.ctx.floor(self)
 
     def __ceil__(self) -> gr:
-        return self._ceil()
+        return self.ctx.ceil(self)
 
     def __trunc__(self) -> gr:
-        return self._trunc()
+        return self.ctx.trunc(self)
 
     def __round__(self, ndigits: int = 0) -> gr:
         if ndigits != 0:
             raise NotImplementedError("Rounding to a specific number of digits is not supported")
-        return self._nint()
+        return self.ctx.nint(self)
 
     # def __int__(self) -> int:
     #     return self._floor().to_int()
@@ -1974,7 +1971,7 @@ cdef class gr(flint_scalar):
     #     return ...
 
     def __abs__(self) -> gr:
-        return self._abs()
+        return self.ctx.abs(self)
 
     def conjugate(self) -> gr:
         """Return complex conjugate of the element.
@@ -1984,7 +1981,7 @@ cdef class gr(flint_scalar):
         >>> (1 + I).conjugate()
         (1-I)
         """
-        return self._conj()
+        return self.ctx.conj(self)
 
     @property
     def real(self) -> gr:
@@ -1995,7 +1992,7 @@ cdef class gr(flint_scalar):
         >>> (1 + I).real
         1
         """
-        return self._re()
+        return self.ctx.re(self)
 
     @property
     def imag(self) -> gr:
@@ -2006,7 +2003,7 @@ cdef class gr(flint_scalar):
         >>> (1 + I).imag
         1
         """
-        return self._im()
+        return self.ctx.im(self)
 
     # XXX: Return -1, 0, 1 as int?
     def sgn(self) -> gr:
@@ -2020,7 +2017,7 @@ cdef class gr(flint_scalar):
         >>> Q(0).sgn()
         0
         """
-        return self._sgn()
+        return self.ctx.sgn(self)
 
     def csgn(self) -> gr:
         """Return the complex sign of the element.
@@ -2030,7 +2027,7 @@ cdef class gr(flint_scalar):
         >>> (1 + C.i()).csgn()  # doctest: +SKIP
         1
         """
-        return self._csgn()
+        return self.ctx.csgn(self)
 
     def arg(self) -> gr:
         """Return the argument of the element.
@@ -2040,4 +2037,4 @@ cdef class gr(flint_scalar):
         >>> (1 + C.i()).arg()
         [0.785 +/- 6.45e-4]
         """
-        return self._arg()
+        return self.ctx.arg(self)
