@@ -111,22 +111,43 @@ from flint.flintlib.functions.gr cimport (
     gr_is_zero,
     gr_is_one,
     gr_is_neg_one,
-    # gr_is_integer,
-    # gr_is_rational,
+    gr_is_integer,
+    gr_is_rational,
 
     gr_equal,
 
     gr_neg,
     gr_add,
     gr_add_si,
+    gr_add_other,
+    gr_other_add,
     gr_sub,
     gr_sub_si,
+    gr_sub_other,
+    gr_other_sub,
     gr_mul,
     gr_mul_si,
+    gr_mul_other,
+    gr_other_mul,
+    gr_is_invertible,
     gr_inv,
     gr_div,
     gr_div_si,
+    gr_div_other,
+    gr_div_nonunique,
+    gr_divides,
+    gr_other_div,
+    gr_divexact,
+    gr_divexact_si,
+    gr_divexact_other,
+    gr_other_divexact,
+    gr_euclidean_div,
+    gr_euclidean_rem,
+    gr_euclidean_divrem,
+    gr_pow,
     gr_pow_si,
+    gr_pow_other,
+    gr_other_pow,
 
     gr_is_square,
     gr_sqrt,
@@ -149,10 +170,20 @@ from flint.flintlib.functions.gr cimport (
     gr_csgn,
     gr_arg,
 
-    # gr_le,
-    # gr_lt,
-    # gr_ge,
-    # gr_gt,
+    gr_cmp,
+    gr_cmp_other,
+    gr_cmpabs,
+    gr_cmpabs_other,
+    gr_le,
+    gr_lt,
+    gr_ge,
+    gr_gt,
+    gr_abs_le,
+    gr_abs_lt,
+    gr_abs_ge,
+    gr_abs_gt,
+    gr_min,
+    gr_max,
 
     gr_numerator,
     gr_denominator,
@@ -231,7 +262,7 @@ cdef class gr_ctx(flint_ctx):
         py_val = self.new_gr()
         err = gr_set_other(py_val.pval, x.pval, x.ctx.ctx_t, self.ctx_t)
         if err != GR_SUCCESS:
-            raise self._error(err, "Incorrect conversion")
+            raise self._error(err, "Cannot convert x to the current context")
         return py_val
 
     @cython.final
@@ -377,6 +408,608 @@ cdef class gr_ctx(flint_ctx):
             py_gens[i] = g
         gr_vec_clear(gens, self.ctx_t)
         return py_gens
+
+    @cython.final
+    cdef inline truth_t _is_zero(self, gr x):
+        return gr_is_zero(x.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline truth_t _is_one(self, gr x):
+        return gr_is_one(x.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline truth_t _is_neg_one(self, gr x):
+        return gr_is_neg_one(x.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline truth_t _equal(self, gr x, gr y):
+        return gr_equal(x.pval, y.pval, self.ctx_t)
+
+    # @cython.final
+    # cdef inline truth_t _is_integer(self, gr x):
+    #     return gr_is_integer(x.pval, self.ctx_t)
+    #
+    # @cython.final
+    # cdef inline truth_t _is_rational(self, gr x):
+    #     return gr_is_rational(x.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline gr _neg(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_neg(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot negate x in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _add(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_add(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot add x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _add_other(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_add_other(res.pval, x.pval, y.pval, y.ctx.ctx_t, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot add x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _other_add(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_other_add(res.pval, x.pval, x.ctx.ctx_t, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot add x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _add_si(self, gr x, slong y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_add_si(res.pval, x.pval, y, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot add x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _sub(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_sub(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot sub x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _sub_other(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_sub_other(res.pval, x.pval, y.pval, y.ctx.ctx_t, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot sub x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _other_sub(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_other_sub(res.pval, x.pval, x.ctx.ctx_t, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot sub x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _sub_si(self, gr x, slong y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_sub_si(res.pval, x.pval, y, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot sub x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _mul(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_mul(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot mul x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _mul_other(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_mul_other(res.pval, x.pval, y.pval, y.ctx.ctx_t, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot mul x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _other_mul(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_other_mul(res.pval, x.pval, x.ctx.ctx_t, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot mul x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _mul_si(self, gr x, slong y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_mul_si(res.pval, x.pval, y, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot mul x and y in this context")
+        return res
+
+    ###
+    # Division
+
+    @cython.final
+    cdef inline truth_t _is_invertible(self, gr x):
+        return gr_is_invertible(x.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline gr _inv(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_inv(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "x in not invertible in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _div(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_div(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot div x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _div_other(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_div_other(res.pval, x.pval, y.pval, y.ctx.ctx_t, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot div x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _other_div(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_other_div(res.pval, x.pval, x.ctx.ctx_t, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot div x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _div_si(self, gr x, slong y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_div_si(res.pval, x.pval, y, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot div x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _divexact(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_divexact(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot divexact x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _divexact_other(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_divexact_other(res.pval, x.pval, y.pval, y.ctx.ctx_t, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot divexact x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _other_divexact(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_other_divexact(res.pval, x.pval, x.ctx.ctx_t, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot divexact x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _divexact_si(self, gr x, slong y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_divexact_si(res.pval, x.pval, y, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot divexact x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _div_nonunique(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_div_nonunique(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "No solution q to x = qy has been found")
+        return res
+
+    @cython.final
+    cdef inline truth_t _divides(self, gr x, gr d):
+        return gr_divides(x.pval, d.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline gr _euclidean_div(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_euclidean_div(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "No solution q to x = qy has been found")
+        return res
+
+    @cython.final
+    cdef inline gr _euclidean_rem(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_euclidean_rem(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "No solution q to x = qy has been found")
+        return res
+
+    @cython.final
+    cdef inline tuple[gr, gr] _euclidean_divrem(self, gr x, gr y):
+        cdef int err
+        cdef gr rem = self.new_gr()
+        cdef gr div = self.new_gr()
+        err = gr_euclidean_divrem(div.pval, rem.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "No solution q to x = qy has been found")
+        return (div, rem)
+
+    ###
+    # Powering
+
+    @cython.final
+    cdef inline gr _pow(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_pow(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot pow x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _pow_other(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_pow_other(res.pval, x.pval, y.pval, y.ctx.ctx_t, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot pow x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _other_pow(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_other_pow(res.pval, x.pval, x.ctx.ctx_t, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot pow x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _pow_si(self, gr x, slong y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_pow_si(res.pval, x.pval, y, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot pow x and y in this context")
+        return res
+
+    ###
+    # Square roots
+
+    @cython.final
+    cdef inline truth_t _is_square(self, gr x):
+        return gr_is_square(x.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline gr _sqrt(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_sqrt(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot pow x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _rsqrt(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_rsqrt(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot pow x and y in this context")
+        return res
+
+    ###
+    # Greates Common Divisors
+
+    @cython.final
+    cdef inline gr _gcd(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_gcd(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot pow x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _lcm(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_lcm(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot pow x and y in this context")
+        return res
+
+    ###
+    # Factorization
+
+    @cython.final
+    cdef inline tuple[gr, list[tuple[gr, int]]] _factor(self, gr x):
+        cdef int err, i
+        cdef slong length, exp_s
+        cdef gr c, f
+        cdef gr_ptr fac_i, exp_i
+        cdef gr_vec_t factors, exponents
+        cdef int flags = 0  # XXX: What is flags?
+        c = self.new_gr()
+        gr_vec_init(factors, 0, self.ctx_t)
+        gr_vec_init(exponents, 0, gr_fmpz_ctx_c.ctx_t)
+        err = gr_factor(c.pval, factors, exponents, x.pval, flags, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Failed to factor gr object")
+        length = gr_vec_length(factors, self.ctx_t)
+        py_factors = [None] * length
+        for 0 <= i < length:
+            f = self.new_gr()
+            fac_i = gr_vec_entry_ptr(factors, i, self.ctx_t)
+            err = gr_set(f.pval, fac_i, self.ctx_t)
+            if err != GR_SUCCESS:
+                raise self._error(err, "Failed to copy factor.")
+            exp_i = gr_vec_entry_ptr(exponents, i, gr_fmpz_ctx_c.ctx_t)
+            err = gr_get_si(&exp_s, exp_i, gr_fmpz_ctx_c.ctx_t)
+            if err != GR_SUCCESS:
+                raise self._error(err, "Failed to get integer value of exponent.")
+            exp = exp_s
+            py_factors[i] = (f, exp)
+        gr_vec_clear(factors, self.ctx_t)
+        gr_vec_clear(exponents, gr_fmpz_ctx_c.ctx_t)
+        return c, py_factors
+
+    ###
+    # Fractions
+
+    @cython.final
+    cdef inline gr _numerator(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_numerator(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot pow x and y in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _denominator(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_denominator(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot pow x and y in this context")
+        return res
+
+    ###
+    # Integer and Complex parts
+
+    @cython.final
+    cdef inline gr _floor(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_floor(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compute floor(x) in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _ceil(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_ceil(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compute ceil(x) in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _trunc(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_trunc(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compute trunc(x) in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _nint(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_nint(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compute nint(x) in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _abs(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_abs(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compute abs(x) in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _conj(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_conj(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compute conj(x) in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _re(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_re(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compute re(x) in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _im(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_im(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compute im(x) in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _sgn(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_sgn(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compute sgn(x) in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _csgn(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_csgn(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compute csgn(x) in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _arg(self, gr x):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_arg(res.pval, x.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compute arg(x) in this context")
+        return res
+
+    ###
+    # Ordering methods
+
+    @cython.final
+    cdef inline int _cmp(self, gr x, gr y):
+        cdef int err
+        cdef int res
+        err = gr_cmp(&res, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compare x and y")
+        return res
+
+    @cython.final
+    cdef inline int _cmp_other(self, gr x, gr y):
+        cdef int err
+        cdef int res
+        err = gr_cmp_other(&res, x.pval, y.pval, y.ctx.ctx_t, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compare x and y")
+        return res
+
+    @cython.final
+    cdef inline int _cmpabs(self, gr x, gr y):
+        cdef int err
+        cdef int res
+        err = gr_cmpabs(&res, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compare x and y")
+        return res
+
+    @cython.final
+    cdef inline int _cmpabs_other(self, gr x, gr y):
+        cdef int err
+        cdef int res
+        err = gr_cmpabs_other(&res, x.pval, y.pval, y.ctx.ctx_t, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compare x and y")
+        return res
+
+    @cython.final
+    cdef inline truth_t _le(self, gr x, gr y):
+        return gr_le(x.pval, y.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline truth_t _abs_le(self, gr x, gr y):
+        return gr_abs_le(x.pval, y.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline truth_t _lt(self, gr x, gr y):
+        return gr_lt(x.pval, y.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline truth_t _abs_lt(self, gr x, gr y):
+        return gr_abs_lt(x.pval, y.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline truth_t _ge(self, gr x, gr y):
+        return gr_ge(x.pval, y.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline truth_t _abs_ge(self, gr x, gr y):
+        return gr_abs_ge(x.pval, y.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline truth_t _gt(self, gr x, gr y):
+        return gr_gt(x.pval, y.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline truth_t _abs_gt(self, gr x, gr y):
+        return gr_abs_gt(x.pval, y.pval, self.ctx_t)
+
+    @cython.final
+    cdef inline gr _min(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_min(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compute min(x) in this context")
+        return res
+
+    @cython.final
+    cdef inline gr _max(self, gr x, gr y):
+        cdef int err
+        cdef gr res = self.new_gr()
+        err = gr_max(res.pval, x.pval, y.pval, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot compute min(x) in this context")
+        return res
 
     # @cython.final
     # cdef inline list _gens_recursive(self):
@@ -907,7 +1540,7 @@ cdef class gr_series_ctx(gr_ctx):
 @cython.no_gc
 cdef class gr(flint_scalar):
     cdef gr_ptr pval
-    cdef gr_ctx ctx
+    cdef public gr_ctx ctx
     cdef bint _init
 
     @cython.final
@@ -929,14 +1562,6 @@ cdef class gr(flint_scalar):
     @cython.final
     cdef inline truth_t _is_neg_one(self):
         return gr_is_neg_one(self.pval, self.ctx.ctx_t)
-
-    # @cython.final
-    # cdef inline truth_t _is_integer(self):
-    #     return gr_is_integer(self.pval, self.ctx.ctx_t)
-
-    # @cython.final
-    # cdef inline truth_t _is_rational(self):
-    #     return gr_is_rational(self.pval, self.ctx.ctx_t)
 
     @cython.final
     cdef inline gr _neg(self):

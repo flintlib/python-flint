@@ -5,7 +5,12 @@ import re
 
 import flint
 
-dunder_test_regex = re.compile(r'^(.*?)__test__\..*?\.(.*) \(line (\d+)\)$')
+dunder_test_regex = re.compile(r'^(.*?)__test__\.(.*?\.)(.*) \(line (\d+)\)$')
+
+test_flint_at_least = {
+    "flint.types._gr.gr_ctx.gens": 30100,
+    "flint.types._gr.gr_ctx.neg": 30100,
+}
 
 
 def find_doctests(module):
@@ -20,9 +25,14 @@ def find_doctests(module):
                 m = dunder_test_regex.match(test.name)
                 if m is not None:
                     groups = m.groups()
-                    test.name = groups[0] + groups[1]
-                    test.lineno = int(groups[2])
-                    res.append(test)
+                    test.name = groups[0] + groups[2]
+                    test.lineno = int(groups[3])
+
+                    if (
+                        test_flint_at_least.get("".join(groups[:3]), flint.__FLINT_RELEASE__)
+                        <= flint.__FLINT_RELEASE__
+                    ):
+                        res.append(test)
 
             tests.append((module_info.name, res))
 
