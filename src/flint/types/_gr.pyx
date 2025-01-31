@@ -779,6 +779,47 @@ cdef class gr_ctx(flint_ctx):
     def max(self, x, y) -> gr:
         return self._max(self(x), self(y))
 
+    ###
+    # Array-API wrappers
+
+    def divide(self, x, y) -> gr:
+        return self.div(x, y)
+
+    def greater(self, x, y):
+        return self.gt(x, y)
+
+    def greater_equal(self, x, y):
+        return self.ge(x, y)
+
+    def less(self, x, y):
+        return self.lt(x, y)
+
+    def less_equal(self, x, y):
+        return self.le(x, y)
+
+    def imag(self, x):
+        return self.im(x)
+
+    def real(self, x):
+        return self.re(x)
+
+    def maximum(self, x, y):
+        return self.max(x, y)
+
+    def minimum(self, x, y):
+        return self.min(x, y)
+
+    def multiply(self, x, y):
+        return self.mul(x, y)
+
+    def negative(self, x):
+        return self.neg(x)
+
+    def not_equal(self, x, y):
+        eq = self.equal(x, y)
+        if eq is None:
+            return None
+        return not eq
 
 cdef class gr_scalar_ctx(gr_ctx):
     """Base class for all scalar contexts."""
