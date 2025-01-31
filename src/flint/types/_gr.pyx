@@ -1661,6 +1661,18 @@ cdef class gr(flint_scalar):
     def __repr__(self):
         return self.ctx.to_str(self)
 
+    def parent(self) -> gr_ctx:
+        """
+        Return the parent context.
+
+            >>> from flint.types._gr import gr_complex_acb_ctx
+            >>> acb = gr_complex_acb_ctx.new(53)
+            >>> x = acb("pi")
+            >>> x.parent()
+            gr_complex_acb_ctx(53)
+        """
+        return self.ctx
+
     def is_zero(self):
         """Return whether the element is zero (may return ``None``).
 
