@@ -107,7 +107,7 @@ PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig"
 # PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 [tool.cibuildwheel.linux]
-before-all = "bin/cibw_before_all_linux.sh"
+before-all = "bin/cibw_before_all_linux_$(uname -m).sh"
 
 [tool.cibuildwheel.macos]
 before-all = "bin/cibw_before_all_macosx_$(uname -m).sh"
