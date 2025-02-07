@@ -19,8 +19,8 @@ RC="--rcfile=.coveragerc.meson"
 
 # See https://github.com/cython/cython/issues/6658
 # Needed for Python 3.13 only
-#pip uninstall cython
-#pip install git+https://github.com/cython/cython.git@fdbca99
+pip uninstall cython
+pip install git+https://github.com/cython/cython.git@fdbca99
 
 meson setup build -Dcoverage=true
 spin run -- coverage run $RC -m flint.test $@
