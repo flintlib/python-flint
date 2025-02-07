@@ -81,7 +81,7 @@ package = "flint"
 [tool.cibuildwheel]
 # requires-python needs to keep in sync with this and also the list of Python
 # versions the wheels are tested against in CI.
-build = "cp311-* cp312-* cp313-* pp311-*"
+build = "cp311-* cp312-* cp313-*" # pp311-*"
 skip = "*-win32 *-manylinux_i686 *-musllinux_*"
 
 # This is needed for free-threaded wheels:
