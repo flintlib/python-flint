@@ -8,7 +8,7 @@ RC="--rcfile=.coveragerc.setuptools"
 
 # See https://github.com/cython/cython/issues/6658
 # Needed for Python 3.13 only
-pip uninstall cython
+pip uninstall -y cython
 pip install git+https://github.com/cython/cython.git@fdbca99
 
 touch src/*/*/*.pyx
