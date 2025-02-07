@@ -3,7 +3,7 @@ name = "python-flint"
 description = "Bindings for FLINT"
 version = "0.7.0a5"
 # This needs to be in sync with README, cibuildwheel and CI config.
-requires-python = ">= 3.10"
+requires-python = ">= 3.11"
 authors = [
     {name = "Fredrik Johansson", email = "fredrik.johansson@gmail.com"},
 ]
@@ -81,7 +81,7 @@ package = "flint"
 [tool.cibuildwheel]
 # requires-python needs to keep in sync with this and also the list of Python
 # versions the wheels are tested against in CI.
-build = "cp310-* cp311-* cp312-* cp313-* pp310-*"
+build = "cp311-* cp312-* cp313-*" # pp311-*"
 skip = "*-win32 *-manylinux_i686 *-musllinux_*"
 
 # This is needed for free-threaded wheels:
@@ -89,6 +89,7 @@ skip = "*-win32 *-manylinux_i686 *-musllinux_*"
 # free-threaded-support = true
 
 manylinux-x86_64-image = "manylinux2014"
+manylinux-aarch64-image = "manylinux2014"
 manylinux-i686-image = "manylinux2014"
 test-command = "python -c \"import flint; print(str(flint.fmpz(2)))\""
 
@@ -106,7 +107,7 @@ PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig"
 # PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 [tool.cibuildwheel.linux]
-before-all = "bin/cibw_before_all_linux.sh"
+before-all = "bin/cibw_before_all_linux_$(uname -m).sh"
 
 [tool.cibuildwheel.macos]
 before-all = "bin/cibw_before_all_macosx_$(uname -m).sh"
