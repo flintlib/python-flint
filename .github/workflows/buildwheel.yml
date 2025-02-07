@@ -186,7 +186,7 @@ jobs:
       - run: python -m flint.test --verbose
 
   # Test that we can make a coverage build and report coverage
-  test_coverage_build:
+  test_coverage_build_setuptools:
     name: Test coverage setuptools build
     runs-on: ubuntu-24.04
     steps:
