@@ -1708,7 +1708,7 @@ cdef class gr(flint_scalar):
 
             >>> from flint.types._gr import gr_complex_acb_ctx
             >>> acb = gr_complex_acb_ctx.new(53)
-            >>> x = acb("pi")
+            >>> x = acb("2")
             >>> x.parent()
             gr_complex_acb_ctx(53)
         """
