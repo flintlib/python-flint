@@ -1,4 +1,9 @@
-project('python-flint', 'cython', 'c')
+project(
+  'python-flint',
+  'cython',
+  'c',
+  meson_version : '>=1.1',
+)
 #
 # The minimum versions are because we know that it will not work with earlier
 # versions. The maximum versions are because python-flint was not tested
