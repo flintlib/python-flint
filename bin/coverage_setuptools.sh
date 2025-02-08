@@ -10,6 +10,7 @@ RC="--rcfile=.coveragerc.setuptools"
 # Needed for Python 3.13 only
 pip uninstall -y cython
 pip install git+https://github.com/cython/cython.git@fdbca99
+pip install setuptools
 
 touch src/*/*/*.pyx
 PYTHON_FLINT_COVERAGE=1 python setup.py build_ext --inplace
