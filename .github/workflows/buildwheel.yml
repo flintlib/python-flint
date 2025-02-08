@@ -200,14 +200,14 @@ jobs:
       - run: bin/coverage_setuptools.sh
 
   # Test that we can make a coverage build and report coverage
-  test_coverage_build:
+  test_coverage_build_meson:
     name: Test coverage meson build
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.12' # does not work with 3.13
       - run: sudo apt-get update
       - run: sudo apt-get install libflint-dev
       - run: pip install -r requirements-dev.txt
