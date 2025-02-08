@@ -1,4 +1,9 @@
-project('python-flint', 'cython', 'c')
+project(
+  'python-flint',
+  'cython',
+  'c',
+  meson_version : '>=1.1',
+)
 #
 # The minimum versions are because we know that it will not work with earlier
 # versions. The maximum versions are because python-flint was not tested
@@ -8,7 +13,7 @@ project('python-flint', 'cython', 'c')
 #
 flint_lower = '>=3.0'
 flint_upper = '<3.2'
-cython_lower = '>=3.0'
+cython_lower = '>=3.0.11'
 cython_upper = '<3.2'
 
 py = import('python').find_installation(pure: false)
