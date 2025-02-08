@@ -149,7 +149,7 @@ jobs:
       # We don't need to specify ninja as a requirement in pyproject.toml
       # because without --no-build-isolation meson-python handles it
       # automatically in get_requirements_for_build_wheel().
-      - run: 'pip install "cython==3.0" "meson-python==0.13" "ninja<1.11"'
+      - run: 'pip install "cython==3.0.11" "meson-python==0.13" "ninja<1.11"'
       - run: pip install --no-build-isolation .
       - run: python -m flint.test --verbose
 
