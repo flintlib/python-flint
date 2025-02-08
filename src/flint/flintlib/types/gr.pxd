@@ -8,9 +8,15 @@ from flint.flintlib.types.flint cimport (
 cdef extern from *:
     """
     /*
+     * The following functions were introduced in FLINT 3.1.0
+     */
+    #if __FLINT_RELEASE < 30100
+    #define gr_div_nonunique(res, x, y, ctx) GR_UNABLE
+    #endif
+
+    /*
      * The following functions were introduced in FLINT 3.2.0
      */
-
     #if __FLINT_RELEASE < 30200
     #define gr_min(res, x, y, ctx) GR_UNABLE
     #define gr_max(res, x, y, ctx) GR_UNABLE
