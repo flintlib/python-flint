@@ -55,6 +55,9 @@ cdef extern from *:
     """
 
 cdef extern from "flint/flint.h":
+    # These defines are needed to work around a Cython bug.
+    # Otherwise sizeof(ulong) will give the wrong size on 64 bit Windows.
+    # https://github.com/cython/cython/issues/6339
     """
     #define SIZEOF_ULONG sizeof(ulong)
     #define SIZEOF_SLONG sizeof(slong)
