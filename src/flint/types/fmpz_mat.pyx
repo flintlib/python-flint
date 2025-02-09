@@ -9,6 +9,8 @@ from flint.types.fmpq cimport any_as_fmpq
 cimport cython
 cimport libc.stdlib
 
+from flint.flintlib.types.flint cimport SIZEOF_SLONG
+
 from flint.flintlib.functions.fmpz cimport (
     fmpz_set,
     fmpz_init,
@@ -660,7 +662,7 @@ cdef class fmpz_mat(flint_mat):
         cdef fmpz_mat LU
         r = fmpz_mat_nrows(self.val)
         c = fmpz_mat_ncols(self.val)
-        perm = <slong*>libc.stdlib.malloc(r * sizeof(slong))
+        perm = <slong*>libc.stdlib.malloc(r * SIZEOF_SLONG)
         if perm is NULL:
             raise MemoryError("malloc failed")
         try:
