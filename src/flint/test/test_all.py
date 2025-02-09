@@ -1,9 +1,8 @@
-import sys
 import math
 import operator
 import pickle
-import doctest
 import platform
+import random
 
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
@@ -1871,7 +1870,6 @@ def test_fmpz_mod_dlog():
     p = 2**e2 * 3**e3 + 1
     F = fmpz_mod_ctx(p)
 
-    import random
     for _ in range(10):
         g = F(random.randint(0,p))
         for _ in range(10):
@@ -4084,6 +4082,50 @@ def test_matrices_div():
         raises(lambda: None / M1234, TypeError)
 
 
+def test_matrices_properties():
+    for M, S, is_field in _all_matrices():
+        # XXX: Add these properties to all matrix types
+        if M is not flint.fmpz_mat:
+            continue
+
+        assert M([[1, 2], [3, 4]]).is_square() is True
+        assert M([[1, 2]]).is_square() is False
+        assert M(0, 2, []).is_square() is False
+        assert M(2, 0, []).is_square() is False
+
+        assert M([[1, 2], [3, 4]]).is_empty() is False
+        assert M(0, 2, []).is_empty() is True
+        assert M(2, 0, []).is_empty() is True
+
+        assert M([[1, 2], [3, 4]]).is_zero() is False
+        assert M([[0, 0], [0, 0]]).is_zero() is True
+
+        assert M([[1, 0], [0, 1]]).is_one() is True
+        assert M([[1, 2], [3, 4]]).is_one() is False
+        assert M([[1, 0], [0, 1], [0, 0]]).is_one() is True # ??
+        assert M(0, 0, []).is_one() is True
+
+        assert M([[-1, 0], [0, -1]]).is_neg_one() is True
+        assert M([[-1, 0], [0, 1]]).is_neg_one() is False
+        assert M([[-1, -1], [-1, -1]]).is_neg_one() is False
+        assert M([[-1, 0], [0, -1], [0, 0]]).is_neg_one() is False # ??
+        assert M(0, 0, []).is_neg_one() is True
+
+        assert M([[2, 0], [0, 2]]).is_scalar() is True
+        assert M([[2, 0], [0, 3]]).is_scalar() is False
+        assert M([[1, 0], [0, 1], [0, 0]]).is_scalar() is False
+
+        assert M([[1, 0], [0, 2]]).is_diagonal() is True
+        assert M([[1, 0], [1, 2]]).is_diagonal() is False
+        assert M([[1, 0], [0, 1], [0, 0]]).is_diagonal() is True
+
+        assert M([[1, 1, 1], [0, 2, 2]]).is_upper_triangular() is True
+        assert M([[1, 1, 1], [1, 2, 2]]).is_upper_triangular() is False
+
+        assert M([[1, 0, 0], [1, 2, 0]]).is_lower_triangular() is True
+        assert M([[1, 1, 0], [1, 2, 0]]).is_lower_triangular() is False
+
+
 def test_matrices_inv():
     for M, S, is_field in _all_matrices():
         if is_field:
@@ -4149,6 +4191,63 @@ def test_matrices_rref():
             assert Mr == M([[1, 2, 3], [4, 5, 6]])
             assert Mr.rref(inplace=True) == (Mr_rref, 2)
             assert Mr == Mr_rref
+
+
+def test_matrices_fflu():
+
+    QQ = flint.fmpq_mat
+    shape = lambda A: (A.nrows(), A.ncols())
+
+    def is_permutation(P):
+        if not P.is_square():
+            return False
+        n = P.nrows()
+        for i, row in enumerate(sorted(P.tolist(), reverse=True)):
+            if row != [int(i == j) for j in range(n)]:
+                return False
+        return True
+
+    def check_fflu(A):
+        m, n = shape(A)
+        P, L, D, U = A.fflu()
+        Dq = QQ(D)
+        assert P*A == L*Dq.inv()*U
+        assert shape(P) == shape(L) == shape(D) == (m, m)
+        assert shape(A) == shape(U) == (m, n)
+        assert is_permutation(P)
+        assert L.is_lower_triangular()
+        assert U.is_upper_triangular()
+        assert D.is_diagonal()
+
+    for M, S, is_field in _all_matrices():
+        # XXX: Add this to more matrix types...
+        if M is not flint.fmpz_mat:
+            continue
+
+        A = M([[1, 2], [3, 4]])
+        P, L, D, U = A.fflu()
+        assert P == M([[1, 0], [0, 1]])
+        assert L == M([[1, 0], [3, -2]])
+        assert D == M([[1, 0], [0, -2]])
+        assert U == M([[1, 2], [0, -2]])
+
+        check_fflu(M(0, 0, []))
+        check_fflu(M(2, 0, []))
+        check_fflu(M(0, 2, []))
+        check_fflu(M([[1]]))
+
+        check_fflu(M([[1, 2], [3, 4]]))
+        check_fflu(M([[1, 2, 3], [4, 5, 6]]))
+        check_fflu(M([[1, 2], [3, 4], [5, 6]]))
+        check_fflu(M([[1, 2], [2, 4]]))
+        check_fflu(M([[0, 0], [0, 0]]))
+        check_fflu(M([[1, 1, 1], [1, 1, 1]]))
+
+        for _ in range(10):
+            for m in range(1, 5):
+                for n in range(1, 5):
+                    A = M.randbits(m, n, 10)
+                    check_fflu(A)
 
 
 def test_matrices_solve():
@@ -4619,6 +4718,7 @@ all_tests = [
     test_matrices_mul,
     test_matrices_pow,
     test_matrices_div,
+    test_matrices_properties,
     test_matrices_inv,
     test_matrices_det,
     test_matrices_charpoly,
@@ -4626,6 +4726,7 @@ all_tests = [
     test_matrices_rank,
     test_matrices_rref,
     test_matrices_solve,
+    test_matrices_fflu,
 
     test_fq_default,
     test_fq_default_poly,

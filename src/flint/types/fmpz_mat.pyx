@@ -7,8 +7,17 @@ from flint.types.fmpz cimport any_as_fmpz
 from flint.pyflint cimport global_random_state
 from flint.types.fmpq cimport any_as_fmpq
 cimport cython
+cimport libc.stdlib
 
-from flint.flintlib.functions.fmpz cimport fmpz_set, fmpz_init, fmpz_clear
+from flint.flintlib.functions.fmpz cimport (
+    fmpz_set,
+    fmpz_init,
+    fmpz_clear,
+    fmpz_set_si,
+    fmpz_mul,
+    fmpz_equal,
+    fmpz_equal_si,
+)
 from flint.flintlib.functions.fmpz cimport fmpz_is_zero, fmpz_is_pm1
 from flint.flintlib.types.fmpz cimport (
     fmpz_mat_struct,
@@ -316,6 +325,62 @@ cdef class fmpz_mat(flint_mat):
         fmpz_mat_pow(t.val, t.val, ee)
         return t
 
+    def is_square(self):
+        """Return whether *self* is a square *NxN* matrix."""
+        return bool(fmpz_mat_is_square(self.val))
+
+    def is_empty(self):
+        """Return whether *self* is an empty *0xN* or *Nx0* matrix."""
+        return bool(fmpz_mat_is_empty(self.val))
+
+    def is_zero(self):
+        """Return whether *self* is a zero matrix."""
+        return bool(fmpz_mat_is_zero(self.val))
+
+    def is_one(self):
+        """Return whether *self* is the identity matrix."""
+        return bool(fmpz_mat_is_one(self.val))
+
+    def is_neg_one(self):
+        """Return whether *self* is the negative identity matrix."""
+        if not self.is_square():
+            return False
+        elif not self.is_scalar():
+            return False
+        elif self.is_empty():
+            return True
+        else:
+            return bool(fmpz_equal_si(fmpz_mat_entry(self.val, 0, 0), -1))
+
+    def is_upper_triangular(self):
+        """Return whether *self* is an upper triangular matrix."""
+        for i in range(1, fmpz_mat_nrows(self.val)):
+            for j in range(min(i, fmpz_mat_ncols(self.val))):
+                if not fmpz_is_zero(fmpz_mat_entry(self.val, i, j)):
+                    return False
+        return True
+
+    def is_lower_triangular(self):
+        """Return whether *self* is a lower triangular matrix."""
+        for i in range(fmpz_mat_nrows(self.val)):
+            for j in range(i + 1, fmpz_mat_ncols(self.val)):
+                if not fmpz_is_zero(fmpz_mat_entry(self.val, i, j)):
+                    return False
+        return True
+
+    def is_diagonal(self):
+        """Return whether *self* is a diagonal matrix."""
+        return self.is_upper_triangular() and self.is_lower_triangular()
+
+    def is_scalar(self):
+        """Return whether *self* is a scalar multiple of the identity matrix."""
+        if not (self.is_square() and self.is_diagonal()):
+            return False
+        for i in range(fmpz_mat_nrows(self.val)):
+            if not fmpz_equal(fmpz_mat_entry(self.val, i, i), fmpz_mat_entry(self.val, 0, 0)):
+                return False
+        return True
+
     @classmethod
     def hadamard(cls, ulong n):
         """
@@ -562,6 +627,128 @@ cdef class fmpz_mat(flint_mat):
             if not result:
                 raise ZeroDivisionError("singular matrix in solve()")
             return u
+
+    def _fflu(self):
+        """
+        Fraction-free LU decomposition of *self*.
+
+            >>> A = fmpz_mat([[1, 2], [3, 4]])
+            >>> LU, d, perm, rank = A._fflu()
+            >>> LU
+            [1,  2]
+            [3, -2]
+            >>> d
+            -2
+            >>> perm
+            [0, 1]
+            >>> rank
+            2
+
+        The matrix *LU* is the LU contains both the lower and upper parts of
+        the decomposition. The integer *d* is the divisor and is up to a sign
+        the determinant when *self* is square. The list *perm* is the
+        permutation of the rows of *self*.
+
+        This is the raw output from the underlying FLINT function fmpz_mat_fflu.
+        The method :meth:`fflu` provides a more understandable representation
+        of the decomposition.
+
+        """
+        cdef fmpz d
+        cdef slong* perm
+        cdef slong r, c, rank
+        cdef fmpz_mat LU
+        r = fmpz_mat_nrows(self.val)
+        c = fmpz_mat_ncols(self.val)
+        perm = <slong*>libc.stdlib.malloc(r * sizeof(slong))
+        if perm is NULL:
+            raise MemoryError("malloc failed")
+        try:
+            for i in range(r):
+                perm[i] = i
+            LU = fmpz_mat.__new__(fmpz_mat)
+            fmpz_mat_init((<fmpz_mat>LU).val, r, c)
+            d = fmpz.__new__(fmpz)
+            rank = fmpz_mat_fflu(LU.val, d.val, perm, self.val, 0)
+            perm_int = []
+            for i in range(r):
+                perm_int.append(perm[i])
+        finally:
+            libc.stdlib.free(perm)
+
+        return LU, d, perm_int, rank
+
+    def fflu(self):
+        """
+        Fraction-free LU decomposition of *self*.
+
+        Returns a tuple (*P*, *L*, *D*, *U*) representing the the fraction-free
+        LU decomposition of a matrix *A* as
+
+            P*A = L*inv(D)*U
+
+        where *P* is a permutation matrix, *L* is lower triangular, *D* is
+        diagonal and *U* is upper triangular.
+
+            >>> A = fmpz_mat([[1, 2], [3, 4]])
+            >>> P, L, D, U = A.fflu()
+            >>> P
+            [1, 0]
+            [0, 1]
+            >>> L
+            [1,  0]
+            [3, -2]
+            >>> D
+            [1,  0]
+            [0, -2]
+            >>> U
+            [1,  2]
+            [0, -2]
+            >>> P*A == L*D.inv()*U
+            True
+
+        This method works for matrices of any shape and rank.
+
+        """
+        cdef slong r, c
+        cdef slong i, j, k, l
+        cdef fmpz di
+        cdef fmpz_mat P, L, U, D
+        r = fmpz_mat_nrows(self.val)
+        c = fmpz_mat_ncols(self.val)
+
+        U, _d, perm, _rank = self._fflu()
+
+        P = fmpz_mat(r, r)
+        for i, pi in enumerate(perm):
+            fmpz_set_si(fmpz_mat_entry(P.val, i, pi), 1)
+
+        L = fmpz_mat(r, r)
+
+        i = j = k = 0
+        while i < r and j < c:
+            if not fmpz_is_zero(fmpz_mat_entry(U.val, i, j)):
+                fmpz_set(fmpz_mat_entry(L.val, i, k), fmpz_mat_entry(U.val, i, j))
+                for l in range(i + 1, r):
+                    fmpz_set(fmpz_mat_entry(L.val, l, k), fmpz_mat_entry(U.val, l, j))
+                    fmpz_set_si(fmpz_mat_entry(U.val, l, j), 0)
+                i += 1
+                k += 1
+            j += 1
+
+        for k in range(k, r):
+            fmpz_set_si(fmpz_mat_entry(L.val, k, k), 1)
+
+        D = fmpz_mat(r, r)
+
+        if r >= 1:
+            fmpz_set(fmpz_mat_entry(D.val, 0, 0), fmpz_mat_entry(L.val, 0, 0))
+        di = fmpz(1)
+        for i in range(1, r):
+            fmpz_mul(di.val, fmpz_mat_entry(L.val, i-1, i-1), fmpz_mat_entry(L.val, i, i))
+            fmpz_set(fmpz_mat_entry(D.val, i, i), di.val)
+
+        return P, L, D, U
 
     def rref(self, inplace=False):
         """
