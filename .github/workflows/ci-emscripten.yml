@@ -1,0 +1,111 @@
+name: Run Pyodide CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  FORCE_COLOR: 3
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PYODIDE_VERSION: 0.27.3
+      # PYTHON_VERSION and EMSCRIPTEN_VERSION are determined by PYODIDE_VERSION.
+      # The appropriate versions can be found in the Pyodide repodata.json
+      # "info" field, or in Makefile.envs:
+      # https://github.com/pyodide/pyodide/blob/main/Makefile.envs#L2
+      PYTHON_VERSION: 3.12 # any 3.12.x version works
+      EMSCRIPTEN_VERSION: 3.1.58
+      NODE_VERSION: 20
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        id: setup-python
+        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Emscripten toolchain
+        uses: mymindstorm/setup-emsdk@6ab9eb1bda2574c4ddb79809fc9247783eaf9021 # v14
+        with:
+          version: ${{ env.EMSCRIPTEN_VERSION }}
+          actions-cache-folder: emsdk-cache
+
+      - name: Set up Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pyodide-build
+        run: pip install pyodide-build
+
+      - name: Build libgmp
+        env:
+          CFLAGS: "-fPIC"
+          WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
+        run: |
+          curl -L https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz -o gmp-6.3.0.tar.xz
+          tar -xf gmp-6.3.0.tar.xz
+
+          cd gmp-6.3.0
+
+          emconfigure ./configure \
+            --disable-dependency-tracking \
+            --host none \
+            --disable-shared \
+            --enable-static \
+            --enable-cxx \
+            --prefix=${{ env.WASM_LIBRARY_DIR }}
+          emmake make -j $(nproc)
+          emmake make install
+
+      - name: Build libmpfr
+        env:
+          CFLAGS: "-fPIC"
+          WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
+        run: |
+          curl -L https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.1.tar.xz -o mpfr-4.2.1.tar.xz
+          tar -xf mpfr-4.2.1.tar.xz
+
+          cd mpfr-4.2.1
+
+          emconfigure ./configure \
+            --disable-dependency-tracking \
+            --disable-shared \
+            --with-gmp="${{ env.WASM_LIBRARY_DIR }}" \
+            --prefix=${{ env.WASM_LIBRARY_DIR }}
+          emmake make -j $(nproc)
+          emmake make install
+
+      # might need patch
+      - name: Build flint
+        env:
+          CFLAGS: "-fPIC"
+          WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
+        run: |
+          curl -L https://github.com/flintlib/flint/releases/download/v3.0.1/flint-3.0.1.tar.gz -o flint-3.0.1.tar.gz
+          tar -xf flint-3.0.1.tar.gz
+
+          cd flint-3.0.1
+
+          emconfigure ./configure \
+            --disable-dependency-tracking \
+            --disable-shared \
+            --prefix=${{ env.WASM_LIBRARY_DIR }} \
+            --with-gmp=${{ env.WASM_LIBRARY_DIR }} \
+            --with-mpfr=${{ env.WASM_LIBRARY_DIR }}
+          emmake make -j $(nproc)
+          emmake make install
+
+      - name: Build python-flint
+        env:
+          CFLAGS: "-I$WASM_LIBRARY_DIR/include"
+          LDFLAGS: "-L$WASM_LIBRARY_DIR/lib -lflint -lmpfr -lgmp"
+        run: pyodide build
