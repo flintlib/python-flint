@@ -108,5 +108,5 @@ jobs:
         env:
           CFLAGS: "$CFLAGS -I$WASM_LIBRARY_DIR/include"
           LDFLAGS: "$LDFLAGS -L$WASM_LIBRARY_DIR/lib -lflint -lmpfr -lgmp"
-          PKG_CONFIG_PATH: "$WASM_LIBRARY_DIR/lib/pkgconfig"
+          PKG_CONFIG_PATH: "$PKG_CONFIG_PATH:$WASM_LIBRARY_DIR/lib/pkgconfig"
         run: pyodide build
