@@ -108,5 +108,10 @@ jobs:
         env:
           CFLAGS: "$CFLAGS -I$WASM_LIBRARY_DIR/include"
           LDFLAGS: "$LDFLAGS -L$WASM_LIBRARY_DIR/lib -lflint -lmpfr -lgmp"
-          PKG_CONFIG_PATH: "$PKG_CONFIG_PATH:$WASM_LIBRARY_DIR/lib/pkgconfig"
-        run: pyodide build
+          PKG_CONFIG_PATH: "${{ env.WASM_LIBRARY_DIR }}/lib/pkgconfig:$PKG_CONFIG_PATH"
+        run: |
+          echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+          pkg-config --modversion python3
+          pkg-config --modversion mpfr
+          pkg-config --modversion flint
+          pyodide build
