@@ -121,3 +121,18 @@ jobs:
           pkg-config --modversion flint
 
           pyodide build
+
+      - name: Set up Pyodide virtual environment and test python-flint
+        run: |
+          pyodide xbuildenv install ${{ env.PYODIDE_VERSION }}
+          pyodide venv .venv-pyodide
+
+          source .venv-pyodide/bin/activate
+          pip install dist/*.whl
+
+          cd doc
+
+          pip install pytest hypothesis
+          # Don't use the cache provider plugin, as it doesn't work with Pyodide
+          # right now: https://github.com/pypa/cibuildwheel/issues/1966
+          pytest -svra -p no:cacheprovider --pyargs flint
