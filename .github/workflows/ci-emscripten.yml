@@ -90,10 +90,10 @@ jobs:
           CFLAGS: "-fPIC"
           WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
         run: |
-          curl -L https://github.com/flintlib/flint/releases/download/v3.0.1/flint-3.0.1.tar.gz -o flint-3.0.1.tar.gz
-          tar -xf flint-3.0.1.tar.gz
+          curl -L https://github.com/flintlib/flint/releases/download/v3.1.0/flint-3.1.0.tar.gz -o flint-3.1.0.tar.gz
+          tar -xf flint-3.1.0.tar.gz
 
-          cd flint-3.0.1
+          cd flint-3.1.0
 
           emconfigure ./configure \
             --disable-dependency-tracking \
