@@ -2607,10 +2607,10 @@ def test_polys():
         assert (s1 == P([s2])) is False
         assert (s1 != P([s2])) is True
 
-        assert (P([1]) == None) is False
-        assert (P([1]) != None) is True
-        assert (None == P([1])) is False
-        assert (None != P([1])) is True
+        assert (P([1]) is None) is False
+        assert (P([1]) is not None) is True
+        assert (None is P([1])) is False
+        assert (None is not P([1])) is True
 
         assert raises(lambda: P([1]) < P([1]), TypeError)
         assert raises(lambda: P([1]) <= P([1]), TypeError)
