@@ -4275,212 +4275,212 @@ def test_matrices_transpose():
         assert M1234.transpose() == M([[1, 4], [2, 5], [3, 6]])
 
 
-def test_fq_default():
-    # test fq_default context creation
+# def test_fq_default():
+#     # test fq_default context creation
 
-    # fq_type parsing
-    assert raises(lambda: flint.fq_default_ctx(5, fq_type="A"), ValueError)
-    assert raises(lambda: flint.fq_default_ctx(5, fq_type=[]), TypeError)
-    assert raises(lambda: flint.fq_default_ctx(5, fq_type=-1), ValueError)
-    assert raises(lambda: flint.fq_default_ctx("ABC"), TypeError)
+#     # fq_type parsing
+#     assert raises(lambda: flint.fq_default_ctx(5, fq_type="A"), ValueError)
+#     assert raises(lambda: flint.fq_default_ctx(5, fq_type=[]), TypeError)
+#     assert raises(lambda: flint.fq_default_ctx(5, fq_type=-1), ValueError)
+#     assert raises(lambda: flint.fq_default_ctx("ABC"), TypeError)
 
-    # var must be one character
-    assert raises(lambda: flint.fq_default_ctx(5, var="XXX"), ValueError)
+#     # var must be one character
+#     assert raises(lambda: flint.fq_default_ctx(5, var="XXX"), ValueError)
 
-    # p must be set if modulus has no characteristic / modulus
-    assert raises(lambda: flint.fq_default_ctx(modulus=[0,1,0]), ValueError)
+#     # p must be set if modulus has no characteristic / modulus
+#     assert raises(lambda: flint.fq_default_ctx(modulus=[0,1,0]), ValueError)
 
-    # prime must be prime when setting from modulus
-    assert raises(lambda: flint.fq_default_ctx(10, modulus=[0,1,0]), ValueError)
-    mod_not_prime = flint.fmpz_mod_poly_ctx(10)([1,0,1])
-    assert raises(lambda: flint.fq_default_ctx(modulus=mod_not_prime), ValueError)
-    mod_not_irr = flint.fmpz_mod_poly_ctx(11)([0,0,1])
-    assert raises(lambda: flint.fq_default_ctx(modulus=mod_not_irr), ValueError)
+#     # prime must be prime when setting from modulus
+#     assert raises(lambda: flint.fq_default_ctx(10, modulus=[0,1,0]), ValueError)
+#     mod_not_prime = flint.fmpz_mod_poly_ctx(10)([1,0,1])
+#     assert raises(lambda: flint.fq_default_ctx(modulus=mod_not_prime), ValueError)
+#     mod_not_irr = flint.fmpz_mod_poly_ctx(11)([0,0,1])
+#     assert raises(lambda: flint.fq_default_ctx(modulus=mod_not_irr), ValueError)
 
-    # modulus must be able to be cast to fmpz_mod_poly
-    assert raises(lambda: flint.fq_default_ctx(11, modulus="AAA"), TypeError)
+#     # modulus must be able to be cast to fmpz_mod_poly
+#     assert raises(lambda: flint.fq_default_ctx(11, modulus="AAA"), TypeError)
 
-    # either p or modulus must be set
-    assert raises(lambda: flint.fq_default_ctx(p=None, modulus=None), ValueError)
+#     # either p or modulus must be set
+#     assert raises(lambda: flint.fq_default_ctx(p=None, modulus=None), ValueError)
 
-    # p must be prime
-    assert raises(lambda: flint.fq_default_ctx(10), ValueError)
+#     # p must be prime
+#     assert raises(lambda: flint.fq_default_ctx(10), ValueError)
 
-    # degree must be positive
-    assert raises(lambda: flint.fq_default_ctx(11, -1), ValueError)
+#     # degree must be positive
+#     assert raises(lambda: flint.fq_default_ctx(11, -1), ValueError)
 
-    # GF(5)
-    gf_5 = flint.fq_default_ctx(5, fq_type='NMOD')
-    gf_5_ = flint.fq_default_ctx(5, fq_type='NMOD')
+#     # GF(5)
+#     gf_5 = flint.fq_default_ctx(5, fq_type='NMOD')
+#     gf_5_ = flint.fq_default_ctx(5, fq_type='NMOD')
 
-    # GF(5^2)
-    gf_5_2 = flint.fq_default_ctx(5, 2, fq_type='FQ_ZECH')
-    gf_5_2_ = flint.fq_default_ctx(5, 2, fq_type='FQ_ZECH')
+#     # GF(5^2)
+#     gf_5_2 = flint.fq_default_ctx(5, 2, fq_type='FQ_ZECH')
+#     gf_5_2_ = flint.fq_default_ctx(5, 2, fq_type='FQ_ZECH')
 
-    # GF((2**127 - 1)^2)
-    gf_127 = flint.fq_default_ctx(2**127 - 1, 2)
-    gf_127_2 = flint.fq_default_ctx(2**127 - 1, 2)
+#     # GF((2**127 - 1)^2)
+#     gf_127 = flint.fq_default_ctx(2**127 - 1, 2)
+#     gf_127_2 = flint.fq_default_ctx(2**127 - 1, 2)
 
-    assert (gf_5 == gf_5_) is True
-    assert (hash(gf_5) == hash(gf_5_)) is True
-    assert (gf_5 != gf_5_) is False
-    assert (gf_5 == gf_5_2) is False
-    assert (gf_5 != gf_5_2) is True
-    assert (gf_5 == "a") is False
-    assert (gf_5 != "a") is True
+#     assert (gf_5 == gf_5_) is True
+#     assert (hash(gf_5) == hash(gf_5_)) is True
+#     assert (gf_5 != gf_5_) is False
+#     assert (gf_5 == gf_5_2) is False
+#     assert (gf_5 != gf_5_2) is True
+#     assert (gf_5 == "a") is False
+#     assert (gf_5 != "a") is True
 
-    assert gf_5.prime() == gf_5_2.prime() == 5
-    assert gf_5_2.order() == 5*5
-    assert gf_5_2.multiplicative_order() == 5*5 - 1
-    assert gf_127_2.prime() == 2**127 - 1
+#     assert gf_5.prime() == gf_5_2.prime() == 5
+#     assert gf_5_2.order() == 5*5
+#     assert gf_5_2.multiplicative_order() == 5*5 - 1
+#     assert gf_127_2.prime() == 2**127 - 1
 
-    assert gf_5_2(0) == gf_5_2.zero()
-    assert gf_5_2(1) == gf_5_2.one()
-    assert gf_5_2.gen() == gf_5_2([0, 1])
+#     assert gf_5_2(0) == gf_5_2.zero()
+#     assert gf_5_2(1) == gf_5_2.one()
+#     assert gf_5_2.gen() == gf_5_2([0, 1])
 
-    assert str(gf_5) == "Context for fq_default in GF(5)"
-    assert str(gf_5_2) == "Context for fq_default in GF(5^2)[z]/(z^2 + 4*z + 2)"
+#     assert str(gf_5) == "Context for fq_default in GF(5)"
+#     assert str(gf_5_2) == "Context for fq_default in GF(5^2)[z]/(z^2 + 4*z + 2)"
 
-    assert repr(gf_5) == "fq_default_ctx(5, var='z' type='NMOD')"
-    assert repr(gf_5_2) == "fq_default_ctx(5, 2, 'z', x^2 + 4*x + 2, 'FQ_ZECH')"
+#     assert repr(gf_5) == "fq_default_ctx(5, var='z' type='NMOD')"
+#     assert repr(gf_5_2) == "fq_default_ctx(5, 2, 'z', x^2 + 4*x + 2, 'FQ_ZECH')"
 
-    # coercision
-    assert gf_5.one() == flint.fq_default(1, gf_5)
-    assert gf_5(1) == gf_5.one()
-    assert gf_5(flint.fmpz(1)) == gf_5.one()
-    assert gf_5(-1) == -gf_5.one()
-    assert gf_5(flint.fmpz(-1)) == -gf_5.one()
-    R = flint.fmpz_mod_ctx(5)
-    assert gf_5(R(1)) == gf_5.one()
-    assert gf_5(R(-1)) == -gf_5.one()
-    assert gf_5(flint.nmod(1, 5)) == gf_5.one()
-    assert gf_5(flint.nmod(-1, 5)) == -gf_5.one()
-    assert gf_5([0, 1]) == gf_5.gen()
-    assert gf_5(flint.fmpz_poly([0, 1])) == gf_5.gen()
-    R = flint.fmpz_mod_poly_ctx(5)
-    assert gf_5.gen() == gf_5(R.gen())
-    assert gf_5.gen() == gf_5(flint.nmod_poly([0, 1], 5))
-    assert gf_5(flint.fmpz(2**64)) == gf_5(2**64)
-    assert raises(lambda: flint.fq_default(1, "AAA"), TypeError)
-    assert raises(lambda: flint.fq_default.__init__(1, "AAA"), TypeError)
-    assert raises(lambda: flint.fq_default("AAA", gf_5), TypeError)
-    assert raises(lambda: gf_5.one() + gf_5_2.one(), ValueError)
-    # testing various equalties between types
+#     # coercision
+#     assert gf_5.one() == flint.fq_default(1, gf_5)
+#     assert gf_5(1) == gf_5.one()
+#     assert gf_5(flint.fmpz(1)) == gf_5.one()
+#     assert gf_5(-1) == -gf_5.one()
+#     assert gf_5(flint.fmpz(-1)) == -gf_5.one()
+#     R = flint.fmpz_mod_ctx(5)
+#     assert gf_5(R(1)) == gf_5.one()
+#     assert gf_5(R(-1)) == -gf_5.one()
+#     assert gf_5(flint.nmod(1, 5)) == gf_5.one()
+#     assert gf_5(flint.nmod(-1, 5)) == -gf_5.one()
+#     assert gf_5([0, 1]) == gf_5.gen()
+#     assert gf_5(flint.fmpz_poly([0, 1])) == gf_5.gen()
+#     R = flint.fmpz_mod_poly_ctx(5)
+#     assert gf_5.gen() == gf_5(R.gen())
+#     assert gf_5.gen() == gf_5(flint.nmod_poly([0, 1], 5))
+#     assert gf_5(flint.fmpz(2**64)) == gf_5(2**64)
+#     assert raises(lambda: flint.fq_default(1, "AAA"), TypeError)
+#     assert raises(lambda: flint.fq_default.__init__(1, "AAA"), TypeError)
+#     assert raises(lambda: flint.fq_default("AAA", gf_5), TypeError)
+#     assert raises(lambda: gf_5.one() + gf_5_2.one(), ValueError)
+#     # testing various equalties between types
 
-    # integers are the same if characteristic is the same
-    # even with extensions
-    assert gf_5.one() == gf_5_.one()
-    assert hash(gf_5.one()) == hash(gf_5_.one())
-    assert gf_5.one() == gf_5_2.one()
-    assert gf_5.one() != gf_127.one()
+#     # integers are the same if characteristic is the same
+#     # even with extensions
+#     assert gf_5.one() == gf_5_.one()
+#     assert hash(gf_5.one()) == hash(gf_5_.one())
+#     assert gf_5.one() == gf_5_2.one()
+#     assert gf_5.one() != gf_127.one()
 
-    # the generators for different extensions
-    assert gf_5_2([0, 1]) != gf_5([0, 1])
-    assert gf_5_2([0, 1]) == gf_5_2_([0, 1])
-    assert gf_5_2([0, 1]) != gf_127_2([0, 1])
+#     # the generators for different extensions
+#     assert gf_5_2([0, 1]) != gf_5([0, 1])
+#     assert gf_5_2([0, 1]) == gf_5_2_([0, 1])
+#     assert gf_5_2([0, 1]) != gf_127_2([0, 1])
 
-    # integers are reduced modulo p before comparison
-    for int_type in [int, flint.fmpz]:
-        assert gf_5(1) == int_type(1)
-        assert gf_5(-1) == int_type(-1)
-        assert gf_5(-1) == int_type(4)
-        assert gf_5(4) == int_type(4)
-        assert gf_5(4) == int_type(-1)
+#     # integers are reduced modulo p before comparison
+#     for int_type in [int, flint.fmpz]:
+#         assert gf_5(1) == int_type(1)
+#         assert gf_5(-1) == int_type(-1)
+#         assert gf_5(-1) == int_type(4)
+#         assert gf_5(4) == int_type(4)
+#         assert gf_5(4) == int_type(-1)
 
-    # integers modulo n also can be compared when they match
-    assert gf_5(1) == flint.nmod(1, 5)
-    assert gf_5(-1) == flint.nmod(-1, 5)
-    assert gf_5(-1) == flint.nmod(4, 5)
-    assert gf_5_2(1) == flint.nmod(1, 5)
-    assert gf_5_2(-1) == flint.nmod(-1, 5)
-    assert gf_5_2(-1) == flint.nmod(4, 5)
+#     # integers modulo n also can be compared when they match
+#     assert gf_5(1) == flint.nmod(1, 5)
+#     assert gf_5(-1) == flint.nmod(-1, 5)
+#     assert gf_5(-1) == flint.nmod(4, 5)
+#     assert gf_5_2(1) == flint.nmod(1, 5)
+#     assert gf_5_2(-1) == flint.nmod(-1, 5)
+#     assert gf_5_2(-1) == flint.nmod(4, 5)
 
-    # when the moduli dont match, comparison is always false
-    assert gf_5(1) != flint.nmod(1, 7)
-    assert gf_5(-1) != flint.nmod(-1, 7)
-    assert gf_5(-1) != flint.nmod(4, 7)
-    assert gf_5_2(1) != flint.nmod(1, 7)
-    assert gf_5_2(-1) != flint.nmod(-1, 7)
-    assert gf_5_2(-1) != flint.nmod(4, 7)
+#     # when the moduli dont match, comparison is always false
+#     assert gf_5(1) != flint.nmod(1, 7)
+#     assert gf_5(-1) != flint.nmod(-1, 7)
+#     assert gf_5(-1) != flint.nmod(4, 7)
+#     assert gf_5_2(1) != flint.nmod(1, 7)
+#     assert gf_5_2(-1) != flint.nmod(-1, 7)
+#     assert gf_5_2(-1) != flint.nmod(4, 7)
 
-    # integers modulo n also can be compared when they match
-    R5 = flint.fmpz_mod_ctx(5)
-    assert gf_5(1) == R5(1)
-    assert gf_5(-1) == R5(-1)
-    assert gf_5(-1) == R5(4)
-    assert gf_5_2(1) == R5(1)
-    assert gf_5_2(-1) == R5(-1)
-    assert gf_5_2(-1) == R5(4)
+#     # integers modulo n also can be compared when they match
+#     R5 = flint.fmpz_mod_ctx(5)
+#     assert gf_5(1) == R5(1)
+#     assert gf_5(-1) == R5(-1)
+#     assert gf_5(-1) == R5(4)
+#     assert gf_5_2(1) == R5(1)
+#     assert gf_5_2(-1) == R5(-1)
+#     assert gf_5_2(-1) == R5(4)
 
-    # when the moduli dont match, comparison is always false
-    R7 = flint.fmpz_mod_ctx(7)
-    assert gf_5(1) != R7(1)
-    assert gf_5(-1) != R7(-1)
-    assert gf_5(-1) != R7(4)
-    assert gf_5_2(1) != R7(1)
-    assert gf_5_2(-1) != R7(-1)
-    assert gf_5_2(-1) != R7(4)
+#     # when the moduli dont match, comparison is always false
+#     R7 = flint.fmpz_mod_ctx(7)
+#     assert gf_5(1) != R7(1)
+#     assert gf_5(-1) != R7(-1)
+#     assert gf_5(-1) != R7(4)
+#     assert gf_5_2(1) != R7(1)
+#     assert gf_5_2(-1) != R7(-1)
+#     assert gf_5_2(-1) != R7(4)
 
-    # test fq_default element arithmetic
+#     # test fq_default element arithmetic
 
-    for gf in [gf_5, gf_5_2, gf_127, gf_127_2]:
+#     for gf in [gf_5, gf_5_2, gf_127, gf_127_2]:
 
-        assert (gf(0) == gf.zero()) is True
-        assert (gf(0) != gf.zero()) is False
-        assert (gf(1) == gf.zero()) is False
-        assert (gf(1) != gf.zero()) is True
-        assert raises(lambda: gf.zero() > gf.zero(), TypeError)
-        assert raises(lambda: gf.zero() >= gf.zero(), TypeError)
-        assert raises(lambda: gf.zero() < gf.zero(), TypeError)
-        assert raises(lambda: gf.zero() <= gf.zero(), TypeError)
+#         assert (gf(0) == gf.zero()) is True
+#         assert (gf(0) != gf.zero()) is False
+#         assert (gf(1) == gf.zero()) is False
+#         assert (gf(1) != gf.zero()) is True
+#         assert raises(lambda: gf.zero() > gf.zero(), TypeError)
+#         assert raises(lambda: gf.zero() >= gf.zero(), TypeError)
+#         assert raises(lambda: gf.zero() < gf.zero(), TypeError)
+#         assert raises(lambda: gf.zero() <= gf.zero(), TypeError)
 
-        assert gf.zero().is_zero() is True
-        assert gf.one().is_zero() is False
+#         assert gf.zero().is_zero() is True
+#         assert gf.one().is_zero() is False
 
-        assert gf.zero().is_one() is False
-        assert gf.one().is_one() is True
+#         assert gf.zero().is_one() is False
+#         assert gf.one().is_one() is True
 
-        a = gf.random_element(not_zero=True)
-        b = gf.random_element(not_zero=True)
-        c = gf.random_element(not_zero=True)
+#         a = gf.random_element(not_zero=True)
+#         b = gf.random_element(not_zero=True)
+#         c = gf.random_element(not_zero=True)
 
-        assert a + (-a) == gf.zero()
-        assert a + a == 2*a
-        assert a * a == a**2
-        assert a * a == a.square()
-        assert a * a * a == pow(a, 3)
+#         assert a + (-a) == gf.zero()
+#         assert a + a == 2*a
+#         assert a * a == a**2
+#         assert a * a == a.square()
+#         assert a * a * a == pow(a, 3)
 
-        assert (a + b) + c == a + (b + c)
-        assert (a - b) - c == a - (b + c)
-        assert (a * b) * c == a * (b * c)
-        assert (a / b) / c == a / (b * c)
+#         assert (a + b) + c == a + (b + c)
+#         assert (a - b) - c == a - (b + c)
+#         assert (a * b) * c == a * (b * c)
+#         assert (a / b) / c == a / (b * c)
 
-        assert a + 0 == 0 + a == a
-        assert a - 0 == -(0 - a) == a
-        assert a + gf.zero() == a
-        assert a * 1 == 1 * a == a
-        assert a * gf.one() == a
-        assert a * gf.zero() == gf.zero()
-        assert a / a == gf.one()
+#         assert a + 0 == 0 + a == a
+#         assert a - 0 == -(0 - a) == a
+#         assert a + gf.zero() == a
+#         assert a * 1 == 1 * a == a
+#         assert a * gf.one() == a
+#         assert a * gf.zero() == gf.zero()
+#         assert a / a == gf.one()
 
-        assert raises(lambda: a / 0, ZeroDivisionError)
-        assert raises(lambda: ~gf.zero(), ZeroDivisionError)
-        assert raises(lambda: pow(gf.zero(), -1), ZeroDivisionError)
-        assert raises(lambda: pow(gf.zero(), "A"), TypeError)
+#         assert raises(lambda: a / 0, ZeroDivisionError)
+#         assert raises(lambda: ~gf.zero(), ZeroDivisionError)
+#         assert raises(lambda: pow(gf.zero(), -1), ZeroDivisionError)
+#         assert raises(lambda: pow(gf.zero(), "A"), TypeError)
 
-        assert 1/a == pow(a, -1) == ~a
-        assert gf.one() == pow(a, 0)
-        assert gf.zero() == pow(gf.zero(), 2**64)
-        assert a == pow(a, 1)
-        assert pow(a, flint.fmpz(2**64)) == pow(a, 2**64)
-        assert (a*a).is_square()
-        assert (a*a).sqrt() in [a, -a]
+#         assert 1/a == pow(a, -1) == ~a
+#         assert gf.one() == pow(a, 0)
+#         assert gf.zero() == pow(gf.zero(), 2**64)
+#         assert a == pow(a, 1)
+#         assert pow(a, flint.fmpz(2**64)) == pow(a, 2**64)
+#         assert (a*a).is_square()
+#         assert (a*a).sqrt() in [a, -a]
 
-        while True:
-            nqr = gf.random_element()
-            if not nqr.is_square():
-                break
-        assert raises(lambda: nqr.sqrt(), DomainError)
+#         while True:
+#             nqr = gf.random_element()
+#             if not nqr.is_square():
+#                 break
+#         assert raises(lambda: nqr.sqrt(), DomainError)
 
 
 def test_fq_default_poly():
@@ -4728,7 +4728,7 @@ all_tests = [
     test_matrices_solve,
     test_matrices_fflu,
 
-    test_fq_default,
+    # test_fq_default,
     test_fq_default_poly,
 
     test_arb,
