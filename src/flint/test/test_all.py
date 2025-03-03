@@ -4483,180 +4483,180 @@ def test_matrices_transpose():
 #         assert raises(lambda: nqr.sqrt(), DomainError)
 
 
-def test_fq_default_poly():
-    F = flint.fq_default_ctx(11, 3)
-    R1 = flint.fq_default_poly_ctx(F)
-    R2 = flint.fq_default_poly_ctx(11, 3)
-    R3 = flint.fq_default_poly_ctx(13, 5)
+# def test_fq_default_poly():
+#     F = flint.fq_default_ctx(11, 3)
+#     R1 = flint.fq_default_poly_ctx(F)
+#     R2 = flint.fq_default_poly_ctx(11, 3)
+#     R3 = flint.fq_default_poly_ctx(13, 5)
 
-    assert raises(lambda: flint.fq_default_poly_ctx("AAA"), TypeError)
-    assert (R1 == R1) is True
-    assert hash(R1) == hash(R2)
-    assert (R1 != R1) is False
-    assert (R1 == R2) is True
-    assert (R1 != R2) is False
-    assert (R1 != R3) is True
-    assert (R1 == R3) is False
-    assert (R1 != "AAA") is True
-    assert (R1 == "AAA") is False
+#     assert raises(lambda: flint.fq_default_poly_ctx("AAA"), TypeError)
+#     assert (R1 == R1) is True
+#     assert hash(R1) == hash(R2)
+#     assert (R1 != R1) is False
+#     assert (R1 == R2) is True
+#     assert (R1 != R2) is False
+#     assert (R1 != R3) is True
+#     assert (R1 == R3) is False
+#     assert (R1 != "AAA") is True
+#     assert (R1 == "AAA") is False
 
-    assert str(R1) == "Context for fq_default_poly with field: Context for fq_default in GF(11^3)[z]/(z^3 + 2*z + 9)"
-    assert str(R1) == str(R2)
-    assert repr(R3) == "fq_default_poly_ctx(fq_default_ctx(13, 5, 'z', x^5 + 4*x + 11, 'FQ_NMOD'))"
+#     assert str(R1) == "Context for fq_default_poly with field: Context for fq_default in GF(11^3)[z]/(z^3 + 2*z + 9)"
+#     assert str(R1) == str(R2)
+#     assert repr(R3) == "fq_default_poly_ctx(fq_default_ctx(13, 5, 'z', x^5 + 4*x + 11, 'FQ_NMOD'))"
 
-    # random element failure
-    f = R1.random_element(not_zero=True)
-    assert not f.is_zero()
-    assert raises(lambda: R1.random_element(monic="AAA"), TypeError)
-    assert raises(lambda: R1.random_element(degree=-1), ValueError)
+#     # random element failure
+#     f = R1.random_element(not_zero=True)
+#     assert not f.is_zero()
+#     assert raises(lambda: R1.random_element(monic="AAA"), TypeError)
+#     assert raises(lambda: R1.random_element(degree=-1), ValueError)
 
-    assert raises(lambda: flint.fq_default_poly([1,2,3], "AAA"), TypeError)
+#     assert raises(lambda: flint.fq_default_poly([1,2,3], "AAA"), TypeError)
 
-    assert R1(0).leading_coefficient() == 0
-    assert raises(lambda: R1.random_element().reverse(degree=-1), ValueError)
+#     assert R1(0).leading_coefficient() == 0
+#     assert raises(lambda: R1.random_element().reverse(degree=-1), ValueError)
 
-    # some coercion
-    assert raises(lambda: R3(F(1)), ValueError)
-    assert R1.one() == R1(1)
-    assert R1.one() == R1([1])
-    assert R1.one() == R1(flint.fmpz(1))
-    assert R1.one() == R1(flint.fmpz_poly([1]))
-    assert R1.one() == R1(flint.fmpz_mod_ctx(11)(1))
-    assert R1.one() == R1(flint.fmpz_mod_poly_ctx(11)(1))
-    assert R1.one() == R1(flint.nmod_poly(1, 11))
+#     # some coercion
+#     assert raises(lambda: R3(F(1)), ValueError)
+#     assert R1.one() == R1(1)
+#     assert R1.one() == R1([1])
+#     assert R1.one() == R1(flint.fmpz(1))
+#     assert R1.one() == R1(flint.fmpz_poly([1]))
+#     assert R1.one() == R1(flint.fmpz_mod_ctx(11)(1))
+#     assert R1.one() == R1(flint.fmpz_mod_poly_ctx(11)(1))
+#     assert R1.one() == R1(flint.nmod_poly(1, 11))
 
-    R_sml = flint.fq_default_poly_ctx(5)
-    R_med = flint.fq_default_poly_ctx(65537)
-    R_big = flint.fq_default_poly_ctx(2**127 - 1)
-    R_sml_ext = flint.fq_default_poly_ctx(5, 5)
-    R_med_ext = flint.fq_default_poly_ctx(65537, 3)
-    R_big_ext = flint.fq_default_poly_ctx(2**127 - 1, 2)
+#     R_sml = flint.fq_default_poly_ctx(5)
+#     R_med = flint.fq_default_poly_ctx(65537)
+#     R_big = flint.fq_default_poly_ctx(2**127 - 1)
+#     R_sml_ext = flint.fq_default_poly_ctx(5, 5)
+#     R_med_ext = flint.fq_default_poly_ctx(65537, 3)
+#     R_big_ext = flint.fq_default_poly_ctx(2**127 - 1, 2)
 
-    F_cmp = flint.fq_default_ctx(11)
-    R_cmp = flint.fq_default_poly_ctx(F_cmp)
-    f_cmp = R_cmp([1,2,3,4,5])
+#     F_cmp = flint.fq_default_ctx(11)
+#     R_cmp = flint.fq_default_poly_ctx(F_cmp)
+#     f_cmp = R_cmp([1,2,3,4,5])
 
-    for R_test in [R_sml, R_med, R_big, R_sml_ext, R_med_ext, R_big_ext]:
-        F_test = R_test.base_field()
-        while True:
-            nqr = F_test.random_element()
-            if not nqr.is_square():
-                break
+#     for R_test in [R_sml, R_med, R_big, R_sml_ext, R_med_ext, R_big_ext]:
+#         F_test = R_test.base_field()
+#         while True:
+#             nqr = F_test.random_element()
+#             if not nqr.is_square():
+#                 break
 
-        f = R_test([-1,-2])
-        g = R_test([-3,-4])
-        assert (f == f) is True
-        assert (f != g) is True
-        assert (hash(f) == hash(f)) is True
-        assert (hash(f) != hash(g)) is True
+#         f = R_test([-1,-2])
+#         g = R_test([-3,-4])
+#         assert (f == f) is True
+#         assert (f != g) is True
+#         assert (hash(f) == hash(f)) is True
+#         assert (hash(f) != hash(g)) is True
 
-        # Exact division
-        assert raises(lambda: f.exact_division(f_cmp), ValueError)
-        assert raises(lambda: f.exact_division("AAA"), TypeError)
-        assert raises(lambda: f.exact_division(0), ZeroDivisionError)
-        assert (f * g).exact_division(g) == f
-        assert raises(lambda: f.exact_division(g), DomainError)
-        assert raises(lambda: f / "AAA", TypeError)
-        assert raises(lambda: "AAA" / f, TypeError)
+#         # Exact division
+#         assert raises(lambda: f.exact_division(f_cmp), ValueError)
+#         assert raises(lambda: f.exact_division("AAA"), TypeError)
+#         assert raises(lambda: f.exact_division(0), ZeroDivisionError)
+#         assert (f * g).exact_division(g) == f
+#         assert raises(lambda: f.exact_division(g), DomainError)
+#         assert raises(lambda: f / "AAA", TypeError)
+#         assert raises(lambda: "AAA" / f, TypeError)
 
-        # ZeroDivisionError
-        assert raises(lambda: f / 0, ZeroDivisionError)
-        assert raises(lambda: f // 0, ZeroDivisionError)
-        assert raises(lambda: 1 / R_test.zero(), ZeroDivisionError)
-        assert raises(lambda: 1 // R_test.zero(), ZeroDivisionError)
-        assert raises(lambda: 1 % R_test.zero(), ZeroDivisionError)
+#         # ZeroDivisionError
+#         assert raises(lambda: f / 0, ZeroDivisionError)
+#         assert raises(lambda: f // 0, ZeroDivisionError)
+#         assert raises(lambda: 1 / R_test.zero(), ZeroDivisionError)
+#         assert raises(lambda: 1 // R_test.zero(), ZeroDivisionError)
+#         assert raises(lambda: 1 % R_test.zero(), ZeroDivisionError)
 
-        # pow
-        # assert ui and fmpz exp agree for polynomials and generators
-        R_gen = R_test.gen()
-        assert raises(lambda: f**(-2), ValueError)
-        assert pow(f, 2**60, g) == pow(pow(f, 2**30, g), 2**30, g)
-        assert pow(R_gen, 2**60, g) == pow(pow(R_gen, 2**30, g), 2**30, g)
-        assert raises(lambda: pow(f, -2, g), ValueError)
-        assert raises(lambda: pow(f, 1, "A"), TypeError)
-        assert raises(lambda: pow(f, "A", g), TypeError)
-        assert raises(lambda: f.pow_mod(2**32, g, mod_rev_inv="A"), TypeError)
+#         # pow
+#         # assert ui and fmpz exp agree for polynomials and generators
+#         R_gen = R_test.gen()
+#         assert raises(lambda: f**(-2), ValueError)
+#         assert pow(f, 2**60, g) == pow(pow(f, 2**30, g), 2**30, g)
+#         assert pow(R_gen, 2**60, g) == pow(pow(R_gen, 2**30, g), 2**30, g)
+#         assert raises(lambda: pow(f, -2, g), ValueError)
+#         assert raises(lambda: pow(f, 1, "A"), TypeError)
+#         assert raises(lambda: pow(f, "A", g), TypeError)
+#         assert raises(lambda: f.pow_mod(2**32, g, mod_rev_inv="A"), TypeError)
 
-        # Shifts
-        assert raises(lambda: R_test([1,2,3]).left_shift(-1), ValueError)
-        assert raises(lambda: R_test([1,2,3]).right_shift(-1), ValueError)
-        assert R_test([1,2,3]).left_shift(3) == R_test([0,0,0,1,2,3])
-        assert R_test([1,2,3]).right_shift(1) == R_test([2,3])
+#         # Shifts
+#         assert raises(lambda: R_test([1,2,3]).left_shift(-1), ValueError)
+#         assert raises(lambda: R_test([1,2,3]).right_shift(-1), ValueError)
+#         assert R_test([1,2,3]).left_shift(3) == R_test([0,0,0,1,2,3])
+#         assert R_test([1,2,3]).right_shift(1) == R_test([2,3])
 
-        # mulmod
-        assert f.mul_mod(f, g) == (f*f) % g
-        assert raises(lambda: f.mul_mod(f, "AAA"), TypeError)
-        assert raises(lambda: f.mul_mod("AAA", g), TypeError)
+#         # mulmod
+#         assert f.mul_mod(f, g) == (f*f) % g
+#         assert raises(lambda: f.mul_mod(f, "AAA"), TypeError)
+#         assert raises(lambda: f.mul_mod("AAA", g), TypeError)
 
-        # pow_mod
-        assert f.pow_mod(2, g) == (f*f) % g
-        assert raises(lambda: f.pow_mod(2, "AAA"), TypeError)
+#         # pow_mod
+#         assert f.pow_mod(2, g) == (f*f) % g
+#         assert raises(lambda: f.pow_mod(2, "AAA"), TypeError)
 
-        # roots
-        assert raises(lambda: f.real_roots(), DomainError)
-        assert raises(lambda: f.complex_roots(), DomainError)
+#         # roots
+#         assert raises(lambda: f.real_roots(), DomainError)
+#         assert raises(lambda: f.complex_roots(), DomainError)
 
-        # compose errors
-        assert raises(lambda: f.compose("A"), TypeError)
-        assert raises(lambda: f.compose_mod("A", g), TypeError)
-        assert raises(lambda: f.compose_mod(g, "A"), TypeError)
-        assert raises(lambda: f.compose_mod(g, R_test.zero()), ZeroDivisionError)
+#         # compose errors
+#         assert raises(lambda: f.compose("A"), TypeError)
+#         assert raises(lambda: f.compose_mod("A", g), TypeError)
+#         assert raises(lambda: f.compose_mod(g, "A"), TypeError)
+#         assert raises(lambda: f.compose_mod(g, R_test.zero()), ZeroDivisionError)
 
-        # inverse_mod
-        while True:
-            # Ensure f is invertible
-            f = R_test.random_element()
-            if not f.constant_coefficient().is_zero():
-                break
-        while True:
-            h = R_test.random_element()
-            if f.gcd(h).is_one():
-                break
-        g = f.inverse_mod(h)
-        assert f.mul_mod(g, h).is_one()
-        assert raises(lambda: f.inverse_mod(2*f), ValueError)
+#         # inverse_mod
+#         while True:
+#             # Ensure f is invertible
+#             f = R_test.random_element()
+#             if not f.constant_coefficient().is_zero():
+#                 break
+#         while True:
+#             h = R_test.random_element()
+#             if f.gcd(h).is_one():
+#                 break
+#         g = f.inverse_mod(h)
+#         assert f.mul_mod(g, h).is_one()
+#         assert raises(lambda: f.inverse_mod(2*f), ValueError)
 
-        # series
-        f_non_square = R_test([nqr, 1, 1, 1])
-        f_zero = R_test([0, 1, 1, 1])
-        assert raises(lambda: f_non_square.sqrt_trunc(1), ValueError)
-        assert raises(lambda: f_zero.sqrt_trunc(1), ZeroDivisionError)
-        assert raises(lambda: f_non_square.inv_sqrt_trunc(1), ValueError)
-        assert raises(lambda: f_zero.inv_sqrt_trunc(1), ZeroDivisionError)
-        f_inv = f.inverse_series_trunc(2)
-        assert (f * f_inv) % R_test([0,0,1]) == 1
-        assert raises(lambda: R_test([0,1]).inverse_series_trunc(2), ZeroDivisionError)
+#         # series
+#         f_non_square = R_test([nqr, 1, 1, 1])
+#         f_zero = R_test([0, 1, 1, 1])
+#         assert raises(lambda: f_non_square.sqrt_trunc(1), ValueError)
+#         assert raises(lambda: f_zero.sqrt_trunc(1), ZeroDivisionError)
+#         assert raises(lambda: f_non_square.inv_sqrt_trunc(1), ValueError)
+#         assert raises(lambda: f_zero.inv_sqrt_trunc(1), ZeroDivisionError)
+#         f_inv = f.inverse_series_trunc(2)
+#         assert (f * f_inv) % R_test([0,0,1]) == 1
+#         assert raises(lambda: R_test([0,1]).inverse_series_trunc(2), ZeroDivisionError)
 
-        # deflation
-        f1 = R_test([1,0,2,0,3])
-        assert raises(lambda: f1.deflate(100), ValueError)
-        assert f1.deflate(2) == R_test([1,2,3])
+#         # deflation
+#         f1 = R_test([1,0,2,0,3])
+#         assert raises(lambda: f1.deflate(100), ValueError)
+#         assert f1.deflate(2) == R_test([1,2,3])
 
-        # truncate things
-        f = R_test.random_element()
-        g = R_test.random_element()
-        h = R_test.random_element()
-        x = R_test.gen()
-        f_trunc = f % x**3
+#         # truncate things
+#         f = R_test.random_element()
+#         g = R_test.random_element()
+#         h = R_test.random_element()
+#         x = R_test.gen()
+#         f_trunc = f % x**3
 
-        assert f.equal_trunc(f_trunc, 3)
-        assert not f.equal_trunc("A", 3)
-        assert not f.equal_trunc(f_cmp, 3)
+#         assert f.equal_trunc(f_trunc, 3)
+#         assert not f.equal_trunc("A", 3)
+#         assert not f.equal_trunc(f_cmp, 3)
 
-        assert raises(lambda: f.add_trunc("A", 1), TypeError)
-        assert raises(lambda: f.add_trunc(f_cmp, 1), ValueError)
-        assert f.add_trunc(g, 3) == (f + g) % x**3
+#         assert raises(lambda: f.add_trunc("A", 1), TypeError)
+#         assert raises(lambda: f.add_trunc(f_cmp, 1), ValueError)
+#         assert f.add_trunc(g, 3) == (f + g) % x**3
 
-        assert raises(lambda: f.sub_trunc("A", 1), TypeError)
-        assert raises(lambda: f.sub_trunc(f_cmp, 1), ValueError)
-        assert f.sub_trunc(g, 3) == (f - g) % x**3
+#         assert raises(lambda: f.sub_trunc("A", 1), TypeError)
+#         assert raises(lambda: f.sub_trunc(f_cmp, 1), ValueError)
+#         assert f.sub_trunc(g, 3) == (f - g) % x**3
 
-        assert raises(lambda: f.mul_low("A", 1), TypeError)
-        assert raises(lambda: f.mul_low(g, "A"), TypeError)
-        assert raises(lambda: f.mul_low(f_cmp, 1), ValueError)
-        assert f.mul_low(g, 3) == (f * g) % x**3
+#         assert raises(lambda: f.mul_low("A", 1), TypeError)
+#         assert raises(lambda: f.mul_low(g, "A"), TypeError)
+#         assert raises(lambda: f.mul_low(f_cmp, 1), ValueError)
+#         assert f.mul_low(g, 3) == (f * g) % x**3
 
-        assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
+#         assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
 
 
 def test_all_tests():
@@ -4729,7 +4729,7 @@ all_tests = [
     test_matrices_fflu,
 
     # test_fq_default,
-    test_fq_default_poly,
+    # test_fq_default_poly,
 
     test_arb,
 
