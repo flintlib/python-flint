@@ -174,7 +174,21 @@ jobs:
   # Test against flint main
   test_flint_main:
     name: Test flint main
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: bin/install_flint_ubuntu.sh main
+      # Need to disable flint version check to build against main
+      - run: pip install --config-settings=setup-args="-Dflint_version_check=false" .
+      - run: python -m flint.test --verbose
+
+  # Test against flint main
+  test_flint_main_arm:
+    name: Test flint main
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
