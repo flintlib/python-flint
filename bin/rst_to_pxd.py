@@ -132,6 +132,9 @@ def get_functions(file):
             macros.append(line.strip())
             continue
 
+        if line.strip().endswith('\\'):
+            continue
+
         m = is_func.match(line)
         if m:
             ret.append(clean_types(line[m.end():]))
