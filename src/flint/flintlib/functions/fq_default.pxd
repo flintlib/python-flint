@@ -8,12 +8,12 @@ from flint.flintlib.types.nmod cimport nmod_poly_t
 
 
 cdef extern from "flint/fq_default.h":
-    void fq_default_ctx_init(fq_default_ctx_t ctx, const fmpz_t p, slong d, const char * var)
     void fq_default_ctx_init_type(fq_default_ctx_t ctx, const fmpz_t p, slong d, const char * var, int type)
-    void fq_default_ctx_init_modulus(fq_default_ctx_t ctx, const fmpz_mod_poly_t modulus, fmpz_mod_ctx_t mod_ctx, const char * var)
-    void fq_default_ctx_init_modulus_type(fq_default_ctx_t ctx, const fmpz_mod_poly_t modulus, fmpz_mod_ctx_t mod_ctx, const char * var, int type)
-    void fq_default_ctx_init_modulus_nmod(fq_default_ctx_t ctx, const nmod_poly_t modulus, const char * var)
+    void fq_default_ctx_init(fq_default_ctx_t ctx, const fmpz_t p, slong d, const char * var)
     void fq_default_ctx_init_modulus_nmod_type(fq_default_ctx_t ctx, const nmod_poly_t modulus, const char * var, int type)
+    void fq_default_ctx_init_modulus_nmod(fq_default_ctx_t ctx, const nmod_poly_t modulus, const char * var)
+    void fq_default_ctx_init_modulus_type(fq_default_ctx_t ctx, const fmpz_mod_poly_t modulus, fmpz_mod_ctx_t mod_ctx, const char * var, int type)
+    void fq_default_ctx_init_modulus(fq_default_ctx_t ctx, const fmpz_mod_poly_t modulus, fmpz_mod_ctx_t mod_ctx, const char * var)
     void fq_default_ctx_clear(fq_default_ctx_t ctx)
     int fq_default_ctx_type(const fq_default_ctx_t ctx)
     void * fq_default_ctx_inner(const fq_default_ctx_t ctx)
@@ -23,7 +23,7 @@ cdef extern from "flint/fq_default.h":
     void fq_default_ctx_modulus(fmpz_mod_poly_t p, const fq_default_ctx_t ctx)
     # int fq_default_ctx_fprint(FILE * file, const fq_default_ctx_t ctx)
     void fq_default_ctx_print(const fq_default_ctx_t ctx)
-    void fq_default_ctx_randtest(fq_default_ctx_t ctx)
+    void fq_default_ctx_init_randtest(fq_default_ctx_t ctx, flint_rand_t state)
     void fq_default_get_coeff_fmpz(fmpz_t c, fq_default_t op, slong n, const fq_default_ctx_t ctx)
     void fq_default_init(fq_default_t rop, const fq_default_ctx_t ctx)
     void fq_default_init2(fq_default_t rop, const fq_default_ctx_t ctx)

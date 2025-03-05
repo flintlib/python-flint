@@ -1,5 +1,5 @@
-from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, slong, ulong
-from flint.flintlib.types.fmpq cimport fmpq_poly_t, fmpq_t
+from flint.flintlib.types.flint cimport flint_rand_t, fmpz_struct, fmpz_t, slong, ulong
+from flint.flintlib.types.fmpq cimport fmpq_poly_t, fmpq_struct, fmpq_t
 from flint.flintlib.types.fmpz cimport fmpz_poly_t
 from flint.flintlib.types.gr cimport gr_ctx_t, gr_poly_t, gr_ptr, gr_srcptr, gr_stream_t, gr_vec_t, truth_t
 
@@ -64,8 +64,14 @@ cdef extern from "flint/gr_poly.h":
     int _gr_poly_mullow(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, slong len, gr_ctx_t ctx)
     int gr_poly_mullow(gr_poly_t res, const gr_poly_t poly1, const gr_poly_t poly2, slong len, gr_ctx_t ctx)
     int gr_poly_mul_scalar(gr_poly_t res, const gr_poly_t poly, gr_srcptr c, gr_ctx_t ctx)
+    int gr_poly_mul_ui(gr_poly_t res, const gr_poly_t poly, ulong c, gr_ctx_t ctx)
+    int gr_poly_mul_si(gr_poly_t res, const gr_poly_t poly, slong c, gr_ctx_t ctx)
+    int gr_poly_mul_fmpz(gr_poly_t res, const gr_poly_t poly, const fmpz_struct c, gr_ctx_t ctx)
+    int gr_poly_mul_fmpq(gr_poly_t res, const gr_poly_t poly, const fmpq_struct c, gr_ctx_t ctx)
     int _gr_poly_mul_karatsuba(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, gr_ctx_t ctx)
     int gr_poly_mul_karatsuba(gr_poly_t res, const gr_poly_t poly1, const gr_poly_t poly2, gr_ctx_t ctx)
+    int _gr_poly_mul_toom33(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, gr_ctx_t ctx);
+    int gr_poly_mul_toom33(gr_poly_t res, const gr_poly_t poly1, const gr_poly_t poly2, gr_ctx_t ctx);
     int _gr_poly_pow_series_ui_binexp(gr_ptr res, gr_srcptr f, slong flen, ulong exp, slong len, gr_ctx_t ctx)
     int gr_poly_pow_series_ui_binexp(gr_poly_t res, const gr_poly_t poly, ulong exp, slong len, gr_ctx_t ctx)
     int _gr_poly_pow_series_ui(gr_ptr res, gr_srcptr f, slong flen, ulong exp, slong len, gr_ctx_t ctx)

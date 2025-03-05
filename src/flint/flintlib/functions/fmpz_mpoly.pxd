@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, mp_limb_t, slong, ulong
+from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, slong, ulong
 from flint.flintlib.types.fmpz cimport fmpz_mpoly_ctx_t, fmpz_mpoly_struct, fmpz_mpoly_t, fmpz_mpoly_vec_t, fmpz_poly_struct, fmpz_poly_t
 from flint.flintlib.types.mpoly cimport ordering_t
 
@@ -104,9 +104,9 @@ cdef extern from "flint/fmpz_mpoly.h":
     void fmpz_mpoly_sort_terms(fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
     void fmpz_mpoly_combine_like_terms(fmpz_mpoly_t A, const fmpz_mpoly_ctx_t ctx)
     void fmpz_mpoly_reverse(fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_ctx_t ctx)
-    void fmpz_mpoly_randtest_bound(fmpz_mpoly_t A, flint_rand_t state, slong length, mp_limb_t coeff_bits, ulong exp_bound, const fmpz_mpoly_ctx_t ctx)
-    void fmpz_mpoly_randtest_bounds(fmpz_mpoly_t A, flint_rand_t state, slong length, mp_limb_t coeff_bits, ulong * exp_bounds, const fmpz_mpoly_ctx_t ctx)
-    void fmpz_mpoly_randtest_bits(fmpz_mpoly_t A, flint_rand_t state, slong length, mp_limb_t coeff_bits, mp_limb_t exp_bits, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_randtest_bound(fmpz_mpoly_t A, flint_rand_t state, slong length, ulong coeff_bits, ulong exp_bound, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_randtest_bounds(fmpz_mpoly_t A, flint_rand_t state, slong length, ulong coeff_bits, ulong * exp_bounds, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mpoly_randtest_bits(fmpz_mpoly_t A, flint_rand_t state, slong length, ulong coeff_bits, ulong exp_bits, const fmpz_mpoly_ctx_t ctx)
     void fmpz_mpoly_add_fmpz(fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_t c, const fmpz_mpoly_ctx_t ctx)
     void fmpz_mpoly_add_ui(fmpz_mpoly_t A, const fmpz_mpoly_t B, ulong c, const fmpz_mpoly_ctx_t ctx)
     void fmpz_mpoly_add_si(fmpz_mpoly_t A, const fmpz_mpoly_t B, slong c, const fmpz_mpoly_ctx_t ctx)
@@ -182,17 +182,17 @@ cdef extern from "flint/fmpz_mpoly.h":
     void fmpz_mpoly_pow_fps(fmpz_mpoly_t A, const fmpz_mpoly_t B, ulong k, const fmpz_mpoly_ctx_t ctx)
     slong _fmpz_mpoly_divides_array(fmpz_struct ** poly1, ulong ** exp1, slong * alloc, const fmpz_struct * poly2, const ulong * exp2, slong len2, const fmpz_struct * poly3, const ulong * exp3, slong len3, slong * mults, slong num, slong bits)
     int fmpz_mpoly_divides_array(fmpz_mpoly_t poly1, const fmpz_mpoly_t poly2, const fmpz_mpoly_t poly3, const fmpz_mpoly_ctx_t ctx)
-    slong _fmpz_mpoly_divides_monagan_pearce(fmpz_struct ** poly1, ulong ** exp1, slong * alloc, const fmpz_struct * poly2, const ulong * exp2, slong len2, const fmpz_struct * poly3, const ulong * exp3, slong len3, ulong bits, slong N, const mp_limb_t * cmpmask)
+    slong _fmpz_mpoly_divides_monagan_pearce(fmpz_struct ** poly1, ulong ** exp1, slong * alloc, const fmpz_struct * poly2, const ulong * exp2, slong len2, const fmpz_struct * poly3, const ulong * exp3, slong len3, ulong bits, slong N, const ulong * cmpmask)
     int fmpz_mpoly_divides_monagan_pearce(fmpz_mpoly_t poly1, const fmpz_mpoly_t poly2, const fmpz_mpoly_t poly3, const fmpz_mpoly_ctx_t ctx)
     int fmpz_mpoly_divides_heap_threaded(fmpz_mpoly_t Q, const fmpz_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mpoly_ctx_t ctx)
-    slong _fmpz_mpoly_div_monagan_pearce(fmpz_struct ** polyq, ulong ** expq, slong * allocq, const fmpz_struct * poly2, const ulong * exp2, slong len2, const fmpz_struct * poly3, const ulong * exp3, slong len3, slong bits, slong N, const mp_limb_t * cmpmask)
+    slong _fmpz_mpoly_div_monagan_pearce(fmpz_struct ** polyq, ulong ** expq, slong * allocq, const fmpz_struct * poly2, const ulong * exp2, slong len2, const fmpz_struct * poly3, const ulong * exp3, slong len3, slong bits, slong N, const ulong * cmpmask)
     void fmpz_mpoly_div_monagan_pearce(fmpz_mpoly_t polyq, const fmpz_mpoly_t poly2, const fmpz_mpoly_t poly3, const fmpz_mpoly_ctx_t ctx)
-    slong _fmpz_mpoly_divrem_monagan_pearce(slong * lenr, fmpz_struct ** polyq, ulong ** expq, slong * allocq, fmpz_struct ** polyr, ulong ** expr, slong * allocr, const fmpz_struct * poly2, const ulong * exp2, slong len2, const fmpz_struct * poly3, const ulong * exp3, slong len3, slong bits, slong N, const mp_limb_t * cmpmask)
+    slong _fmpz_mpoly_divrem_monagan_pearce(slong * lenr, fmpz_struct ** polyq, ulong ** expq, slong * allocq, fmpz_struct ** polyr, ulong ** expr, slong * allocr, const fmpz_struct * poly2, const ulong * exp2, slong len2, const fmpz_struct * poly3, const ulong * exp3, slong len3, slong bits, slong N, const ulong * cmpmask)
     void fmpz_mpoly_divrem_monagan_pearce(fmpz_mpoly_t q, fmpz_mpoly_t r, const fmpz_mpoly_t poly2, const fmpz_mpoly_t poly3, const fmpz_mpoly_ctx_t ctx)
     slong _fmpz_mpoly_divrem_array(slong * lenr, fmpz_struct ** polyq, ulong ** expq, slong * allocq, fmpz_struct ** polyr, ulong ** expr, slong * allocr, const fmpz_struct * poly2, const ulong * exp2, slong len2, const fmpz_struct * poly3, const ulong * exp3, slong len3, slong * mults, slong num, slong bits)
     int fmpz_mpoly_divrem_array(fmpz_mpoly_t q, fmpz_mpoly_t r, const fmpz_mpoly_t poly2, const fmpz_mpoly_t poly3, const fmpz_mpoly_ctx_t ctx)
     void fmpz_mpoly_quasidivrem_heap(fmpz_t scale, fmpz_mpoly_t q, fmpz_mpoly_t r, const fmpz_mpoly_t poly2, const fmpz_mpoly_t poly3, const fmpz_mpoly_ctx_t ctx)
-    slong _fmpz_mpoly_divrem_ideal_monagan_pearce(fmpz_mpoly_struct ** polyq, fmpz_struct ** polyr, ulong ** expr, slong * allocr, const fmpz_struct * poly2, const ulong * exp2, slong len2, fmpz_mpoly_struct * const * poly3, ulong * const * exp3, slong len, slong N, slong bits, const fmpz_mpoly_ctx_t ctx, const mp_limb_t * cmpmask)
+    slong _fmpz_mpoly_divrem_ideal_monagan_pearce(fmpz_mpoly_struct ** polyq, fmpz_struct ** polyr, ulong ** expr, slong * allocr, const fmpz_struct * poly2, const ulong * exp2, slong len2, fmpz_mpoly_struct * const * poly3, ulong * const * exp3, slong len, slong N, slong bits, const fmpz_mpoly_ctx_t ctx, const ulong * cmpmask)
     void fmpz_mpoly_divrem_ideal_monagan_pearce(fmpz_mpoly_struct ** q, fmpz_mpoly_t r, const fmpz_mpoly_t poly2, fmpz_mpoly_struct * const * poly3, slong len, const fmpz_mpoly_ctx_t ctx)
     void fmpz_mpoly_vec_init(fmpz_mpoly_vec_t vec, slong len, const fmpz_mpoly_ctx_t ctx)
     void fmpz_mpoly_vec_clear(fmpz_mpoly_vec_t vec, const fmpz_mpoly_ctx_t ctx)
