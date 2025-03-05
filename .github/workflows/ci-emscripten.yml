@@ -45,13 +45,15 @@ jobs:
       - name: Install pyodide-build
         run: pip install pyodide-build
 
-      - name: Cache WASM library directory
+      - name: Restore WASM library directory from cache
+        id: cache-wasm-library-dir
         uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: ${{ github.workspace }}/wasm-library-dir
           key: wasm-library-dir-${{ hashFiles('.github/workflows/ci-emscripten.yml') }}
 
       - name: Build libgmp
+        if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
         env:
           CFLAGS: "-fPIC"
           WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
@@ -72,6 +74,7 @@ jobs:
           emmake make install
 
       - name: Build libmpfr
+        if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
         env:
           CFLAGS: "-fPIC"
           WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
@@ -91,6 +94,7 @@ jobs:
 
       # might need patch
       - name: Build flint
+        if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
         env:
           CFLAGS: "-fPIC"
           WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
@@ -109,7 +113,7 @@ jobs:
           emmake make -j $(nproc)
           emmake make install
 
-      - name: Cache WASM library directory
+      - name: Persist WASM library directory to cache
         uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: ${{ github.workspace }}/wasm-library-dir
