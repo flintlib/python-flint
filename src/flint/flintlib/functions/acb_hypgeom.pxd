@@ -68,6 +68,7 @@ cdef extern from "flint/acb_hypgeom.h":
     void acb_hypgeom_fresnel(acb_t res1, acb_t res2, const acb_t z, int normalized, slong prec)
     void _acb_hypgeom_fresnel_series(acb_ptr res1, acb_ptr res2, acb_srcptr z, slong zlen, int normalized, slong len, slong prec)
     void acb_hypgeom_fresnel_series(acb_poly_t res1, acb_poly_t res2, const acb_poly_t z, int normalized, slong len, slong prec)
+    void acb_hypgeom_bessel_j_deriv_bound(mag_t res, const acb_t nu, const acb_t z, ulong d)
     void acb_hypgeom_bessel_j_asymp(acb_t res, const acb_t nu, const acb_t z, slong prec)
     void acb_hypgeom_bessel_j_0f1(acb_t res, const acb_t nu, const acb_t z, slong prec)
     void acb_hypgeom_bessel_j(acb_t res, const acb_t nu, const acb_t z, slong prec)

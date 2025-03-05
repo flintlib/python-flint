@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport flint_rand_t, mp_limb_t, mp_srcptr, nmod_t, slong
+from flint.flintlib.types.flint cimport flint_rand_t, nmod_t, nn_srcptr, slong, ulong
 from flint.flintlib.types.nmod cimport nmod_poly_factor_t, nmod_poly_t
 
 
@@ -16,7 +16,7 @@ cdef extern from "flint/nmod_poly_factor.h":
     int nmod_poly_is_irreducible(const nmod_poly_t f)
     int nmod_poly_is_irreducible_ddf(const nmod_poly_t f)
     int nmod_poly_is_irreducible_rabin(const nmod_poly_t f)
-    int _nmod_poly_is_squarefree(mp_srcptr f, slong len, nmod_t mod)
+    int _nmod_poly_is_squarefree(nn_srcptr f, slong len, nmod_t mod)
     int nmod_poly_is_squarefree(const nmod_poly_t f)
     void nmod_poly_factor_squarefree(nmod_poly_factor_t res, const nmod_poly_t f)
     int nmod_poly_factor_equal_deg_prob(nmod_poly_t factor, flint_rand_t state, const nmod_poly_t pol, slong d)
@@ -26,8 +26,8 @@ cdef extern from "flint/nmod_poly_factor.h":
     void nmod_poly_factor_cantor_zassenhaus(nmod_poly_factor_t res, const nmod_poly_t f)
     void nmod_poly_factor_berlekamp(nmod_poly_factor_t res, const nmod_poly_t f)
     void nmod_poly_factor_kaltofen_shoup(nmod_poly_factor_t res, const nmod_poly_t poly)
-    mp_limb_t nmod_poly_factor_with_berlekamp(nmod_poly_factor_t res, const nmod_poly_t f)
-    mp_limb_t nmod_poly_factor_with_cantor_zassenhaus(nmod_poly_factor_t res, const nmod_poly_t f)
-    mp_limb_t nmod_poly_factor_with_kaltofen_shoup(nmod_poly_factor_t res, const nmod_poly_t f)
-    mp_limb_t nmod_poly_factor(nmod_poly_factor_t res, const nmod_poly_t f)
+    ulong nmod_poly_factor_with_berlekamp(nmod_poly_factor_t res, const nmod_poly_t f)
+    ulong nmod_poly_factor_with_cantor_zassenhaus(nmod_poly_factor_t res, const nmod_poly_t f)
+    ulong nmod_poly_factor_with_kaltofen_shoup(nmod_poly_factor_t res, const nmod_poly_t f)
+    ulong nmod_poly_factor(nmod_poly_factor_t res, const nmod_poly_t f)
     void _nmod_poly_interval_poly_worker(void * arg_ptr)
