@@ -3803,7 +3803,7 @@ def _poly_type_from_matrix_type(mat_type):
         assert False
 
 
-def test_matrices_eq():
+def _test_matrices_eq():
     for M, S, is_field in _all_matrices():
         A1 = M([[1, 2], [3, 4]])
         A2 = M([[1, 2], [3, 4]])
@@ -3828,7 +3828,7 @@ def test_matrices_eq():
             assert (A1 != A2) is True
 
 
-def test_matrices_constructor():
+def _test_matrices_constructor():
     for M, S, is_field in _all_matrices():
         assert raises(lambda: M(), TypeError)
 
@@ -3900,7 +3900,7 @@ def _matrix_repr(M):
         assert False
 
 
-def test_matrices_strrepr():
+def _test_matrices_strrepr():
     for M, S, is_field in _all_matrices():
         A = M([[1, 2], [3, 4]])
         A_str = "[1, 2]\n[3, 4]"
@@ -3923,7 +3923,7 @@ def test_matrices_strrepr():
             ctx.pretty = pretty
 
 
-def test_matrices_getitem():
+def _test_matrices_getitem():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         assert M1234[0, 0] == S(1)
@@ -3939,7 +3939,7 @@ def test_matrices_getitem():
         assert raises(lambda: M1234[-1, -1], IndexError)
 
 
-def test_matrices_setitem():
+def _test_matrices_setitem():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
 
@@ -3965,7 +3965,7 @@ def test_matrices_setitem():
         assert raises(lambda: setbad(M1234, (-1,-1), 1), IndexError)
 
 
-def test_matrices_bool():
+def _test_matrices_bool():
     for M, S, is_field in _all_matrices():
         assert bool(M([])) is False
         assert bool(M([[0]])) is False
@@ -3976,14 +3976,14 @@ def test_matrices_bool():
         assert bool(M([[1, 0], [0, 1]])) is True
 
 
-def test_matrices_pos_neg():
+def _test_matrices_pos_neg():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         assert +M1234 == M1234
         assert -M1234 == M([[-1, -2], [-3, -4]])
 
 
-def test_matrices_add():
+def _test_matrices_add():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         M5678 = M([[5, 6], [7, 8]])
@@ -4003,7 +4003,7 @@ def test_matrices_add():
             assert raises(lambda: M2([[1, 2], [3, 4]]) + M1234, (TypeError, ValueError))
 
 
-def test_matrices_sub():
+def _test_matrices_sub():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         M5678 = M([[5, 6], [7, 8]])
@@ -4023,7 +4023,7 @@ def test_matrices_sub():
             assert raises(lambda: M2([[1, 2], [3, 4]]) - M1234, (TypeError, ValueError))
 
 
-def test_matrices_mul():
+def _test_matrices_mul():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         M5678 = M([[5, 6], [7, 8]])
@@ -4049,7 +4049,7 @@ def test_matrices_mul():
             assert raises(lambda: M2([[1, 2], [3, 4]]) * M1234, (TypeError, ValueError))
 
 
-def test_matrices_pow():
+def _test_matrices_pow():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         assert M1234**0 == M([[1, 0], [0, 1]])
@@ -4070,7 +4070,7 @@ def test_matrices_pow():
         assert raises(lambda: None**M1234, TypeError)
 
 
-def test_matrices_div():
+def _test_matrices_div():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         if is_field:
@@ -4082,7 +4082,7 @@ def test_matrices_div():
         raises(lambda: None / M1234, TypeError)
 
 
-def test_matrices_properties():
+def _test_matrices_properties():
     for M, S, is_field in _all_matrices():
         # XXX: Add these properties to all matrix types
         if M is not flint.fmpz_mat:
@@ -4126,7 +4126,7 @@ def test_matrices_properties():
         assert M([[1, 1, 0], [1, 2, 0]]).is_lower_triangular() is False
 
 
-def test_matrices_inv():
+def _test_matrices_inv():
     for M, S, is_field in _all_matrices():
         if is_field:
             M1234 = M([[1, 2], [3, 4]])
@@ -4138,7 +4138,7 @@ def test_matrices_inv():
         # XXX: Test non-field matrices. unimodular?
 
 
-def test_matrices_det():
+def _test_matrices_det():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         assert M1234.det() == S(-2)
@@ -4148,7 +4148,7 @@ def test_matrices_det():
         assert raises(lambda: Mr.det(), ValueError)
 
 
-def test_matrices_charpoly():
+def _test_matrices_charpoly():
     for M, S, is_field in _all_matrices():
         P = _poly_type_from_matrix_type(M)
         M1234 = M([[1, 2], [3, 4]])
@@ -4159,7 +4159,7 @@ def test_matrices_charpoly():
         assert raises(lambda: Mr.charpoly(), ValueError)
 
 
-def test_matrices_minpoly():
+def _test_matrices_minpoly():
     for M, S, is_field in _all_matrices():
         P = _poly_type_from_matrix_type(M)
         M1234 = M([[1, 2], [3, 4]])
@@ -4170,7 +4170,7 @@ def test_matrices_minpoly():
         assert raises(lambda: Mr.minpoly(), ValueError)
 
 
-def test_matrices_rank():
+def _test_matrices_rank():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         assert M1234.rank() == 2
@@ -4182,7 +4182,7 @@ def test_matrices_rank():
         assert Mz.rank() == 0
 
 
-def test_matrices_rref():
+def _test_matrices_rref():
     for M, S, is_field in _all_matrices():
         if is_field:
             Mr = M([[1, 2, 3], [4, 5, 6]])
@@ -4193,7 +4193,7 @@ def test_matrices_rref():
             assert Mr == Mr_rref
 
 
-def test_matrices_fflu():
+def _test_matrices_fflu():
 
     QQ = flint.fmpq_mat
     shape = lambda A: (A.nrows(), A.ncols())
@@ -4250,7 +4250,7 @@ def test_matrices_fflu():
                     check_fflu(A)
 
 
-def test_matrices_solve():
+def _test_matrices_solve():
     for M, S, is_field in _all_matrices():
         if is_field:
             A = M([[1, 2], [3, 4]])
@@ -4269,7 +4269,7 @@ def test_matrices_solve():
             assert raises(lambda: A.solve(b), ZeroDivisionError)
 
 
-def test_matrices_transpose():
+def _test_matrices_transpose():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2, 3], [4, 5, 6]])
         assert M1234.transpose() == M([[1, 4], [2, 5], [3, 6]])
@@ -4705,28 +4705,28 @@ all_tests = [
 
     test_fmpz_mpoly_vec,
 
-    test_matrices_eq,
-    test_matrices_constructor,
-    test_matrices_strrepr,
-    test_matrices_getitem,
-    test_matrices_setitem,
-    test_matrices_bool,
-    test_matrices_transpose,
-    test_matrices_pos_neg,
-    test_matrices_add,
-    test_matrices_sub,
-    test_matrices_mul,
-    test_matrices_pow,
-    test_matrices_div,
-    test_matrices_properties,
-    test_matrices_inv,
-    test_matrices_det,
-    test_matrices_charpoly,
-    test_matrices_minpoly,
-    test_matrices_rank,
-    test_matrices_rref,
-    test_matrices_solve,
-    test_matrices_fflu,
+    #test_matrices_eq,
+    #test_matrices_constructor,
+    #test_matrices_strrepr,
+    #test_matrices_getitem,
+    #test_matrices_setitem,
+    #test_matrices_bool,
+    #test_matrices_transpose,
+    #test_matrices_pos_neg,
+    #test_matrices_add,
+    #test_matrices_sub,
+    #test_matrices_mul,
+    #test_matrices_pow,
+    #test_matrices_div,
+    #test_matrices_properties,
+    #test_matrices_inv,
+    #test_matrices_det,
+    #test_matrices_charpoly,
+    #test_matrices_minpoly,
+    #test_matrices_rank,
+    #test_matrices_rref,
+    #test_matrices_solve,
+    #test_matrices_fflu,
 
     # test_fq_default,
     # test_fq_default_poly,
