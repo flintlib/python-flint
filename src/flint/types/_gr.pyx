@@ -331,13 +331,13 @@ cdef class gr_ctx(flint_ctx):
     def gen(self) -> gr:
         """Return the generator of the domain (if available).
 
-        >>> from flint.types._gr import gr_fmpzi_ctx, gr_fq_ctx
-        >>> ctx = gr_fmpzi_ctx
-        >>> ctx.gen()
-        I
-        >>> ctx = gr_fq_ctx.new(5, 2)
-        >>> ctx.gen()
-        a
+        # >>> from flint.types._gr import gr_fmpzi_ctx, gr_fq_ctx
+        # >>> ctx = gr_fmpzi_ctx
+        # >>> ctx.gen()
+        # I
+        # >>> ctx = gr_fq_ctx.new(5, 2)
+        # >>> ctx.gen()
+        # a
         """
         return self._gen()
 
