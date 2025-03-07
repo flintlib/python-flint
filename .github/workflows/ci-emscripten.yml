@@ -114,7 +114,8 @@ jobs:
             --with-gmp=${{ env.WASM_LIBRARY_DIR }} \
             --with-mpfr=${{ env.WASM_LIBRARY_DIR }} \
             --host=wasm32-unknown-emscripten \
-            --disable-assembly
+            --disable-assembly \
+            --disable-pthread
           emmake make -j $(nproc)
           emmake make install
 
