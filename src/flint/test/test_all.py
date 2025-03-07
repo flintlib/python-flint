@@ -2552,280 +2552,280 @@ def _all_polys():
     ]
 
 
-# def test_polys():
-#     for P, S, is_field, characteristic in _all_polys():
+def _test_polys():
+    for P, S, is_field, characteristic in _all_polys():
 
-#         composite_characteristic = characteristic != 0 and not characteristic.is_prime()
-#         # nmod_poly crashes for many operations with non-prime modulus
-#         #     https://github.com/flintlib/python-flint/issues/124
-#         # so we can't even test it...
-#         nmod_poly_will_crash = type(P(1)) is flint.nmod_poly and composite_characteristic
+        composite_characteristic = characteristic != 0 and not characteristic.is_prime()
+        # nmod_poly crashes for many operations with non-prime modulus
+        #     https://github.com/flintlib/python-flint/issues/124
+        # so we can't even test it...
+        nmod_poly_will_crash = type(P(1)) is flint.nmod_poly and composite_characteristic
 
-#         assert P([S(1)]) == P([1]) == P(P([1])) == P(1)
+        assert P([S(1)]) == P([1]) == P(P([1])) == P(1)
 
-#         assert raises(lambda: P([None]), TypeError)
-#         assert raises(lambda: P(object()), TypeError)
-#         assert raises(lambda: P(None), TypeError)
-#         assert raises(lambda: P(None, None), TypeError)
-#         assert raises(lambda: P([1,2], None), TypeError)
-#         assert raises(lambda: P(1, None), TypeError)
+        assert raises(lambda: P([None]), TypeError)
+        assert raises(lambda: P(object()), TypeError)
+        assert raises(lambda: P(None), TypeError)
+        assert raises(lambda: P(None, None), TypeError)
+        assert raises(lambda: P([1,2], None), TypeError)
+        assert raises(lambda: P(1, None), TypeError)
 
-#         assert len(P([])) == P([]).length() == 0
-#         assert len(P([1])) == P([1]).length() == 1
-#         assert len(P([1,2])) == P([1,2]).length() == 2
-#         assert len(P([1,2,3])) == P([1,2,3]).length() == 3
+        assert len(P([])) == P([]).length() == 0
+        assert len(P([1])) == P([1]).length() == 1
+        assert len(P([1,2])) == P([1,2]).length() == 2
+        assert len(P([1,2,3])) == P([1,2,3]).length() == 3
 
-#         assert P([]).degree() == -1
-#         assert P([1]).degree() == 0
-#         assert P([1,2]).degree() == 1
-#         assert P([1,2,3]).degree() == 2
+        assert P([]).degree() == -1
+        assert P([1]).degree() == 0
+        assert P([1,2]).degree() == 1
+        assert P([1,2,3]).degree() == 2
 
-#         assert (P([1]) == P([1])) is True
-#         assert (P([1]) != P([1])) is False
-#         assert (P([1]) == P([2])) is False
-#         assert (P([1]) != P([2])) is True
+        assert (P([1]) == P([1])) is True
+        assert (P([1]) != P([1])) is False
+        assert (P([1]) == P([2])) is False
+        assert (P([1]) != P([2])) is True
 
-#         assert (P([1]) == 1) is True
-#         assert (P([1]) != 1) is False
-#         assert (P([1]) == 2) is False
-#         assert (P([1]) != 2) is True
+        assert (P([1]) == 1) is True
+        assert (P([1]) != 1) is False
+        assert (P([1]) == 2) is False
+        assert (P([1]) != 2) is True
 
-#         assert (1 == P([1])) is True
-#         assert (1 != P([1])) is False
-#         assert (2 == P([1])) is False
-#         assert (2 != P([1])) is True
+        assert (1 == P([1])) is True
+        assert (1 != P([1])) is False
+        assert (2 == P([1])) is False
+        assert (2 != P([1])) is True
 
-#         s1, s2 = S(1), S(2)
+        s1, s2 = S(1), S(2)
 
-#         assert (P([s1]) == s1) is True
-#         assert (P([s1]) != s1) is False
-#         assert (P([s1]) == s2) is False
-#         assert (P([s1]) != s2) is True
+        assert (P([s1]) == s1) is True
+        assert (P([s1]) != s1) is False
+        assert (P([s1]) == s2) is False
+        assert (P([s1]) != s2) is True
 
-#         assert (s1 == P([s1])) is True
-#         assert (s1 != P([s1])) is False
-#         assert (s1 == P([s2])) is False
-#         assert (s1 != P([s2])) is True
+        assert (s1 == P([s1])) is True
+        assert (s1 != P([s1])) is False
+        assert (s1 == P([s2])) is False
+        assert (s1 != P([s2])) is True
 
-#         assert (P([1]) is None) is False
-#         assert (P([1]) is not None) is True
-#         assert (None is P([1])) is False
-#         assert (None is not P([1])) is True
+        assert (P([1]) is None) is False
+        assert (P([1]) is not None) is True
+        assert (None is P([1])) is False
+        assert (None is not P([1])) is True
 
-#         assert raises(lambda: P([1]) < P([1]), TypeError)
-#         assert raises(lambda: P([1]) <= P([1]), TypeError)
-#         assert raises(lambda: P([1]) > P([1]), TypeError)
-#         assert raises(lambda: P([1]) >= P([1]), TypeError)
-#         assert raises(lambda: P([1]) < None, TypeError)
-#         assert raises(lambda: P([1]) <= None, TypeError)
-#         assert raises(lambda: P([1]) > None, TypeError)
-#         assert raises(lambda: P([1]) >= None, TypeError)
-#         assert raises(lambda: None < P([1]), TypeError)
-#         assert raises(lambda: None <= P([1]), TypeError)
-#         assert raises(lambda: None > P([1]), TypeError)
-#         assert raises(lambda: None >= P([1]), TypeError)
+        assert raises(lambda: P([1]) < P([1]), TypeError)
+        assert raises(lambda: P([1]) <= P([1]), TypeError)
+        assert raises(lambda: P([1]) > P([1]), TypeError)
+        assert raises(lambda: P([1]) >= P([1]), TypeError)
+        assert raises(lambda: P([1]) < None, TypeError)
+        assert raises(lambda: P([1]) <= None, TypeError)
+        assert raises(lambda: P([1]) > None, TypeError)
+        assert raises(lambda: P([1]) >= None, TypeError)
+        assert raises(lambda: None < P([1]), TypeError)
+        assert raises(lambda: None <= P([1]), TypeError)
+        assert raises(lambda: None > P([1]), TypeError)
+        assert raises(lambda: None >= P([1]), TypeError)
 
-#         assert P([1, 2, 3])[1] == S(2)
-#         assert P([1, 2, 3])[-1] == S(0)
-#         assert P([1, 2, 3])[3] == S(0)
+        assert P([1, 2, 3])[1] == S(2)
+        assert P([1, 2, 3])[-1] == S(0)
+        assert P([1, 2, 3])[3] == S(0)
 
-#         p = P([1, 2, 3])
-#         p[1] = S(4)
-#         assert p == P([1, 4, 3])
+        p = P([1, 2, 3])
+        p[1] = S(4)
+        assert p == P([1, 4, 3])
 
-#         def setbad(obj, i, val):
-#             obj[i] = val
+        def setbad(obj, i, val):
+            obj[i] = val
 
-#         assert raises(lambda: setbad(p, 2, None), TypeError)
-#         assert raises(lambda: setbad(p, -1, 1), ValueError)
+        assert raises(lambda: setbad(p, 2, None), TypeError)
+        assert raises(lambda: setbad(p, -1, 1), ValueError)
 
-#         for v in [], [1], [1, 2]:
-#             p = P(v)
-#             if type(p) == flint.fmpz_poly:
-#                 assert P(v).repr() == f'fmpz_poly({v!r})'
-#             elif type(p) == flint.fmpq_poly:
-#                 assert P(v).repr() == f'fmpq_poly({v!r})'
-#             elif type(p) == flint.nmod_poly:
-#                 assert P(v).repr() == f'nmod_poly({v!r}, {p.modulus()})'
-#             elif type(p) == flint.fmpz_mod_poly:
-#                 pass # fmpz_mod_poly does not have .repr() ...
-#             elif type(p) == flint.fq_default_poly:
-#                 pass # fq_default_poly does not have .repr() ...
-#             else:
-#                 assert False
+        for v in [], [1], [1, 2]:
+            p = P(v)
+            if type(p) == flint.fmpz_poly:
+                assert P(v).repr() == f'fmpz_poly({v!r})'
+            elif type(p) == flint.fmpq_poly:
+                assert P(v).repr() == f'fmpq_poly({v!r})'
+            elif type(p) == flint.nmod_poly:
+                assert P(v).repr() == f'nmod_poly({v!r}, {p.modulus()})'
+            elif type(p) == flint.fmpz_mod_poly:
+                pass # fmpz_mod_poly does not have .repr() ...
+            elif type(p) == flint.fq_default_poly:
+                pass # fq_default_poly does not have .repr() ...
+            else:
+                assert False
 
-#         assert repr(P([])) == '0'
-#         assert repr(P([1])) == '1'
-#         assert repr(P([1, 2])) == '2*x + 1'
-#         assert repr(P([1, 2, 3])) == '3*x^2 + 2*x + 1'
+        assert repr(P([])) == '0'
+        assert repr(P([1])) == '1'
+        assert repr(P([1, 2])) == '2*x + 1'
+        assert repr(P([1, 2, 3])) == '3*x^2 + 2*x + 1'
 
-#         p = P([1, 2, 3])
-#         assert p(0) == p(S(0)) == S(1) == 1
-#         assert p(1) == p(S(1)) == S(6) == 6
-#         assert p(p) == P([6, 16, 36, 36, 27])
-#         assert raises(lambda: p(None), TypeError)
+        p = P([1, 2, 3])
+        assert p(0) == p(S(0)) == S(1) == 1
+        assert p(1) == p(S(1)) == S(6) == 6
+        assert p(p) == P([6, 16, 36, 36, 27])
+        assert raises(lambda: p(None), TypeError)
 
-#         assert bool(P([])) is False
-#         assert bool(P([1])) is True
+        assert bool(P([])) is False
+        assert bool(P([1])) is True
 
-#         assert P([]).is_zero() is True
-#         assert P([1]).is_zero() is False
+        assert P([]).is_zero() is True
+        assert P([1]).is_zero() is False
 
-#         assert P([]).is_one() is False
-#         assert P([1]).is_one() is True
+        assert P([]).is_one() is False
+        assert P([1]).is_one() is True
 
-#         assert +P([1, 2, 3]) == P([1, 2, 3])
-#         assert -P([1, 2, 3]) == P([-1, -2, -3])
+        assert +P([1, 2, 3]) == P([1, 2, 3])
+        assert -P([1, 2, 3]) == P([-1, -2, -3])
 
-#         assert P([1, 2, 3]) + P([4, 5, 6]) == P([5, 7, 9])
+        assert P([1, 2, 3]) + P([4, 5, 6]) == P([5, 7, 9])
 
-#         for T in [int, S, flint.fmpz]:
-#             assert P([1, 2, 3]) + T(1) == P([2, 2, 3])
-#             assert T(1) + P([1, 2, 3]) == P([2, 2, 3])
+        for T in [int, S, flint.fmpz]:
+            assert P([1, 2, 3]) + T(1) == P([2, 2, 3])
+            assert T(1) + P([1, 2, 3]) == P([2, 2, 3])
 
-#         assert raises(lambda: P([1, 2, 3]) + None, TypeError)
-#         assert raises(lambda: None + P([1, 2, 3]), TypeError)
+        assert raises(lambda: P([1, 2, 3]) + None, TypeError)
+        assert raises(lambda: None + P([1, 2, 3]), TypeError)
 
-#         assert P([1, 2, 3]) - P([4, 5, 6]) == P([-3, -3, -3])
+        assert P([1, 2, 3]) - P([4, 5, 6]) == P([-3, -3, -3])
 
-#         for T in [int, S, flint.fmpz]:
-#             assert P([1, 2, 3]) - T(1) == P([0, 2, 3])
-#             assert T(1) - P([1, 2, 3]) == P([0, -2, -3])
+        for T in [int, S, flint.fmpz]:
+            assert P([1, 2, 3]) - T(1) == P([0, 2, 3])
+            assert T(1) - P([1, 2, 3]) == P([0, -2, -3])
 
-#         assert raises(lambda: P([1, 2, 3]) - None, TypeError)
-#         assert raises(lambda: None - P([1, 2, 3]), TypeError)
+        assert raises(lambda: P([1, 2, 3]) - None, TypeError)
+        assert raises(lambda: None - P([1, 2, 3]), TypeError)
 
-#         assert P([1, 2, 3]) * P([4, 5, 6]) == P([4, 13, 28, 27, 18])
+        assert P([1, 2, 3]) * P([4, 5, 6]) == P([4, 13, 28, 27, 18])
 
-#         for T in [int, S, flint.fmpz]:
-#             assert P([1, 2, 3]) * T(2) == P([2, 4, 6])
-#             assert T(2) * P([1, 2, 3]) == P([2, 4, 6])
+        for T in [int, S, flint.fmpz]:
+            assert P([1, 2, 3]) * T(2) == P([2, 4, 6])
+            assert T(2) * P([1, 2, 3]) == P([2, 4, 6])
 
-#         assert raises(lambda: P([1, 2, 3]) * None, TypeError)
-#         assert raises(lambda: None * P([1, 2, 3]), TypeError)
+        assert raises(lambda: P([1, 2, 3]) * None, TypeError)
+        assert raises(lambda: None * P([1, 2, 3]), TypeError)
 
-#         assert P([1, 2, 1]) // P([1, 1]) == P([1, 1])
-#         assert P([1, 2, 1]) % P([1, 1]) == P([0])
-#         assert divmod(P([1, 2, 1]), P([1, 1])) == (P([1, 1]), P([0]))
+        assert P([1, 2, 1]) // P([1, 1]) == P([1, 1])
+        assert P([1, 2, 1]) % P([1, 1]) == P([0])
+        assert divmod(P([1, 2, 1]), P([1, 1])) == (P([1, 1]), P([0]))
 
-#         if is_field:
-#             assert P([1, 1]) // 2 == P([S(1)/2, S(1)/2])
-#             assert P([1, 1]) % 2 == P([0])
-#         elif characteristic == 0:
-#             assert P([1, 1]) // 2 == P([0, 0])
-#             assert P([1, 1]) % 2 == P([1, 1])
-#         elif nmod_poly_will_crash:
-#             pass
-#         else:
-#             # Z/nZ for n not prime
-#             if characteristic % 2 == 0:
-#                 assert raises(lambda: P([1, 1]) // 2, DomainError)
-#                 assert raises(lambda: P([1, 1]) % 2, DomainError)
-#             else:
-#                 1/0
+        if is_field:
+            assert P([1, 1]) // 2 == P([S(1)/2, S(1)/2])
+            assert P([1, 1]) % 2 == P([0])
+        elif characteristic == 0:
+            assert P([1, 1]) // 2 == P([0, 0])
+            assert P([1, 1]) % 2 == P([1, 1])
+        elif nmod_poly_will_crash:
+            pass
+        else:
+            # Z/nZ for n not prime
+            if characteristic % 2 == 0:
+                assert raises(lambda: P([1, 1]) // 2, DomainError)
+                assert raises(lambda: P([1, 1]) % 2, DomainError)
+            else:
+                1/0
 
-#         assert 1 // P([1, 1]) == P([0])
-#         assert 1 % P([1, 1]) == P([1])
-#         assert divmod(1, P([1, 1])) == (P([0]), P([1]))
+        assert 1 // P([1, 1]) == P([0])
+        assert 1 % P([1, 1]) == P([1])
+        assert divmod(1, P([1, 1])) == (P([0]), P([1]))
 
-#         assert raises(lambda: P([1, 2, 1]) // None, TypeError)
-#         assert raises(lambda: P([1, 2, 1]) % None, TypeError)
-#         assert raises(lambda: divmod(P([1, 2, 1]), None), TypeError)
+        assert raises(lambda: P([1, 2, 1]) // None, TypeError)
+        assert raises(lambda: P([1, 2, 1]) % None, TypeError)
+        assert raises(lambda: divmod(P([1, 2, 1]), None), TypeError)
 
-#         assert raises(lambda: None // P([1, 1]), TypeError)
-#         assert raises(lambda: None % P([1, 1]), TypeError)
-#         assert raises(lambda: divmod(None, P([1, 1])), TypeError)
+        assert raises(lambda: None // P([1, 1]), TypeError)
+        assert raises(lambda: None % P([1, 1]), TypeError)
+        assert raises(lambda: divmod(None, P([1, 1])), TypeError)
 
-#         assert raises(lambda: P([1, 2, 1]) // 0, ZeroDivisionError)
-#         assert raises(lambda: P([1, 2, 1]) % 0, ZeroDivisionError)
-#         assert raises(lambda: divmod(P([1, 2, 1]), 0), ZeroDivisionError)
+        assert raises(lambda: P([1, 2, 1]) // 0, ZeroDivisionError)
+        assert raises(lambda: P([1, 2, 1]) % 0, ZeroDivisionError)
+        assert raises(lambda: divmod(P([1, 2, 1]), 0), ZeroDivisionError)
 
-#         assert raises(lambda: P([1, 2, 1]) // P([0]), ZeroDivisionError)
-#         assert raises(lambda: P([1, 2, 1]) % P([0]), ZeroDivisionError)
-#         assert raises(lambda: divmod(P([1, 2, 1]), P([0])), ZeroDivisionError)
+        assert raises(lambda: P([1, 2, 1]) // P([0]), ZeroDivisionError)
+        assert raises(lambda: P([1, 2, 1]) % P([0]), ZeroDivisionError)
+        assert raises(lambda: divmod(P([1, 2, 1]), P([0])), ZeroDivisionError)
 
-#         # Exact/field scalar division
-#         if is_field:
-#             assert P([2, 2]) / 2 == P([1, 1])
-#             assert P([1, 2]) / 2 == P([S(1)/2, 1])
-#         elif characteristic == 0:
-#             assert P([2, 2]) / 2 == P([1, 1])
-#             assert raises(lambda: P([1, 2]) / 2, DomainError)
-#         elif nmod_poly_will_crash:
-#             pass
-#         else:
-#             # Z/nZ for n not prime
-#             assert raises(lambda: P([2, 2]) / 2, DomainError)
-#             assert raises(lambda: P([1, 2]) / 2, DomainError)
+        # Exact/field scalar division
+        if is_field:
+            assert P([2, 2]) / 2 == P([1, 1])
+            assert P([1, 2]) / 2 == P([S(1)/2, 1])
+        elif characteristic == 0:
+            assert P([2, 2]) / 2 == P([1, 1])
+            assert raises(lambda: P([1, 2]) / 2, DomainError)
+        elif nmod_poly_will_crash:
+            pass
+        else:
+            # Z/nZ for n not prime
+            assert raises(lambda: P([2, 2]) / 2, DomainError)
+            assert raises(lambda: P([1, 2]) / 2, DomainError)
 
-#         assert raises(lambda: P([1, 2]) / 0, ZeroDivisionError)
+        assert raises(lambda: P([1, 2]) / 0, ZeroDivisionError)
 
-#         if not nmod_poly_will_crash:
-#             assert P([1, 2, 1]) / P([1, 1]) == P([1, 1])
-#             assert raises(lambda: 1 / P([1, 1]), DomainError)
-#             assert raises(lambda: P([1, 2, 1]) / P([1, 2]), DomainError)
+        if not nmod_poly_will_crash:
+            assert P([1, 2, 1]) / P([1, 1]) == P([1, 1])
+            assert raises(lambda: 1 / P([1, 1]), DomainError)
+            assert raises(lambda: P([1, 2, 1]) / P([1, 2]), DomainError)
 
-#         assert P([1, 1]) ** 0 == P([1])
-#         assert P([1, 1]) ** 1 == P([1, 1])
-#         assert P([1, 1]) ** 2 == P([1, 2, 1])
-#         assert raises(lambda: P([1, 1]) ** -1, ValueError)
-#         assert raises(lambda: P([1, 1]) ** None, TypeError)
+        assert P([1, 1]) ** 0 == P([1])
+        assert P([1, 1]) ** 1 == P([1, 1])
+        assert P([1, 1]) ** 2 == P([1, 2, 1])
+        assert raises(lambda: P([1, 1]) ** -1, ValueError)
+        assert raises(lambda: P([1, 1]) ** None, TypeError)
 
-#         # XXX: Not sure what this should do in general:
-#         p = P([1, 1])
-#         mod = P([1, 1])
-#         if type(p) not in [flint.fmpz_mod_poly, flint.nmod_poly, flint.fq_default_poly]:
-#             assert raises(lambda: pow(p, 2, mod), NotImplementedError)
-#         else:
-#             assert p * p % mod == pow(p, 2, mod)
+        # XXX: Not sure what this should do in general:
+        p = P([1, 1])
+        mod = P([1, 1])
+        if type(p) not in [flint.fmpz_mod_poly, flint.nmod_poly, flint.fq_default_poly]:
+            assert raises(lambda: pow(p, 2, mod), NotImplementedError)
+        else:
+            assert p * p % mod == pow(p, 2, mod)
 
-#         if not composite_characteristic:
-#             assert P([1, 2, 1]).gcd(P([1, 1])) == P([1, 1])
-#             assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
-#         elif nmod_poly_will_crash:
-#             pass
-#         else:
-#             # Z/nZ for n not prime
-#             assert raises(lambda: P([1, 2, 1]).gcd(P([1, 1])), DomainError)
-#             assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
+        if not composite_characteristic:
+            assert P([1, 2, 1]).gcd(P([1, 1])) == P([1, 1])
+            assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
+        elif nmod_poly_will_crash:
+            pass
+        else:
+            # Z/nZ for n not prime
+            assert raises(lambda: P([1, 2, 1]).gcd(P([1, 1])), DomainError)
+            assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
 
-#         if is_field:
-#             p1 = P([1, 0, 1])
-#             p2 = P([2, 1])
-#             g, s, t = P([1]), P([1])/5, P([2, -1])/5
-#             assert p1.xgcd(p2) == (g, s, t)
-#             assert raises(lambda: p1.xgcd(None), TypeError)
+        if is_field:
+            p1 = P([1, 0, 1])
+            p2 = P([2, 1])
+            g, s, t = P([1]), P([1])/5, P([2, -1])/5
+            assert p1.xgcd(p2) == (g, s, t)
+            assert raises(lambda: p1.xgcd(None), TypeError)
 
-#         if not composite_characteristic:
-#             assert P([1, 2, 1]).factor() == (S(1), [(P([1, 1]), 2)])
-#         elif nmod_poly_will_crash:
-#             pass
-#         else:
-#             assert raises(lambda: P([1, 2, 1]).factor(), DomainError)
+        if not composite_characteristic:
+            assert P([1, 2, 1]).factor() == (S(1), [(P([1, 1]), 2)])
+        elif nmod_poly_will_crash:
+            pass
+        else:
+            assert raises(lambda: P([1, 2, 1]).factor(), DomainError)
 
-#         if not composite_characteristic:
-#             assert P([1, 2, 1]).sqrt() == P([1, 1])
-#             assert raises(lambda: P([1, 2, 2]).sqrt(), DomainError)
-#         elif nmod_poly_will_crash:
-#             pass
-#         else:
-#             assert raises(lambda: P([1, 2, 1]).sqrt(), DomainError)
+        if not composite_characteristic:
+            assert P([1, 2, 1]).sqrt() == P([1, 1])
+            assert raises(lambda: P([1, 2, 2]).sqrt(), DomainError)
+        elif nmod_poly_will_crash:
+            pass
+        else:
+            assert raises(lambda: P([1, 2, 1]).sqrt(), DomainError)
 
-#         if P == flint.fmpq_poly:
-#             assert raises(lambda: P([1, 2, 1], 3).sqrt(), ValueError)
-#             assert P([1, 2, 1], 4).sqrt() == P([1, 1], 2)
+        if P == flint.fmpq_poly:
+            assert raises(lambda: P([1, 2, 1], 3).sqrt(), ValueError)
+            assert P([1, 2, 1], 4).sqrt() == P([1, 1], 2)
 
-#         assert P([]).deflation() == (P([]), 1)
-#         assert P([1, 2]).deflation() == (P([1, 2]), 1)
-#         assert P([1, 0, 2]).deflation() == (P([1, 2]), 2)
+        assert P([]).deflation() == (P([]), 1)
+        assert P([1, 2]).deflation() == (P([1, 2]), 1)
+        assert P([1, 0, 2]).deflation() == (P([1, 2]), 2)
 
-#         assert P([1, 2, 1]).derivative() == P([2, 2])
+        assert P([1, 2, 1]).derivative() == P([2, 2])
 
-#         p = P([1, 2, 1])
-#         if is_field and type(p) != flint.fq_default_poly:
-#             assert p.integral() == P([0, 1, 1, S(1)/3])
-#         if type(p) == flint.fq_default_poly:
-#             assert raises(lambda: p.integral(), NotImplementedError)
+        p = P([1, 2, 1])
+        if is_field and type(p) != flint.fq_default_poly:
+            assert p.integral() == P([0, 1, 1, S(1)/3])
+        if type(p) == flint.fq_default_poly:
+            assert raises(lambda: p.integral(), NotImplementedError)
 
 
 def _all_mpolys():
@@ -3464,211 +3464,211 @@ def _all_polys_mpolys():
         yield P, S, [x, y], is_field, characteristic
 
 
-# def test_factor_poly_mpoly():
-#     """Test that factor() is consistent across different poly/mpoly types."""
+def _test_factor_poly_mpoly():
+    """Test that factor() is consistent across different poly/mpoly types."""
 
-#     def check(p, coeff, factors):
-#         # Check all the types
-#         lc = p.leading_coefficient()
-#         assert type(coeff) is type(lc)
-#         assert isinstance(factors, list)
-#         assert all(isinstance(f, tuple) for f in factors)
-#         for fac, m in factors:
-#             assert type(fac) is type(p)
-#             assert type(m) is int
+    def check(p, coeff, factors):
+        # Check all the types
+        lc = p.leading_coefficient()
+        assert type(coeff) is type(lc)
+        assert isinstance(factors, list)
+        assert all(isinstance(f, tuple) for f in factors)
+        for fac, m in factors:
+            assert type(fac) is type(p)
+            assert type(m) is int
 
-#         # Check the actual factorisation!
-#         res = coeff
-#         for fac, m in factors:
-#             res *= fac ** m
-#         assert res == p
+        # Check the actual factorisation!
+        res = coeff
+        for fac, m in factors:
+            res *= fac ** m
+        assert res == p
 
-#     def sort(factors):
-#         def sort_key(p):
-#             fac, m = p
-#             return (m, sorted(str(i) for i in fac.coeffs()))
-#         return sorted(factors, key=sort_key)
+    def sort(factors):
+        def sort_key(p):
+            fac, m = p
+            return (m, sorted(str(i) for i in fac.coeffs()))
+        return sorted(factors, key=sort_key)
 
-#     def factor(p):
-#         coeff, factors = p.factor()
-#         check(p, coeff, factors)
-#         return coeff, sort(factors)
+    def factor(p):
+        coeff, factors = p.factor()
+        check(p, coeff, factors)
+        return coeff, sort(factors)
 
-#     def factor_sqf(p):
-#         coeff, factors = p.factor_squarefree()
-#         check(p, coeff, factors)
-#         return coeff, sort(factors)
+    def factor_sqf(p):
+        coeff, factors = p.factor_squarefree()
+        check(p, coeff, factors)
+        return coeff, sort(factors)
 
-#     for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
+    for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
 
-#         if characteristic != 0 and not characteristic.is_prime():
-#             # nmod_poly crashes for many operations with non-prime modulus
-#             #     https://github.com/flintlib/python-flint/issues/124
-#             # so we can't even test it...
-#             nmod_poly_will_crash = type(x) is flint.nmod_poly
-#             if nmod_poly_will_crash:
-#                 continue
+        if characteristic != 0 and not characteristic.is_prime():
+            # nmod_poly crashes for many operations with non-prime modulus
+            #     https://github.com/flintlib/python-flint/issues/124
+            # so we can't even test it...
+            nmod_poly_will_crash = type(x) is flint.nmod_poly
+            if nmod_poly_will_crash:
+                continue
 
-#             try:
-#                 S(4).sqrt() ** 2 == S(4)
-#             except DomainError:
-#                 pass
-#             assert raises(lambda: (x**2).sqrt(), DomainError)
-#             assert raises(lambda: x.gcd(x), DomainError)
-#             assert raises(lambda: x.gcd(None), TypeError)
-#             assert raises(lambda: x.factor(), DomainError)
-#             assert raises(lambda: x.factor_squarefree(), DomainError)
+            try:
+                S(4).sqrt() ** 2 == S(4)
+            except DomainError:
+                pass
+            assert raises(lambda: (x**2).sqrt(), DomainError)
+            assert raises(lambda: x.gcd(x), DomainError)
+            assert raises(lambda: x.gcd(None), TypeError)
+            assert raises(lambda: x.factor(), DomainError)
+            assert raises(lambda: x.factor_squarefree(), DomainError)
 
-#             # All tests below can be expected to raise DomainError
-#             # Not sure if that is guaranteed in all cases though...
-#             continue
+            # All tests below can be expected to raise DomainError
+            # Not sure if that is guaranteed in all cases though...
+            continue
 
-#         assert S(0).sqrt() == S(0)
-#         assert S(1).sqrt() == S(1)
-#         assert S(4).sqrt()**2 == S(4)
+        assert S(0).sqrt() == S(0)
+        assert S(1).sqrt() == S(1)
+        assert S(4).sqrt()**2 == S(4)
 
-#         for i in range(-100, 100):
-#             try:
-#                 assert S(i).sqrt() ** 2 == S(i)
-#             except DomainError:
-#                 pass
+        for i in range(-100, 100):
+            try:
+                assert S(i).sqrt() ** 2 == S(i)
+            except DomainError:
+                pass
 
-#         if characteristic == 0:
-#             assert raises(lambda: S(-1).sqrt(), DomainError)
+        if characteristic == 0:
+            assert raises(lambda: S(-1).sqrt(), DomainError)
 
-#         assert (0*x).sqrt() == 0*x
-#         assert (1*x/x).sqrt() == 0*x + 1
-#         assert (4*x/x).sqrt()**2 == 0*x + 4
+        assert (0*x).sqrt() == 0*x
+        assert (1*x/x).sqrt() == 0*x + 1
+        assert (4*x/x).sqrt()**2 == 0*x + 4
 
-#         for i in range(-100, 100):
-#             try:
-#                 assert (i*x).sqrt() ** 2 == i*x
-#             except DomainError:
-#                 pass
+        for i in range(-100, 100):
+            try:
+                assert (i*x).sqrt() ** 2 == i*x
+            except DomainError:
+                pass
 
-#         assert (x**2).sqrt() == x
-#         assert (S(4)*x**2).sqrt()**2 == S(4)*x**2
-#         assert raises(lambda: (x**2 + 1).sqrt(), DomainError)
+        assert (x**2).sqrt() == x
+        assert (S(4)*x**2).sqrt()**2 == S(4)*x**2
+        assert raises(lambda: (x**2 + 1).sqrt(), DomainError)
 
-#         assert factor(0*x) == (S(0), [])
-#         assert factor(0*x + 1) == (S(1), [])
-#         assert factor(0*x + 3) == (S(3), [])
-#         assert factor(x) == (S(1), [(x, 1)])
-#         assert factor(-x) == (S(-1), [(x, 1)])
-#         assert factor(x**2) == (S(1), [(x, 2)])
-#         assert factor(2*(x+1)) == (S(2), [(x+1, 1)])
+        assert factor(0*x) == (S(0), [])
+        assert factor(0*x + 1) == (S(1), [])
+        assert factor(0*x + 3) == (S(3), [])
+        assert factor(x) == (S(1), [(x, 1)])
+        assert factor(-x) == (S(-1), [(x, 1)])
+        assert factor(x**2) == (S(1), [(x, 2)])
+        assert factor(2*(x+1)) == (S(2), [(x+1, 1)])
 
-#         assert factor_sqf(0*x) == (S(0), [])
-#         assert factor_sqf(0*x + 1) == (S(1), [])
-#         assert factor_sqf(0*x + 3) == (S(3), [])
-#         assert factor_sqf(-x) == (S(-1), [(x, 1)])
-#         assert factor_sqf(x**2) == (S(1), [(x, 2)])
-#         assert factor_sqf(2*(x+1)) == (S(2), [(x+1, 1)])
+        assert factor_sqf(0*x) == (S(0), [])
+        assert factor_sqf(0*x + 1) == (S(1), [])
+        assert factor_sqf(0*x + 3) == (S(3), [])
+        assert factor_sqf(-x) == (S(-1), [(x, 1)])
+        assert factor_sqf(x**2) == (S(1), [(x, 2)])
+        assert factor_sqf(2*(x+1)) == (S(2), [(x+1, 1)])
 
-#         assert (0*x).gcd(0*x) == 0*x
-#         assert (0*x).gcd(0*x + 1) == S(1)
+        assert (0*x).gcd(0*x) == 0*x
+        assert (0*x).gcd(0*x + 1) == S(1)
 
-#         if not is_field:
-#             assert (0*x).gcd(0*x + 3) == S(3)
-#         else:
-#             assert (0*x).gcd(0*x + 3) == S(1)
+        if not is_field:
+            assert (0*x).gcd(0*x + 3) == S(3)
+        else:
+            assert (0*x).gcd(0*x + 3) == S(1)
 
-#         assert (2*x).gcd(x) == x
-#         assert (2*x).gcd(x**2) == x
-#         assert (2*x).gcd(x**2 + 1) == S(1)
+        assert (2*x).gcd(x) == x
+        assert (2*x).gcd(x**2) == x
+        assert (2*x).gcd(x**2 + 1) == S(1)
 
-#         if not is_field:
-#             # primitive gcd over Z
-#             assert (2*x).gcd(4*x**2) == 2*x
-#         else:
-#             # monic gcd over Q, Z/pZ and GF(p^d)
-#             assert (2*x).gcd(4*x**2) == x
+        if not is_field:
+            # primitive gcd over Z
+            assert (2*x).gcd(4*x**2) == 2*x
+        else:
+            # monic gcd over Q, Z/pZ and GF(p^d)
+            assert (2*x).gcd(4*x**2) == x
 
-#         if is_field and y is None:
-#             # xgcd is defined and consistent for all univariate polynomials
-#             # over a field (Q, Z/pZ, GF(p^d)).
-#             assert (2*x).xgcd(4*x) == (x, P(0), P(1)/4)
-#             assert (2*x).xgcd(4*x**2+1) == (P(1), -2*x, P(1))
+        if is_field and y is None:
+            # xgcd is defined and consistent for all univariate polynomials
+            # over a field (Q, Z/pZ, GF(p^d)).
+            assert (2*x).xgcd(4*x) == (x, P(0), P(1)/4)
+            assert (2*x).xgcd(4*x**2+1) == (P(1), -2*x, P(1))
 
-#         # mpoly types have a slightly different squarefree factorisation
-#         # because they handle trivial factors differently. It looks like a
-#         # monomial gcd is extracted but not recombined so the square-free
-#         # factors might not have unique multiplicities.
-#         #
-#         # Maybe it is worth making them consistent by absorbing the power
-#         # of x into a factor of equal multiplicity.
-#         assert factor(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
-#         if y is None:
-#             # *_poly types
-#             assert factor_sqf(x*(x+1)) == (S(1), [(x**2+x, 1)])
-#         else:
-#             # *_mpoly types
-#             assert factor_sqf(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
+        # mpoly types have a slightly different squarefree factorisation
+        # because they handle trivial factors differently. It looks like a
+        # monomial gcd is extracted but not recombined so the square-free
+        # factors might not have unique multiplicities.
+        #
+        # Maybe it is worth making them consistent by absorbing the power
+        # of x into a factor of equal multiplicity.
+        assert factor(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
+        if y is None:
+            # *_poly types
+            assert factor_sqf(x*(x+1)) == (S(1), [(x**2+x, 1)])
+        else:
+            # *_mpoly types
+            assert factor_sqf(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
 
-#         # This is the same for all types because the extracted monomial has
-#         # a unique multiplicity.
-#         assert factor_sqf(x**2*(x+1)) == (S(1), [(x+1, 1), (x, 2)])
+        # This is the same for all types because the extracted monomial has
+        # a unique multiplicity.
+        assert factor_sqf(x**2*(x+1)) == (S(1), [(x+1, 1), (x, 2)])
 
-#         # This is the same for all types because there is no trivial monomial
-#         # factor to extract.
-#         assert factor((x-1)*(x+1)) == (S(1), sort([(x-1, 1), (x+1, 1)]))
-#         assert factor_sqf((x-1)*(x+1)) == (S(1), [(x**2-1, 1)])
+        # This is the same for all types because there is no trivial monomial
+        # factor to extract.
+        assert factor((x-1)*(x+1)) == (S(1), sort([(x-1, 1), (x+1, 1)]))
+        assert factor_sqf((x-1)*(x+1)) == (S(1), [(x**2-1, 1)])
 
-#         # Some finite fields have sqrt(-1) so we can factor x**2 + 1
-#         try:
-#             i = S(-1).sqrt()
-#         except DomainError:
-#             i = None
+        # Some finite fields have sqrt(-1) so we can factor x**2 + 1
+        try:
+            i = S(-1).sqrt()
+        except DomainError:
+            i = None
 
-#         p = 3*(x-1)**2*(x+1)**2*(x**2 + 1)**3
-#         assert factor_sqf(p) == (S(3), [(x**2 - 1, 2), (x**2 + 1, 3)])
+        p = 3*(x-1)**2*(x+1)**2*(x**2 + 1)**3
+        assert factor_sqf(p) == (S(3), [(x**2 - 1, 2), (x**2 + 1, 3)])
 
-#         if i is not None:
-#             assert factor(p) == (S(3), sort([(x+1, 2), (x-1, 2), (x+i, 3), (x-i, 3)]))
-#         else:
-#             assert factor(p) == (S(3), sort([(x-1, 2), (x+1, 2), (x**2+1, 3)]))
+        if i is not None:
+            assert factor(p) == (S(3), sort([(x+1, 2), (x-1, 2), (x+i, 3), (x-i, 3)]))
+        else:
+            assert factor(p) == (S(3), sort([(x-1, 2), (x+1, 2), (x**2+1, 3)]))
 
-#         if characteristic == 0:
-#             # primitive factors over Z for Z and Q.
-#             assert factor(2*x+1) == (S(1), [(2*x+1, 1)])
-#         else:
-#             # monic factors over Z/pZ and GF(p^d)
-#             assert factor(2*x+1) == (S(2), [(x+S(1)/2, 1)])
+        if characteristic == 0:
+            # primitive factors over Z for Z and Q.
+            assert factor(2*x+1) == (S(1), [(2*x+1, 1)])
+        else:
+            # monic factors over Z/pZ and GF(p^d)
+            assert factor(2*x+1) == (S(2), [(x+S(1)/2, 1)])
 
-#         if is_field:
-#             if characteristic == 0:
-#                 assert factor((2*x+1)/7) == (S(1)/7, [(2*x+1, 1)])
-#             else:
-#                 assert factor((2*x+1)/7) == (S(2)/7, [(x+S(1)/2, 1)])
+        if is_field:
+            if characteristic == 0:
+                assert factor((2*x+1)/7) == (S(1)/7, [(2*x+1, 1)])
+            else:
+                assert factor((2*x+1)/7) == (S(2)/7, [(x+S(1)/2, 1)])
 
-#         if y is not None:
+        if y is not None:
 
-#             # *_mpoly types
+            # *_mpoly types
 
-#             assert factor(x*y+1) == (S(1), [(x*y+1, 1)])
-#             assert factor(x*y) == (S(1), [(x, 1), (y, 1)])
+            assert factor(x*y+1) == (S(1), [(x*y+1, 1)])
+            assert factor(x*y) == (S(1), [(x, 1), (y, 1)])
 
-#             assert factor_sqf((x*y+1)**2*(x*y-1)) == (S(1), [(x*y-1, 1), (x*y+1, 2)])
+            assert factor_sqf((x*y+1)**2*(x*y-1)) == (S(1), [(x*y-1, 1), (x*y+1, 2)])
 
-#             p = 2*x + y
-#             if characteristic == 0:
-#                 assert factor(p) == factor_sqf(p) == (S(1), [(p, 1)])
-#             else:
-#                 assert factor(p) == factor_sqf(p) == (S(2), [(p/2, 1)])
+            p = 2*x + y
+            if characteristic == 0:
+                assert factor(p) == factor_sqf(p) == (S(1), [(p, 1)])
+            else:
+                assert factor(p) == factor_sqf(p) == (S(2), [(p/2, 1)])
 
-#             if is_field:
-#                 p = (2*x + y)/7
-#                 if characteristic == 0:
-#                     assert factor(p) == factor_sqf(p) == (S(1)/7, [(7*p, 1)])
-#                 else:
-#                     assert factor(p) == factor_sqf(p) == (S(2)/7, [(7*p/2, 1)])
+            if is_field:
+                p = (2*x + y)/7
+                if characteristic == 0:
+                    assert factor(p) == factor_sqf(p) == (S(1)/7, [(7*p, 1)])
+                else:
+                    assert factor(p) == factor_sqf(p) == (S(2)/7, [(7*p/2, 1)])
 
-#             if not is_field:
-#                 # primitive gcd over Z
-#                 assert (2*(x+y)).gcd(4*(x+y)**2) == 2*(x+y)
-#             else:
-#                 # monic gcd over Q, Z/pZ and GF(p^d)
-#                 assert (2*(x+y)).gcd(4*(x+y)**2) == x + y
+            if not is_field:
+                # primitive gcd over Z
+                assert (2*(x+y)).gcd(4*(x+y)**2) == 2*(x+y)
+            else:
+                # monic gcd over Q, Z/pZ and GF(p^d)
+                assert (2*(x+y)).gcd(4*(x+y)**2) == x + y
 
 
 def _all_matrices():
@@ -4275,388 +4275,388 @@ def _test_matrices_transpose():
         assert M1234.transpose() == M([[1, 4], [2, 5], [3, 6]])
 
 
-# def test_fq_default():
-#     # test fq_default context creation
-
-#     # fq_type parsing
-#     assert raises(lambda: flint.fq_default_ctx(5, fq_type="A"), ValueError)
-#     assert raises(lambda: flint.fq_default_ctx(5, fq_type=[]), TypeError)
-#     assert raises(lambda: flint.fq_default_ctx(5, fq_type=-1), ValueError)
-#     assert raises(lambda: flint.fq_default_ctx("ABC"), TypeError)
-
-#     # var must be one character
-#     assert raises(lambda: flint.fq_default_ctx(5, var="XXX"), ValueError)
-
-#     # p must be set if modulus has no characteristic / modulus
-#     assert raises(lambda: flint.fq_default_ctx(modulus=[0,1,0]), ValueError)
-
-#     # prime must be prime when setting from modulus
-#     assert raises(lambda: flint.fq_default_ctx(10, modulus=[0,1,0]), ValueError)
-#     mod_not_prime = flint.fmpz_mod_poly_ctx(10)([1,0,1])
-#     assert raises(lambda: flint.fq_default_ctx(modulus=mod_not_prime), ValueError)
-#     mod_not_irr = flint.fmpz_mod_poly_ctx(11)([0,0,1])
-#     assert raises(lambda: flint.fq_default_ctx(modulus=mod_not_irr), ValueError)
-
-#     # modulus must be able to be cast to fmpz_mod_poly
-#     assert raises(lambda: flint.fq_default_ctx(11, modulus="AAA"), TypeError)
-
-#     # either p or modulus must be set
-#     assert raises(lambda: flint.fq_default_ctx(p=None, modulus=None), ValueError)
-
-#     # p must be prime
-#     assert raises(lambda: flint.fq_default_ctx(10), ValueError)
-
-#     # degree must be positive
-#     assert raises(lambda: flint.fq_default_ctx(11, -1), ValueError)
-
-#     # GF(5)
-#     gf_5 = flint.fq_default_ctx(5, fq_type='NMOD')
-#     gf_5_ = flint.fq_default_ctx(5, fq_type='NMOD')
-
-#     # GF(5^2)
-#     gf_5_2 = flint.fq_default_ctx(5, 2, fq_type='FQ_ZECH')
-#     gf_5_2_ = flint.fq_default_ctx(5, 2, fq_type='FQ_ZECH')
-
-#     # GF((2**127 - 1)^2)
-#     gf_127 = flint.fq_default_ctx(2**127 - 1, 2)
-#     gf_127_2 = flint.fq_default_ctx(2**127 - 1, 2)
-
-#     assert (gf_5 == gf_5_) is True
-#     assert (hash(gf_5) == hash(gf_5_)) is True
-#     assert (gf_5 != gf_5_) is False
-#     assert (gf_5 == gf_5_2) is False
-#     assert (gf_5 != gf_5_2) is True
-#     assert (gf_5 == "a") is False
-#     assert (gf_5 != "a") is True
-
-#     assert gf_5.prime() == gf_5_2.prime() == 5
-#     assert gf_5_2.order() == 5*5
-#     assert gf_5_2.multiplicative_order() == 5*5 - 1
-#     assert gf_127_2.prime() == 2**127 - 1
-
-#     assert gf_5_2(0) == gf_5_2.zero()
-#     assert gf_5_2(1) == gf_5_2.one()
-#     assert gf_5_2.gen() == gf_5_2([0, 1])
-
-#     assert str(gf_5) == "Context for fq_default in GF(5)"
-#     assert str(gf_5_2) == "Context for fq_default in GF(5^2)[z]/(z^2 + 4*z + 2)"
-
-#     assert repr(gf_5) == "fq_default_ctx(5, var='z' type='NMOD')"
-#     assert repr(gf_5_2) == "fq_default_ctx(5, 2, 'z', x^2 + 4*x + 2, 'FQ_ZECH')"
-
-#     # coercision
-#     assert gf_5.one() == flint.fq_default(1, gf_5)
-#     assert gf_5(1) == gf_5.one()
-#     assert gf_5(flint.fmpz(1)) == gf_5.one()
-#     assert gf_5(-1) == -gf_5.one()
-#     assert gf_5(flint.fmpz(-1)) == -gf_5.one()
-#     R = flint.fmpz_mod_ctx(5)
-#     assert gf_5(R(1)) == gf_5.one()
-#     assert gf_5(R(-1)) == -gf_5.one()
-#     assert gf_5(flint.nmod(1, 5)) == gf_5.one()
-#     assert gf_5(flint.nmod(-1, 5)) == -gf_5.one()
-#     assert gf_5([0, 1]) == gf_5.gen()
-#     assert gf_5(flint.fmpz_poly([0, 1])) == gf_5.gen()
-#     R = flint.fmpz_mod_poly_ctx(5)
-#     assert gf_5.gen() == gf_5(R.gen())
-#     assert gf_5.gen() == gf_5(flint.nmod_poly([0, 1], 5))
-#     assert gf_5(flint.fmpz(2**64)) == gf_5(2**64)
-#     assert raises(lambda: flint.fq_default(1, "AAA"), TypeError)
-#     assert raises(lambda: flint.fq_default.__init__(1, "AAA"), TypeError)
-#     assert raises(lambda: flint.fq_default("AAA", gf_5), TypeError)
-#     assert raises(lambda: gf_5.one() + gf_5_2.one(), ValueError)
-#     # testing various equalties between types
-
-#     # integers are the same if characteristic is the same
-#     # even with extensions
-#     assert gf_5.one() == gf_5_.one()
-#     assert hash(gf_5.one()) == hash(gf_5_.one())
-#     assert gf_5.one() == gf_5_2.one()
-#     assert gf_5.one() != gf_127.one()
-
-#     # the generators for different extensions
-#     assert gf_5_2([0, 1]) != gf_5([0, 1])
-#     assert gf_5_2([0, 1]) == gf_5_2_([0, 1])
-#     assert gf_5_2([0, 1]) != gf_127_2([0, 1])
-
-#     # integers are reduced modulo p before comparison
-#     for int_type in [int, flint.fmpz]:
-#         assert gf_5(1) == int_type(1)
-#         assert gf_5(-1) == int_type(-1)
-#         assert gf_5(-1) == int_type(4)
-#         assert gf_5(4) == int_type(4)
-#         assert gf_5(4) == int_type(-1)
-
-#     # integers modulo n also can be compared when they match
-#     assert gf_5(1) == flint.nmod(1, 5)
-#     assert gf_5(-1) == flint.nmod(-1, 5)
-#     assert gf_5(-1) == flint.nmod(4, 5)
-#     assert gf_5_2(1) == flint.nmod(1, 5)
-#     assert gf_5_2(-1) == flint.nmod(-1, 5)
-#     assert gf_5_2(-1) == flint.nmod(4, 5)
-
-#     # when the moduli dont match, comparison is always false
-#     assert gf_5(1) != flint.nmod(1, 7)
-#     assert gf_5(-1) != flint.nmod(-1, 7)
-#     assert gf_5(-1) != flint.nmod(4, 7)
-#     assert gf_5_2(1) != flint.nmod(1, 7)
-#     assert gf_5_2(-1) != flint.nmod(-1, 7)
-#     assert gf_5_2(-1) != flint.nmod(4, 7)
-
-#     # integers modulo n also can be compared when they match
-#     R5 = flint.fmpz_mod_ctx(5)
-#     assert gf_5(1) == R5(1)
-#     assert gf_5(-1) == R5(-1)
-#     assert gf_5(-1) == R5(4)
-#     assert gf_5_2(1) == R5(1)
-#     assert gf_5_2(-1) == R5(-1)
-#     assert gf_5_2(-1) == R5(4)
-
-#     # when the moduli dont match, comparison is always false
-#     R7 = flint.fmpz_mod_ctx(7)
-#     assert gf_5(1) != R7(1)
-#     assert gf_5(-1) != R7(-1)
-#     assert gf_5(-1) != R7(4)
-#     assert gf_5_2(1) != R7(1)
-#     assert gf_5_2(-1) != R7(-1)
-#     assert gf_5_2(-1) != R7(4)
-
-#     # test fq_default element arithmetic
-
-#     for gf in [gf_5, gf_5_2, gf_127, gf_127_2]:
-
-#         assert (gf(0) == gf.zero()) is True
-#         assert (gf(0) != gf.zero()) is False
-#         assert (gf(1) == gf.zero()) is False
-#         assert (gf(1) != gf.zero()) is True
-#         assert raises(lambda: gf.zero() > gf.zero(), TypeError)
-#         assert raises(lambda: gf.zero() >= gf.zero(), TypeError)
-#         assert raises(lambda: gf.zero() < gf.zero(), TypeError)
-#         assert raises(lambda: gf.zero() <= gf.zero(), TypeError)
-
-#         assert gf.zero().is_zero() is True
-#         assert gf.one().is_zero() is False
-
-#         assert gf.zero().is_one() is False
-#         assert gf.one().is_one() is True
-
-#         a = gf.random_element(not_zero=True)
-#         b = gf.random_element(not_zero=True)
-#         c = gf.random_element(not_zero=True)
-
-#         assert a + (-a) == gf.zero()
-#         assert a + a == 2*a
-#         assert a * a == a**2
-#         assert a * a == a.square()
-#         assert a * a * a == pow(a, 3)
-
-#         assert (a + b) + c == a + (b + c)
-#         assert (a - b) - c == a - (b + c)
-#         assert (a * b) * c == a * (b * c)
-#         assert (a / b) / c == a / (b * c)
-
-#         assert a + 0 == 0 + a == a
-#         assert a - 0 == -(0 - a) == a
-#         assert a + gf.zero() == a
-#         assert a * 1 == 1 * a == a
-#         assert a * gf.one() == a
-#         assert a * gf.zero() == gf.zero()
-#         assert a / a == gf.one()
-
-#         assert raises(lambda: a / 0, ZeroDivisionError)
-#         assert raises(lambda: ~gf.zero(), ZeroDivisionError)
-#         assert raises(lambda: pow(gf.zero(), -1), ZeroDivisionError)
-#         assert raises(lambda: pow(gf.zero(), "A"), TypeError)
-
-#         assert 1/a == pow(a, -1) == ~a
-#         assert gf.one() == pow(a, 0)
-#         assert gf.zero() == pow(gf.zero(), 2**64)
-#         assert a == pow(a, 1)
-#         assert pow(a, flint.fmpz(2**64)) == pow(a, 2**64)
-#         assert (a*a).is_square()
-#         assert (a*a).sqrt() in [a, -a]
-
-#         while True:
-#             nqr = gf.random_element()
-#             if not nqr.is_square():
-#                 break
-#         assert raises(lambda: nqr.sqrt(), DomainError)
-
-
-# def test_fq_default_poly():
-#     F = flint.fq_default_ctx(11, 3)
-#     R1 = flint.fq_default_poly_ctx(F)
-#     R2 = flint.fq_default_poly_ctx(11, 3)
-#     R3 = flint.fq_default_poly_ctx(13, 5)
-
-#     assert raises(lambda: flint.fq_default_poly_ctx("AAA"), TypeError)
-#     assert (R1 == R1) is True
-#     assert hash(R1) == hash(R2)
-#     assert (R1 != R1) is False
-#     assert (R1 == R2) is True
-#     assert (R1 != R2) is False
-#     assert (R1 != R3) is True
-#     assert (R1 == R3) is False
-#     assert (R1 != "AAA") is True
-#     assert (R1 == "AAA") is False
-
-#     assert str(R1) == "Context for fq_default_poly with field: Context for fq_default in GF(11^3)[z]/(z^3 + 2*z + 9)"
-#     assert str(R1) == str(R2)
-#     assert repr(R3) == "fq_default_poly_ctx(fq_default_ctx(13, 5, 'z', x^5 + 4*x + 11, 'FQ_NMOD'))"
-
-#     # random element failure
-#     f = R1.random_element(not_zero=True)
-#     assert not f.is_zero()
-#     assert raises(lambda: R1.random_element(monic="AAA"), TypeError)
-#     assert raises(lambda: R1.random_element(degree=-1), ValueError)
-
-#     assert raises(lambda: flint.fq_default_poly([1,2,3], "AAA"), TypeError)
-
-#     assert R1(0).leading_coefficient() == 0
-#     assert raises(lambda: R1.random_element().reverse(degree=-1), ValueError)
-
-#     # some coercion
-#     assert raises(lambda: R3(F(1)), ValueError)
-#     assert R1.one() == R1(1)
-#     assert R1.one() == R1([1])
-#     assert R1.one() == R1(flint.fmpz(1))
-#     assert R1.one() == R1(flint.fmpz_poly([1]))
-#     assert R1.one() == R1(flint.fmpz_mod_ctx(11)(1))
-#     assert R1.one() == R1(flint.fmpz_mod_poly_ctx(11)(1))
-#     assert R1.one() == R1(flint.nmod_poly(1, 11))
-
-#     R_sml = flint.fq_default_poly_ctx(5)
-#     R_med = flint.fq_default_poly_ctx(65537)
-#     R_big = flint.fq_default_poly_ctx(2**127 - 1)
-#     R_sml_ext = flint.fq_default_poly_ctx(5, 5)
-#     R_med_ext = flint.fq_default_poly_ctx(65537, 3)
-#     R_big_ext = flint.fq_default_poly_ctx(2**127 - 1, 2)
-
-#     F_cmp = flint.fq_default_ctx(11)
-#     R_cmp = flint.fq_default_poly_ctx(F_cmp)
-#     f_cmp = R_cmp([1,2,3,4,5])
-
-#     for R_test in [R_sml, R_med, R_big, R_sml_ext, R_med_ext, R_big_ext]:
-#         F_test = R_test.base_field()
-#         while True:
-#             nqr = F_test.random_element()
-#             if not nqr.is_square():
-#                 break
-
-#         f = R_test([-1,-2])
-#         g = R_test([-3,-4])
-#         assert (f == f) is True
-#         assert (f != g) is True
-#         assert (hash(f) == hash(f)) is True
-#         assert (hash(f) != hash(g)) is True
-
-#         # Exact division
-#         assert raises(lambda: f.exact_division(f_cmp), ValueError)
-#         assert raises(lambda: f.exact_division("AAA"), TypeError)
-#         assert raises(lambda: f.exact_division(0), ZeroDivisionError)
-#         assert (f * g).exact_division(g) == f
-#         assert raises(lambda: f.exact_division(g), DomainError)
-#         assert raises(lambda: f / "AAA", TypeError)
-#         assert raises(lambda: "AAA" / f, TypeError)
-
-#         # ZeroDivisionError
-#         assert raises(lambda: f / 0, ZeroDivisionError)
-#         assert raises(lambda: f // 0, ZeroDivisionError)
-#         assert raises(lambda: 1 / R_test.zero(), ZeroDivisionError)
-#         assert raises(lambda: 1 // R_test.zero(), ZeroDivisionError)
-#         assert raises(lambda: 1 % R_test.zero(), ZeroDivisionError)
-
-#         # pow
-#         # assert ui and fmpz exp agree for polynomials and generators
-#         R_gen = R_test.gen()
-#         assert raises(lambda: f**(-2), ValueError)
-#         assert pow(f, 2**60, g) == pow(pow(f, 2**30, g), 2**30, g)
-#         assert pow(R_gen, 2**60, g) == pow(pow(R_gen, 2**30, g), 2**30, g)
-#         assert raises(lambda: pow(f, -2, g), ValueError)
-#         assert raises(lambda: pow(f, 1, "A"), TypeError)
-#         assert raises(lambda: pow(f, "A", g), TypeError)
-#         assert raises(lambda: f.pow_mod(2**32, g, mod_rev_inv="A"), TypeError)
-
-#         # Shifts
-#         assert raises(lambda: R_test([1,2,3]).left_shift(-1), ValueError)
-#         assert raises(lambda: R_test([1,2,3]).right_shift(-1), ValueError)
-#         assert R_test([1,2,3]).left_shift(3) == R_test([0,0,0,1,2,3])
-#         assert R_test([1,2,3]).right_shift(1) == R_test([2,3])
-
-#         # mulmod
-#         assert f.mul_mod(f, g) == (f*f) % g
-#         assert raises(lambda: f.mul_mod(f, "AAA"), TypeError)
-#         assert raises(lambda: f.mul_mod("AAA", g), TypeError)
-
-#         # pow_mod
-#         assert f.pow_mod(2, g) == (f*f) % g
-#         assert raises(lambda: f.pow_mod(2, "AAA"), TypeError)
-
-#         # roots
-#         assert raises(lambda: f.real_roots(), DomainError)
-#         assert raises(lambda: f.complex_roots(), DomainError)
-
-#         # compose errors
-#         assert raises(lambda: f.compose("A"), TypeError)
-#         assert raises(lambda: f.compose_mod("A", g), TypeError)
-#         assert raises(lambda: f.compose_mod(g, "A"), TypeError)
-#         assert raises(lambda: f.compose_mod(g, R_test.zero()), ZeroDivisionError)
-
-#         # inverse_mod
-#         while True:
-#             # Ensure f is invertible
-#             f = R_test.random_element()
-#             if not f.constant_coefficient().is_zero():
-#                 break
-#         while True:
-#             h = R_test.random_element()
-#             if f.gcd(h).is_one():
-#                 break
-#         g = f.inverse_mod(h)
-#         assert f.mul_mod(g, h).is_one()
-#         assert raises(lambda: f.inverse_mod(2*f), ValueError)
-
-#         # series
-#         f_non_square = R_test([nqr, 1, 1, 1])
-#         f_zero = R_test([0, 1, 1, 1])
-#         assert raises(lambda: f_non_square.sqrt_trunc(1), ValueError)
-#         assert raises(lambda: f_zero.sqrt_trunc(1), ZeroDivisionError)
-#         assert raises(lambda: f_non_square.inv_sqrt_trunc(1), ValueError)
-#         assert raises(lambda: f_zero.inv_sqrt_trunc(1), ZeroDivisionError)
-#         f_inv = f.inverse_series_trunc(2)
-#         assert (f * f_inv) % R_test([0,0,1]) == 1
-#         assert raises(lambda: R_test([0,1]).inverse_series_trunc(2), ZeroDivisionError)
-
-#         # deflation
-#         f1 = R_test([1,0,2,0,3])
-#         assert raises(lambda: f1.deflate(100), ValueError)
-#         assert f1.deflate(2) == R_test([1,2,3])
-
-#         # truncate things
-#         f = R_test.random_element()
-#         g = R_test.random_element()
-#         h = R_test.random_element()
-#         x = R_test.gen()
-#         f_trunc = f % x**3
-
-#         assert f.equal_trunc(f_trunc, 3)
-#         assert not f.equal_trunc("A", 3)
-#         assert not f.equal_trunc(f_cmp, 3)
-
-#         assert raises(lambda: f.add_trunc("A", 1), TypeError)
-#         assert raises(lambda: f.add_trunc(f_cmp, 1), ValueError)
-#         assert f.add_trunc(g, 3) == (f + g) % x**3
-
-#         assert raises(lambda: f.sub_trunc("A", 1), TypeError)
-#         assert raises(lambda: f.sub_trunc(f_cmp, 1), ValueError)
-#         assert f.sub_trunc(g, 3) == (f - g) % x**3
-
-#         assert raises(lambda: f.mul_low("A", 1), TypeError)
-#         assert raises(lambda: f.mul_low(g, "A"), TypeError)
-#         assert raises(lambda: f.mul_low(f_cmp, 1), ValueError)
-#         assert f.mul_low(g, 3) == (f * g) % x**3
-
-#         assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
+def _test_fq_default():
+    # test fq_default context creation
+
+    # fq_type parsing
+    assert raises(lambda: flint.fq_default_ctx(5, fq_type="A"), ValueError)
+    assert raises(lambda: flint.fq_default_ctx(5, fq_type=[]), TypeError)
+    assert raises(lambda: flint.fq_default_ctx(5, fq_type=-1), ValueError)
+    assert raises(lambda: flint.fq_default_ctx("ABC"), TypeError)
+
+    # var must be one character
+    assert raises(lambda: flint.fq_default_ctx(5, var="XXX"), ValueError)
+
+    # p must be set if modulus has no characteristic / modulus
+    assert raises(lambda: flint.fq_default_ctx(modulus=[0,1,0]), ValueError)
+
+    # prime must be prime when setting from modulus
+    assert raises(lambda: flint.fq_default_ctx(10, modulus=[0,1,0]), ValueError)
+    mod_not_prime = flint.fmpz_mod_poly_ctx(10)([1,0,1])
+    assert raises(lambda: flint.fq_default_ctx(modulus=mod_not_prime), ValueError)
+    mod_not_irr = flint.fmpz_mod_poly_ctx(11)([0,0,1])
+    assert raises(lambda: flint.fq_default_ctx(modulus=mod_not_irr), ValueError)
+
+    # modulus must be able to be cast to fmpz_mod_poly
+    assert raises(lambda: flint.fq_default_ctx(11, modulus="AAA"), TypeError)
+
+    # either p or modulus must be set
+    assert raises(lambda: flint.fq_default_ctx(p=None, modulus=None), ValueError)
+
+    # p must be prime
+    assert raises(lambda: flint.fq_default_ctx(10), ValueError)
+
+    # degree must be positive
+    assert raises(lambda: flint.fq_default_ctx(11, -1), ValueError)
+
+    # GF(5)
+    gf_5 = flint.fq_default_ctx(5, fq_type='NMOD')
+    gf_5_ = flint.fq_default_ctx(5, fq_type='NMOD')
+
+    # GF(5^2)
+    gf_5_2 = flint.fq_default_ctx(5, 2, fq_type='FQ_ZECH')
+    gf_5_2_ = flint.fq_default_ctx(5, 2, fq_type='FQ_ZECH')
+
+    # GF((2**127 - 1)^2)
+    gf_127 = flint.fq_default_ctx(2**127 - 1, 2)
+    gf_127_2 = flint.fq_default_ctx(2**127 - 1, 2)
+
+    assert (gf_5 == gf_5_) is True
+    assert (hash(gf_5) == hash(gf_5_)) is True
+    assert (gf_5 != gf_5_) is False
+    assert (gf_5 == gf_5_2) is False
+    assert (gf_5 != gf_5_2) is True
+    assert (gf_5 == "a") is False
+    assert (gf_5 != "a") is True
+
+    assert gf_5.prime() == gf_5_2.prime() == 5
+    assert gf_5_2.order() == 5*5
+    assert gf_5_2.multiplicative_order() == 5*5 - 1
+    assert gf_127_2.prime() == 2**127 - 1
+
+    assert gf_5_2(0) == gf_5_2.zero()
+    assert gf_5_2(1) == gf_5_2.one()
+    assert gf_5_2.gen() == gf_5_2([0, 1])
+
+    assert str(gf_5) == "Context for fq_default in GF(5)"
+    assert str(gf_5_2) == "Context for fq_default in GF(5^2)[z]/(z^2 + 4*z + 2)"
+
+    assert repr(gf_5) == "fq_default_ctx(5, var='z' type='NMOD')"
+    assert repr(gf_5_2) == "fq_default_ctx(5, 2, 'z', x^2 + 4*x + 2, 'FQ_ZECH')"
+
+    # coercision
+    assert gf_5.one() == flint.fq_default(1, gf_5)
+    assert gf_5(1) == gf_5.one()
+    assert gf_5(flint.fmpz(1)) == gf_5.one()
+    assert gf_5(-1) == -gf_5.one()
+    assert gf_5(flint.fmpz(-1)) == -gf_5.one()
+    R = flint.fmpz_mod_ctx(5)
+    assert gf_5(R(1)) == gf_5.one()
+    assert gf_5(R(-1)) == -gf_5.one()
+    assert gf_5(flint.nmod(1, 5)) == gf_5.one()
+    assert gf_5(flint.nmod(-1, 5)) == -gf_5.one()
+    assert gf_5([0, 1]) == gf_5.gen()
+    assert gf_5(flint.fmpz_poly([0, 1])) == gf_5.gen()
+    R = flint.fmpz_mod_poly_ctx(5)
+    assert gf_5.gen() == gf_5(R.gen())
+    assert gf_5.gen() == gf_5(flint.nmod_poly([0, 1], 5))
+    assert gf_5(flint.fmpz(2**64)) == gf_5(2**64)
+    assert raises(lambda: flint.fq_default(1, "AAA"), TypeError)
+    assert raises(lambda: flint.fq_default.__init__(1, "AAA"), TypeError)
+    assert raises(lambda: flint.fq_default("AAA", gf_5), TypeError)
+    assert raises(lambda: gf_5.one() + gf_5_2.one(), ValueError)
+    # testing various equalties between types
+
+    # integers are the same if characteristic is the same
+    # even with extensions
+    assert gf_5.one() == gf_5_.one()
+    assert hash(gf_5.one()) == hash(gf_5_.one())
+    assert gf_5.one() == gf_5_2.one()
+    assert gf_5.one() != gf_127.one()
+
+    # the generators for different extensions
+    assert gf_5_2([0, 1]) != gf_5([0, 1])
+    assert gf_5_2([0, 1]) == gf_5_2_([0, 1])
+    assert gf_5_2([0, 1]) != gf_127_2([0, 1])
+
+    # integers are reduced modulo p before comparison
+    for int_type in [int, flint.fmpz]:
+        assert gf_5(1) == int_type(1)
+        assert gf_5(-1) == int_type(-1)
+        assert gf_5(-1) == int_type(4)
+        assert gf_5(4) == int_type(4)
+        assert gf_5(4) == int_type(-1)
+
+    # integers modulo n also can be compared when they match
+    assert gf_5(1) == flint.nmod(1, 5)
+    assert gf_5(-1) == flint.nmod(-1, 5)
+    assert gf_5(-1) == flint.nmod(4, 5)
+    assert gf_5_2(1) == flint.nmod(1, 5)
+    assert gf_5_2(-1) == flint.nmod(-1, 5)
+    assert gf_5_2(-1) == flint.nmod(4, 5)
+
+    # when the moduli dont match, comparison is always false
+    assert gf_5(1) != flint.nmod(1, 7)
+    assert gf_5(-1) != flint.nmod(-1, 7)
+    assert gf_5(-1) != flint.nmod(4, 7)
+    assert gf_5_2(1) != flint.nmod(1, 7)
+    assert gf_5_2(-1) != flint.nmod(-1, 7)
+    assert gf_5_2(-1) != flint.nmod(4, 7)
+
+    # integers modulo n also can be compared when they match
+    R5 = flint.fmpz_mod_ctx(5)
+    assert gf_5(1) == R5(1)
+    assert gf_5(-1) == R5(-1)
+    assert gf_5(-1) == R5(4)
+    assert gf_5_2(1) == R5(1)
+    assert gf_5_2(-1) == R5(-1)
+    assert gf_5_2(-1) == R5(4)
+
+    # when the moduli dont match, comparison is always false
+    R7 = flint.fmpz_mod_ctx(7)
+    assert gf_5(1) != R7(1)
+    assert gf_5(-1) != R7(-1)
+    assert gf_5(-1) != R7(4)
+    assert gf_5_2(1) != R7(1)
+    assert gf_5_2(-1) != R7(-1)
+    assert gf_5_2(-1) != R7(4)
+
+    # test fq_default element arithmetic
+
+    for gf in [gf_5, gf_5_2, gf_127, gf_127_2]:
+
+        assert (gf(0) == gf.zero()) is True
+        assert (gf(0) != gf.zero()) is False
+        assert (gf(1) == gf.zero()) is False
+        assert (gf(1) != gf.zero()) is True
+        assert raises(lambda: gf.zero() > gf.zero(), TypeError)
+        assert raises(lambda: gf.zero() >= gf.zero(), TypeError)
+        assert raises(lambda: gf.zero() < gf.zero(), TypeError)
+        assert raises(lambda: gf.zero() <= gf.zero(), TypeError)
+
+        assert gf.zero().is_zero() is True
+        assert gf.one().is_zero() is False
+
+        assert gf.zero().is_one() is False
+        assert gf.one().is_one() is True
+
+        a = gf.random_element(not_zero=True)
+        b = gf.random_element(not_zero=True)
+        c = gf.random_element(not_zero=True)
+
+        assert a + (-a) == gf.zero()
+        assert a + a == 2*a
+        assert a * a == a**2
+        assert a * a == a.square()
+        assert a * a * a == pow(a, 3)
+
+        assert (a + b) + c == a + (b + c)
+        assert (a - b) - c == a - (b + c)
+        assert (a * b) * c == a * (b * c)
+        assert (a / b) / c == a / (b * c)
+
+        assert a + 0 == 0 + a == a
+        assert a - 0 == -(0 - a) == a
+        assert a + gf.zero() == a
+        assert a * 1 == 1 * a == a
+        assert a * gf.one() == a
+        assert a * gf.zero() == gf.zero()
+        assert a / a == gf.one()
+
+        assert raises(lambda: a / 0, ZeroDivisionError)
+        assert raises(lambda: ~gf.zero(), ZeroDivisionError)
+        assert raises(lambda: pow(gf.zero(), -1), ZeroDivisionError)
+        assert raises(lambda: pow(gf.zero(), "A"), TypeError)
+
+        assert 1/a == pow(a, -1) == ~a
+        assert gf.one() == pow(a, 0)
+        assert gf.zero() == pow(gf.zero(), 2**64)
+        assert a == pow(a, 1)
+        assert pow(a, flint.fmpz(2**64)) == pow(a, 2**64)
+        assert (a*a).is_square()
+        assert (a*a).sqrt() in [a, -a]
+
+        while True:
+            nqr = gf.random_element()
+            if not nqr.is_square():
+                break
+        assert raises(lambda: nqr.sqrt(), DomainError)
+
+
+def _test_fq_default_poly():
+    F = flint.fq_default_ctx(11, 3)
+    R1 = flint.fq_default_poly_ctx(F)
+    R2 = flint.fq_default_poly_ctx(11, 3)
+    R3 = flint.fq_default_poly_ctx(13, 5)
+
+    assert raises(lambda: flint.fq_default_poly_ctx("AAA"), TypeError)
+    assert (R1 == R1) is True
+    assert hash(R1) == hash(R2)
+    assert (R1 != R1) is False
+    assert (R1 == R2) is True
+    assert (R1 != R2) is False
+    assert (R1 != R3) is True
+    assert (R1 == R3) is False
+    assert (R1 != "AAA") is True
+    assert (R1 == "AAA") is False
+
+    assert str(R1) == "Context for fq_default_poly with field: Context for fq_default in GF(11^3)[z]/(z^3 + 2*z + 9)"
+    assert str(R1) == str(R2)
+    assert repr(R3) == "fq_default_poly_ctx(fq_default_ctx(13, 5, 'z', x^5 + 4*x + 11, 'FQ_NMOD'))"
+
+    # random element failure
+    f = R1.random_element(not_zero=True)
+    assert not f.is_zero()
+    assert raises(lambda: R1.random_element(monic="AAA"), TypeError)
+    assert raises(lambda: R1.random_element(degree=-1), ValueError)
+
+    assert raises(lambda: flint.fq_default_poly([1,2,3], "AAA"), TypeError)
+
+    assert R1(0).leading_coefficient() == 0
+    assert raises(lambda: R1.random_element().reverse(degree=-1), ValueError)
+
+    # some coercion
+    assert raises(lambda: R3(F(1)), ValueError)
+    assert R1.one() == R1(1)
+    assert R1.one() == R1([1])
+    assert R1.one() == R1(flint.fmpz(1))
+    assert R1.one() == R1(flint.fmpz_poly([1]))
+    assert R1.one() == R1(flint.fmpz_mod_ctx(11)(1))
+    assert R1.one() == R1(flint.fmpz_mod_poly_ctx(11)(1))
+    assert R1.one() == R1(flint.nmod_poly(1, 11))
+
+    R_sml = flint.fq_default_poly_ctx(5)
+    R_med = flint.fq_default_poly_ctx(65537)
+    R_big = flint.fq_default_poly_ctx(2**127 - 1)
+    R_sml_ext = flint.fq_default_poly_ctx(5, 5)
+    R_med_ext = flint.fq_default_poly_ctx(65537, 3)
+    R_big_ext = flint.fq_default_poly_ctx(2**127 - 1, 2)
+
+    F_cmp = flint.fq_default_ctx(11)
+    R_cmp = flint.fq_default_poly_ctx(F_cmp)
+    f_cmp = R_cmp([1,2,3,4,5])
+
+    for R_test in [R_sml, R_med, R_big, R_sml_ext, R_med_ext, R_big_ext]:
+        F_test = R_test.base_field()
+        while True:
+            nqr = F_test.random_element()
+            if not nqr.is_square():
+                break
+
+        f = R_test([-1,-2])
+        g = R_test([-3,-4])
+        assert (f == f) is True
+        assert (f != g) is True
+        assert (hash(f) == hash(f)) is True
+        assert (hash(f) != hash(g)) is True
+
+        # Exact division
+        assert raises(lambda: f.exact_division(f_cmp), ValueError)
+        assert raises(lambda: f.exact_division("AAA"), TypeError)
+        assert raises(lambda: f.exact_division(0), ZeroDivisionError)
+        assert (f * g).exact_division(g) == f
+        assert raises(lambda: f.exact_division(g), DomainError)
+        assert raises(lambda: f / "AAA", TypeError)
+        assert raises(lambda: "AAA" / f, TypeError)
+
+        # ZeroDivisionError
+        assert raises(lambda: f / 0, ZeroDivisionError)
+        assert raises(lambda: f // 0, ZeroDivisionError)
+        assert raises(lambda: 1 / R_test.zero(), ZeroDivisionError)
+        assert raises(lambda: 1 // R_test.zero(), ZeroDivisionError)
+        assert raises(lambda: 1 % R_test.zero(), ZeroDivisionError)
+
+        # pow
+        # assert ui and fmpz exp agree for polynomials and generators
+        R_gen = R_test.gen()
+        assert raises(lambda: f**(-2), ValueError)
+        assert pow(f, 2**60, g) == pow(pow(f, 2**30, g), 2**30, g)
+        assert pow(R_gen, 2**60, g) == pow(pow(R_gen, 2**30, g), 2**30, g)
+        assert raises(lambda: pow(f, -2, g), ValueError)
+        assert raises(lambda: pow(f, 1, "A"), TypeError)
+        assert raises(lambda: pow(f, "A", g), TypeError)
+        assert raises(lambda: f.pow_mod(2**32, g, mod_rev_inv="A"), TypeError)
+
+        # Shifts
+        assert raises(lambda: R_test([1,2,3]).left_shift(-1), ValueError)
+        assert raises(lambda: R_test([1,2,3]).right_shift(-1), ValueError)
+        assert R_test([1,2,3]).left_shift(3) == R_test([0,0,0,1,2,3])
+        assert R_test([1,2,3]).right_shift(1) == R_test([2,3])
+
+        # mulmod
+        assert f.mul_mod(f, g) == (f*f) % g
+        assert raises(lambda: f.mul_mod(f, "AAA"), TypeError)
+        assert raises(lambda: f.mul_mod("AAA", g), TypeError)
+
+        # pow_mod
+        assert f.pow_mod(2, g) == (f*f) % g
+        assert raises(lambda: f.pow_mod(2, "AAA"), TypeError)
+
+        # roots
+        assert raises(lambda: f.real_roots(), DomainError)
+        assert raises(lambda: f.complex_roots(), DomainError)
+
+        # compose errors
+        assert raises(lambda: f.compose("A"), TypeError)
+        assert raises(lambda: f.compose_mod("A", g), TypeError)
+        assert raises(lambda: f.compose_mod(g, "A"), TypeError)
+        assert raises(lambda: f.compose_mod(g, R_test.zero()), ZeroDivisionError)
+
+        # inverse_mod
+        while True:
+            # Ensure f is invertible
+            f = R_test.random_element()
+            if not f.constant_coefficient().is_zero():
+                break
+        while True:
+            h = R_test.random_element()
+            if f.gcd(h).is_one():
+                break
+        g = f.inverse_mod(h)
+        assert f.mul_mod(g, h).is_one()
+        assert raises(lambda: f.inverse_mod(2*f), ValueError)
+
+        # series
+        f_non_square = R_test([nqr, 1, 1, 1])
+        f_zero = R_test([0, 1, 1, 1])
+        assert raises(lambda: f_non_square.sqrt_trunc(1), ValueError)
+        assert raises(lambda: f_zero.sqrt_trunc(1), ZeroDivisionError)
+        assert raises(lambda: f_non_square.inv_sqrt_trunc(1), ValueError)
+        assert raises(lambda: f_zero.inv_sqrt_trunc(1), ZeroDivisionError)
+        f_inv = f.inverse_series_trunc(2)
+        assert (f * f_inv) % R_test([0,0,1]) == 1
+        assert raises(lambda: R_test([0,1]).inverse_series_trunc(2), ZeroDivisionError)
+
+        # deflation
+        f1 = R_test([1,0,2,0,3])
+        assert raises(lambda: f1.deflate(100), ValueError)
+        assert f1.deflate(2) == R_test([1,2,3])
+
+        # truncate things
+        f = R_test.random_element()
+        g = R_test.random_element()
+        h = R_test.random_element()
+        x = R_test.gen()
+        f_trunc = f % x**3
+
+        assert f.equal_trunc(f_trunc, 3)
+        assert not f.equal_trunc("A", 3)
+        assert not f.equal_trunc(f_cmp, 3)
+
+        assert raises(lambda: f.add_trunc("A", 1), TypeError)
+        assert raises(lambda: f.add_trunc(f_cmp, 1), ValueError)
+        assert f.add_trunc(g, 3) == (f + g) % x**3
+
+        assert raises(lambda: f.sub_trunc("A", 1), TypeError)
+        assert raises(lambda: f.sub_trunc(f_cmp, 1), ValueError)
+        assert f.sub_trunc(g, 3) == (f - g) % x**3
+
+        assert raises(lambda: f.mul_low("A", 1), TypeError)
+        assert raises(lambda: f.mul_low(g, "A"), TypeError)
+        assert raises(lambda: f.mul_low(f_cmp, 1), ValueError)
+        assert f.mul_low(g, 3) == (f * g) % x**3
+
+        assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
 
 
 def test_all_tests():
