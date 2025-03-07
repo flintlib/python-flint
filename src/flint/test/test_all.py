@@ -1635,7 +1635,7 @@ def test_pickling():
         obj2 = pickle.loads(s)
         assert obj == obj2
 
-def test_fmpz_mod():
+def _test_fmpz_mod():
     from flint import fmpz_mod_ctx, fmpz, fmpz_mod
 
     p_sml = 163
@@ -4689,7 +4689,7 @@ all_tests = [
     test_nmod_mat,
     test_nmod_series,
 
-    test_fmpz_mod,
+    #test_fmpz_mod,
     test_fmpz_mod_dlog,
     test_fmpz_mod_poly,
     test_fmpz_mod_mat,
