@@ -112,8 +112,8 @@ jobs:
             --disable-shared \
             --prefix=${{ env.WASM_LIBRARY_DIR }} \
             --with-gmp=${{ env.WASM_LIBRARY_DIR }} \
-            --with-mpfr=${{ env.WASM_LIBRARY_DIR }}
-            --host=wasm32-unknown-emscripten
+            --with-mpfr=${{ env.WASM_LIBRARY_DIR }} \
+            --host=wasm32-unknown-emscripten \
             --disable-assembly
           emmake make -j $(nproc)
           emmake make install
