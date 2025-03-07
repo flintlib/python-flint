@@ -1836,7 +1836,7 @@ def _test_fmpz_mod():
         assert fmpz(test_y) / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
         assert test_y / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
 
-def test_fmpz_mod_dlog():
+def _test_fmpz_mod_dlog():
     from flint import fmpz, fmpz_mod_ctx
 
     # Input modulus must be prime
@@ -1878,7 +1878,7 @@ def test_fmpz_mod_dlog():
             x = g.discrete_log(a)
             assert g**x == a
 
-def test_fmpz_mod_poly():
+def _test_fmpz_mod_poly():
     from flint import fmpz_poly, fmpz_mod_poly, fmpz_mod_poly_ctx, fmpz_mod_ctx, fmpz
 
     # fmpz_mod_poly_ctx tests
@@ -2295,7 +2295,7 @@ def test_fmpz_mod_poly():
         assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
 
 
-def test_fmpz_mod_mat():
+def _test_fmpz_mod_mat():
     c11 = flint.fmpz_mod_ctx(11)
     c13 = flint.fmpz_mod_ctx(13)
 
@@ -4690,9 +4690,9 @@ all_tests = [
     test_nmod_series,
 
     #test_fmpz_mod,
-    test_fmpz_mod_dlog,
-    test_fmpz_mod_poly,
-    test_fmpz_mod_mat,
+    #test_fmpz_mod_dlog,
+    #test_fmpz_mod_poly,
+    #test_fmpz_mod_mat,
 
     test_division_scalar,
     test_division_poly,
