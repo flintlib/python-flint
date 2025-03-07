@@ -106,6 +106,7 @@ jobs:
           WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
         working-directory: flint
         run: |
+          ./bootstrap.sh
           emconfigure ./configure \
             --disable-dependency-tracking \
             --disable-shared \
