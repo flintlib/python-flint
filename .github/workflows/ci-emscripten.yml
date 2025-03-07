@@ -140,7 +140,7 @@ jobs:
           pkg-config --modversion mpfr
           pkg-config --modversion flint
 
-          pyodide build -C "setup-args='-Dflint_version_check=false'"
+          pyodide build -C "setup-args=-Dflint_version_check=false"
 
       - name: Set up Pyodide virtual environment and test python-flint
         run: |
