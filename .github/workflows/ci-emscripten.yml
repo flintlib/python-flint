@@ -92,13 +92,6 @@ jobs:
           emmake make -j $(nproc)
           emmake make install
 
-      - name: Check out flint
-        if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          repository: flintlib/flint
-          path: flint
-
       - name: Build flint
         if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
         env:
@@ -106,7 +99,10 @@ jobs:
           WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
         working-directory: flint
         run: |
-          ./bootstrap.sh
+          curl -L https://github.com/flintlib/flint/releases/download/v3.2.0-rc1/flint-3.2.0-rc1.tar.xz -o flint-3.2.0-rc1.tar.xz
+          tar -xf flint-3.2.0-rc1.tar.xz
+          cd flint-3.2.0-rc1
+
           emconfigure ./configure \
             --disable-dependency-tracking \
             --disable-shared \
@@ -140,7 +136,7 @@ jobs:
           pkg-config --modversion mpfr
           pkg-config --modversion flint
 
-          pyodide build -C "setup-args='-Dflint_version_check=false'"
+          pyodide build
 
       - name: Set up Pyodide virtual environment and test python-flint
         run: |
