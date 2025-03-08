@@ -1642,10 +1642,10 @@ def test_fmpz_mod():
     p_med = 2**127 - 1
     p_big = 2**255 - 19
 
-    return
 
     F_cmp = fmpz_mod_ctx(10)
     F_sml = fmpz_mod_ctx(p_sml)
+    return
     F_med = fmpz_mod_ctx(p_med)
     F_big = fmpz_mod_ctx(p_big)
 
