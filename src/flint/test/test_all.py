@@ -1872,7 +1872,7 @@ def test_fmpz_mod_dlog():
     F = fmpz_mod_ctx(p)
 
     for _ in range(10):
-        g = F(random.randint(1,p))
+        g = F(random.randint(1,p-1))
         for _ in range(10):
             i = random.randint(0,p)
             a = g**i
@@ -4276,7 +4276,7 @@ def test_matrices_transpose():
         assert M1234.transpose() == M([[1, 4], [2, 5], [3, 6]])
 
 
-def _test_fq_default():
+def test_fq_default():
     # test fq_default context creation
 
     # fq_type parsing
@@ -4729,7 +4729,7 @@ all_tests = [
     test_matrices_solve,
     test_matrices_fflu,
 
-    # _test_fq_default,
+    test_fq_default,
     # _test_fq_default_poly,
 
     test_arb,

@@ -14,7 +14,6 @@ test_flint_at_least = {
 
 
 def find_doctests(module):
-    return []
     finder = doctest.DocTestFinder()
     tests = []
     for module_info in pkgutil.walk_packages(module.__path__, flint.__name__ + "."):
