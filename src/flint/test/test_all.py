@@ -1645,8 +1645,8 @@ def test_fmpz_mod():
 
     F_cmp = fmpz_mod_ctx(10)
     F_sml = fmpz_mod_ctx(p_sml)
-    return
     F_med = fmpz_mod_ctx(p_med)
+    return
     F_big = fmpz_mod_ctx(p_big)
 
     # XXX: crashes by here
