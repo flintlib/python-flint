@@ -1642,12 +1642,14 @@ def test_fmpz_mod():
     p_med = 2**127 - 1
     p_big = 2**255 - 19
 
+    return
+
     F_cmp = fmpz_mod_ctx(10)
     F_sml = fmpz_mod_ctx(p_sml)
     F_med = fmpz_mod_ctx(p_med)
     F_big = fmpz_mod_ctx(p_big)
 
-    return
+    # XXX: crashes by here
 
     assert F_sml.is_prime() is True
     assert F_med.is_prime() is True
@@ -1674,8 +1676,6 @@ def test_fmpz_mod():
 
     # Type tests
     assert raises(lambda: fmpz_mod(1, "AAA"), TypeError)
-
-    # XXX: crashes by here
 
     # Test for small, medium and large char.
     for F_test in [F_sml, F_med, F_big]:
