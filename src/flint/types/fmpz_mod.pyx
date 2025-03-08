@@ -45,7 +45,7 @@ cdef class fmpz_mod_ctx:
         cdef fmpz one = fmpz.__new__(fmpz)
         fmpz_one(one.val)
         fmpz_mod_ctx_init(self.val, one.val)
-        fmpz_mod_discrete_log_pohlig_hellman_clear(self.L)
+        fmpz_mod_discrete_log_pohlig_hellman_init(self.L)
         self._is_prime = 0
 
     def __dealloc__(self):
