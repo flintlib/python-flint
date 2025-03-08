@@ -93,10 +93,10 @@ cdef class fmpz_mod_ctx:
         if mod < 1:
             raise ValueError("Modulus is expected to be positive")
 
-        return
         # Set the modulus
         fmpz_mod_ctx_set_modulus(self.val, (<fmpz>mod).val)
 
+        return
         # Check whether the modulus is prime
         # TODO: should we use a stronger test?
         self._is_prime = fmpz_is_probabprime(self.val.n)
