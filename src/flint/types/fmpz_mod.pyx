@@ -82,7 +82,6 @@ cdef class fmpz_mod_ctx:
 
     def __init__(self, mod):
         # Ensure modulus is fmpz type
-        return
         if not typecheck(mod, fmpz):
             mod = any_as_fmpz(mod)
             if mod is NotImplemented:
@@ -94,6 +93,7 @@ cdef class fmpz_mod_ctx:
         if mod < 1:
             raise ValueError("Modulus is expected to be positive")
 
+        return
         # Set the modulus
         fmpz_mod_ctx_set_modulus(self.val, (<fmpz>mod).val)
 
