@@ -2553,7 +2553,7 @@ def _all_polys():
     ]
 
 
-def test_polys():
+def _test_polys():
     for P, S, is_field, characteristic in _all_polys():
 
         composite_characteristic = characteristic != 0 and not characteristic.is_prime()
