@@ -82,6 +82,7 @@ cdef class fmpz_mod_ctx:
 
     def __init__(self, mod):
         # Ensure modulus is fmpz type
+        return
         if not typecheck(mod, fmpz):
             mod = any_as_fmpz(mod)
             if mod is NotImplemented:
