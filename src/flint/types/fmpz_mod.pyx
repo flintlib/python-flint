@@ -32,6 +32,34 @@ cimport libc.stdlib
 from flint.utils.flint_exceptions import DomainError
 
 
+def use_fmpz_mod1():
+    cdef fmpz_mod_ctx_t ctx
+    cdef fmpz mod
+    mod = fmpz(2**127 - 1)
+    fmpz_mod_ctx_init(ctx, mod.val)
+    a = fmpz(mod - 1)
+    b = fmpz(2)
+    c = fmpz(0)
+    fmpz_mod_add(c.val, a.val, b.val, ctx)
+    fmpz_mod_ctx_clear(ctx)
+    return c
+
+
+def use_fmpz_mod2():
+    cdef fmpz_mod_ctx_t ctx
+    cdef fmpz one
+    cdef fmpz mod
+    one = fmpz(1)
+    mod = fmpz(2**127 - 1)
+    fmpz_mod_ctx_init(ctx, one.val)
+    fmpz_mod_ctx_set_modulus(ctx, mod.val)
+    a = fmpz(mod - 1)
+    b = fmpz(2)
+    c = fmpz(0)
+    fmpz_mod_add(c.val, a.val, b.val, ctx)
+    return c
+
+
 cdef class fmpz_mod_ctx:
     r"""
     Context object for creating :class:`~.fmpz_mod` initialised

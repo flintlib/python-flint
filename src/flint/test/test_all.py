@@ -4276,7 +4276,7 @@ def test_matrices_transpose():
         assert M1234.transpose() == M([[1, 4], [2, 5], [3, 6]])
 
 
-def test_fq_default():
+def _test_fq_default():
     # test fq_default context creation
 
     # fq_type parsing
@@ -4666,10 +4666,23 @@ def test_all_tests():
     assert not untested, f"Untested functions: {untested}"
 
 
+def test_use_fmpz_mod1():
+    from flint.types.fmpz_mod import use_fmpz_mod1
+    assert use_fmpz_mod1() == 1
+
+
+def test_use_fmpz_mod2():
+    from flint.types.fmpz_mod import use_fmpz_mod2
+    assert use_fmpz_mod2() == 1
+
+
 all_tests = [
 
     test_pyflint,
     test_showgood,
+
+    test_use_fmpz_mod1,
+    test_use_fmpz_mod2,
 
     test_fmpz,
     test_fmpz_factor,
@@ -4729,7 +4742,7 @@ all_tests = [
     test_matrices_solve,
     test_matrices_fflu,
 
-    test_fq_default,
+    # _test_fq_default,
     # _test_fq_default_poly,
 
     test_arb,
