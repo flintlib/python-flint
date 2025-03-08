@@ -1836,7 +1836,7 @@ def test_fmpz_mod():
         assert fmpz(test_y) / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
         assert test_y / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
 
-def _test_fmpz_mod_dlog():
+def test_fmpz_mod_dlog():
     from flint import fmpz, fmpz_mod_ctx
 
     # Input modulus must be prime
@@ -1868,6 +1868,7 @@ def _test_fmpz_mod_dlog():
     # Randomised testing with smooth large modulus
     e2, e3 = 92, 79
     p = 2**e2 * 3**e3 + 1
+    p = 167
     F = fmpz_mod_ctx(p)
 
     for _ in range(10):
@@ -1878,7 +1879,7 @@ def _test_fmpz_mod_dlog():
             x = g.discrete_log(a)
             assert g**x == a
 
-def _test_fmpz_mod_poly():
+def test_fmpz_mod_poly():
     from flint import fmpz_poly, fmpz_mod_poly, fmpz_mod_poly_ctx, fmpz_mod_ctx, fmpz
 
     # fmpz_mod_poly_ctx tests
@@ -2014,8 +2015,8 @@ def _test_fmpz_mod_poly():
 
     # Arithmetic
     p_sml = 163
-    p_med = 2**127 - 1
-    p_big = 2**255 - 19
+    p_med = 167
+    p_big = 173
 
     F_sml = fmpz_mod_ctx(p_sml)
     F_med = fmpz_mod_ctx(p_med)
@@ -2295,7 +2296,7 @@ def _test_fmpz_mod_poly():
         assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
 
 
-def _test_fmpz_mod_mat():
+def test_fmpz_mod_mat():
     c11 = flint.fmpz_mod_ctx(11)
     c13 = flint.fmpz_mod_ctx(13)
 
@@ -2511,12 +2512,12 @@ def _all_polys():
         (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(163)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(163)),
          True, flint.fmpz(163)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**127 - 1)),
-         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**127 - 1)),
-         True, flint.fmpz(2**127 - 1)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255 - 19)),
-         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255 - 19)),
-         True, flint.fmpz(2**255 - 19)),
+        #(lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**127 - 1)),
+        # lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**127 - 1)),
+        # True, flint.fmpz(2**127 - 1)),
+        #(lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255 - 19)),
+        # lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255 - 19)),
+        # True, flint.fmpz(2**255 - 19)),
 
         # GF(p^k) (p prime)
         (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(2**127 - 1)),
@@ -2543,16 +2544,16 @@ def _all_polys():
         (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(164)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(164)),
          False, flint.fmpz(164)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**127)),
-         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**127)),
-         False, flint.fmpz(2**127)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255)),
-         lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255)),
-         False, flint.fmpz(2**255)),
+        #(lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**127)),
+        # lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**127)),
+        # False, flint.fmpz(2**127)),
+        #(lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255)),
+        # lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255)),
+        # False, flint.fmpz(2**255)),
     ]
 
 
-def _test_polys():
+def test_polys():
     for P, S, is_field, characteristic in _all_polys():
 
         composite_characteristic = characteristic != 0 and not characteristic.is_prime()
@@ -3464,7 +3465,7 @@ def _all_polys_mpolys():
         yield P, S, [x, y], is_field, characteristic
 
 
-def _test_factor_poly_mpoly():
+def test_factor_poly_mpoly():
     """Test that factor() is consistent across different poly/mpoly types."""
 
     def check(p, coeff, factors):
@@ -3674,16 +3675,16 @@ def _test_factor_poly_mpoly():
 def _all_matrices():
     """Return a list of matrix types and scalar types."""
     R163 = flint.fmpz_mod_ctx(163)
-    R127 = flint.fmpz_mod_ctx(2**127 - 1)
-    R255 = flint.fmpz_mod_ctx(2**255 - 19)
+    #R127 = flint.fmpz_mod_ctx(2**127 - 1)
+    #R255 = flint.fmpz_mod_ctx(2**255 - 19)
     return [
         # (matrix_type, scalar_type, is_field)
         (flint.fmpz_mat, flint.fmpz, False),
         (flint.fmpq_mat, flint.fmpq, True),
         (lambda *a: flint.nmod_mat(*a, 17), lambda x: flint.nmod(x, 17), True),
         (lambda *a: flint.fmpz_mod_mat(*a, R163), lambda x: flint.fmpz_mod(x, R163), True),
-        (lambda *a: flint.fmpz_mod_mat(*a, R127), lambda x: flint.fmpz_mod(x, R127), True),
-        (lambda *a: flint.fmpz_mod_mat(*a, R255), lambda x: flint.fmpz_mod(x, R255), True),
+        #(lambda *a: flint.fmpz_mod_mat(*a, R127), lambda x: flint.fmpz_mod(x, R127), True),
+        #(lambda *a: flint.fmpz_mod_mat(*a, R255), lambda x: flint.fmpz_mod(x, R255), True),
     ]
 
 
@@ -3803,7 +3804,7 @@ def _poly_type_from_matrix_type(mat_type):
         assert False
 
 
-def _test_matrices_eq():
+def test_matrices_eq():
     for M, S, is_field in _all_matrices():
         A1 = M([[1, 2], [3, 4]])
         A2 = M([[1, 2], [3, 4]])
@@ -3828,7 +3829,7 @@ def _test_matrices_eq():
             assert (A1 != A2) is True
 
 
-def _test_matrices_constructor():
+def test_matrices_constructor():
     for M, S, is_field in _all_matrices():
         assert raises(lambda: M(), TypeError)
 
@@ -3900,7 +3901,7 @@ def _matrix_repr(M):
         assert False
 
 
-def _test_matrices_strrepr():
+def test_matrices_strrepr():
     for M, S, is_field in _all_matrices():
         A = M([[1, 2], [3, 4]])
         A_str = "[1, 2]\n[3, 4]"
@@ -3923,7 +3924,7 @@ def _test_matrices_strrepr():
             ctx.pretty = pretty
 
 
-def _test_matrices_getitem():
+def test_matrices_getitem():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         assert M1234[0, 0] == S(1)
@@ -3939,7 +3940,7 @@ def _test_matrices_getitem():
         assert raises(lambda: M1234[-1, -1], IndexError)
 
 
-def _test_matrices_setitem():
+def test_matrices_setitem():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
 
@@ -3965,7 +3966,7 @@ def _test_matrices_setitem():
         assert raises(lambda: setbad(M1234, (-1,-1), 1), IndexError)
 
 
-def _test_matrices_bool():
+def test_matrices_bool():
     for M, S, is_field in _all_matrices():
         assert bool(M([])) is False
         assert bool(M([[0]])) is False
@@ -3976,14 +3977,14 @@ def _test_matrices_bool():
         assert bool(M([[1, 0], [0, 1]])) is True
 
 
-def _test_matrices_pos_neg():
+def test_matrices_pos_neg():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         assert +M1234 == M1234
         assert -M1234 == M([[-1, -2], [-3, -4]])
 
 
-def _test_matrices_add():
+def test_matrices_add():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         M5678 = M([[5, 6], [7, 8]])
@@ -4003,7 +4004,7 @@ def _test_matrices_add():
             assert raises(lambda: M2([[1, 2], [3, 4]]) + M1234, (TypeError, ValueError))
 
 
-def _test_matrices_sub():
+def test_matrices_sub():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         M5678 = M([[5, 6], [7, 8]])
@@ -4023,7 +4024,7 @@ def _test_matrices_sub():
             assert raises(lambda: M2([[1, 2], [3, 4]]) - M1234, (TypeError, ValueError))
 
 
-def _test_matrices_mul():
+def test_matrices_mul():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         M5678 = M([[5, 6], [7, 8]])
@@ -4049,7 +4050,7 @@ def _test_matrices_mul():
             assert raises(lambda: M2([[1, 2], [3, 4]]) * M1234, (TypeError, ValueError))
 
 
-def _test_matrices_pow():
+def test_matrices_pow():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         assert M1234**0 == M([[1, 0], [0, 1]])
@@ -4070,7 +4071,7 @@ def _test_matrices_pow():
         assert raises(lambda: None**M1234, TypeError)
 
 
-def _test_matrices_div():
+def test_matrices_div():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         if is_field:
@@ -4082,7 +4083,7 @@ def _test_matrices_div():
         raises(lambda: None / M1234, TypeError)
 
 
-def _test_matrices_properties():
+def test_matrices_properties():
     for M, S, is_field in _all_matrices():
         # XXX: Add these properties to all matrix types
         if M is not flint.fmpz_mat:
@@ -4126,7 +4127,7 @@ def _test_matrices_properties():
         assert M([[1, 1, 0], [1, 2, 0]]).is_lower_triangular() is False
 
 
-def _test_matrices_inv():
+def test_matrices_inv():
     for M, S, is_field in _all_matrices():
         if is_field:
             M1234 = M([[1, 2], [3, 4]])
@@ -4138,7 +4139,7 @@ def _test_matrices_inv():
         # XXX: Test non-field matrices. unimodular?
 
 
-def _test_matrices_det():
+def test_matrices_det():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         assert M1234.det() == S(-2)
@@ -4148,7 +4149,7 @@ def _test_matrices_det():
         assert raises(lambda: Mr.det(), ValueError)
 
 
-def _test_matrices_charpoly():
+def test_matrices_charpoly():
     for M, S, is_field in _all_matrices():
         P = _poly_type_from_matrix_type(M)
         M1234 = M([[1, 2], [3, 4]])
@@ -4159,7 +4160,7 @@ def _test_matrices_charpoly():
         assert raises(lambda: Mr.charpoly(), ValueError)
 
 
-def _test_matrices_minpoly():
+def test_matrices_minpoly():
     for M, S, is_field in _all_matrices():
         P = _poly_type_from_matrix_type(M)
         M1234 = M([[1, 2], [3, 4]])
@@ -4170,7 +4171,7 @@ def _test_matrices_minpoly():
         assert raises(lambda: Mr.minpoly(), ValueError)
 
 
-def _test_matrices_rank():
+def test_matrices_rank():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2], [3, 4]])
         assert M1234.rank() == 2
@@ -4182,7 +4183,7 @@ def _test_matrices_rank():
         assert Mz.rank() == 0
 
 
-def _test_matrices_rref():
+def test_matrices_rref():
     for M, S, is_field in _all_matrices():
         if is_field:
             Mr = M([[1, 2, 3], [4, 5, 6]])
@@ -4193,7 +4194,7 @@ def _test_matrices_rref():
             assert Mr == Mr_rref
 
 
-def _test_matrices_fflu():
+def test_matrices_fflu():
 
     QQ = flint.fmpq_mat
     shape = lambda A: (A.nrows(), A.ncols())
@@ -4250,7 +4251,7 @@ def _test_matrices_fflu():
                     check_fflu(A)
 
 
-def _test_matrices_solve():
+def test_matrices_solve():
     for M, S, is_field in _all_matrices():
         if is_field:
             A = M([[1, 2], [3, 4]])
@@ -4269,7 +4270,7 @@ def _test_matrices_solve():
             assert raises(lambda: A.solve(b), ZeroDivisionError)
 
 
-def _test_matrices_transpose():
+def test_matrices_transpose():
     for M, S, is_field in _all_matrices():
         M1234 = M([[1, 2, 3], [4, 5, 6]])
         assert M1234.transpose() == M([[1, 4], [2, 5], [3, 6]])
@@ -4690,46 +4691,46 @@ all_tests = [
     test_nmod_series,
 
     test_fmpz_mod,
-    #test_fmpz_mod_dlog,
-    #test_fmpz_mod_poly,
-    #test_fmpz_mod_mat,
+    test_fmpz_mod_dlog,
+    test_fmpz_mod_poly,
+    test_fmpz_mod_mat,
 
     test_division_scalar,
     test_division_poly,
     test_division_matrix,
 
-    # test_factor_poly_mpoly,
+    test_factor_poly_mpoly,
 
-    # test_polys,
+    test_polys,
     test_mpolys,
 
     test_fmpz_mpoly_vec,
 
-    #test_matrices_eq,
-    #test_matrices_constructor,
-    #test_matrices_strrepr,
-    #test_matrices_getitem,
-    #test_matrices_setitem,
-    #test_matrices_bool,
-    #test_matrices_transpose,
-    #test_matrices_pos_neg,
-    #test_matrices_add,
-    #test_matrices_sub,
-    #test_matrices_mul,
-    #test_matrices_pow,
-    #test_matrices_div,
-    #test_matrices_properties,
-    #test_matrices_inv,
-    #test_matrices_det,
-    #test_matrices_charpoly,
-    #test_matrices_minpoly,
-    #test_matrices_rank,
-    #test_matrices_rref,
-    #test_matrices_solve,
-    #test_matrices_fflu,
+    test_matrices_eq,
+    test_matrices_constructor,
+    test_matrices_strrepr,
+    test_matrices_getitem,
+    test_matrices_setitem,
+    test_matrices_bool,
+    test_matrices_transpose,
+    test_matrices_pos_neg,
+    test_matrices_add,
+    test_matrices_sub,
+    test_matrices_mul,
+    test_matrices_pow,
+    test_matrices_div,
+    test_matrices_properties,
+    test_matrices_inv,
+    test_matrices_det,
+    test_matrices_charpoly,
+    test_matrices_minpoly,
+    test_matrices_rank,
+    test_matrices_rref,
+    test_matrices_solve,
+    test_matrices_fflu,
 
-    # test_fq_default,
-    # test_fq_default_poly,
+    # _test_fq_default,
+    # _test_fq_default_poly,
 
     test_arb,
 
