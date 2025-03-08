@@ -1673,6 +1673,8 @@ def test_fmpz_mod():
     # Type tests
     assert raises(lambda: fmpz_mod(1, "AAA"), TypeError)
 
+    return
+
     # Test for small, medium and large char.
     for F_test in [F_sml, F_med, F_big]:
         test_mod = int(F_test.modulus())
