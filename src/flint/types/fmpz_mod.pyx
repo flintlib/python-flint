@@ -104,7 +104,7 @@ cdef class fmpz_mod_ctx:
 
         # Check whether the modulus is prime
         # TODO: should we use a stronger test?
-        self._is_prime = fmpz_is_probabprime(self.val.n)
+        # self._is_prime = fmpz_is_probabprime(self.val.n)
 
     def modulus(self):
         """
