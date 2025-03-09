@@ -1,0 +1,159 @@
+name: Run Pyodide CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  FORCE_COLOR: 3
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  # cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PYODIDE_VERSION: 0.27.3
+      # PYTHON_VERSION and EMSCRIPTEN_VERSION are determined by PYODIDE_VERSION.
+      # The appropriate versions can be found in the Pyodide repodata.json
+      # "info" field, or in Makefile.envs:
+      # https://github.com/pyodide/pyodide/blob/main/Makefile.envs#L2
+      PYTHON_VERSION: 3.12 # any 3.12.x version works
+      EMSCRIPTEN_VERSION: 3.1.58
+      NODE_VERSION: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Emscripten toolchain
+        uses: mymindstorm/setup-emsdk@6ab9eb1bda2574c4ddb79809fc9247783eaf9021 # v14
+        with:
+          version: ${{ env.EMSCRIPTEN_VERSION }}
+          actions-cache-folder: emsdk-cache
+
+      - name: Set up Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pyodide-build
+        run: pip install pyodide-build
+
+      - name: Restore WASM library directory from cache
+        id: cache-wasm-library-dir
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        with:
+          path: ${{ github.workspace }}/wasm-library-dir
+          key: wasm-library-dir-${{ hashFiles('.github/workflows/ci-emscripten.yml') }}
+
+      - name: Build libgmp
+        if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
+        env:
+          CFLAGS: "-fPIC"
+          WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
+        run: |
+          curl -L https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz -o gmp-6.3.0.tar.xz
+          tar -xf gmp-6.3.0.tar.xz
+
+          cd gmp-6.3.0
+
+          emconfigure ./configure \
+            --disable-dependency-tracking \
+            --host none \
+            --disable-shared \
+            --enable-static \
+            --enable-cxx \
+            --prefix=${{ env.WASM_LIBRARY_DIR }}
+          emmake make -j $(nproc)
+          emmake make install
+
+      - name: Build libmpfr
+        if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
+        env:
+          CFLAGS: "-fPIC"
+          WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
+        run: |
+          curl -L https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.1.tar.xz -o mpfr-4.2.1.tar.xz
+          tar -xf mpfr-4.2.1.tar.xz
+
+          cd mpfr-4.2.1
+
+          emconfigure ./configure \
+            --disable-dependency-tracking \
+            --disable-shared \
+            --with-gmp="${{ env.WASM_LIBRARY_DIR }}" \
+            --prefix=${{ env.WASM_LIBRARY_DIR }}
+          emmake make -j $(nproc)
+          emmake make install
+
+      - name: Check out flint
+        if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: flintlib/flint
+          path: flint
+
+      - name: Build flint
+        if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
+        env:
+          CFLAGS: "-fPIC"
+          WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
+        working-directory: flint
+        run: |
+          ./bootstrap.sh
+          emconfigure ./configure \
+            --disable-dependency-tracking \
+            --disable-shared \
+            --prefix=${{ env.WASM_LIBRARY_DIR }} \
+            --with-gmp=${{ env.WASM_LIBRARY_DIR }} \
+            --with-mpfr=${{ env.WASM_LIBRARY_DIR }} \
+            --host=wasm32-unknown-emscripten \
+            --disable-assembly \
+            --disable-pthread
+          emmake make -j $(nproc)
+          emmake make install
+
+      - name: Persist WASM library directory to cache
+        uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        with:
+          path: ${{ github.workspace }}/wasm-library-dir
+          key: wasm-library-dir-${{ hashFiles('.github/workflows/ci-emscripten.yml') }}
+
+      - name: Build python-flint
+        env:
+          WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
+        run: |
+          export PKG_CONFIG_PATH="${{ env.WASM_LIBRARY_DIR }}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+          export CFLAGS="-I${{ env.WASM_LIBRARY_DIR }}/include ${CFLAGS:-}"
+          export LDFLAGS="-L${{ env.WASM_LIBRARY_DIR }}/lib -lflint -lmpfr -lgmp ${LDFLAGS:-}"
+
+          echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH}"
+          echo "CFLAGS=${CFLAGS}"
+          echo "LDFLAGS=${LDFLAGS}"
+
+          pkg-config --modversion python3
+          pkg-config --modversion mpfr
+          pkg-config --modversion flint
+
+          pyodide build -C "setup-args=-Dflint_version_check=false"
+
+      - name: Set up Pyodide virtual environment and test python-flint
+        run: |
+          pyodide xbuildenv install ${{ env.PYODIDE_VERSION }}
+          pyodide venv .venv-pyodide
+
+          source .venv-pyodide/bin/activate
+          pip install dist/*.whl
+
+          cd doc
+
+          pip install pytest hypothesis
+          # Don't use the cache provider plugin, as it doesn't work with Pyodide
+          # right now: https://github.com/pypa/cibuildwheel/issues/1966
+          pytest -svra -p no:cacheprovider --pyargs flint
