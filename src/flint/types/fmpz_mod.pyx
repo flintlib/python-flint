@@ -60,6 +60,12 @@ def use_fmpz_mod2():
     return c
 
 
+def use_fmpz_is_probabprime():
+    cdef fmpz p
+    p = fmpz(2**127 - 1)
+    return fmpz_is_probabprime(p.val)
+
+
 cdef class fmpz_mod_ctx:
     r"""
     Context object for creating :class:`~.fmpz_mod` initialised
