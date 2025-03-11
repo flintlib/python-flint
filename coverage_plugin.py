@@ -128,7 +128,6 @@ class CyFileTracer(FileTracer):
     """File tracer for Cython files (.pyx,.pxd)."""
 
     def __init__(self, srcpath):
-        print(srcpath)
         assert (src_dir / srcpath).exists()
         self.srcpath = srcpath
 

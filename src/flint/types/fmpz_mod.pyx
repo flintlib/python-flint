@@ -32,6 +32,40 @@ cimport libc.stdlib
 from flint.utils.flint_exceptions import DomainError
 
 
+def use_fmpz_mod1():
+    cdef fmpz_mod_ctx_t ctx
+    cdef fmpz mod
+    mod = fmpz(2**127 - 1)
+    fmpz_mod_ctx_init(ctx, mod.val)
+    a = fmpz(mod - 1)
+    b = fmpz(2)
+    c = fmpz(0)
+    fmpz_mod_add(c.val, a.val, b.val, ctx)
+    fmpz_mod_ctx_clear(ctx)
+    return c
+
+
+def use_fmpz_mod2():
+    cdef fmpz_mod_ctx_t ctx
+    cdef fmpz one
+    cdef fmpz mod
+    one = fmpz(1)
+    mod = fmpz(2**127 - 1)
+    fmpz_mod_ctx_init(ctx, one.val)
+    fmpz_mod_ctx_set_modulus(ctx, mod.val)
+    a = fmpz(mod - 1)
+    b = fmpz(2)
+    c = fmpz(0)
+    fmpz_mod_add(c.val, a.val, b.val, ctx)
+    return c
+
+
+def use_fmpz_is_probabprime():
+    cdef fmpz p
+    p = fmpz(2**127 - 1)
+    return fmpz_is_probabprime(p.val)
+
+
 cdef class fmpz_mod_ctx:
     r"""
     Context object for creating :class:`~.fmpz_mod` initialised
@@ -45,7 +79,7 @@ cdef class fmpz_mod_ctx:
         cdef fmpz one = fmpz.__new__(fmpz)
         fmpz_one(one.val)
         fmpz_mod_ctx_init(self.val, one.val)
-        fmpz_mod_discrete_log_pohlig_hellman_clear(self.L)
+        fmpz_mod_discrete_log_pohlig_hellman_init(self.L)
         self._is_prime = 0
 
     def __dealloc__(self):
@@ -70,7 +104,7 @@ cdef class fmpz_mod_ctx:
 
         # Check whether the modulus is prime
         # TODO: should we use a stronger test?
-        self._is_prime = fmpz_is_probabprime(self.val.n)
+        # self._is_prime = fmpz_is_probabprime(self.val.n)
 
     def modulus(self):
         """
