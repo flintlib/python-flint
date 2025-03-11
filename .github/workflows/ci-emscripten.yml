@@ -137,7 +137,7 @@ jobs:
           pkg-config --modversion mpfr
           pkg-config --modversion flint
 
-          pyodide build -C
+          pyodide build
 
       - name: Set up Pyodide virtual environment and test python-flint
         run: |
