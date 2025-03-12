@@ -261,6 +261,20 @@ cdef class fmpz_mpoly(flint_mpoly):
     def is_one(self):
         return <bint>fmpz_mpoly_is_one(self.val, self.ctx.val)
 
+    def is_constant(self):
+        """
+        Returns True if this is a constant polynomial.
+
+        >>> ctx = fmpz_mpoly_ctx.get(['x', 'y'])
+        >>> x, y = ctx.gens()
+        >>> p = x**2 + y
+        >>> p.is_constant()
+        False
+        >>> (0*p + 1).is_constant()
+        True
+        """
+        return self.total_degree() <= 0
+
     def __richcmp__(self, other, int op):
         if not (op == Py_EQ or op == Py_NE):
             return NotImplemented

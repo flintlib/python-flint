@@ -275,6 +275,12 @@ cdef class nmod_mpoly(flint_mpoly):
     def is_one(self):
         return <bint>nmod_mpoly_is_one(self.val, self.ctx.val)
 
+    def is_constant(self):
+        """
+        Returns True if this is a constant polynomial.
+        """
+        return self.total_degree() <= 0
+
     def __richcmp__(self, other, int op):
         if not (op == Py_EQ or op == Py_NE):
             return NotImplemented
@@ -294,7 +300,8 @@ cdef class nmod_mpoly(flint_mpoly):
                 self.ctx.val
             )
         elif isinstance(other, int):
-            return (op == Py_NE) ^ <bint>nmod_mpoly_equal_ui(self.val, other, self.ctx.val)
+            omod = other % self.ctx.modulus()
+            return (op == Py_NE) ^ <bint>nmod_mpoly_equal_ui(self.val, omod, self.ctx.val)
         else:
             return NotImplemented
 
