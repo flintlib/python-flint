@@ -141,10 +141,35 @@ cdef class fmpz_poly(flint_poly):
         return not fmpz_poly_is_zero(self.val)
 
     def is_zero(self):
+        """
+        True if this polynomial is the zero polynomial.
+
+        >>> fmpz_poly([]).is_zero()
+        True
+        """
         return <bint>fmpz_poly_is_zero(self.val)
 
     def is_one(self):
+        """
+        True if this polynomial is equal to one.
+
+        >>> fmpz_poly([2]).is_one()
+        False
+        """
         return <bint>fmpz_poly_is_one(self.val)
+
+    def is_constant(self):
+        """
+        True if this is a constant polynomial.
+
+        >>> x = fmpz_poly([0, 1])
+        >>> two = fmpz_poly([2])
+        >>> x.is_constant()
+        False
+        >>> two.is_constant()
+        True
+        """
+        return fmpz_poly_degree(self.val) <= 0
 
     def leading_coefficient(self):
         """
@@ -348,7 +373,9 @@ cdef class fmpz_poly(flint_poly):
         if mod is not None:
             raise NotImplementedError("fmpz_poly modular exponentiation")
         if exp < 0:
-            raise ValueError("fmpz_poly negative exponent")
+            if not fmpz_poly_is_unit(self.val):
+                raise DomainError("fmpz_poly negative exponent, non-unit base")
+            exp = -exp
         res = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_pow(res.val, self.val, <ulong>exp)
         return res

@@ -171,10 +171,28 @@ cdef class fmpq_poly(flint_poly):
         return not fmpq_poly_is_zero(self.val)
 
     def is_zero(self):
+        """
+        Returns True if this is the zero polynomial.
+        """
         return <bint>fmpq_poly_is_zero(self.val)
 
     def is_one(self):
+        """
+        Returns True if this polynomial is equal to 1.
+        """
         return <bint>fmpq_poly_is_one(self.val)
+
+    def is_constant(self):
+        """
+        Returns True if this polynomial is a scalar (constant).
+
+        >>> f = fmpq_poly([0, 1])
+        >>> f
+        x
+        >>> f.is_constant()
+        False
+        """
+        return fmpq_poly_degree(self.val) <= 0
 
     def leading_coefficient(self):
         """
@@ -374,7 +392,8 @@ cdef class fmpq_poly(flint_poly):
         if mod is not None:
             raise NotImplementedError("fmpz_poly modular exponentiation")
         if exp < 0:
-            raise ValueError("fmpq_poly negative exponent")
+            self = 1 / self
+            exp = -exp
         res = fmpq_poly.__new__(fmpq_poly)
         fmpq_poly_pow(res.val, self.val, <ulong>exp)
         return res

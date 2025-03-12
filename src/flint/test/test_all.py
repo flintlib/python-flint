@@ -402,7 +402,7 @@ def test_fmpz_poly():
     assert raises(lambda: [] // Z([1,2]), TypeError)
     assert raises(lambda: [] % Z([1,2]), TypeError)
     assert raises(lambda: divmod([], Z([1,2])), TypeError)
-    assert raises(lambda: Z([1,2,3]) ** -1, (OverflowError, ValueError))
+    assert raises(lambda: Z([1,2,3]) ** -1, DomainError)
     assert raises(lambda: Z([1,2,3]) ** Z([1,2]), TypeError)
     assert raises(lambda: Z([1,2]) // Z([]), ZeroDivisionError)
     assert raises(lambda: Z([]) // Z([]), ZeroDivisionError)
@@ -2109,7 +2109,7 @@ def test_fmpz_mod_poly():
         assert (f + 1) // f == 1
 
         # pow
-        assert raises(lambda: f**(-2), ValueError)
+        assert raises(lambda: f**(-2), DomainError)
         assert f*f == f**2
         assert f*f == f**fmpz(2)
 
@@ -2768,7 +2768,7 @@ def test_polys():
         assert P([1, 1]) ** 0 == P([1])
         assert P([1, 1]) ** 1 == P([1, 1])
         assert P([1, 1]) ** 2 == P([1, 2, 1])
-        assert raises(lambda: P([1, 1]) ** -1, ValueError)
+        assert raises(lambda: P([1, 1]) ** -1, DomainError)
         assert raises(lambda: P([1, 1]) ** None, TypeError)
 
         # XXX: Not sure what this should do in general:
@@ -3254,7 +3254,7 @@ def test_mpolys():
             (0, 1): 4,
             (0, 0): 1,
         })
-        assert raises(lambda: P(ctx=ctx) ** -1, ValueError)
+        assert raises(lambda: P(ctx=ctx) ** -1, ZeroDivisionError)
         assert raises(lambda: P(ctx=ctx) ** None, TypeError)
 
         # # XXX: Not sure what this should do in general:
@@ -3464,6 +3464,32 @@ def _all_polys_mpolys():
         yield P, S, [x, y], is_field, characteristic
 
 
+def test_properties_poly_mpoly():
+    """Test is_zero, is_one etc for all polynomials."""
+    for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
+
+        zero = 0*x
+        one = zero + 1
+        two = one + 1
+
+        assert zero.is_zero() is True
+        assert one.is_zero() is False
+        assert two.is_zero() is False
+        assert x.is_zero() is False
+
+        assert zero.is_one() is False
+        assert one.is_one() is True
+        assert two.is_one() is False
+        assert x.is_one() is False
+
+        assert zero.is_constant() is True
+        assert one.is_constant() is True
+        assert two.is_constant() is True
+        assert x.is_constant() is False
+
+        # is_gen?
+
+
 def test_factor_poly_mpoly():
     """Test that factor() is consistent across different poly/mpoly types."""
 
@@ -3669,6 +3695,52 @@ def test_factor_poly_mpoly():
             else:
                 # monic gcd over Q, Z/pZ and GF(p^d)
                 assert (2*(x+y)).gcd(4*(x+y)**2) == x + y
+
+
+def test_division_poly_mpoly():
+    """Test that division is consistent across different poly/mpoly types."""
+
+    Z = flint.fmpz
+
+    for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
+
+        if characteristic != 0 and not characteristic.is_prime():
+            # nmod_poly crashes for many operations with non-prime modulus
+            #     https://github.com/flintlib/python-flint/issues/124
+            # so we can't even test it...
+            nmod_poly_will_crash = type(x) is flint.nmod_poly
+            if nmod_poly_will_crash:
+                continue
+
+        one = x**0 # 1 as a polynomial
+        two = one + one
+
+        if is_field or characteristic == 0:
+            assert x / x == x**0 == 1 == one
+            assert x / 1 == x / S(1) == x / one == x**1 == x
+            assert 1 / one == one**-1 == one**Z(-1) == 1, type(one)
+            assert -1 / one == 1 / -one == (-one)**-1 == (-one)**Z(-1) == -one == -1
+            assert (-one) ** -2 == (-one)**Z(-2) == one
+            assert raises(lambda: 1 / x, DomainError)
+            assert raises(lambda: x ** -1, DomainError)
+
+        if is_field:
+            half = S(1)/2 * one # 1/2 as a polynomial
+            assert half == S(1)/2
+            assert x / half == 2*x
+            assert 1 / half == S(1) / half == one / half == one / (S(1)/2) == 2
+            assert half ** -1 == half ** Z(-1) == 2
+            assert two ** -1 == two ** Z(-1) == half
+        elif characteristic == 0:
+            assert raises(lambda: x / 2, DomainError)
+            assert raises(lambda: x / two, DomainError), characteristic
+            assert raises(lambda: two ** -1, DomainError)
+            assert raises(lambda: two ** Z(-1), DomainError)
+        else:
+            # Non-prime modulus...
+            # nmod can crash and fmpz_mod_poly won't crash but has awkward
+            # behaviour under division.
+            pass
 
 
 def _all_matrices():
@@ -4569,7 +4641,7 @@ def test_fq_default_poly():
         # pow
         # assert ui and fmpz exp agree for polynomials and generators
         R_gen = R_test.gen()
-        assert raises(lambda: f**(-2), ValueError)
+        assert raises(lambda: f**(-2), DomainError)
         assert pow(f, 2**60, g) == pow(pow(f, 2**30, g), 2**30, g)
         assert pow(R_gen, 2**60, g) == pow(pow(R_gen, 2**30, g), 2**30, g)
         assert raises(lambda: pow(f, -2, g), ValueError)
@@ -4698,7 +4770,9 @@ all_tests = [
     test_division_poly,
     test_division_matrix,
 
+    test_properties_poly_mpoly,
     test_factor_poly_mpoly,
+    test_division_poly_mpoly,
 
     test_polys,
     test_mpolys,

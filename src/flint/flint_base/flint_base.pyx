@@ -6,6 +6,7 @@ from flint.flintlib.types.flint cimport (
 )
 from flint.utils.flint_exceptions import DomainError
 from flint.flintlib.types.mpoly cimport ordering_t
+from flint.flintlib.functions.fmpz cimport fmpz_cmp_si
 from flint.flint_base.flint_context cimport thectx
 from flint.utils.typecheck cimport typecheck
 cimport libc.stdlib
@@ -725,14 +726,15 @@ cdef class flint_mpoly(flint_elem):
     def __pow__(self, other, modulus):
         if modulus is not None:
             raise NotImplementedError("cannot specify modulus outside of the context")
-        elif typecheck(other, fmpz):
-            return self._pow_(other)
 
-        other = any_as_fmpz(other)
-        if other is NotImplemented:
-            return NotImplemented
-        elif other < 0:
-            raise ValueError("cannot raise to a negative power")
+        if not typecheck(other, fmpz):
+            other = any_as_fmpz(other)
+            if other is NotImplemented:
+                return NotImplemented
+
+        if fmpz_cmp_si((<fmpz>other).val, 0) < 0:
+            self = 1 / self
+            other = -other
 
         return self._pow_(other)
 

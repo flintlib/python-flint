@@ -184,12 +184,40 @@ cdef class nmod_poly(flint_poly):
         return not nmod_poly_is_zero(self.val)
 
     def is_zero(self):
+        """
+        Returns True if this is the zero polynomial.
+        """
         return <bint>nmod_poly_is_zero(self.val)
 
     def is_one(self):
+        """
+        Returns True if this polynomial is equal to 1.
+        """
         return <bint>nmod_poly_is_one(self.val)
 
+    def is_constant(self):
+        """
+        Returns True if this is a constant polynomial.
+
+        >>> nmod_poly([0, 1], 3).is_constant()
+        False
+        >>> nmod_poly([1], 3).is_constant()
+        True
+        """
+        return nmod_poly_degree(self.val) <= 0
+
     def is_gen(self):
+        """
+        Returns True if this polynomial is equal to the generator x.
+
+        >>> x = nmod_poly([0, 1], 3)
+        >>> x
+        x
+        >>> x.is_gen()
+        True
+        >>> (2*x).is_gen()
+        False
+        """
         return <bint>nmod_poly_is_gen(self.val)
 
     def reverse(self, degree=None):
@@ -498,7 +526,8 @@ cdef class nmod_poly(flint_poly):
         if mod is not None:
             return self.pow_mod(exp, mod)
         if exp < 0:
-            raise ValueError("negative exponent")
+            self = 1 / self
+            exp = -exp
         res = nmod_poly.__new__(nmod_poly)
         nmod_poly_init_preinv(res.val, (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
         nmod_poly_pow(res.val, self.val, <ulong>exp)
