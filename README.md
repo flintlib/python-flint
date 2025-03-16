@@ -157,8 +157,11 @@ on ARM but may be added when CI runners for Linux/Windows are available.
 CHANGELOG
 =========
 
-Next release (0.7.0)...
+Next release (0.8.0)...
 -----------------------
+
+0.7.0
+-----
 
 Contributors (0.7.0):
 
