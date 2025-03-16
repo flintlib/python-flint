@@ -57,7 +57,7 @@ def test_pyflint():
         assert 1e-17 < f1.rad() < 1e-15
         assert 1e-4 < f2.rad() < 1e-3
     finally:
-        ctx.prec = oldprec
+        ctx.dps = olddps
 
     assert ctx.cap == 10
     oldcap = ctx.cap
@@ -74,8 +74,10 @@ def test_pyflint():
     assert raises(lambda: setattr(ctx, "prec", -1), ValueError)
     assert raises(lambda: setattr(ctx, "dps", -1), ValueError)
 
+
 def test_showgood():
     from flint import good, showgood
+
 
 def test_fmpz():
     assert flint.fmpz() == flint.fmpz(0)
@@ -246,9 +248,9 @@ def test_fmpz():
     assert raises(lambda: f2 ^ (), TypeError)
     assert raises(lambda: () ^ f2, TypeError)
 
-    l = [1, 2, 3]
-    l[flint.fmpz(1)] = -2
-    assert l == [1, -2, 3]
+    ell = [1, 2, 3]
+    ell[flint.fmpz(1)] = -2
+    assert ell == [1, -2, 3]
     d = {flint.fmpz(2): 3}
     d[flint.fmpz(2)] = -1
 
@@ -1635,6 +1637,7 @@ def test_pickling():
         obj2 = pickle.loads(s)
         assert obj == obj2
 
+
 def test_fmpz_mod():
     from flint import fmpz_mod_ctx, fmpz, fmpz_mod
 
@@ -1836,6 +1839,7 @@ def test_fmpz_mod():
         assert fmpz(test_y) / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
         assert test_y / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
 
+
 def test_fmpz_mod_dlog():
     from flint import fmpz, fmpz_mod_ctx
 
@@ -1942,7 +1946,7 @@ def test_fmpz_mod_poly():
     assert raises(lambda: R([F(1), F_other(2)]), ValueError) # moduli must match
     assert raises(lambda: R([F(1), "A"]), TypeError) # need to be able to cast to fmpz_mod
 
-    f1 = R([int(-1),int(-2),int(-3)])
+    f1 = R([-1, -2, -3])
     f2 = R([fmpz(-1),fmpz(-2),fmpz(-3)])
     f3 = R([F(-1),F(-2),F(-3)])
     f4 = R(fmpz_poly([-1, -2, -3]))
@@ -2264,8 +2268,8 @@ def test_fmpz_mod_poly():
         assert raises(lambda: R_test([1,2,3]).multipoint_evaluate("AAA"), ValueError)
 
         f = R_test([1,2,3])
-        l = [-1,-2,-3,-4,-5]
-        assert [f(x) for x in l] == f.multipoint_evaluate(l)
+        ell = [-1,-2,-3,-4,-5]
+        assert [f(x) for x in ell] == f.multipoint_evaluate(ell)
 
         # truncate things
 
