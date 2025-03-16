@@ -18,19 +18,20 @@ Author: Fredrik Johansson <fredrik.johansson@gmail.com>
 Installation
 ------------
 
-Currently python-flint supports CPython versions 3.10-3.13. For Windows
-(x86-64) or OSX (x86-64 or arm64) or Linux (x86-64 `manylinux_2_17`) there are
-CPython binary wheels for python-flint on PyPI. For these platforms
-python-flint can be installed simply with `pip`
+Currently python-flint supports CPython versions 3.11-3.13 and 3.13t
+(free-threaded) and provides binaries on PyPI for the following platforms:
+
+- Windows (x86-64)
+- MacOS (x86-64, arm64)
+- Linux (manylinux: x86-64, aarch64)
+
+For these platforms python-flint can be installed simply with `pip`
 
     pip install python-flint
 
 Alternatively python-flint can be installed using `conda`
 
     conda install -c conda-forge python-flint
-
-It is also possible to use python-flint with some PyPy versions. Binary wheels
-are not provided for this on PyPI but can be installed with conda.
 
 Build from source
 -----------------
@@ -118,7 +119,9 @@ To do
 -------------------------------------
 
 * Write more tests and add missing docstrings
-* Wrap missing flint types: finite fields, p-adic numbers, rational functions
+* Wrap missing flint types: matrices over finite fields, p-adic numbers, rational functions
+* Build on the preliminary interface to FLINT's generic (gr) types.
+* Make a nicer interface like `ZZ(1)` etc rather than `fmpz_poly([1, 2])`.
 * Vector or array types (maybe)
 * Many convenience methods
 * Write generic implementations of functions missing for specific FLINT types
@@ -140,19 +143,18 @@ supports all versions of Flint `>=3.0` available at the time of release.
 
 Compatible versions (note that 0.7.0 is not yet released):
 
-| python-flint | Release date  | CPython     | FLINT      | Cython     |
-|--------------|---------------|-------------|------------|------------|
-| `0.7.0`      | 16th Mar 2025 | `3.11-3.13` | `3.0-3.2`  | `3.0` only |
-| `0.6.0`      |  1st Feb 2024 | `3.9-3.12`  | `3.0` only | `3.0` only |
+| python-flint | Release date  | CPython     | FLINT      | Cython           |
+|--------------|---------------|-------------|------------|------------------|
+| `0.7.0`      | 16th Mar 2025 | `3.11-3.13` | `3.0-3.2`  | `3.0.11-3.1.0a1` |
+| `0.6.0`      |  1st Feb 2024 | `3.9-3.12`  | `3.0` only | `3.0` only       |
 
-As of python-flint 0.7.0, CPython 3.13 free-threaded builds are tested in CI
-but wheels are not provided on PyPI. There are no known issues related to using
-python-flint in a [PEP 703](https://peps.python.org/pep-0703/) free-threaded
-build but it is likely that mutating objects from multiple threads is not safe.
-
-Binary wheels are not yet provided for Linux aarch64
-([gh-105](https://github.com/flintlib/python-flint/issues/105)) or for Windows
-on ARM but may be added when CI runners for Linux/Windows are available.
+As of python-flint 0.7.0, CPython 3.13 [PEP
+703](https://peps.python.org/pep-0703/) free-threaded (no-GIL) builds of
+python-flint are provided. In the the free-threaded build, mutating matrices or
+polynomials from multiple threads can lead to memory corruption. Provided
+matrices or polynomials are not mutated when shared across threads there are no
+known issues with the free-threaded build but these should be considered
+experimental.
 
 CHANGELOG
 =========
