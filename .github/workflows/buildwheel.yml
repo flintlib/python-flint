@@ -103,8 +103,8 @@ jobs:
           python --version --version
           which python
           python -c "import sysconfig; print(sysconfig.get_config_var('Py_GIL_DISABLED'))"
-          python -c "import sys; print(sys._is_gil_enabled())"
-          python -c "import sys; import flint; print(sys._is_gil_enabled())"
+          python -c "import sys; print(getattr(sys, '_is_gil_enabled', lambda: True)())"
+          python -c "import sys; import flint; print(getattr(sys, '_is_gil_enabled', lambda: True)())"
 
       - run: python -m flint.test --verbose
 
