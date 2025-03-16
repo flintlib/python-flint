@@ -86,7 +86,13 @@ jobs:
         os: [ubuntu-24.04, ubuntu-24.04-arm, windows-2019, macos-13, macos-14]
         # This list to be kept in sync with cibuildwheel config
         # and python-requires in pyproject.toml.
-        python-version: ['3.11', '3.12', '3.13', '3.13t'] # , 'pypy3.10']
+        #
+        # It should be possible to add '3.13t' here when a newer version of
+        # actions/setup-python is available. As of v5.4.0 it cannote be used
+        # although a fix has been merged so presumably v5.5.0 or v.5.4.1 will
+        # provide this...
+        # https://github.com/actions/setup-python/pull/973
+        python-version: ['3.11', '3.12', '3.13'] # , 'pypy3.10']
 
     steps:
       - uses: actions/setup-python@v5
@@ -96,6 +102,43 @@ jobs:
         with:
           name: wheels-${{ matrix.os }}
           path: wheelhouse
+      - run: pip install --no-index --find-links wheelhouse python_flint
+
+      # Check if the GIL is disabled in the free-threading build after import.
+      - run: |
+          python --version --version
+          which python
+          python -c "import sysconfig; print(sysconfig.get_config_var('Py_GIL_DISABLED'))"
+          python -c "import sys; print(getattr(sys, '_is_gil_enabled', lambda: True)())"
+          python -c "import sys; import flint; print(getattr(sys, '_is_gil_enabled', lambda: True)())"
+
+      - run: python -m flint.test --verbose
+
+  test_wheels_freethreaded_ubuntu:
+    # XXX: Remove this job and add to the matrix above when a newer version of
+    # actions/setup-python is released.
+    needs: build_wheels
+    name: Test 3.13t wheel on Ubuntu
+    runs-on: ubuntu-24.04
+
+    steps:
+      # https://github.com/actions/setup-python/issues/771
+      # deadsnakes only works for Ubuntu...
+      - uses: deadsnakes/action@v3.2.0
+        with:
+          python-version: 3.13
+          nogil: true
+      - run: |
+          python --version --version
+          which python
+          python -c "import sysconfig; print(sysconfig.get_config_var('Py_GIL_DISABLED'))"
+          python -c "import sys; print(sys._is_gil_enabled())"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse
+
       - run: pip install --no-index --find-links wheelhouse python_flint
 
       # Check if the GIL is disabled in the free-threading build after import.
