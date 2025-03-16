@@ -14,7 +14,7 @@ project(
 flint_lower = '>=3.0'
 flint_upper = '<3.3'
 cython_lower = '>=3.0.11'
-cython_upper = '<3.2'
+cython_upper = '<=3.1.0a1'
 
 py = import('python').find_installation(pure: false)
 dep_py = py.dependency()

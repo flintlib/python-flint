@@ -140,10 +140,10 @@ supports all versions of Flint `>=3.0` available at the time of release.
 
 Compatible versions (note that 0.7.0 is not yet released):
 
-| python-flint | Release date | CPython     | FLINT      | Cython     |
-|--------------|--------------|-------------|------------|------------|
-| `0.7.0`      | Not yet      | `3.10-3.13` | `3.0-3.2?` | `3.0-3.1?` |
-| `0.6.0`      | 1st Feb 2024 | `3.9-3.12`  | `3.0` only | `3.0` only |
+| python-flint | Release date  | CPython     | FLINT      | Cython     |
+|--------------|---------------|-------------|------------|------------|
+| `0.7.0`      | 16th Mar 2025 | `3.11-3.13` | `3.0-3.2`  | `3.0` only |
+| `0.6.0`      |  1st Feb 2024 | `3.9-3.12`  | `3.0` only | `3.0` only |
 
 As of python-flint 0.7.0, CPython 3.13 free-threaded builds are tested in CI
 but wheels are not provided on PyPI. There are no known issues related to using
@@ -172,6 +172,11 @@ Contributors (0.7.0):
 
 Highlights (0.7.0):
 
+- [gh-270](https://github.com/flintlib/python-flint/pull/270),
+  PyPI packages are now built with FLINT 3.2.0 (previously
+  3.0.1 was used). All versions from FLINT 3.0.0 to FLINT 3.2.0
+  are compatible with python-flint but some features require
+  newer FLINT versions and the PyPI packages now use FLINT 3.2.0.
 - [gh-97](https://github.com/flintlib/python-flint/pull/97),
   [gh-182](https://github.com/flintlib/python-flint/pull/180):
   Add `fq_default` and `fq_default_poly` for finite fields and
@@ -229,6 +234,10 @@ Compatibility break (0.7.0):
 
 Other changes (0.7.0):
 
+- [gh-269](https://github.com/flintlib/python-flint/pull/269)
+  All univariate and multivariate polynomial types have
+  `is_zero`, `is_one` and `is_constant` methods. All polynomial
+  types now consistently handle negative powers where possible.
 - [gh-261](https://github.com/flintlib/python-flint/pull/261)
   Add `fmpz_mat.fflu` for fraction-free LU decomposition of
   an integer matrix.
@@ -280,9 +289,6 @@ Other changes (0.7.0):
   Add `acb.lerch_phi` to compute the Lerch transcendent. (OB)
 - [gh-160](https://github.com/flintlib/python-flint/pull/160)
   Add `bits` to `arb` and `acb`, add `log_base` to `arb`. (JR)
-- [gh-149](https://github.com/flintlib/python-flint/pull/149)
-  Bump Flint version to 3.1.3-p1 (Flint 3.0.0 - 3.1.3-p1 is
-  supported but the wheels are built with 3.1.3-p1). (OB)
 - [gh-148](https://github.com/flintlib/python-flint/pull/148)
   Remove debug symbols to make smaller Linux binaries. (OB)
 - [gh-144](https://github.com/flintlib/python-flint/pull/144)
