@@ -1612,9 +1612,11 @@ def test_nmod_mat():
     M6 = M6_copy
     assert M6.nullspace() == (M([[1,15,1],[0,0,0],[0,0,0]],17).transpose(), 1)
 
+
 def test_nmod_series():
     # XXX: currently no code in nmod_series.pyx
     pass
+
 
 def test_arb():
     A = flint.arb
@@ -1625,6 +1627,7 @@ def test_arb():
     assert A(3) == A(3)
     assert A(3) != A(2)
     assert not (A("1.1") == A("1.1"))
+
 
 def test_pickling():
     objects = [
@@ -4735,6 +4738,54 @@ def test_fq_default_poly():
         assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
 
 
+def test_python_threads():
+    #
+    # https://github.com/flintlib/python-flint/issues/224
+    #
+    # XXX: This test crashes under the free-threading mode because of memory
+    # corruption.
+    #
+    # It is not clear if this should be fixed or if mutating
+    # matrices/polynomials that are shared between multiple threads should just
+    # be disallowed.
+    #
+
+    # Skip the test on the free-threaded build...
+    import sys
+    if sys.version_info[:2] >= (3, 13) and not sys._is_gil_enabled():
+        return
+
+    from threading import Thread
+
+    iterations = 10**5
+    threads = 3 + 1
+    size = 3
+    M = flint.fmpz_mat([[0]*size for _ in range(size)])
+
+    def set_values():
+        for i in range(iterations // 5):
+            i = random.randrange(M.nrows())
+            j = random.randrange(M.ncols())
+            if random.uniform(0, 1) > 0.5:
+                # Bigger than 2**62:
+                M[i,j] = 10**128
+            else:
+                # Smaller than 2**62:
+                M[i,j] = 0
+
+    def get_dets():
+        for i in range(iterations):
+            M.det()
+
+    threads = [Thread(target=set_values) for _ in range(threads-1)]
+    threads.append(Thread(target=get_dets))
+
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+
 def test_all_tests():
     test_funcs = {f for name, f in globals().items() if name.startswith("test_")}
     untested = test_funcs - set(all_tests)
@@ -4812,6 +4863,8 @@ all_tests = [
     test_arb,
 
     test_pickling,
+
+    test_python_threads,
 
     test_all_tests,
 ]
