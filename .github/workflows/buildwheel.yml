@@ -10,7 +10,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm, windows-2019, macos-13, macos-14]
+        # os: [ubuntu-24.04, ubuntu-24.04-arm, windows-2019, macos-13, macos-14]
+        os: [macos-14]
 
     steps:
       - uses: actions/checkout@v4
@@ -92,10 +93,10 @@ jobs:
         # although a fix has been merged so presumably v5.5.0 or v.5.4.1 will
         # provide this...
         # https://github.com/actions/setup-python/pull/973
-        python-version: ['3.11', '3.12', '3.13'] # , 'pypy3.10']
+        python-version: ['3.11', '3.12', '3.13', '3.13t'] # , 'pypy3.10']
 
     steps:
-      - uses: actions/setup-python@v5
+      - uses: Quansight-Labs/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - uses: actions/download-artifact@v4
