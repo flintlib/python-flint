@@ -86,7 +86,7 @@ jobs:
         os: [ubuntu-24.04, ubuntu-24.04-arm, windows-2019, macos-13, macos-14]
         # This list to be kept in sync with cibuildwheel config
         # and python-requires in pyproject.toml.
-        python-version: ['3.11', '3.12', '3.13'] # , 'pypy3.10']
+        python-version: ['3.11', '3.12', '3.13', '3.13t'] # , 'pypy3.10']
 
     steps:
       - uses: actions/setup-python@v5
@@ -97,6 +97,15 @@ jobs:
           name: wheels-${{ matrix.os }}
           path: wheelhouse
       - run: pip install --no-index --find-links wheelhouse python_flint
+
+      # Check if the GIL is disabled in the free-threading build after import.
+      - run: |
+          python --version --version
+          which python
+          python -c "import sysconfig; print(sysconfig.get_config_var('Py_GIL_DISABLED'))"
+          python -c "import sys; print(sys._is_gil_enabled())"
+          python -c "import sys; import flint; print(sys._is_gil_enabled())"
+
       - run: python -m flint.test --verbose
 
   # On new enough Ubuntu we can build against the system deb.

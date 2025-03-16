@@ -6,6 +6,7 @@ version = "0.7.0"
 requires-python = ">= 3.11"
 authors = [
     {name = "Fredrik Johansson", email = "fredrik.johansson@gmail.com"},
+    {name = "Oscar Benjamin", email = "oscar.j.benjamin@gmail.com"},
 ]
 license = {text = "MIT"}
 classifiers = [
@@ -27,16 +28,16 @@ content-type = "text/markdown"
 # Minimum build requirements tested in CI need to be kept in sync with the
 # versions in requires below so that they are tested.
 #
-# The upper cap on Cython is speculative but we may as well cap it given that
-# it is only a build requirement and that it is not uncommon for newer Cython
-# versions to break the build. For example Cython 3.0 broke the build and then
-# Cython 3.1 broke the build again so python-flint 0.6.0 did not have any upper
-# cap but it should have had cython>=3.0,<3.1 i.e. precisely one minor release
-# of Cython works. In future we could contemplate not having an upper cap but
-# until we have actually witnessed a Cython 3.x release that does not break the
-# build we should keep the upper cap.
+# To support the freethreaded build (CPython 3.13t) the alpha release 3.1.0a1
+# of Cython is needed as a minimum requirement. It is possible that future
+# versions of Cython might still work but typically a Cython release breaks
+# something in the build of python-flint so we pin the exact version here.
 #
-requires = ["meson-python>=0.13", "cython>=3.0.11,<=3.1.0a1"]
+# Apart from the freethreading build any Cython version from 3.0.11 onwards is
+# fine. It is not possible to have a separate version constraint here for the
+# freethreading build only though.
+#
+requires = ["meson-python>=0.13", "cython==3.1.0a1"]
 build-backend = "mesonpy"
 
 [tool.cython-lint]
@@ -81,12 +82,10 @@ package = "flint"
 [tool.cibuildwheel]
 # requires-python needs to keep in sync with this and also the list of Python
 # versions the wheels are tested against in CI.
-build = "cp311-* cp312-* cp313-*" # pp311-*"
+build = "cp311-* cp312-* cp313-* cp313t-*" # pp311-*"
 skip = "*-win32 *-manylinux_i686 *-musllinux_*"
 
-# This is needed for free-threaded wheels:
-# build = "cp313t-*"
-# free-threaded-support = true
+free-threaded-support = true
 
 manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux_2_28"
