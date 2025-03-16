@@ -4739,6 +4739,21 @@ def test_fq_default_poly():
 
 
 def test_python_threads():
+    #
+    # https://github.com/flintlib/python-flint/issues/224
+    #
+    # XXX: This test crashes under the free-threading mode because of memory
+    # corruption.
+    #
+    # It is not clear if this should be fixed or if mutating
+    # matrices/polynomials that are shared between multiple threads should just
+    # be disallowed.
+    #
+
+    # Skip the test on the free-threaded build...
+    import sys
+    if sys.version_info[:2] >= (3, 13) and not sys._is_gil_enabled():
+        return
 
     from threading import Thread
 
