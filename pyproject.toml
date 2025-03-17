@@ -8,7 +8,7 @@ authors = [
     {name = "Fredrik Johansson", email = "fredrik.johansson@gmail.com"},
     {name = "Oscar Benjamin", email = "oscar.j.benjamin@gmail.com"},
 ]
-license = {text = "MIT"}
+license = {file = "LICENSE"}
 classifiers = [
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
