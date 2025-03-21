@@ -2834,6 +2834,36 @@ def test_polys():
         if type(p) == flint.fq_default_poly:
             assert raises(lambda: p.integral(), NotImplementedError)
 
+        # resultant checks.
+
+        if is_field and characteristic == 0:
+            # Check that the resultant of two cyclotomic polynomials is right.
+            # See Dresden's 2012 "Resultants of Cyclotomic Polynomials"
+            for m in range(1, 50):
+                for n in range(m + 1, 50):
+                    a = flint.fmpz_poly.cyclotomic(m)
+                    b = flint.fmpz_poly.cyclotomic(n)
+                    q, r = divmod(flint.fmpz(n), flint.fmpz(m))
+                    fs = q.factor()
+                    if r != 0 or len(fs) > 1:
+                        assert a.resultant(b) == 1
+                    else:
+                        prime = fs[0][0]
+                        tot = flint.fmpz(m).euler_phi()
+                        assert a.resultant(b) == prime**tot
+
+        x = P([0, 1])
+        # Flint does not implement resultants over GF(q) for nonprime q, so we
+        # there's nothing for us to check.
+        if composite_characteristic or type(x) == flint.fq_default_poly:
+            pass
+        else:
+            assert x.resultant(x) == 0
+            assert x.resultant(x**2 + x - x) == 0
+
+            for k in range(-10, 10):
+                assert x.resultant(x + S(k)) == S(k)
+                assert x.resultant(x**10 - x**5 + 1) == S(1)
 
 def _all_mpolys():
     return [
@@ -2868,7 +2898,6 @@ def _all_mpolys():
             flint.fmpz(100),
         ),
     ]
-
 
 def test_mpolys():
     for P, get_context, S, is_field, characteristic in _all_mpolys():

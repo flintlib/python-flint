@@ -450,7 +450,6 @@ cdef class fmpz_poly(flint_poly):
         fmpz_poly_resultant_modular(res.val, self.val, (<fmpz_poly>other).val)
         return res
 
-
     def factor(self):
         """
         Factors self into irreducible factors, returning a tuple
