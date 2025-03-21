@@ -621,6 +621,26 @@ cdef class nmod_poly(flint_poly):
         nmod_poly_gcd(res.val, self.val, (<nmod_poly>other).val)
         return res
 
+    def resultant(self, other):
+        """
+        Returns the resultant of *self* and *other*.
+
+            >>> f = nmod_poly([1, 2, 3], 3)
+            >>> g = nmod_poly([1, 0, 1], 3)
+            >>> f.resultant(f)
+            0
+            >>> f.resultant(g)
+            2
+
+        """
+        cdef ulong res
+        other = any_as_nmod_poly(other, (<nmod_poly>self).val.mod)
+        if other is NotImplemented:
+            raise TypeError("cannot convert input to nmod_poly")
+
+        res = nmod_poly_resultant(self.val, (<nmod_poly>other).val)
+        return res
+
     def xgcd(self, other):
         cdef nmod_poly res1, res2, res3
         other = any_as_nmod_poly(other, (<nmod_poly>self).val.mod)

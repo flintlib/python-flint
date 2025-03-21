@@ -415,6 +415,32 @@ cdef class fmpq_poly(flint_poly):
         fmpq_poly_gcd(res.val, self.val, (<fmpq_poly>other).val)
         return res
 
+    def resultant(self, other):
+        """
+        Returns the resultant of *self* and *other*.
+
+            >>> A = fmpq_poly([1, 0, -1]); B = fmpq_poly([1, -1])
+            >>> A.resultant(B)
+            0
+            >>> C = fmpq_poly([1, 0, 0, 0, 0, -1, 1])
+            >>> D = fmpq_poly([1, 0, 0, -1, 0, 0, 1])
+            >>> C.resultant(D)
+            3
+            >>> f = fmpq_poly([1, -1] + [0] * 98 + [1])
+            >>> g = fmpq_poly([1] + [0] * 50 + [-1] + [0] * 48 + [1])
+            >>> f.resultant(g)
+            1125899906842623
+
+        """
+        cdef fmpq res
+        other = any_as_fmpq_poly(other)
+        if other is NotImplemented:
+            raise TypeError("cannot convert input to fmpq_poly")
+
+        res = fmpq.__new__(fmpq)
+        fmpq_poly_resultant(res.val, self.val, (<fmpq_poly>other).val)
+        return res
+
     def xgcd(self, other):
         cdef fmpq_poly res1, res2, res3
         other = any_as_fmpq_poly(other)

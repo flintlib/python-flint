@@ -1465,6 +1465,9 @@ cdef class fmpz_mod_poly(flint_poly):
         """
         cdef fmpz_mod res
 
+        if not self.ctx.mod.is_prime():
+            raise ValueError("cannot compute fmpz_mod_poly resultants with composite moduli")
+
         other = self.ctx.any_as_fmpz_mod_poly(other)
         if other is NotImplemented:
             raise TypeError(f"Cannot interpret {other} as a polynomial")
