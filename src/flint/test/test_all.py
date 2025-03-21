@@ -2853,17 +2853,25 @@ def test_polys():
                         assert a.resultant(b) == prime**tot
 
         x = P([0, 1])
-        # Flint does not implement resultants over GF(q) for nonprime q, so we
-        # there's nothing for us to check.
-        if composite_characteristic or type(x) == flint.fq_default_poly:
+
+        if composite_characteristic and type(x) == flint.fmpz_mod_poly:
+            # Flint crashes in this case, even though the resultant could be
+            # computed.
+            divisor = characteristic.factor()[0][0]
+            if type(x) == flint.fmpz_mod_poly:
+                assert raises(lambda: x.resultant(x + divisor), ValueError)
+        elif type(x) == flint.fq_default_poly:
+            # Flint does not implement resultants over GF(q) for nonprime q, so
+            # there's nothing for us to check.
             pass
         else:
             assert x.resultant(x) == 0
             assert x.resultant(x**2 + x - x) == 0
+            assert x.resultant(x**10 - x**5 + 1) == S(1)
+            assert (x - 1).resultant(x**5 + 1) == S(2)
 
             for k in range(-10, 10):
                 assert x.resultant(x + S(k)) == S(k)
-                assert x.resultant(x**10 - x**5 + 1) == S(1)
 
 def _all_mpolys():
     return [
