@@ -88,18 +88,8 @@ jobs:
         # and python-requires in pyproject.toml.
         python-version: ['3.11', '3.12', '3.13', '3.13t'] # , 'pypy3.10']
 
-        # XXX: Maybe this exclude can be removed when changing from
-        # Quansight-Labs/setup-python...
-        exclude:
-          - os: ubuntu-24.04-arm
-            python-version: '3.13t'
-
     steps:
-      # Quansight-labs/setup-python is needed for 3.13t until a new version of
-      # actions/setup-python (>5.4.0) is released.
-      #
-      # https://github.com/actions/setup-python/pull/973
-      - uses: Quansight-Labs/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - uses: actions/download-artifact@v4
