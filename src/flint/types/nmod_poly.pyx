@@ -634,6 +634,11 @@ cdef class nmod_poly(flint_poly):
 
         """
         cdef ulong res
+
+        mod = any_as_fmpz(self.val.mod.n)
+        if not mod.is_prime():
+            raise ValueError("cannot compute nmod_poly resultants with composite moduli")
+
         other = any_as_nmod_poly(other, (<nmod_poly>self).val.mod)
         if other is NotImplemented:
             raise TypeError("cannot convert input to nmod_poly")

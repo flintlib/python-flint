@@ -2835,31 +2835,13 @@ def test_polys():
             assert raises(lambda: p.integral(), NotImplementedError)
 
         # resultant checks.
-
-        if is_field and characteristic == 0:
-            # Check that the resultant of two cyclotomic polynomials is right.
-            # See Dresden's 2012 "Resultants of Cyclotomic Polynomials"
-            for m in range(1, 50):
-                for n in range(m + 1, 50):
-                    a = flint.fmpz_poly.cyclotomic(m)
-                    b = flint.fmpz_poly.cyclotomic(n)
-                    q, r = divmod(flint.fmpz(n), flint.fmpz(m))
-                    fs = q.factor()
-                    if r != 0 or len(fs) > 1:
-                        assert a.resultant(b) == 1
-                    else:
-                        prime = fs[0][0]
-                        tot = flint.fmpz(m).euler_phi()
-                        assert a.resultant(b) == prime**tot
-
         x = P([0, 1])
 
-        if composite_characteristic and type(x) == flint.fmpz_mod_poly:
-            # Flint crashes in this case, even though the resultant could be
-            # computed.
+        if composite_characteristic and type(x) in [flint.fmpz_mod_poly, flint.nmod_poly]:
+            # Flint sometimes crashes in this case, even though the resultant
+            # could be computed.
             divisor = characteristic.factor()[0][0]
-            if type(x) == flint.fmpz_mod_poly:
-                assert raises(lambda: x.resultant(x + divisor), ValueError)
+            assert raises(lambda: x.resultant(x + divisor), ValueError)
         elif type(x) == flint.fq_default_poly:
             # Flint does not implement resultants over GF(q) for nonprime q, so
             # there's nothing for us to check.
@@ -2872,6 +2854,22 @@ def test_polys():
 
             for k in range(-10, 10):
                 assert x.resultant(x + S(k)) == S(k)
+
+def test_poly_resultants():
+    # Check that the resultant of two cyclotomic polynomials is right.
+    # See Dresden's 2012 "Resultants of Cyclotomic Polynomials"
+    for m in range(1, 50):
+        for n in range(m + 1, 50):
+            a = flint.fmpz_poly.cyclotomic(m)
+            b = flint.fmpz_poly.cyclotomic(n)
+            q, r = divmod(flint.fmpz(n), flint.fmpz(m))
+            fs = q.factor()
+            if r != 0 or len(fs) > 1:
+                assert a.resultant(b) == 1
+            else:
+                prime = fs[0][0]
+                tot = flint.fmpz(m).euler_phi()
+                assert a.resultant(b) == prime**tot
 
 def _all_mpolys():
     return [
@@ -4868,6 +4866,8 @@ all_tests = [
 
     test_polys,
     test_mpolys,
+
+    test_poly_resultants,
 
     test_fmpz_mpoly_vec,
 
