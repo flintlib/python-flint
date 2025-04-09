@@ -162,6 +162,18 @@ CHANGELOG
 Next release (0.8.0)...
 -----------------------
 
+Contributors
+
+- Robert Dougherty-Bliss (RDB)
+
+Changes
+
+- [gh-274](https://github.com/flintlib/python-flint/pull/274),
+  Add resultant methods to `fmpz_poly`, `fmpq_poly` and
+  `nmod_poly`. Now all univariate and polynomial types have the
+  resultant method except for `fq_default_poly`. (RDB)
+
+
 0.7.0
 -----
 
