@@ -41,6 +41,10 @@ def main(version2=None, *filenames):
         with open(filename, "w") as f:
             f.write(text.replace(version1, version2))
 
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("Make sure to remove cpython-prerelease from CI before releasing!")
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
 
 if __name__ == "__main__":
     import sys

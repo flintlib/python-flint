@@ -85,9 +85,6 @@ package = "flint"
 build = "cp311-* cp312-* cp313-* cp313t-* cp314-* cp314t-* pp311-*"
 skip = "*-win32 *-manylinux_i686 *-musllinux_*"
 
-# Enable building for free-threaded CPython builds
-enable = ["cpython-freethreading"]
-
 manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux_2_28"
 manylinux-i686-image = "manylinux2014"
