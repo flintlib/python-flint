@@ -39,6 +39,7 @@ from .types.acb_poly import acb_poly
 from .types.acb_mat import acb_mat
 from .types.acb_series import acb_series
 
+from .types.qfb import qfb
 from .types.dirichlet import dirichlet_char, dirichlet_group
 from .functions.showgood import good, showgood
 
