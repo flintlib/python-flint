@@ -42,10 +42,12 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.23.3
+        uses: pypa/cibuildwheel@90a0ddeff0f23eebc21630e65d66d0f4955e9b94 # v3.0.0b1
         env:
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
+          # XXX: Remove cpython-prerelease when releasing python-flint!
+          CIBW_ENABLE: cpython-freethreading cpython-prerelease pypy
           #
           # Don't need to create pythonXX.a under meson. Not needed any more:
           #   CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel && msys2 -c bin/cibw_before_build_windows.sh
@@ -86,12 +88,13 @@ jobs:
         os: [ubuntu-24.04, ubuntu-24.04-arm, windows-2019, macos-13, macos-14]
         # This list to be kept in sync with cibuildwheel config
         # and python-requires in pyproject.toml.
-        python-version: ['3.11', '3.12', '3.13', '3.13t'] # , 'pypy3.10']
+        python-version: ['3.11', '3.12', '3.13', '3.13t', '3.14', '3.14t', 'pypy3.11']
 
     steps:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
       - uses: actions/download-artifact@v4
         with:
           name: wheels-${{ matrix.os }}
