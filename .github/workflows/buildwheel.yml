@@ -86,12 +86,13 @@ jobs:
         os: [ubuntu-24.04, ubuntu-24.04-arm, windows-2019, macos-13, macos-14]
         # This list to be kept in sync with cibuildwheel config
         # and python-requires in pyproject.toml.
-        python-version: ['3.11', '3.12', '3.13', '3.13t'] # , 'pypy3.10']
+        python-version: ['3.11', '3.12', '3.13', '3.13t', '3.14', '3.14t', 'pypy3.11']
 
     steps:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
       - uses: actions/download-artifact@v4
         with:
           name: wheels-${{ matrix.os }}
