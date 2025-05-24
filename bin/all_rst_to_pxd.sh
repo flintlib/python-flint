@@ -72,7 +72,7 @@ modules=(
     # "dlog"
     # "bool_mat"
     # "perm"
-    # "qfb"
+    "qfb"
     # "nf"
     # "nf_elem"
     # "fmpzi"
