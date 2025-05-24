@@ -47,7 +47,7 @@ jobs:
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
           # XXX: Remove cpython-prerelease when releasing python-flint!
-          CIBW_ENABLE: cpython-freethreading cpython-prerelease
+          CIBW_ENABLE: cpython-freethreading cpython-prerelease pypy
           #
           # Don't need to create pythonXX.a under meson. Not needed any more:
           #   CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel && msys2 -c bin/cibw_before_build_windows.sh
