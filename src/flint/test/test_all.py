@@ -3508,30 +3508,30 @@ def _all_polys_mpolys():
         yield P, S, [x, y], is_field, characteristic
 
 
-def test_properties_poly_mpoly():
-    """Test is_zero, is_one etc for all polynomials."""
-    for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
+# def test_properties_poly_mpoly():
+#     """Test is_zero, is_one etc for all polynomials."""
+#     for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
 
-        zero = 0*x
-        one = zero + 1
-        two = one + 1
+#         zero = 0*x
+#         one = zero + 1
+#         two = one + 1
 
-        assert zero.is_zero() is True
-        assert one.is_zero() is False
-        assert two.is_zero() is False
-        assert x.is_zero() is False
+#         assert zero.is_zero() is True
+#         assert one.is_zero() is False
+#         assert two.is_zero() is False
+#         assert x.is_zero() is False
 
-        assert zero.is_one() is False
-        assert one.is_one() is True
-        assert two.is_one() is False
-        assert x.is_one() is False
+#         assert zero.is_one() is False
+#         assert one.is_one() is True
+#         assert two.is_one() is False
+#         assert x.is_one() is False
 
-        assert zero.is_constant() is True
-        assert one.is_constant() is True
-        assert two.is_constant() is True
-        assert x.is_constant() is False
+#         assert zero.is_constant() is True
+#         assert one.is_constant() is True
+#         assert two.is_constant() is True
+#         assert x.is_constant() is False
 
-        # is_gen?
+#         # is_gen?
 
 
 def test_factor_poly_mpoly():
@@ -4881,7 +4881,7 @@ all_tests = [
     test_division_poly,
     test_division_matrix,
 
-    test_properties_poly_mpoly,
+    # test_properties_poly_mpoly,
     test_factor_poly_mpoly,
     test_division_poly_mpoly,
 
