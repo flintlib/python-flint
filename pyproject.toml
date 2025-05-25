@@ -2,7 +2,7 @@
 name = "python-flint"
 description = "Bindings for FLINT"
 version = "0.7.1"
-# This needs to be in sync with README, cibuildwheel and CI config.
+# This needs to be in sync with README, and CI config.
 requires-python = ">= 3.11"
 authors = [
     {name = "Fredrik Johansson", email = "fredrik.johansson@gmail.com"},
@@ -80,8 +80,6 @@ package = "flint"
 ]
 
 [tool.cibuildwheel]
-# requires-python needs to keep in sync with this and also the list of Python
-# versions the wheels are tested against in CI.
 skip = "*-win32 *-manylinux_i686 *-manylinux_armv7l *-musllinux_*"
 
 # Enable building for free-threaded CPython builds
