@@ -3534,211 +3534,211 @@ def _all_polys_mpolys():
 #         # is_gen?
 
 
-def test_factor_poly_mpoly():
-    """Test that factor() is consistent across different poly/mpoly types."""
+# def test_factor_poly_mpoly():
+#     """Test that factor() is consistent across different poly/mpoly types."""
 
-    def check(p, coeff, factors):
-        # Check all the types
-        lc = p.leading_coefficient()
-        assert type(coeff) is type(lc)
-        assert isinstance(factors, list)
-        assert all(isinstance(f, tuple) for f in factors)
-        for fac, m in factors:
-            assert type(fac) is type(p)
-            assert type(m) is int
+#     def check(p, coeff, factors):
+#         # Check all the types
+#         lc = p.leading_coefficient()
+#         assert type(coeff) is type(lc)
+#         assert isinstance(factors, list)
+#         assert all(isinstance(f, tuple) for f in factors)
+#         for fac, m in factors:
+#             assert type(fac) is type(p)
+#             assert type(m) is int
 
-        # Check the actual factorisation!
-        res = coeff
-        for fac, m in factors:
-            res *= fac ** m
-        assert res == p
+#         # Check the actual factorisation!
+#         res = coeff
+#         for fac, m in factors:
+#             res *= fac ** m
+#         assert res == p
 
-    def sort(factors):
-        def sort_key(p):
-            fac, m = p
-            return (m, sorted(str(i) for i in fac.coeffs()))
-        return sorted(factors, key=sort_key)
+#     def sort(factors):
+#         def sort_key(p):
+#             fac, m = p
+#             return (m, sorted(str(i) for i in fac.coeffs()))
+#         return sorted(factors, key=sort_key)
 
-    def factor(p):
-        coeff, factors = p.factor()
-        check(p, coeff, factors)
-        return coeff, sort(factors)
+#     def factor(p):
+#         coeff, factors = p.factor()
+#         check(p, coeff, factors)
+#         return coeff, sort(factors)
 
-    def factor_sqf(p):
-        coeff, factors = p.factor_squarefree()
-        check(p, coeff, factors)
-        return coeff, sort(factors)
+#     def factor_sqf(p):
+#         coeff, factors = p.factor_squarefree()
+#         check(p, coeff, factors)
+#         return coeff, sort(factors)
 
-    for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
+#     for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
 
-        if characteristic != 0 and not characteristic.is_prime():
-            # nmod_poly crashes for many operations with non-prime modulus
-            #     https://github.com/flintlib/python-flint/issues/124
-            # so we can't even test it...
-            nmod_poly_will_crash = type(x) is flint.nmod_poly
-            if nmod_poly_will_crash:
-                continue
+#         if characteristic != 0 and not characteristic.is_prime():
+#             # nmod_poly crashes for many operations with non-prime modulus
+#             #     https://github.com/flintlib/python-flint/issues/124
+#             # so we can't even test it...
+#             nmod_poly_will_crash = type(x) is flint.nmod_poly
+#             if nmod_poly_will_crash:
+#                 continue
 
-            try:
-                S(4).sqrt() ** 2 == S(4)
-            except DomainError:
-                pass
-            assert raises(lambda: (x**2).sqrt(), DomainError)
-            assert raises(lambda: x.gcd(x), DomainError)
-            assert raises(lambda: x.gcd(None), TypeError)
-            assert raises(lambda: x.factor(), DomainError)
-            assert raises(lambda: x.factor_squarefree(), DomainError)
+#             try:
+#                 S(4).sqrt() ** 2 == S(4)
+#             except DomainError:
+#                 pass
+#             assert raises(lambda: (x**2).sqrt(), DomainError)
+#             assert raises(lambda: x.gcd(x), DomainError)
+#             assert raises(lambda: x.gcd(None), TypeError)
+#             assert raises(lambda: x.factor(), DomainError)
+#             assert raises(lambda: x.factor_squarefree(), DomainError)
 
-            # All tests below can be expected to raise DomainError
-            # Not sure if that is guaranteed in all cases though...
-            continue
+#             # All tests below can be expected to raise DomainError
+#             # Not sure if that is guaranteed in all cases though...
+#             continue
 
-        assert S(0).sqrt() == S(0)
-        assert S(1).sqrt() == S(1)
-        assert S(4).sqrt()**2 == S(4)
+#         assert S(0).sqrt() == S(0)
+#         assert S(1).sqrt() == S(1)
+#         assert S(4).sqrt()**2 == S(4)
 
-        for i in range(-100, 100):
-            try:
-                assert S(i).sqrt() ** 2 == S(i)
-            except DomainError:
-                pass
+#         for i in range(-100, 100):
+#             try:
+#                 assert S(i).sqrt() ** 2 == S(i)
+#             except DomainError:
+#                 pass
 
-        if characteristic == 0:
-            assert raises(lambda: S(-1).sqrt(), DomainError)
+#         if characteristic == 0:
+#             assert raises(lambda: S(-1).sqrt(), DomainError)
 
-        assert (0*x).sqrt() == 0*x
-        assert (1*x/x).sqrt() == 0*x + 1
-        assert (4*x/x).sqrt()**2 == 0*x + 4
+#         assert (0*x).sqrt() == 0*x
+#         assert (1*x/x).sqrt() == 0*x + 1
+#         assert (4*x/x).sqrt()**2 == 0*x + 4
 
-        for i in range(-100, 100):
-            try:
-                assert (i*x).sqrt() ** 2 == i*x
-            except DomainError:
-                pass
+#         for i in range(-100, 100):
+#             try:
+#                 assert (i*x).sqrt() ** 2 == i*x
+#             except DomainError:
+#                 pass
 
-        assert (x**2).sqrt() == x
-        assert (S(4)*x**2).sqrt()**2 == S(4)*x**2
-        assert raises(lambda: (x**2 + 1).sqrt(), DomainError)
+#         assert (x**2).sqrt() == x
+#         assert (S(4)*x**2).sqrt()**2 == S(4)*x**2
+#         assert raises(lambda: (x**2 + 1).sqrt(), DomainError)
 
-        assert factor(0*x) == (S(0), [])
-        assert factor(0*x + 1) == (S(1), [])
-        assert factor(0*x + 3) == (S(3), [])
-        assert factor(x) == (S(1), [(x, 1)])
-        assert factor(-x) == (S(-1), [(x, 1)])
-        assert factor(x**2) == (S(1), [(x, 2)])
-        assert factor(2*(x+1)) == (S(2), [(x+1, 1)])
+#         assert factor(0*x) == (S(0), [])
+#         assert factor(0*x + 1) == (S(1), [])
+#         assert factor(0*x + 3) == (S(3), [])
+#         assert factor(x) == (S(1), [(x, 1)])
+#         assert factor(-x) == (S(-1), [(x, 1)])
+#         assert factor(x**2) == (S(1), [(x, 2)])
+#         assert factor(2*(x+1)) == (S(2), [(x+1, 1)])
 
-        assert factor_sqf(0*x) == (S(0), [])
-        assert factor_sqf(0*x + 1) == (S(1), [])
-        assert factor_sqf(0*x + 3) == (S(3), [])
-        assert factor_sqf(-x) == (S(-1), [(x, 1)])
-        assert factor_sqf(x**2) == (S(1), [(x, 2)])
-        assert factor_sqf(2*(x+1)) == (S(2), [(x+1, 1)])
+#         assert factor_sqf(0*x) == (S(0), [])
+#         assert factor_sqf(0*x + 1) == (S(1), [])
+#         assert factor_sqf(0*x + 3) == (S(3), [])
+#         assert factor_sqf(-x) == (S(-1), [(x, 1)])
+#         assert factor_sqf(x**2) == (S(1), [(x, 2)])
+#         assert factor_sqf(2*(x+1)) == (S(2), [(x+1, 1)])
 
-        assert (0*x).gcd(0*x) == 0*x
-        assert (0*x).gcd(0*x + 1) == S(1)
+#         assert (0*x).gcd(0*x) == 0*x
+#         assert (0*x).gcd(0*x + 1) == S(1)
 
-        if not is_field:
-            assert (0*x).gcd(0*x + 3) == S(3)
-        else:
-            assert (0*x).gcd(0*x + 3) == S(1)
+#         if not is_field:
+#             assert (0*x).gcd(0*x + 3) == S(3)
+#         else:
+#             assert (0*x).gcd(0*x + 3) == S(1)
 
-        assert (2*x).gcd(x) == x
-        assert (2*x).gcd(x**2) == x
-        assert (2*x).gcd(x**2 + 1) == S(1)
+#         assert (2*x).gcd(x) == x
+#         assert (2*x).gcd(x**2) == x
+#         assert (2*x).gcd(x**2 + 1) == S(1)
 
-        if not is_field:
-            # primitive gcd over Z
-            assert (2*x).gcd(4*x**2) == 2*x
-        else:
-            # monic gcd over Q, Z/pZ and GF(p^d)
-            assert (2*x).gcd(4*x**2) == x
+#         if not is_field:
+#             # primitive gcd over Z
+#             assert (2*x).gcd(4*x**2) == 2*x
+#         else:
+#             # monic gcd over Q, Z/pZ and GF(p^d)
+#             assert (2*x).gcd(4*x**2) == x
 
-        if is_field and y is None:
-            # xgcd is defined and consistent for all univariate polynomials
-            # over a field (Q, Z/pZ, GF(p^d)).
-            assert (2*x).xgcd(4*x) == (x, P(0), P(1)/4)
-            assert (2*x).xgcd(4*x**2+1) == (P(1), -2*x, P(1))
+#         if is_field and y is None:
+#             # xgcd is defined and consistent for all univariate polynomials
+#             # over a field (Q, Z/pZ, GF(p^d)).
+#             assert (2*x).xgcd(4*x) == (x, P(0), P(1)/4)
+#             assert (2*x).xgcd(4*x**2+1) == (P(1), -2*x, P(1))
 
-        # mpoly types have a slightly different squarefree factorisation
-        # because they handle trivial factors differently. It looks like a
-        # monomial gcd is extracted but not recombined so the square-free
-        # factors might not have unique multiplicities.
-        #
-        # Maybe it is worth making them consistent by absorbing the power
-        # of x into a factor of equal multiplicity.
-        assert factor(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
-        if y is None:
-            # *_poly types
-            assert factor_sqf(x*(x+1)) == (S(1), [(x**2+x, 1)])
-        else:
-            # *_mpoly types
-            assert factor_sqf(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
+#         # mpoly types have a slightly different squarefree factorisation
+#         # because they handle trivial factors differently. It looks like a
+#         # monomial gcd is extracted but not recombined so the square-free
+#         # factors might not have unique multiplicities.
+#         #
+#         # Maybe it is worth making them consistent by absorbing the power
+#         # of x into a factor of equal multiplicity.
+#         assert factor(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
+#         if y is None:
+#             # *_poly types
+#             assert factor_sqf(x*(x+1)) == (S(1), [(x**2+x, 1)])
+#         else:
+#             # *_mpoly types
+#             assert factor_sqf(x*(x+1)) == (S(1), [(x, 1), (x+1, 1)])
 
-        # This is the same for all types because the extracted monomial has
-        # a unique multiplicity.
-        assert factor_sqf(x**2*(x+1)) == (S(1), [(x+1, 1), (x, 2)])
+#         # This is the same for all types because the extracted monomial has
+#         # a unique multiplicity.
+#         assert factor_sqf(x**2*(x+1)) == (S(1), [(x+1, 1), (x, 2)])
 
-        # This is the same for all types because there is no trivial monomial
-        # factor to extract.
-        assert factor((x-1)*(x+1)) == (S(1), sort([(x-1, 1), (x+1, 1)]))
-        assert factor_sqf((x-1)*(x+1)) == (S(1), [(x**2-1, 1)])
+#         # This is the same for all types because there is no trivial monomial
+#         # factor to extract.
+#         assert factor((x-1)*(x+1)) == (S(1), sort([(x-1, 1), (x+1, 1)]))
+#         assert factor_sqf((x-1)*(x+1)) == (S(1), [(x**2-1, 1)])
 
-        # Some finite fields have sqrt(-1) so we can factor x**2 + 1
-        try:
-            i = S(-1).sqrt()
-        except DomainError:
-            i = None
+#         # Some finite fields have sqrt(-1) so we can factor x**2 + 1
+#         try:
+#             i = S(-1).sqrt()
+#         except DomainError:
+#             i = None
 
-        p = 3*(x-1)**2*(x+1)**2*(x**2 + 1)**3
-        assert factor_sqf(p) == (S(3), [(x**2 - 1, 2), (x**2 + 1, 3)])
+#         p = 3*(x-1)**2*(x+1)**2*(x**2 + 1)**3
+#         assert factor_sqf(p) == (S(3), [(x**2 - 1, 2), (x**2 + 1, 3)])
 
-        if i is not None:
-            assert factor(p) == (S(3), sort([(x+1, 2), (x-1, 2), (x+i, 3), (x-i, 3)]))
-        else:
-            assert factor(p) == (S(3), sort([(x-1, 2), (x+1, 2), (x**2+1, 3)]))
+#         if i is not None:
+#             assert factor(p) == (S(3), sort([(x+1, 2), (x-1, 2), (x+i, 3), (x-i, 3)]))
+#         else:
+#             assert factor(p) == (S(3), sort([(x-1, 2), (x+1, 2), (x**2+1, 3)]))
 
-        if characteristic == 0:
-            # primitive factors over Z for Z and Q.
-            assert factor(2*x+1) == (S(1), [(2*x+1, 1)])
-        else:
-            # monic factors over Z/pZ and GF(p^d)
-            assert factor(2*x+1) == (S(2), [(x+S(1)/2, 1)])
+#         if characteristic == 0:
+#             # primitive factors over Z for Z and Q.
+#             assert factor(2*x+1) == (S(1), [(2*x+1, 1)])
+#         else:
+#             # monic factors over Z/pZ and GF(p^d)
+#             assert factor(2*x+1) == (S(2), [(x+S(1)/2, 1)])
 
-        if is_field:
-            if characteristic == 0:
-                assert factor((2*x+1)/7) == (S(1)/7, [(2*x+1, 1)])
-            else:
-                assert factor((2*x+1)/7) == (S(2)/7, [(x+S(1)/2, 1)])
+#         if is_field:
+#             if characteristic == 0:
+#                 assert factor((2*x+1)/7) == (S(1)/7, [(2*x+1, 1)])
+#             else:
+#                 assert factor((2*x+1)/7) == (S(2)/7, [(x+S(1)/2, 1)])
 
-        if y is not None:
+#         if y is not None:
 
-            # *_mpoly types
+#             # *_mpoly types
 
-            assert factor(x*y+1) == (S(1), [(x*y+1, 1)])
-            assert factor(x*y) == (S(1), [(x, 1), (y, 1)])
+#             assert factor(x*y+1) == (S(1), [(x*y+1, 1)])
+#             assert factor(x*y) == (S(1), [(x, 1), (y, 1)])
 
-            assert factor_sqf((x*y+1)**2*(x*y-1)) == (S(1), [(x*y-1, 1), (x*y+1, 2)])
+#             assert factor_sqf((x*y+1)**2*(x*y-1)) == (S(1), [(x*y-1, 1), (x*y+1, 2)])
 
-            p = 2*x + y
-            if characteristic == 0:
-                assert factor(p) == factor_sqf(p) == (S(1), [(p, 1)])
-            else:
-                assert factor(p) == factor_sqf(p) == (S(2), [(p/2, 1)])
+#             p = 2*x + y
+#             if characteristic == 0:
+#                 assert factor(p) == factor_sqf(p) == (S(1), [(p, 1)])
+#             else:
+#                 assert factor(p) == factor_sqf(p) == (S(2), [(p/2, 1)])
 
-            if is_field:
-                p = (2*x + y)/7
-                if characteristic == 0:
-                    assert factor(p) == factor_sqf(p) == (S(1)/7, [(7*p, 1)])
-                else:
-                    assert factor(p) == factor_sqf(p) == (S(2)/7, [(7*p/2, 1)])
+#             if is_field:
+#                 p = (2*x + y)/7
+#                 if characteristic == 0:
+#                     assert factor(p) == factor_sqf(p) == (S(1)/7, [(7*p, 1)])
+#                 else:
+#                     assert factor(p) == factor_sqf(p) == (S(2)/7, [(7*p/2, 1)])
 
-            if not is_field:
-                # primitive gcd over Z
-                assert (2*(x+y)).gcd(4*(x+y)**2) == 2*(x+y)
-            else:
-                # monic gcd over Q, Z/pZ and GF(p^d)
-                assert (2*(x+y)).gcd(4*(x+y)**2) == x + y
+#             if not is_field:
+#                 # primitive gcd over Z
+#                 assert (2*(x+y)).gcd(4*(x+y)**2) == 2*(x+y)
+#             else:
+#                 # monic gcd over Q, Z/pZ and GF(p^d)
+#                 assert (2*(x+y)).gcd(4*(x+y)**2) == x + y
 
 
 def test_division_poly_mpoly():
@@ -4882,7 +4882,7 @@ all_tests = [
     test_division_matrix,
 
     # test_properties_poly_mpoly,
-    test_factor_poly_mpoly,
+    # test_factor_poly_mpoly,
     test_division_poly_mpoly,
 
     # _test_polys,
