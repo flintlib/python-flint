@@ -119,6 +119,12 @@ jobs:
           path: ${{ github.workspace }}/wasm-library-dir
           key: wasm-library-dir-${{ hashFiles('.github/workflows/ci-emscripten.yml') }}
 
+      - name: Restore python-flint build directory from cache
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        with:
+          path: ${{ github.workspace }}/flint_wasm_build
+          key: flint-wasm-build-${{ hashFiles('**/meson.build', '**/pyproject.toml', '**/setup.py') }}
+
       - name: Build python-flint
         env:
           WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
@@ -135,7 +141,13 @@ jobs:
           pkg-config --modversion mpfr
           pkg-config --modversion flint
 
-          pyodide build
+          pyodide build -Cbuild-dir=flint_wasm_build
+
+      - name: Persist python-flint build directory to cache
+        uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        with:
+          path: ${{ github.workspace }}/flint_wasm_build
+          key: flint-wasm-build-${{ hashFiles('**/meson.build', '**/pyproject.toml', '**/setup.py') }}
 
       - name: Set up Pyodide virtual environment and test python-flint
         run: |
