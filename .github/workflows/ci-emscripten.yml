@@ -43,7 +43,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install pyodide-build
-        run: pip install pyodide-build
+        run: |
+          pip install pyodide-build
+          pyodide xbuildenv install ${{ env.PYODIDE_VERSION }}
 
       - name: Restore WASM library directory from cache
         id: cache-wasm-library-dir
@@ -141,7 +143,6 @@ jobs:
 
       - name: Set up Pyodide virtual environment and test python-flint
         run: |
-          pyodide xbuildenv install ${{ env.PYODIDE_VERSION }}
           pyodide venv .venv-pyodide
 
           source .venv-pyodide/bin/activate
