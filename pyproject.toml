@@ -28,16 +28,16 @@ content-type = "text/markdown"
 # Minimum build requirements tested in CI need to be kept in sync with the
 # versions in requires below so that they are tested.
 #
-# To support the freethreaded build (CPython 3.13t) the alpha release 3.1.0a1
-# of Cython is needed as a minimum requirement. It is possible that future
-# versions of Cython might still work but typically a Cython release breaks
-# something in the build of python-flint so we pin the exact version here.
+# To support the freethreaded build (CPython 3.13t) version 3.1.0 of Cython is
+# needed as a minimum requirement. It is possible that future versions of
+# Cython might still work but typically a Cython release breaks something in
+# the build of python-flint so we include an upper bound here.
 #
 # Apart from the freethreading build any Cython version from 3.0.11 onwards is
 # fine. It is not possible to have a separate version constraint here for the
 # freethreading build only though.
 #
-requires = ["meson-python>=0.13", "cython==3.1.0a1"]
+requires = ["meson-python >= 0.13", "cython >=3.1,<3.2"]
 build-backend = "mesonpy"
 
 [tool.cython-lint]
@@ -82,7 +82,7 @@ package = "flint"
 [tool.cibuildwheel]
 # requires-python needs to keep in sync with this and also the list of Python
 # versions the wheels are tested against in CI.
-build = "cp311-* cp312-* cp313-* cp313t-*" # pp311-*"
+build = "cp311-* cp312-* cp313-* cp313t-* pp311-*"
 skip = "*-win32 *-manylinux_i686 *-musllinux_*"
 
 # Enable building for free-threaded CPython builds
