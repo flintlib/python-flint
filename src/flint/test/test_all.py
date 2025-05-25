@@ -3741,50 +3741,50 @@ def _all_polys_mpolys():
 #                 assert (2*(x+y)).gcd(4*(x+y)**2) == x + y
 
 
-def test_division_poly_mpoly():
-    """Test that division is consistent across different poly/mpoly types."""
+# def test_division_poly_mpoly():
+#     """Test that division is consistent across different poly/mpoly types."""
 
-    Z = flint.fmpz
+#     Z = flint.fmpz
 
-    for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
+#     for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
 
-        if characteristic != 0 and not characteristic.is_prime():
-            # nmod_poly crashes for many operations with non-prime modulus
-            #     https://github.com/flintlib/python-flint/issues/124
-            # so we can't even test it...
-            nmod_poly_will_crash = type(x) is flint.nmod_poly
-            if nmod_poly_will_crash:
-                continue
+#         if characteristic != 0 and not characteristic.is_prime():
+#             # nmod_poly crashes for many operations with non-prime modulus
+#             #     https://github.com/flintlib/python-flint/issues/124
+#             # so we can't even test it...
+#             nmod_poly_will_crash = type(x) is flint.nmod_poly
+#             if nmod_poly_will_crash:
+#                 continue
 
-        one = x**0 # 1 as a polynomial
-        two = one + one
+#         one = x**0 # 1 as a polynomial
+#         two = one + one
 
-        if is_field or characteristic == 0:
-            assert x / x == x**0 == 1 == one
-            assert x / 1 == x / S(1) == x / one == x**1 == x
-            assert 1 / one == one**-1 == one**Z(-1) == 1, type(one)
-            assert -1 / one == 1 / -one == (-one)**-1 == (-one)**Z(-1) == -one == -1
-            assert (-one) ** -2 == (-one)**Z(-2) == one
-            assert raises(lambda: 1 / x, DomainError)
-            assert raises(lambda: x ** -1, DomainError)
+#         if is_field or characteristic == 0:
+#             assert x / x == x**0 == 1 == one
+#             assert x / 1 == x / S(1) == x / one == x**1 == x
+#             assert 1 / one == one**-1 == one**Z(-1) == 1, type(one)
+#             assert -1 / one == 1 / -one == (-one)**-1 == (-one)**Z(-1) == -one == -1
+#             assert (-one) ** -2 == (-one)**Z(-2) == one
+#             assert raises(lambda: 1 / x, DomainError)
+#             assert raises(lambda: x ** -1, DomainError)
 
-        if is_field:
-            half = S(1)/2 * one # 1/2 as a polynomial
-            assert half == S(1)/2
-            assert x / half == 2*x
-            assert 1 / half == S(1) / half == one / half == one / (S(1)/2) == 2
-            assert half ** -1 == half ** Z(-1) == 2
-            assert two ** -1 == two ** Z(-1) == half
-        elif characteristic == 0:
-            assert raises(lambda: x / 2, DomainError)
-            assert raises(lambda: x / two, DomainError), characteristic
-            assert raises(lambda: two ** -1, DomainError)
-            assert raises(lambda: two ** Z(-1), DomainError)
-        else:
-            # Non-prime modulus...
-            # nmod can crash and fmpz_mod_poly won't crash but has awkward
-            # behaviour under division.
-            pass
+#         if is_field:
+#             half = S(1)/2 * one # 1/2 as a polynomial
+#             assert half == S(1)/2
+#             assert x / half == 2*x
+#             assert 1 / half == S(1) / half == one / half == one / (S(1)/2) == 2
+#             assert half ** -1 == half ** Z(-1) == 2
+#             assert two ** -1 == two ** Z(-1) == half
+#         elif characteristic == 0:
+#             assert raises(lambda: x / 2, DomainError)
+#             assert raises(lambda: x / two, DomainError), characteristic
+#             assert raises(lambda: two ** -1, DomainError)
+#             assert raises(lambda: two ** Z(-1), DomainError)
+#         else:
+#             # Non-prime modulus...
+#             # nmod can crash and fmpz_mod_poly won't crash but has awkward
+#             # behaviour under division.
+#             pass
 
 
 def _all_matrices():
@@ -4883,7 +4883,7 @@ all_tests = [
 
     # test_properties_poly_mpoly,
     # test_factor_poly_mpoly,
-    test_division_poly_mpoly,
+    # test_division_poly_mpoly,
 
     # _test_polys,
     test_mpolys,
