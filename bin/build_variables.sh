@@ -20,5 +20,5 @@ MPIRVER=3.0.0 # MPIR build no longer works (not clear where to download from)
 
 # These are the actual dependencies used (at least by default):
 GMPVER=6.3.0
-MPFRVER=4.1.0
-FLINTVER='3.2.0'
+MPFRVER=4.2.2
+FLINTVER='3.2.2'
