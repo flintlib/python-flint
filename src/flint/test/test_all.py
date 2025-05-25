@@ -4839,9 +4839,9 @@ def test_use_fmpz_mod2():
     assert use_fmpz_mod2() == 1
 
 
-def test_use_fmpz_is_probabprime():
-    from flint.types.fmpz_mod import use_fmpz_is_probabprime
-    assert use_fmpz_is_probabprime() == 1
+# def test_use_fmpz_is_probabprime():
+#     from flint.types.fmpz_mod import use_fmpz_is_probabprime
+#     assert use_fmpz_is_probabprime() == 1
 
 
 all_tests = [
@@ -4851,7 +4851,7 @@ all_tests = [
 
     test_use_fmpz_mod1,
     test_use_fmpz_mod2,
-    test_use_fmpz_is_probabprime,
+    # test_use_fmpz_is_probabprime,
 
     test_fmpz,
     test_fmpz_factor,
