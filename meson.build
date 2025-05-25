@@ -14,7 +14,7 @@ project(
 flint_lower = '>=3.0'
 flint_upper = '<3.3'
 cython_lower = '>=3.0.11'
-cython_upper = '<3.2'
+cython_upper = '<=3.1.0a1'
 
 py = import('python').find_installation(pure: false)
 dep_py = py.dependency()
@@ -82,6 +82,17 @@ add_project_arguments(
     '-X', 'emit_code_comments=True',
     language : 'cython'
 )
+
+# Enable free-threading if Cython is new enough. The check should be
+# >= 3.1.0a1 but meson gets confused by the a1 alpha release suffix.
+# so we go with >= 3.1 (which will be correct once 3.1 is released).
+cy = meson.get_compiler('cython')
+if cy.version().version_compare('>=3.1')
+  message('Enabling freethreading')
+  add_project_arguments('-Xfreethreading_compatible=true', language : 'cython')
+else
+  message('Disabling freethreading')
+endif
 
 if get_option('coverage')
    add_project_arguments('-X', 'linetrace=True', language : 'cython')

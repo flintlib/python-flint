@@ -642,7 +642,8 @@ cdef class fq_default_poly(flint_poly):
 
         cdef fq_default_poly res
         if e < 0:
-            raise ValueError("Exponent must be non-negative")
+            self = 1 / self
+            e = -e
 
         if e == 2:
             return self.square()

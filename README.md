@@ -18,19 +18,20 @@ Author: Fredrik Johansson <fredrik.johansson@gmail.com>
 Installation
 ------------
 
-Currently python-flint supports CPython versions 3.10-3.13. For Windows
-(x86-64) or OSX (x86-64 or arm64) or Linux (x86-64 `manylinux_2_17`) there are
-CPython binary wheels for python-flint on PyPI. For these platforms
-python-flint can be installed simply with `pip`
+Currently python-flint supports CPython versions 3.11-3.13 and 3.13t
+(free-threaded) and provides binaries on PyPI for the following platforms:
+
+- Windows (x86-64)
+- MacOS (x86-64, arm64)
+- Linux (manylinux: x86-64, aarch64)
+
+For these platforms python-flint can be installed simply with `pip`
 
     pip install python-flint
 
 Alternatively python-flint can be installed using `conda`
 
     conda install -c conda-forge python-flint
-
-It is also possible to use python-flint with some PyPy versions. Binary wheels
-are not provided for this on PyPI but can be installed with conda.
 
 Build from source
 -----------------
@@ -118,7 +119,9 @@ To do
 -------------------------------------
 
 * Write more tests and add missing docstrings
-* Wrap missing flint types: finite fields, p-adic numbers, rational functions
+* Wrap missing flint types: matrices over finite fields, p-adic numbers, rational functions
+* Build on the preliminary interface to FLINT's generic (gr) types.
+* Make a nicer interface like `ZZ(1)` etc rather than `fmpz_poly([1, 2])`.
 * Vector or array types (maybe)
 * Many convenience methods
 * Write generic implementations of functions missing for specific FLINT types
@@ -140,24 +143,39 @@ supports all versions of Flint `>=3.0` available at the time of release.
 
 Compatible versions (note that 0.7.0 is not yet released):
 
-| python-flint | Release date | CPython     | FLINT      | Cython     |
-|--------------|--------------|-------------|------------|------------|
-| `0.7.0`      | Not yet      | `3.10-3.13` | `3.0-3.2?` | `3.0-3.1?` |
-| `0.6.0`      | 1st Feb 2024 | `3.9-3.12`  | `3.0` only | `3.0` only |
+| python-flint | Release date  | CPython     | FLINT      | Cython           |
+|--------------|---------------|-------------|------------|------------------|
+| `0.7.0`      | 16th Mar 2025 | `3.11-3.13` | `3.0-3.2`  | `3.0.11-3.1.0a1` |
+| `0.6.0`      |  1st Feb 2024 | `3.9-3.12`  | `3.0` only | `3.0` only       |
 
-As of python-flint 0.7.0, CPython 3.13 free-threaded builds are tested in CI
-but wheels are not provided on PyPI. There are no known issues related to using
-python-flint in a [PEP 703](https://peps.python.org/pep-0703/) free-threaded
-build but it is likely that mutating objects from multiple threads is not safe.
-
-Binary wheels are not yet provided for Linux aarch64
-([gh-105](https://github.com/flintlib/python-flint/issues/105)) or for Windows
-on ARM but may be added when CI runners for Linux/Windows are available.
+As of python-flint 0.7.0, CPython 3.13 [PEP
+703](https://peps.python.org/pep-0703/) free-threaded (no-GIL) builds of
+python-flint are provided. In the the free-threaded build, mutating matrices or
+polynomials from multiple threads can lead to memory corruption. Provided
+matrices or polynomials are not mutated when shared across threads there are no
+known issues with the free-threaded build but these should be considered
+experimental.
 
 CHANGELOG
--------------
+=========
 
-Next release (0.7.0)...
+Next release (0.8.0)...
+-----------------------
+
+Contributors
+
+- Robert Dougherty-Bliss (RDB)
+
+Changes
+
+- [gh-274](https://github.com/flintlib/python-flint/pull/274),
+  Add resultant methods to `fmpz_poly`, `fmpq_poly` and
+  `nmod_poly`. Now all univariate and polynomial types have the
+  resultant method except for `fq_default_poly`. (RDB)
+
+
+0.7.0
+-----
 
 Contributors (0.7.0):
 
@@ -167,13 +185,21 @@ Contributors (0.7.0):
 - Edgar Costa (EC)
 - Frédéric Chapoton (FC)
 - Oscar Benjamin (OB)
+- Tom Hubrecht (TH)
 
 Highlights (0.7.0):
 
+- [gh-270](https://github.com/flintlib/python-flint/pull/270),
+  PyPI packages are now built with FLINT 3.2.0 (previously
+  3.0.1 was used). All versions from FLINT 3.0.0 to FLINT 3.2.0
+  are compatible with python-flint but some features require
+  newer FLINT versions and the PyPI packages now use FLINT 3.2.0.
 - [gh-97](https://github.com/flintlib/python-flint/pull/97),
   [gh-182](https://github.com/flintlib/python-flint/pull/180):
   Add `fq_default` and `fq_default_poly` for finite fields and
-  univariate polynomials over finite fields. (GP)
+  univariate polynomials over finite fields. This exposes all
+  of the different implementations of finite fields (`fq_zech`,
+  `fq_nmod` etc) via the `fq_default` interface. (GP)
 - [gh-132](https://github.com/flintlib/python-flint/pull/132),
   [gh-164](https://github.com/flintlib/python-flint/pull/164),
   [gh-190](https://github.com/flintlib/python-flint/pull/190),
@@ -181,6 +207,7 @@ Highlights (0.7.0):
   [gh-192](https://github.com/flintlib/python-flint/pull/192):
   [gh-216](https://github.com/flintlib/python-flint/pull/216):
   [gh-225](https://github.com/flintlib/python-flint/pull/225):
+  [gh-228](https://github.com/flintlib/python-flint/pull/228):
   Add `fmpz_mpoly`, `fmpq_mpoly`, `nmod_poly` and `fmpz_mod_poly`
   types for multivariate polynomials with integer, rational or
   integers mod `n` coefficients. (JM)
@@ -189,12 +216,14 @@ Highlights (0.7.0):
   functions](https://flintlib.org/doc/acb_theta.html) (only
   available for `Flint >= 3.1`). (EC)
 - [gh-218](https://github.com/flintlib/python-flint/pull/218)
+  [gh-254](https://github.com/flintlib/python-flint/pull/254)
+  [gh-255](https://github.com/flintlib/python-flint/pull/255)
   An experimental interface for FLINT's generic rings has been
   added. This provides access to many of FLINT's types that
   are not yet wrapped by python-flint such as Gaussian integer,
   number fields, qqbar, calcium, as well as both univariate and
   multivariate polynomials and series over these rings (no
-  matrices yet though). (OB)
+  matrices yet though). (OB and TH)
 - [gh-129](https://github.com/flintlib/python-flint/pull/129)
   [gh-208](https://github.com/flintlib/python-flint/pull/208)
   Use meson/meson-python instead of setuptools as the build system
@@ -205,6 +234,12 @@ Highlights (0.7.0):
   The documentation has been updated and is now at
   [readthedocs](https://python-flint.readthedocs.io/en/latest/).
   (OB)
+  [gh-235](https://github.com/flintlib/python-flint/pull/235)
+  Nightly wheels for python-flint can now be installed from the
+  [Anaconda Scientific Python Nightly Wheels index]
+  (https://anaconda.org/scientific-python-nightly-wheels/python-flint).
+  [gh-259](https://github.com/flintlib/python-flint/pull/259)
+  Add PyPI wheels for Linux aarch64 (Linux on ARM CPU). (OB)
 
 Compatibility break (0.7.0):
 
@@ -216,6 +251,18 @@ Compatibility break (0.7.0):
 
 Other changes (0.7.0):
 
+- [gh-269](https://github.com/flintlib/python-flint/pull/269)
+  All univariate and multivariate polynomial types have
+  `is_zero`, `is_one` and `is_constant` methods. All polynomial
+  types now consistently handle negative powers where possible.
+- [gh-261](https://github.com/flintlib/python-flint/pull/261)
+  Add `fmpz_mat.fflu` for fraction-free LU decomposition of
+  an integer matrix.
+- [gh-251](https://github.com/flintlib/python-flint/pull/251)
+  Add mpmath-style precision context managers for arb
+  `extraprec`, `extradps`, `workprec` and `workdps`. (TH)
+- [gh-250](https://github.com/flintlib/python-flint/pull/250)
+  Add `fmpq.gcd()` method.
 - [gh-215](https://github.com/flintlib/python-flint/pull/215)
   [gh-219](https://github.com/flintlib/python-flint/pull/219)
   The FLINT binding declarations are now fully generated
@@ -227,6 +274,7 @@ Other changes (0.7.0):
   [gh-207](https://github.com/flintlib/python-flint/pull/207)
   [gh-211](https://github.com/flintlib/python-flint/pull/211)
   [gh-212](https://github.com/flintlib/python-flint/pull/212)
+  [gh-271](https://github.com/flintlib/python-flint/pull/271)
   Various linting fixes and codebase improvements (FC and GP).
 - [gh-189](https://github.com/flintlib/python-flint/pull/189)
   All scalar and poly types now have `sqrt`. All poly types now
@@ -258,9 +306,6 @@ Other changes (0.7.0):
   Add `acb.lerch_phi` to compute the Lerch transcendent. (OB)
 - [gh-160](https://github.com/flintlib/python-flint/pull/160)
   Add `bits` to `arb` and `acb`, add `log_base` to `arb`. (JR)
-- [gh-149](https://github.com/flintlib/python-flint/pull/149)
-  Bump Flint version to 3.1.3-p1 (Flint 3.0.0 - 3.1.3-p1 is
-  supported but the wheels are built with 3.1.3-p1). (OB)
 - [gh-148](https://github.com/flintlib/python-flint/pull/148)
   Remove debug symbols to make smaller Linux binaries. (OB)
 - [gh-144](https://github.com/flintlib/python-flint/pull/144)
@@ -271,6 +316,7 @@ Other changes (0.7.0):
   Add compatibility with Flint 3.1. (OB)
 
 0.6.0
+-----
 
 - [gh-112](https://github.com/flintlib/python-flint/issues/112),
   [gh-111](https://github.com/flintlib/python-flint/issues/111),
@@ -292,6 +338,7 @@ Other changes (0.7.0):
   Bump Flint from 3.0.0 to 3.0.1
 
 0.5.0
+-----
 
 Important compatibility changes:
 
@@ -322,6 +369,7 @@ Bug fixes:
   minor fixes for the `nmod` type.
 
 0.4.4
+-----
 
 - [gh-75](https://github.com/flintlib/python-flint/issues/75),
   [gh-77](https://github.com/flintlib/python-flint/issues/77):
@@ -342,6 +390,7 @@ Bug fixes:
   Continue refactoring job to introduce submodules into `python-flint`
 
 0.4.3
+-----
 
 - [gh-63](https://github.com/flintlib/python-flint/issues/63):
   The `roots` method of `arb_poly`, and `nmod_poly` is no longer
@@ -353,17 +402,20 @@ Bug fixes:
   Start refactoring job to introduce submodules into `python-flint`
 
 0.4.2
+-----
 
 - [gh-57](https://github.com/flintlib/python-flint/issues/57):
   Adds manylinux wheels
 
 0.4.1
+-----
 
 - [gh-47](https://github.com/flintlib/python-flint/issues/47):
   Removes Linux wheels, updates instructions for building from
   source.
 
 0.4.0
+-----
 
 - [gh-45](https://github.com/flintlib/python-flint/issues/45):
   Adds wheels for Windows, OSX and manylinux but the Linux wheels

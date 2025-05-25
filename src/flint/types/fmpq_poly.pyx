@@ -171,10 +171,28 @@ cdef class fmpq_poly(flint_poly):
         return not fmpq_poly_is_zero(self.val)
 
     def is_zero(self):
+        """
+        Returns True if this is the zero polynomial.
+        """
         return <bint>fmpq_poly_is_zero(self.val)
 
     def is_one(self):
+        """
+        Returns True if this polynomial is equal to 1.
+        """
         return <bint>fmpq_poly_is_one(self.val)
+
+    def is_constant(self):
+        """
+        Returns True if this polynomial is a scalar (constant).
+
+        >>> f = fmpq_poly([0, 1])
+        >>> f
+        x
+        >>> f.is_constant()
+        False
+        """
+        return fmpq_poly_degree(self.val) <= 0
 
     def leading_coefficient(self):
         """
@@ -374,7 +392,8 @@ cdef class fmpq_poly(flint_poly):
         if mod is not None:
             raise NotImplementedError("fmpz_poly modular exponentiation")
         if exp < 0:
-            raise ValueError("fmpq_poly negative exponent")
+            self = 1 / self
+            exp = -exp
         res = fmpq_poly.__new__(fmpq_poly)
         fmpq_poly_pow(res.val, self.val, <ulong>exp)
         return res
@@ -394,6 +413,32 @@ cdef class fmpq_poly(flint_poly):
             raise TypeError("cannot convert input to fmpq_poly")
         res = fmpq_poly.__new__(fmpq_poly)
         fmpq_poly_gcd(res.val, self.val, (<fmpq_poly>other).val)
+        return res
+
+    def resultant(self, other):
+        """
+        Returns the resultant of *self* and *other*.
+
+            >>> A = fmpq_poly([1, 0, -1]); B = fmpq_poly([1, -1])
+            >>> A.resultant(B)
+            0
+            >>> C = fmpq_poly([1, 0, 0, 0, 0, -1, 1])
+            >>> D = fmpq_poly([1, 0, 0, -1, 0, 0, 1])
+            >>> C.resultant(D)
+            3
+            >>> f = fmpq_poly([1, -1] + [0] * 98 + [1])
+            >>> g = fmpq_poly([1] + [0] * 50 + [-1] + [0] * 48 + [1])
+            >>> f.resultant(g)
+            1125899906842623
+
+        """
+        cdef fmpq res
+        other = any_as_fmpq_poly(other)
+        if other is NotImplemented:
+            raise TypeError("cannot convert input to fmpq_poly")
+
+        res = fmpq.__new__(fmpq)
+        fmpq_poly_resultant(res.val, self.val, (<fmpq_poly>other).val)
         return res
 
     def xgcd(self, other):

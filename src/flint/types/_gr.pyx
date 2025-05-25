@@ -644,8 +644,8 @@ cdef class gr_ctx(flint_ctx):
 
     def factor(self, x) -> tuple[gr, list[tuple[gr, int]]]:
         """
-        Given an element of the context, this returns a factorization (c, f, e):
-            x = c f₁^e₁ ··· fₙ^eₙ, where fₖ will be irreducible or prime depending on the ring.
+        Given an element of the context, this returns a factorization ``(c, f, e)``:
+            ``x = c f₁^e₁ ··· fₙ^eₙ``, where ``fₖ`` will be irreducible or prime depending on the ring.
         The prefactor c stores a unit, sign or coefficient.
         Note that c is an element of the same ring as x.
         """
@@ -733,9 +733,9 @@ cdef class gr_ctx(flint_ctx):
     def cmpabs(self, x, y) -> int:
         """
         Returns:
-        - -1 if |x| < |y|
-        -  0 if |x| = |y|
-        -  1 if |x| > |y|
+        - -1 if `|x| < |y|`
+        -  0 if `|x| = |y|`
+        -  1 if `|x| > |y|`
         """
         if isinstance(x, gr) and isinstance(y, gr):
             if x.ctx == self and y.ctx != self:

@@ -31,7 +31,7 @@ threads = 1        # max number of threads used internally\
 
 def test_pyflint():
 
-    assert flint.__version__ == "0.7.0a5"
+    assert flint.__version__ == "0.7.1"
 
     ctx = flint.ctx
     assert str(ctx) == repr(ctx) == _default_ctx_string
@@ -57,7 +57,7 @@ def test_pyflint():
         assert 1e-17 < f1.rad() < 1e-15
         assert 1e-4 < f2.rad() < 1e-3
     finally:
-        ctx.prec = oldprec
+        ctx.dps = olddps
 
     assert ctx.cap == 10
     oldcap = ctx.cap
@@ -74,8 +74,10 @@ def test_pyflint():
     assert raises(lambda: setattr(ctx, "prec", -1), ValueError)
     assert raises(lambda: setattr(ctx, "dps", -1), ValueError)
 
+
 def test_showgood():
     from flint import good, showgood
+
 
 def test_fmpz():
     assert flint.fmpz() == flint.fmpz(0)
@@ -246,9 +248,9 @@ def test_fmpz():
     assert raises(lambda: f2 ^ (), TypeError)
     assert raises(lambda: () ^ f2, TypeError)
 
-    l = [1, 2, 3]
-    l[flint.fmpz(1)] = -2
-    assert l == [1, -2, 3]
+    ell = [1, 2, 3]
+    ell[flint.fmpz(1)] = -2
+    assert ell == [1, -2, 3]
     d = {flint.fmpz(2): 3}
     d[flint.fmpz(2)] = -1
 
@@ -402,7 +404,7 @@ def test_fmpz_poly():
     assert raises(lambda: [] // Z([1,2]), TypeError)
     assert raises(lambda: [] % Z([1,2]), TypeError)
     assert raises(lambda: divmod([], Z([1,2])), TypeError)
-    assert raises(lambda: Z([1,2,3]) ** -1, (OverflowError, ValueError))
+    assert raises(lambda: Z([1,2,3]) ** -1, DomainError)
     assert raises(lambda: Z([1,2,3]) ** Z([1,2]), TypeError)
     assert raises(lambda: Z([1,2]) // Z([]), ZeroDivisionError)
     assert raises(lambda: Z([]) // Z([]), ZeroDivisionError)
@@ -1610,9 +1612,11 @@ def test_nmod_mat():
     M6 = M6_copy
     assert M6.nullspace() == (M([[1,15,1],[0,0,0],[0,0,0]],17).transpose(), 1)
 
+
 def test_nmod_series():
     # XXX: currently no code in nmod_series.pyx
     pass
+
 
 def test_arb():
     A = flint.arb
@@ -1624,6 +1628,7 @@ def test_arb():
     assert A(3) != A(2)
     assert not (A("1.1") == A("1.1"))
 
+
 def test_pickling():
     objects = [
         flint.fmpz(1),
@@ -1634,6 +1639,7 @@ def test_pickling():
         s = pickle.dumps(obj)
         obj2 = pickle.loads(s)
         assert obj == obj2
+
 
 def test_fmpz_mod():
     from flint import fmpz_mod_ctx, fmpz, fmpz_mod
@@ -1837,6 +1843,7 @@ def test_fmpz_mod():
         assert fmpz(test_y) / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
         assert test_y / F_test(test_x) == (test_y * pow(test_x, -1, test_mod)) % test_mod
 
+
 def test_fmpz_mod_dlog():
     from flint import fmpz, fmpz_mod_ctx
 
@@ -1944,7 +1951,7 @@ def test_fmpz_mod_poly():
     assert raises(lambda: R([F(1), F_other(2)]), ValueError) # moduli must match
     assert raises(lambda: R([F(1), "A"]), TypeError) # need to be able to cast to fmpz_mod
 
-    f1 = R([int(-1),int(-2),int(-3)])
+    f1 = R([-1, -2, -3])
     f2 = R([fmpz(-1),fmpz(-2),fmpz(-3)])
     f3 = R([F(-1),F(-2),F(-3)])
     f4 = R(fmpz_poly([-1, -2, -3]))
@@ -2111,7 +2118,7 @@ def test_fmpz_mod_poly():
         assert (f + 1) // f == 1
 
         # pow
-        assert raises(lambda: f**(-2), ValueError)
+        assert raises(lambda: f**(-2), DomainError)
         assert f*f == f**2
         assert f*f == f**fmpz(2)
 
@@ -2266,8 +2273,8 @@ def test_fmpz_mod_poly():
         assert raises(lambda: R_test([1,2,3]).multipoint_evaluate("AAA"), ValueError)
 
         f = R_test([1,2,3])
-        l = [-1,-2,-3,-4,-5]
-        assert [f(x) for x in l] == f.multipoint_evaluate(l)
+        ell = [-1,-2,-3,-4,-5]
+        assert [f(x) for x in ell] == f.multipoint_evaluate(ell)
 
         # truncate things
 
@@ -2770,7 +2777,7 @@ def _test_polys():
         assert P([1, 1]) ** 0 == P([1])
         assert P([1, 1]) ** 1 == P([1, 1])
         assert P([1, 1]) ** 2 == P([1, 2, 1])
-        assert raises(lambda: P([1, 1]) ** -1, ValueError)
+        assert raises(lambda: P([1, 1]) ** -1, DomainError)
         assert raises(lambda: P([1, 1]) ** None, TypeError)
 
         # XXX: Not sure what this should do in general:
@@ -2829,6 +2836,42 @@ def _test_polys():
         if type(p) == flint.fq_default_poly:
             assert raises(lambda: p.integral(), NotImplementedError)
 
+        # resultant checks.
+        x = P([0, 1])
+
+        if composite_characteristic and type(x) in [flint.fmpz_mod_poly, flint.nmod_poly]:
+            # Flint sometimes crashes in this case, even though the resultant
+            # could be computed.
+            divisor = characteristic.factor()[0][0]
+            assert raises(lambda: x.resultant(x + divisor), ValueError)
+        elif type(x) == flint.fq_default_poly:
+            # Flint does not implement resultants over GF(q) for nonprime q, so
+            # there's nothing for us to check.
+            pass
+        else:
+            assert x.resultant(x) == 0
+            assert x.resultant(x**2 + x - x) == 0
+            assert x.resultant(x**10 - x**5 + 1) == S(1)
+            assert (x - 1).resultant(x**5 + 1) == S(2)
+
+            for k in range(-10, 10):
+                assert x.resultant(x + S(k)) == S(k)
+
+def test_poly_resultants():
+    # Check that the resultant of two cyclotomic polynomials is right.
+    # See Dresden's 2012 "Resultants of Cyclotomic Polynomials"
+    for m in range(1, 50):
+        for n in range(m + 1, 50):
+            a = flint.fmpz_poly.cyclotomic(m)
+            b = flint.fmpz_poly.cyclotomic(n)
+            q, r = divmod(flint.fmpz(n), flint.fmpz(m))
+            fs = q.factor()
+            if r != 0 or len(fs) > 1:
+                assert a.resultant(b) == 1
+            else:
+                prime = fs[0][0]
+                tot = flint.fmpz(m).euler_phi()
+                assert a.resultant(b) == prime**tot
 
 def _all_mpolys():
     return [
@@ -2863,7 +2906,6 @@ def _all_mpolys():
             flint.fmpz(100),
         ),
     ]
-
 
 def test_mpolys():
     for P, get_context, S, is_field, characteristic in _all_mpolys():
@@ -3256,7 +3298,7 @@ def test_mpolys():
             (0, 1): 4,
             (0, 0): 1,
         })
-        assert raises(lambda: P(ctx=ctx) ** -1, ValueError)
+        assert raises(lambda: P(ctx=ctx) ** -1, ZeroDivisionError)
         assert raises(lambda: P(ctx=ctx) ** None, TypeError)
 
         # # XXX: Not sure what this should do in general:
@@ -3466,7 +3508,33 @@ def _all_polys_mpolys():
         yield P, S, [x, y], is_field, characteristic
 
 
-def _test_factor_poly_mpoly():
+def test_properties_poly_mpoly():
+    """Test is_zero, is_one etc for all polynomials."""
+    for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
+
+        zero = 0*x
+        one = zero + 1
+        two = one + 1
+
+        assert zero.is_zero() is True
+        assert one.is_zero() is False
+        assert two.is_zero() is False
+        assert x.is_zero() is False
+
+        assert zero.is_one() is False
+        assert one.is_one() is True
+        assert two.is_one() is False
+        assert x.is_one() is False
+
+        assert zero.is_constant() is True
+        assert one.is_constant() is True
+        assert two.is_constant() is True
+        assert x.is_constant() is False
+
+        # is_gen?
+
+
+def test_factor_poly_mpoly():
     """Test that factor() is consistent across different poly/mpoly types."""
 
     def check(p, coeff, factors):
@@ -3671,6 +3739,52 @@ def _test_factor_poly_mpoly():
             else:
                 # monic gcd over Q, Z/pZ and GF(p^d)
                 assert (2*(x+y)).gcd(4*(x+y)**2) == x + y
+
+
+def test_division_poly_mpoly():
+    """Test that division is consistent across different poly/mpoly types."""
+
+    Z = flint.fmpz
+
+    for P, S, [x, y], is_field, characteristic in _all_polys_mpolys():
+
+        if characteristic != 0 and not characteristic.is_prime():
+            # nmod_poly crashes for many operations with non-prime modulus
+            #     https://github.com/flintlib/python-flint/issues/124
+            # so we can't even test it...
+            nmod_poly_will_crash = type(x) is flint.nmod_poly
+            if nmod_poly_will_crash:
+                continue
+
+        one = x**0 # 1 as a polynomial
+        two = one + one
+
+        if is_field or characteristic == 0:
+            assert x / x == x**0 == 1 == one
+            assert x / 1 == x / S(1) == x / one == x**1 == x
+            assert 1 / one == one**-1 == one**Z(-1) == 1, type(one)
+            assert -1 / one == 1 / -one == (-one)**-1 == (-one)**Z(-1) == -one == -1
+            assert (-one) ** -2 == (-one)**Z(-2) == one
+            assert raises(lambda: 1 / x, DomainError)
+            assert raises(lambda: x ** -1, DomainError)
+
+        if is_field:
+            half = S(1)/2 * one # 1/2 as a polynomial
+            assert half == S(1)/2
+            assert x / half == 2*x
+            assert 1 / half == S(1) / half == one / half == one / (S(1)/2) == 2
+            assert half ** -1 == half ** Z(-1) == 2
+            assert two ** -1 == two ** Z(-1) == half
+        elif characteristic == 0:
+            assert raises(lambda: x / 2, DomainError)
+            assert raises(lambda: x / two, DomainError), characteristic
+            assert raises(lambda: two ** -1, DomainError)
+            assert raises(lambda: two ** Z(-1), DomainError)
+        else:
+            # Non-prime modulus...
+            # nmod can crash and fmpz_mod_poly won't crash but has awkward
+            # behaviour under division.
+            pass
 
 
 def _all_matrices():
@@ -4571,7 +4685,7 @@ def _test_fq_default_poly():
         # pow
         # assert ui and fmpz exp agree for polynomials and generators
         R_gen = R_test.gen()
-        assert raises(lambda: f**(-2), ValueError)
+        assert raises(lambda: f**(-2), DomainError)
         assert pow(f, 2**60, g) == pow(pow(f, 2**30, g), 2**30, g)
         assert pow(R_gen, 2**60, g) == pow(pow(R_gen, 2**30, g), 2**30, g)
         assert raises(lambda: pow(f, -2, g), ValueError)
@@ -4661,6 +4775,54 @@ def _test_fq_default_poly():
         assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
 
 
+def test_python_threads():
+    #
+    # https://github.com/flintlib/python-flint/issues/224
+    #
+    # XXX: This test crashes under the free-threading mode because of memory
+    # corruption.
+    #
+    # It is not clear if this should be fixed or if mutating
+    # matrices/polynomials that are shared between multiple threads should just
+    # be disallowed.
+    #
+
+    # Skip the test on the free-threaded build...
+    import sys
+    if sys.version_info[:2] >= (3, 13) and not sys._is_gil_enabled():
+        return
+
+    from threading import Thread
+
+    iterations = 10**5
+    threads = 3 + 1
+    size = 3
+    M = flint.fmpz_mat([[0]*size for _ in range(size)])
+
+    def set_values():
+        for i in range(iterations // 5):
+            i = random.randrange(M.nrows())
+            j = random.randrange(M.ncols())
+            if random.uniform(0, 1) > 0.5:
+                # Bigger than 2**62:
+                M[i,j] = 10**128
+            else:
+                # Smaller than 2**62:
+                M[i,j] = 0
+
+    def get_dets():
+        for i in range(iterations):
+            M.det()
+
+    threads = [Thread(target=set_values) for _ in range(threads-1)]
+    threads.append(Thread(target=get_dets))
+
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+
 def test_all_tests():
     test_funcs = {f for name, f in globals().items() if name.startswith("test_")}
     untested = test_funcs - set(all_tests)
@@ -4719,10 +4881,14 @@ all_tests = [
     test_division_poly,
     test_division_matrix,
 
-    # _test_factor_poly_mpoly,
+    test_properties_poly_mpoly,
+    test_factor_poly_mpoly,
+    test_division_poly_mpoly,
 
     # _test_polys,
     test_mpolys,
+
+    test_poly_resultants,
 
     test_fmpz_mpoly_vec,
 
@@ -4755,6 +4921,8 @@ all_tests = [
     test_arb,
 
     test_pickling,
+
+    test_python_threads,
 
     test_all_tests,
 ]

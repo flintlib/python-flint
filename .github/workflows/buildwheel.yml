@@ -42,7 +42,7 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.23.0
+        uses: pypa/cibuildwheel@v2.23.3
         env:
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
@@ -86,7 +86,7 @@ jobs:
         os: [ubuntu-24.04, ubuntu-24.04-arm, windows-2019, macos-13, macos-14]
         # This list to be kept in sync with cibuildwheel config
         # and python-requires in pyproject.toml.
-        python-version: ['3.11', '3.12', '3.13'] # , 'pypy3.10']
+        python-version: ['3.11', '3.12', '3.13', '3.13t'] # , 'pypy3.10']
 
     steps:
       - uses: actions/setup-python@v5
@@ -97,6 +97,15 @@ jobs:
           name: wheels-${{ matrix.os }}
           path: wheelhouse
       - run: pip install --no-index --find-links wheelhouse python_flint
+
+      # Check if the GIL is disabled in the free-threading build after import.
+      - run: |
+          python --version --version
+          which python
+          python -c "import sysconfig; print(sysconfig.get_config_var('Py_GIL_DISABLED'))"
+          python -c "import sys; print(getattr(sys, '_is_gil_enabled', lambda: True)())"
+          python -c "import sys; import flint; print(getattr(sys, '_is_gil_enabled', lambda: True)())"
+
       - run: python -m flint.test --verbose
 
   # On new enough Ubuntu we can build against the system deb.
@@ -227,37 +236,6 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: bin/coverage.sh
 
-  # On new enough Ubuntu we can build against the system deb.
-  test_freethreaded:
-    name: Free-threaded ${{ matrix.python-version }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04]
-        python-version: ['3.13', '3.14-dev']
-    steps:
-      - uses: actions/checkout@v4
-      # Can't use actions/setup-python
-      # https://github.com/actions/setup-python/issues/771
-      # deadsnakes only works for Ubuntu...
-      - uses: deadsnakes/action@v3.2.0
-        with:
-          python-version: ${{ matrix.python-version }}
-          nogil: true
-      - run: |
-          python --version --version
-          which python
-          python -c "import sysconfig; print(sysconfig.get_config_var('Py_GIL_DISABLED'))"
-          python -c "import sys; print(sys._is_gil_enabled())"
-      - run: sudo apt-get update
-      - run: sudo apt-get install libflint-dev
-      # Need Cython master until 3.1 is released
-      - run: pip install git+https://github.com/cython/cython.git@master
-      - run: pip install -r requirements-dev.txt
-      - run: pip install --no-build-isolation .
-      - run: python -m flint.test --verbose
-
   # Run SymPy test suite against python-flint master
   test_sympy:
     name: Test SymPy ${{ matrix.sympy-version }}
@@ -302,7 +280,7 @@ jobs:
         run: mkdir dist && cp wheelhouse/*.whl dist
 
       - name: Upload wheels
-        uses: scientific-python/upload-nightly-action@82396a2ed4269ba06c6b2988bb4fd568ef3c3d6b # 0.6.1
+        uses: scientific-python/upload-nightly-action@b36e8c0c10dbcfd2e05bf95f17ef8c14fd708dbf # 0.6.2
         with:
           artifacts_path: dist
           # This token is generated from anaconda.org

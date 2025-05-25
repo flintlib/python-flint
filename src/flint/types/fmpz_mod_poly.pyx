@@ -544,7 +544,8 @@ cdef class fmpz_mod_poly(flint_poly):
 
         cdef fmpz_mod_poly res
         if e < 0:
-            raise ValueError("Exponent must be non-negative")
+            self = 1 / self
+            e = -e
 
         cdef ulong e_ulong = e
         res = self.ctx.new_ctype_poly()
@@ -1463,6 +1464,9 @@ cdef class fmpz_mod_poly(flint_poly):
 
         """
         cdef fmpz_mod res
+
+        if not self.ctx.mod.is_prime():
+            raise ValueError("cannot compute fmpz_mod_poly resultants with composite moduli")
 
         other = self.ctx.any_as_fmpz_mod_poly(other)
         if other is NotImplemented:

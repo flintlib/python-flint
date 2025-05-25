@@ -184,12 +184,40 @@ cdef class nmod_poly(flint_poly):
         return not nmod_poly_is_zero(self.val)
 
     def is_zero(self):
+        """
+        Returns True if this is the zero polynomial.
+        """
         return <bint>nmod_poly_is_zero(self.val)
 
     def is_one(self):
+        """
+        Returns True if this polynomial is equal to 1.
+        """
         return <bint>nmod_poly_is_one(self.val)
 
+    def is_constant(self):
+        """
+        Returns True if this is a constant polynomial.
+
+        >>> nmod_poly([0, 1], 3).is_constant()
+        False
+        >>> nmod_poly([1], 3).is_constant()
+        True
+        """
+        return nmod_poly_degree(self.val) <= 0
+
     def is_gen(self):
+        """
+        Returns True if this polynomial is equal to the generator x.
+
+        >>> x = nmod_poly([0, 1], 3)
+        >>> x
+        x
+        >>> x.is_gen()
+        True
+        >>> (2*x).is_gen()
+        False
+        """
         return <bint>nmod_poly_is_gen(self.val)
 
     def reverse(self, degree=None):
@@ -498,7 +526,8 @@ cdef class nmod_poly(flint_poly):
         if mod is not None:
             return self.pow_mod(exp, mod)
         if exp < 0:
-            raise ValueError("negative exponent")
+            self = 1 / self
+            exp = -exp
         res = nmod_poly.__new__(nmod_poly)
         nmod_poly_init_preinv(res.val, (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
         nmod_poly_pow(res.val, self.val, <ulong>exp)
@@ -590,6 +619,31 @@ cdef class nmod_poly(flint_poly):
         res = nmod_poly.__new__(nmod_poly)
         nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
         nmod_poly_gcd(res.val, self.val, (<nmod_poly>other).val)
+        return res
+
+    def resultant(self, other):
+        """
+        Returns the resultant of *self* and *other*.
+
+            >>> f = nmod_poly([1, 2, 3], 3)
+            >>> g = nmod_poly([1, 0, 1], 3)
+            >>> f.resultant(f)
+            0
+            >>> f.resultant(g)
+            2
+
+        """
+        cdef ulong res
+
+        mod = any_as_fmpz(self.val.mod.n)
+        if not mod.is_prime():
+            raise ValueError("cannot compute nmod_poly resultants with composite moduli")
+
+        other = any_as_nmod_poly(other, (<nmod_poly>self).val.mod)
+        if other is NotImplemented:
+            raise TypeError("cannot convert input to nmod_poly")
+
+        res = nmod_poly_resultant(self.val, (<nmod_poly>other).val)
         return res
 
     def xgcd(self, other):

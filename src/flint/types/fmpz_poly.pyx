@@ -141,10 +141,35 @@ cdef class fmpz_poly(flint_poly):
         return not fmpz_poly_is_zero(self.val)
 
     def is_zero(self):
+        """
+        True if this polynomial is the zero polynomial.
+
+        >>> fmpz_poly([]).is_zero()
+        True
+        """
         return <bint>fmpz_poly_is_zero(self.val)
 
     def is_one(self):
+        """
+        True if this polynomial is equal to one.
+
+        >>> fmpz_poly([2]).is_one()
+        False
+        """
         return <bint>fmpz_poly_is_one(self.val)
+
+    def is_constant(self):
+        """
+        True if this is a constant polynomial.
+
+        >>> x = fmpz_poly([0, 1])
+        >>> two = fmpz_poly([2])
+        >>> x.is_constant()
+        False
+        >>> two.is_constant()
+        True
+        """
+        return fmpz_poly_degree(self.val) <= 0
 
     def leading_coefficient(self):
         """
@@ -348,7 +373,9 @@ cdef class fmpz_poly(flint_poly):
         if mod is not None:
             raise NotImplementedError("fmpz_poly modular exponentiation")
         if exp < 0:
-            raise ValueError("fmpz_poly negative exponent")
+            if not fmpz_poly_is_unit(self.val):
+                raise DomainError("fmpz_poly negative exponent, non-unit base")
+            exp = -exp
         res = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_pow(res.val, self.val, <ulong>exp)
         return res
@@ -368,6 +395,32 @@ cdef class fmpz_poly(flint_poly):
             raise TypeError("cannot convert input to fmpz_poly")
         res = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_gcd(res.val, self.val, (<fmpz_poly>other).val)
+        return res
+
+    def resultant(self, other):
+        """
+        Returns the resultant of *self* and *other*.
+
+            >>> A = fmpz_poly([1, 0, -1]); B = fmpz_poly([1, -1])
+            >>> A.resultant(B)
+            0
+            >>> C = fmpz_poly([1, 0, 0, 0, 0, -1, 1])
+            >>> D = fmpz_poly([1, 0, 0, -1, 0, 0, 1])
+            >>> C.resultant(D)
+            3
+            >>> f = fmpz_poly([1, -1] + [0] * 98 + [1])
+            >>> g = fmpz_poly([1] + [0] * 50 + [-1] + [0] * 48 + [1])
+            >>> f.resultant(g)
+            1125899906842623
+
+        """
+        cdef fmpz res
+        other = any_as_fmpz_poly(other)
+        if other is NotImplemented:
+            raise TypeError("cannot convert input to fmpz_poly")
+
+        res = fmpz.__new__(fmpz)
+        fmpz_poly_resultant(res.val, self.val, (<fmpz_poly>other).val)
         return res
 
     def factor(self):
