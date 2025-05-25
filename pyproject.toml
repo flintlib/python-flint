@@ -82,11 +82,10 @@ package = "flint"
 [tool.cibuildwheel]
 # requires-python needs to keep in sync with this and also the list of Python
 # versions the wheels are tested against in CI.
-build = "cp311-* cp312-* cp313-* cp313t-* pp311-*"
-skip = "*-win32 *-manylinux_i686 *-musllinux_*"
+skip = "*-win32 *-manylinux_i686 *-manylinux_armv7l *-musllinux_*"
 
 # Enable building for free-threaded CPython builds
-enable = ["cpython-freethreading"]
+enable = ["cpython-freethreading", "pypy"]
 
 manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux_2_28"
