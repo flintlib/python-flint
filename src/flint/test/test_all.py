@@ -3,6 +3,7 @@ import operator
 import pickle
 import platform
 import random
+import sys
 
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
@@ -4775,6 +4776,7 @@ def _test_fq_default_poly():
         assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
 
 
+@pytest.mark.skipif((sys.platform == "emscripten"), reason="can't start new thread in Pyodide/WASM")
 def test_python_threads():
     #
     # https://github.com/flintlib/python-flint/issues/224
