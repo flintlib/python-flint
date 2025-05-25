@@ -48,76 +48,34 @@ jobs:
         uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: ${{ github.workspace }}/wasm-library-dir
-          key: wasm-library-dir-${{ hashFiles('.github/workflows/ci-emscripten.yml') }}
+          key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_libgmp.sh', 'bin/pyodide_build_libmpfr.sh', 'bin/pyodide_build_flint.sh', '.github/patches/**') }}
 
       - name: Build libgmp
         if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
         env:
           CFLAGS: "-fPIC"
           WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
-        run: |
-          curl -L https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz -o gmp-6.3.0.tar.xz
-          tar -xf gmp-6.3.0.tar.xz
-
-          cd gmp-6.3.0
-
-          emconfigure ./configure \
-            --disable-dependency-tracking \
-            --host none \
-            --disable-shared \
-            --enable-static \
-            --enable-cxx \
-            --prefix=${{ env.WASM_LIBRARY_DIR }}
-          emmake make -j $(nproc)
-          emmake make install
+        run: bin/pyodide_build_libgmp.sh
 
       - name: Build libmpfr
         if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
         env:
           CFLAGS: "-fPIC"
           WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
-        run: |
-          curl -L https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.1.tar.xz -o mpfr-4.2.1.tar.xz
-          tar -xf mpfr-4.2.1.tar.xz
-
-          cd mpfr-4.2.1
-
-          emconfigure ./configure \
-            --disable-dependency-tracking \
-            --disable-shared \
-            --with-gmp="${{ env.WASM_LIBRARY_DIR }}" \
-            --prefix=${{ env.WASM_LIBRARY_DIR }}
-          emmake make -j $(nproc)
-          emmake make install
+        run: bin/pyodide_build_libmpfr.sh
 
       - name: Build flint
         if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
         env:
           CFLAGS: "-fPIC"
           WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
-        run: |
-          curl -L https://github.com/flintlib/flint/releases/download/v3.2.2/flint-3.2.2.tar.xz -o flint-3.2.2.tar.xz
-          tar -xf flint-3.2.2.tar.xz
-
-          cd flint-3.2.2
-
-          emconfigure ./configure \
-            --disable-dependency-tracking \
-            --disable-shared \
-            --prefix=${{ env.WASM_LIBRARY_DIR }} \
-            --with-gmp=${{ env.WASM_LIBRARY_DIR }} \
-            --with-mpfr=${{ env.WASM_LIBRARY_DIR }} \
-            --host=wasm32-unknown-emscripten \
-            --disable-assembly \
-            --disable-pthread
-          emmake make -j $(nproc)
-          emmake make install
+        run: bin/pyodide_build_flint.sh
 
       - name: Persist WASM library directory to cache
         uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: ${{ github.workspace }}/wasm-library-dir
-          key: wasm-library-dir-${{ hashFiles('.github/workflows/ci-emscripten.yml') }}
+          key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_libgmp.sh', 'bin/pyodide_build_libmpfr.sh', 'bin/pyodide_build_flint.sh', '.github/patches/**') }}
 
       - name: Restore python-flint build directory from cache
         uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
