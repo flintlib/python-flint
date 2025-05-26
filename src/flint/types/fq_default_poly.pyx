@@ -102,8 +102,8 @@ cdef class fq_default_poly_ctx:
         """
         Return the base field of the polynomial ring
 
-            >>> R = fq_default_poly_ctx(65537, 3) # doctest: +SKIP
-            >>> R.base_field()
+            >>> R = fq_default_poly_ctx(65537, 3)
+            >>> R.base_field() # doctest: +SKIP
             fq_default_ctx(65537, 3, 'z', x^3 + 3*x^2 + 30077, 'FQ_NMOD')
 
         """
