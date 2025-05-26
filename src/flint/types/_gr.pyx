@@ -331,13 +331,13 @@ cdef class gr_ctx(flint_ctx):
     def gen(self) -> gr:
         """Return the generator of the domain (if available).
 
-        # >>> from flint.types._gr import gr_fmpzi_ctx, gr_fq_ctx
-        # >>> ctx = gr_fmpzi_ctx
-        # >>> ctx.gen()
-        # I
-        # >>> ctx = gr_fq_ctx.new(5, 2)
-        # >>> ctx.gen()
-        # a
+        >>> from flint.types._gr import gr_fmpzi_ctx, gr_fq_ctx
+        >>> ctx = gr_fmpzi_ctx
+        >>> ctx.gen()
+        I
+        >>> ctx = gr_fq_ctx.new(5, 2)
+        >>> ctx.gen()
+        a
         """
         return self._gen()
 
@@ -1403,12 +1403,12 @@ cdef class gr_complex_algebraic_ca_ctx(gr_scalar_ctx):
     def new(**options) -> gr_complex_algebraic_ca_ctx:
         """Create a new context for calcium exact complex algebraic numbers.
 
-        # >>> from flint.types._gr import gr_complex_algebraic_ca_ctx
-        # >>> C = gr_complex_algebraic_ca_ctx.new()
-        # >>> C
-        # gr_complex_algebraic_ca_ctx({})
-        # >>> C(2).sqrt()
-        # 1.41421 {a where a = 1.41421 [a^2-2=0]}
+        >>> from flint.types._gr import gr_complex_algebraic_ca_ctx
+        >>> C = gr_complex_algebraic_ca_ctx.new()
+        >>> C
+        gr_complex_algebraic_ca_ctx({})
+        >>> C(2).sqrt()
+        1.41421 {a where a = 1.41421 [a^2-2=0]}
         """
         return gr_complex_algebraic_ca_ctx._new(options)
 
