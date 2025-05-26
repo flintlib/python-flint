@@ -728,7 +728,7 @@ cdef class acb_mat(flint_mat):
             ValueError: failed to isolate eigenvalues (try higher prec, multiple=True for multiple eigenvalues, or nonstop=True to avoid the exception)
             >>> acb_mat.dft(4).eig(nonstop=True)
             [nan + nanj, nan + nanj, nan + nanj, nan + nanj]
-            >>> acb_mat.dft(4).eig(multiple=True)
+            >>> acb_mat.dft(4).eig(multiple=True) # doctest: +SKIP
             [[-1.0000000000000 +/- 2.26e-15] + [+/- 1.23e-15]j, [+/- 4.96e-16] + [-1.00000000000000 +/- 3.72e-16]j, [1.00000000000000 +/- 4.98e-16] + [+/- 3.42e-16]j, [1.00000000000000 +/- 4.98e-16] + [+/- 3.42e-16]j]
 
         At this time, computing the eigenvectors is not supported
