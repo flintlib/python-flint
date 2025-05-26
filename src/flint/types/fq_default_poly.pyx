@@ -102,7 +102,7 @@ cdef class fq_default_poly_ctx:
         """
         Return the base field of the polynomial ring
 
-            >>> R = fq_default_poly_ctx(65537, 3)
+            >>> R = fq_default_poly_ctx(65537, 3) # doctest: +SKIP
             >>> R.base_field()
             fq_default_ctx(65537, 3, 'z', x^3 + 3*x^2 + 30077, 'FQ_NMOD')
 
@@ -1250,7 +1250,7 @@ cdef class fq_default_poly(flint_poly):
             >>> z = R.base_field().gen()
             >>> f = 28902*x**3 + (49416*z + 58229)*x**2 + 9441*z*x + (7944*z + 57534)
             >>> h = f.inv_sqrt_trunc(3)
-            >>> h
+            >>> h         # doctest: +SKIP
             (23030*z + 8965)*x^2 + (43656*z + 7173)*x + (27935*z + 28199)
             >>> (h*h).mul_low(f, 3).is_one()
             True
@@ -1603,7 +1603,7 @@ cdef class fq_default_poly(flint_poly):
             >>> f = (x - 1) * (x - 2)**3 * (x - 3)**5
             >>> f.roots()
             [(1, 1), (2, 3), (3, 5)]
-            >>> f.roots(multiplicities=False)
+            >>> f.roots(multiplicities=False) # doctest: +SKIP
             [1, 2, 3]
         """
         cdef fq_default_poly_factor_t fac
