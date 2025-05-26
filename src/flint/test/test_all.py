@@ -4776,7 +4776,6 @@ def _test_fq_default_poly():
         assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
 
 
-@pytest.mark.skipif((sys.platform == "emscripten"), reason="can't start new thread in Pyodide/WASM")
 def test_python_threads():
     #
     # https://github.com/flintlib/python-flint/issues/224
@@ -4788,10 +4787,13 @@ def test_python_threads():
     # matrices/polynomials that are shared between multiple threads should just
     # be disallowed.
     #
+    # This thread is skipped on Emscripten/WASM builds as we can't start new
+    # threads in Pyodide.
 
-    # Skip the test on the free-threaded build...
+    # Skip the test on the free-threaded build and on WASM...
     import sys
-    if sys.version_info[:2] >= (3, 13) and not sys._is_gil_enabled():
+    if (sys.version_info[:2] >= (3, 13) and not sys._is_gil_enabled()) or (
+        sys.platform == "emscripten" or platform.machine() in ["wasm32", "wasm64"]):
         return
 
     from threading import Thread
