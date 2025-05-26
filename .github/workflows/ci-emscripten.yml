@@ -48,7 +48,7 @@ jobs:
         uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: ${{ github.workspace }}/wasm-library-dir
-          key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_libgmp.sh', 'bin/pyodide_build_libmpfr.sh', 'bin/pyodide_build_flint.sh', '.github/patches/**') }}
+          key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_libgmp.sh', 'bin/pyodide_build_libmpfr.sh', 'bin/pyodide_build_flint.sh') }}-0
 
       - name: Build libgmp
         if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
@@ -75,7 +75,7 @@ jobs:
         uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: ${{ github.workspace }}/wasm-library-dir
-          key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_libgmp.sh', 'bin/pyodide_build_libmpfr.sh', 'bin/pyodide_build_flint.sh', '.github/patches/**') }}
+          key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_libgmp.sh', 'bin/pyodide_build_libmpfr.sh', 'bin/pyodide_build_flint.sh') }}-0
 
       - name: Restore python-flint build directory from cache
         uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
