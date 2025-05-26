@@ -102,7 +102,7 @@ endif
 # Add rpaths for a local build of flint found via pkgconfig
 #   https://github.com/mesonbuild/meson/issues/13046
 if get_option('add_flint_rpath')
-  flint_lib_dir = flint_dep.get_pkgconfig_variable('libdir')
+  flint_lib_dir = flint_dep.get_variable(pkgconfig: 'libdir')
   add_project_link_arguments(
     '-Wl,-rpath=' + flint_lib_dir,
     language: 'c',
