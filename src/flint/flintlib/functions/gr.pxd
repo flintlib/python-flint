@@ -16,7 +16,7 @@ from flint.flintlib.types.gr cimport gr_ctx_t, gr_ptr, gr_srcptr, gr_stream_t, g
 
 cdef extern from "flint/gr.h":
     slong gr_ctx_sizeof_elem(gr_ctx_t ctx)
-    int gr_ctx_clear(gr_ctx_t ctx)
+    void gr_ctx_clear(gr_ctx_t ctx)
     int gr_ctx_write(gr_stream_t out, gr_ctx_t ctx)
     int gr_ctx_print(gr_ctx_t ctx)
     int gr_ctx_println(gr_ctx_t ctx)
