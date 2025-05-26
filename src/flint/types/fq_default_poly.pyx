@@ -1,3 +1,4 @@
+cimport cython
 from cpython.list cimport PyList_GET_SIZE
 from flint.flint_base.flint_base cimport flint_poly
 
@@ -241,6 +242,55 @@ cdef class fq_default_poly_ctx:
 
     def __call__(self, val):
         return fq_default_poly(val, self)
+
+
+@cython.final
+@cython.no_gc
+cdef class _fq_default_poly_sort_key:
+    cdef fq_default_poly p
+    cdef ulong mult
+    cdef slong len
+
+    def __init__(self, tuple fac_m):
+        self.p = fac_m[0]
+        self.len = fq_default_poly_length(self.p.val, self.p.ctx.field.val)
+        self.mult = fac_m[1]
+
+    def __lt__(k1, _fq_default_poly_sort_key k2):
+        cdef slong i, j, d
+        cdef fq_default c1, c2
+        cdef fmpz z1, z2
+        cdef fq_default_ctx field
+
+        if k1.len != k2.len:
+            return k1.len < k2.len
+        elif k1.mult != k2.mult:
+            return k1.mult < k2.mult
+
+        field = k1.p.ctx.field
+        d = field.degree()
+        z1 = fmpz()
+        z2 = fmpz()
+        c1 = field.zero()
+        c2 = field.zero()
+
+        i = k1.len
+        while i >= 0:
+            i -= 1
+            fq_default_poly_get_coeff(c1.val, k1.p.val, i, field.val)
+            fq_default_poly_get_coeff(c2.val, k2.p.val, i, field.val)
+            if c1 != c2:
+                j = d
+                while j >= 0:
+                    j -= 1
+                    fq_default_get_coeff_fmpz(z1.val, c1.val, j, field.val)
+                    fq_default_get_coeff_fmpz(z2.val, c2.val, j, field.val)
+                    if z1 != z2:
+                        return z1 < z2
+                else:
+                    raise RuntimeError("Bad cmp in _fq_default_poly_sort_key!")
+        else:
+            raise RuntimeError("Bad cmp in _fq_default_poly_sort_key!")
 
 
 cdef class fq_default_poly(flint_poly):
@@ -1502,6 +1552,9 @@ cdef class fq_default_poly(flint_poly):
             fq_default_poly_factor_get_poly(u.val, fac, i, self.ctx.field.val)
             exp = fq_default_poly_factor_exp(fac, i, self.ctx.field.val)
             res[i] = (u, exp)
+
+        res.sort(key=_fq_default_poly_sort_key)
+
         return self.leading_coefficient(), res
 
     def factor(self):
@@ -1536,6 +1589,9 @@ cdef class fq_default_poly(flint_poly):
             fq_default_poly_factor_get_poly(u.val, fac, i, self.ctx.field.val)
             exp = fq_default_poly_factor_exp(fac, i, self.ctx.field.val)
             res[i] = (u, exp)
+
+        res.sort(key=_fq_default_poly_sort_key)
+
         return self.leading_coefficient(), res
 
     def roots(self, multiplicities=True):
