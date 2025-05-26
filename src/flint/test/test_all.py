@@ -4871,6 +4871,7 @@ def test_all_tests():
 
 
 all_tests = [
+    test_1, test_2, test_3, test_4, test_5, test_6,
 
     test_pyflint,
     test_showgood,
