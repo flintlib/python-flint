@@ -5,7 +5,7 @@ set -e
 # curl -L https://github.com/flintlib/flint/releases/download/v3.2.2/flint-3.2.2.tar.xz -o flint-3.2.2.tar.xz
 # tar -xf flint-3.2.2.tar.xz
 
-git clone https://github.com/fredrik-johansson/flint flint-3.2.2 --branch clear
+git clone https://github.com/flintlib/flint flint-3.2.2 --branch main
 
 cd flint-3.2.2
 
