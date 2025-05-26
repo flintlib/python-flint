@@ -9,6 +9,8 @@ git clone https://github.com/fredrik-johansson/flint flint-3.2.2 --branch clear
 
 cd flint-3.2.2
 
+./bootstrap.sh
+
 emconfigure ./configure \
     --disable-dependency-tracking \
     --disable-shared \
