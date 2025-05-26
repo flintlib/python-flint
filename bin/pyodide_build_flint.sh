@@ -7,7 +7,6 @@ tar -xf flint-3.2.2.tar.xz
 
 cd flint-3.2.2
 
-patch -p1 < ../.github/patches/0001-Fix-signature-of-mpn_mod_ctx_clear.patch
 
 emconfigure ./configure \
     --disable-dependency-tracking \
