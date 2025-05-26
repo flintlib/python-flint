@@ -4773,6 +4773,46 @@ def test_fq_default_poly():
         assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
 
 
+def _test_R(R):
+    # inverse_mod
+    while True:
+        # Ensure f is invertible
+        f = R.random_element()
+        if not f.constant_coefficient().is_zero():
+            break
+    assert raises(lambda: f.inverse_mod(2*f), ValueError)
+
+
+def test_1():
+    R = flint.fq_default_poly_ctx(5)
+    _test_R(R)
+
+
+def test_2():
+    R = flint.fq_default_poly_ctx(65537)
+    _test_R(R)
+
+
+def test_3():
+    R = flint.fq_default_poly_ctx(2**127 - 1)
+    _test_R(R)
+
+
+def test_4():
+    R = flint.fq_default_poly_ctx(5, 5)
+    _test_R(R)
+
+
+def test_5():
+    R = flint.fq_default_poly_ctx(65537, 3)
+    _test_R(R)
+
+
+def test_6():
+    R = flint.fq_default_poly_ctx(2**127 - 1, 2)
+    _test_R(R)
+
+
 def test_python_threads():
     #
     # https://github.com/flintlib/python-flint/issues/224

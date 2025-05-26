@@ -55,6 +55,7 @@ cdef class _nmod_poly_sort_key:
     cdef nmod_poly p
     cdef ulong mult
     cdef slong len
+
     def __init__(self, tuple fac_m):
         self.p = fac_m[0]
         self.len = nmod_poly_length(self.p.val)
