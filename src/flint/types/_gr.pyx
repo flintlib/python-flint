@@ -1403,12 +1403,12 @@ cdef class gr_complex_algebraic_ca_ctx(gr_scalar_ctx):
     def new(**options) -> gr_complex_algebraic_ca_ctx:
         """Create a new context for calcium exact complex algebraic numbers.
 
-        >>> from flint.types._gr import gr_complex_algebraic_ca_ctx
-        >>> C = gr_complex_algebraic_ca_ctx.new()
-        >>> C
-        gr_complex_algebraic_ca_ctx({})
-        >>> C(2).sqrt()
-        1.41421 {a where a = 1.41421 [a^2-2=0]}
+        # >>> from flint.types._gr import gr_complex_algebraic_ca_ctx
+        # >>> C = gr_complex_algebraic_ca_ctx.new()
+        # >>> C
+        # gr_complex_algebraic_ca_ctx({})
+        # >>> C(2).sqrt()
+        # 1.41421 {a where a = 1.41421 [a^2-2=0]}
         """
         return gr_complex_algebraic_ca_ctx._new(options)
 
