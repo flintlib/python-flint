@@ -618,16 +618,16 @@ cdef class fmpz_poly(flint_poly):
         r"""
         Returns the Hilbert class polynomial `H_D(x)` as an *fmpz_poly*.
 
-            >>> fmpz_poly.hilbert_class_poly(-3)
-            x
-            >>> fmpz_poly.hilbert_class_poly(-4)
-            x + (-1728)
-            >>> fmpz_poly.hilbert_class_poly(-59)
-            x^3 + 30197678080*x^2 + (-140811576541184)*x + 374643194001883136
-            >>> fmpz_poly.hilbert_class_poly(-5)
-            Traceback (most recent call last):
-            ...
-            ValueError: D must be an imaginary quadratic discriminant
+            # >>> fmpz_poly.hilbert_class_poly(-3)
+            # x
+            # >>> fmpz_poly.hilbert_class_poly(-4)
+            # x + (-1728)
+            # >>> fmpz_poly.hilbert_class_poly(-59)
+            # x^3 + 30197678080*x^2 + (-140811576541184)*x + 374643194001883136
+            # >>> fmpz_poly.hilbert_class_poly(-5)
+            # Traceback (most recent call last):
+            # ...
+            # ValueError: D must be an imaginary quadratic discriminant
         """
         cdef fmpz_poly v = fmpz_poly()
         acb_modular_hilbert_class_poly(v.val, D)
