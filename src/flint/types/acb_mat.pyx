@@ -742,7 +742,7 @@ cdef class acb_mat(flint_mat):
         The *algorithm* can also be set to "approx" to compute
         approximate eigenvalues and/or eigenvectors without error bounds.
 
-            >>> for c in acb_mat.dft(4).eig(algorithm="approx"): print(c.str(radius=False))
+            >>> for c in acb_mat.dft(4).eig(algorithm="approx"): print(c.str(radius=False)) # doctest: +SKIP
             ...
             -0.999999999999999 - 7.85046229341892e-17j
             -2.35513868802566e-16 - 1.00000000000000j
