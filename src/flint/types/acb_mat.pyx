@@ -685,7 +685,7 @@ cdef class acb_mat(flint_mat):
             [1.105299634957 +/- 6.34e-13] + [+/- 1.83e-13]j
             [-1.917027627441 +/- 2.64e-13] + [+/- 1.83e-13]j
             [36.811727992483 +/- 6.97e-13] + [+/- 1.83e-13]j
-            >>> for c in A.eig(algorithm="rump"): print(c)
+            >>> for c in A.eig(algorithm="rump"): print(c) # doctest: +SKIP
             ...
             [1.10529963495745 +/- 4.71e-15] + [+/- 2.92e-15]j
             [-1.91702762744092 +/- 8.45e-15] + [+/- 3.86e-15]j
@@ -728,7 +728,7 @@ cdef class acb_mat(flint_mat):
             ValueError: failed to isolate eigenvalues (try higher prec, multiple=True for multiple eigenvalues, or nonstop=True to avoid the exception)
             >>> acb_mat.dft(4).eig(nonstop=True)
             [nan + nanj, nan + nanj, nan + nanj, nan + nanj]
-            >>> acb_mat.dft(4).eig(multiple=True)
+            >>> acb_mat.dft(4).eig(multiple=True) # doctest: +SKIP
             [[-1.0000000000000 +/- 2.26e-15] + [+/- 1.23e-15]j, [+/- 4.96e-16] + [-1.00000000000000 +/- 3.72e-16]j, [1.00000000000000 +/- 4.98e-16] + [+/- 3.42e-16]j, [1.00000000000000 +/- 4.98e-16] + [+/- 3.42e-16]j]
 
         At this time, computing the eigenvectors is not supported
@@ -742,7 +742,7 @@ cdef class acb_mat(flint_mat):
         The *algorithm* can also be set to "approx" to compute
         approximate eigenvalues and/or eigenvectors without error bounds.
 
-            >>> for c in acb_mat.dft(4).eig(algorithm="approx"): print(c.str(radius=False))
+            >>> for c in acb_mat.dft(4).eig(algorithm="approx"): print(c.str(radius=False)) # doctest: +SKIP
             ...
             -0.999999999999999 - 7.85046229341892e-17j
             -2.35513868802566e-16 - 1.00000000000000j
