@@ -1,7 +1,7 @@
 from flint.flintlib.types.flint cimport flint_rand_t, fmpz_struct, fmpz_t, slong, ulong
 from flint.flintlib.types.fmpq cimport fmpq_t
 from flint.flintlib.types.fmpz cimport fmpz_mpoly_ctx_t, fmpz_mpoly_t, fmpz_poly_t
-from flint.flintlib.types.gr cimport gr_ctx_t, gr_ptr, gr_srcptr, gr_stream_t, truth_t
+from flint.flintlib.types.gr cimport gr_ctx_t, gr_ptr, gr_srcptr, gr_stream_t, gr_vec_t, truth_t
 
 
 # .. macro :: GR_PARSE_BALANCE_ADDITIONS
@@ -24,7 +24,7 @@ cdef extern from "flint/gr_generic.h":
     void gr_generic_add(void)
     void gr_generic_sub(void)
     void gr_generic_mul(void)
-    int gr_generic_ctx_clear(gr_ctx_t ctx)
+    void gr_generic_ctx_clear(gr_ctx_t ctx)
     void gr_generic_set_shallow(gr_ptr res, gr_srcptr x, const gr_ctx_t ctx)
     int gr_generic_write_n(gr_stream_t out, gr_srcptr x, slong n, gr_ctx_t ctx)
     int gr_generic_randtest_not_zero(gr_ptr x, flint_rand_t state, gr_ctx_t ctx)
@@ -212,3 +212,4 @@ cdef extern from "flint/gr_generic.h":
     int gr_generic_scalar_other_div_vec(gr_ptr vec1, gr_srcptr c, gr_ctx_t cctx, gr_srcptr vec2, slong len, gr_ctx_t ctx)
     int gr_generic_scalar_other_divexact_vec(gr_ptr vec1, gr_srcptr c, gr_ctx_t cctx, gr_srcptr vec2, slong len, gr_ctx_t ctx)
     int gr_generic_scalar_other_pow_vec(gr_ptr vec1, gr_srcptr c, gr_ctx_t cctx, gr_srcptr vec2, slong len, gr_ctx_t ctx)
+    int gr_generic_poly_factor_roots( gr_ptr c, gr_vec_t fac, gr_vec_t mult, gr_srcptr elt, int flags, gr_ctx_t ctx)
