@@ -69,5 +69,6 @@ cdef extern from "flint/gr.h":
     void gr_ctx_init_gr_mpoly(gr_ctx_t ctx, gr_ctx_t base_ring, slong nvars, const ordering_t ord)
     void gr_ctx_init_series_mod_gr_poly(gr_ctx_t ctx, gr_ctx_t base_ring, slong n)
     void gr_ctx_init_gr_series(gr_ctx_t ctx, gr_ctx_t base_ring, slong prec)
+    void gr_ctx_init_gr_fraction(gr_ctx_t ctx, gr_ctx_t domain, int flags)
     void gr_ctx_init_fmpz_mpoly_q(gr_ctx_t ctx, slong nvars, const ordering_t ord)
     void gr_ctx_init_fexpr(gr_ctx_t ctx)

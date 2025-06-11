@@ -47,6 +47,7 @@ cdef extern from "flint/fq_default_mat.h":
     int fq_default_mat_is_one(const fq_default_mat_t mat, const fq_default_ctx_t ctx)
     int fq_default_mat_is_empty(const fq_default_mat_t mat, const fq_default_ctx_t ctx)
     int fq_default_mat_is_square(const fq_default_mat_t mat, const fq_default_ctx_t ctx)
+    void fq_default_mat_transpose(fq_default_mat_t B, const fq_default_mat_t A, const fq_default_ctx_t ctx)
     void fq_default_mat_add(fq_default_mat_t C, const fq_default_mat_t A, const fq_default_mat_t B, const fq_default_ctx_t ctx)
     void fq_default_mat_sub(fq_default_mat_t C, const fq_default_mat_t A, const fq_default_mat_t B, const fq_default_ctx_t ctx)
     void fq_default_mat_neg(fq_default_mat_t A, const fq_default_mat_t B, const fq_default_ctx_t ctx)

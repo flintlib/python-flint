@@ -62,6 +62,7 @@ cdef extern from "flint/arf.h":
     int arf_get_fmpz_fixed_si(fmpz_t res, const arf_t x, slong e)
     void arf_floor(arf_t res, const arf_t x)
     void arf_ceil(arf_t res, const arf_t x)
+    void arf_nint(arf_t res, const arf_t x)
     void arf_get_fmpq(fmpq_t res, const arf_t x)
     int arf_equal(const arf_t x, const arf_t y)
     int arf_equal_si(const arf_t x, slong y)

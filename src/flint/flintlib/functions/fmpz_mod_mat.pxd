@@ -43,6 +43,7 @@ cdef extern from "flint/fmpz_mod_mat.h":
     void _fmpz_mod_mat_mul_classical_threaded_op(fmpz_mod_mat_t D, const fmpz_mod_mat_t C, const fmpz_mod_mat_t A, const fmpz_mod_mat_t B, int op, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_mat_mul_classical_threaded(fmpz_mod_mat_t C, const fmpz_mod_mat_t A, const fmpz_mod_mat_t B, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_mat_sqr(fmpz_mod_mat_t B, const fmpz_mod_mat_t A, const fmpz_mod_ctx_t ctx)
+    void fmpz_mod_mat_pow_ui(fmpz_mod_mat_t B, const fmpz_mod_mat_t A, ulong e, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_mat_mul_fmpz_vec(fmpz_struct * c, const fmpz_mod_mat_t A, const fmpz_struct * b, slong blen, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_mat_mul_fmpz_vec_ptr(fmpz_struct * const * c, const fmpz_mod_mat_t A, const fmpz_struct * const * b, slong blen, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_mat_fmpz_vec_mul(fmpz_struct * c, const fmpz_struct * a, slong alen, const fmpz_mod_mat_t B, const fmpz_mod_ctx_t ctx)

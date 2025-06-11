@@ -163,7 +163,7 @@ cdef extern from "flint/fmpz.h":
     void fmpz_divexact2_uiui(fmpz_t f, const fmpz_t g, ulong x, ulong y)
     int fmpz_divisible(const fmpz_t f, const fmpz_t g)
     int fmpz_divisible_si(const fmpz_t f, slong g)
-    int fmpz_divides(fmpz_t q, const fmpz_t g, const fmpz_t h)
+    int fmpz_divides(fmpz_t q, const fmpz_t f, const fmpz_t g)
     void fmpz_mod(fmpz_t f, const fmpz_t g, const fmpz_t h)
     ulong fmpz_mod_ui(fmpz_t f, const fmpz_t g, ulong h)
     void fmpz_smod(fmpz_t f, const fmpz_t g, const fmpz_t h)
