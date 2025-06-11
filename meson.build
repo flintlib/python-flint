@@ -12,7 +12,7 @@ project(
 # then we can consider not using a speculative upper version cap here.
 #
 flint_lower = '>=3.0'
-flint_upper = '<3.3'
+flint_upper = '<3.4'
 cython_lower = '>=3.0.11'
 cython_upper = '<3.2'
 
