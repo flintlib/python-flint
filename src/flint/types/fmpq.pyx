@@ -489,7 +489,8 @@ cdef class fmpq(flint_scalar):
         cdef fmpq v
         cdef int success
 
-        assert z is None
+        if z is not None:
+            raise TypeError("3-arg pow with fmpq is undefined.")
 
         ntype = fmpz_set_any_ref(nval, n)
         if ntype == FMPZ_UNKNOWN:
