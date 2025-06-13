@@ -2,8 +2,9 @@
 # It would be better if many methods accepted SupportsIndex rather than just
 # int | fmpz but for now these annotations are accurate.
 #
+from ..flint_base.flint_base import flint_scalar
 
-class fmpz:
+class fmpz(flint_scalar):
     def __init__(self, arg: int | fmpz | str = 0, /): ...
 
     @property

@@ -1,10 +1,13 @@
+from ..flint_base.flint_base import flint_scalar
 from typing import overload
 from .fmpz import fmpz
+
 
 ifmpz = int | fmpz
 ifmpq = int | fmpz | fmpq
 
-class fmpq:
+
+class fmpq(flint_scalar):
     @overload
     def __init__(self): ...
     @overload
@@ -78,6 +81,8 @@ class fmpq:
     def __abs__(self) ->fmpq: ...
 
     def gcd(self, other: ifmpq, /) -> fmpq: ...
+
+    def sqrt(self) -> fmpq: ...
 
     @staticmethod
     def bernoulli(n: int, cache: bool = False) -> fmpq: ...

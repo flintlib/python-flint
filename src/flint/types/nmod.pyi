@@ -1,3 +1,4 @@
+from ..flint_base.flint_base import flint_scalar
 from .fmpz import fmpz
 from .fmpq import fmpq
 
@@ -5,7 +6,7 @@ ifmpz = int | fmpz
 ifmpq = int | fmpz | fmpq
 inmod = int | fmpz | fmpq | nmod
 
-class nmod:
+class nmod(flint_scalar):
     def __init__(self, val: inmod, mod: int): ...
 
     def modulus(self) -> int: ...
