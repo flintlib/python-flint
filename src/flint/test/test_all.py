@@ -2891,9 +2891,9 @@ class _get_ctx(Protocol[Tctx]):
 # _get_ctx = Callable[[Iterable[str | tuple[str, int]] | tuple[str, int]], Tctx]
 _get_val = Callable[[int], Tval]
 _all_mpolys_type = tuple[
-    #tuple[type[flint.fmpz_mpoly], _get_ctx[flint.fmpz_mpoly_ctx], _get_val[flint.fmpz], bool, flint.fmpz],
+    tuple[type[flint.fmpz_mpoly], _get_ctx[flint.fmpz_mpoly_ctx], _get_val[flint.fmpz], bool, flint.fmpz],
     tuple[type[flint.fmpq_mpoly], _get_ctx[flint.fmpq_mpoly_ctx], _get_val[flint.fmpq], bool, flint.fmpz],
-    #tuple[type[flint.nmod_mpoly], _get_ctx[flint.nmod_mpoly_ctx], _get_val[flint.nmod], bool, flint.fmpz],
+    tuple[type[flint.nmod_mpoly], _get_ctx[flint.nmod_mpoly_ctx], _get_val[flint.nmod], bool, flint.fmpz],
 ]
 
 
