@@ -77,7 +77,6 @@ cdef class fmpz_series(flint_series):
                 fmpz_poly_set_list(self.val, [val])
         fmpz_poly_truncate(self.val, max(0, self._prec))
 
-
     @property
     def prec(self):
         """
