@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm, windows-2019, macos-13, macos-14]
+        os: [ubuntu-24.04, ubuntu-24.04-arm, windows-2022, macos-13, macos-14]
 
     steps:
       - uses: actions/checkout@v4
@@ -29,17 +29,17 @@ jobs:
           # problematic in some situations. Maybe there is a better way to do
           # this.
           path-type: inherit
-        if: ${{ matrix.os == 'windows-2019' }}
+        if: ${{ matrix.os == 'windows-2022' }}
 
         # Install pkgconfig on Windows from choco rather than from msys and
         # avoid using the Strawberry one.
       - run: choco install -y --stoponfirstfailure --checksum 6004DF17818F5A6DBF19CB335CC92702 pkgconfiglite
-        if: ${{ matrix.os == 'windows-2019' }}
+        if: ${{ matrix.os == 'windows-2022' }}
 
         # We have to set this here rather than in the cibuildwheel config
         # This is probably something to do with \ vs / in paths...
       - run: echo "PKG_CONFIG_PATH=${{ github.workspace }}/.local/lib/pkgconfig" >> $env:GITHUB_ENV
-        if: ${{ matrix.os == 'windows-2019' }}
+        if: ${{ matrix.os == 'windows-2022' }}
 
       - name: Build wheels
         uses: pypa/cibuildwheel@90a0ddeff0f23eebc21630e65d66d0f4955e9b94 # v3.0.0b1
@@ -83,7 +83,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm, windows-2022, macos-13, macos-14]
+        os: [ubuntu-24.04, ubuntu-24.04-arm, windows-2019, macos-13, macos-14]
         # This list to be kept in sync with python-requires in pyproject.toml.
         python-version: ['3.11', '3.12', '3.13', '3.13t', 'pypy3.11']
 
