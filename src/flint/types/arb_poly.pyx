@@ -95,6 +95,8 @@ cdef class arb_poly(flint_poly):
         """
         Constructs the monic polynomial whose roots are the given real numbers.
 
+            >>> from flint import arb_poly, ctx
+            >>> ctx.prec = 53
             >>> arb_poly.from_roots(range(4))
             1.00000000000000*x^4 + (-6.00000000000000)*x^3 + 11.0000000000000*x^2 + (-6.00000000000000)*x
 

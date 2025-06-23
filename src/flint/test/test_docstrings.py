@@ -5,7 +5,7 @@ import re
 
 import flint
 
-dunder_test_regex = re.compile(r'^(.*?)__test__\.(.*?\.)(.*) \(line (\d+)\)$')
+dunder_test_regex = re.compile(r'^(.*?)__test__\.(.*?) \(line (\d+)\)$')
 
 test_flint_at_least = {
     "flint.types._gr.gr_ctx.gens": 30100,
@@ -16,23 +16,36 @@ test_flint_at_least = {
 def find_doctests(module):
     finder = doctest.DocTestFinder()
     tests = []
+    tests_seen = set()
     for module_info in pkgutil.walk_packages(module.__path__, flint.__name__ + "."):
         try:
             module = importlib.import_module(module_info.name)
 
             res = []
             for test in filter(lambda x: bool(x.examples), finder.find(module)):
+
                 m = dunder_test_regex.match(test.name)
                 if m is not None:
                     groups = m.groups()
-                    test.name = groups[0] + groups[2]
-                    test.lineno = int(groups[3])
+                    test.name = groups[0] + groups[1]
+                    test.lineno = int(groups[2])
 
-                    if (
-                        test_flint_at_least.get("".join(groups[:3]), flint.__FLINT_RELEASE__)
-                        <= flint.__FLINT_RELEASE__
-                    ):
-                        res.append(test)
+                    # Prefer the __test__ version of the test (remove the other)
+                    if test.name in tests_seen:
+                        n = len(res)
+                        res = [r for r in res if r.name != test.name]
+                        if len(res) != n - 1:
+                            raise Exception(f"Duplicate test name: {test.name}")
+                        tests_seen.remove(test.name)
+
+                # Doctests that fail without latest flint
+                if test.name in test_flint_at_least:
+                    if test_flint_at_least[test.name] > flint.__FLINT_RELEASE__:
+                        continue
+
+                if test.name not in tests_seen:
+                    tests_seen.add(test.name)
+                    res.append(test)
 
             tests.append((module_info.name, res))
 

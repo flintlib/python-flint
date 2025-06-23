@@ -46,6 +46,8 @@ cdef class arb_mat(flint_mat):
     """
     Represents a matrix over the real numbers.
 
+        >>> from flint import arb_mat, ctx
+        >>> ctx.prec = 53
         >>> A = arb_mat([[1,2],[3,4]]) ** 2 / 5
         >>> A
         [[1.40000000000000 +/- 3.12e-16],                2.00000000000000]
@@ -202,7 +204,8 @@ cdef class arb_mat(flint_mat):
         """
         Returns the determinant of the square matrix *s* as an *arb*.
 
-            >>> from flint import showgood
+            >>> from flint import showgood, ctx
+            >>> ctx.prec = 53
             >>> A = arb_mat(3, 3, range(9))
             >>> showgood(lambda: A.det(), dps=25)    # exact singular
             0
@@ -351,6 +354,8 @@ cdef class arb_mat(flint_mat):
         unless *nonstop* is set in which case a matrix with NaN entries
         is returned.
 
+            >>> from flint import arb_mat, ctx
+            >>> ctx.prec = 53
             >>> A = arb_mat(2, 2, [1, 5, 2, 4])
             >>> print(A * A.inv())
             [[1.00000000000000 +/- 6.11e-16],                  [+/- 3.34e-16]]
@@ -388,6 +393,8 @@ cdef class arb_mat(flint_mat):
         unless *nonstop* is set in which case a matrix with NaN entries
         is returned.
 
+            >>> from flint import arb_mat, ctx
+            >>> ctx.prec = 53
             >>> A = arb_mat(2, 2, [1, 2, 3, 4])
             >>> X = arb_mat(2, 3, range(6))
             >>> B = A * X
@@ -438,6 +445,8 @@ cdef class arb_mat(flint_mat):
         """
         Returns the matrix exponential of *s*.
 
+            >>> from flint import arb_mat, ctx
+            >>> ctx.prec = 53
             >>> print(arb_mat(2, 2, [1, 4, -2, 1]).exp())
             [ [-2.58607310345045 +/- 5.06e-15],  [1.18429895089106 +/- 1.15e-15]]
             [[-0.592149475445530 +/- 5.73e-16], [-2.58607310345045 +/- 5.06e-15]]
@@ -454,6 +463,8 @@ cdef class arb_mat(flint_mat):
         """
         Returns the characteristic polynomial of *s* as an *arb_poly*.
 
+            >>> from flint import arb_mat, ctx
+            >>> ctx.prec = 53
             >>> print(arb_mat(2, 2, [1, 1, 1, 0]).charpoly())
             1.00000000000000*x^2 + (-1.00000000000000)*x + (-1.00000000000000)
         """
@@ -481,6 +492,8 @@ cdef class arb_mat(flint_mat):
         """
         Returns the trace of the square matrix *s* as an *arb*.
 
+            >>> from flint import arb_mat, ctx
+            >>> ctx.prec = 53
             >>> arb_mat([[3,4],[5,7]]).trace()
             10.0000000000000
         """
@@ -496,6 +509,8 @@ cdef class arb_mat(flint_mat):
         """
         Returns the *n* by *m* truncated Hilbert matrix.
 
+            >>> from flint import arb_mat, ctx
+            >>> ctx.prec = 53
             >>> arb_mat.hilbert(6,2)
             [                1.00000000000000,                0.500000000000000]
             [               0.500000000000000, [0.333333333333333 +/- 3.71e-16]]
@@ -520,6 +535,8 @@ cdef class arb_mat(flint_mat):
         *triangular* is -1 or 1, the lower or upper triangular version
         of the Pascal matrix is returned.
 
+            >>> from flint import arb_mat, ctx
+            >>> ctx.prec = 53
             >>> arb_mat.pascal(3, 4)
             [1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000]
             [1.00000000000000, 2.00000000000000, 3.00000000000000, 4.00000000000000]
@@ -550,6 +567,8 @@ cdef class arb_mat(flint_mat):
         first kind, 1 for signed Stirling numbers of the first kind,
         and 2 for Stirling numbers of the second kind.
 
+            >>> from flint import arb_mat, ctx
+            >>> ctx.prec = 53
             >>> arb_mat.stirling(5, 4)
             [1.00000000000000,                0,                0,                0]
             [               0, 1.00000000000000,                0,                0]
@@ -645,6 +664,8 @@ cdef class arb_mat(flint_mat):
         Returns a copy of *s* where entries that are bounded by *tol* in
         magnitude have been replaced by exact zeros.
 
+            >>> from flint import arb_mat, ctx
+            >>> ctx.prec = 53
             >>> print(arb_mat.stirling(4, 4).inv().str(5, radius=False))
             [1.0000,       0,       0,      0]
             [     0,  1.0000,   0e-14,  0e-15]

@@ -222,6 +222,8 @@ cdef class arb(flint_scalar):
         returning an *fmpz* pair. Requires that *self* is exact
         and finite.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> arb("1.1").mid().man_exp()
             (4953959590107545, -52)
             >>> arb("1.1").rad().man_exp()
@@ -268,6 +270,8 @@ cdef class arb(flint_scalar):
         """
         Returns the midpoint of *self* as an exact *arb*:
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> arb("1 +/- 0.3").mid()
             1.00000000000000
         """
@@ -399,6 +403,8 @@ cdef class arb(flint_scalar):
         Binary-decimal-binary roundtrips may result in significantly
         larger intervals, and should therefore be done sparingly.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> print(arb.pi().str())
             [3.14159265358979 +/- 3.34e-15]
             >>> print(arb.pi().str(5))
@@ -561,6 +567,8 @@ cdef class arb(flint_scalar):
         """
         Sign function, returning an *arb*.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> arb(-3).sgn()
             -1.00000000000000
             >>> arb(0).sgn()
@@ -700,6 +708,8 @@ cdef class arb(flint_scalar):
         r"""
         Floor function `\lfloor s \rfloor`.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> print(arb.pi().floor())
             3.00000000000000
             >>> print((arb.pi() - arb.pi()).floor().str(more=True))
@@ -833,6 +843,8 @@ cdef class arb(flint_scalar):
         r"""
         Returns `\log_b(s)`, computed exactly when possible.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> arb(2048).log_base(2)
             11.0000000000000
         """
@@ -1358,6 +1370,8 @@ cdef class arb(flint_scalar):
         The current implementation does not use the gamma function,
         so *n* should be moderate.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> u, v = arb(3).rising2(5)
             >>> print(u); print(v)
             2520.00000000000
@@ -1506,6 +1520,8 @@ cdef class arb(flint_scalar):
         """
         Factorial `n!`, given an integer.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> print(arb.fac_ui(10))
             3628800.00000000
             >>> from flint import showgood
@@ -1522,9 +1538,10 @@ cdef class arb(flint_scalar):
         to an integer; this restriction will be removed in the future
         by using the gamma function.
 
+            >>> from flint import arb, ctx, showgood
+            >>> ctx.prec = 53
             >>> print(arb(10).bin(5))
             252.000000000000
-            >>> from flint import showgood
             >>> showgood(lambda: arb.pi().bin(100), dps=25)
             5.478392395095119521549286e-9
         """
@@ -1537,6 +1554,8 @@ cdef class arb(flint_scalar):
         r"""
         Binomial coefficient `{n \choose k}`.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> print(arb.bin_uiui(10, 5))
             252.000000000000
         """
@@ -1550,6 +1569,8 @@ cdef class arb(flint_scalar):
         Computes the Fibonacci number `F_n` as an *arb*,
         where *n* is a given integer.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> print(arb.fib(10))
             55.0000000000000
             >>> from flint import showgood
@@ -2495,6 +2516,8 @@ cdef class arb(flint_scalar):
         """
         Returns a ball containing the union of *s* and *t*.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> x = arb(3).union(5); x.lower(); x.upper()
             [2.99999999813735 +/- 4.86e-15]
             [5.00000000186265 +/- 4.86e-15]
@@ -2526,6 +2549,8 @@ cdef class arb(flint_scalar):
         """
         Minimum value of *s* and *t*.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> arb(2).min(3)
             2.00000000000000
             >>> arb(2).min(arb("3 +/- 1.1"))
@@ -2585,6 +2610,8 @@ cdef class arb(flint_scalar):
         Number of zeros of the Riemann zeta function with positive
         imaginary part between 0 and *x*.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> arb("-5").zeta_nzeros()
             0
             >>> arb("14").zeta_nzeros()

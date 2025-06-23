@@ -30,34 +30,48 @@ cdef acb_series_coerce_operands(x, y):
     return NotImplemented, NotImplemented
 
 cdef class acb_series(flint_series):
+    """
+    Arb series.
+
+    >>> from flint import acb_series, ctx
+    >>> ctx.cap = 3
+    >>> x = acb_series([0, 1])
+    >>> x
+    1.00000000000000*x + O(x^3)
+    >>> 1 / (1 + x)
+    1.00000000000000 + (-1.00000000000000)*x + 1.00000000000000*x^2 + O(x^3)
+    >>> x.cos()
+    1.00000000000000 + (-0.500000000000000)*x^2 + O(x^3)
+
+    """
 
     # cdef acb_poly_t val
     # cdef long prec
 
     def __cinit__(self):
         acb_poly_init(self.val)
-        self.prec = 0
+        self._prec = 0
 
     def __dealloc__(self):
         acb_poly_clear(self.val)
 
     def __init__(self, val=None, prec=None):
         if prec is None:
-            self.prec = getcap()
+            self._prec = getcap()
         else:
-            self.prec = prec
-        if self.prec < 0:
-            self.prec = -1
+            self._prec = prec
+        if self._prec < 0:
+            self._prec = -1
         if val is not None:
             if typecheck(val, acb_series):
                 acb_poly_set(self.val, (<acb_series>val).val)
-                self.prec = min((<acb_series>val).prec, getcap())
+                self._prec = min((<acb_series>val)._prec, getcap())
             elif typecheck(val, arb_series):
                 acb_poly_set_arb_poly(self.val, (<arb_series>val).val)
-                self.prec = min((<arb_series>val).prec, getcap())
+                self._prec = min((<arb_series>val)._prec, getcap())
             elif typecheck(val, fmpz_series):
                 acb_poly_set_fmpz_poly(self.val, (<fmpz_series>val).val, getprec())
-                self.prec = min((<fmpz_series>val).prec, getcap())
+                self._prec = min((<fmpz_series>val)._prec, getcap())
             elif typecheck(val, fmpz_poly):
                 acb_poly_set_fmpz_poly(self.val, (<fmpz_poly>val).val, getprec())
             elif typecheck(val, acb_poly):
@@ -66,7 +80,27 @@ cdef class acb_series(flint_series):
                 acb_poly_set_list(self.val, val, getprec())
             else:
                 acb_poly_set_list(self.val, [val], getprec())
-        acb_poly_truncate(self.val, max(0, self.prec))
+        acb_poly_truncate(self.val, max(0, self._prec))
+
+    @property
+    def prec(self):
+        """
+        The precision of the finitely approximated power series.
+
+        >>> from flint import acb_series, ctx
+        >>> ctx.cap = 10
+        >>> a = acb_series([1,2,3])
+        >>> a
+        1.00000000000000 + 2.00000000000000*x + 3.00000000000000*x^2 + O(x^10)
+        >>> a.prec
+        10
+        >>> b = acb_series([1,2,3], prec=5)
+        >>> b
+        1.00000000000000 + 2.00000000000000*x + 3.00000000000000*x^2 + O(x^5)
+        >>> b.prec
+        5
+        """
+        return self._prec
 
     def __len__(self):
         return acb_poly_length(self.val)
@@ -90,13 +124,13 @@ cdef class acb_series(flint_series):
         acb_poly_set_coeff_acb(self.val, i, (<acb>x).val)
 
     def repr(self, **kwargs):
-        return "acb_series([%s], prec=%s)" % (", ".join(map(str, self)), self.prec)
+        return "acb_series([%s], prec=%s)" % (", ".join(map(str, self)), self._prec)
 
     def str(self, *args, **kwargs):
-        if self.prec > 0:
+        if self._prec > 0:
             s = acb_poly(list(self)).str(ascending=True, *args, **kwargs)
-            return s + (" + O(x^%s)" % self.prec)
-        elif self.prec == 0:
+            return s + (" + O(x^%s)" % self._prec)
+        elif self._prec == 0:
             return "O(x^0)"
         else:
             return "(invalid power series)"
@@ -108,11 +142,11 @@ cdef class acb_series(flint_series):
         cdef long cap
         u = acb_series.__new__(acb_series)
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         if cap > 0:
             acb_poly_neg((<acb_series>u).val, (<acb_series>s).val)
             acb_poly_truncate((<acb_series>u).val, cap)
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def __add__(s, t):
@@ -125,12 +159,12 @@ cdef class acb_series(flint_series):
 
         u = acb_series.__new__(acb_series)
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
-        cap = min(cap, (<acb_series>t).prec)
+        cap = min(cap, (<acb_series>s)._prec)
+        cap = min(cap, (<acb_series>t)._prec)
         if cap > 0:
             acb_poly_add((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, getprec())
             acb_poly_truncate((<acb_series>u).val, cap)
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def __radd__(s, t):
@@ -149,12 +183,12 @@ cdef class acb_series(flint_series):
 
         u = acb_series.__new__(acb_series)
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
-        cap = min(cap, (<acb_series>t).prec)
+        cap = min(cap, (<acb_series>s)._prec)
+        cap = min(cap, (<acb_series>t)._prec)
         if cap > 0:
             acb_poly_sub((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, getprec())
             acb_poly_truncate((<acb_series>u).val, cap)
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def __rsub__(s, t):
@@ -173,11 +207,11 @@ cdef class acb_series(flint_series):
 
         u = acb_series.__new__(acb_series)
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
-        cap = min(cap, (<acb_series>t).prec)
+        cap = min(cap, (<acb_series>s)._prec)
+        cap = min(cap, (<acb_series>t)._prec)
         if cap > 0:
             acb_poly_mullow((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def __rmul__(s, t):
@@ -206,8 +240,8 @@ cdef class acb_series(flint_series):
             return s / t
 
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
-        cap = min(cap, (<acb_series>t).prec)
+        cap = min(cap, (<acb_series>s)._prec)
+        cap = min(cap, (<acb_series>t)._prec)
 
         if (<acb_series>t).length() == 0:
             raise ZeroDivisionError("power series division")
@@ -239,7 +273,7 @@ cdef class acb_series(flint_series):
             acb_poly_clear(stmp)
             acb_poly_clear(ttmp)
 
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def __rtruediv__(s, t):
@@ -260,11 +294,11 @@ cdef class acb_series(flint_series):
 
         u = acb_series.__new__(acb_series)
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
-        cap = min(cap, (<acb_series>t).prec)
+        cap = min(cap, (<acb_series>s)._prec)
+        cap = min(cap, (<acb_series>t)._prec)
         if cap > 0:
             acb_poly_pow_series((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def __rpow__(s, t):
@@ -280,221 +314,221 @@ cdef class acb_series(flint_series):
             if (<acb_series>t).valuation() < 1:
                 raise ValueError("power series composition with nonzero constant term")
             cap = getcap()
-            cap = min(cap, (<acb_series>s).prec)
-            cap = min(cap, (<acb_series>t).prec)
+            cap = min(cap, (<acb_series>s)._prec)
+            cap = min(cap, (<acb_series>t)._prec)
             acb_poly_compose_series((<acb_series>u).val, (<acb_series>s).val, (<acb_series>t).val, cap, getprec())
-            (<acb_series>u).prec = cap
+            (<acb_series>u)._prec = cap
             return u
         raise TypeError("cannot call acb_series with input of type %s", type(t))
 
     def reversion(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         if s.length() < 2 or (not acb_is_zero(&s.val.coeffs[0])) or \
            (acb_contains_zero(&s.val.coeffs[1])):
             raise ValueError("power series reversion requires valuation 1")
         u = acb_series.__new__(acb_series)
         acb_poly_revert_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def inv(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         if s.length() == 0:
             raise ZeroDivisionError
         u = acb_series.__new__(acb_series)
         acb_poly_inv_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def derivative(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec - 1)
+        cap = min(cap, (<acb_series>s)._prec - 1)
         u = acb_series.__new__(acb_series)
         acb_poly_derivative((<acb_series>u).val, (<acb_series>s).val, getprec())
         acb_poly_truncate((<acb_series>u).val, max(0, cap))
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def integral(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec + 1)
+        cap = min(cap, (<acb_series>s)._prec + 1)
         u = acb_series.__new__(acb_series)
         acb_poly_integral((<acb_series>u).val, (<acb_series>s).val, getprec())
         acb_poly_truncate((<acb_series>u).val, max(0, cap))
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def sqrt(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_sqrt_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def rsqrt(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_rsqrt_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def exp(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_exp_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def log(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_log_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def atan(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_atan_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def sin(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_sin_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def cos(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_cos_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def sin_cos(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         v = acb_series.__new__(acb_series)
         acb_poly_sin_cos_series((<acb_series>u).val, (<acb_series>v).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
-        (<acb_series>v).prec = cap
+        (<acb_series>u)._prec = cap
+        (<acb_series>v)._prec = cap
         return u, v
 
     def sin_pi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_sin_pi_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def cos_pi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_cos_pi_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def sin_cos_pi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         v = acb_series.__new__(acb_series)
         acb_poly_sin_cos_pi_series((<acb_series>u).val, (<acb_series>v).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
-        (<acb_series>v).prec = cap
+        (<acb_series>u)._prec = cap
+        (<acb_series>v)._prec = cap
         return u, v
 
     def cot_pi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_cot_pi_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def tan(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_tan_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def gamma(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_gamma_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def rgamma(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_rgamma_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def lgamma(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_lgamma_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def rising(s, ulong n):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_rising_ui_series((<acb_series>u).val, (<acb_series>s).val, n, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def zeta(s, a=1, bint deflate=0):
         cdef long cap
         a = acb(a)
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_zeta_series((<acb_series>u).val, (<acb_series>s).val, (<acb>a).val, deflate, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def dirichlet_l(s, chi, bint deflate=0):
@@ -505,32 +539,32 @@ cdef class acb_series(flint_series):
         else:
             cchar = dirichlet_char(chi[0], chi[1])
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_dirichlet_l_series((<acb_series>u).val, (<acb_series>s).val, cchar.G.val, cchar.val, deflate, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     @classmethod
     def polylog(cls, s, z):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         s = acb_series(s)
         z = acb(z)
         u = acb_series.__new__(acb_series)
         acb_poly_polylog_series((<acb_series>u).val, (<acb_series>s).val, (<acb>z).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def agm(s, t=None):
         cdef long cap
         if t is None:
             cap = getcap()
-            cap = min(cap, (<acb_series>s).prec)
+            cap = min(cap, (<acb_series>s)._prec)
             u = acb_series.__new__(acb_series)
             acb_poly_agm1_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-            (<acb_series>u).prec = cap
+            (<acb_series>u)._prec = cap
             return u
         else:
             return (s / t).agm() * t
@@ -538,47 +572,47 @@ cdef class acb_series(flint_series):
     def elliptic_k(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_poly_elliptic_k_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def elliptic_p(s, tau):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         tau = acb(tau)
         u = acb_series.__new__(acb_series)
         acb_poly_elliptic_p_series((<acb_series>u).val, (<acb_series>s).val, (<acb>tau).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def erf(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_erf_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def erfc(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_erfc_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def erfi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_erfi_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     @classmethod
@@ -587,10 +621,10 @@ cdef class acb_series(flint_series):
         s = acb(s)
         z = acb_series(z)
         cap = getcap()
-        cap = min(cap, (<acb_series>z).prec)
+        cap = min(cap, (<acb_series>z)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_gamma_upper_series((<acb_series>u).val, (<acb>s).val, (<acb_series>z).val, regularized, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     @classmethod
@@ -599,10 +633,10 @@ cdef class acb_series(flint_series):
         s = acb(s)
         z = acb_series(z)
         cap = getcap()
-        cap = min(cap, (<acb_series>z).prec)
+        cap = min(cap, (<acb_series>z)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_gamma_lower_series((<acb_series>u).val, (<acb>s).val, (<acb_series>z).val, regularized, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     @classmethod
@@ -612,10 +646,10 @@ cdef class acb_series(flint_series):
         b = acb(b)
         z = acb_series(z)
         cap = getcap()
-        cap = min(cap, (<acb_series>z).prec)
+        cap = min(cap, (<acb_series>z)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_beta_lower_series((<acb_series>u).val, (<acb>a).val, (<acb>b).val, (<acb_series>z).val, regularized, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     @classmethod
@@ -639,86 +673,86 @@ cdef class acb_series(flint_series):
         aa = <acb_poly_struct *>libc.stdlib.malloc(p * cython.sizeof(acb_poly_struct))
         bb = <acb_poly_struct *>libc.stdlib.malloc(q * cython.sizeof(acb_poly_struct))
         cap = getcap()
-        cap = min(cap, (<acb_series>z).prec)
+        cap = min(cap, (<acb_series>z)._prec)
         for i in range(p):
-            cap = min(cap, (<acb_series>(a[i])).prec)
+            cap = min(cap, (<acb_series>(a[i]))._prec)
             aa[i] = (<acb_series>(a[i])).val[0]
         for i in range(q):
-            cap = min(cap, (<acb_series>(b[i])).prec)
+            cap = min(cap, (<acb_series>(b[i]))._prec)
             bb[i] = (<acb_series>(b[i])).val[0]
         u = acb_series.__new__(acb_series)
         acb_hypgeom_pfq_series_direct((<acb_series>u).val, aa, p, bb, q, (<acb_series>z).val, regularized, n, cap, getprec())
         libc.stdlib.free(aa)
         libc.stdlib.free(bb)
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def airy_ai(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_airy_series((<acb_series>u).val, NULL, NULL, NULL, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def airy_ai_prime(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_airy_series(NULL, (<acb_series>u).val, NULL, NULL, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def airy_bi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_airy_series(NULL, NULL, (<acb_series>u).val, NULL, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def airy_bi_prime(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_airy_series(NULL, NULL, NULL, (<acb_series>u).val,
                                 (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def airy(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         v = acb_series.__new__(acb_series)
         w = acb_series.__new__(acb_series)
         z = acb_series.__new__(acb_series)
         acb_hypgeom_airy_series((<acb_series>u).val, (<acb_series>v).val, (<acb_series>w).val, (<acb_series>z).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
-        (<acb_series>v).prec = cap
-        (<acb_series>w).prec = cap
-        (<acb_series>z).prec = cap
+        (<acb_series>u)._prec = cap
+        (<acb_series>v)._prec = cap
+        (<acb_series>w)._prec = cap
+        (<acb_series>z)._prec = cap
         return u, v, w, z
 
     def modular_theta(self, tau):
         cdef long cap
         tau = acb(tau)
         cap = getcap()
-        cap = min(cap, (<acb_series>self).prec)
+        cap = min(cap, (<acb_series>self)._prec)
         t1 = acb_series.__new__(acb_series)
         t2 = acb_series.__new__(acb_series)
         t3 = acb_series.__new__(acb_series)
         t4 = acb_series.__new__(acb_series)
         acb_modular_theta_series((<acb_series>t1).val, (<acb_series>t2).val, (<acb_series>t3).val, (<acb_series>t4).val, (<acb_series>self).val, (<acb>tau).val, cap, getprec())
-        (<acb_series>t1).prec = cap
-        (<acb_series>t2).prec = cap
-        (<acb_series>t3).prec = cap
-        (<acb_series>t4).prec = cap
+        (<acb_series>t1)._prec = cap
+        (<acb_series>t2)._prec = cap
+        (<acb_series>t3)._prec = cap
+        (<acb_series>t4)._prec = cap
         return t1, t2, t3, t4
 
     def coulomb(self, l, eta):
@@ -726,7 +760,7 @@ cdef class acb_series(flint_series):
         l = acb(l)
         eta = acb(eta)
         cap = getcap()
-        cap = min(cap, (<acb_series>self).prec)
+        cap = min(cap, (<acb_series>self)._prec)
         F = acb_series.__new__(acb_series)
         G = acb_series.__new__(acb_series)
         Hpos = acb_series.__new__(acb_series)
@@ -734,10 +768,10 @@ cdef class acb_series(flint_series):
         acb_hypgeom_coulomb_series((<acb_series>F).val, (<acb_series>G).val, (<acb_series>Hpos).val,
                                    (<acb_series>Hneg).val, (<acb>l).val, (<acb>eta).val,
                                    (<acb_series>self).val, cap, getprec())
-        (<acb_series>F).prec = cap
-        (<acb_series>G).prec = cap
-        (<acb_series>Hpos).prec = cap
-        (<acb_series>Hneg).prec = cap
+        (<acb_series>F)._prec = cap
+        (<acb_series>G)._prec = cap
+        (<acb_series>Hpos)._prec = cap
+        (<acb_series>Hneg)._prec = cap
         return F, G, Hpos, Hneg
 
     def coulomb_f(self, l, eta):
@@ -745,11 +779,11 @@ cdef class acb_series(flint_series):
         l = acb(l)
         eta = acb(eta)
         cap = getcap()
-        cap = min(cap, (<acb_series>self).prec)
+        cap = min(cap, (<acb_series>self)._prec)
         F = acb_series.__new__(acb_series)
         acb_hypgeom_coulomb_series((<acb_series>F).val, NULL, NULL, NULL,
                                    (<acb>l).val, (<acb>eta).val, (<acb_series>self).val, cap, getprec())
-        (<acb_series>F).prec = cap
+        (<acb_series>F)._prec = cap
         return F
 
     def coulomb_g(self, l, eta):
@@ -757,102 +791,102 @@ cdef class acb_series(flint_series):
         l = acb(l)
         eta = acb(eta)
         cap = getcap()
-        cap = min(cap, (<acb_series>self).prec)
+        cap = min(cap, (<acb_series>self)._prec)
         G = acb_series.__new__(acb_series)
         acb_hypgeom_coulomb_series(NULL, (<acb_series>G).val, NULL, NULL,
                                    (<acb>l).val, (<acb>eta).val, (<acb_series>self).val, cap, getprec())
-        (<acb_series>G).prec = cap
+        (<acb_series>G)._prec = cap
         return G
 
     def fresnel(s, bint normalized=True):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         v = acb_series.__new__(acb_series)
         acb_hypgeom_fresnel_series((<acb_series>u).val, (<acb_series>v).val, (<acb_series>s).val, normalized, cap, getprec())
-        (<acb_series>u).prec = cap
-        (<acb_series>v).prec = cap
+        (<acb_series>u)._prec = cap
+        (<acb_series>v)._prec = cap
         return u, v
 
     def fresnel_s(s, bint normalized=True):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_fresnel_series((<acb_series>u).val, NULL, (<acb_series>s).val, normalized, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def fresnel_c(s, bint normalized=True):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_fresnel_series(NULL, (<acb_series>u).val, (<acb_series>s).val, normalized, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def ei(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_ei_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def si(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_si_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def ci(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_ci_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def shi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_shi_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def chi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_chi_series((<acb_series>u).val, (<acb_series>s).val, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def li(s, bint offset=False):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         u = acb_series.__new__(acb_series)
         acb_hypgeom_li_series((<acb_series>u).val, (<acb_series>s).val, offset, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u
 
     def lambertw(s, branch=0):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<acb_series>s).prec)
+        cap = min(cap, (<acb_series>s)._prec)
         k = any_as_fmpz(branch)
         u = acb_series.__new__(acb_series)
         acb_poly_lambertw_series((<acb_series>u).val, (<acb_series>s).val, (<fmpz>k).val, 0, cap, getprec())
-        (<acb_series>u).prec = cap
+        (<acb_series>u)._prec = cap
         return u

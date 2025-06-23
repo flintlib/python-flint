@@ -541,7 +541,8 @@ cdef class fmpq_poly(flint_poly):
         Computes the complex roots of this polynomial. See
         :meth:`.fmpz_poly.roots`.
 
-            >>> from flint import fmpq
+            >>> from flint import fmpq, ctx
+            >>> ctx.prec = 53
             >>> fmpq_poly([fmpq(2,3),1]).complex_roots()
             [([-0.666666666666667 +/- 3.34e-16], 1)]
         """
