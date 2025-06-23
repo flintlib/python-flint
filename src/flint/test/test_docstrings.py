@@ -10,6 +10,7 @@ dunder_test_regex = re.compile(r'^(.*?)__test__\.(.*?) \(line (\d+)\)$')
 test_flint_at_least = {
     "flint.types._gr.gr_ctx.gens": 30100,
     "flint.types._gr.gr_ctx.neg": 30100,
+    "flint.types.acb_theta.acb_theta": 30300,
 }
 
 
