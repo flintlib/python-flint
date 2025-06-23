@@ -666,7 +666,11 @@ def test_fmpz_series():
     s2 = Z([1,2])
     s3 = Z([1,1])
     s4 = Z([1,2],11)
+    s5 = Z([1,2],3)
     p1 = Zp([1,2])
+    assert s1.prec == 10
+    assert s4.prec == 11
+    assert s5.prec == 3
     assert s1._equal_repr(s1) is True
     assert s1._equal_repr(s2) is True
     assert s1._equal_repr(s3) is False
@@ -1157,10 +1161,14 @@ def test_fmpq_series():
     s2 = Q([1,2])
     s3 = Q([1,1])
     s4 = Q([1,2],1,11)
+    s5 = Q([1,2],1,3)
     p1 = Qp([1,2])
     sz1 = Z([1,2])
     sz2 = Z([1,1])
     sz3 = Z([1,1],11)
+    assert s1.prec == 10
+    assert s4.prec == 11
+    assert s5.prec == 3
     assert s1._equal_repr(s1) is True
     assert s1._equal_repr(s2) is True
     assert s1._equal_repr(s3) is False

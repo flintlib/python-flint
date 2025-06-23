@@ -487,6 +487,9 @@ cdef class fmpz_poly(flint_poly):
         Returns a list of pairs (*c*, *m*) where *c* is the root
         as an *acb* and *m* is the multiplicity of the root.
 
+            >>> from flint import fmpz_poly, ctx
+            >>> ctx.prec = 53
+
             >>> fmpz_poly([]).complex_roots()
             []
             >>> fmpz_poly([1]).complex_roots()

@@ -26,6 +26,8 @@ cdef class arf:
         Create a new arf from an integer, a Python float, an existing arf,
         or a tuple containing (mantissa, exponent)::
 
+            >>> from flint import arf, ctx
+            >>> ctx.prec = 53
             >>> arf(-100)
             -100.000000000000
             >>> arf(15.125)

@@ -59,6 +59,8 @@ cdef class dirichlet_char(object):
     Calling the character evaluates the character at the
     given integer, returning an acb.
 
+        >>> from flint import dirichlet_char, ctx
+        >>> ctx.prec = 53
         >>> chi = dirichlet_char(7, 1)
         >>> for n in range(7):
         ...     print(chi(n))

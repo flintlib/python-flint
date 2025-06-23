@@ -164,10 +164,14 @@ Next release (0.8.0)...
 
 Contributors
 
+- Oscar Benjamin (OB)
 - Robert Dougherty-Bliss (RDB)
 
 Changes
 
+- [gh-289](https://github.com/flintlib/python-flint/pull/289),
+  Add `.prec` attribute to series types `fmpz_series`, `fmpq_series`,
+  `arb_series` and `acb_series`. (OB)
 - [gh-274](https://github.com/flintlib/python-flint/pull/274),
   Add resultant methods to `fmpz_poly`, `fmpq_poly` and
   `nmod_poly`. Now all univariate and polynomial types have the

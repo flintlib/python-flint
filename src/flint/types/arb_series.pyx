@@ -31,29 +31,29 @@ cdef arb_series_coerce_operands(x, y):
 cdef class arb_series(flint_series):
 
     # cdef arb_poly_t val
-    # cdef long prec
+    # cdef long _prec
 
     def __cinit__(self):
         arb_poly_init(self.val)
-        self.prec = 0
+        self._prec = 0
 
     def __dealloc__(self):
         arb_poly_clear(self.val)
 
     def __init__(self, val=None, prec=None):
         if prec is None:
-            self.prec = getcap()
+            self._prec = getcap()
         else:
-            self.prec = prec
-        if self.prec < 0:
-            self.prec = -1
+            self._prec = prec
+        if self._prec < 0:
+            self._prec = -1
         if val is not None:
             if typecheck(val, arb_series):
                 arb_poly_set(self.val, (<arb_series>val).val)
-                self.prec = min((<fmpz_series>val).prec, getcap())
+                self._prec = min((<fmpz_series>val)._prec, getcap())
             elif typecheck(val, fmpz_series):
                 arb_poly_set_fmpz_poly(self.val, (<fmpz_series>val).val, getprec())
-                self.prec = min((<fmpz_series>val).prec, getcap())
+                self._prec = min((<fmpz_series>val)._prec, getcap())
             elif typecheck(val, fmpz_poly):
                 arb_poly_set_fmpz_poly(self.val, (<fmpz_poly>val).val, getprec())
             elif typecheck(val, arb_poly):
@@ -62,7 +62,27 @@ cdef class arb_series(flint_series):
                 arb_poly_set_list(self.val, val, getprec())
             else:
                 arb_poly_set_list(self.val, [val], getprec())
-        arb_poly_truncate(self.val, max(0, self.prec))
+        arb_poly_truncate(self.val, max(0, self._prec))
+
+    @property
+    def prec(self):
+        """
+        The term precision of the finitely approximated series.
+
+        >>> from flint import arb_series, ctx
+        >>> ctx.cap = 10
+        >>> s = arb_series([1,2])
+        >>> s
+        1.00000000000000 + 2.00000000000000*x + O(x^10)
+        >>> s.prec
+        10
+        >>> s2 = arb_series([1,2], prec=3)
+        >>> s2
+        1.00000000000000 + 2.00000000000000*x + O(x^3)
+        >>> s2.prec
+        3
+        """
+        return self._prec
 
     def __len__(self):
         return arb_poly_length(self.val)
@@ -86,13 +106,13 @@ cdef class arb_series(flint_series):
         arb_poly_set_coeff_arb(self.val, i, (<arb>x).val)
 
     def repr(self, **kwargs):
-        return "arb_series([%s], prec=%s)" % (", ".join(map(str, self)), self.prec)
+        return "arb_series([%s], prec=%s)" % (", ".join(map(str, self)), self._prec)
 
     def str(self, *args, **kwargs):
-        if self.prec > 0:
+        if self._prec > 0:
             s = arb_poly(list(self)).str(ascending=True, *args, **kwargs)
-            return s + (" + O(x^%s)" % self.prec)
-        elif self.prec == 0:
+            return s + (" + O(x^%s)" % self._prec)
+        elif self._prec == 0:
             return "O(x^0)"
         else:
             return "(invalid power series)"
@@ -104,11 +124,11 @@ cdef class arb_series(flint_series):
         cdef long cap
         u = arb_series.__new__(arb_series)
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         if cap > 0:
             arb_poly_neg((<arb_series>u).val, (<arb_series>s).val)
             arb_poly_truncate((<arb_series>u).val, cap)
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def __add__(s, t):
@@ -120,12 +140,12 @@ cdef class arb_series(flint_series):
             return s + t
         u = arb_series.__new__(arb_series)
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
-        cap = min(cap, (<arb_series>t).prec)
+        cap = min(cap, (<arb_series>s)._prec)
+        cap = min(cap, (<arb_series>t)._prec)
         if cap > 0:
             arb_poly_add((<arb_series>u).val, (<arb_series>s).val, (<arb_series>t).val, getprec())
             arb_poly_truncate((<arb_series>u).val, cap)
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def __radd__(s, t):
@@ -143,12 +163,12 @@ cdef class arb_series(flint_series):
             return s - t
         u = arb_series.__new__(arb_series)
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
-        cap = min(cap, (<arb_series>t).prec)
+        cap = min(cap, (<arb_series>s)._prec)
+        cap = min(cap, (<arb_series>t)._prec)
         if cap > 0:
             arb_poly_sub((<arb_series>u).val, (<arb_series>s).val, (<arb_series>t).val, getprec())
             arb_poly_truncate((<arb_series>u).val, cap)
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def __rsub__(s, t):
@@ -166,12 +186,12 @@ cdef class arb_series(flint_series):
             return s * t
         u = arb_series.__new__(arb_series)
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
-        cap = min(cap, (<arb_series>t).prec)
+        cap = min(cap, (<arb_series>s)._prec)
+        cap = min(cap, (<arb_series>t)._prec)
         if cap > 0:
             arb_poly_mul((<arb_series>u).val, (<arb_series>s).val, (<arb_series>t).val, getprec())
             arb_poly_truncate((<arb_series>u).val, cap)
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def __rmul__(s, t):
@@ -199,8 +219,8 @@ cdef class arb_series(flint_series):
             return s / t
 
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
-        cap = min(cap, (<arb_series>t).prec)
+        cap = min(cap, (<arb_series>s)._prec)
+        cap = min(cap, (<arb_series>t)._prec)
 
         if (<arb_series>t).length() == 0:
             raise ZeroDivisionError("power series division")
@@ -232,7 +252,7 @@ cdef class arb_series(flint_series):
             arb_poly_clear(stmp)
             arb_poly_clear(ttmp)
 
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def __rtruediv__(s, t):
@@ -253,11 +273,11 @@ cdef class arb_series(flint_series):
 
         u = arb_series.__new__(arb_series)
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
-        cap = min(cap, (<arb_series>t).prec)
+        cap = min(cap, (<arb_series>s)._prec)
+        cap = min(cap, (<arb_series>t)._prec)
         if cap > 0:
             arb_poly_pow_series((<arb_series>u).val, (<arb_series>s).val, (<arb_series>t).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def __rpow__(s, t, mod):
@@ -273,419 +293,419 @@ cdef class arb_series(flint_series):
             if (<arb_series>t).valuation() < 1:
                 raise ValueError("power series composition with nonzero constant term")
             cap = getcap()
-            cap = min(cap, (<arb_series>s).prec)
-            cap = min(cap, (<arb_series>t).prec)
+            cap = min(cap, (<arb_series>s)._prec)
+            cap = min(cap, (<arb_series>t)._prec)
             arb_poly_compose_series((<arb_series>u).val, (<arb_series>s).val, (<arb_series>t).val, cap, getprec())
-            (<arb_series>u).prec = cap
+            (<arb_series>u)._prec = cap
             return u
         raise TypeError("cannot call arb_series with input of type %s", type(t))
 
     def reversion(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         if s.length() < 2 or (not arb_is_zero(&s.val.coeffs[0])) or \
            (not arb_is_nonzero(&s.val.coeffs[1])):
             raise ValueError("power series reversion requires valuation 1")
         u = arb_series.__new__(arb_series)
         arb_poly_revert_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def inv(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         if s.length() == 0:
             raise ZeroDivisionError
         u = arb_series.__new__(arb_series)
         arb_poly_inv_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def derivative(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec - 1)
+        cap = min(cap, (<arb_series>s)._prec - 1)
         u = arb_series.__new__(arb_series)
         arb_poly_derivative((<arb_series>u).val, (<arb_series>s).val, getprec())
         arb_poly_truncate((<arb_series>u).val, max(0, cap))
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def integral(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec + 1)
+        cap = min(cap, (<arb_series>s)._prec + 1)
         u = arb_series.__new__(arb_series)
         arb_poly_integral((<arb_series>u).val, (<arb_series>s).val, getprec())
         arb_poly_truncate((<arb_series>u).val, max(0, cap))
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def sqrt(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_sqrt_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def rsqrt(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_rsqrt_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def exp(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_exp_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def log(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_log_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def atan(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_atan_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def asin(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_asin_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def acos(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_acos_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def sin(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_sin_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def cos(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_cos_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def sin_cos(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         v = arb_series.__new__(arb_series)
         arb_poly_sin_cos_series((<arb_series>u).val, (<arb_series>v).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
-        (<arb_series>v).prec = cap
+        (<arb_series>u)._prec = cap
+        (<arb_series>v)._prec = cap
         return u, v
 
     def sin_pi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_sin_pi_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def cos_pi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_cos_pi_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def sin_cos_pi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         v = arb_series.__new__(arb_series)
         arb_poly_sin_cos_pi_series((<arb_series>u).val, (<arb_series>v).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
-        (<arb_series>v).prec = cap
+        (<arb_series>u)._prec = cap
+        (<arb_series>v)._prec = cap
         return u, v
 
     def cot_pi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_cot_pi_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def tan(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_tan_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def gamma(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_gamma_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def rgamma(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_rgamma_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def lgamma(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_lgamma_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def rising(s, ulong n):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_rising_ui_series((<arb_series>u).val, (<arb_series>s).val, n, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def zeta(s, a=1, bint deflate=0):
         cdef long cap
         a = arb(a)
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_zeta_series((<arb_series>u).val, (<arb_series>s).val, (<arb>a).val, deflate, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def riemann_siegel_theta(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_riemann_siegel_theta_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def riemann_siegel_z(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_riemann_siegel_z_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def erf(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_erf_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def erfc(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_erfc_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def erfi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_erfi_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def fresnel(s, bint normalized=True):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         v = arb_series.__new__(arb_series)
         arb_hypgeom_fresnel_series((<arb_series>u).val, (<arb_series>v).val, (<arb_series>s).val, normalized, cap, getprec())
-        (<arb_series>u).prec = cap
-        (<arb_series>v).prec = cap
+        (<arb_series>u)._prec = cap
+        (<arb_series>v)._prec = cap
         return u, v
 
     def fresnel_s(s, bint normalized=True):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_fresnel_series((<arb_series>u).val, NULL, (<arb_series>s).val, normalized, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def fresnel_c(s, bint normalized=True):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_fresnel_series(NULL, (<arb_series>u).val, (<arb_series>s).val, normalized, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def ei(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_ei_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def si(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_si_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def ci(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_ci_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def shi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_shi_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def chi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_chi_series((<arb_series>u).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def li(s, bint offset=False):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_li_series((<arb_series>u).val, (<arb_series>s).val, offset, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def airy_ai(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_airy_series((<arb_series>u).val, NULL, NULL, NULL, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def airy_ai_prime(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_airy_series(NULL, (<arb_series>u).val, NULL, NULL, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def airy_bi(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_airy_series(NULL, NULL, (<arb_series>u).val, NULL, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def airy_bi_prime(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_airy_series(NULL, NULL, NULL, (<arb_series>u).val,
                                 (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def airy(s):
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         v = arb_series.__new__(arb_series)
         w = arb_series.__new__(arb_series)
         z = arb_series.__new__(arb_series)
         arb_hypgeom_airy_series((<arb_series>u).val, (<arb_series>v).val, (<arb_series>w).val, (<arb_series>z).val, (<arb_series>s).val, cap, getprec())
-        (<arb_series>u).prec = cap
-        (<arb_series>v).prec = cap
-        (<arb_series>w).prec = cap
-        (<arb_series>z).prec = cap
+        (<arb_series>u)._prec = cap
+        (<arb_series>v)._prec = cap
+        (<arb_series>w)._prec = cap
+        (<arb_series>z)._prec = cap
         return u, v, w, z
 
     def coulomb(self, l, eta):
@@ -693,13 +713,13 @@ cdef class arb_series(flint_series):
         l = arb(l)
         eta = arb(eta)
         cap = getcap()
-        cap = min(cap, (<arb_series>self).prec)
+        cap = min(cap, (<arb_series>self)._prec)
         F = arb_series.__new__(arb_series)
         G = arb_series.__new__(arb_series)
         arb_hypgeom_coulomb_series((<arb_series>F).val, (<arb_series>G).val,
                                    (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
-        (<arb_series>F).prec = cap
-        (<arb_series>G).prec = cap
+        (<arb_series>F)._prec = cap
+        (<arb_series>G)._prec = cap
         return F, G
 
     def coulomb_f(self, l, eta):
@@ -707,11 +727,11 @@ cdef class arb_series(flint_series):
         l = arb(l)
         eta = arb(eta)
         cap = getcap()
-        cap = min(cap, (<arb_series>self).prec)
+        cap = min(cap, (<arb_series>self)._prec)
         F = arb_series.__new__(arb_series)
         arb_hypgeom_coulomb_series((<arb_series>F).val, NULL,
                                    (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
-        (<arb_series>F).prec = cap
+        (<arb_series>F)._prec = cap
         return F
 
     def coulomb_g(self, l, eta):
@@ -719,11 +739,11 @@ cdef class arb_series(flint_series):
         l = arb(l)
         eta = arb(eta)
         cap = getcap()
-        cap = min(cap, (<arb_series>self).prec)
+        cap = min(cap, (<arb_series>self)._prec)
         G = arb_series.__new__(arb_series)
         arb_hypgeom_coulomb_series(NULL, (<arb_series>G).val,
                                    (<arb>l).val, (<arb>eta).val, (<arb_series>self).val, cap, getprec())
-        (<arb_series>G).prec = cap
+        (<arb_series>G)._prec = cap
         return G
 
     @classmethod
@@ -732,10 +752,10 @@ cdef class arb_series(flint_series):
         s = arb(s)
         z = arb_series(z)
         cap = getcap()
-        cap = min(cap, (<arb_series>z).prec)
+        cap = min(cap, (<arb_series>z)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_gamma_upper_series((<arb_series>u).val, (<arb>s).val, (<arb_series>z).val, regularized, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     @classmethod
@@ -744,10 +764,10 @@ cdef class arb_series(flint_series):
         s = arb(s)
         z = arb_series(z)
         cap = getcap()
-        cap = min(cap, (<arb_series>z).prec)
+        cap = min(cap, (<arb_series>z)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_gamma_lower_series((<arb_series>u).val, (<arb>s).val, (<arb_series>z).val, regularized, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     @classmethod
@@ -757,10 +777,10 @@ cdef class arb_series(flint_series):
         b = arb(b)
         z = arb_series(z)
         cap = getcap()
-        cap = min(cap, (<arb_series>z).prec)
+        cap = min(cap, (<arb_series>z)._prec)
         u = arb_series.__new__(arb_series)
         arb_hypgeom_beta_lower_series((<arb_series>u).val, (<arb>a).val, (<arb>b).val, (<arb_series>z).val, regularized, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     def lambertw(s, int branch=0):
@@ -773,10 +793,10 @@ cdef class arb_series(flint_series):
         else:
             raise ValueError("invalid branch")
         cap = getcap()
-        cap = min(cap, (<arb_series>s).prec)
+        cap = min(cap, (<arb_series>s)._prec)
         u = arb_series.__new__(arb_series)
         arb_poly_lambertw_series((<arb_series>u).val, (<arb_series>s).val, flags, cap, getprec())
-        (<arb_series>u).prec = cap
+        (<arb_series>u)._prec = cap
         return u
 
     @staticmethod
@@ -789,6 +809,8 @@ cdef class arb_series(flint_series):
         This is just a test implementation; more options including support
         for Newton refinement will be added in a future version.
 
+            >>> from flint import arb_series, ctx
+            >>> ctx.prec = 53
             >>> for c in arb_series.find_roots(lambda x: x.sin(), -8, 8): print(c)
             ...
             (-6.96875000000000, -5.93750000000000)

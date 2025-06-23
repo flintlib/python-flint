@@ -34,6 +34,8 @@ cdef class fmpz_series(flint_series):
     """
     Power series with integer coefficients.
 
+        >>> from flint import fmpz_series, ctx
+        >>> ctx.cap = 10
         >>> fmpz_series([1,2,3])
         1 + 2*x + 3*x^2 + O(x^10)
         >>> fmpz_series([1,2,3], prec=2)
@@ -47,33 +49,53 @@ cdef class fmpz_series(flint_series):
     """
 
     # cdef fmpz_poly_t val
-    # cdef long prec
+    # cdef long _prec
 
     def __cinit__(self):
         fmpz_poly_init(self.val)
-        self.prec = 0
+        self._prec = 0
 
     def __dealloc__(self):
         fmpz_poly_clear(self.val)
 
     def __init__(self, val=None, prec=None):
         if prec is None:
-            self.prec = getcap()
+            self._prec = getcap()
         else:
-            self.prec = prec
-        if self.prec < 0:
-            self.prec = -1
+            self._prec = prec
+        if self._prec < 0:
+            self._prec = -1
         if val is not None:
             if typecheck(val, fmpz_series):
                 fmpz_poly_set(self.val, (<fmpz_series>val).val)
-                self.prec = min((<fmpz_series>val).prec, getcap())
+                self._prec = min((<fmpz_series>val)._prec, getcap())
             elif typecheck(val, fmpz_poly):
                 fmpz_poly_set(self.val, (<fmpz_poly>val).val)
             elif typecheck(val, list):
                 fmpz_poly_set_list(self.val, val)
             else:
                 fmpz_poly_set_list(self.val, [val])
-        fmpz_poly_truncate(self.val, max(0, self.prec))
+        fmpz_poly_truncate(self.val, max(0, self._prec))
+
+    @property
+    def prec(self):
+        """
+        The term precision of the finitely approximated series.
+
+        >>> from flint import fmpz_series, ctx
+        >>> ctx.cap = 10
+        >>> s = fmpz_series([1,2])
+        >>> s
+        1 + 2*x + O(x^10)
+        >>> s.prec
+        10
+        >>> s2 = fmpz_series([1,2], prec=3)
+        >>> s2
+        1 + 2*x + O(x^3)
+        >>> s2.prec
+        3
+        """
+        return self._prec
 
     def _equal_repr(self, other):
         cdef bint r
@@ -81,7 +103,7 @@ cdef class fmpz_series(flint_series):
             return False
         r = fmpz_poly_equal((<fmpz_series>self).val, (<fmpz_series>other).val)
         if r:
-            r = (<fmpz_series>self).prec == (<fmpz_series>other).prec
+            r = (<fmpz_series>self)._prec == (<fmpz_series>other)._prec
         return r
 
     def __len__(self):
@@ -105,13 +127,13 @@ cdef class fmpz_series(flint_series):
         fmpz_poly_set_coeff_fmpz(self.val, i, (<fmpz>x).val)
 
     def repr(self, **kwargs):
-        return "fmpz_series([%s], prec=%s)" % (", ".join(map(str, self)), self.prec)
+        return "fmpz_series([%s], prec=%s)" % (", ".join(map(str, self)), self._prec)
 
     def str(self, **kwargs):
-        if self.prec > 0:
+        if self._prec > 0:
             s = fmpz_poly(list(self)).str(ascending=True)
-            return s + (" + O(x^%s)" % self.prec)
-        elif self.prec == 0:
+            return s + (" + O(x^%s)" % self._prec)
+        elif self._prec == 0:
             return "O(x^0)"
         else:
             return "(invalid power series)"
@@ -123,11 +145,11 @@ cdef class fmpz_series(flint_series):
         cdef long cap
         u = fmpz_series.__new__(fmpz_series)
         cap = getcap()
-        cap = min(cap, (<fmpz_series>s).prec)
+        cap = min(cap, (<fmpz_series>s)._prec)
         if cap > 0:
             fmpz_poly_neg((<fmpz_series>u).val, (<fmpz_series>s).val)
             fmpz_poly_truncate((<fmpz_series>u).val, cap)
-        (<fmpz_series>u).prec = cap
+        (<fmpz_series>u)._prec = cap
         return u
 
     def __add__(s, t):
@@ -139,12 +161,12 @@ cdef class fmpz_series(flint_series):
         cdef long cap
         u = fmpz_series.__new__(fmpz_series)
         cap = getcap()
-        cap = min(cap, (<fmpz_series>s).prec)
-        cap = min(cap, (<fmpz_series>t).prec)
+        cap = min(cap, (<fmpz_series>s)._prec)
+        cap = min(cap, (<fmpz_series>t)._prec)
         if cap > 0:
             fmpz_poly_add((<fmpz_series>u).val, (<fmpz_series>s).val, (<fmpz_series>t).val)
             fmpz_poly_truncate((<fmpz_series>u).val, cap)
-        (<fmpz_series>u).prec = cap
+        (<fmpz_series>u)._prec = cap
         return u
 
     def __radd__(s, t):
@@ -162,12 +184,12 @@ cdef class fmpz_series(flint_series):
         cdef long cap
         u = fmpz_series.__new__(fmpz_series)
         cap = getcap()
-        cap = min(cap, (<fmpz_series>s).prec)
-        cap = min(cap, (<fmpz_series>t).prec)
+        cap = min(cap, (<fmpz_series>s)._prec)
+        cap = min(cap, (<fmpz_series>t)._prec)
         if cap > 0:
             fmpz_poly_sub((<fmpz_series>u).val, (<fmpz_series>s).val, (<fmpz_series>t).val)
             fmpz_poly_truncate((<fmpz_series>u).val, cap)
-        (<fmpz_series>u).prec = cap
+        (<fmpz_series>u)._prec = cap
         return u
 
     def __rsub__(s, t):
@@ -185,11 +207,11 @@ cdef class fmpz_series(flint_series):
         cdef long cap
         u = fmpz_series.__new__(fmpz_series)
         cap = getcap()
-        cap = min(cap, (<fmpz_series>s).prec)
-        cap = min(cap, (<fmpz_series>t).prec)
+        cap = min(cap, (<fmpz_series>s)._prec)
+        cap = min(cap, (<fmpz_series>t)._prec)
         if cap > 0:
             fmpz_poly_mullow((<fmpz_series>u).val, (<fmpz_series>s).val, (<fmpz_series>t).val, cap)
-        (<fmpz_series>u).prec = cap
+        (<fmpz_series>u)._prec = cap
         return u
 
     def __rmul__(s, t):
@@ -203,12 +225,27 @@ cdef class fmpz_series(flint_series):
         Returns the valuation of this power series.
         If there are no known nonzero coefficients, returns -1.
 
-            >>> fmpz_series([1,2,3]).valuation()
+            >>> from flint import fmpz_series, ctx
+            >>> ctx.cap = 10
+
+            >>> s1 = fmpz_series([1,2,3])
+            >>> s1
+            1 + 2*x + 3*x^2 + O(x^10)
+            >>> s1.valuation()
             0
-            >>> fmpz_series([0,0,0,1,2,3]).valuation()
+
+            >>> s2 = fmpz_series([0,0,0,1,2,3])
+            >>> s2
+            x^3 + 2*x^4 + 3*x^5 + O(x^10)
+            >>> s2.valuation()
             3
-            >>> fmpz_series([]).valuation()
+
+            >>> s3 = fmpz_series([])
+            >>> s3
+            0 + O(x^10)
+            >>> s3.valuation()
             -1
+
         """
         cdef long i
         if fmpz_poly_is_zero(self.val):
@@ -221,6 +258,9 @@ cdef class fmpz_series(flint_series):
     def _div_(s, t):
         """
         Power series division.
+
+            >>> from flint import fmpz_series, ctx
+            >>> ctx.cap = 10
 
             >>> fmpz_series([1]) / fmpz_series([1,-1,-1])
             1 + x + 2*x^2 + 3*x^3 + 5*x^4 + 8*x^5 + 13*x^6 + 21*x^7 + 34*x^8 + 55*x^9 + O(x^10)
@@ -241,8 +281,8 @@ cdef class fmpz_series(flint_series):
         cdef long cap, sval, tval
         cdef fmpz_poly_t stmp, ttmp
         cap = getcap()
-        cap = min(cap, (<fmpz_series>s).prec)
-        cap = min(cap, (<fmpz_series>t).prec)
+        cap = min(cap, (<fmpz_series>s)._prec)
+        cap = min(cap, (<fmpz_series>t)._prec)
 
         if fmpz_poly_is_zero((<fmpz_series>t).val):
             raise ZeroDivisionError("power series division")
@@ -250,7 +290,7 @@ cdef class fmpz_series(flint_series):
         u = fmpz_series.__new__(fmpz_series)
 
         if fmpz_poly_is_zero((<fmpz_series>s).val):
-            (<fmpz_series>u).prec = cap
+            (<fmpz_series>u)._prec = cap
             return u
 
         sval = (<fmpz_series>s).valuation()
@@ -274,7 +314,7 @@ cdef class fmpz_series(flint_series):
             fmpz_poly_clear(stmp)
             fmpz_poly_clear(ttmp)
 
-        (<fmpz_series>u).prec = cap
+        (<fmpz_series>u)._prec = cap
         return u
 
     def __truediv__(s, t):
@@ -295,6 +335,8 @@ cdef class fmpz_series(flint_series):
         """
         Power series exponentiation.
 
+            >>> from flint import fmpz_series, ctx
+            >>> ctx.cap = 10
             >>> fmpz_series([3,4,5], prec=4) ** 5
             243 + 1620*x + 6345*x^2 + 16560*x^3 + O(x^4)
         """
@@ -302,16 +344,18 @@ cdef class fmpz_series(flint_series):
         if mod is not None:
             raise NotImplementedError("fmpz_series modular exponentiation")
         cap = getcap()
-        cap = min(cap, (<fmpz_series>s).prec)
+        cap = min(cap, (<fmpz_series>s)._prec)
         u = fmpz_series.__new__(fmpz_series)
         fmpz_poly_pow_trunc((<fmpz_series>u).val, (<fmpz_series>s).val, exp, cap)
-        (<fmpz_series>u).prec = cap
+        (<fmpz_series>u)._prec = cap
         return u
 
     def __call__(s, t):
         """
         Power series composition.
 
+            >>> from flint import fmpz_series, ctx
+            >>> ctx.cap = 10
             >>> fmpz_series([1,2,3])(fmpz_series([0,1,2]))
             1 + 2*x + 7*x^2 + 12*x^3 + 12*x^4 + O(x^10)
             >>> fmpz_series([1,2,3])(fmpz_series([1,1,2]))
@@ -326,16 +370,19 @@ cdef class fmpz_series(flint_series):
             if (<fmpz_series>t).valuation() < 1:
                 raise ValueError("power series composition with nonzero constant term")
             cap = getcap()
-            cap = min(cap, (<fmpz_series>s).prec)
-            cap = min(cap, (<fmpz_series>t).prec)
+            cap = min(cap, (<fmpz_series>s)._prec)
+            cap = min(cap, (<fmpz_series>t)._prec)
             fmpz_poly_compose_series((<fmpz_series>u).val, (<fmpz_series>s).val, (<fmpz_series>t).val, cap)
-            (<fmpz_series>u).prec = cap
+            (<fmpz_series>u)._prec = cap
             return u
         raise TypeError("cannot call fmpz_series with input of type %s", type(t))
 
     def reversion(s):
         """
         Power series reversion.
+
+            >>> from flint import fmpz_series, ctx
+            >>> ctx.cap = 10
 
             >>> fmpz_series([0,1,-2,-3]).reversion()
             x + 2*x^2 + 11*x^3 + 70*x^4 + 503*x^5 + 3864*x^6 + 31092*x^7 + 258654*x^8 + 2206655*x^9 + O(x^10)
@@ -349,12 +396,12 @@ cdef class fmpz_series(flint_series):
         """
         cdef long cap
         cap = getcap()
-        cap = min(cap, (<fmpz_series>s).prec)
+        cap = min(cap, (<fmpz_series>s)._prec)
         if (<fmpz_series>s).valuation() != 1:
             raise ValueError("power series reversion must have valuation 1")
         if not fmpz_is_pm1(fmpz_poly_get_coeff_ptr((<fmpz_series>s).val, 1)):
             raise ValueError("leading term is not a unit")
         u = fmpz_series.__new__(fmpz_series)
         fmpz_poly_revert_series((<fmpz_series>u).val, (<fmpz_series>s).val, cap)
-        (<fmpz_series>u).prec = cap
+        (<fmpz_series>u)._prec = cap
         return u
