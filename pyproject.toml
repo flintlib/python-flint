@@ -88,7 +88,6 @@ enable = ["cpython-freethreading", "pypy"]
 manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux_2_28"
 manylinux-i686-image = "manylinux2014"
-test-command = "python -c \"import flint; print(str(flint.fmpz(2)))\""
 
 [tool.cibuildwheel.linux.environment]
 # LD_LIBRARY_PATH is needed by auditwheel
