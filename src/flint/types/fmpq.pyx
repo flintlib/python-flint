@@ -94,10 +94,27 @@ cdef class fmpq(flint_scalar):
 
         p2 = any_as_fmpz(p)
         if p2 is NotImplemented:
-            raise TypeError("cannot create fmpq from object of type %s" % type(p))
+            # Allow fmpq(fmpq, fmpq/fmpz)
+            p2 = any_as_fmpq(p)
+            if p2 is NotImplemented:
+                raise TypeError("cannot create fmpz/fmpq from object of type %s" % type(p))
+            q2 = any_as_fmpq(q)
+            if q2 is NotImplemented:
+                raise TypeError("cannot create fmpz/fmpq from object of type %s" % type(q))
+            p3 = p2 / q2
+            fmpq_set(self.val, (<fmpq>p3).val)
+            return
+
         q2 = any_as_fmpz(q)
         if q2 is NotImplemented:
-            raise TypeError("cannot create fmpq from object of type %s" % type(q))
+            # fmpq(fmpz, fmpq)
+            q2 = any_as_fmpq(q)
+            if q2 is NotImplemented:
+                raise TypeError("cannot create fmpz/fmpq from object of type %s" % type(q))
+            p3 = p2 / q2
+            fmpq_set(self.val, (<fmpq>p3).val)
+            return
+
         if fmpz_is_zero((<fmpz>q2).val):
             raise ZeroDivisionError("cannot create rational number with zero denominator")
 
