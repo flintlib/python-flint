@@ -1,12 +1,11 @@
 from __future__ import annotations
-from typing import Any, Callable, TypeVar, Iterable, Protocol
+from typing import Any, Callable, TypeVar, Iterable, Protocol, TYPE_CHECKING
 
 import math
 import operator
 import pickle
 import platform
 import random
-from functools import wraps
 
 import flint
 import flint.flint_base.flint_base as flint_base
@@ -25,9 +24,12 @@ def raises(f, exception):
     return False
 
 
-Tscalar = TypeVar('Tscalar', bound=flint_base.flint_scalar)
-Tmpoly = TypeVar('Tmpoly', bound=flint_base.flint_mpoly)
-Tmpolyctx_co = TypeVar('Tmpolyctx_co', bound=flint_base.flint_mpoly_context, covariant=True)
+if TYPE_CHECKING:
+    from typing import TypeIs
+    Tscalar = TypeVar('Tscalar', bound=flint_base.flint_scalar)
+    Tscalar_co = TypeVar('Tscalar_co', bound=flint_base.flint_scalar, covariant=True)
+    Tmpoly = TypeVar('Tmpoly', bound=flint_base.flint_mpoly)
+    Tmpolyctx_co = TypeVar('Tmpolyctx_co', bound=flint_base.flint_mpoly_context, covariant=True)
 
 
 _default_ctx_string = """\
@@ -2943,6 +2945,15 @@ _MPolyTestCase = tuple[
 ]
 
 
+class _Q(Protocol[Tscalar_co]):
+    def __call__(self, a: int, b: int | None = None, /) -> Tscalar_co:
+        ...
+
+
+def _is_Q(typ: object) -> TypeIs[_Q]:
+    return typ is flint.fmpq
+
+
 def _for_all_mpolys(test: Callable[[_MPolyTestCase], None]) -> None:
     """Test all mpoly types with the given test function."""
     # Spell it out like this so that a type checker can understand the types
@@ -3001,7 +3012,7 @@ def all_mpolys(f: Callable[[_MPolyTestCase], None]) -> Callable[[], None]:
 
 @all_mpolys
 def test_mpolys_constructor(args: _MPolyTestCase[Tmpoly, Tscalar]) -> None:
-    P, get_context, S, is_field, characteristic = args
+    P, get_context, S, _, _ = args
 
     ctx = get_context(("x", 2))
 
@@ -3487,7 +3498,7 @@ def test_mpolys_properties(args: _MPolyTestCase[Tmpoly, Tscalar]) -> None:
     assert raises(lambda: p.derivative(None), TypeError) # type: ignore
 
     if isinstance(p, (flint.fmpz_mpoly, flint.fmpq_mpoly)):
-        if isinstance(p, flint.fmpq_mpoly):
+        if isinstance(p, flint.fmpq_mpoly) and _is_Q(S):
             assert p.integral(0) == p.integral("x0") == \
                 mpoly({(3, 2): S(4, 3), (2, 0): S(3, 2), (1, 1): S(2), (1, 0): S(1)})
             assert p.integral(1) == p.integral("x1") == \
@@ -4908,7 +4919,7 @@ def test_python_threads():
     from threading import Thread
 
     iterations = 10**5
-    threads = 3 + 1
+    nthreads = 3 + 1
     size = 3
     M = flint.fmpz_mat([[0]*size for _ in range(size)])
 
@@ -4927,7 +4938,7 @@ def test_python_threads():
         for _ in range(iterations):
             M.det()
 
-    threads = [Thread(target=set_values) for _ in range(threads-1)]
+    threads = [Thread(target=set_values) for _ in range(nthreads-1)]
     threads.append(Thread(target=get_dets))
 
     for t in threads:
