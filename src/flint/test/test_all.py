@@ -2583,6 +2583,12 @@ def _all_polys() -> list[tuple[Any, Any, bool, flint.fmpz]]:
 
 
 def test_polys():
+    # To test type annotations, uncomment:
+    # P: type[flint.fmpq_poly]
+    # S: type[flint.fmpq]
+    # is_field: bool
+    # characteristic: flint.fmpz
+
     for P, S, is_field, characteristic in _all_polys():
 
         composite_characteristic = characteristic != 0 and not characteristic.is_prime()
@@ -2593,12 +2599,12 @@ def test_polys():
 
         assert P([S(1)]) == P([1]) == P(P([1])) == P(1)
 
-        assert raises(lambda: P([None]), TypeError)
-        assert raises(lambda: P(object()), TypeError)
-        assert raises(lambda: P(None), TypeError)
-        assert raises(lambda: P(None, None), TypeError)
-        assert raises(lambda: P([1,2], None), TypeError)
-        assert raises(lambda: P(1, None), TypeError)
+        assert raises(lambda: P([None]), TypeError) # type: ignore
+        assert raises(lambda: P(object()), TypeError) # type: ignore
+        assert raises(lambda: P(None), TypeError) # type: ignore
+        assert raises(lambda: P(None, None), TypeError) # type: ignore
+        assert raises(lambda: P([1,2], None), TypeError) # type: ignore
+        assert raises(lambda: P(1, None), TypeError) # type: ignore
 
         assert len(P([])) == P([]).length() == 0
         assert len(P([1])) == P([1]).length() == 1
@@ -2642,18 +2648,18 @@ def test_polys():
         assert (None == P([1])) is False
         assert (None != P([1])) is True
 
-        assert raises(lambda: P([1]) < P([1]), TypeError)
-        assert raises(lambda: P([1]) <= P([1]), TypeError)
-        assert raises(lambda: P([1]) > P([1]), TypeError)
-        assert raises(lambda: P([1]) >= P([1]), TypeError)
-        assert raises(lambda: P([1]) < None, TypeError)
-        assert raises(lambda: P([1]) <= None, TypeError)
-        assert raises(lambda: P([1]) > None, TypeError)
-        assert raises(lambda: P([1]) >= None, TypeError)
-        assert raises(lambda: None < P([1]), TypeError)
-        assert raises(lambda: None <= P([1]), TypeError)
-        assert raises(lambda: None > P([1]), TypeError)
-        assert raises(lambda: None >= P([1]), TypeError)
+        assert raises(lambda: P([1]) < P([1]), TypeError) # type: ignore
+        assert raises(lambda: P([1]) <= P([1]), TypeError) # type: ignore
+        assert raises(lambda: P([1]) > P([1]), TypeError) # type: ignore
+        assert raises(lambda: P([1]) >= P([1]), TypeError) # type: ignore
+        assert raises(lambda: P([1]) < None, TypeError) # type: ignore
+        assert raises(lambda: P([1]) <= None, TypeError) # type: ignore
+        assert raises(lambda: P([1]) > None, TypeError) # type: ignore
+        assert raises(lambda: P([1]) >= None, TypeError) # type: ignore
+        assert raises(lambda: None < P([1]), TypeError) # type: ignore
+        assert raises(lambda: None <= P([1]), TypeError) # type: ignore
+        assert raises(lambda: None > P([1]), TypeError) # type: ignore
+        assert raises(lambda: None >= P([1]), TypeError) # type: ignore
 
         assert P([1, 2, 3])[1] == S(2)
         assert P([1, 2, 3])[-1] == S(0)
@@ -2693,7 +2699,7 @@ def test_polys():
         assert p(0) == p(S(0)) == S(1) == 1
         assert p(1) == p(S(1)) == S(6) == 6
         assert p(p) == P([6, 16, 36, 36, 27])
-        assert raises(lambda: p(None), TypeError)
+        assert raises(lambda: p(None), TypeError) # type: ignore
 
         assert bool(P([])) is False
         assert bool(P([1])) is True
@@ -2713,8 +2719,8 @@ def test_polys():
             assert P([1, 2, 3]) + T(1) == P([2, 2, 3])
             assert T(1) + P([1, 2, 3]) == P([2, 2, 3])
 
-        assert raises(lambda: P([1, 2, 3]) + None, TypeError)
-        assert raises(lambda: None + P([1, 2, 3]), TypeError)
+        assert raises(lambda: P([1, 2, 3]) + None, TypeError) # type: ignore
+        assert raises(lambda: None + P([1, 2, 3]), TypeError) # type: ignore
 
         assert P([1, 2, 3]) - P([4, 5, 6]) == P([-3, -3, -3])
 
@@ -2722,8 +2728,8 @@ def test_polys():
             assert P([1, 2, 3]) - T(1) == P([0, 2, 3])
             assert T(1) - P([1, 2, 3]) == P([0, -2, -3])
 
-        assert raises(lambda: P([1, 2, 3]) - None, TypeError)
-        assert raises(lambda: None - P([1, 2, 3]), TypeError)
+        assert raises(lambda: P([1, 2, 3]) - None, TypeError) # type: ignore
+        assert raises(lambda: None - P([1, 2, 3]), TypeError) # type: ignore
 
         assert P([1, 2, 3]) * P([4, 5, 6]) == P([4, 13, 28, 27, 18])
 
@@ -2731,8 +2737,8 @@ def test_polys():
             assert P([1, 2, 3]) * T(2) == P([2, 4, 6])
             assert T(2) * P([1, 2, 3]) == P([2, 4, 6])
 
-        assert raises(lambda: P([1, 2, 3]) * None, TypeError)
-        assert raises(lambda: None * P([1, 2, 3]), TypeError)
+        assert raises(lambda: P([1, 2, 3]) * None, TypeError) # type: ignore
+        assert raises(lambda: None * P([1, 2, 3]), TypeError) # type: ignore
 
         assert P([1, 2, 1]) // P([1, 1]) == P([1, 1])
         assert P([1, 2, 1]) % P([1, 1]) == P([0])
@@ -2758,13 +2764,13 @@ def test_polys():
         assert 1 % P([1, 1]) == P([1])
         assert divmod(1, P([1, 1])) == (P([0]), P([1]))
 
-        assert raises(lambda: P([1, 2, 1]) // None, TypeError)
-        assert raises(lambda: P([1, 2, 1]) % None, TypeError)
-        assert raises(lambda: divmod(P([1, 2, 1]), None), TypeError)
+        assert raises(lambda: P([1, 2, 1]) // None, TypeError) # type: ignore
+        assert raises(lambda: P([1, 2, 1]) % None, TypeError) # type: ignore
+        assert raises(lambda: divmod(P([1, 2, 1]), None), TypeError) # type: ignore
 
-        assert raises(lambda: None // P([1, 1]), TypeError)
-        assert raises(lambda: None % P([1, 1]), TypeError)
-        assert raises(lambda: divmod(None, P([1, 1])), TypeError)
+        assert raises(lambda: None // P([1, 1]), TypeError) # type: ignore
+        assert raises(lambda: None % P([1, 1]), TypeError) # type: ignore
+        assert raises(lambda: divmod(None, P([1, 1])), TypeError) # type: ignore
 
         assert raises(lambda: P([1, 2, 1]) // 0, ZeroDivisionError)
         assert raises(lambda: P([1, 2, 1]) % 0, ZeroDivisionError)
@@ -2799,32 +2805,32 @@ def test_polys():
         assert P([1, 1]) ** 1 == P([1, 1])
         assert P([1, 1]) ** 2 == P([1, 2, 1])
         assert raises(lambda: P([1, 1]) ** -1, DomainError)
-        assert raises(lambda: P([1, 1]) ** None, TypeError)
+        assert raises(lambda: P([1, 1]) ** None, TypeError) # type: ignore
 
         # XXX: Not sure what this should do in general:
         p = P([1, 1])
         mod = P([1, 1])
         if type(p) not in [flint.fmpz_mod_poly, flint.nmod_poly, flint.fq_default_poly]:
-            assert raises(lambda: pow(p, 2, mod), NotImplementedError)
+            assert raises(lambda: pow(p, 2, mod), NotImplementedError) # type: ignore
         else:
             assert p * p % mod == pow(p, 2, mod)
 
         if not composite_characteristic:
             assert P([1, 2, 1]).gcd(P([1, 1])) == P([1, 1])
-            assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
+            assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError) # type: ignore
         elif nmod_poly_will_crash:
             pass
         else:
             # Z/nZ for n not prime
             assert raises(lambda: P([1, 2, 1]).gcd(P([1, 1])), DomainError)
-            assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError)
+            assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError) # type: ignore
 
         if is_field:
             p1 = P([1, 0, 1])
             p2 = P([2, 1])
             g, s, t = P([1]), P([1])/5, P([2, -1])/5
             assert p1.xgcd(p2) == (g, s, t)
-            assert raises(lambda: p1.xgcd(None), TypeError)
+            assert raises(lambda: p1.xgcd(None), TypeError) # type: ignore
 
         if not composite_characteristic:
             assert P([1, 2, 1]).factor() == (S(1), [(P([1, 1]), 2)])
