@@ -16,7 +16,7 @@ PYPY = platform.python_implementation() == "PyPy"
 
 ctx = flint.ctx
 
-def raises(f, exception):
+def raises(f, exception) -> bool:
     try:
         f()
     except exception:
