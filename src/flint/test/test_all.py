@@ -26,10 +26,12 @@ def raises(f, exception):
 
 if TYPE_CHECKING:
     from typing import TypeIs
-    Tscalar = TypeVar('Tscalar', bound=flint_base.flint_scalar)
-    Tscalar_co = TypeVar('Tscalar_co', bound=flint_base.flint_scalar, covariant=True)
-    Tmpoly = TypeVar('Tmpoly', bound=flint_base.flint_mpoly)
-    Tmpolyctx_co = TypeVar('Tmpolyctx_co', bound=flint_base.flint_mpoly_context, covariant=True)
+
+
+Tscalar = TypeVar('Tscalar', bound=flint_base.flint_scalar)
+Tscalar_co = TypeVar('Tscalar_co', bound=flint_base.flint_scalar, covariant=True)
+Tmpoly = TypeVar('Tmpoly', bound=flint_base.flint_mpoly)
+Tmpolyctx_co = TypeVar('Tmpolyctx_co', bound=flint_base.flint_mpoly_context, covariant=True)
 
 
 _default_ctx_string = """\
@@ -379,10 +381,10 @@ def test_fmpz_poly():
     assert Z([1]) == Z([1])
     assert Z([1]) == Z([flint.fmpz(1)])
     assert Z(Z([1,2])) == Z([1,2])
-    assert raises(lambda: Z([1,2,[]]), TypeError)
-    assert raises(lambda: Z({}), TypeError)
+    assert raises(lambda: Z([1,2,[]]), TypeError) # type: ignore
+    assert raises(lambda: Z({}), TypeError) # type: ignore
     # XXX: This should probably be made to work:
-    assert raises(lambda: Z((1,2,3)), TypeError)
+    assert raises(lambda: Z((1,2,3)), TypeError) # type: ignore
     for ztype in [int, flint.fmpz]:
         assert Z([1,2,3]) + ztype(5) == Z([6,2,3])
         assert ztype(5) + Z([1,2,3]) == Z([6,2,3])
@@ -400,32 +402,32 @@ def test_fmpz_poly():
         assert Z([1,2,3]) ** ztype(1) == Z([1,2,3])
         assert Z([1,2,3]) ** ztype(2) == Z([1,4,10,12,9])
     assert divmod(Z([11,6,2]), Z([1,2])) == (Z([2,1]), Z([9,1]))
-    assert raises(lambda: pow(Z([1,2]), 2, 3), NotImplementedError)
+    assert raises(lambda: pow(Z([1,2]), 2, 3), NotImplementedError) # type: ignore
     assert +Z([1,2]) == Z([1,2])
     assert -Z([1,2]) == Z([-1,-2])
-    assert raises(lambda: Z([1,2]) + [], TypeError)
-    assert raises(lambda: Z([1,2]) - [], TypeError)
-    assert raises(lambda: Z([1,2]) * [], TypeError)
-    assert raises(lambda: Z([1,2]) / [], TypeError)
-    assert raises(lambda: Z([1,2]) // [], TypeError)
-    assert raises(lambda: Z([1,2]) % [], TypeError)
-    assert raises(lambda: divmod(Z([1,2]), []), TypeError)
-    assert raises(lambda: [] + Z([1,2]), TypeError)
-    assert raises(lambda: [] - Z([1,2]), TypeError)
-    assert raises(lambda: [] * Z([1,2]), TypeError)
-    assert raises(lambda: [] / Z([1,2]), TypeError)
-    assert raises(lambda: [] // Z([1,2]), TypeError)
-    assert raises(lambda: [] % Z([1,2]), TypeError)
-    assert raises(lambda: divmod([], Z([1,2])), TypeError)
-    assert raises(lambda: Z([1,2,3]) ** -1, DomainError)
-    assert raises(lambda: Z([1,2,3]) ** Z([1,2]), TypeError)
+    assert raises(lambda: Z([1,2]) + [], TypeError) # type: ignore
+    assert raises(lambda: Z([1,2]) - [], TypeError) # type: ignore
+    assert raises(lambda: Z([1,2]) * [], TypeError) # type: ignore
+    assert raises(lambda: Z([1,2]) / [], TypeError) # type: ignore
+    assert raises(lambda: Z([1,2]) // [], TypeError) # type: ignore
+    assert raises(lambda: Z([1,2]) % [], TypeError) # type: ignore
+    assert raises(lambda: divmod(Z([1,2]), []), TypeError) # type: ignore
+    assert raises(lambda: [] + Z([1,2]), TypeError) # type: ignore
+    assert raises(lambda: [] - Z([1,2]), TypeError) # type: ignore
+    assert raises(lambda: [] * Z([1,2]), TypeError) # type: ignore
+    assert raises(lambda: [] / Z([1,2]), TypeError) # type: ignore
+    assert raises(lambda: [] // Z([1,2]), TypeError) # type: ignore
+    assert raises(lambda: [] % Z([1,2]), TypeError) # type: ignore
+    assert raises(lambda: divmod([], Z([1,2])), TypeError) # type: ignore
+    assert raises(lambda: Z([1,2,3]) ** -1, DomainError) # type: ignore
+    assert raises(lambda: Z([1,2,3]) ** Z([1,2]), TypeError) # type: ignore
     assert raises(lambda: Z([1,2]) // Z([]), ZeroDivisionError)
     assert raises(lambda: Z([]) // Z([]), ZeroDivisionError)
     assert raises(lambda: Z([1,2]) % Z([]), ZeroDivisionError)
     assert raises(lambda: divmod(Z([1,2]), Z([])), ZeroDivisionError)
-    assert raises(lambda: Z([1,2]) < Z([1,2]), TypeError)
-    assert raises(lambda: Z([1,2]) < [], TypeError)
-    assert raises(lambda: [] < Z([1,2]), TypeError)
+    assert raises(lambda: Z([1,2]) < Z([1,2]), TypeError) # type: ignore
+    assert raises(lambda: Z([1,2]) < [], TypeError) # type: ignore
+    assert raises(lambda: [] < Z([1,2]), TypeError) # type: ignore
     assert Z([]).degree() == -1
     assert Z([]).length() == 0
     p = Z([1,2])
@@ -463,7 +465,7 @@ def test_fmpz_poly():
     assert p(flint.fmpq_poly([2,3],5)) == flint.fmpq_poly([27,24,9],5)
     assert p(flint.arb("1.1")).overlaps(flint.arb("13.45"))
     assert p(flint.acb("1.1", "1.2")).overlaps(flint.acb("6.25", "18.00"))
-    assert raises(lambda: p(None), TypeError)
+    assert raises(lambda: p(None), TypeError) # type: ignore
     assert Z([1,2,3]).derivative() == Z([2,6])
     assert Z([1,2,-4]).height_bits() == 3
     assert Z([1,2,-4]).height_bits(signed=True) == -3
@@ -488,7 +490,7 @@ def test_fmpz_poly_factor():
     Z = flint.fmpz_poly
     assert Z([1,2]).gcd(Z([3,4])) == 1
     assert Z([1,2,1]).gcd(Z([1,1])) == Z([1,1])
-    assert raises(lambda: Z([1,2,1]).gcd([]), TypeError)
+    assert raises(lambda: Z([1,2,1]).gcd([]), TypeError) # type: ignore
     assert Z([1,2,1]).factor() == (1, [(Z([1,1]), 2)])
 
 def test_fmpz_poly_functions():
@@ -697,7 +699,7 @@ def test_fmpz_series():
     assert Z(Z([1]))._equal_repr(Z([1]))
     assert Z(Zp([1]))._equal_repr(Z([1]))
     assert Z(1)._equal_repr(Z([1]))
-    assert raises(lambda: Z([1]) < Z([1]), TypeError)
+    assert raises(lambda: Z([1]) < Z([1]), TypeError) # type: ignore
     assert len(Z([1,2])) == 2
     assert Z([1,2]).length() == 2
     s5 = Z([1,2])
@@ -725,18 +727,18 @@ def test_fmpz_series():
     assert (Z([1,2]) + Zp([3,4,5]))._equal_repr(Z([4,6,5]))
     assert (1 + Z([1,2]))._equal_repr(Z([2,2]))
     assert (Zp([1,2]) + Z([3,4,5]))._equal_repr(Z([4,6,5]))
-    assert raises(lambda: Z([1,2]) + [], TypeError)
-    assert raises(lambda: [] + Z([1,2]), TypeError)
+    assert raises(lambda: Z([1,2]) + [], TypeError) # type: ignore
+    assert raises(lambda: [] + Z([1,2]), TypeError) # type: ignore
     assert (Z([1,2]) - Z([3,5]))._equal_repr(Z([-2,-3]))
     assert (Z([1,2]) - 1)._equal_repr(Z([0,2]))
     assert (1 - Z([1,2]))._equal_repr(Z([0,-2]))
-    assert raises(lambda: [] - Z([1,2]), TypeError)
-    assert raises(lambda: Z([1,2]) - [], TypeError)
+    assert raises(lambda: [] - Z([1,2]), TypeError) # type: ignore
+    assert raises(lambda: Z([1,2]) - [], TypeError) # type: ignore
     assert (Z([1,2]) * Z([1,2]))._equal_repr(Z([1,4,4]))
     assert (2 * Z([1,2]))._equal_repr(Z([2,4]))
     assert (Z([1,2]) * 2)._equal_repr(Z([2,4]))
-    assert raises(lambda: [] * Z([1,2]), TypeError)
-    assert raises(lambda: Z([1,2]) * [], TypeError)
+    assert raises(lambda: [] * Z([1,2]), TypeError) # type: ignore
+    assert raises(lambda: Z([1,2]) * [], TypeError) # type: ignore
     assert Z([1,2]).valuation() == 0
     assert Z([0,2]).valuation() == 1
     assert Z([0,0]).valuation() == -1
@@ -751,13 +753,13 @@ def test_fmpz_series():
     # XXX: This gives leading term not a unit:
     # assert Z([2,4]) / 2 == Z([1,2])
     assert (Z([1,1]) / -1)._equal_repr(Z([-1,-1]))
-    assert raises(lambda: Z([1,1]) / [], TypeError)
-    assert raises(lambda: [] / Z([1,1]), TypeError)
+    assert raises(lambda: Z([1,1]) / [], TypeError) # type: ignore
+    assert raises(lambda: [] / Z([1,1]), TypeError) # type: ignore
     assert (Z([1,2]) ** 2)._equal_repr(Z([1,4,4]))
-    assert raises(lambda: pow(Z([1,2]), 3, 5), NotImplementedError)
+    assert raises(lambda: pow(Z([1,2]), 3, 5), NotImplementedError) # type: ignore
     assert (Z([1,2])(Z([0,1,2])))._equal_repr(Z([1,2,4]))
     assert raises(lambda: Z([1,2])(Z([1,2])), ValueError)
-    assert raises(lambda: Z([1,2])([]), TypeError)
+    assert raises(lambda: Z([1,2])([]), TypeError) # type: ignore
     coeffs = [0, 1, -2, 8, -40, 224, -1344, 8448, -54912, 366080]
     assert Z([0,1,2]).reversion()._equal_repr(Z(coeffs))
     # power series reversion must have valuation 1
@@ -947,9 +949,9 @@ def test_fmpq_poly():
     assert Q() != Q([1])
     assert Q([1]) == Q([1])
     assert Q([1], 2) == Q([flint.fmpq(1,2)])
-    assert raises(lambda: Q([1,[]]), TypeError)
-    assert raises(lambda: Q({}), TypeError)
-    assert raises(lambda: Q([1], []), TypeError)
+    assert raises(lambda: Q([1,[]]), TypeError) # type: ignore
+    assert raises(lambda: Q({}), TypeError) # type: ignore
+    assert raises(lambda: Q([1], []), TypeError) # type: ignore
     assert raises(lambda: Q([1], 0), ZeroDivisionError)
     assert bool(Q()) is False
     assert bool(Q([1])) is True
@@ -959,21 +961,21 @@ def test_fmpq_poly():
     assert 3 + Q([1,2]) == Q([4,2])
     assert Q([1,2]) - 3 == Q([-2,2])
     assert 3 - Q([1,2]) == Q([2,-2])
-    assert raises(lambda: Q([1]) + [], TypeError)
-    assert raises(lambda: [] + Q([1]), TypeError)
-    assert raises(lambda: Q([1]) - [], TypeError)
-    assert raises(lambda: [] - Q([1]), TypeError)
-    assert raises(lambda: Q([1]) * [], TypeError)
-    assert raises(lambda: [] * Q([1]), TypeError)
+    assert raises(lambda: Q([1]) + [], TypeError) # type: ignore
+    assert raises(lambda: [] + Q([1]), TypeError) # type: ignore
+    assert raises(lambda: Q([1]) - [], TypeError) # type: ignore
+    assert raises(lambda: [] - Q([1]), TypeError) # type: ignore
+    assert raises(lambda: Q([1]) * [], TypeError) # type: ignore
+    assert raises(lambda: [] * Q([1]), TypeError) # type: ignore
     assert Q([1,2,1]) // Q([1,1]) == Q([1,1])
     assert Q([1,2,1]) % Q([1,1]) == 0
     assert divmod(Q([1,2,1]), Q([1,1])) == (Q([1,1]), 0)
-    assert raises(lambda: Q([1,2,1]) // [], TypeError)
-    assert raises(lambda: [] // Q([1,2,1]), TypeError)
-    assert raises(lambda: Q([1,2,1]) % [], TypeError)
-    assert raises(lambda: [] % Q([1,2,1]), TypeError)
-    assert raises(lambda: divmod(Q([1,2,1]), []), TypeError)
-    assert raises(lambda: divmod([], Q([1,2,1])), TypeError)
+    assert raises(lambda: Q([1,2,1]) // [], TypeError) # type: ignore
+    assert raises(lambda: [] // Q([1,2,1]), TypeError) # type: ignore
+    assert raises(lambda: Q([1,2,1]) % [], TypeError) # type: ignore
+    assert raises(lambda: [] % Q([1,2,1]), TypeError) # type: ignore
+    assert raises(lambda: divmod(Q([1,2,1]), []), TypeError) # type: ignore
+    assert raises(lambda: divmod([], Q([1,2,1])), TypeError) # type: ignore
     assert raises(lambda: Q([1,2,1]) / 0, ZeroDivisionError)
     assert raises(lambda: Q([1,2,1]) // 0, ZeroDivisionError)
     assert raises(lambda: Q([1,2,1]) % 0, ZeroDivisionError)
@@ -986,7 +988,7 @@ def test_fmpq_poly():
     assert Q([1,2]) != Z([3,2])
     assert Z([1,2]) != Q([3,2])
     assert Q([1,2]) != []
-    assert raises(lambda: Q([1,2]) < Q([1,2]), TypeError)
+    assert raises(lambda: Q([1,2]) < Q([1,2]), TypeError) # type: ignore
     assert Q([1,2,3])*Q([1,2]) == Q([1,4,7,6])
     assert Q([1,2,3])*Z([1,2]) == Q([1,4,7,6])
     assert Q([1,2,3]) * 3 == Q([3,6,9])
@@ -997,7 +999,7 @@ def test_fmpq_poly():
     assert raises(lambda: Q([1,2]) / Q([2,2]), DomainError)
     assert Q([1,2,3]) / flint.fmpq(2,3) == Q([1,2,3]) * flint.fmpq(3,2)
     assert Q([1,2,3]) ** 2 == Q([1,2,3]) * Q([1,2,3])
-    assert raises(lambda: pow(Q([1,2]), 3, 5), NotImplementedError)
+    assert raises(lambda: pow(Q([1,2]), 3, 5), NotImplementedError) # type: ignore
     assert Q([1,2,flint.fmpq(1,2)]).coeffs() == [1,2,flint.fmpq(1,2)]
     assert Q().coeffs() == []
     assert Q().degree() == -1
@@ -1028,13 +1030,13 @@ def test_fmpq_poly():
     assert p(flint.fmpq(2,3)) == flint.fmpq(71,63)
     assert p(Z([1,-1])) == Q([12,-14,5],7)
     assert p(flint.fmpq_poly([2,3],5)) == flint.fmpq_poly([27,24,9],7*5)
-    assert raises(lambda: p([]), TypeError)
+    assert raises(lambda: p([]), TypeError) # type: ignore
     assert Q([1,2,3]).derivative() == Q([2,6])
     assert Q([1,2,3]).integral() == Q([0,1,1,1])
     assert Q([1,2,1]).gcd(Q([1,1])) == Q([1,1])
     assert Q([1,2,1]).xgcd(Q([1,1])) == (Q([1,1]), 0, 1)
-    assert raises(lambda: Q([1,2,1]).gcd([]), TypeError)
-    assert raises(lambda: Q([1,2,1]).xgcd([]), TypeError)
+    assert raises(lambda: Q([1,2,1]).gcd([]), TypeError) # type: ignore
+    assert raises(lambda: Q([1,2,1]).xgcd([]), TypeError) # type: ignore
     assert Q([1,2,1]).factor() == (1, [(Q([1,1]), 2)])
     assert Q.bernoulli_poly(3) == Q([0,1,-3,2],2)
     assert Q.euler_poly(3) == Q([1,0,-6,4],4)
@@ -1204,9 +1206,9 @@ def test_fmpq_series():
     assert Q([1],2)._equal_repr(Q([flint.fmpq(1,2)]))
     assert not Q([1],1,10)._equal_repr(Q([1],1,11))
     assert Q([1,2],3)._equal_repr(Q([flint.fmpq(1,3), flint.fmpq(2,3)]))
-    assert raises(lambda: Q([1],[]), TypeError)
+    assert raises(lambda: Q([1],[]), TypeError) # type: ignore
     assert raises(lambda: Q([1],0), ZeroDivisionError)
-    assert raises(lambda: Q([1]) < Q([1]), TypeError)
+    assert raises(lambda: Q([1]) < Q([1]), TypeError) # type: ignore
     assert len(Q([1,2])) == 2
     assert Q([1,2]).length() == 2
     s5 = Q([1,2])
@@ -1236,18 +1238,18 @@ def test_fmpq_series():
     assert (Q([1,2]) + Qp([3,4,5]))._equal_repr(Q([4,6,5]))
     assert (1 + Q([1,2]))._equal_repr(Q([2,2]))
     assert (Qp([1,2]) + Q([3,4,5]))._equal_repr(Q([4,6,5]))
-    assert raises(lambda: Q([1,2]) + [], TypeError)
-    assert raises(lambda: [] + Q([1,2]), TypeError)
+    assert raises(lambda: Q([1,2]) + [], TypeError) # type: ignore
+    assert raises(lambda: [] + Q([1,2]), TypeError) # type: ignore
     assert (Q([1,2]) - Q([3,5]))._equal_repr(Q([-2,-3]))
     assert (Q([1,2]) - 1)._equal_repr(Q([0,2]))
     assert (1 - Q([1,2]))._equal_repr(Q([0,-2]))
-    assert raises(lambda: [] - Q([1,2]), TypeError)
-    assert raises(lambda: Q([1,2]) - [], TypeError)
+    assert raises(lambda: [] - Q([1,2]), TypeError) # type: ignore
+    assert raises(lambda: Q([1,2]) - [], TypeError) # type: ignore
     assert (Q([1,2]) * Q([1,2]))._equal_repr(Q([1,4,4]))
     assert (2 * Q([1,2]))._equal_repr(Q([2,4]))
     assert (Q([1,2]) * 2)._equal_repr(Q([2,4]))
-    assert raises(lambda: [] * Q([1,2]), TypeError)
-    assert raises(lambda: Q([1,2]) * [], TypeError)
+    assert raises(lambda: [] * Q([1,2]), TypeError) # type: ignore
+    assert raises(lambda: Q([1,2]) * [], TypeError) # type: ignore
     assert Q([1,2]).valuation() == 0
     assert Q([0,2]).valuation() == 1
     assert Q([0,0]).valuation() == -1
@@ -1261,8 +1263,8 @@ def test_fmpq_series():
     assert (Q([2,4]) / 2)._equal_repr(Q([1,2]))
     assert (Q([1,4]) / 2)._equal_repr(Q([1,4],2))
     assert (Q([1,1]) / -1)._equal_repr(Q([-1,-1]))
-    assert raises(lambda: Q([1,1]) / [], TypeError)
-    assert raises(lambda: [] / Q([1,1]), TypeError)
+    assert raises(lambda: Q([1,1]) / [], TypeError) # type: ignore
+    assert raises(lambda: [] / Q([1,1]), TypeError) # type: ignore
     q = Q([1,2],3)
     assert (q ** 0)._equal_repr(Q([1]))
     assert (q ** 1)._equal_repr(q)
@@ -1271,10 +1273,10 @@ def test_fmpq_series():
     assert (q ** 4)._equal_repr(Q([1, 8, 24, 32, 16], 81))
     assert (Q([1,2]) ** 2)._equal_repr(Q([1,4,4]))
     assert (Q([1,2]) ** 2)._equal_repr(Q([1,4,4]))
-    assert raises(lambda: pow(Q([1,2]), 3, 5), NotImplementedError)
+    assert raises(lambda: pow(Q([1,2]), 3, 5), NotImplementedError) # type: ignore
     assert (Q([1,2])(Q([0,1,2])))._equal_repr(Q([1,2,4]))
     assert raises(lambda: Q([1,2])(Q([1,2])), ValueError)
-    assert raises(lambda: Q([1,2])([]), TypeError)
+    assert raises(lambda: Q([1,2])([]), TypeError) # type: ignore
     coeffs = [0, 1, -2, 8, -40, 224, -1344, 8448, -54912, 366080]
     assert Q([0,1,2]).reversion()._equal_repr(Q(coeffs))
     # power series reversion must have valuation 1
