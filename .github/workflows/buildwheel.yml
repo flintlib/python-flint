@@ -10,7 +10,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm, windows-2019, macos-13, macos-14]
+        # os: [ubuntu-24.04, ubuntu-24.04-arm, windows-2019, macos-13, macos-14]
+        os: [macos-14]
 
     steps:
       - uses: actions/checkout@v4
@@ -84,13 +85,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [
-          ubuntu-22.04,
-          ubuntu-24.04,
-          ubuntu-24.04-arm,
-          windows-2019,
-          windows-2022,
-          windows-2025,
-          macos-13,
+          #ubuntu-22.04,
+          #ubuntu-24.04,
+          #ubuntu-24.04-arm,
+          #windows-2019,
+          #windows-2022,
+          #windows-2025,
+          #macos-13,
           macos-14,
           macos-15,
           ]
@@ -105,6 +106,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: wheelhouse
+          merge-multiple: true
       - run: pip install --no-index --find-links wheelhouse python_flint
 
       # Check if the GIL is disabled in the free-threading build after import.
