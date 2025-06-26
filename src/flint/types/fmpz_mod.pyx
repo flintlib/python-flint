@@ -563,7 +563,7 @@ cdef class fmpz_mod(flint_scalar):
         # Attempt to convert exponent to fmpz
         e = any_as_fmpz(e)
         if e is NotImplemented:
-            raise NotImplementedError
+            raise TypeError("fmpz_mod.__pow__: exponent must be an integer")
 
         check = fmpz_mod_pow_fmpz(
             res.val, self.val, (<fmpz>e).val, self.ctx.val
