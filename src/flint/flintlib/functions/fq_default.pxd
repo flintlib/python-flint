@@ -1,6 +1,7 @@
 from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, slong, ulong
 from flint.flintlib.types.fmpz cimport fmpz_poly_t
-from flint.flintlib.types.fmpz_mod cimport fmpz_mod_ctx_t, fmpz_mod_poly_t
+from flint.flintlib.types.fmpz_mod cimport fmpz_mod_ctx_t
+from flint.flintlib.types.fmpz_mod_poly cimport fmpz_mod_poly_t
 from flint.flintlib.types.fq_default cimport fq_default_ctx_t, fq_default_t
 from flint.flintlib.types.nmod cimport nmod_poly_t
 

@@ -12,6 +12,7 @@ from flint.types.fmpq cimport fmpq
 from flint.types.fmpz cimport fmpz
 
 from flint.flintlib.types.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
+from flint.flintlib.functions.flint cimport flint_free
 from flint.flintlib.functions.mag cimport *
 from flint.flintlib.functions.fmpz cimport fmpz_init, fmpz_clear
 from flint.flintlib.functions.arf cimport *
@@ -474,7 +475,7 @@ cdef class arb(flint_scalar):
         try:
             res = str_from_chars(s)
         finally:
-            libc.stdlib.free(s)
+            flint_free(s)
         if ctx.unicode:
             res = res.replace("+/-", "±")
         return res

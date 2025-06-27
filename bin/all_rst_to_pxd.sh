@@ -11,7 +11,7 @@ fi
 FLINT_DOC_DIR=$1
 
 modules=(
-    # "flint"
+    "flint"
     "mpoly"
     # "thread_pool"
     # "machine_vectors"

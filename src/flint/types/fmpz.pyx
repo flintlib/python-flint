@@ -5,6 +5,7 @@ from flint.utils.conversion cimport str_from_chars, _str_trunc
 cimport libc.stdlib
 
 from flint.flintlib.types.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN, COEFF_IS_MPZ
+from flint.flintlib.functions.flint cimport flint_free
 from flint.flintlib.functions.fmpz cimport *
 from flint.flintlib.types.fmpz cimport fmpz_factor_expand
 from flint.flintlib.functions.fmpz_factor cimport *
@@ -22,7 +23,7 @@ cdef fmpz_get_intlong(fmpz_t x):
     if COEFF_IS_MPZ(x[0]):
         s = fmpz_get_str(NULL, 16, x)
         v = int(str_from_chars(s), 16)
-        libc.stdlib.free(s)
+        flint_free(s)
         return v
     else:
         return <slong>x[0]
@@ -165,7 +166,7 @@ cdef class fmpz(flint_scalar):
         try:
             res = str_from_chars(s)
         finally:
-            libc.stdlib.free(s)
+            flint_free(s)
         if condense > 0:
             res = _str_trunc(res, condense)
         return res

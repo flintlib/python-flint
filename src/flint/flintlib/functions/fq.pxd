@@ -1,6 +1,7 @@
 from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, slong, ulong
 from flint.flintlib.types.fmpz cimport fmpz_poly_t
-from flint.flintlib.types.fmpz_mod cimport fmpz_mod_ctx_t, fmpz_mod_mat_t, fmpz_mod_poly_t
+from flint.flintlib.types.fmpz_mod cimport fmpz_mod_ctx_t, fmpz_mod_mat_t
+from flint.flintlib.types.fmpz_mod_poly cimport fmpz_mod_poly_t
 from flint.flintlib.types.fq cimport fq_ctx_t, fq_t
 
 # unknown type 

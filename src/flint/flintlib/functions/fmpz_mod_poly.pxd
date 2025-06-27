@@ -1,7 +1,7 @@
 from flint.flintlib.types.flint cimport flint_rand_t, fmpz_struct, fmpz_t, slong, ulong
 from flint.flintlib.types.fmpz cimport fmpz_mat_t, fmpz_poly_struct, fmpz_poly_t
-from flint.flintlib.types.fmpz_mod cimport fmpz_mod_ctx_t, fmpz_mod_poly_struct, fmpz_mod_poly_t
-from flint.flintlib.types.fmpz_mod_poly cimport fmpz_mod_berlekamp_massey_t, fmpz_mod_poly_frobenius_powers_2exp_t, fmpz_mod_poly_frobenius_powers_t, fmpz_mod_poly_radix_t
+from flint.flintlib.types.fmpz_mod cimport fmpz_mod_ctx_t
+from flint.flintlib.types.fmpz_mod_poly cimport fmpz_mod_berlekamp_massey_t, fmpz_mod_poly_frobenius_powers_2exp_t, fmpz_mod_poly_frobenius_powers_t, fmpz_mod_poly_radix_t, fmpz_mod_poly_struct, fmpz_mod_poly_t
 from flint.flintlib.types.nmod cimport nmod_poly_t
 
 # unknown type FILE
