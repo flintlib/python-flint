@@ -120,6 +120,7 @@ ext_files = [
     ("flint.types.acb_series", ["src/flint/types/acb_series.pyx"]),
 
     ("flint.types.dirichlet", ["src/flint/types/dirichlet.pyx"]),
+    ("flint.types.qfb", ["src/flint/types/qfb.pyx"]),
 
     ("flint.functions.showgood", ["src/flint/functions/showgood.pyx"]),
 ]
