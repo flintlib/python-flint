@@ -8,4 +8,3 @@ cdef extern from "flint/qfb.h":
         fmpz_t c
 
     ctypedef qfb_struct qfb_t[1]
-
