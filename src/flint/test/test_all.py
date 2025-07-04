@@ -1645,6 +1645,7 @@ def test_nmod_series():
     # XXX: currently no code in nmod_series.pyx
     pass
 
+
 def test_qfb():
     Q = flint.qfb
 
@@ -1654,6 +1655,8 @@ def test_qfb():
 
     q = Q.prime_form(-163, 53)
     assert repr(q) == "qfb(53, 7, 1)"
+    assert q == q
+    assert q != "a"
     assert q == Q(53, 7, 1)
     assert not q.is_reduced()
     assert q.reduce() == Q(1, 1, 41)
@@ -1666,6 +1669,9 @@ def test_qfb():
     assert q.inverse() == q**-1
     assert q.inverse() == q**8
 
+    assert raises(lambda: pow(q, 2, "asd"), NotImplementedError)
+    assert raises(lambda: q**"asd", TypeError)
+
     q = Q.prime_form(-3212123, 7)
     assert q**123456789123456789123456789123456789 == q.inverse()
     assert q**-123456789123456789123456789123456789 == q
@@ -1673,6 +1679,7 @@ def test_qfb():
     q = Q(291233996924844144901, 405366016683999883959, 141056340620716310090)
     assert q.discriminant() == -976098765432101234567890679
     assert q**18045470076579 == Q(1, 1, 244024691358025308641972670)
+
 
 def test_arb():
     A = flint.arb
