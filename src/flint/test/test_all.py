@@ -4535,7 +4535,7 @@ def test_fq_default():
     assert raises(lambda: flint.fq_default_ctx(5, fq_type="A"), ValueError)
     assert raises(lambda: flint.fq_default_ctx(5, fq_type=[]), TypeError)
     assert raises(lambda: flint.fq_default_ctx(5, fq_type=-1), ValueError)
-    assert raises(lambda: flint.fq_default_ctx("ABC"), TypeError)
+    assert raises(lambda: flint.fq_default_ctx("ABC"), TypeError) # type: ignore
 
     # var must be one character
     assert raises(lambda: flint.fq_default_ctx(5, var="XXX"), ValueError)
@@ -4614,8 +4614,8 @@ def test_fq_default():
     assert gf_5.gen() == gf_5(R.gen())
     assert gf_5.gen() == gf_5(flint.nmod_poly([0, 1], 5))
     assert gf_5(flint.fmpz(2**64)) == gf_5(2**64)
-    assert raises(lambda: flint.fq_default(1, "AAA"), TypeError)
-    assert raises(lambda: flint.fq_default.__init__(1, "AAA"), TypeError)
+    assert raises(lambda: flint.fq_default(1, "AAA"), TypeError) # type: ignore
+    assert raises(lambda: flint.fq_default.__init__(1, "AAA"), TypeError) # type: ignore
     assert raises(lambda: flint.fq_default("AAA", gf_5), TypeError)
     assert raises(lambda: gf_5.one() + gf_5_2.one(), ValueError)
     # testing various equalties between types
@@ -4682,10 +4682,10 @@ def test_fq_default():
         assert (gf(0) != gf.zero()) is False
         assert (gf(1) == gf.zero()) is False
         assert (gf(1) != gf.zero()) is True
-        assert raises(lambda: gf.zero() > gf.zero(), TypeError)
-        assert raises(lambda: gf.zero() >= gf.zero(), TypeError)
-        assert raises(lambda: gf.zero() < gf.zero(), TypeError)
-        assert raises(lambda: gf.zero() <= gf.zero(), TypeError)
+        assert raises(lambda: gf.zero() > gf.zero(), TypeError) # type: ignore
+        assert raises(lambda: gf.zero() >= gf.zero(), TypeError) # type: ignore
+        assert raises(lambda: gf.zero() < gf.zero(), TypeError) # type: ignore
+        assert raises(lambda: gf.zero() <= gf.zero(), TypeError) # type: ignore
 
         assert gf.zero().is_zero() is True
         assert gf.one().is_zero() is False
@@ -4719,7 +4719,7 @@ def test_fq_default():
         assert raises(lambda: a / 0, ZeroDivisionError)
         assert raises(lambda: ~gf.zero(), ZeroDivisionError)
         assert raises(lambda: pow(gf.zero(), -1), ZeroDivisionError)
-        assert raises(lambda: pow(gf.zero(), "A"), TypeError)
+        assert raises(lambda: pow(gf.zero(), "A"), TypeError) # type: ignore
 
         assert 1/a == pow(a, -1) == ~a
         assert gf.one() == pow(a, 0)
@@ -4742,7 +4742,7 @@ def test_fq_default_poly():
     R2 = flint.fq_default_poly_ctx(11, 3)
     R3 = flint.fq_default_poly_ctx(13, 5)
 
-    assert raises(lambda: flint.fq_default_poly_ctx("AAA"), TypeError)
+    assert raises(lambda: flint.fq_default_poly_ctx("AAA"), TypeError) # type: ignore
     assert (R1 == R1) is True
     assert hash(R1) == hash(R2)
     assert (R1 != R1) is False
@@ -4760,10 +4760,10 @@ def test_fq_default_poly():
     # random element failure
     f = R1.random_element(not_zero=True)
     assert not f.is_zero()
-    assert raises(lambda: R1.random_element(monic="AAA"), TypeError)
+    assert raises(lambda: R1.random_element(monic="AAA"), TypeError) # type: ignore
     assert raises(lambda: R1.random_element(degree=-1), ValueError)
 
-    assert raises(lambda: flint.fq_default_poly([1,2,3], "AAA"), TypeError)
+    assert raises(lambda: flint.fq_default_poly([1,2,3], "AAA"), TypeError) # type: ignore
 
     assert R1(0).leading_coefficient() == 0
     assert raises(lambda: R1.random_element().reverse(degree=-1), ValueError)
@@ -4827,8 +4827,8 @@ def test_fq_default_poly():
         assert pow(R_gen, 2**60, g) == pow(pow(R_gen, 2**30, g), 2**30, g)
         assert raises(lambda: pow(f, -2, g), ValueError)
         assert raises(lambda: pow(f, 1, "A"), TypeError)
-        assert raises(lambda: pow(f, "A", g), TypeError)
-        assert raises(lambda: f.pow_mod(2**32, g, mod_rev_inv="A"), TypeError)
+        assert raises(lambda: pow(f, "A", g), TypeError) # type: ignore
+        assert raises(lambda: f.pow_mod(2**32, g, mod_rev_inv="A"), TypeError) # type: ignore
 
         # Shifts
         assert raises(lambda: R_test([1,2,3]).left_shift(-1), ValueError)
@@ -4905,7 +4905,7 @@ def test_fq_default_poly():
         assert f.sub_trunc(g, 3) == (f - g) % x**3
 
         assert raises(lambda: f.mul_low("A", 1), TypeError)
-        assert raises(lambda: f.mul_low(g, "A"), TypeError)
+        assert raises(lambda: f.mul_low(g, "A"), TypeError) # type: ignore
         assert raises(lambda: f.mul_low(f_cmp, 1), ValueError)
         assert f.mul_low(g, 3) == (f * g) % x**3
 
