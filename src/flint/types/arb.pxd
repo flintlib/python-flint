@@ -15,3 +15,5 @@ cdef class arb(flint_scalar):
     cpdef bint is_nan(self)
     cpdef bint is_exact(self)
     cpdef bint is_integer(self)
+
+    cdef tuple _to_arfs(self)

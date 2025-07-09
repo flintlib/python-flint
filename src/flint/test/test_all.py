@@ -1647,14 +1647,32 @@ def test_nmod_series():
 
 
 def test_arb():
-    A = flint.arb
-    assert A(3) > A(2.5)
-    assert A(3) >= A("2.5")
-    assert A(3) < A((3,1))
-    assert A(3) <= A("inf")
-    assert A(3) == A(3)
-    assert A(3) != A(2)
-    assert not (A("1.1") == A("1.1"))
+    arb = flint.arb
+    assert arb(3) > arb(2.5)
+    assert arb(3) >= arb("2.5")
+    assert arb(3) < arb((3,1))
+    assert arb(3) <= arb("inf")
+    assert arb(3) == arb(3)
+    assert arb(3) != arb(2)
+    assert not (arb("1.1") == arb("1.1"))
+
+    assert arb(3).repr() == 'arb((0x3, 0x0))'
+    assert arb("nan").repr() == "arb('nan')"
+    assert arb(0, "inf").repr() == "arb(0.0, '+inf')"
+    assert arb((1,2), (3,4)).repr() == "arb((0x1, 0x2), (0x3, 0x4))"
+    assert arb(1, arb("inf")).repr() == "arb((0x1, 0x0), '+inf')"
+    assert arb(1, "inf").repr() == "arb((0x1, 0x0), '+inf')"
+    assert arb(1, "nan").repr() == "arb((0x1, 0x0), '+inf')"
+    assert arb("nan", 1).repr() == "arb('nan')"
+    assert arb("nan", "nan").repr() == "arb('nan')"
+
+    for a in [arb(2), arb((1,2), (3,4)), arb("nan"), arb(0, "inf")]:
+        assert eval(a.repr()).repr() == a.repr()
+
+
+def test_acb():
+    acb = flint.acb
+    assert acb(1, 2).repr() == "acb(arb((0x1, 0x0)), arb((0x1, 0x1)))"
 
 
 def test_pickling():
@@ -5038,6 +5056,7 @@ all_tests = [
     test_fq_default_poly,
 
     test_arb,
+    test_acb,
 
     test_pickling,
 

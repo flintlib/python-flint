@@ -196,14 +196,21 @@ cdef class arb(flint_scalar):
         arb_clear(self.val)
 
     def __init__(self, mid=None, rad=None):
+        cdef arf _rad
+        cdef fmpz man, exp
         if mid is not None:
             if arb_set_python(self.val, mid, 1) == 0:
                 raise TypeError("cannot create arb from type %s" % type(mid))
         if rad is not None:
-            rad = arb(rad)
-            arb_add_error(self.val, (<arb>rad).val)
-            # rad = arf(rad)
-            # arb_add_error_arf(self.val, (<arf>rad).val)
+            if isinstance(rad, tuple):
+                # Set the radius exactly from tuple of ints so that
+                # eval(a.repr()) round trips.
+                _rad = arf(rad)
+                man, exp = _rad.man_exp()
+                mag_set_fmpz_2exp_fmpz(arb_radref(self.val), man.val, exp.val)
+            else:
+                rad = arb(rad)
+                arb_add_error(self.val, (<arb>rad).val)
 
     cpdef bint is_zero(self):
         return arb_is_zero(self.val)
@@ -385,10 +392,17 @@ cdef class arb(flint_scalar):
         else:
             return (0, man, int(exp), man.bit_length())
 
+    # Make this a public function?
+    cdef tuple _to_arfs(self):
+        cdef arf mid = arf.__new__(arf)
+        cdef arf rad = arf.__new__(arf)
+        arf_set(mid.val, arb_midref(self.val))
+        arf_set_mag(rad.val, arb_radref(self.val))
+        return (mid, rad)
+
     def repr(self):
-        mid = self.mid()
-        rad = self.rad()
-        if rad.is_zero():
+        mid, rad = self._to_arfs()
+        if rad.is_zero() or mid.is_nan():
             return "arb(%s)" % mid._repr_str()
         else:
             return "arb(%s, %s)" % (mid._repr_str(), rad._repr_str())
