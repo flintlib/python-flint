@@ -27,16 +27,6 @@ class fq_default_poly_ctx:
         check_prime: bool = True,
         check_modulus: bool = True,
     ): ...
-    def __init__(
-        self,
-        p: fq_default_ctx | ifmpz | None = None,
-        degree: int | None = None,
-        var: str | None = None,
-        modulus: fmpz_mod_poly | fmpz_poly | None = None,
-        fq_type: str | int | fq_default_type = fq_default_type.DEFAULT,
-        check_prime: bool = True,
-        check_modulus: bool = True,
-    ): ...
     def base_field(self) -> fq_default_ctx: ...
     def characteristic(self) -> fmpz: ...
     def prime(self) -> fmpz: ...
