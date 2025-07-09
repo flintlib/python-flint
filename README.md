@@ -169,6 +169,8 @@ Contributors
 
 Changes
 
+- [gh-300](https://github.com/flintlib/python-flint/pull/300), Fix `arb.repr`
+  which now returns a Python representation that round trips. (OB)
 - [gh-289](https://github.com/flintlib/python-flint/pull/289),
   Add `.prec` attribute to series types `fmpz_series`, `fmpq_series`,
   `arb_series` and `acb_series`. (OB)
