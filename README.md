@@ -136,24 +136,24 @@ Compatibility table
 -------------------
 
 Generally each release of python-flint will be compatible with a range of
-Python versions as described in [SPEC
-0](https://scientific-python.org/specs/spec-0000/). Since python-flint 0.5.0
-the minimum supported Flint version is `3.0` and each release of python-flint
-supports all versions of Flint `>=3.0` available at the time of release.
+Python versions. Since python-flint 0.5.0 the minimum supported Flint version
+is `3.0` and each release of python-flint supports all versions of Flint
+`>=3.0` available at the time of release.
 
-Compatible versions (note that 0.7.0 is not yet released):
+Compatible versions:
 
 | python-flint | Release date  | CPython     | FLINT      | Cython           |
 |--------------|---------------|-------------|------------|------------------|
+| `0.8.0`      |      Aug 2025?| `3.11-3.14` | `3.0-3.3`  | `3.1` only       |
 | `0.7.0`      | 16th Mar 2025 | `3.11-3.13` | `3.0-3.2`  | `3.0.11-3.1.0a1` |
 | `0.6.0`      |  1st Feb 2024 | `3.9-3.12`  | `3.0` only | `3.0` only       |
 
-As of python-flint 0.7.0, CPython 3.13 [PEP
-703](https://peps.python.org/pep-0703/) free-threaded (no-GIL) builds of
-python-flint are provided. In the the free-threaded build, mutating matrices or
-polynomials from multiple threads can lead to memory corruption. Provided
-matrices or polynomials are not mutated when shared across threads there are no
-known issues with the free-threaded build but these should be considered
+The requirement for Cython 3.1 is only for CPython's free-threaded build.
+Otherwise any version of Cython 3.x is fine. As of python-flint 0.7.0, CPython
+3.13 [PEP 703](https://peps.python.org/pep-0703/) free-threaded (no-GIL) builds
+of python-flint are provided. In the the free-threaded build, mutating matrices
+or polynomials from multiple threads can lead to memory corruption. There are
+some other known issues with the free-threaded build so it should be considered
 experimental.
 
 CHANGELOG
