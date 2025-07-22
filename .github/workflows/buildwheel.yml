@@ -94,7 +94,7 @@ jobs:
           macos-15,
           ]
         # This list to be kept in sync with python-requires in pyproject.toml.
-        python-version: ['3.11', '3.12', '3.13', '3.13t', 'pypy3.11']
+        python-version: ['3.11', '3.12', '3.13', '3.13t', '3.14', '3.14t', 'pypy3.11']
 
     steps:
       - uses: actions/setup-python@v5
