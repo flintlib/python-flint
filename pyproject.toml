@@ -83,7 +83,11 @@ package = "flint"
 skip = "*-win32 *-manylinux_i686 *-manylinux_armv7l *-musllinux_*"
 
 # Enable building for free-threaded CPython builds
-enable = ["cpython-freethreading", "pypy"]
+enable = [
+    "cpython-prerelease", # for 3.14rc1 (remove this later)
+    "cpython-freethreading",
+    "pypy",
+]
 
 manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux_2_28"

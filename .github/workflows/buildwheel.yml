@@ -42,7 +42,7 @@ jobs:
         if: ${{ startsWith( matrix.os , 'windows' ) }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@90a0ddeff0f23eebc21630e65d66d0f4955e9b94 # v3.0.0b1
+        uses: pypa/cibuildwheel@95d2f3a92fbf80abe066b09418bbf128a8923df2 # v3.0.1
         env:
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
@@ -94,7 +94,7 @@ jobs:
           macos-15,
           ]
         # This list to be kept in sync with python-requires in pyproject.toml.
-        python-version: ['3.11', '3.12', '3.13', '3.13t', 'pypy3.11']
+        python-version: ['3.11', '3.12', '3.13', '3.13t', '3.14', '3.14t', 'pypy3.11']
 
     steps:
       - uses: actions/setup-python@v5
