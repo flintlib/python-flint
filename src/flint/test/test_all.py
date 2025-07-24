@@ -1962,8 +1962,8 @@ def test_fmpz_mod_poly():
     assert f.is_irreducible()
     assert f.is_monic()
     assert raises(lambda: R1.random_element(degree=-123), ValueError)
-    assert raises(lambda: R1.random_element(monic="A"), ValueError)
-    assert raises(lambda: R1.random_element(irreducible="A"), ValueError)
+    assert raises(lambda: R1.random_element(monic="A"), TypeError) # type: ignore
+    assert raises(lambda: R1.random_element(irreducible="A"), TypeError) # type: ignore
 
     # Conversion tests
     F = fmpz_mod_ctx(11)
@@ -1975,8 +1975,9 @@ def test_fmpz_mod_poly():
     assert raises(lambda: R(R_other([1,2,3])), ValueError) # moduli must match
     assert raises(lambda: R(F_other(2)), ValueError) # moduli must match
     assert raises(lambda: R([F(1), F_other(2)]), ValueError) # moduli must match
-    assert raises(lambda: R([F(1), "A"]), TypeError) # need to be able to cast to fmpz_mod
+    assert raises(lambda: R([F(1), "A"]), TypeError) # type: ignore
 
+    R.__call__
     f1 = R([-1, -2, -3])
     f2 = R([fmpz(-1),fmpz(-2),fmpz(-3)])
     f3 = R([F(-1),F(-2),F(-3)])
@@ -2018,7 +2019,7 @@ def test_fmpz_mod_poly():
 
     assert f[-1] == 0
     assert raises(lambda: f.__setitem__(-1, 1), ValueError)
-    assert raises(lambda: f.__setitem__(1, "A"), TypeError)
+    assert raises(lambda: f.__setitem__(1, "A"), TypeError) # type: ignore
 
     # Comparisons
     f1 = R([1,2,3])
@@ -2031,10 +2032,10 @@ def test_fmpz_mod_poly():
     assert (f1 != "1") is True
     assert (f4 == 3) is True
     assert (hash(f1) == hash(f2)) is True
-    assert raises(lambda: f1 > f2, TypeError)
-    assert raises(lambda: f1 >= f2, TypeError)
-    assert raises(lambda: f1 < f2, TypeError)
-    assert raises(lambda: f1 <= f2, TypeError)
+    assert raises(lambda: f1 > f2, TypeError) # type: ignore
+    assert raises(lambda: f1 >= f2, TypeError) # type: ignore
+    assert raises(lambda: f1 < f2, TypeError) # type: ignore
+    assert raises(lambda: f1 <= f2, TypeError) # type: ignore
 
     assert len(f1) == f1.length() == 3
     assert f1.degree() == 2
@@ -2076,8 +2077,8 @@ def test_fmpz_mod_poly():
 
         # add
         assert raises(lambda: f + f_cmp, ValueError)
-        assert raises(lambda: f + "AAA", TypeError)
-        assert raises(lambda: "AAA" + f, TypeError)
+        assert raises(lambda: f + "AAA", TypeError) # type: ignore
+        assert raises(lambda: "AAA" + f, TypeError) # type: ignore
         assert f + g == R_test([-4,-6])
         assert f + 1 ==  R_test([0,-2])
         assert f + fmpz(1) ==  R_test([0,-2])
@@ -2088,8 +2089,8 @@ def test_fmpz_mod_poly():
 
         # sub
         assert raises(lambda: f - f_cmp, ValueError)
-        assert raises(lambda: f - "AAA", TypeError)
-        assert raises(lambda: "AAA" - f, TypeError)
+        assert raises(lambda: f - "AAA", TypeError) # type: ignore
+        assert raises(lambda: "AAA" - f, TypeError) # type: ignore
         assert f - g == R_test([2, 2])
         assert f - 1 ==  R_test([-2,-2])
         assert f - fmpz(1) ==  R_test([-2,-2])
@@ -2100,8 +2101,8 @@ def test_fmpz_mod_poly():
 
         # mul
         assert raises(lambda: f * f_cmp, ValueError)
-        assert raises(lambda: f * "AAA", TypeError)
-        assert raises(lambda: "AAA" * f, TypeError)
+        assert raises(lambda: f * "AAA", TypeError) # type: ignore
+        assert raises(lambda: "AAA" * f, TypeError) # type: ignore
         assert f * g == R_test([3, 4 + 6, 8])
         assert f * 2 ==  R_test([-2,-4])
         assert f * fmpz(2) ==  R_test([-2,-4])
@@ -2112,18 +2113,18 @@ def test_fmpz_mod_poly():
 
         # scalar_mul
         assert 2 * f == f.scalar_mul(2)
-        assert raises(lambda: f.scalar_mul("AAA"), TypeError)
+        assert raises(lambda: f.scalar_mul("AAA"), TypeError) # type: ignore
 
         # Exact division
         assert raises(lambda: f.exact_division(f_cmp), ValueError)
-        assert raises(lambda: f.exact_division("AAA"), TypeError)
+        assert raises(lambda: f.exact_division("AAA"), TypeError) # type: ignore
         assert raises(lambda: f.exact_division(0), ZeroDivisionError)
 
         assert (f * g).exact_division(g) == f
         assert raises(lambda: f.exact_division(g), DomainError)
 
         # true div
-        assert raises(lambda: f / "AAA", TypeError)
+        assert raises(lambda: f / "AAA", TypeError) # type: ignore
         assert raises(lambda: f / 0, ZeroDivisionError)
         assert raises(lambda: f_cmp / 2, DomainError)
 
@@ -2134,8 +2135,8 @@ def test_fmpz_mod_poly():
         # floor div
         assert raises(lambda: 1 // f_bad, DomainError)
         assert raises(lambda: f // f_cmp, ValueError)
-        assert raises(lambda: f // "AAA", TypeError)
-        assert raises(lambda: "AAA" // f, TypeError)
+        assert raises(lambda: f // "AAA", TypeError) # type: ignore
+        assert raises(lambda: "AAA" // f, TypeError) # type: ignore
         assert (f * g) // g == f
         assert (f + f) // 2 == f
         assert (f + f) // fmpz(2) == f
@@ -2156,9 +2157,9 @@ def test_fmpz_mod_poly():
 
         # Check other typechecks for pow_mod
         assert raises(lambda: pow(f, -2, g), ValueError)
-        assert raises(lambda: pow(f, 1, "A"), TypeError)
-        assert raises(lambda: pow(f, "A", g), TypeError)
-        assert raises(lambda: f.pow_mod(2**32, g, mod_rev_inv="A"), TypeError)
+        assert raises(lambda: pow(f, 1, "A"), TypeError) # type: ignore
+        assert raises(lambda: pow(f, "A", g), TypeError) # type: ignore
+        assert raises(lambda: f.pow_mod(2**32, g, mod_rev_inv="A"), TypeError) # type: ignore
 
         # Shifts
         assert raises(lambda: R_test([1,2,3]).left_shift(-1), ValueError)
@@ -2169,8 +2170,8 @@ def test_fmpz_mod_poly():
         # Mod
         assert raises(lambda: f % f_bad, ValueError)
         assert raises(lambda: 123 % f_bad, DomainError)
-        assert raises(lambda: f % "AAA", TypeError)
-        assert raises(lambda: tuple() % f, TypeError)
+        assert raises(lambda: f % "AAA", TypeError) # type: ignore
+        assert raises(lambda: tuple() % f, TypeError) # type: ignore
 
         assert f % 1 == 0
         assert R_test.one() % 1 == 0
@@ -2185,17 +2186,17 @@ def test_fmpz_mod_poly():
         assert h(-1) == R_test.modulus() - 1
         h = R_test([0, 0, 1])
         assert h(1) == h(-1)
-        assert raises(lambda: h("AAA"), TypeError)
+        assert raises(lambda: h("AAA"), TypeError) # type: ignore
         assert f([-1,-2,-3]) == [f(x) for x in [-1, -2, -3]]
 
         # compose
-        assert raises(lambda: h.compose("AAA"), TypeError)
+        assert raises(lambda: h.compose("AAA"), TypeError) # type: ignore
 
         # compose mod
         mod = R_test([1,2,3,4])
         assert f.compose(h) % mod == f.compose_mod(h, mod)
-        assert raises(lambda: h.compose_mod("AAA", mod), TypeError)
-        assert raises(lambda: h.compose_mod(f, "AAA"), TypeError)
+        assert raises(lambda: h.compose_mod("AAA", mod), TypeError) # type: ignore
+        assert raises(lambda: h.compose_mod(f, "AAA"), TypeError) # type: ignore
         assert raises(lambda: h.compose_mod(f, R_test(0)), ZeroDivisionError)
 
         # Reverse
@@ -2212,26 +2213,26 @@ def test_fmpz_mod_poly():
 
         # mulmod
         assert f.mul_mod(f, g) == (f*f) % g
-        assert raises(lambda: f.mul_mod(f, "AAA"), TypeError)
-        assert raises(lambda: f.mul_mod("AAA", g), TypeError)
+        assert raises(lambda: f.mul_mod(f, "AAA"), TypeError) # type: ignore
+        assert raises(lambda: f.mul_mod("AAA", g), TypeError) # type: ignore
 
         # pow_mod
         assert f.pow_mod(2, g) == (f*f) % g
-        assert raises(lambda: f.pow_mod(2, "AAA"), TypeError)
+        assert raises(lambda: f.pow_mod(2, "AAA"), TypeError) # type: ignore
 
         # divmod
         S, T = f.divmod(g)
         assert S*g + T == f
-        assert raises(lambda: f.divmod("AAA"), TypeError)
+        assert raises(lambda: f.divmod("AAA"), TypeError) # type: ignore
         assert raises(lambda: f_bad.divmod(f_bad), ValueError)
 
         # gcd
         assert raises(lambda: f_cmp.gcd(f_cmp), DomainError)
-        assert raises(lambda: f.gcd("f"), TypeError)
+        assert raises(lambda: f.gcd("f"), TypeError) # type: ignore
 
         # xgcd
         assert raises(lambda: (f_cmp).xgcd(f_cmp), ValueError)
-        assert raises(lambda: (f).xgcd("f_cmp"), TypeError)
+        assert raises(lambda: (f).xgcd("f_cmp"), TypeError) # type: ignore
 
         # disc.
         assert raises(lambda: (f_cmp).discriminant(), NotImplementedError)
@@ -2242,7 +2243,7 @@ def test_fmpz_mod_poly():
         # inverse_mod
         f_inv = f.inverse_mod(g)
         assert (f * f_inv) % g == 1
-        assert raises(lambda: f.inverse_mod("AAA"), TypeError)
+        assert raises(lambda: f.inverse_mod("AAA"), TypeError) # type: ignore
         assert raises(lambda: (f_cmp).inverse_mod(f_cmp), ValueError)
 
         f_inv = f.inverse_series_trunc(2)
@@ -2253,7 +2254,7 @@ def test_fmpz_mod_poly():
         f1 = R_test([-3, 1])
         f2 = R_test([-5, 1])
         assert f1.resultant(f2) == (3 - 5)
-        assert raises(lambda: f.resultant("AAA"), TypeError)
+        assert raises(lambda: f.resultant("AAA"), TypeError) # type: ignore
 
         # sqrt
         f1 = R_test.random_element(irreducible=True)
@@ -2291,12 +2292,12 @@ def test_fmpz_mod_poly():
 
         # minpoly
         assert raises(lambda: R_cmp.minpoly([1,2,3,4]), NotImplementedError)
-        assert raises(lambda: R_test.minpoly(1), ValueError)
-        assert raises(lambda: R_test.minpoly([1,2,3,"AAA"]), ValueError)
+        assert raises(lambda: R_test.minpoly(1), TypeError) # type: ignore
+        assert raises(lambda: R_test.minpoly([1,2,3,"AAA"]), TypeError) # type: ignore
 
         # multipoint_evaluation
-        assert raises(lambda: R_test([1,2,3]).multipoint_evaluate([1,2,3,"AAA"]), ValueError)
-        assert raises(lambda: R_test([1,2,3]).multipoint_evaluate("AAA"), ValueError)
+        assert raises(lambda: R_test([1,2,3]).multipoint_evaluate([1,2,3,"AAA"]), TypeError) # type: ignore
+        assert raises(lambda: R_test([1,2,3]).multipoint_evaluate("AAA"), TypeError) # type: ignore
 
         f = R_test([1,2,3])
         ell = [-1,-2,-3,-4,-5]
@@ -2315,16 +2316,16 @@ def test_fmpz_mod_poly():
         assert not f.equal_trunc("A", 3)
         assert not f.equal_trunc(f_cmp, 3)
 
-        assert raises(lambda: f.add_trunc("A", 1), TypeError)
+        assert raises(lambda: f.add_trunc("A", 1), TypeError) # type: ignore
         assert raises(lambda: f.add_trunc(f_cmp, 1), ValueError)
         assert f.add_trunc(g, 3) == (f + g) % x**3
 
-        assert raises(lambda: f.sub_trunc("A", 1), TypeError)
+        assert raises(lambda: f.sub_trunc("A", 1), TypeError) # type: ignore
         assert raises(lambda: f.sub_trunc(f_cmp, 1), ValueError)
         assert f.sub_trunc(g, 3) == (f - g) % x**3
 
-        assert raises(lambda: f.mul_low("A", h), TypeError)
-        assert raises(lambda: f.mul_low(g, "A"), TypeError)
+        assert raises(lambda: f.mul_low("A", h), TypeError) # type: ignore
+        assert raises(lambda: f.mul_low(g, "A"), TypeError) # type: ignore
         assert f.mul_low(g, 3) == (f * g) % x**3
 
         assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
