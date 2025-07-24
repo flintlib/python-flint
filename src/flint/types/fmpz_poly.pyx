@@ -171,6 +171,21 @@ cdef class fmpz_poly(flint_poly):
         """
         return fmpz_poly_degree(self.val) <= 0
 
+    def is_gen(self):
+        """
+        Return ``True`` if the polynomial is the generator
+        of the polynomial, `x`, and ``False`` otherwise
+
+        >>> x = fmpz_poly([0, 1])
+        >>> x
+        x
+        >>> x.is_gen()
+        True
+        >>> (x + 1).is_gen()
+        False
+        """
+        return <bint>fmpz_poly_is_gen(self.val)
+
     def leading_coefficient(self):
         """
         Returns the leading coefficient of the polynomial.

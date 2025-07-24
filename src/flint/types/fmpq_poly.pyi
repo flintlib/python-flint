@@ -1,5 +1,5 @@
-from typing import overload, Any
-from flint.flint_base.flint_base import flint_poly
+from typing import overload, Any, Sequence
+from flint.flint_base.flint_base import _flint_poly_exact
 from flint.types.fmpz import fmpz, ifmpz
 from flint.types.fmpq import fmpq, ifmpq
 from flint.types.fmpz_poly import fmpz_poly, ifmpz_poly
@@ -8,20 +8,14 @@ from flint.types.fmpz_poly import fmpz_poly, ifmpz_poly
 ifmpq_poly = fmpq_poly | ifmpq | ifmpz_poly
 
 
-class fmpq_poly(flint_poly[fmpq]):
+class fmpq_poly(_flint_poly_exact[fmpq]):
     """
     The *fmpq_poly* type represents dense univariate polynomials
     over the rational numbers. For efficiency reasons, an *fmpq_poly* is
     structurally an integer polynomial with a single common denominator.
     """
 
-    @overload
-    def __init__(self) -> None: ...
-    @overload
-    def __init__(self, other: fmpq_poly | fmpz_poly | list[int] | list[ifmpq] | ifmpq, /) -> None: ...
-    @overload
-    def __init__(self, other: fmpq_poly | fmpz_poly | list[int] | list[ifmpq] | ifmpq,
-                       den: ifmpz, /) -> None: ...
+    def __init__(self, other: Sequence[ifmpq] | ifmpq_poly = ..., den: ifmpz = ..., /) -> None: ...
 
     def __len__(self) -> int: ...
     def length(self) -> int: ...
@@ -44,6 +38,7 @@ class fmpq_poly(flint_poly[fmpq]):
     def is_zero(self) -> bool: ...
     def is_one(self) -> bool: ...
     def is_constant(self) -> bool: ...
+    def is_gen(self) -> bool: ...
 
     def leading_coefficient(self) -> fmpq: ...
 
