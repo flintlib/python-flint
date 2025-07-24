@@ -252,7 +252,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sympy-version: ['1.13.1']
+        sympy-version: ['1.13.1', '1.14.0']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -263,6 +263,22 @@ jobs:
       - run: pip install .
       - run: pip install pytest pytest-xdist hypothesis
       - run: pip install sympy==${{ matrix.sympy-version }}
+      - run: python -c 'import sympy; sympy.test(parallel=True)'
+
+  # Run SymPy master branch agains python-flint main
+  test_sympy_master:
+    name: Test SymPy master
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: sudo apt-get update
+      - run: sudo apt-get install libflint-dev
+      - run: pip install .
+      - run: pip install pytest pytest-xdist hypothesis
+      - run: pip install git+https://github.com/sympy/sympy.git@master
       - run: python -c 'import sympy; sympy.test(parallel=True)'
 
   # Push nightly wheels to Anaconda scientific-python nightly channel
