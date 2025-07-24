@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Callable, TypeVar, Iterable, Protocol, TYPE_CHECKING
+from typing import Any, Callable, Sequence, TypeVar, Iterable, Protocol, TYPE_CHECKING
 
 import math
 import operator
@@ -26,10 +26,13 @@ def raises(f, exception) -> bool:
 
 if TYPE_CHECKING:
     from typing import TypeIs
+    from flint.flint_base.flint_base import _flint_poly_exact
 
 
 Tscalar = TypeVar('Tscalar', bound=flint_base.flint_scalar)
 Tscalar_co = TypeVar('Tscalar_co', bound=flint_base.flint_scalar, covariant=True)
+Tscalar_contra = TypeVar('Tscalar_contra', bound=flint_base.flint_scalar, contravariant=True)
+Tpoly = TypeVar("Tpoly", bound='_flint_poly_exact')
 Tmpoly = TypeVar('Tmpoly', bound=flint_base.flint_mpoly)
 Tmpolyctx_co = TypeVar('Tmpolyctx_co', bound=flint_base.flint_mpoly_context, covariant=True)
 
@@ -2588,307 +2591,433 @@ def _all_polys() -> list[tuple[Any, Any, bool, flint.fmpz]]:
     ]
 
 
-def test_polys():
+class _TPoly(Protocol[Tpoly, Tscalar_contra]):
+    def __call__(
+        self, x: Sequence[Tscalar_contra | int] | Tpoly | Tscalar_contra | int, /
+    ) -> Tpoly: ...
+
+
+class _Telem(Protocol[Tscalar]):
+    def __call__(self, x: int | Tscalar, /) -> Tscalar: ...
+
+
+_PolyTestCase = tuple[_TPoly[Tpoly, Tscalar], _Telem[Tscalar], bool, flint.fmpz]
+
+
+def _for_all_polys(test: Callable[[_PolyTestCase], None]) -> None:
+    """Test all mpoly types with the given test function."""
+    # Spell it out like this so that a type checker can understand the types
+    # in the generics for each call of test().
+
+    fmpz: _Telem[flint.fmpz] = flint.fmpz
+    fmpq: _Telem[flint.fmpq] = flint.fmpq
+    fmpz_poly: _TPoly[flint.fmpz_poly, flint.fmpz] = flint.fmpz_poly
+    fmpq_poly: _TPoly[flint.fmpq_poly, flint.fmpq] = flint.fmpq_poly
+
+    def nmod_poly(
+        p: int,
+    ) -> tuple[_TPoly[flint.nmod_poly, flint.nmod], _Telem[flint.nmod]]:
+        """Make nmod poly and scalar constructors for modulus p."""
+
+        def poly(
+            x: Sequence[flint.nmod | int] | flint.nmod_poly | flint.nmod | int, /
+        ) -> flint.nmod_poly:
+            return flint.nmod_poly(x, p)
+
+        def elem(x: int | flint.nmod = 0, /) -> flint.nmod:
+            return flint.nmod(x, p)
+
+        return poly, elem
+
+    def fmpz_mod_poly(
+        p: int,
+    ) -> tuple[_TPoly[flint.fmpz_mod_poly, flint.fmpz_mod], _Telem[flint.fmpz_mod]]:
+        """Make fmpz_mod poly and scalar constructors for modulus p."""
+        ectx = flint.fmpz_mod_ctx(p)
+        pctx = flint.fmpz_mod_poly_ctx(ectx)
+
+        def poly(
+            x: Sequence[flint.fmpz_mod | int]
+            | flint.fmpz_mod_poly
+            | flint.fmpz_mod
+            | int,
+            /,
+        ) -> flint.fmpz_mod_poly:
+            return flint.fmpz_mod_poly(x, pctx)
+
+        def elem(x: int | flint.fmpz_mod = 0, /) -> flint.fmpz_mod:
+            return flint.fmpz_mod(x, ectx)
+
+        return poly, elem
+
+    def fq_default_poly(
+        p: int, k: int | None = None
+    ) -> tuple[
+        _TPoly[flint.fq_default_poly, flint.fq_default], _Telem[flint.fq_default]
+    ]:
+        """Make fq_default poly and scalar constructors for field p^k."""
+        if k is None:
+            ectx = flint.fq_default_ctx(p)
+        else:
+            ectx = flint.fq_default_ctx(p, k)
+        pctx = flint.fq_default_poly_ctx(ectx)
+
+        def poly(
+            x: Sequence[flint.fq_default | int]
+            | flint.fq_default_poly
+            | flint.fq_default
+            | int,
+            /,
+        ) -> flint.fq_default_poly:
+            return flint.fq_default_poly(x, pctx)
+
+        def elem(x: int | flint.fq_default = 0, /) -> flint.fq_default:
+            return flint.fq_default(x, ectx)
+
+        return poly, elem
+
+    # Z and Q
+    test((fmpz_poly, fmpz, False, flint.fmpz(0)))
+    test((fmpq_poly, fmpq, True, flint.fmpz(0)))
+
+    # Z/pZ (p prime)
+    test((*nmod_poly(17), True, flint.fmpz(17)))
+    test((*fmpz_mod_poly(163), True, flint.fmpz(163)))
+    test((*fmpz_mod_poly(2**127 - 1), True, flint.fmpz(2**127 - 1)))
+    test((*fmpz_mod_poly(2**255 - 19), True, flint.fmpz(2**255 - 19)))
+
+    # Z/nZ (n composite)
+    test((*nmod_poly(16), False, flint.fmpz(16)))
+    test((*fmpz_mod_poly(164), False, flint.fmpz(164)))
+    test((*fmpz_mod_poly(2**127), False, flint.fmpz(2**127)))
+    test((*fmpz_mod_poly(2**255), False, flint.fmpz(2**255)))
+
+    # GF(p^k)
+    test((*fq_default_poly(2**127 - 1), True, flint.fmpz(2**127 - 1)))
+    test((*fq_default_poly(2**127 - 1, 2), True, flint.fmpz(2**127 - 1)))
+    test((*fq_default_poly(65537), True, flint.fmpz(65537)))
+    test((*fq_default_poly(65537, 5), True, flint.fmpz(65537)))
+    test((*fq_default_poly(11), True, flint.fmpz(11)))
+    test((*fq_default_poly(11, 5), True, flint.fmpz(11)))
+
+
+def all_polys(f: Callable[[_PolyTestCase], None]) -> Callable[[], None]:
+    """Decorator to run a test function for all mpoly types."""
+    def wrapper():
+        _for_all_polys(f)
+    wrapper.__name__ = f.__name__
+    return wrapper
+
+
+@all_polys
+def test_polys(args: _PolyTestCase[Tpoly, Tscalar]) -> None:
     # To test type annotations, uncomment:
     # P: type[flint.fmpq_poly]
     # S: type[flint.fmpq]
     # is_field: bool
     # characteristic: flint.fmpz
+    P, S, is_field, characteristic = args
 
-    for P, S, is_field, characteristic in _all_polys():
+    composite_characteristic = characteristic != 0 and not characteristic.is_prime()
+    # nmod_poly crashes for many operations with non-prime modulus
+    #     https://github.com/flintlib/python-flint/issues/124
+    # so we can't even test it...
+    nmod_poly_will_crash = type(P(1)) is flint.nmod_poly and composite_characteristic
 
-        composite_characteristic = characteristic != 0 and not characteristic.is_prime()
-        # nmod_poly crashes for many operations with non-prime modulus
-        #     https://github.com/flintlib/python-flint/issues/124
-        # so we can't even test it...
-        nmod_poly_will_crash = type(P(1)) is flint.nmod_poly and composite_characteristic
+    assert P([S(1)]) == P([1]) == P(P([1])) == P(1)
 
-        assert P([S(1)]) == P([1]) == P(P([1])) == P(1)
+    assert raises(lambda: P([None]), TypeError) # type: ignore
+    assert raises(lambda: P(object()), TypeError) # type: ignore
+    assert raises(lambda: P(None), TypeError) # type: ignore
+    assert raises(lambda: P(None, None), TypeError) # type: ignore
+    assert raises(lambda: P([1,2], None), TypeError) # type: ignore
+    assert raises(lambda: P(1, None), TypeError) # type: ignore
 
-        assert raises(lambda: P([None]), TypeError) # type: ignore
-        assert raises(lambda: P(object()), TypeError) # type: ignore
-        assert raises(lambda: P(None), TypeError) # type: ignore
-        assert raises(lambda: P(None, None), TypeError) # type: ignore
-        assert raises(lambda: P([1,2], None), TypeError) # type: ignore
-        assert raises(lambda: P(1, None), TypeError) # type: ignore
+    assert len(P([])) == P([]).length() == 0
+    assert len(P([1])) == P([1]).length() == 1
+    assert len(P([1,2])) == P([1,2]).length() == 2
+    assert len(P([1,2,3])) == P([1,2,3]).length() == 3
 
-        assert len(P([])) == P([]).length() == 0
-        assert len(P([1])) == P([1]).length() == 1
-        assert len(P([1,2])) == P([1,2]).length() == 2
-        assert len(P([1,2,3])) == P([1,2,3]).length() == 3
+    assert P([]).degree() == -1
+    assert P([1]).degree() == 0
+    assert P([1,2]).degree() == 1
+    assert P([1,2,3]).degree() == 2
 
-        assert P([]).degree() == -1
-        assert P([1]).degree() == 0
-        assert P([1,2]).degree() == 1
-        assert P([1,2,3]).degree() == 2
+    assert (P([1]) == P([1])) is True
+    assert (P([1]) != P([1])) is False
+    assert (P([1]) == P([2])) is False
+    assert (P([1]) != P([2])) is True
 
-        assert (P([1]) == P([1])) is True
-        assert (P([1]) != P([1])) is False
-        assert (P([1]) == P([2])) is False
-        assert (P([1]) != P([2])) is True
+    assert (P([1]) == 1) is True
+    assert (P([1]) != 1) is False
+    assert (P([1]) == 2) is False
+    assert (P([1]) != 2) is True
 
-        assert (P([1]) == 1) is True
-        assert (P([1]) != 1) is False
-        assert (P([1]) == 2) is False
-        assert (P([1]) != 2) is True
+    assert (1 == P([1])) is True
+    assert (1 != P([1])) is False
+    assert (2 == P([1])) is False
+    assert (2 != P([1])) is True
 
-        assert (1 == P([1])) is True
-        assert (1 != P([1])) is False
-        assert (2 == P([1])) is False
-        assert (2 != P([1])) is True
+    s1, s2 = S(1), S(2)
 
-        s1, s2 = S(1), S(2)
+    assert (P([s1]) == s1) is True
+    assert (P([s1]) != s1) is False
+    assert (P([s1]) == s2) is False
+    assert (P([s1]) != s2) is True
 
-        assert (P([s1]) == s1) is True
-        assert (P([s1]) != s1) is False
-        assert (P([s1]) == s2) is False
-        assert (P([s1]) != s2) is True
+    assert (s1 == P([s1])) is True
+    assert (s1 != P([s1])) is False
+    assert (s1 == P([s2])) is False
+    assert (s1 != P([s2])) is True
 
-        assert (s1 == P([s1])) is True
-        assert (s1 != P([s1])) is False
-        assert (s1 == P([s2])) is False
-        assert (s1 != P([s2])) is True
+    assert (P([1]) == None) is False
+    assert (P([1]) != None) is True
+    assert (None == P([1])) is False
+    assert (None != P([1])) is True
 
-        assert (P([1]) == None) is False
-        assert (P([1]) != None) is True
-        assert (None == P([1])) is False
-        assert (None != P([1])) is True
+    assert raises(lambda: P([1]) < P([1]), TypeError) # type: ignore
+    assert raises(lambda: P([1]) <= P([1]), TypeError) # type: ignore
+    assert raises(lambda: P([1]) > P([1]), TypeError) # type: ignore
+    assert raises(lambda: P([1]) >= P([1]), TypeError) # type: ignore
+    assert raises(lambda: P([1]) < None, TypeError) # type: ignore
+    assert raises(lambda: P([1]) <= None, TypeError) # type: ignore
+    assert raises(lambda: P([1]) > None, TypeError) # type: ignore
+    assert raises(lambda: P([1]) >= None, TypeError) # type: ignore
+    assert raises(lambda: None < P([1]), TypeError) # type: ignore
+    assert raises(lambda: None <= P([1]), TypeError) # type: ignore
+    assert raises(lambda: None > P([1]), TypeError) # type: ignore
+    assert raises(lambda: None >= P([1]), TypeError) # type: ignore
 
-        assert raises(lambda: P([1]) < P([1]), TypeError) # type: ignore
-        assert raises(lambda: P([1]) <= P([1]), TypeError) # type: ignore
-        assert raises(lambda: P([1]) > P([1]), TypeError) # type: ignore
-        assert raises(lambda: P([1]) >= P([1]), TypeError) # type: ignore
-        assert raises(lambda: P([1]) < None, TypeError) # type: ignore
-        assert raises(lambda: P([1]) <= None, TypeError) # type: ignore
-        assert raises(lambda: P([1]) > None, TypeError) # type: ignore
-        assert raises(lambda: P([1]) >= None, TypeError) # type: ignore
-        assert raises(lambda: None < P([1]), TypeError) # type: ignore
-        assert raises(lambda: None <= P([1]), TypeError) # type: ignore
-        assert raises(lambda: None > P([1]), TypeError) # type: ignore
-        assert raises(lambda: None >= P([1]), TypeError) # type: ignore
+    assert P([1, 2, 3])[1] == S(2)
+    assert P([1, 2, 3])[-1] == S(0)
+    assert P([1, 2, 3])[3] == S(0)
 
-        assert P([1, 2, 3])[1] == S(2)
-        assert P([1, 2, 3])[-1] == S(0)
-        assert P([1, 2, 3])[3] == S(0)
+    p = P([1, 2, 3])
+    p[1] = S(4)
+    assert p == P([1, 4, 3])
 
-        p = P([1, 2, 3])
-        p[1] = S(4)
-        assert p == P([1, 4, 3])
+    def setbad(obj, i, val):
+        obj[i] = val
 
-        def setbad(obj, i, val):
-            obj[i] = val
+    assert raises(lambda: setbad(p, 2, None), TypeError)
+    assert raises(lambda: setbad(p, -1, 1), ValueError)
 
-        assert raises(lambda: setbad(p, 2, None), TypeError)
-        assert raises(lambda: setbad(p, -1, 1), ValueError)
-
-        for v in [], [1], [1, 2]:
-            p = P(v)
-            if type(p) == flint.fmpz_poly:
-                assert P(v).repr() == f'fmpz_poly({v!r})'
-            elif type(p) == flint.fmpq_poly:
-                assert P(v).repr() == f'fmpq_poly({v!r})'
-            elif type(p) == flint.nmod_poly:
-                assert P(v).repr() == f'nmod_poly({v!r}, {p.modulus()})'
-            elif type(p) == flint.fmpz_mod_poly:
-                pass # fmpz_mod_poly does not have .repr() ...
-            elif type(p) == flint.fq_default_poly:
-                pass # fq_default_poly does not have .repr() ...
-            else:
-                assert False
-
-        assert repr(P([])) == '0'
-        assert repr(P([1])) == '1'
-        assert repr(P([1, 2])) == '2*x + 1'
-        assert repr(P([1, 2, 3])) == '3*x^2 + 2*x + 1'
-
-        p = P([1, 2, 3])
-        assert p(0) == p(S(0)) == S(1) == 1
-        assert p(1) == p(S(1)) == S(6) == 6
-        assert p(p) == P([6, 16, 36, 36, 27])
-        assert raises(lambda: p(None), TypeError) # type: ignore
-
-        assert bool(P([])) is False
-        assert bool(P([1])) is True
-
-        assert P([]).is_zero() is True
-        assert P([1]).is_zero() is False
-
-        assert P([]).is_one() is False
-        assert P([1]).is_one() is True
-
-        assert +P([1, 2, 3]) == P([1, 2, 3])
-        assert -P([1, 2, 3]) == P([-1, -2, -3])
-
-        assert P([1, 2, 3]) + P([4, 5, 6]) == P([5, 7, 9])
-
-        for T in [int, S, flint.fmpz]:
-            assert P([1, 2, 3]) + T(1) == P([2, 2, 3])
-            assert T(1) + P([1, 2, 3]) == P([2, 2, 3])
-
-        assert raises(lambda: P([1, 2, 3]) + None, TypeError) # type: ignore
-        assert raises(lambda: None + P([1, 2, 3]), TypeError) # type: ignore
-
-        assert P([1, 2, 3]) - P([4, 5, 6]) == P([-3, -3, -3])
-
-        for T in [int, S, flint.fmpz]:
-            assert P([1, 2, 3]) - T(1) == P([0, 2, 3])
-            assert T(1) - P([1, 2, 3]) == P([0, -2, -3])
-
-        assert raises(lambda: P([1, 2, 3]) - None, TypeError) # type: ignore
-        assert raises(lambda: None - P([1, 2, 3]), TypeError) # type: ignore
-
-        assert P([1, 2, 3]) * P([4, 5, 6]) == P([4, 13, 28, 27, 18])
-
-        for T in [int, S, flint.fmpz]:
-            assert P([1, 2, 3]) * T(2) == P([2, 4, 6])
-            assert T(2) * P([1, 2, 3]) == P([2, 4, 6])
-
-        assert raises(lambda: P([1, 2, 3]) * None, TypeError) # type: ignore
-        assert raises(lambda: None * P([1, 2, 3]), TypeError) # type: ignore
-
-        assert P([1, 2, 1]) // P([1, 1]) == P([1, 1])
-        assert P([1, 2, 1]) % P([1, 1]) == P([0])
-        assert divmod(P([1, 2, 1]), P([1, 1])) == (P([1, 1]), P([0]))
-
-        if is_field:
-            assert P([1, 1]) // 2 == P([S(1)/2, S(1)/2])
-            assert P([1, 1]) % 2 == P([0])
-        elif characteristic == 0:
-            assert P([1, 1]) // 2 == P([0, 0])
-            assert P([1, 1]) % 2 == P([1, 1])
-        elif nmod_poly_will_crash:
-            pass
+    for v in [], [1], [1, 2]:
+        p = P(v)
+        if type(p) == flint.fmpz_poly:
+            assert p.repr() == f'fmpz_poly({v!r})'
+        elif type(p) == flint.fmpq_poly:
+            assert p.repr() == f'fmpq_poly({v!r})'
+        elif type(p) == flint.nmod_poly:
+            assert p.repr() == f'nmod_poly({v!r}, {p.modulus()})'
+        elif type(p) == flint.fmpz_mod_poly:
+            assert p.repr() == f'fmpz_mod_poly({v!r}, {p.context()!r})'
+        elif type(p) == flint.fq_default_poly:
+            assert p.repr() == f'fq_default_poly({v!r}, {p.context()!r})'
         else:
-            # Z/nZ for n not prime
-            if characteristic % 2 == 0:
-                assert raises(lambda: P([1, 1]) // 2, DomainError)
-                assert raises(lambda: P([1, 1]) % 2, DomainError)
-            else:
-                assert False
+            assert False
 
-        assert 1 // P([1, 1]) == P([0])
-        assert 1 % P([1, 1]) == P([1])
-        assert divmod(1, P([1, 1])) == (P([0]), P([1]))
+    assert repr(P([])) == '0'
+    assert repr(P([1])) == '1'
+    assert repr(P([1, 2])) == '2*x + 1'
+    assert repr(P([1, 2, 3])) == '3*x^2 + 2*x + 1'
 
-        assert raises(lambda: P([1, 2, 1]) // None, TypeError) # type: ignore
-        assert raises(lambda: P([1, 2, 1]) % None, TypeError) # type: ignore
-        assert raises(lambda: divmod(P([1, 2, 1]), None), TypeError) # type: ignore
+    p = P([1, 2, 3])
+    assert p(0) == p(S(0)) == S(1) == 1
+    assert p(1) == p(S(1)) == S(6) == 6
+    assert p(p) == P([6, 16, 36, 36, 27])
+    assert raises(lambda: p(None), TypeError) # type: ignore
 
-        assert raises(lambda: None // P([1, 1]), TypeError) # type: ignore
-        assert raises(lambda: None % P([1, 1]), TypeError) # type: ignore
-        assert raises(lambda: divmod(None, P([1, 1])), TypeError) # type: ignore
+    assert bool(P([])) is False
+    assert bool(P([1])) is True
 
-        assert raises(lambda: P([1, 2, 1]) // 0, ZeroDivisionError)
-        assert raises(lambda: P([1, 2, 1]) % 0, ZeroDivisionError)
-        assert raises(lambda: divmod(P([1, 2, 1]), 0), ZeroDivisionError)
+    assert P([]).is_zero() is True
+    assert P([1]).is_zero() is False
 
-        assert raises(lambda: P([1, 2, 1]) // P([0]), ZeroDivisionError)
-        assert raises(lambda: P([1, 2, 1]) % P([0]), ZeroDivisionError)
-        assert raises(lambda: divmod(P([1, 2, 1]), P([0])), ZeroDivisionError)
+    assert P([]).is_one() is False
+    assert P([1]).is_one() is True
 
-        # Exact/field scalar division
-        if is_field:
-            assert P([2, 2]) / 2 == P([1, 1])
-            assert P([1, 2]) / 2 == P([S(1)/2, 1])
-        elif characteristic == 0:
-            assert P([2, 2]) / 2 == P([1, 1])
-            assert raises(lambda: P([1, 2]) / 2, DomainError)
-        elif nmod_poly_will_crash:
-            pass
+    assert +P([1, 2, 3]) == P([1, 2, 3])
+    assert -P([1, 2, 3]) == P([-1, -2, -3])
+
+    assert P([1, 2, 3]) + P([4, 5, 6]) == P([5, 7, 9])
+
+    for T in [int, S, flint.fmpz]:
+        assert P([1, 2, 3]) + T(1) == P([2, 2, 3])
+        assert T(1) + P([1, 2, 3]) == P([2, 2, 3])
+
+    assert raises(lambda: P([1, 2, 3]) + None, TypeError) # type: ignore
+    assert raises(lambda: None + P([1, 2, 3]), TypeError) # type: ignore
+
+    assert P([1, 2, 3]) - P([4, 5, 6]) == P([-3, -3, -3])
+
+    for T in [int, S, flint.fmpz]:
+        assert P([1, 2, 3]) - T(1) == P([0, 2, 3])
+        assert T(1) - P([1, 2, 3]) == P([0, -2, -3])
+
+    assert raises(lambda: P([1, 2, 3]) - None, TypeError) # type: ignore
+    assert raises(lambda: None - P([1, 2, 3]), TypeError) # type: ignore
+
+    assert P([1, 2, 3]) * P([4, 5, 6]) == P([4, 13, 28, 27, 18])
+
+    for T in [int, S, flint.fmpz]:
+        assert P([1, 2, 3]) * T(2) == P([2, 4, 6])
+        assert T(2) * P([1, 2, 3]) == P([2, 4, 6])
+
+    assert raises(lambda: P([1, 2, 3]) * None, TypeError) # type: ignore
+    assert raises(lambda: None * P([1, 2, 3]), TypeError) # type: ignore
+
+    assert P([1, 2, 1]) // P([1, 1]) == P([1, 1])
+    assert P([1, 2, 1]) % P([1, 1]) == P([0])
+    assert divmod(P([1, 2, 1]), P([1, 1])) == (P([1, 1]), P([0]))
+
+    if is_field:
+        assert P([1, 1]) // 2 == P([S(1)/2, S(1)/2])
+        assert P([1, 1]) % 2 == P([0])
+    elif characteristic == 0:
+        assert P([1, 1]) // 2 == P([0, 0])
+        assert P([1, 1]) % 2 == P([1, 1])
+    elif nmod_poly_will_crash:
+        pass
+    else:
+        # Z/nZ for n not prime
+        if characteristic % 2 == 0:
+            assert raises(lambda: P([1, 1]) // 2, DomainError)
+            assert raises(lambda: P([1, 1]) % 2, DomainError)
         else:
-            # Z/nZ for n not prime
-            assert raises(lambda: P([2, 2]) / 2, DomainError)
-            assert raises(lambda: P([1, 2]) / 2, DomainError)
+            assert False
 
-        assert raises(lambda: P([1, 2]) / 0, ZeroDivisionError)
+    assert 1 // P([1, 1]) == P([0])
+    assert 1 % P([1, 1]) == P([1])
+    assert divmod(1, P([1, 1])) == (P([0]), P([1]))
 
-        if not nmod_poly_will_crash:
-            assert P([1, 2, 1]) / P([1, 1]) == P([1, 1])
-            assert raises(lambda: 1 / P([1, 1]), DomainError)
-            assert raises(lambda: P([1, 2, 1]) / P([1, 2]), DomainError)
+    assert raises(lambda: P([1, 2, 1]) // None, TypeError) # type: ignore
+    assert raises(lambda: P([1, 2, 1]) % None, TypeError) # type: ignore
+    assert raises(lambda: divmod(P([1, 2, 1]), None), TypeError) # type: ignore
 
-        assert P([1, 1]) ** 0 == P([1])
-        assert P([1, 1]) ** 1 == P([1, 1])
-        assert P([1, 1]) ** 2 == P([1, 2, 1])
-        assert raises(lambda: P([1, 1]) ** -1, DomainError)
-        assert raises(lambda: P([1, 1]) ** None, TypeError) # type: ignore
+    assert raises(lambda: None // P([1, 1]), TypeError) # type: ignore
+    assert raises(lambda: None % P([1, 1]), TypeError) # type: ignore
+    assert raises(lambda: divmod(None, P([1, 1])), TypeError) # type: ignore
 
-        # XXX: Not sure what this should do in general:
-        p = P([1, 1])
-        mod = P([1, 1])
-        if type(p) not in [flint.fmpz_mod_poly, flint.nmod_poly, flint.fq_default_poly]:
-            assert raises(lambda: pow(p, 2, mod), NotImplementedError) # type: ignore
-        else:
-            assert p * p % mod == pow(p, 2, mod)
+    assert raises(lambda: P([1, 2, 1]) // 0, ZeroDivisionError)
+    assert raises(lambda: P([1, 2, 1]) % 0, ZeroDivisionError)
+    assert raises(lambda: divmod(P([1, 2, 1]), 0), ZeroDivisionError)
 
-        if not composite_characteristic:
-            assert P([1, 2, 1]).gcd(P([1, 1])) == P([1, 1])
-            assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError) # type: ignore
-        elif nmod_poly_will_crash:
-            pass
-        else:
-            # Z/nZ for n not prime
-            assert raises(lambda: P([1, 2, 1]).gcd(P([1, 1])), DomainError)
-            assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError) # type: ignore
+    assert raises(lambda: P([1, 2, 1]) // P([0]), ZeroDivisionError)
+    assert raises(lambda: P([1, 2, 1]) % P([0]), ZeroDivisionError)
+    assert raises(lambda: divmod(P([1, 2, 1]), P([0])), ZeroDivisionError)
 
-        if is_field:
-            p1 = P([1, 0, 1])
-            p2 = P([2, 1])
-            g, s, t = P([1]), P([1])/5, P([2, -1])/5
-            assert p1.xgcd(p2) == (g, s, t)
-            assert raises(lambda: p1.xgcd(None), TypeError) # type: ignore
+    # Exact/field scalar division
+    if is_field:
+        assert P([2, 2]) / 2 == P([1, 1])
+        assert P([1, 2]) / 2 == P([S(1)/2, 1])
+    elif characteristic == 0:
+        assert P([2, 2]) / 2 == P([1, 1])
+        assert raises(lambda: P([1, 2]) / 2, DomainError)
+    elif nmod_poly_will_crash:
+        pass
+    else:
+        # Z/nZ for n not prime
+        assert raises(lambda: P([2, 2]) / 2, DomainError)
+        assert raises(lambda: P([1, 2]) / 2, DomainError)
 
-        if not composite_characteristic:
-            assert P([1, 2, 1]).factor() == (S(1), [(P([1, 1]), 2)])
-        elif nmod_poly_will_crash:
-            pass
-        else:
-            assert raises(lambda: P([1, 2, 1]).factor(), DomainError)
+    assert raises(lambda: P([1, 2]) / 0, ZeroDivisionError)
 
-        if not composite_characteristic:
-            assert P([1, 2, 1]).sqrt() == P([1, 1])
-            assert raises(lambda: P([1, 2, 2]).sqrt(), DomainError)
-        elif nmod_poly_will_crash:
-            pass
-        else:
-            assert raises(lambda: P([1, 2, 1]).sqrt(), DomainError)
+    if not composite_characteristic:
+        assert P([1, 2, 1]) / P([1, 1]) == P([1, 1])
+        assert raises(lambda: 1 / P([1, 1]), DomainError)
+        assert raises(lambda: P([1, 2, 1]) / P([1, 2]), DomainError)
 
-        if P == flint.fmpq_poly:
-            assert raises(lambda: P([1, 2, 1], 3).sqrt(), ValueError)
-            assert P([1, 2, 1], 4).sqrt() == P([1, 1], 2)
+    assert P([1, 1]) ** 0 == P([1])
+    assert P([1, 1]) ** 1 == P([1, 1])
+    assert P([1, 1]) ** 2 == P([1, 2, 1])
+    assert raises(lambda: P([1, 1]) ** -1, DomainError)
+    assert raises(lambda: P([1, 1]) ** None, TypeError) # type: ignore
 
-        assert P([]).deflation() == (P([]), 1)
-        assert P([1, 2]).deflation() == (P([1, 2]), 1)
-        assert P([1, 0, 2]).deflation() == (P([1, 2]), 2)
+    # XXX: Not sure what this should do in general:
+    p = P([1, 1])
+    mod = P([1, 1])
+    if isinstance(p, flint.fmpz_mod_poly) and isinstance(mod, flint.fmpz_mod_poly):
+        assert p * p % mod == pow(p, 2, mod)
+    elif isinstance(p, flint.nmod_poly) and isinstance(mod, flint.nmod_poly):
+        assert p * p % mod == pow(p, 2, mod)
+    elif isinstance(p, flint.fq_default_poly) and isinstance(mod, flint.fq_default_poly):
+        assert p * p % mod == pow(p, 2, mod)
+    else:
+        assert raises(lambda: pow(p, 2, mod), NotImplementedError) # type: ignore
 
-        assert P([1, 2, 1]).derivative() == P([2, 2])
+    if not composite_characteristic:
+        assert P([1, 2, 1]).gcd(P([1, 1])) == P([1, 1])
+        assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError) # type: ignore
+    elif nmod_poly_will_crash:
+        pass
+    else:
+        # Z/nZ for n not prime
+        assert raises(lambda: P([1, 2, 1]).gcd(P([1, 1])), DomainError)
+        assert raises(lambda: P([1, 2, 1]).gcd(None), TypeError) # type: ignore
 
+    if is_field:
+        p1 = P([1, 0, 1])
+        p2 = P([2, 1])
+        g, s, t = P([1]), P([1])/5, P([2, -1])/5
+        assert p1.xgcd(p2) == (g, s, t)
+        assert raises(lambda: p1.xgcd(None), TypeError) # type: ignore
+
+    if not composite_characteristic:
+        assert P([1, 2, 1]).factor() == (S(1), [(P([1, 1]), 2)])
+    elif nmod_poly_will_crash:
+        pass
+    else:
+        assert raises(lambda: P([1, 2, 1]).factor(), DomainError)
+
+    if not composite_characteristic:
+        assert P([1, 2, 1]).sqrt() == P([1, 1])
+        assert raises(lambda: P([1, 2, 2]).sqrt(), DomainError)
+    elif nmod_poly_will_crash:
+        pass
+    else:
+        assert raises(lambda: P([1, 2, 1]).sqrt(), DomainError)
+
+    if P == flint.fmpq_poly:
+        assert raises(lambda: (P([1, 2, 1])/3).sqrt(), ValueError)
+        assert (P([1, 2, 1])/4).sqrt() == P([1, 1])/2
+
+    assert P([]).deflation() == (P([]), 1)
+    assert P([1, 2]).deflation() == (P([1, 2]), 1)
+    assert P([1, 0, 2]).deflation() == (P([1, 2]), 2)
+
+    assert P([1, 2, 1]).derivative() == P([2, 2])
+
+    if is_field:
         p = P([1, 2, 1])
-        if is_field and type(p) != flint.fq_default_poly:
+        if isinstance(p, (flint.fmpq_poly, flint.nmod_poly, flint.fmpz_mod_poly)):
             assert p.integral() == P([0, 1, 1, S(1)/3])
-        if type(p) == flint.fq_default_poly:
-            assert raises(lambda: p.integral(), NotImplementedError)
-
-        # resultant checks.
-        x = P([0, 1])
-
-        if composite_characteristic and type(x) in [flint.fmpz_mod_poly, flint.nmod_poly]:
-            # Flint sometimes crashes in this case, even though the resultant
-            # could be computed.
-            divisor = characteristic.factor()[0][0]
-            assert raises(lambda: x.resultant(x + divisor), ValueError)
-        elif type(x) == flint.fq_default_poly:
-            # Flint does not implement resultants over GF(q) for nonprime q, so
-            # there's nothing for us to check.
-            pass
+        elif isinstance(p, flint.fq_default_poly):
+            assert raises(lambda: p.integral(), NotImplementedError) # type: ignore
         else:
-            assert x.resultant(x) == 0
-            assert x.resultant(x**2 + x - x) == 0
-            assert x.resultant(x**10 - x**5 + 1) == S(1)
-            assert (x - 1).resultant(x**5 + 1) == S(2)
+            assert False
 
-            for k in range(-10, 10):
-                assert x.resultant(x + S(k)) == S(k)
+    # resultant checks.
+    x = P([0, 1])
+
+    if composite_characteristic and type(x) in [flint.fmpz_mod_poly, flint.nmod_poly]:
+        # Flint sometimes crashes in this case, even though the resultant
+        # could be computed.
+        divisor = characteristic.factor()[0][0]
+        assert raises(lambda: x.resultant(x + divisor), ValueError)
+    elif type(x) == flint.fq_default_poly:
+        # Flint does not implement resultants over GF(q) for nonprime q, so
+        # there's nothing for us to check.
+        pass
+    else:
+        assert x.resultant(x) == 0
+        assert x.resultant(x**2 + x - x) == 0
+        assert x.resultant(x**10 - x**5 + 1) == S(1)
+        assert (x - 1).resultant(x**5 + 1) == S(2)
+
+        for k in range(-10, 10):
+            assert x.resultant(x + S(k)) == S(k)
+
 
 def test_poly_resultants():
     # Check that the resultant of two cyclotomic polynomials is right.

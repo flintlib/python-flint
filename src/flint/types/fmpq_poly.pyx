@@ -194,6 +194,21 @@ cdef class fmpq_poly(flint_poly):
         """
         return fmpq_poly_degree(self.val) <= 0
 
+    def is_gen(self):
+        """
+        Return ``True`` if the polynomial is the generator
+        of the polynomial, `x`, and ``False`` otherwise
+
+        >>> x = fmpq_poly([0, 1])
+        >>> x
+        x
+        >>> x.is_gen()
+        True
+        >>> (x + 1).is_gen()
+        False
+        """
+        return <bint>fmpq_poly_is_gen(self.val)
+
     def leading_coefficient(self):
         """
         Returns the leading coefficient of the polynomial.

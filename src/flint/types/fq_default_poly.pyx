@@ -278,6 +278,13 @@ cdef class fq_default_poly(flint_poly):
         if check is NotImplemented:
             raise TypeError
 
+    def context(self):
+        return self.ctx
+
+    def repr(self):
+        coeffs_str = ", ".join(map(str, self.coeffs()))
+        return f"fq_default_poly([{coeffs_str}], {self.ctx!r})"
+
     def __getitem__(self, long i):
         cdef fq_default x
         x = self.ctx.field.new_ctype_fq_default()

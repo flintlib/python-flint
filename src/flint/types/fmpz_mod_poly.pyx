@@ -335,6 +335,16 @@ cdef class fmpz_mod_poly(flint_poly):
         if check is NotImplemented:
             raise TypeError
 
+    def modulus(self):
+        return self.ctx.modulus()
+
+    def context(self):
+        return self.ctx
+
+    def repr(self):
+        coeffs_str = ", ".join(map(str, self.coeffs()))
+        return f"fmpz_mod_poly([{coeffs_str}], fmpz_mod_poly_ctx({self.ctx.modulus()}))"
+
     def __pos__(self):
         return self
 
