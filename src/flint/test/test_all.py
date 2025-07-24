@@ -696,6 +696,12 @@ def test_fmpz_series():
     assert s1._equal_repr(1) is False
     assert Z([])._equal_repr(Z([0])) is True
     assert Z([1])._equal_repr(Z([0])) is False
+    p = Z([1,2])
+    assert p.prec == 10
+    p4 = Z([1,2], prec=4)
+    assert p4.prec == 4
+    p4 = Z(p, prec=4)
+    assert p4.prec == 4
     # XXX: this gives a core dump:
     # s = Z([1,2])
     # s[10**10] = 1
@@ -1200,6 +1206,12 @@ def test_fmpq_series():
     assert s1._equal_repr(sz3) is False
     assert Q([1])._equal_repr(flint.fmpq(1)) is False
     assert Q([1])._equal_repr(1) is False
+    p = Q([1,2])
+    assert p.prec == 10
+    p4 = Q([1,2], prec=4)
+    assert p4.prec == 4
+    p4 = Q(p, prec=4)
+    assert p4.prec == 4
     # XXX: this gives a core dump:
     # s = Q([1,2])
     # s[10**10] = 1
