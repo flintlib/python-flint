@@ -1,11 +1,11 @@
 from typing import overload, Iterator, Sequence
-from flint.flint_base.flint_base import _flint_poly_exact
+from flint.flint_base.flint_base import flint_poly
 from flint.types.nmod import inmod, nmod
 from flint.types.fmpz_poly import fmpz_poly
 
 inmod_poly = nmod_poly | fmpz_poly | inmod
 
-class nmod_poly(_flint_poly_exact[nmod]):
+class nmod_poly(flint_poly[nmod]):
     """Dense univariate polynomials over Z/nZ for word-size n."""
 
     @overload

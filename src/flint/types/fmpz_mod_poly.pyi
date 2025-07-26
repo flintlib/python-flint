@@ -1,6 +1,6 @@
 from typing import Literal, Sequence, overload
 
-from flint.flint_base.flint_base import _flint_poly_exact
+from flint.flint_base.flint_base import flint_poly
 from flint.types.fmpz import fmpz
 from flint.types.fmpz_poly import fmpz_poly
 from flint.types.fmpz_mod import fmpz_mod, fmpz_mod_ctx, ifmpz, ifmpz_mod
@@ -32,7 +32,7 @@ class fmpz_mod_poly_ctx:
     def __call__(self, val: ifmpz_mod_poly | list[ifmpz_mod]) -> fmpz_mod_poly: ...
     def minpoly(self, vals: Sequence[ifmpz_mod]) -> fmpz_mod_poly: ...
 
-class fmpz_mod_poly(_flint_poly_exact[fmpz_mod]):
+class fmpz_mod_poly(flint_poly[fmpz_mod]):
     """
     The *fmpz_mod_poly* type represents univariate polynomials
     over integer modulo an arbitrary-size modulus.
