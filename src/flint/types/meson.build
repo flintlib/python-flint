@@ -2,6 +2,22 @@ thisdir = 'flint/types'
 
 pyfiles = [
   '__init__.py',
+  'fq_default.pyi',
+  'fmpz_mod.pyi',
+  'fmpz_mpoly.pyi',
+  'fmpq_mpoly.pyi',
+  'fmpq_poly.pyi',
+  'fq_default_poly.pyi',
+  'nmod_mpoly.pyi',
+  'fmpq_series.pyi',
+  'fmpz_series.pyi',
+  'fmpz.pyi',
+  'nmod_poly.pyi',
+  'fmpq.pyi',
+  'fmpz_mod_mpoly.pyi',
+  'nmod.pyi',
+  'fmpz_mod_poly.pyi',
+  'fmpz_poly.pyi',
 ]
 
 exts = [
