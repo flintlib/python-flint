@@ -34,13 +34,15 @@ __all__ = [
     "flint_mpoly",
     "flint_mpoly_context",
     "flint_series",
+
     # Protocols
     "elem_p",
     "scalar_p",
     "poly_p",
-    "mpoly_p",
-    "mpoly_context_p",
-    "series_p",
+    # "mpoly_p",
+    # "mpoly_context_p",
+    # "series_p",
+
     # Types
     "Ordering",
     "fmpz",
@@ -147,7 +149,7 @@ class epoly_p(poly_p[_Tscalar], Protocol):
     def deflation(self) -> tuple[Self, int]: ...
 
 
-class mpoly_p(elem_p, Protocol[_Tctx, _Telem, _Telem_coerce]):
+class _mpoly_p(elem_p, Protocol[_Tctx, _Telem, _Telem_coerce]):
     """FLINT multivariate polynomial Protocol."""
     def __init__(
         self,
@@ -226,7 +228,7 @@ class mpoly_p(elem_p, Protocol[_Tctx, _Telem, _Telem_coerce]):
     ) -> Self: ...
 
 
-class mpoly_context_p(
+class _mpoly_context_p(
     elem_p, Protocol[_Tmpoly, _Telem_co, _Telem_coerce_contra]
 ):
     """FLINT multivariate polynomial context protocol."""
@@ -256,7 +258,7 @@ class mpoly_context_p(
     ) -> _Sctx: ...
 
 
-class series_p(elem_p, Protocol[_Telem]):
+class _series_p(elem_p, Protocol[_Telem]):
     """FLINT univariate power series."""
 
     def __iter__(self) -> Iterator[_Telem]: ...
