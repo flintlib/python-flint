@@ -1,12 +1,12 @@
 from typing import overload, Any, Sequence
-from flint.flint_base.flint_base import _flint_poly_exact
+from flint.flint_base.flint_base import flint_poly
 from flint.types.fmpz import fmpz, ifmpz
 from flint.types.fmpq import fmpq
 from flint.types.fmpq_poly import fmpq_poly
 
 ifmpz_poly = fmpz_poly | ifmpz
 
-class fmpz_poly(_flint_poly_exact[fmpz]):
+class fmpz_poly(flint_poly[fmpz]):
     """
     The *fmpz_poly* type represents dense univariate polynomials over
     the integers.

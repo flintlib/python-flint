@@ -8,6 +8,7 @@ import platform
 import random
 
 import flint
+import flint.typing as typ
 import flint.flint_base.flint_base as flint_base
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
@@ -26,13 +27,10 @@ def raises(f, exception) -> bool:
 
 if TYPE_CHECKING:
     from typing import TypeIs
-    from flint.flint_base.flint_base import _flint_poly_exact
 
 
 Tscalar = TypeVar('Tscalar', bound=flint_base.flint_scalar)
 Tscalar_co = TypeVar('Tscalar_co', bound=flint_base.flint_scalar, covariant=True)
-Tscalar_contra = TypeVar('Tscalar_contra', bound=flint_base.flint_scalar, contravariant=True)
-Tpoly = TypeVar("Tpoly", bound='_flint_poly_exact')
 Tmpoly = TypeVar('Tmpoly', bound=flint_base.flint_mpoly)
 Tmpolyctx_co = TypeVar('Tmpolyctx_co', bound=flint_base.flint_mpoly_context, covariant=True)
 
@@ -2621,17 +2619,11 @@ def _all_polys() -> list[tuple[Any, Any, bool, flint.fmpz]]:
     ]
 
 
-class _TPoly(Protocol[Tpoly, Tscalar_contra]):
-    def __call__(
-        self, x: Sequence[Tscalar_contra | int] | Tpoly | Tscalar_contra | int, /
-    ) -> Tpoly: ...
-
-
-class _Telem(Protocol[Tscalar]):
-    def __call__(self, x: int | Tscalar, /) -> Tscalar: ...
-
-
-_PolyTestCase = tuple[_TPoly[Tpoly, Tscalar], _Telem[Tscalar], bool, flint.fmpz]
+Tpoly = TypeVar("Tpoly", bound=typ.epoly_p)
+Tc = TypeVar("Tc", bound=flint_base.flint_scalar)
+TS = Callable[[Tc | int], Tc]
+TP = Callable[[Tpoly | Sequence[Tc | int] | Tc | int], Tpoly]
+_PolyTestCase = tuple[TP[Tpoly,Tc], TS[Tc], bool, flint.fmpz]
 
 
 def _for_all_polys(test: Callable[[_PolyTestCase], None]) -> None:
@@ -2639,14 +2631,14 @@ def _for_all_polys(test: Callable[[_PolyTestCase], None]) -> None:
     # Spell it out like this so that a type checker can understand the types
     # in the generics for each call of test().
 
-    fmpz: _Telem[flint.fmpz] = flint.fmpz
-    fmpq: _Telem[flint.fmpq] = flint.fmpq
-    fmpz_poly: _TPoly[flint.fmpz_poly, flint.fmpz] = flint.fmpz_poly
-    fmpq_poly: _TPoly[flint.fmpq_poly, flint.fmpq] = flint.fmpq_poly
+    fmpz: TS[flint.fmpz] = flint.fmpz
+    fmpq: TS[flint.fmpq] = flint.fmpq
+    fmpz_poly: TP[flint.fmpz_poly, flint.fmpz] = flint.fmpz_poly
+    fmpq_poly: TP[flint.fmpq_poly, flint.fmpq] = flint.fmpq_poly
 
     def nmod_poly(
         p: int,
-    ) -> tuple[_TPoly[flint.nmod_poly, flint.nmod], _Telem[flint.nmod]]:
+    ) -> tuple[TP[flint.nmod_poly, flint.nmod], TS[flint.nmod]]:
         """Make nmod poly and scalar constructors for modulus p."""
 
         def poly(
@@ -2661,7 +2653,7 @@ def _for_all_polys(test: Callable[[_PolyTestCase], None]) -> None:
 
     def fmpz_mod_poly(
         p: int,
-    ) -> tuple[_TPoly[flint.fmpz_mod_poly, flint.fmpz_mod], _Telem[flint.fmpz_mod]]:
+    ) -> tuple[TP[flint.fmpz_mod_poly, flint.fmpz_mod], TS[flint.fmpz_mod]]:
         """Make fmpz_mod poly and scalar constructors for modulus p."""
         ectx = flint.fmpz_mod_ctx(p)
         pctx = flint.fmpz_mod_poly_ctx(ectx)
@@ -2683,7 +2675,7 @@ def _for_all_polys(test: Callable[[_PolyTestCase], None]) -> None:
     def fq_default_poly(
         p: int, k: int | None = None
     ) -> tuple[
-        _TPoly[flint.fq_default_poly, flint.fq_default], _Telem[flint.fq_default]
+        TP[flint.fq_default_poly, flint.fq_default], TS[flint.fq_default]
     ]:
         """Make fq_default poly and scalar constructors for field p^k."""
         if k is None:
@@ -2740,7 +2732,7 @@ def all_polys(f: Callable[[_PolyTestCase], None]) -> Callable[[], None]:
 
 
 @all_polys
-def test_polys(args: _PolyTestCase[Tpoly, Tscalar]) -> None:
+def test_polys(args: _PolyTestCase[typ.epoly_p[Tc], Tc]) -> None:
     # To test type annotations, uncomment:
     # P: type[flint.fmpq_poly]
     # S: type[flint.fmpq]
@@ -2872,7 +2864,7 @@ def test_polys(args: _PolyTestCase[Tpoly, Tscalar]) -> None:
 
     assert P([1, 2, 3]) + P([4, 5, 6]) == P([5, 7, 9])
 
-    for T in [int, S, flint.fmpz]:
+    for T in (int, S, flint.fmpz):
         assert P([1, 2, 3]) + T(1) == P([2, 2, 3])
         assert T(1) + P([1, 2, 3]) == P([2, 2, 3])
 
@@ -2881,7 +2873,7 @@ def test_polys(args: _PolyTestCase[Tpoly, Tscalar]) -> None:
 
     assert P([1, 2, 3]) - P([4, 5, 6]) == P([-3, -3, -3])
 
-    for T in [int, S, flint.fmpz]:
+    for T in (int, S, flint.fmpz):
         assert P([1, 2, 3]) - T(1) == P([0, 2, 3])
         assert T(1) - P([1, 2, 3]) == P([0, -2, -3])
 
@@ -2890,7 +2882,7 @@ def test_polys(args: _PolyTestCase[Tpoly, Tscalar]) -> None:
 
     assert P([1, 2, 3]) * P([4, 5, 6]) == P([4, 13, 28, 27, 18])
 
-    for T in [int, S, flint.fmpz]:
+    for T in (int, S, flint.fmpz):
         assert P([1, 2, 3]) * T(2) == P([2, 4, 6])
         assert T(2) * P([1, 2, 3]) == P([2, 4, 6])
 

@@ -1,5 +1,5 @@
 from typing import overload, Any, Sequence
-from flint.flint_base.flint_base import _flint_poly_exact
+from flint.flint_base.flint_base import flint_poly
 from flint.types.fmpz import fmpz, ifmpz
 from flint.types.fmpq import fmpq, ifmpq
 from flint.types.fmpz_poly import fmpz_poly, ifmpz_poly
@@ -8,7 +8,7 @@ from flint.types.fmpz_poly import fmpz_poly, ifmpz_poly
 ifmpq_poly = fmpq_poly | ifmpq | ifmpz_poly
 
 
-class fmpq_poly(_flint_poly_exact[fmpq]):
+class fmpq_poly(flint_poly[fmpq]):
     """
     The *fmpq_poly* type represents dense univariate polynomials
     over the rational numbers. For efficiency reasons, an *fmpq_poly* is

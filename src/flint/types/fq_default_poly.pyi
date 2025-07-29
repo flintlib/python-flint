@@ -1,5 +1,5 @@
 from typing import overload, Sequence
-from flint.flint_base.flint_base import _flint_poly_exact
+from flint.flint_base.flint_base import flint_poly
 from .fmpz import fmpz, ifmpz
 from .fmpz_mod import fmpz_mod
 from .fmpz_poly import fmpz_poly, ifmpz_poly
@@ -44,7 +44,7 @@ class fq_default_poly_ctx:
     def __repr__(self) -> str: ...
     def __call__(self, val: ifq_default_poly) -> fq_default_poly: ...
 
-class fq_default_poly(_flint_poly_exact[fq_default]):
+class fq_default_poly(flint_poly[fq_default]):
     """
     The *fq_default_poly* type represents univariate polynomials
     over a finite field.
