@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Sequence
 from flint.flint_base.flint_base import flint_series
 from flint.types.fmpz import fmpz, ifmpz
 from flint.types.fmpq import fmpq, ifmpq
@@ -13,7 +13,7 @@ class fmpq_series(flint_series[fmpq]):
     """Approximate truncated power series with rational coefficients."""
 
     def __init__(self,
-                 val: list[int] | list[ifmpq] | ifmpq | ifmpq_series | None = None,
+                 val: Sequence[ifmpq] | ifmpq | ifmpq_series | None = None,
                  den: ifmpz | None = None,
                  prec: int | None = None): ...
 
