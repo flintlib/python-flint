@@ -2,33 +2,63 @@ thisdir = 'flint/types'
 
 pyfiles = [
   '__init__.py',
-  'fq_default.pyi',
-  'fmpz_mod.pyi',
-  'fmpz_mpoly.pyi',
-  'fmpq_mpoly.pyi',
-  'fmpq_poly.pyi',
-  'fq_default_poly.pyi',
-  'nmod_mpoly.pyi',
-  'fmpq_series.pyi',
-  'fmpz_series.pyi',
+
   'fmpz.pyi',
-  'nmod_poly.pyi',
-  'fmpq.pyi',
-  'fmpz_mod_mpoly.pyi',
-  'nmod.pyi',
-  'fmpz_mod_poly.pyi',
   'fmpz_poly.pyi',
+  'fmpz_series.pyi',
+  'fmpz_mpoly.pyi',
+  # 'fmpz_mat.pyi',
+  # 'fmpz_vec.pyi',
+
+  'fmpq.pyi',
+  'fmpq_poly.pyi',
+  'fmpq_series.pyi',
+  'fmpq_mpoly.pyi',
+  # 'fmpq_mat.pyi',
+  # 'fmpq_vec.pyi',
+
+  'nmod.pyi',
+  'nmod_poly.pyi',
+  'nmod_mpoly.pyi',
+  # 'nmod_mat.pyi',
+  # 'nmod_series.pyi',
+
+  'fmpz_mod.pyi',
+  'fmpz_mod_poly.pyi',
+  'fmpz_mod_mpoly.pyi',
+  # 'fmpz_mod_mat.pyi',
+
+  'fq_default.pyi',
+  'fq_default_poly.pyi',
+
+  # 'arf.pyi',
+  #
+  # 'arb.pyi',
+  # 'arb_poly.pyi',
+  # 'arb_mat.pyi',
+  # 'arb_series.pyi',
+  #
+  # 'acb.pyi',
+  # 'acb_poly.pyi',
+  # 'acb_mat.pyi',
+  # 'acb_series.pyi',
+  #
+  # 'dirichlet.pyi',
+  #
+  # '_gr.pyi',
 ]
 
 exts = [
   'fmpz',
   'fmpz_poly',
+  'fmpz_mpoly',
   'fmpz_mat',
   'fmpz_series',
   'fmpz_vec',
 
   'fmpq',
   'fmpq_poly',
+  'fmpq_mpoly',
   'fmpq_mat',
   'fmpq_series',
   'fmpq_vec',
@@ -41,6 +71,7 @@ exts = [
 
   'fmpz_mod',
   'fmpz_mod_poly',
+  'fmpz_mod_mpoly',
   'fmpz_mod_mat',
 
   'fq_default',
@@ -59,10 +90,6 @@ exts = [
   'acb_series',
 
   'dirichlet',
-
-  'fmpz_mpoly',
-  'fmpz_mod_mpoly',
-  'fmpq_mpoly',
 
   '_gr',
 ]
