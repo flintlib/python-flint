@@ -1,5 +1,10 @@
-from typing import Iterable, Mapping, Self
-from ..flint_base.flint_base import flint_mpoly, flint_mpoly_context, Ordering
+from typing import Iterable, Mapping, Self, Any
+from ..flint_base.flint_base import (
+    flint_mpoly,
+    flint_mpoly_context,
+    flint_mod_mpoly_context,
+    Ordering,
+)
 from .fmpz import fmpz
 from .fmpq import fmpq
 from .nmod import nmod
@@ -11,7 +16,7 @@ ifmpz = int | fmpz
 inmod = int | fmpz | fmpq | nmod
 
 
-class nmod_mpoly_ctx(flint_mpoly_context[nmod_mpoly, nmod, inmod]):
+class nmod_mpoly_ctx(flint_mod_mpoly_context[nmod_mpoly, nmod, inmod]):
 
     @classmethod
     def get(cls,
@@ -22,12 +27,34 @@ class nmod_mpoly_ctx(flint_mpoly_context[nmod_mpoly, nmod, inmod]):
     ) -> nmod_mpoly_ctx:
         ...
 
+    def modulus(self) -> int: ...
+
     def nvars(self) -> int: ...
     def ordering(self) -> Ordering: ...
 
     def gen(self, i: int) -> nmod_mpoly: ...
     def from_dict(self, d: Mapping[tuple[int, ...], inmod]) -> nmod_mpoly: ...
     def constant(self, z: inmod) -> nmod_mpoly: ...
+
+    def name(self, i: int, /) -> str: ...
+    def names(self) -> tuple[str]: ...
+    def gens(self) -> tuple[nmod_mpoly, ...]: ...
+    def variable_to_index(self, var: str, /) -> int: ...
+    def term(
+        self, coeff: inmod | None = None, exp_vec: Iterable[int] | None = None
+    ) -> nmod_mpoly: ...
+    def drop_gens(self, gens: Iterable[str | int], /) -> nmod_mpoly_ctx: ...
+    def append_gens(self, gens: Iterable[str | int], /) -> nmod_mpoly_ctx: ...
+    def infer_generator_mapping(
+        self, ctx: flint_mpoly_context, /
+    ) -> dict[int, int]: ...
+    @classmethod
+    def from_context(
+        cls,
+        ctx: flint_mpoly_context[Any, Any, Any],
+        names: str | Iterable[str | tuple[str, int]] | tuple[str, int] | None = None,
+        ordering: Ordering | str = Ordering.lex,
+    ) -> nmod_mpoly_ctx: ...
 
 
 class nmod_mpoly(flint_mpoly[nmod_mpoly_ctx, nmod, inmod]):
