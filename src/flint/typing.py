@@ -251,7 +251,7 @@ class mpoly_context_p(elem_p, Protocol[_Tmpoly_p, _Telem_contra]):
     @classmethod
     def from_context(
         cls,
-        ctx: flint_mpoly_context,
+        ctx: flint_mpoly_context, # make a protocol for this?
         names: str | Iterable[str | tuple[str, int]] | tuple[str, int] | None = None,
         ordering: Ordering | str = Ordering.lex,
     ) -> Self: ...

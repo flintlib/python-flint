@@ -2622,7 +2622,7 @@ def _all_polys() -> list[tuple[Any, Any, bool, flint.fmpz]]:
 
 
 Tpoly = TypeVar("Tpoly", bound=typ.epoly_p)
-Tc = TypeVar("Tc", bound=flint_base.flint_scalar)
+Tc = TypeVar("Tc", bound=typ.scalar_p)
 TS = Callable[[Tc | int], Tc]
 TP = Callable[[Tpoly | Sequence[Tc | int] | Tc | int], Tpoly]
 _PolyTestCase = tuple[TP[Tpoly,Tc], TS[Tc], bool, flint.fmpz]
