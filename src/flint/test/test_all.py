@@ -32,7 +32,9 @@ if TYPE_CHECKING:
 Tscalar = TypeVar('Tscalar', bound=flint_base.flint_scalar)
 Tscalar_co = TypeVar('Tscalar_co', bound=flint_base.flint_scalar, covariant=True)
 Tmpoly = TypeVar('Tmpoly', bound=flint_base.flint_mpoly)
+Tmpoly_p = TypeVar('Tmpoly_p', bound=typ.mpoly_p)
 Tmpolyctx_co = TypeVar('Tmpolyctx_co', bound=flint_base.flint_mpoly_context, covariant=True)
+Tmpolyctx_p_co = TypeVar('Tmpolyctx_p_co', bound=typ.mpoly_context_p, covariant=True)
 
 
 _default_ctx_string = """\
@@ -2620,7 +2622,7 @@ def _all_polys() -> list[tuple[Any, Any, bool, flint.fmpz]]:
 
 
 Tpoly = TypeVar("Tpoly", bound=typ.epoly_p)
-Tc = TypeVar("Tc", bound=flint_base.flint_scalar)
+Tc = TypeVar("Tc", bound=typ.scalar_p)
 TS = Callable[[Tc | int], Tc]
 TP = Callable[[Tpoly | Sequence[Tc | int] | Tc | int], Tpoly]
 _PolyTestCase = tuple[TP[Tpoly,Tc], TS[Tc], bool, flint.fmpz]
@@ -3093,17 +3095,17 @@ def _all_mpolys(): # -> _all_mpolys_type:
     )
 
 
-class _GetMPolyCtx(Protocol[Tmpolyctx_co]):
+class _GetMPolyCtx(Protocol[Tmpolyctx_p_co]):
     def __call__(self,
         names: Iterable[str | tuple[str, int]] | tuple[str, int],
         ordering: str | flint.Ordering = "lex"
-    ) -> Tmpolyctx_co:
+    ) -> Tmpolyctx_p_co:
         ...
 
 
 _MPolyTestCase = tuple[
-    type[Tmpoly],
-    _GetMPolyCtx['flint_base.flint_mpoly_context[Tmpoly, Tscalar, int]'],
+    type[Tmpoly_p],
+    _GetMPolyCtx[typ.mpoly_context_p[Tmpoly_p, Tscalar]],
     Callable[[int], Tscalar],
     bool,
     flint.fmpz
@@ -3176,7 +3178,7 @@ def all_mpolys(f: Callable[[_MPolyTestCase], None]) -> Callable[[], None]:
 
 
 @all_mpolys
-def test_mpolys_constructor(args: _MPolyTestCase[Tmpoly, Tscalar]) -> None:
+def test_mpolys_constructor(args: _MPolyTestCase[Tmpoly_p, Tscalar]) -> None:
     P, get_context, S, _, _ = args
 
     ctx = get_context(("x", 2))
@@ -3301,7 +3303,7 @@ def test_mpolys_constructor(args: _MPolyTestCase[Tmpoly, Tscalar]) -> None:
 
 
 @all_mpolys
-def test_mpolys_properties(args: _MPolyTestCase[Tmpoly, Tscalar]) -> None:
+def test_mpolys_properties(args: _MPolyTestCase[Tmpoly_p, Tscalar]) -> None:
 
     P, get_context, S, is_field, characteristic = args
 
