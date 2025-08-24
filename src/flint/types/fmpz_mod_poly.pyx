@@ -990,7 +990,7 @@ cdef class fmpz_mod_poly(flint_poly):
     def truncate(self, slong n):
         r"""
         Notionally truncate the polynomial to have length ``n``. If
-        ``n`` is larger than the length of the input, then ``self`` is
+        ``n`` is larger than the length of the input, then a copy of ``self`` is
         returned. If ``n`` is not positive, then the zero polynomial
         is returned.
 
