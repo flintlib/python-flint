@@ -2952,6 +2952,12 @@ def test_polys(args: _PolyTestCase[typ.epoly_p[Tc], Tc]) -> None:
         assert raises(lambda: 1 / P([1, 1]), DomainError)
         assert raises(lambda: P([1, 2, 1]) / P([1, 2]), DomainError)
 
+    # Shifts and truncation.
+    assert P([1, 2, 3]).left_shift(3) == P([0, 0, 0, 1, 2, 3])
+    assert P([1, 2, 3]).right_shift(1) == P([2, 3])
+    assert P([1, 2, 3]).truncate(4) == P([1, 2, 3])
+    assert P([1, 2, 3]).truncate(2) == P([1, 2])
+
     assert P([1, 1]) ** 0 == P([1])
     assert P([1, 1]) ** 1 == P([1, 1])
     assert P([1, 1]) ** 2 == P([1, 2, 1])
