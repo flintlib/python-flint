@@ -166,9 +166,14 @@ Contributors
 
 - Oscar Benjamin (OB)
 - Robert Dougherty-Bliss (RDB)
+- Rémy Oudompheng (RO)
 
 Changes
 
+- [gh-310](https://github.com/flintlib/python-flint/pull/310),
+  Add `truncate`, `left_shift` and `right_shift` methods to
+  `fmpz_poly`, `fmpq_poly`, `nmod_poly`, `acb_poly`, `arb_poly`
+  to match other univariate polynomial types. (RO)
 - [gh-300](https://github.com/flintlib/python-flint/pull/300), Fix `arb.repr`
   which now returns a Python representation that round trips. (OB)
 - [gh-289](https://github.com/flintlib/python-flint/pull/289),
