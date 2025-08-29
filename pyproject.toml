@@ -1,7 +1,7 @@
 [project]
 name = "python-flint"
 description = "Bindings for FLINT"
-version = "0.7.1"
+version = "0.8.0"
 # This needs to be in sync with README, and CI config.
 requires-python = ">= 3.11"
 authors = [
