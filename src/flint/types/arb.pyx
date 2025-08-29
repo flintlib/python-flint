@@ -172,7 +172,7 @@ cdef class arb(flint_scalar):
         [0.333333333333333 +/- 3.71e-16]
         >>> print(arb("3.0"))
         3.00000000000000
-        >>> print(arb("0.1"))  # doctest: +SKIP
+        >>> print(arb("0.1")) # doctest: +SKIP
         [0.100000000000000 +/- 2.23e-17]
         >>> print(arb("1/10")) # doctest: +SKIP
         [0.100000000000000 +/- 2.23e-17]
