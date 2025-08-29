@@ -167,18 +167,42 @@ Contributors
 - Oscar Benjamin (OB)
 - Robert Dougherty-Bliss (RDB)
 - Rémy Oudompheng (RO)
+- Agriya Khetarpal (AK)
 
 Changes
 
+- [gh-302](https://github.com/flintlib/python-flint/pull/302),
+  [gh-283](https://github.com/flintlib/python-flint/pull/283),
+  [gh-284](https://github.com/flintlib/python-flint/pull/284),
+  Wheels now ship MPFR 4.2.2 and FLINT 3.3.0. Cython 3.1 is now
+  supported for building (and required for the freethreaded
+  build). Wheels are provided for CPython 3.14 and 3.14t
+  (free-threaded) and PyPy 3.11. (OB)
 - [gh-310](https://github.com/flintlib/python-flint/pull/310),
   Add `truncate`, `left_shift` and `right_shift` methods to
   `fmpz_poly`, `fmpq_poly`, `nmod_poly`, `acb_poly`, `arb_poly`
   to match other univariate polynomial types. (RO)
-- [gh-300](https://github.com/flintlib/python-flint/pull/300), Fix `arb.repr`
-  which now returns a Python representation that round trips. (OB)
+- [gh-287](https://github.com/flintlib/python-flint/pull/287),
+  [gh-293](https://github.com/flintlib/python-flint/pull/293),
+  [gh-305](https://github.com/flintlib/python-flint/pull/305),
+  [gh-307](https://github.com/flintlib/python-flint/pull/307),
+  [gh-309](https://github.com/flintlib/python-flint/pull/309),
+  Add type annotations for `fmpz`, `fmpq`, `nmod`, `fmpz_mod`,
+  `fq_default`, `fmpz_poly`, `fmpq_poly`, `nmod_poly`,
+  `fmpz_mod_poly`, `fq_default_poly`, `fmpz_mpoly`, `fmpq_mpoly`,
+  `nmod_mpoly`, `fmpz_mod_mpoly`, `fmpz_series` and `fmpq_series`
+  (about half of the codebase). (OB)
+- [gh-300](https://github.com/flintlib/python-flint/pull/300),
+  Fix `arb.repr` which now returns a Python representation that
+  round trips. (OB)
+- [gh-292](https://github.com/flintlib/python-flint/pull/292),
+  The `fmpq` constructor now accepts `fmpq` numerator and denominator
+  as input. (OB)
 - [gh-289](https://github.com/flintlib/python-flint/pull/289),
   Add `.prec` attribute to series types `fmpz_series`, `fmpq_series`,
   `arb_series` and `acb_series`. (OB)
+- [gh-285](https://github.com/flintlib/python-flint/pull/285),
+  Don't use deprecated meson build option. (AK)
 - [gh-274](https://github.com/flintlib/python-flint/pull/274),
   Add resultant methods to `fmpz_poly`, `fmpq_poly` and
   `nmod_poly`. Now all univariate and polynomial types have the
