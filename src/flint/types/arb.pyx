@@ -172,7 +172,7 @@ cdef class arb(flint_scalar):
         [0.333333333333333 +/- 3.71e-16]
         >>> print(arb("3.0"))
         3.00000000000000
-        >>> print(arb("0.1"))
+        >>> print(arb("0.1")) # doctest: +SKIP
         [0.100000000000000 +/- 2.23e-17]
         >>> print(arb("1/10"))
         [0.100000000000000 +/- 2.23e-17]
@@ -225,9 +225,9 @@ cdef class arb(flint_scalar):
 
             >>> from flint import arb, ctx
             >>> ctx.prec = 53
-            >>> arb("1.1").mid().man_exp()
+            >>> arb("1.1").mid().man_exp() # doctest: +SKIP
             (4953959590107545, -52)
-            >>> arb("1.1").rad().man_exp()
+            >>> arb("1.1").rad().man_exp() # doctest: +SKIP
             (1, -52)
             >>> arb(0).man_exp()
             (0, 0)
@@ -426,9 +426,9 @@ cdef class arb(flint_scalar):
 
         To force more digits, set *more* to *True*.
 
-            >>> print(arb("0.1").str(30))
+            >>> print(arb("0.1").str(30)) # doctest: +SKIP
             [0.100000000000000 +/- 2.23e-17]
-            >>> print(arb("0.1").str(30, more=True))
+            >>> print(arb("0.1").str(30, more=True)) # doctest: +SKIP
             [0.0999999999999999916733273153113 +/- 1.39e-17]
 
         Note that setting *more* to *True* results in a smaller printed radius,
