@@ -18,7 +18,7 @@ Author: Fredrik Johansson <fredrik.johansson@gmail.com>
 Installation
 ------------
 
-Currently python-flint supports CPython versions 3.11-3.13 and 3.13t
+Currently python-flint supports CPython versions 3.11-3.14 and 3.14t
 (free-threaded) and provides binaries on PyPI for the following platforms:
 
 - Windows (x86-64)
@@ -144,41 +144,80 @@ Compatible versions:
 
 | python-flint | Release date  | CPython     | FLINT      | Cython           |
 |--------------|---------------|-------------|------------|------------------|
-| `0.8.0`      |      Aug 2025?| `3.11-3.14` | `3.0-3.3`  | `3.1` only       |
+| `0.8.0`      | 29th Aug 2025 | `3.11-3.14` | `3.0-3.3`  | `3.1` only       |
 | `0.7.0`      | 16th Mar 2025 | `3.11-3.13` | `3.0-3.2`  | `3.0.11-3.1.0a1` |
 | `0.6.0`      |  1st Feb 2024 | `3.9-3.12`  | `3.0` only | `3.0` only       |
 
 The requirement for Cython 3.1 is only for CPython's free-threaded build.
-Otherwise any version of Cython 3.x is fine. As of python-flint 0.7.0, CPython
-3.13 [PEP 703](https://peps.python.org/pep-0703/) free-threaded (no-GIL) builds
-of python-flint are provided. In the the free-threaded build, mutating matrices
-or polynomials from multiple threads can lead to memory corruption. There are
-some other known issues with the free-threaded build so it should be considered
+Otherwise Cython 3.0 is fine. As of python-flint 0.7.0, CPython 3.13 [PEP
+703](https://peps.python.org/pep-0703/) free-threaded (no-GIL) builds of
+python-flint are provided. In the the free-threaded build, mutating matrices or
+polynomials from multiple threads can lead to memory corruption. There are some
+other known issues with the free-threaded build so it should be considered
 experimental.
 
 CHANGELOG
 =========
 
-Next release (0.8.0)...
+Next release (0.9.0)...
 -----------------------
 
-Contributors
+0.8.0
+-----
+
+Contributors (0.8.0):
 
 - Oscar Benjamin (OB)
 - Robert Dougherty-Bliss (RDB)
 - Rémy Oudompheng (RO)
+- Agriya Khetarpal (AK)
 
-Changes
+Notes (0.8.0):
 
+- This mostly a maintenance release with some bug fixes,
+  dependency updates and a few smaller features.
+- Since GitHub Actions is retiring its MacOS x86-64 runners
+  python-flint 0.8.0 is likely the last release to provide
+  prebuilt wheels for MacOS x86-64 (MacOS arm64 remains
+  fully supported). It is likely that future versions will
+  still work fine on MacOS x86-64 but would require building
+  from source and will not be tested in python-flint's CI.
+  MacOS arm64 wheels will still be provided and tested.
+
+Changes (0.8.0):
+
+- [gh-302](https://github.com/flintlib/python-flint/pull/302),
+  [gh-283](https://github.com/flintlib/python-flint/pull/283),
+  [gh-284](https://github.com/flintlib/python-flint/pull/284),
+  Wheels now ship MPFR 4.2.2 and FLINT 3.3.1. Cython 3.1 is now
+  supported for building (and required for the freethreaded
+  build). Wheels are provided for CPython 3.14 and 3.14t
+  (free-threaded) and PyPy 3.11. (OB)
 - [gh-310](https://github.com/flintlib/python-flint/pull/310),
   Add `truncate`, `left_shift` and `right_shift` methods to
   `fmpz_poly`, `fmpq_poly`, `nmod_poly`, `acb_poly`, `arb_poly`
   to match other univariate polynomial types. (RO)
-- [gh-300](https://github.com/flintlib/python-flint/pull/300), Fix `arb.repr`
-  which now returns a Python representation that round trips. (OB)
+- [gh-287](https://github.com/flintlib/python-flint/pull/287),
+  [gh-293](https://github.com/flintlib/python-flint/pull/293),
+  [gh-305](https://github.com/flintlib/python-flint/pull/305),
+  [gh-307](https://github.com/flintlib/python-flint/pull/307),
+  [gh-309](https://github.com/flintlib/python-flint/pull/309),
+  Add type annotations for `fmpz`, `fmpq`, `nmod`, `fmpz_mod`,
+  `fq_default`, `fmpz_poly`, `fmpq_poly`, `nmod_poly`,
+  `fmpz_mod_poly`, `fq_default_poly`, `fmpz_mpoly`, `fmpq_mpoly`,
+  `nmod_mpoly`, `fmpz_mod_mpoly`, `fmpz_series` and `fmpq_series`
+  (about half of the codebase). (OB)
+- [gh-300](https://github.com/flintlib/python-flint/pull/300),
+  Fix `arb.repr` which now returns a Python representation that
+  round trips. (OB)
+- [gh-292](https://github.com/flintlib/python-flint/pull/292),
+  The `fmpq` constructor now accepts `fmpq` numerator and denominator
+  as input. (OB)
 - [gh-289](https://github.com/flintlib/python-flint/pull/289),
   Add `.prec` attribute to series types `fmpz_series`, `fmpq_series`,
   `arb_series` and `acb_series`. (OB)
+- [gh-285](https://github.com/flintlib/python-flint/pull/285),
+  Don't use deprecated meson build option. (AK)
 - [gh-274](https://github.com/flintlib/python-flint/pull/274),
   Add resultant methods to `fmpz_poly`, `fmpq_poly` and
   `nmod_poly`. Now all univariate and polynomial types have the
