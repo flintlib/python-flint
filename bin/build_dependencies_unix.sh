@@ -182,6 +182,7 @@ if [ $USE_GMP = "gmp" ]; then
         echo "           patching GMP"
         echo --------------------------------------------
         patch -N -Z < ../../../bin/patch-C23.diff
+        autoreconf
       fi
 
       # Show the output of configfsf.guess
