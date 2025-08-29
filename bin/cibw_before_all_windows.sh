@@ -31,4 +31,7 @@ pacman -S --noconfirm \
     #
 
 # This is slow with MinGW:
-bin/build_dependencies_unix.sh --use-gmp-github-mirror
+bin/build_dependencies_unix.sh \
+    --use-gmp-github-mirror\
+    --patch-C23\
+    #

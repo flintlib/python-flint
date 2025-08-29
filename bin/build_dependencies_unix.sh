@@ -42,6 +42,7 @@ do
       echo "  --gmp gmp         - build based on GMP (default)"
       echo "  --gmp mpir        - build based on MPIR (no longer works)"
       echo "  --patch-gmp-arm64 - apply patch to GMP 6.2.1 for OSX arm64"
+      echo "  --patch-C23       - apply patch to GMP 6.3.0 for C23 compatibility"
       echo "  --arb             - build Arb (only needed for flint < 3.0.0)"
       echo
       exit
@@ -86,6 +87,11 @@ do
       # Needed only for GMP 6.2.1 on OSX arm64 (Apple M1) hardware
       # As of GMP 6.3.0 this patch is no longer needed
       PATCH_GMP_ARM64=yes
+      shift
+    ;;
+    --patch-C23)
+      # Patch GMP 6.3.0 for newer gcc versions
+      PATCH_GMP_C23=yes
       shift
     ;;
     --use-gmp-github-mirror)
@@ -163,6 +169,19 @@ if [ $USE_GMP = "gmp" ]; then
         echo "           patching GMP"
         echo --------------------------------------------
         patch -N -Z -p0 < ../../../bin/patch-arm64.diff
+      fi
+      #
+      # https://github.com/msys2/MSYS2-packages/issues/5499
+      #
+      # This patch needed for GMP 6.3.0 building with msys2 or probably just
+      # newer gcc versions.
+      #
+      if [ $PATCH_GMP_C23 = "yes" ]; then
+        echo
+        echo --------------------------------------------
+        echo "           patching GMP"
+        echo --------------------------------------------
+        patch -N -Z < ../../../bin/patch-C23.diff
       fi
 
       # Show the output of configfsf.guess
