@@ -252,6 +252,42 @@ cdef class nmod_poly(flint_poly):
         nmod_poly_reverse(res.val, self.val, length)
         return res
 
+    def truncate(self, slong n):
+        r"""
+        Notionally truncate the polynomial to have length ``n``. If
+        ``n`` is larger than the length of the input, then a copy of ``self`` is
+        returned. If ``n`` is not positive, then the zero polynomial
+        is returned.
+
+        Effectively returns this polynomial :math:`\mod x^n`.
+
+            >>> f = nmod_poly([1,2,3], 65537)
+            >>> f.truncate(3) == f
+            True
+            >>> f.truncate(2)
+            2*x + 1
+            >>> f.truncate(1)
+            1
+            >>> f.truncate(0)
+            0
+            >>> f.truncate(-1)
+            0
+
+        """
+        cdef nmod_poly res
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+
+        length = nmod_poly_length(self.val)
+        if n <= 0:  # return zero
+            return res
+        elif n > length:  # do nothing
+            nmod_poly_set(res.val, self.val)
+        else:
+            nmod_poly_set_trunc(res.val, self.val, n)
+
+        return res
+
     def leading_coefficient(self):
         """
         Return the leading coefficient of this polynomial.
@@ -520,6 +556,61 @@ cdef class nmod_poly(flint_poly):
 
     def __rmod__(s, t):
         return divmod(t, s)[1]      # XXX
+
+    def left_shift(self, slong n):
+        """
+        Returns ``self`` shifted left by ``n`` coefficients by inserting
+        zero coefficients. This is equivalent to multiplying the polynomial
+        by x^n
+
+            >>> f = nmod_poly([1,2,3], 99991)
+            >>> f.left_shift(0)
+            3*x^2 + 2*x + 1
+            >>> f.left_shift(1)
+            3*x^3 + 2*x^2 + x
+            >>> f.left_shift(4)
+            3*x^6 + 2*x^5 + x^4
+
+        """
+        cdef nmod_poly res
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+        if n > 0:
+            nmod_poly_shift_left(res.val, self.val, n)
+        else:  # do nothing, just copy self
+            nmod_poly_set(res.val, self.val)
+
+        return res
+
+    def right_shift(self, slong n):
+        """
+        Returns ``self`` shifted right by ``n`` coefficients.
+        This is equivalent to the floor division of the polynomial
+        by x^n
+
+            >>> f = nmod_poly([1,2,3], 99991)
+            >>> f.right_shift(0)
+            3*x^2 + 2*x + 1
+            >>> f.right_shift(1)
+            3*x + 2
+            >>> f.right_shift(4)
+            0
+        """
+        cdef nmod_poly res
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+        if n > 0:
+            nmod_poly_shift_right(res.val, self.val, n)
+        else:  # do nothing, just copy self
+            nmod_poly_set(res.val, self.val)
+
+        return res
 
     def __pow__(nmod_poly self, exp, mod=None):
         cdef nmod_poly res

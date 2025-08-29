@@ -2,6 +2,8 @@ thisdir = 'flint'
 
 pyfiles = [
   '__init__.py',
+  'typing.py',
+  'py.typed',
 ]
 
 exts = [

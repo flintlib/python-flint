@@ -75,10 +75,10 @@ cdef class fmpq_series(flint_series):
         if val is not None:
             if typecheck(val, fmpq_series):
                 fmpq_poly_set(self.val, (<fmpq_series>val).val)
-                self._prec = min((<fmpq_series>val)._prec, getcap())
+                self._prec = min((<fmpq_series>val)._prec, self._prec)
             elif typecheck(val, fmpz_series):
                 fmpq_poly_set_fmpz_poly(self.val, (<fmpz_series>val).val)
-                self._prec = min((<fmpz_series>val)._prec, getcap())
+                self._prec = min((<fmpz_series>val)._prec, self._prec)
             elif typecheck(val, fmpz_poly):
                 fmpq_poly_set_fmpz_poly(self.val, (<fmpz_poly>val).val)
             elif typecheck(val, fmpq_poly):

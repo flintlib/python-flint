@@ -94,7 +94,8 @@ cdef class arf:
         if arf_is_zero(self.val):
             return "0.0"
         elif arf_is_finite(self.val):
-            return "(%s, %s)" % self.man_exp()
+            man, exp = self.man_exp()
+            return "(%s, %s)" % (hex(man), hex(exp))
         elif arf_is_pos_inf(self.val):
             return "'+inf'"
         elif arf_is_neg_inf(self.val):

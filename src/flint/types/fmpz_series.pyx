@@ -68,7 +68,7 @@ cdef class fmpz_series(flint_series):
         if val is not None:
             if typecheck(val, fmpz_series):
                 fmpz_poly_set(self.val, (<fmpz_series>val).val)
-                self._prec = min((<fmpz_series>val)._prec, getcap())
+                self._prec = min((<fmpz_series>val)._prec, self._prec)
             elif typecheck(val, fmpz_poly):
                 fmpz_poly_set(self.val, (<fmpz_poly>val).val)
             elif typecheck(val, list):

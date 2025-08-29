@@ -130,7 +130,7 @@ cdef class fmpz_mod_poly_ctx:
         """
         cdef slong length
         if not (isinstance(monic, bool) and isinstance(irreducible, bool)):
-            raise ValueError("Both 'monic' and 'irreducible' must be of type bool")
+            raise TypeError("Both 'monic' and 'irreducible' must be of type bool")
 
         length = degree + 1
         if length <= 0:
@@ -285,14 +285,14 @@ cdef class fmpz_mod_poly_ctx:
             raise NotImplementedError("minpoly algorithm assumes that the modulus is prime")
 
         if not isinstance(vals, (list, tuple)):
-            raise ValueError("Input must be a list or tuple of points")
+            raise TypeError("Input must be a list or tuple of points")
 
         n = len(vals)
         xs = fmpz_vec(n)
         for i in range(n):
             check = self.mod.set_any_as_fmpz_mod(&xs.val[i], vals[i])
             if check is NotImplemented:
-                raise ValueError(f"Unable to cast {vals[i]} to an 'fmpz_mod'")
+                raise TypeError(f"Unable to cast {vals[i]} to an 'fmpz_mod'")
 
         res = self.new_ctype_poly()
         fmpz_mod_poly_minpoly(res.val, xs.val, n, self.mod.val)
@@ -334,6 +334,16 @@ cdef class fmpz_mod_poly(flint_poly):
         check = self.ctx.set_any_as_fmpz_mod_poly(self.val, val)
         if check is NotImplemented:
             raise TypeError
+
+    def modulus(self):
+        return self.ctx.modulus()
+
+    def context(self):
+        return self.ctx
+
+    def repr(self):
+        coeffs_str = ", ".join(map(str, self.coeffs()))
+        return f"fmpz_mod_poly([{coeffs_str}], fmpz_mod_poly_ctx({self.ctx.modulus()}))"
 
     def __pos__(self):
         return self
@@ -759,14 +769,14 @@ cdef class fmpz_mod_poly(flint_poly):
         cdef fmpz_mod f
 
         if not isinstance(vals, (list, tuple)):
-            raise ValueError("Input must be a list of points")
+            raise TypeError("Input must be a list of points")
 
         n = len(vals)
         xs = fmpz_vec(n)
         for i in range(n):
             check = self.ctx.mod.set_any_as_fmpz_mod(&xs.val[i], vals[i])
             if check is NotImplemented:
-                raise ValueError(f"Unable to cast {vals[i]} to an 'fmpz_mod'")
+                raise TypeError(f"Unable to cast {vals[i]} to an 'fmpz_mod'")
 
         # Call for multipoint eval, iterative horner will be used
         # for small arrays (len < 32) and a fast eval for larger ones
@@ -980,7 +990,7 @@ cdef class fmpz_mod_poly(flint_poly):
     def truncate(self, slong n):
         r"""
         Notionally truncate the polynomial to have length ``n``. If
-        ``n`` is larger than the length of the input, then ``self`` is
+        ``n`` is larger than the length of the input, then a copy of ``self`` is
         returned. If ``n`` is not positive, then the zero polynomial
         is returned.
 

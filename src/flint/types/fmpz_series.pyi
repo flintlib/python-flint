@@ -10,7 +10,7 @@ ifmpz_series = fmpz_series | ifmpz_poly
 class fmpz_series(flint_series[fmpz]):
 
     def __init__(self,
-                 val: list[int] | list[ifmpz] | fmpz_series | fmpz_poly | ifmpz | None = None,
+                 val: Sequence[ifmpz] | fmpz_series | fmpz_poly | ifmpz | None = None,
                  prec: int | None = None): ...
 
     @property

@@ -171,6 +171,56 @@ cdef class fmpz_poly(flint_poly):
         """
         return fmpz_poly_degree(self.val) <= 0
 
+    def is_gen(self):
+        """
+        Return ``True`` if the polynomial is the generator
+        of the polynomial, `x`, and ``False`` otherwise
+
+        >>> x = fmpz_poly([0, 1])
+        >>> x
+        x
+        >>> x.is_gen()
+        True
+        >>> (x + 1).is_gen()
+        False
+        """
+        return <bint>fmpz_poly_is_gen(self.val)
+
+    def truncate(self, slong n):
+        r"""
+        Notionally truncate the polynomial to have length ``n``. If
+        ``n`` is larger than the length of the input, then a copy of ``self`` is
+        returned. If ``n`` is not positive, then the zero polynomial
+        is returned.
+
+        Effectively returns this polynomial :math:`\mod x^n`.
+
+            >>> f = fmpz_poly([1,2,3])
+            >>> f.truncate(3) == f
+            True
+            >>> f.truncate(2)
+            2*x + 1
+            >>> f.truncate(1)
+            1
+            >>> f.truncate(0)
+            0
+            >>> f.truncate(-1)
+            0
+
+        """
+        cdef fmpz_poly res
+        res = fmpz_poly.__new__(fmpz_poly)
+
+        length = fmpz_poly_length(self.val)
+        if n <= 0:  # return zero
+            return res
+        elif n > length:  # do nothing
+            fmpz_poly_set(res.val, self.val)
+        else:
+            fmpz_poly_set_trunc(res.val, self.val, n)
+
+        return res
+
     def leading_coefficient(self):
         """
         Returns the leading coefficient of the polynomial.
@@ -367,6 +417,59 @@ cdef class fmpz_poly(flint_poly):
         if other is NotImplemented:
             return other
         return other._divmod_(self)
+
+    def left_shift(self, slong n):
+        """
+        Returns ``self`` shifted left by ``n`` coefficients by inserting
+        zero coefficients. This is equivalent to multiplying the polynomial
+        by x^n
+
+            >>> f = fmpz_poly([1,2,3])
+            >>> f.left_shift(0)
+            3*x^2 + 2*x + 1
+            >>> f.left_shift(1)
+            3*x^3 + 2*x^2 + x
+            >>> f.left_shift(4)
+            3*x^6 + 2*x^5 + x^4
+
+        """
+        cdef fmpz_poly res
+        res = fmpz_poly.__new__(fmpz_poly)
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+        if n > 0:
+            fmpz_poly_shift_left(res.val, self.val, n)
+        else:  # do nothing, just copy self
+            fmpz_poly_set(res.val, self.val)
+
+        return res
+
+    def right_shift(self, slong n):
+        """
+        Returns ``self`` shifted right by ``n`` coefficients.
+        This is equivalent to the floor division of the polynomial
+        by x^n
+
+            >>> f = fmpz_poly([1,2,3])
+            >>> f.right_shift(0)
+            3*x^2 + 2*x + 1
+            >>> f.right_shift(1)
+            3*x + 2
+            >>> f.right_shift(4)
+            0
+        """
+        cdef fmpz_poly res
+        res = fmpz_poly.__new__(fmpz_poly)
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+        if n > 0:
+            fmpz_poly_shift_right(res.val, self.val, n)
+        else:  # do nothing, just copy self
+            fmpz_poly_set(res.val, self.val)
+
+        return res
 
     def __pow__(fmpz_poly self, exp, mod):
         cdef fmpz_poly res
