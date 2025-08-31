@@ -3045,6 +3045,9 @@ def test_polys(args: _PolyTestCase[typ.epoly_p[Tc], Tc]) -> None:
         assert x.resultant(x**10 - x**5 + 1) == S(1)
         assert (x - 1).resultant(x**5 + 1) == S(2)
 
+        assert (x**5 + 1).discriminant() == S(3125)
+        assert (x**5 + 1).resultant(5 * x**4) == S(3125)
+
         for k in range(-10, 10):
             assert x.resultant(x + S(k)) == S(k)
 

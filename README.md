@@ -162,6 +162,16 @@ CHANGELOG
 Next release (0.9.0)...
 -----------------------
 
+Contributors (0.9.0):
+
+- Rémy Oudompheng (RO)
+
+Changes (0.9.0):
+
+- [gh-312](https://github.com/flintlib/python-flint/pull/312),
+  Add `discriminant` method to `fmpz_poly`, `fmpq_poly` and
+  `nmod_poly`. (RO)
+
 0.8.0
 -----
 

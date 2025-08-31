@@ -712,6 +712,22 @@ cdef class nmod_poly(flint_poly):
         nmod_poly_gcd(res.val, self.val, (<nmod_poly>other).val)
         return res
 
+    def discriminant(self):
+        """
+        Return the discriminant of ``self``.
+
+            >>> f = nmod_poly([1, 2, 3, 4, 5, 6], 65537)
+            >>> f.discriminant()
+            54177
+            >>> f = nmod_poly([1, 3, 5, 7, 9, 11, 13], 65537)
+            >>> f.discriminant()
+            44859
+
+        """
+        cdef nmod res = nmod(0, self.modulus())
+        res.val = nmod_poly_discriminant(self.val)
+        return res
+
     def resultant(self, other):
         """
         Returns the resultant of *self* and *other*.
