@@ -500,6 +500,22 @@ cdef class fmpz_poly(flint_poly):
         fmpz_poly_gcd(res.val, self.val, (<fmpz_poly>other).val)
         return res
 
+    def discriminant(self):
+        """
+        Return the discriminant of ``self``.
+
+            >>> f = fmpz_poly([1, 2, 3, 4, 5, 6])
+            >>> f.discriminant()
+            1037232
+            >>> f = fmpz_poly([1, 3, 5, 7, 9, 11, 13])
+            >>> f.discriminant()
+            -2238305839
+
+        """
+        cdef fmpz res = fmpz.__new__(fmpz)
+        fmpz_poly_discriminant(res.val, self.val)
+        return res
+
     def resultant(self, other):
         """
         Returns the resultant of *self* and *other*.

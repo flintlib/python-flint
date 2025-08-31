@@ -10,7 +10,8 @@ from flint.types.fmpz cimport any_as_fmpz
 
 from flint.flintlib.functions.fmpz cimport fmpz_is_zero
 from flint.flintlib.functions.fmpz cimport fmpz_set
-from flint.flintlib.functions.fmpq cimport fmpq_is_zero
+from flint.flintlib.functions.fmpz_poly cimport fmpz_poly_discriminant
+from flint.flintlib.functions.fmpq cimport fmpq_is_zero, fmpq_set_fmpz_frac
 from flint.flintlib.functions.fmpq_poly cimport *
 from flint.flintlib.functions.arith cimport arith_bernoulli_polynomial
 from flint.flintlib.functions.arith cimport arith_euler_polynomial
@@ -516,6 +517,34 @@ cdef class fmpq_poly(flint_poly):
             raise TypeError("cannot convert input to fmpq_poly")
         res = fmpq_poly.__new__(fmpq_poly)
         fmpq_poly_gcd(res.val, self.val, (<fmpq_poly>other).val)
+        return res
+
+    def discriminant(self):
+        """
+        Return the discriminant of ``self``.
+
+            >>> f = fmpq_poly([1, 2, 3, 4, 5, 6])
+            >>> f.discriminant()
+            1037232
+            >>> f = fmpq_poly([1, 3, 5, 7, 9, 11, 13])
+            >>> f.discriminant()
+            -2238305839
+            >>> f = fmpq_poly([1, 3, 5, 7, 9, 11, 13], 10)
+            >>> f.discriminant()
+            -2238305839/10000000000
+
+        """
+        # There is no FLINT function for the discriminant of a fmpq_poly,
+        # we use the fact that disc(f/q) = disc(f)/q^(2d-2)
+        cdef fmpq res = fmpq.__new__(fmpq)
+        cdef fmpz rnum = fmpz.__new__(fmpz)
+        cdef fmpz rden = self.denom()**(2 * self.degree() - 2)
+
+        cdef fmpz_poly x = fmpz_poly.__new__(fmpz_poly)
+        fmpq_poly_get_numerator(x.val, self.val)
+        fmpz_poly_discriminant(rnum.val, x.val)
+        fmpq_set_fmpz_frac(res.val, rnum.val, rden.val)
+
         return res
 
     def resultant(self, other):
