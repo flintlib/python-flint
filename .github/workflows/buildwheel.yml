@@ -101,7 +101,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           path: wheelhouse
           merge-multiple: true
@@ -296,7 +296,7 @@ jobs:
     steps:
         # Downloads all artifacts
       - name: Download release artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: wheelhouse
           merge-multiple: true
@@ -329,7 +329,7 @@ jobs:
     steps:
         # Downloads all artifacts
       - name: Download release artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: wheelhouse
           merge-multiple: true
@@ -356,7 +356,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Download sdist
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: sdist
           path: dist
