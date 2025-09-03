@@ -736,7 +736,7 @@ cdef class fmpz_poly(flint_poly):
         return u
 
     @staticmethod
-    def hilbert_class_poly(long D):
+    def hilbert_class_poly(slong D):
         r"""
         Returns the Hilbert class polynomial `H_D(x)` as an *fmpz_poly*.
 
@@ -748,7 +748,7 @@ cdef class fmpz_poly(flint_poly):
             x^3 + 30197678080*x^2 + (-140811576541184)*x + 374643194001883136
             >>> fmpz_poly.hilbert_class_poly(-5)
             Traceback (most recent call last):
-              ...
+            ...
             ValueError: D must be an imaginary quadratic discriminant
         """
         cdef fmpz_poly v = fmpz_poly()

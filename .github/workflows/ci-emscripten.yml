@@ -1,0 +1,107 @@
+name: Run Pyodide CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  FORCE_COLOR: 3
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  # cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PYODIDE_VERSION: "https://github.com/pyodide/pyodide-build-environment-nightly/releases/download/20250523-emscripten_4.0.9/xbuildenv.tar.bz2"
+      PYTHON_VERSION: 3.13 # any 3.13.x version works
+      EMSCRIPTEN_VERSION: 4.0.9
+      NODE_VERSION: 22
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Emscripten toolchain
+        uses: mymindstorm/setup-emsdk@6ab9eb1bda2574c4ddb79809fc9247783eaf9021 # v14
+        with:
+          version: ${{ env.EMSCRIPTEN_VERSION }}
+          actions-cache-folder: emsdk-cache
+
+      - name: Set up Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pyodide-build
+        run: |
+          pip install pyodide-build
+          pyodide xbuildenv install --url ${{ env.PYODIDE_VERSION }}
+
+      - name: Restore WASM library directory from cache
+        id: cache-wasm-library-dir
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        with:
+          path: ${{ github.workspace }}/wasm-library-dir
+          key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_dependencies.sh', 'bin/build_variables.sh') }}-0
+
+      - name: Build GMP, MPFR and FLINT
+        if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
+        env:
+          CFLAGS: "-fPIC"
+        run: bin/pyodide_build_dependencies.sh --wasm-library-dir ${{ github.workspace }}/wasm-library-dir
+
+      - name: Persist WASM library directory to cache
+        uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        with:
+          path: ${{ github.workspace }}/wasm-library-dir
+          key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_dependencies.sh', 'bin/build_variables.sh') }}-0
+
+      - name: Restore python-flint build directory from cache
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        with:
+          path: ${{ github.workspace }}/flint_wasm_build
+          key: flint-wasm-build-${{ hashFiles('**/meson.build', '**/pyproject.toml', '**/setup.py') }}
+
+      - name: Build python-flint
+        env:
+          WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
+        run: |
+          export PKG_CONFIG_PATH="${{ env.WASM_LIBRARY_DIR }}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+          export CFLAGS="-I${{ env.WASM_LIBRARY_DIR }}/include ${CFLAGS:-}"
+          export LDFLAGS="-L${{ env.WASM_LIBRARY_DIR }}/lib -lflint -lmpfr -lgmp ${LDFLAGS:-}"
+
+          echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH}"
+          echo "CFLAGS=${CFLAGS}"
+          echo "LDFLAGS=${LDFLAGS}"
+
+          pkg-config --modversion python3
+          pkg-config --modversion mpfr
+          pkg-config --modversion flint
+
+          pyodide build -Cbuild-dir=flint_wasm_build -Csetup-args="-Dflint_version_check=false"
+
+      - name: Persist python-flint build directory to cache
+        uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        with:
+          path: ${{ github.workspace }}/flint_wasm_build
+          key: flint-wasm-build-${{ hashFiles('**/meson.build', '**/pyproject.toml', '**/setup.py') }}
+
+      - name: Set up Pyodide virtual environment and test python-flint
+        run: |
+          pyodide venv .venv-pyodide
+
+          source .venv-pyodide/bin/activate
+          pip install dist/*.whl
+
+          cd doc
+
+          pip install pytest hypothesis
+          # Don't use the cache provider plugin, as it doesn't work with Pyodide
+          # right now: https://github.com/pypa/cibuildwheel/issues/1966
+          pytest -svra -p no:cacheprovider --pyargs flint

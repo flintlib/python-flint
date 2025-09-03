@@ -1201,21 +1201,25 @@ cdef class gr_nf_ctx(gr_scalar_ctx):
     def new(poly) -> gr_nf_ctx:
         """Create a new context for number fields.
 
-        >>> from flint.types._gr import gr_nf_ctx
-        >>> Qa = gr_nf_ctx.new([-2, 0, 1])
-        >>> Qa
-        gr_nf_ctx(x^2 + (-2))
-        >>> Qa.modulus()
-        x^2 + (-2)
-        >>> a = Qa.gen()
-        >>> a
-        a
-        >>> a**2
-        2
-        >>> (1 + a) ** 2
-        2*a+3
-        >>> (1 + a) / 2
-        1/2*a+1/2
+        The doctests below are commented out because they crash under WASM:
+
+        https://github.com/flintlib/python-flint/issues/319
+
+        # >>> from flint.types._gr import gr_nf_ctx
+        # >>> Qa = gr_nf_ctx.new([-2, 0, 1])
+        # >>> Qa
+        # gr_nf_ctx(x^2 + (-2))
+        # >>> Qa.modulus()
+        # x^2 + (-2)
+        # >>> a = Qa.gen()
+        # >>> a
+        # a
+        # >>> a**2
+        # 2
+        # >>> (1 + a) ** 2
+        # 2*a+3
+        # >>> (1 + a) / 2
+        # 1/2*a+1/2
         """
         poly = fmpq_poly(poly)
         return gr_nf_ctx._new(poly)
@@ -1244,19 +1248,23 @@ cdef class gr_nf_fmpz_poly_ctx(gr_scalar_ctx):
     def new(poly) -> gr_nf_fmpz_poly_ctx:
         """Create a new context for number fields.
 
-        >>> from flint.types._gr import gr_nf_fmpz_poly_ctx
-        >>> Qa = gr_nf_fmpz_poly_ctx.new([-2, 0, 1])
-        >>> Qa
-        gr_nf_fmpz_poly_ctx(x^2 + (-2))
-        >>> Qa.modulus()
-        x^2 + (-2)
-        >>> a = Qa.gen()
-        >>> a
-        a
-        >>> a**2
-        2
-        >>> (1 + a) ** 2
-        2*a+3
+        The doctests below are commented out because they crash under WASM:
+
+        https://github.com/flintlib/python-flint/issues/319
+
+        # >>> from flint.types._gr import gr_nf_fmpz_poly_ctx
+        # >>> Qa = gr_nf_fmpz_poly_ctx.new([-2, 0, 1])
+        # >>> Qa
+        # gr_nf_fmpz_poly_ctx(x^2 + (-2))
+        # >>> Qa.modulus()
+        # x^2 + (-2)
+        # >>> a = Qa.gen()
+        # >>> a
+        # a
+        # >>> a**2
+        # 2
+        # >>> (1 + a) ** 2
+        # 2*a+3
         """
         poly = fmpz_poly(poly)
         return gr_nf_fmpz_poly_ctx._new(poly)

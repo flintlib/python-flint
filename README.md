@@ -165,9 +165,16 @@ Next release (0.9.0)...
 Contributors (0.9.0):
 
 - Rémy Oudompheng (RO)
+- Agriya Khetarpal (AK)
+- Oscar Benjamin (OB)
 
 Changes (0.9.0):
 
+- [gh-318](https://github.com/flintlib/python-flint/pull/318),
+  Add emscripten build in CI. Polynomial factors and roots are
+  now sorted into a consistent order for `nmod_poly` and
+  `fq_default_poly`. Some tests are fixed so that they pass on
+  32-bit systems. (AK, OB)
 - [gh-312](https://github.com/flintlib/python-flint/pull/312),
   Add `discriminant` method to `fmpz_poly`, `fmpq_poly` and
   `nmod_poly`. (RO)
