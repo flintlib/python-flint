@@ -281,7 +281,7 @@ cdef class _fq_default_poly_sort_key:
             fq_default_poly_get_coeff(c2.val, k2.p.val, i, field.val)
             if c1 != c2:
                 j = d
-                while j >= 0:
+                while j > 0:
                     j -= 1
                     fq_default_get_coeff_fmpz(z1.val, c1.val, j, field.val)
                     fq_default_get_coeff_fmpz(z2.val, c2.val, j, field.val)
@@ -290,7 +290,7 @@ cdef class _fq_default_poly_sort_key:
                 else:
                     raise RuntimeError("Bad cmp in _fq_default_poly_sort_key!")
         else:
-            raise RuntimeError("Bad cmp in _fq_default_poly_sort_key!")
+            return False
 
 
 cdef class fq_default_poly(flint_poly):

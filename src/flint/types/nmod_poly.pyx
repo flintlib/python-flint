@@ -69,14 +69,14 @@ cdef class _nmod_poly_sort_key:
         elif k1.mult != k2.mult:
             return k1.mult < k2.mult
         i = k1.len
-        while i >= 0:
+        while i > 0:
             i -= 1
             c1 = nmod_poly_get_coeff_ui(k1.p.val, i)
             c2 = nmod_poly_get_coeff_ui(k2.p.val, i)
             if c1 != c2:
                 return c1 < c2
         else:
-            raise RuntimeError("Bad cmp in _nmod_poly_sort_key!")
+            return False
 
 
 cdef class nmod_poly(flint_poly):
