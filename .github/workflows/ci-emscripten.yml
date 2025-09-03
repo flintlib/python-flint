@@ -48,34 +48,19 @@ jobs:
         uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: ${{ github.workspace }}/wasm-library-dir
-          key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_libgmp.sh', 'bin/pyodide_build_libmpfr.sh', 'bin/pyodide_build_flint.sh') }}-0
+          key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_dependencies.sh', 'bin/build_variables.sh') }}-0
 
-      - name: Build libgmp
+      - name: Build GMP, MPFR and FLINT
         if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
         env:
           CFLAGS: "-fPIC"
-          WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
-        run: bin/pyodide_build_libgmp.sh
-
-      - name: Build libmpfr
-        if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
-        env:
-          CFLAGS: "-fPIC"
-          WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
-        run: bin/pyodide_build_libmpfr.sh
-
-      - name: Build flint
-        if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
-        env:
-          CFLAGS: "-fPIC"
-          WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
-        run: bin/pyodide_build_flint.sh
+        run: bin/pyodide_build_dependencies.sh --wasm-library-dir ${{ github.workspace }}/wasm-library-dir
 
       - name: Persist WASM library directory to cache
         uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: ${{ github.workspace }}/wasm-library-dir
-          key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_libgmp.sh', 'bin/pyodide_build_libmpfr.sh', 'bin/pyodide_build_flint.sh') }}-0
+          key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_dependencies.sh', 'bin/build_variables.sh') }}-0
 
       - name: Restore python-flint build directory from cache
         uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
