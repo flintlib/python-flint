@@ -1,3 +1,4 @@
+cimport cython
 from cpython.list cimport PyList_GET_SIZE
 from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
@@ -46,6 +47,37 @@ cdef nmod_poly_set_list(nmod_poly_t poly, list val):
             nmod_poly_set_coeff_ui(poly, i, v)
         else:
             raise TypeError("unsupported coefficient in list")
+
+
+@cython.final
+@cython.no_gc
+cdef class _nmod_poly_sort_key:
+    cdef nmod_poly p
+    cdef ulong mult
+    cdef slong len
+
+    def __init__(self, tuple fac_m):
+        self.p = fac_m[0]
+        self.len = nmod_poly_length(self.p.val)
+        self.mult = fac_m[1]
+
+    def __lt__(k1, _nmod_poly_sort_key k2):
+        cdef slong i
+        cdef ulong c1, c2
+        if k1.len != k2.len:
+            return k1.len < k2.len
+        elif k1.mult != k2.mult:
+            return k1.mult < k2.mult
+        i = k1.len
+        while i >= 0:
+            i -= 1
+            c1 = nmod_poly_get_coeff_ui(k1.p.val, i)
+            c2 = nmod_poly_get_coeff_ui(k2.p.val, i)
+            if c1 != c2:
+                return c1 < c2
+        else:
+            raise RuntimeError("Bad cmp in _nmod_poly_sort_key!")
+
 
 cdef class nmod_poly(flint_poly):
     """
@@ -777,7 +809,7 @@ cdef class nmod_poly(flint_poly):
             >>> nmod_poly(list(range(10)), 3).factor()
             (2, [(x, 1), (x + 2, 7)])
             >>> nmod_poly(list(range(10)), 19).factor()
-            (9, [(x, 1), (x^4 + 15*x^3 + 2*x^2 + 7*x + 3, 1), (x^4 + 7*x^3 + 12*x^2 + 15*x + 12, 1)])
+            (9, [(x, 1), (x^4 + 7*x^3 + 12*x^2 + 15*x + 12, 1), (x^4 + 15*x^3 + 2*x^2 + 7*x + 3, 1)])
             >>> nmod_poly(list(range(10)), 53).factor()
             (9, [(x, 1), (x^8 + 48*x^7 + 42*x^6 + 36*x^5 + 30*x^4 + 24*x^3 + 18*x^2 + 12*x + 6, 1)])
 
@@ -787,7 +819,7 @@ cdef class nmod_poly(flint_poly):
             >>> nmod_poly([3,2,1,2,3], 7).factor(algorithm='berlekamp')
             (3, [(x + 2, 1), (x + 4, 1), (x^2 + 4*x + 1, 1)])
             >>> nmod_poly([3,2,1,2,3], 7).factor(algorithm='cantor-zassenhaus')
-            (3, [(x + 4, 1), (x + 2, 1), (x^2 + 4*x + 1, 1)])
+            (3, [(x + 2, 1), (x + 4, 1), (x^2 + 4*x + 1, 1)])
 
         """
         if algorithm is None:
@@ -807,7 +839,7 @@ cdef class nmod_poly(flint_poly):
             >>> p
             2*x^7 + 5*x^6 + 4*x^5 + 2*x^4 + 2*x^3 + x^2
             >>> p.factor_squarefree()
-            (2, [(x^2 + 5*x, 2), (x + 1, 3)])
+            (2, [(x + 1, 3), (x^2 + 5*x, 2)])
             >>> p.factor()
             (2, [(x, 2), (x + 5, 2), (x + 1, 3)])
 
@@ -841,6 +873,8 @@ cdef class nmod_poly(flint_poly):
             nmod_poly_set((<nmod_poly>u).val, &fac.p[i])
             exp = fac.exp[i]
             res[i] = (u, exp)
+
+        res.sort(key=_nmod_poly_sort_key)
 
         c = nmod.__new__(nmod)
         (<nmod>c).mod = self.val.mod

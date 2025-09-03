@@ -1,6 +1,9 @@
 from flint.flintlib.functions.fq_default_poly cimport *
 from flint.flintlib.functions.fq_default_poly_factor cimport *
-from flint.flintlib.functions.fq_default cimport fq_default_neg
+from flint.flintlib.functions.fq_default cimport (
+    fq_default_neg,
+    fq_default_get_coeff_fmpz,
+)
 
 from flint.flint_base.flint_base cimport flint_poly
 from flint.types.fq_default cimport fq_default_ctx
