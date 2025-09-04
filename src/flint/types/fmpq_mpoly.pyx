@@ -93,7 +93,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
     :param names:  A tuple containing the names of the variables of the ring.
     :param ordering:  The term order for the ring.
 
-    Do not construct one of these directly, use ``fmpz_mpoly_ctx.get``.
+    Do not construct one of these directly, use ``fmpq_mpoly_ctx.get``.
     """
 
     _ctx_cache = _fmpq_mpoly_ctx_cache
@@ -210,7 +210,7 @@ cdef class fmpq_mpoly_ctx(flint_mpoly_context):
 cdef class fmpq_mpoly(flint_mpoly):
     """
     The *fmpq_mpoly* type represents sparse multivariate polynomials over
-    the integers.
+    the rationals.
     """
 
     def __cinit__(self):
