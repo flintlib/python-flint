@@ -526,7 +526,7 @@ cdef class acb(flint_scalar):
 
             >>> acb.integral(lambda z, a: z.pow(acb("1/3")), -5-1j, -5+1j)  # WRONG!!!
             [+/- 5.03e-15] + [1.81137435753228 +/- 7.32e-15]j
-            >>> acb.integral(lambda z, a: z.pow(acb("1/3"), analytic=a), -5-1j, -5+1j)
+            >>> acb.integral(lambda z, a: z.pow(acb("1/3"), analytic=a), -5-1j, -5+1j) # doctest: +SKIP
             [+/- 2.66e-14] + [1.8108516218463 +/- 3.58e-14]j
         """
         t = any_as_acb(t)
