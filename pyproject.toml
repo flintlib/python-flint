@@ -2,13 +2,17 @@
 name = "python-flint"
 description = "Bindings for FLINT"
 version = "0.8.0"
+
 # This needs to be in sync with README, and CI config.
 requires-python = ">= 3.11"
 authors = [
     {name = "Fredrik Johansson", email = "fredrik.johansson@gmail.com"},
     {name = "Oscar Benjamin", email = "oscar.j.benjamin@gmail.com"},
 ]
-license = {file = "LICENSE"}
+
+license = "MIT"
+license-files = ["LICENSE"]
+
 classifiers = [
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
@@ -37,7 +41,7 @@ content-type = "text/markdown"
 # fine. It is not possible to have a separate version constraint here for the
 # freethreading build only though.
 #
-requires = ["meson-python >= 0.13", "cython >=3.1,<3.2"]
+requires = ["meson-python >= 0.18", "cython >=3.1,<3.2"]
 build-backend = "mesonpy"
 
 [tool.cython-lint]
@@ -82,9 +86,10 @@ package = "flint"
 [tool.cibuildwheel]
 skip = "*-win32 *-manylinux_i686 *-manylinux_armv7l *-musllinux_*"
 
-# Enable building for free-threaded CPython builds
 enable = [
-    "cpython-prerelease", # for 3.14rc1 (remove this later)
+    # Uncomment this to test beta versions of CPython in CI (but comment out
+    # again if releasing while CPython is in beta):
+    # "cpython-prerelease",
     "cpython-freethreading",
     "pypy",
 ]
@@ -108,24 +113,30 @@ PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig"
 
 [tool.cibuildwheel.linux]
 before-all = "bin/cibw_before_all_linux_$(uname -m).sh"
+before-build = "pip install wheel auditwheel"
+repair-wheel-command = [
+    """bin/cibw_repair_wheel_licenses.py {wheel} \
+            --license-file wheels/LICENSE_linux_wheels.txt \
+    """,
+    "auditwheel repair -w {dest_dir} {wheel}",
+]
 
 [tool.cibuildwheel.macos]
 before-all = "bin/cibw_before_all_macosx_$(uname -m).sh"
+before-build = "pip install wheel delocate"
+repair-wheel-command = [
+    """bin/cibw_repair_wheel_licenses.py {wheel} \
+            --license-file wheels/LICENSE_macos_wheels.txt \
+    """,
+    "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}",
+]
 
 [tool.cibuildwheel.windows]
 before-all = "C:\\msys64\\usr\\bin\\bash bin/cibw_before_all_windows.sh"
-before-build = "pip install delvewheel"
-repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel} --add-path .local/bin"
-
-# Previously with setuptools and MinGW it was necessary to run
-# bin/cibw_before_build_windows.sh before building the wheel to create the
-# libpython*.a files. This is no longer necessary now meson is used:
-#
-#   before-build = "pip install delvewheel && C:\\msys64\\usr\\bin\\bash bin/cibw_before_build_windows.sh"
-#
-# Previously a custom delvewheel command was needed because delvewheel would
-# reject binaries created with MinGW unless they had been stripped. This is not
-# needed any more with newer versions of delvewheel:
-#
-#   repair-wheel-command = "bin\\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}"
-#
+before-build = "pip install wheel delvewheel"
+repair-wheel-command = [
+    """python bin/cibw_repair_wheel_licenses.py {wheel} \
+            --license-file wheels/LICENSE_windows_wheels.txt \
+    """,
+    "delvewheel repair -w {dest_dir} {wheel} --add-path .local/bin",
+]
