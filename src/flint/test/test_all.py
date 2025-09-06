@@ -2964,6 +2964,11 @@ def test_polys(args: _PolyTestCase[typ.epoly_p[Tc], Tc]) -> None:
     assert raises(lambda: P([1, 1]) ** -1, DomainError)
     assert raises(lambda: P([1, 1]) ** None, TypeError) # type: ignore
 
+    # Truncated operations
+    assert P([1, 2, 3]).mul_low(P([4, 5, 6]), 3) == P([4, 13, 28])
+    assert raises(lambda: P([1, 2, 3]).mul_low(None, 3), TypeError) # type: ignore
+    assert raises(lambda: P([1, 2, 3]).mul_low(P([4, 5, 6]), None), TypeError) # type: ignore
+
     # XXX: Not sure what this should do in general:
     p = P([1, 1])
     mod = P([1, 1])
