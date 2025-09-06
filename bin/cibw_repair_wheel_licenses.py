@@ -196,7 +196,7 @@ def update_license_dist_info(
         raise ValueError("Could not find License-File in METADATA")
 
     index = lines.index(license_files_lines[-1]) + 1
-    new_lines = [f"License-File: {f}\n" for f in license_files]
+    new_lines = [f"License-File: {f}\n" for f in license_files.values()]
     lines = lines[:index] + new_lines + lines[index:]
 
     print("Writing out METADATA with updated License-Expression and License-File fields")
