@@ -164,6 +164,5 @@ repair-wheel-command = [
     --license-file wheels/gcc/COPYING.LIB:python-flint.libs/gcc/COPYING.LIB \
     --license-file wheels/gcc/COPYING.RUNTIME:python-flint.libs/gcc/COPYING.RUNTIME \
 """,
-# Need license file for libgcc_s_seh-1.dll
 "delvewheel repair -w {dest_dir} {wheel} --add-path .local/bin",
 ]
