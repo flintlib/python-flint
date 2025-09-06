@@ -2,8 +2,6 @@
 
 set -o errexit
 
-cat wheels/LICENSE_windows_wheels.txt >> LICENSE
-
 # Uncomment this to run cibuildwheel locally on Windows:
 # export PATH=$PATH:/c/msys64/usr/bin:/c/msys64/mingw64/bin
 

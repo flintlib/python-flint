@@ -2,8 +2,6 @@
 
 set -e
 
-cat wheels/LICENSE_macos_wheels.txt >> LICENSE
-
 brew install automake libtool
 
 bin/build_dependencies_unix.sh\
