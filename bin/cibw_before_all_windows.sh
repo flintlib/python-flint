@@ -11,6 +11,7 @@ pacman -S --noconfirm \
     autoconf-wrapper\
     automake-wrapper\
     libtool\
+    git\
     #
 
 bin/build_dependencies_unix.sh \
