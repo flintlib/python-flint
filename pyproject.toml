@@ -115,28 +115,46 @@ PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig"
 before-all = "bin/cibw_before_all_linux_$(uname -m).sh"
 before-build = "pip install wheel auditwheel"
 repair-wheel-command = [
-    """bin/cibw_repair_wheel_licenses.py {wheel} \
-            --license-file wheels/LICENSE_linux_wheels.txt \
-    """,
-    "auditwheel repair -w {dest_dir} {wheel}",
+"""bin/cibw_repair_wheel_licenses.py {wheel} \
+    --license LGPL-3.0-or-later \
+    --license-file '.local/src/gmp-*/COPYING:python-flint.libs/gmp-*/COPYING' \
+    --license-file '.local/src/gmp-*/COPYING.LESSERv3:python-flint.libs/gmp-*/COPYING.LESSERv3' \
+    --license-file '.local/src/mpfr-*/COPYING:python-flint.libs/mpfr-*/COPYING' \
+    --license-file '.local/src/mpfr-*/COPYING.LESSER:python-flint.libs/mpfr-*/COPYING.LESSER' \
+    --license-file '.local/src/flint-*/COPYING:python-flint.libs/flint-*/COPYING' \
+    --license-file '.local/src/flint-*/COPYING.LESSER:python-flint.libs/flint-*/COPYING.LESSER' \
+""",
+"auditwheel repair -w {dest_dir} {wheel}",
 ]
 
 [tool.cibuildwheel.macos]
 before-all = "bin/cibw_before_all_macosx_$(uname -m).sh"
 before-build = "pip install wheel delocate"
 repair-wheel-command = [
-    """bin/cibw_repair_wheel_licenses.py {wheel} \
-            --license-file wheels/LICENSE_macos_wheels.txt \
-    """,
-    "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}",
+"""bin/cibw_repair_wheel_licenses.py {wheel} \
+    --license LGPL-3.0-or-later \
+    --license-file '.local/src/gmp-*/COPYING:python-flint.libs/gmp-*/COPYING' \
+    --license-file '.local/src/gmp-*/COPYING.LESSERv3:python-flint.libs/gmp-*/COPYING.LESSERv3' \
+    --license-file '.local/src/mpfr-*/COPYING:python-flint.libs/mpfr-*/COPYING' \
+    --license-file '.local/src/mpfr-*/COPYING.LESSER:python-flint.libs/mpfr-*/COPYING.LESSER' \
+    --license-file '.local/src/flint-*/COPYING:python-flint.libs/flint-*/COPYING' \
+    --license-file '.local/src/flint-*/COPYING.LESSER:python-flint.libs/flint-*/COPYING.LESSER' \
+""",
+"delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}",
 ]
 
 [tool.cibuildwheel.windows]
 before-all = "C:\\msys64\\usr\\bin\\bash bin/cibw_before_all_windows.sh"
 before-build = "pip install wheel delvewheel"
 repair-wheel-command = [
-    """python bin/cibw_repair_wheel_licenses.py {wheel} \
-            --license-file wheels/LICENSE_windows_wheels.txt \
-    """,
-    "delvewheel repair -w {dest_dir} {wheel} --add-path .local/bin",
+"""python bin/cibw_repair_wheel_licenses.py {wheel} \
+    --license LGPL-3.0-or-later \
+    --license-file '.local/src/gmp-*/COPYING:python-flint.libs/gmp-*/COPYING' \
+    --license-file '.local/src/gmp-*/COPYING.LESSERv3:python-flint.libs/gmp-*/COPYING.LESSERv3' \
+    --license-file '.local/src/mpfr-*/COPYING:python-flint.libs/mpfr-*/COPYING' \
+    --license-file '.local/src/mpfr-*/COPYING.LESSER:python-flint.libs/mpfr-*/COPYING.LESSER' \
+    --license-file '.local/src/flint-*/COPYING:python-flint.libs/flint-*/COPYING' \
+    --license-file '.local/src/flint-*/COPYING.LESSER:python-flint.libs/flint-*/COPYING.LESSER' \
+""",
+"delvewheel repair -w {dest_dir} {wheel} --add-path .local/bin",
 ]
