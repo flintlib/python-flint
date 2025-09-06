@@ -724,6 +724,60 @@ cdef class nmod_poly(flint_poly):
             )
         return res
 
+    def mul_low(self, other, slong n):
+        r"""
+        Returns the lowest ``n`` coefficients of the multiplication of ``self`` with ``other``
+
+        Equivalent to computing `f(x) \cdot g(x) \mod x^n`
+
+            >>> f = nmod_poly([2,3,5,7,11], 163)
+            >>> g = nmod_poly([1,2,4,8,16], 163)
+            >>> f.mul_low(g, 5)
+            101*x^4 + 45*x^3 + 19*x^2 + 7*x + 2
+            >>> f.mul_low(g, 3)
+            19*x^2 + 7*x + 2
+            >>> f.mul_low(g, 1)
+            2
+        """
+        # Only allow multiplication with other nmod_poly
+        if not typecheck(other, nmod_poly):
+            raise TypeError("other polynomial must be of type nmod_poly")
+
+        if (<nmod_poly>self).val.mod.n != (<nmod_poly>other).val.mod.n:
+            raise ValueError("cannot multiply nmod_polys with different moduli")
+
+        cdef nmod_poly res = nmod_poly.__new__(nmod_poly)
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        nmod_poly_mullow(res.val, self.val, (<nmod_poly>other).val, n)
+        return res
+
+    def pow_trunc(self, slong e, slong n):
+        r"""
+        Returns ``self`` raised to the power ``e`` modulo `x^n`:
+        :math:`f^e \mod x^n`/
+
+        Note: For exponents larger that 2^63 (which do not fit inside a slong) use the
+        method :meth:`~.pow_mod` with the explicit modulus `x^n`.
+
+            >>> f = nmod_poly([65, 44, 70, 33, 76, 104, 30], 163)
+            >>> x = nmod_poly([0, 1], 163)
+            >>> f.pow_trunc(2**20, 30) == pow(f, 2**20, x**30)
+            True
+            >>> f.pow_trunc(2**20, 5)
+            132*x^4 + 113*x^3 + 36*x^2 + 48*x + 6
+            >>> f.pow_trunc(5**25, 5)
+            147*x^4 + 98*x^3 + 95*x^2 + 33*x + 126
+        """
+        if e < 0:
+            raise ValueError("Exponent must be non-negative")
+
+        cdef nmod_poly res = nmod_poly.__new__(nmod_poly)
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        nmod_poly_pow_trunc(res.val, self.val, e, n)
+        return res
+
     def gcd(self, other):
         """
         Returns the monic greatest common divisor of self and other.
