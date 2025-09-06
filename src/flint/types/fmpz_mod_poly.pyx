@@ -1673,7 +1673,7 @@ cdef class fmpz_mod_poly(flint_poly):
         Returns ``self`` raised to the power ``e`` modulo `x^n`:
         :math:`f^e \mod x^n`/
 
-        Note: For exponents larger that 2^31 (which do not fit inside a ulong) use the
+        Note: For exponents larger that 2^63 (which do not fit inside a slong) use the
         method :meth:`~.pow_mod` with the explicit modulus `x^n`.
 
             >>> R = fmpz_mod_poly_ctx(163)
@@ -1683,6 +1683,8 @@ cdef class fmpz_mod_poly(flint_poly):
             True
             >>> f.pow_trunc(2**20, 5)
             132*x^4 + 113*x^3 + 36*x^2 + 48*x + 6
+            >>> f.pow_trunc(5**25, 5)
+            147*x^4 + 98*x^3 + 95*x^2 + 33*x + 126
         """
         if e < 0:
             raise ValueError("Exponent must be non-negative")
