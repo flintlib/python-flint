@@ -483,6 +483,53 @@ cdef class fmpz_poly(flint_poly):
         fmpz_poly_pow(res.val, self.val, <ulong>exp)
         return res
 
+    def mul_low(self, other, slong n):
+        r"""
+        Returns the lowest ``n`` coefficients of the multiplication of ``self`` with ``other``
+
+        Equivalent to computing `f(x) \cdot g(x) \mod x^n`
+
+            >>> f = fmpz_poly([2,3,5,7,11])
+            >>> g = fmpz_poly([1,2,4,8,16])
+            >>> f.mul_low(g, 5)
+            101*x^4 + 45*x^3 + 19*x^2 + 7*x + 2
+            >>> f.mul_low(g, 3)
+            19*x^2 + 7*x + 2
+            >>> f.mul_low(g, 1)
+            2
+        """
+        # Only allow multiplication with other fmpz_poly
+        if not typecheck(other, fmpz_poly):
+            raise TypeError("other polynomial must be of type fmpz_poly")
+
+        cdef fmpz_poly res
+        res = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_mullow(res.val, self.val, (<fmpz_poly>other).val, n)
+        return res
+
+    def pow_trunc(self, slong e, slong n):
+        r"""
+        Returns ``self`` raised to the power ``e`` modulo `x^n`:
+        :math:`f^e \mod x^n`/
+
+        Note: For exponents larger that 2^63 (which do not fit inside a slong) use the
+        method :meth:`~.pow_mod` with the explicit modulus `x^n`.
+
+            >>> f = fmpz_poly([1, 2, 3])
+            >>> x = fmpz_poly([0, 1])
+            >>> f.pow_trunc(2**20, 4)
+            1537230871828889600*x^3 + 2199024304128*x^2 + 2097152*x + 1
+            >>> f.pow_trunc(5**25, 3)
+            177635683940025046765804290771484375*x^2 + 596046447753906250*x + 1
+        """
+        if e < 0:
+            raise ValueError("Exponent must be non-negative")
+
+        cdef fmpz_poly res
+        res = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_pow_trunc(res.val, self.val, e, n)
+        return res
+
     def gcd(self, other):
         """
         Returns the greatest common divisor of self and other.
