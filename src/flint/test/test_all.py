@@ -2969,6 +2969,15 @@ def test_polys(args: _PolyTestCase[typ.epoly_p[Tc], Tc]) -> None:
     assert raises(lambda: P([1, 2, 3]).mul_low(None, 3), TypeError) # type: ignore
     assert raises(lambda: P([1, 2, 3]).mul_low(P([4, 5, 6]), None), TypeError) # type: ignore
 
+    p = P([1, 2, 3])
+    assert p.pow_trunc(1234, 3) == P([1, 2468, 3046746])
+    assert raises(lambda: p.pow_trunc(None, 3), TypeError) # type: ignore
+    assert raises(lambda: p.pow_trunc(3, "A"), TypeError) # type: ignore
+    assert raises(lambda: p.pow_trunc(P([4, 5, 6]), 3), TypeError) # type: ignore
+    # Large exponents are allowed
+    assert p.pow_trunc(2**100, 2) == P([1, 2**101])
+    assert p.pow_trunc(6**60, 3) == p.pow_trunc(2**60, 3).pow_trunc(3**60, 3)
+
     # XXX: Not sure what this should do in general:
     p = P([1, 1])
     mod = P([1, 1])

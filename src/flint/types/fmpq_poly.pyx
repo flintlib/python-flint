@@ -526,13 +526,10 @@ cdef class fmpq_poly(flint_poly):
         fmpq_poly_mullow(res.val, self.val, (<fmpq_poly>other).val, n)
         return res
 
-    def pow_trunc(self, slong e, slong n):
+    def pow_trunc(self, e, slong n):
         r"""
         Returns ``self`` raised to the power ``e`` modulo `x^n`:
         :math:`f^e \mod x^n`/
-
-        Note: For exponents larger that 2^63 (which do not fit inside a slong) use the
-        method :meth:`~.pow_mod` with the explicit modulus `x^n`.
 
             >>> f = fmpq_poly([1, 2, 3])
             >>> x = fmpq_poly([0, 1])
@@ -544,9 +541,25 @@ cdef class fmpq_poly(flint_poly):
         if e < 0:
             raise ValueError("Exponent must be non-negative")
 
-        cdef fmpq_poly res
+        cdef slong e_c
+        cdef fmpq_poly res, tmp
+
+        try:
+            e_c = e
+        except OverflowError:
+            # Exponent does not fit slong
+            res = fmpq_poly.__new__(fmpq_poly)
+            tmp = fmpq_poly.__new__(fmpq_poly)
+            ebytes = e.to_bytes((e.bit_length() + 15) // 16 * 2, "big")
+            fmpq_poly_pow_trunc(res.val, self.val, ebytes[0] * 256 + ebytes[1], n)
+            for i in range(2, len(ebytes), 2):
+                fmpq_poly_pow_trunc(res.val, res.val, 1 << 16, n)
+                fmpq_poly_pow_trunc(tmp.val, self.val, ebytes[i] * 256 + ebytes[i+1], n)
+                fmpq_poly_mullow(res.val, res.val, tmp.val, n)
+            return res
+
         res = fmpq_poly.__new__(fmpq_poly)
-        fmpq_poly_pow_trunc(res.val, self.val, e, n)
+        fmpq_poly_pow_trunc(res.val, self.val, e_c, n)
         return res
 
     def gcd(self, other):

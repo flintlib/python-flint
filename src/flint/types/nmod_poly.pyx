@@ -752,13 +752,10 @@ cdef class nmod_poly(flint_poly):
         nmod_poly_mullow(res.val, self.val, (<nmod_poly>other).val, n)
         return res
 
-    def pow_trunc(self, slong e, slong n):
+    def pow_trunc(self, e, slong n):
         r"""
         Returns ``self`` raised to the power ``e`` modulo `x^n`:
         :math:`f^e \mod x^n`/
-
-        Note: For exponents larger that 2^63 (which do not fit inside a slong) use the
-        method :meth:`~.pow_mod` with the explicit modulus `x^n`.
 
             >>> f = nmod_poly([65, 44, 70, 33, 76, 104, 30], 163)
             >>> x = nmod_poly([0, 1], 163)
@@ -772,10 +769,28 @@ cdef class nmod_poly(flint_poly):
         if e < 0:
             raise ValueError("Exponent must be non-negative")
 
-        cdef nmod_poly res = nmod_poly.__new__(nmod_poly)
+        cdef nmod_poly res, tmp
+        cdef slong e_c
+
+        try:
+            e_c = e
+        except OverflowError:
+            # Exponent does not fit slong
+            res = nmod_poly.__new__(nmod_poly)
+            tmp = nmod_poly.__new__(nmod_poly)
+            nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+            nmod_poly_init_preinv(tmp.val, self.val.mod.n, self.val.mod.ninv)
+            ebytes = e.to_bytes((e.bit_length() + 15) // 16 * 2, "big")
+            nmod_poly_pow_trunc(res.val, self.val, ebytes[0] * 256 + ebytes[1], n)
+            for i in range(2, len(ebytes), 2):
+                nmod_poly_pow_trunc(res.val, res.val, 1 << 16, n)
+                nmod_poly_pow_trunc(tmp.val, self.val, ebytes[i] * 256 + ebytes[i+1], n)
+                nmod_poly_mullow(res.val, res.val, tmp.val, n)
+            return res
+
         res = nmod_poly.__new__(nmod_poly)
         nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
-        nmod_poly_pow_trunc(res.val, self.val, e, n)
+        nmod_poly_pow_trunc(res.val, self.val, e_c, n)
         return res
 
     def gcd(self, other):
