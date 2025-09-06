@@ -170,6 +170,9 @@ Contributors (0.9.0):
 
 Changes (0.9.0):
 
+- [gh-322](https://github.com/flintlib/python-flint/pull/322),
+  Add `mul_low` and `pow_trunc` methods to `fmpz_poly`, `fmpq_poly` and
+  `nmod_poly`. (RO)
 - [gh-318](https://github.com/flintlib/python-flint/pull/318),
   Add emscripten build in CI. Polynomial factors and roots are
   now sorted into a consistent order for `nmod_poly` and
