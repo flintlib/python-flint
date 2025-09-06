@@ -149,12 +149,21 @@ before-build = "pip install wheel delvewheel"
 repair-wheel-command = [
 """python bin/cibw_repair_wheel_licenses.py {wheel} \
     --license LGPL-3.0-or-later \
-    --license-file '.local/src/gmp-*/COPYING:python-flint.libs/gmp-*/COPYING' \
-    --license-file '.local/src/gmp-*/COPYING.LESSERv3:python-flint.libs/gmp-*/COPYING.LESSERv3' \
-    --license-file '.local/src/mpfr-*/COPYING:python-flint.libs/mpfr-*/COPYING' \
-    --license-file '.local/src/mpfr-*/COPYING.LESSER:python-flint.libs/mpfr-*/COPYING.LESSER' \
-    --license-file '.local/src/flint-*/COPYING:python-flint.libs/flint-*/COPYING' \
-    --license-file '.local/src/flint-*/COPYING.LESSER:python-flint.libs/flint-*/COPYING.LESSER' \
+    --license-file .local/src/gmp-*/COPYING:python-flint.libs/gmp-*/COPYING \
+    --license-file .local/src/gmp-*/COPYING.LESSERv3:python-flint.libs/gmp-*/COPYING.LESSERv3 \
+    --license-file .local/src/mpfr-*/COPYING:python-flint.libs/mpfr-*/COPYING \
+    --license-file .local/src/mpfr-*/COPYING.LESSER:python-flint.libs/mpfr-*/COPYING.LESSER \
+    --license-file .local/src/flint-*/COPYING:python-flint.libs/flint-*/COPYING \
+    --license-file .local/src/flint-*/COPYING.LESSER:python-flint.libs/flint-*/COPYING.LESSER \
+    \
+    --license "MIT AND BSD-3-Clause-Clear" \
+    --license-file wheels/winpthreads/COPYING:python-flint.libs/winpthreads/COPYING \
+    \
+    --license "GPL-3.0-or-later WITH GCC-exception-3.1 AND LGPL-2.1-or-later" \
+    --license-file wheels/gcc/COPYING3:python-flint.libs/gcc/COPYING3 \
+    --license-file wheels/gcc/COPYING.LIB:python-flint.libs/gcc/COPYING.LIB \
+    --license-file wheels/gcc/COPYING.RUNTIME:python-flint.libs/gcc/COPYING.RUNTIME \
 """,
+# Need license file for libgcc_s_seh-1.dll
 "delvewheel repair -w {dest_dir} {wheel} --add-path .local/bin",
 ]

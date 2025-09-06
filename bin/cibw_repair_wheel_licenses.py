@@ -84,14 +84,20 @@ def arg_to_paths(license_file_arg: str) -> tuple[Path, Path]:
         index1 = glob1_str.index('*')
         part1_glob = glob1_str[:index1]
         part2_glob = glob1_str[index1+1:]
-        path1_str = str(path1)
+        path1_str = str(path1).replace('\\', '/')
         if len(part2_glob) != 0:
             wildcard = path1_str[len(part1_glob):-len(part2_glob)]
         else:
             wildcard = path1_str[len(part1_glob):]
-        assert path1_str.startswith(part1_glob)
-        assert path1_str.endswith(part2_glob)
-        assert path1_str == part1_glob + wildcard + part2_glob
+        assert path1_str.startswith(part1_glob), (
+            f"{path1_str} does not start with {part1_glob}"
+        )
+        assert path1_str.endswith(part2_glob), (
+            f"{path1_str} does not end with {part2_glob}"
+        )
+        assert path1_str == part1_glob + wildcard + part2_glob, (
+            f"{path1_str} != {part1_glob} + {wildcard} + {part2_glob}"
+        )
         path2_str = glob2_str.replace('*', wildcard)
 
     return path1, Path(path2_str)
