@@ -2,8 +2,6 @@
 
 set -e
 
-cat wheels/LICENSE_macos_wheels.txt >> LICENSE
-
 export CPPFLAGS=" --target=arm64-apple-macos11"
 export LDFLAGS=" -arch arm64"
 

@@ -22,13 +22,6 @@ jobs:
       - uses: msys2/setup-msys2@v2.29.0
         with:
           msystem: mingw64
-          # path-type inherit is used so that when cibuildwheel calls msys2 to
-          # run bin/cibw_before_build_windows.sh the virtual environment
-          # created by cibuildwheel will be available within msys2. The
-          # msys2/setup-msys2 README warns that using inherit here can be
-          # problematic in some situations. Maybe there is a better way to do
-          # this.
-          path-type: inherit
         if: ${{ startsWith( matrix.os , 'windows' ) }}
 
         # Install pkgconfig on Windows from choco rather than from msys and
@@ -46,10 +39,6 @@ jobs:
         env:
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
-          #
-          # Don't need to create pythonXX.a under meson. Not needed any more:
-          #   CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel && msys2 -c bin/cibw_before_build_windows.sh
-          #
 
       - uses: actions/upload-artifact@v4
         with:
@@ -167,7 +156,7 @@ jobs:
       # We don't need to specify ninja as a requirement in pyproject.toml
       # because without --no-build-isolation meson-python handles it
       # automatically in get_requirements_for_build_wheel().
-      - run: 'pip install "cython==3.0.11" "meson-python==0.13" "ninja<1.11"'
+      - run: 'pip install "cython==3.0.11" "meson-python==0.18" "ninja<1.11"'
       - run: pip install --no-build-isolation .
       - run: python -m flint.test --verbose
 
