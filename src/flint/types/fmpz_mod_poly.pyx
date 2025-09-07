@@ -1668,13 +1668,10 @@ cdef class fmpz_mod_poly(flint_poly):
         )
         return res
 
-    def pow_trunc(self, slong e, slong n):
+    def pow_trunc(self, e, slong n):
         r"""
         Returns ``self`` raised to the power ``e`` modulo `x^n`:
         :math:`f^e \mod x^n`/
-
-        Note: For exponents larger that 2^31 (which do not fit inside a ulong) use the
-        method :meth:`~.pow_mod` with the explicit modulus `x^n`.
 
             >>> R = fmpz_mod_poly_ctx(163)
             >>> x = R.gen()
@@ -1683,13 +1680,31 @@ cdef class fmpz_mod_poly(flint_poly):
             True
             >>> f.pow_trunc(2**20, 5)
             132*x^4 + 113*x^3 + 36*x^2 + 48*x + 6
+            >>> f.pow_trunc(5**25, 5)
+            147*x^4 + 98*x^3 + 95*x^2 + 33*x + 126
         """
         if e < 0:
             raise ValueError("Exponent must be non-negative")
 
-        cdef fmpz_mod_poly res
+        cdef fmpz_mod_poly res, tmp
+        cdef slong e_c
+
+        try:
+            e_c = e
+        except OverflowError:
+            # Exponent does not fit slong
+            res = self.ctx.new_ctype_poly()
+            tmp = self.ctx.new_ctype_poly()
+            ebytes = e.to_bytes((e.bit_length() + 15) // 16 * 2, "big")
+            fmpz_mod_poly_pow_trunc(res.val, self.val, ebytes[0] * 256 + ebytes[1], n, res.ctx.mod.val)
+            for i in range(2, len(ebytes), 2):
+                fmpz_mod_poly_pow_trunc(res.val, res.val, 1 << 16, n, res.ctx.mod.val)
+                fmpz_mod_poly_pow_trunc(tmp.val, self.val, ebytes[i] * 256 + ebytes[i+1], n, res.ctx.mod.val)
+                fmpz_mod_poly_mullow(res.val, res.val, tmp.val, n, res.ctx.mod.val)
+            return res
+
         res = self.ctx.new_ctype_poly()
-        fmpz_mod_poly_pow_trunc(res.val, self.val, e, n, res.ctx.mod.val)
+        fmpz_mod_poly_pow_trunc(res.val, self.val, e_c, n, res.ctx.mod.val)
         return res
 
     def inflate(self, ulong n):

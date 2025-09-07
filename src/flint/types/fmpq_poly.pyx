@@ -502,6 +502,66 @@ cdef class fmpq_poly(flint_poly):
         fmpq_poly_pow(res.val, self.val, <ulong>exp)
         return res
 
+    def mul_low(self, other, slong n):
+        r"""
+        Returns the lowest ``n`` coefficients of the multiplication of ``self`` with ``other``
+
+        Equivalent to computing `f(x) \cdot g(x) \mod x^n`
+
+            >>> f = fmpq_poly([2,3,5,7,11])
+            >>> g = fmpq_poly([1,2,4,8,16])
+            >>> f.mul_low(g, 5)
+            101*x^4 + 45*x^3 + 19*x^2 + 7*x + 2
+            >>> f.mul_low(g, 3)
+            19*x^2 + 7*x + 2
+            >>> f.mul_low(g, 1)
+            2
+        """
+        # Only allow multiplication with other fmpq_poly
+        if not typecheck(other, fmpq_poly):
+            raise TypeError("other polynomial must be of type fmpq_poly")
+
+        cdef fmpq_poly res
+        res = fmpq_poly.__new__(fmpq_poly)
+        fmpq_poly_mullow(res.val, self.val, (<fmpq_poly>other).val, n)
+        return res
+
+    def pow_trunc(self, e, slong n):
+        r"""
+        Returns ``self`` raised to the power ``e`` modulo `x^n`:
+        :math:`f^e \mod x^n`/
+
+            >>> f = fmpq_poly([1, 2, 3])
+            >>> x = fmpq_poly([0, 1])
+            >>> f.pow_trunc(2**20, 4)
+            1537230871828889600*x^3 + 2199024304128*x^2 + 2097152*x + 1
+            >>> f.pow_trunc(5**25, 3)
+            177635683940025046765804290771484375*x^2 + 596046447753906250*x + 1
+        """
+        if e < 0:
+            raise ValueError("Exponent must be non-negative")
+
+        cdef slong e_c
+        cdef fmpq_poly res, tmp
+
+        try:
+            e_c = e
+        except OverflowError:
+            # Exponent does not fit slong
+            res = fmpq_poly.__new__(fmpq_poly)
+            tmp = fmpq_poly.__new__(fmpq_poly)
+            ebytes = e.to_bytes((e.bit_length() + 15) // 16 * 2, "big")
+            fmpq_poly_pow_trunc(res.val, self.val, ebytes[0] * 256 + ebytes[1], n)
+            for i in range(2, len(ebytes), 2):
+                fmpq_poly_pow_trunc(res.val, res.val, 1 << 16, n)
+                fmpq_poly_pow_trunc(tmp.val, self.val, ebytes[i] * 256 + ebytes[i+1], n)
+                fmpq_poly_mullow(res.val, res.val, tmp.val, n)
+            return res
+
+        res = fmpq_poly.__new__(fmpq_poly)
+        fmpq_poly_pow_trunc(res.val, self.val, e_c, n)
+        return res
+
     def gcd(self, other):
         """
         Returns the greatest common divisor of *self* and *other*.
