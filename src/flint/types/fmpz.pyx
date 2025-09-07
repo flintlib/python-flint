@@ -106,6 +106,10 @@ cdef class fmpz(flint_scalar):
         return fmpz_get_intlong(self.val)
 
     def __float__(self):
+        if fmpz_bits(self.val) <= 1023:
+            # Known to be representable by a IEEE-754 double
+            return fmpz_get_d(self.val)
+
         cdef slong exp
         # fmpz_get_d_2exp is always accurate
         # math.ldexp handles overflow checks
