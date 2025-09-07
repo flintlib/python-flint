@@ -207,6 +207,13 @@ def test_fmpz():
     assert math.ceil(f) == 2
     assert type(math.ceil(f)) is flint.fmpz
 
+    # Float conversion should follow Python rounding conventions
+    for mant in range(2**56 - 64, 2**56 + 64):
+        for shift in range(0, 900, 20):
+            for eps in range(-5, 5):
+                f = (mant << shift) + eps
+                assert float(f) == float(flint.fmpz(f))
+                assert float(-f) == float(flint.fmpz(-f))
     # Test float conversion overflow
     assert raises(lambda: float(flint.fmpz(2**1024)), OverflowError)
     assert raises(lambda: float(flint.fmpz(-2**1024)), OverflowError)
