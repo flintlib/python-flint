@@ -170,6 +170,8 @@ Contributors (0.9.0):
 
 Changes (0.9.0):
 
+- [gh-323](https://github.com/flintlib/python-flint/pull/323),
+  Faster conversion of `fmpz` to `float`. (RO)
 - [gh-322](https://github.com/flintlib/python-flint/pull/322),
   Add `mul_low` and `pow_trunc` methods to `fmpz_poly`, `fmpq_poly` and
   `nmod_poly`. (RO)
