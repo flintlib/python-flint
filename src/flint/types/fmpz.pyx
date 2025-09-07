@@ -3,6 +3,7 @@ from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport chars_from_str
 from flint.utils.conversion cimport str_from_chars, _str_trunc
 cimport libc.stdlib
+import math
 
 from flint.flintlib.types.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN, COEFF_IS_MPZ
 from flint.flintlib.functions.flint cimport flint_free
@@ -105,7 +106,11 @@ cdef class fmpz(flint_scalar):
         return fmpz_get_intlong(self.val)
 
     def __float__(self):
-        return float(fmpz_get_intlong(self.val))
+        cdef slong exp
+        # fmpz_get_d_2exp is always accurate
+        # math.ldexp handles overflow checks
+        cdef double d = fmpz_get_d_2exp(&exp, self.val)
+        return math.ldexp(d, exp)
 
     def __floor__(self):
         return self

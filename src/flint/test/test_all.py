@@ -207,6 +207,10 @@ def test_fmpz():
     assert math.ceil(f) == 2
     assert type(math.ceil(f)) is flint.fmpz
 
+    # Test float conversion overflow
+    assert raises(lambda: float(flint.fmpz(2**1024)), OverflowError)
+    assert raises(lambda: float(flint.fmpz(-2**1024)), OverflowError)
+
     assert flint.fmpz(2) != []
     assert +flint.fmpz(0) == 0
     assert +flint.fmpz(1) == 1
