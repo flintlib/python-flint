@@ -1,5 +1,5 @@
 cimport cython
-from cpython.list cimport PyList_GET_SIZE
+from cpython.list cimport PyList_Size as PyList_GET_SIZE
 from flint.flint_base.flint_base cimport flint_poly
 
 from flint.types.fmpz cimport fmpz, any_as_fmpz

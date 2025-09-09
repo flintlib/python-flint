@@ -1,4 +1,4 @@
-from cpython.list cimport PyList_GET_SIZE
+from cpython.list cimport PyList_Size as PyList_GET_SIZE
 from cpython.long cimport PyLong_Check
 
 cimport libc.stdlib
