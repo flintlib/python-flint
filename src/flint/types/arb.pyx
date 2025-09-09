@@ -1,4 +1,4 @@
-from cpython.float cimport PyFloat_AS_DOUBLE
+from cpython.float cimport PyFloat_AsDouble
 from cpython.long cimport PyLong_Check
 
 from flint.flint_base.flint_context cimport getprec
@@ -101,7 +101,7 @@ cdef int arb_set_python(arb_t x, obj, bint allow_conversion) except -1:
         return 1
 
     if typecheck(obj, float):
-        arf_set_d(arb_midref(x), PyFloat_AS_DOUBLE(obj))
+        arf_set_d(arb_midref(x), PyFloat_AsDouble(obj))
         mag_zero(arb_radref(x))
         return 1
 

@@ -31,6 +31,7 @@ foreach ext : exts
     dependencies: pyflint_deps,
     install: true,
     subdir: thisdir,
+    limited_api: limited_api_version,
   )
 endforeach
 

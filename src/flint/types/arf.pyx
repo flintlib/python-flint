@@ -1,4 +1,4 @@
-from cpython.float cimport PyFloat_AS_DOUBLE
+from cpython.float cimport PyFloat_AsDouble
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_context cimport thectx
 from flint.utils.typecheck cimport typecheck
@@ -44,7 +44,7 @@ cdef class arf:
             elif typecheck(val, arf):
                 arf_set(self.val, (<arf>val).val)
             elif typecheck(val, float):
-                arf_set_d(self.val, PyFloat_AS_DOUBLE(val))
+                arf_set_d(self.val, PyFloat_AsDouble(val))
             elif typecheck(val, tuple):
                 man = any_as_fmpz(val[0])
                 exp = any_as_fmpz(val[1])

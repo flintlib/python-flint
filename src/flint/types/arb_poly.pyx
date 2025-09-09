@@ -1,4 +1,4 @@
-from cpython.list cimport PyList_GET_SIZE
+from cpython.list cimport PyList_Size as PyList_GET_SIZE
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_poly
