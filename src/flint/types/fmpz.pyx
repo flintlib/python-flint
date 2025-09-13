@@ -3,6 +3,7 @@ from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport chars_from_str
 from flint.utils.conversion cimport str_from_chars, _str_trunc
 cimport libc.stdlib
+from libc.math cimport nextafter
 
 from flint.flintlib.types.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN, COEFF_IS_MPZ
 from flint.flintlib.functions.flint cimport flint_free
@@ -105,6 +106,41 @@ cdef class fmpz(flint_scalar):
         return fmpz_get_intlong(self.val)
 
     def __float__(self):
+        if not COEFF_IS_MPZ(self.val[0]):
+            return <double>(<slong>self.val[0])
+        cdef slong bits = fmpz_bits(self.val)
+        cdef long tz
+        cdef double d
+        cdef int roundup = 0
+        if bits <= 1023:
+            # Known to be representable by a IEEE-754 double
+            d = fmpz_get_d(self.val)
+            # fmpz_get_d always rounds towards zero
+            # Sometimes we need to round away from zero:
+            # - if the 54-th most significant bit is 1
+            # - if further bits are not zero
+            # - or if all further bits are zero but the 53-th bit is 1 (round-to-even convention)
+            if fmpz_sgn(self.val) == -1:
+                # tstbit behaves as if self was represented as 2's complement
+                # We look for patterns 0.10...0 or x.0xxxxxx
+                tz = fmpz_val2(self.val)
+                if bits >= 54:
+                    if fmpz_tstbit(self.val, bits - 54) == 0:
+                        if tz < bits - 54:
+                            roundup = 1
+                    else:
+                        if tz == bits - 54 and fmpz_tstbit(self.val, bits - 53) == 0:
+                            roundup = 1
+            else:
+                if bits >= 54 and fmpz_tstbit(self.val, bits - 54) == 1:
+                    tz = fmpz_val2(self.val)
+                    if tz < bits - 54 or (tz == bits - 54 and fmpz_tstbit(self.val, bits - 53) == 1):
+                        roundup = 1
+            if roundup:
+                # increase the mantissa of d by 1
+                d = nextafter(d, 2 * d)
+            return d
+
         return float(fmpz_get_intlong(self.val))
 
     def __floor__(self):
