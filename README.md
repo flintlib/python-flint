@@ -167,6 +167,7 @@ Contributors (0.9.0):
 - Rémy Oudompheng (RO)
 - Agriya Khetarpal (AK)
 - Oscar Benjamin (OB)
+- Daniel Simmons-Marengo (DSM)
 
 Changes (0.9.0):
 
@@ -181,6 +182,9 @@ Changes (0.9.0):
 - [gh-312](https://github.com/flintlib/python-flint/pull/312),
   Add `discriminant` method to `fmpz_poly`, `fmpq_poly` and
   `nmod_poly`. (RO)
+- [gh-336](https://github.com/flintlib/python-flint/pull/336),
+  Fixed a bug in `arb.neg()` which caused it to return its input
+  without negating it. (DSM)
 
 0.8.0
 -----
