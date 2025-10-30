@@ -888,6 +888,8 @@ def test_fmpq() -> None:
     assert Q(-5,3).ceil() == flint.fmpz(-1)
 
     assert type(int(Q(5,3))) is int
+    assert type(float(Q(5,3))) is float
+    assert type(complex(Q(5,3))) is complex
     assert type(math.floor(Q(5,3))) is flint.fmpz
     assert type(math.ceil(Q(5,3))) is flint.fmpz
     assert type(math.trunc(Q(5,3))) is flint.fmpz
@@ -897,6 +899,8 @@ def test_fmpq() -> None:
     assert type(round(Q(5,3), 1)) is flint.fmpq
 
     assert int(Q(5,3)) == 1
+    assert float(Q(5,3)) == 5/3
+    assert complex(Q(5,3)) == 5/3 + 0j
     assert math.floor(Q(5,3)) == flint.fmpz(1)
     assert math.ceil(Q(5,3)) == flint.fmpz(2)
     assert math.trunc(Q(5,3)) == flint.fmpz(1)
