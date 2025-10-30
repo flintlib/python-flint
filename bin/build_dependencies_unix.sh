@@ -273,7 +273,15 @@ else
   echo --------------------------------------------
   echo
 
-  curl -O https://ftp.gnu.org/gnu/mpfr/mpfr-$MPFRVER.tar.gz
+  if [ $USE_GMP_GITHUB_MIRROR = "yes" ]; then
+    if [ ! -d "gmp_mirror" ] ; then
+      git clone https://github.com/oscarbenjamin/gmp_mirror.git
+    fi
+    cp gmp_mirror/mpfr-$MPFRVER.tar.gz .
+  else
+    curl -O https://ftp.gnu.org/gnu/mpfr/mpfr-$MPFRVER.tar.gz
+  fi
+
   tar xf mpfr-$MPFRVER.tar.gz
   cd mpfr-$MPFRVER
     ./configure --prefix=$PREFIX\

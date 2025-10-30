@@ -1,6 +1,7 @@
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
 from flint.types.fmpz cimport fmpz_set_any_ref
+from flint.types.fmpz cimport fmpz_get_intlong
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 
@@ -198,6 +199,11 @@ cdef class fmpq(flint_scalar):
 
     def __int__(self):
         return int(self.trunc())
+
+    def __float__(self) -> float:
+        n = fmpz_get_intlong(fmpq_numref(self.val))
+        d = fmpz_get_intlong(fmpq_denref(self.val))
+        return n / d
 
     def __floor__(self):
         return self.floor()

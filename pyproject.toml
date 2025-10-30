@@ -87,6 +87,9 @@ package = "flint"
     "spin.cmds.meson.run",
 ]
 
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+
 [tool.cibuildwheel]
 skip = "*-win32 *-manylinux_i686 *-manylinux_armv7l *-musllinux_*"
 
