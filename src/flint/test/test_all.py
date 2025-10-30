@@ -1673,6 +1673,8 @@ def test_arb():
     assert arb(3) <= arb("inf")
     assert arb(3) == arb(3)
     assert arb(3) != arb(2)
+    assert -arb(3) == arb(-3)
+    assert arb(3).neg() == arb(-3)
     assert not (arb("1.1") == arb("1.1"))
 
     assert arb(3).repr() == 'arb((0x3, 0x0))'
