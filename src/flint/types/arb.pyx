@@ -567,9 +567,9 @@ cdef class arb(flint_scalar):
     def neg(self, bint exact=False):
         res = arb.__new__(arb)
         if exact:
-            arb_set((<arb>res).val, (<arb>self).val)
+            arb_neg((<arb>res).val, (<arb>self).val)
         else:
-            arb_set_round((<arb>res).val, (<arb>self).val, getprec())
+            arb_neg_round((<arb>res).val, (<arb>self).val, getprec())
         return res
 
     def __abs__(self):
