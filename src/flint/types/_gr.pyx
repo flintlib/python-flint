@@ -602,7 +602,7 @@ cdef class gr_ctx(flint_ctx):
     ###
     # Square Roots
 
-    def is_square(self, x) -> bool | None:
+    def is_square(self, x):
         """
         Returns whether x is a perfect square in the context.
         """
