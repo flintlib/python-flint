@@ -10,11 +10,13 @@ from typing import (
     Iterator,
     Iterable,
     Any,
-    Self,
     Mapping,
     Sequence,
     overload,
 )
+
+if TYPE_CHECKING:
+    from typing import Self
 
 from .flint_base.flint_base import (
     flint_elem,
