@@ -474,7 +474,7 @@ cdef class flint_mpoly_context(flint_elem):
             fmpz_mpoly_ctx(3, '<Ordering.lex: 'lex'>', ('y', 'z', 'b'))
         """
         nvars = self.nvars()
-        gen_idxs = set(self.variable_to_index(i) for i in gens)
+        gen_idxs = {self.variable_to_index(i) for i in gens}
 
         if len(gens) > nvars:
             raise ValueError(f"expected at most {nvars} unique generators, got {len(gens)}")
