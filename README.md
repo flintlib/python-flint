@@ -185,6 +185,9 @@ Changes (0.9.0):
 - [gh-336](https://github.com/flintlib/python-flint/pull/336),
   Fixed a bug in `arb.neg()` which caused it to return its input
   without negating it. (DSM)
+- [gh-339](https://github.com/flintlib/python-flint/pull/339),
+  Add `fmpq.__float__` method so that `float(fmpq)` and `complex(fmpq)`
+  work. (OB)
 
 0.8.0
 -----
