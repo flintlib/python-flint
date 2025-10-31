@@ -4,8 +4,6 @@ import math
 
 from flint import arb, ctx
 
-from scipy.special import erf, erfc
-
 def assert_almost_equal(x, y, places=7):
     """Helper method for approximate comparisons."""
     assert round(x-y, ndigits=places) == 0
@@ -265,8 +263,8 @@ def test_arb_sgn():
 
 def test_arb_erfinv():
     """`arb.erfinv` works as expected."""
-    midpoint = (erf(1 / 8) + erf(1 / 16)) / 2
-    radius = midpoint - erf(1 / 16)
+    midpoint = (math.erf(1 / 8) + math.erf(1 / 16)) / 2
+    radius = midpoint - math.erf(1 / 16)
     arb_val = arb(midpoint, radius)
     with ctx.workprec(100):
         actual = arb_val.erfinv()
@@ -278,7 +276,10 @@ def test_arb_erf():
     arb_val = arb(2, 1)
     with ctx.workprec(100):
         actual = arb_val.erf()
-    true_interval = arb((erf(1) + erf(3)) / 2, (erf(1) + erf(3)) / 2 - erf(1))
+    true_interval = arb(
+        (math.erf(1) + math.erf(3)) / 2,
+        (math.erf(1) + math.erf(3)) / 2 - math.erf(1)
+    )
     assert true_interval in actual
 
 def test_arb_erfc():
@@ -286,7 +287,10 @@ def test_arb_erfc():
     arb_val = arb(2, 1)
     with ctx.workprec(100):
         actual = arb_val.erfc()
-    true_interval = arb((erfc(1) + erfc(3)) / 2, (erfc(1) + erfc(3)) / 2 - erfc(3))
+    true_interval = arb(
+        (math.erfc(1) + math.erfc(3)) / 2,
+        (math.erfc(1) + math.erfc(3)) / 2 - math.erfc(3)
+    )
     assert true_interval in actual
 
 def test_arb_const_pi():
