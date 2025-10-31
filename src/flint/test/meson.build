@@ -4,6 +4,7 @@ pyfiles = [
   '__init__.py',
   '__main__.py',
   'test_all.py',
+  'test_arb.py',
   'test_docstrings.py',
 ]
 

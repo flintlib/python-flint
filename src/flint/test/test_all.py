@@ -12,6 +12,8 @@ import flint.typing as typ
 import flint.flint_base.flint_base as flint_base
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
+from flint.test.test_arb import all_tests as arb_tests
+
 
 PYPY = platform.python_implementation() == "PyPy"
 
@@ -5233,4 +5235,4 @@ all_tests = [
     test_python_threads,
 
     test_all_tests,
-]
+] + arb_tests
