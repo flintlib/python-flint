@@ -319,7 +319,14 @@ def test_arb_sum():
     true_interval = arb(6, 1.5)  # [4.5, 7.5]
     assert true_interval in actual
 
+def test_no_tests_missing():
+    """Make sure all arb tests are included in all_tests."""
+    test_funcs = {f for name, f in globals().items() if name.startswith("test_")}
+    untested = test_funcs - set(all_tests)
+    assert not untested, f"Untested functions: {untested}"
+
 all_tests = [
+    test_no_tests_missing,
     test_from_int,
     test_from_float,
     test_from_float_inf,
