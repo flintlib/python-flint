@@ -24,7 +24,7 @@ cpdef enum fq_default_type:
 
 cdef class fq_default_ctx:
     cdef fq_default_ctx_t val
-    cdef readonly char *var
+    cdef str var
     cdef bint _initialized
 
     cdef new_ctype_fq_default(self)
