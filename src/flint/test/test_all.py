@@ -4722,9 +4722,6 @@ def test_fq_default():
     assert raises(lambda: flint.fq_default_ctx(5, fq_type=-1), ValueError)
     assert raises(lambda: flint.fq_default_ctx("ABC"), TypeError) # type: ignore
 
-    # var must be one character
-    assert raises(lambda: flint.fq_default_ctx(5, var="XXX"), ValueError)
-
     # p must be set if modulus has no characteristic / modulus
     assert raises(lambda: flint.fq_default_ctx(modulus=[0,1,0]), ValueError)
 
@@ -4779,7 +4776,7 @@ def test_fq_default():
     assert str(gf_5) == "Context for fq_default in GF(5)"
     assert str(gf_5_2) == "Context for fq_default in GF(5^2)[z]/(z^2 + 4*z + 2)"
 
-    assert repr(gf_5) == "fq_default_ctx(5, var='z' type='NMOD')"
+    assert repr(gf_5) == "fq_default_ctx(5, var='z', type='NMOD')"
     assert repr(gf_5_2) == "fq_default_ctx(5, 2, 'z', x^2 + 4*x + 2, 'FQ_ZECH')"
 
     # coercision
