@@ -13,7 +13,7 @@ jobs:
         os: [ubuntu-22.04, ubuntu-22.04-arm, windows-2022, macos-15-intel, macos-14]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.0.0
 
       - uses: actions/setup-python@v6
         with:
@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.0.0
 
       - uses: actions/setup-python@v6
         with:
@@ -115,7 +115,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.0.0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -128,7 +128,7 @@ jobs:
     name: Test docs (build and doctest)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.0.0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -143,7 +143,7 @@ jobs:
     name: 'Test old Cython/meson-python'
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.0.0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -170,7 +170,7 @@ jobs:
         # Supported Flint versions:
         flint-tag: ['v3.0.1', 'v3.1.3-p1', 'v3.2.2', 'v3.3.1']
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.0.0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -183,7 +183,7 @@ jobs:
     name: Test flint main Linux x86-64
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.0.0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -197,7 +197,7 @@ jobs:
     name: Test flint main Linux ARM
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.0.0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -211,7 +211,7 @@ jobs:
     name: Test coverage setuptools build
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.0.0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -225,7 +225,7 @@ jobs:
     name: Test coverage meson build
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.0.0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12' # does not work with 3.13
@@ -243,7 +243,7 @@ jobs:
       matrix:
         sympy-version: ['1.13.1', '1.14.0']
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.0.0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -259,7 +259,7 @@ jobs:
     name: Test SymPy master
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.0.0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -342,7 +342,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.0.0
 
       - name: Download sdist
         uses: actions/download-artifact@v5
