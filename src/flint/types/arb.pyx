@@ -527,6 +527,10 @@ cdef class arb(flint_scalar):
             arb_clear(tval)
         return res
 
+    def __hash__(self):
+        """Hash."""
+        return hash((self.mid().man_exp(), self.rad().man_exp()))
+
     def __contains__(self, other):
         other = any_as_arb(other)
         return arb_contains(self.val, (<arb>other).val)
