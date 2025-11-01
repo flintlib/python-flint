@@ -110,37 +110,36 @@ def test_contains():
     ]:
         assert (x in y) == expected
 
-# TODO: Re-enable this if we ever add the ability to hash arbs.
-# def test_hash():
-#     """`x` and `y` hash to the same value if they have the same midpoint and radius.
+def test_hash():
+    """`x` and `y` hash to the same value if they have the same midpoint and radius.
 
-#     Args:
-#         x: An arb.
-#         y: An arb.
-#         expected: Whether `x` and `y` should hash to the same value.
-#     """
-#     def arb_pi(prec):
-#         """Helper to calculate arb to a given precision."""
-#         with ctx.workprec(prec):
-#             return arb.pi()
-#     for x, y, expected in [
-#         (arb(10), arb(10), True),
-#         (arb(10), arb(11), False),
-#         (arb(10.0), arb(10), True),
-#         (
-#             arb(mid=10, rad=2),
-#             arb(mid=10, rad=2),
-#             True,
-#         ),
-#         (
-#             arb(mid=10, rad=2),
-#             arb(mid=10, rad=3),
-#             False,
-#         ),
-#         (arb_pi(100), arb_pi(100), True),
-#         (arb_pi(100), arb_pi(1000), False),
-#     ]:
-#         assert (hash(x) == hash(y)) == expected
+    Args:
+        x: An arb.
+        y: An arb.
+        expected: Whether `x` and `y` should hash to the same value.
+    """
+    def arb_pi(prec):
+        """Helper to calculate arb to a given precision."""
+        with ctx.workprec(prec):
+            return arb.pi()
+    for x, y, expected in [
+        (arb(10), arb(10), True),
+        (arb(10), arb(11), False),
+        (arb(10.0), arb(10), True),
+        (
+            arb(mid=10, rad=2),
+            arb(mid=10, rad=2),
+            True,
+        ),
+        (
+            arb(mid=10, rad=2),
+            arb(mid=10, rad=3),
+            False,
+        ),
+        (arb_pi(100), arb_pi(100), True),
+        (arb_pi(100), arb_pi(1000), False),
+    ]:
+        assert (hash(x) == hash(y)) == expected
 
 
 
@@ -338,8 +337,7 @@ all_tests = [
     test_lower,
     test_upper,
     test_contains,
-    # TODO: Re-enable this if we ever add the ability to hash arbs.
-    # test_hash,
+    test_hash,
     test_arb_sub,
     test_arb_add,
     test_arb_mul,
