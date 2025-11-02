@@ -43,14 +43,21 @@ if [ -z "$WASM_LIBRARY_DIR" ]; then
   exit 1
 fi
 
+# Sets versions of GMP, MPFR and FLINT:
+
 source bin/build_variables.sh
+
+# Download mirrored copy of source distributions for GMP and MPFR
+
+git clone https://github.com/oscarbenjamin/gmp_mirror.git
+cp gmp_mirror/gmp-$GMPVER.tar.xz .
+cp gmp_mirror/mpfr-$MPFRVER.tar.gz .
+tar -xf gmp-$GMPVER.tar.xz
+tar -xf mpfr-$MPFRVER.tar.gz
 
 
 # ---------------------------Build GMP ----------------------------------#
 
-
-curl -L https://ftp.gnu.org/gnu/gmp/gmp-$GMPVER.tar.xz -o gmp-$GMPVER.tar.xz
-tar -xf gmp-$GMPVER.tar.xz
 
 cd gmp-$GMPVER
 
@@ -70,9 +77,6 @@ cd ..
 
 # ---------------------------Build MPFR ----------------------------------#
 
-
-curl -L https://ftp.gnu.org/gnu/mpfr/mpfr-$MPFRVER.tar.xz -o mpfr-$MPFRVER.tar.xz
-tar -xf mpfr-$MPFRVER.tar.xz
 
 cd mpfr-$MPFRVER
 
