@@ -529,7 +529,9 @@ cdef class arb(flint_scalar):
 
     def __hash__(self):
         """Hash."""
-        return hash((self.mid().man_exp(), self.rad().man_exp()))
+        if self.is_exact():
+            return hash((self.mid().man_exp(), self.rad().man_exp()))
+        raise ValueError(f"Cannot hash non-exact arb: {self}. See pull/341 for details.")
 
     def __contains__(self, other):
         other = any_as_arb(other)

@@ -126,20 +126,19 @@ def test_hash():
         (arb(10), arb(10), True),
         (arb(10), arb(11), False),
         (arb(10.0), arb(10), True),
-        (
-            arb(mid=10, rad=2),
-            arb(mid=10, rad=2),
-            True,
-        ),
-        (
-            arb(mid=10, rad=2),
-            arb(mid=10, rad=3),
-            False,
-        ),
-        (arb_pi(100), arb_pi(100), True),
-        (arb_pi(100), arb_pi(1000), False),
     ]:
         assert (hash(x) == hash(y)) == expected
+
+    for x in [
+        arb(mid=10, rad=2),
+        arb_pi(100),
+    ]:
+        try:
+            hash(x)
+        except ValueError:
+            pass
+        else:
+            assert False, f"Expected {x} to raise an error if hashed, but succeeded."
 
 
 
