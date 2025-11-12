@@ -527,6 +527,12 @@ cdef class arb(flint_scalar):
             arb_clear(tval)
         return res
 
+    def __hash__(self):
+        """Hash."""
+        if self.is_exact():
+            return hash((self.mid().man_exp(), self.rad().man_exp()))
+        raise ValueError(f"Cannot hash non-exact arb: {self}. See pull/341 for details.")
+
     def __contains__(self, other):
         other = any_as_arb(other)
         return arb_contains(self.val, (<arb>other).val)
