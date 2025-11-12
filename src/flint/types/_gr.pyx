@@ -602,11 +602,11 @@ cdef class gr_ctx(flint_ctx):
     ###
     # Square Roots
 
-    def is_square(self, x):
+    def is_square(self, x) -> bool | None:
         """
         Returns whether x is a perfect square in the context.
         """
-        return self._is_square(self(x))
+        return truth_to_py(self._is_square(self(x)))
 
     def sqrt(self, x) -> gr:
         """
@@ -1912,7 +1912,7 @@ cdef class gr(flint_scalar):
         >>> Q(4).sqrt()
         2
         """
-        return truth_to_py(self.ctx.is_square(self))
+        return self.ctx.is_square(self)
 
     def sqrt(self):
         """Return the square root of the element if it exists.
