@@ -2,7 +2,7 @@ from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport chars_from_str
 from flint.utils.conversion cimport str_from_chars, _str_trunc
-cimport libc.stdlib
+from libc.stdlib cimport malloc, free
 
 from flint.flintlib.types.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN, COEFF_IS_MPZ
 from flint.flintlib.functions.flint cimport flint_free
@@ -14,16 +14,33 @@ from flint.flintlib.functions.partitions cimport *
 
 from flint.utils.flint_exceptions import DomainError
 
-
 cdef fmpz_get_intlong(fmpz_t x):
     """
     Convert fmpz_t to a Python int or long.
     """
-    cdef char * s
+    cdef slong size
+    cdef ulong * words
+    cdef int i
+    cdef fmpz_struct xabs[1]
     if COEFF_IS_MPZ(x[0]):
-        s = fmpz_get_str(NULL, 16, x)
-        v = int(str_from_chars(s), 16)
-        flint_free(s)
+        # Python from signed bytes is slow so we convert the absolute value.
+        # we need 8 * sizeof(ulong) * size >= fmpz_bits(x)
+        size = fmpz_bits(x) // (8 * sizeof(ulong)) + 1
+        words = <ulong *>malloc(size * sizeof(ulong))
+        if fmpz_sgn(x) == -1:
+            fmpz_init(xabs)
+            fmpz_abs(xabs, x)
+            fmpz_get_ui_array(words, size, xabs)
+            fmpz_clear(xabs)
+        else:
+            fmpz_get_ui_array(words, size, x)
+        if is_big_endian:
+            for i in range(size):
+                words[i] = ulong_from_little_endian(<unsigned char *>(words + i))
+        v = int.from_bytes((<char *>words)[:size * sizeof(ulong)], "little")
+        if fmpz_sgn(x) == -1:
+            v = -v
+        free(words)
         return v
     else:
         return <slong>x[0]
