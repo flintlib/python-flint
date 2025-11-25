@@ -1,126 +1,183 @@
-"""Benchmarks for basic operations of a number of flint types."""
+"""Benchmarks for basic operations of a number of flint types.
 
-import timeit
-from flint import arb, fmpz, fmpq, acb
-from utils import run_all_benchmarks, print_benchmark_results
+These benchmarks are written using pyperf, and can be run by 
+
+python benchmarks/simple_benchmarks.py
+
+Since each benchmark is very short ("microbenchmarks"), they may
+require an increased number of samples to produce statistically
+significant results (via the --values flag).
+"""
+
+import pyperf
+from utils import get_all_benchmarks
 
 NUM_EXECUTIONS = 10000000
 
 
-def benchmark_arb_addition(num_executions = NUM_EXECUTIONS):
+def benchmark_arb_addition(runner: pyperf.Runner):
     """Simple benchmark for adding two arbs."""
-    a = arb(1, 2)
-    b = arb.pi()
+    runner.timeit(
+        name="arb addition",
+        setup=[
+            "from flint import arb",
+            "a = arb(1, 2)",
+            "b = arb.pi()",
+        ],
+        stmt="a + b"
+    )
 
-    return timeit.timeit(lambda: a + b, number=num_executions)
 
-
-def benchmark_arb_multiplication(num_executions = NUM_EXECUTIONS):
+def benchmark_arb_multiplication(runner: pyperf.Runner):
     """Simple benchmark for multiplying two arbs."""
-    a = arb(1, 2)
-    b = arb.pi()
+    runner.timeit(
+        name="arb multiplication",
+        setup=[
+            "from flint import arb",
+            "a = arb(1, 2)",
+            "b = arb.pi()",
+        ],
+        stmt="a * b"
+    )
 
-    return timeit.timeit(lambda: a * b, number=num_executions)
 
-
-def benchmark_arb_contains(num_executions = NUM_EXECUTIONS):
+def benchmark_arb_contains(runner: pyperf.Runner):
     """Simple benchmark for comparing two arbs."""
-    a = arb(1, 2)
-    b = arb.pi()
+    runner.timeit(
+        name="arb contains",
+        setup=[
+            "from flint import arb",
+            "a = arb(1, 2)",
+            "b = arb.pi()",
+        ],
+        stmt=[
+            "a in b",
+            "b in a",
+        ]
+    )
 
-    def to_time():
-        first = a in b
-        second = a in a
-        return first, second
 
-    return timeit.timeit(to_time, number=num_executions)
-
-
-def benchmark_fmpz_addition(num_executions = NUM_EXECUTIONS):
+def benchmark_fmpz_addition(runner: pyperf.Runner):
     """Simple benchmark for adding two fmpzs."""
-    a = fmpz(1)
-    b = fmpz(6)
+    runner.timeit(
+        name="fmpz addition",
+        setup=[
+            "from flint import fmpz",
+            "a = fmpz(1)",
+            "b = fmpz(6)",
+        ],
+        stmt="a + b"
+    )
 
-    return timeit.timeit(lambda: a + b, number=num_executions)
-
-
-def benchmark_fmpz_multiplication(num_executions = NUM_EXECUTIONS):
+def benchmark_fmpz_multiplication(runner: pyperf.Runner):
     """Simple benchmark for multiplying two fmpzs."""
-    a = fmpz(1)
-    b = fmpz(6)
+    runner.timeit(
+        name="fmpz multiplication",
+        setup=[
+            "from flint import fmpz",
+            "a = fmpz(1)",
+            "b = fmpz(6)",
+        ],
+        stmt="a * b"
+    )
 
-    return timeit.timeit(lambda: a * b, number=num_executions)
 
-
-def benchmark_fmpz_eq(num_executions = NUM_EXECUTIONS):
+def benchmark_fmpz_eq(runner: pyperf.Runner):
     """Simple benchmark for equality on two fmpzs."""
-    a = fmpz(1)
-    b = fmpz(6)
+    runner.timeit(
+        name="fmpz equality",
+        setup=[
+            "from flint import fmpz",
+            "a = fmpz(1)",
+            "b = fmpz(6)",
+        ],
+        stmt=["a == b", "b == a"]
+    )
 
-    def to_time():
-        first = a == b
-        second = a == a
-        return first, second
 
-    return timeit.timeit(to_time, number=num_executions)
-
-
-def benchmark_fmpq_addition(num_executions = NUM_EXECUTIONS):
+def benchmark_fmpq_addition(runner: pyperf.Runner):
     """Simple benchmark for adding two fmpqs."""
-    a = fmpq(1, 2)
-    b = fmpq(15, 7)
+    runner.timeit(
+        name="fmpq addition",
+        setup=[
+            "from flint import fmpq",
+            "a = fmpq(1, 2)",
+            "b = fmpq(15, 7)",
+        ],
+        stmt="a + b"
+    )
 
-    return timeit.timeit(lambda: a + b, number=num_executions)
 
-
-def benchmark_fmpq_multiplication(num_executions = NUM_EXECUTIONS):
+def benchmark_fmpq_multiplication(runner: pyperf.Runner):
     """Simple benchmark for multiplying two fmpqs."""
-    a = fmpq(1, 2)
-    b = fmpq(15, 7)
+    runner.timeit(
+        name="fmpq multiplication",
+        setup=[
+            "from flint import fmpq",
+            "a = fmpq(1, 2)",
+            "b = fmpq(15, 7)",
+        ],
+        stmt="a * b"
+    )
 
-    return timeit.timeit(lambda: a * b, number=num_executions)
 
-
-def benchmark_fmpq_eq(num_executions = NUM_EXECUTIONS):
+def benchmark_fmpq_eq(runner: pyperf.Runner):
     """Simple benchmark for equality on two fmpqs."""
-    a = fmpq(1, 2)
-    b = fmpq(15, 7)
+    runner.timeit(
+        name="fmpq equality",
+        setup=[
+            "from flint import fmpq",
+            "a = fmpq(1, 2)",
+            "b = fmpq(15, 7)",
+        ],
+        stmt=["a == b", "b == a"]
+    )
 
-    def to_time():
-        first = a == b
-        second = a == a
-        return first, second
 
-    return timeit.timeit(to_time, number=num_executions)
-
-
-def benchmark_acb_addition(num_executions = NUM_EXECUTIONS):
+def benchmark_acb_addition(runner: pyperf.Runner):
     """Simple benchmark for adding two acbs."""
-    a = acb(1 + 3j)
-    b = acb.pi()
+    runner.timeit(
+        name="acb addition",
+        setup=[
+            "from flint import acb",
+            "a = acb(1 + 3j)",
+            "b = acb.pi()",
+        ],
+        stmt="a + b"
+    )
 
-    return timeit.timeit(lambda: a + b, number=num_executions)
 
-
-def benchmark_acb_multiplication(num_executions = NUM_EXECUTIONS):
+def benchmark_acb_multiplication(runner: pyperf.Runner):
     """Simple benchmark for multiplying two acbs."""
-    a = acb(1 + 3j)
-    b = acb.pi()
+    runner.timeit(
+        name="acb multiplication",
+        setup=[
+            "from flint import acb",
+            "a = acb(1 + 3j)",
+            "b = acb.pi()",
+        ],
+        stmt="a * b"
+    )
 
-    return timeit.timeit(lambda: a * b, number=num_executions)
 
+def benchmark_acb_eq(runner: pyperf.Runner):
+    """Simple benchmark for containment on two acbs."""
+    runner.timeit(
+        name="acb contains",
+        setup=[
+            "from flint import acb",
+            "a = acb(1 + 3j)",
+            "b = acb.pi()",
+        ],
+        stmt=["a in b", "b in a"]
+    )
 
-def benchmark_acb_eq(num_executions = NUM_EXECUTIONS):
-    """Simple benchmark for equality on two acbs."""
-    a = acb(1 + 3j)
-    b = acb.pi()
-
-    def to_time():
-        first = a in b
-        second = a in a
-        return first, second
-
-    return timeit.timeit(to_time, number=num_executions)
+def main():
+    """Run all the benchmarks."""
+    runner = pyperf.Runner()
+    benchmarks = get_all_benchmarks(__name__)
+    for benchmark in benchmarks:
+        benchmark(runner)
 
 if __name__ == "__main__":
-    print_benchmark_results(run_all_benchmarks(__name__))
+    main()
