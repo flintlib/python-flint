@@ -842,6 +842,15 @@ cdef class fmpz_mat(flint_mat):
             raise ValueError("gram must be 'approx' or 'exact'")
         fmpz_lll_context_init(ctx, delta, eta, rt, gt)
         u = fmpz_mat(self)
+
+        # FLINT would segfault given a matrix with zero rows
+        if u.nrows() == 0:
+            if transform:
+                v = fmpz_mat(0, 0, [])
+                return u, v
+            else:
+                return u
+
         if transform:
             v = fmpz_mat(self.nrows(), self.nrows())
             for 0 <= i < self.nrows():
