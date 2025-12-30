@@ -642,13 +642,27 @@ def test_fmpz_mat():
     M3n = M([[3,0,0],[-6,0,0],[3,0,0]])
     assert M3.nullspace() == (M3n, 1)
     assert M3 * M3.nullspace()[0] == M(3,3,[0]*9)
-    # XXX: lll core dumps on a singular matrix
     M4 = M([[1,2,3],[4,5,6],[7,8,10]])
     L4 = M([[0,0,1],[-1,1,0],[2,1,0]])
     T4 = M([[1,-2,1],[0,5,-3],[-2,1,0]])
     assert L4 == T4 * M4
     assert M4.lll() == L4
     assert M4.lll(transform=True) == (L4, T4)
+    M5 = M([[1,2,3],[4,5,6],[7,8,9]])
+    L5 = M([[0,0,0],[2,1,0],[-1,1,3]])
+    T5 = M([[1,-2,1],[-2,1,0],[3,-1,0]])
+    assert L5 == T5 * M5
+    assert M5.lll() == L5
+    assert M5.lll(transform=True) == (L5, T5)
+    Mz = M(0, 3, [])
+    assert Mz.lll() == M(0, 3, [])
+    assert Mz.lll(transform=True) == (M(0, 3, []), M(0, 0, []))
+    Mr = M(3, 0, [])
+    assert Mr.lll() == M(3, 0, [])
+    assert Mr.lll(transform=True) == (M(3, 0, []), M([[1,0,0],[0,1,0],[0,0,1]]))
+    Mzz = M(0, 0, [])
+    assert Mzz.lll() == M(0, 0, [])
+    assert Mzz.lll(transform=True) == (M(0, 0, []), M(0, 0, []))
     # XXX: rep="gram" consumes all memory in the system and core dumps
     #for rep in "zbasis", "gram":
     rep = "zbasis"
