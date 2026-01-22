@@ -2,8 +2,38 @@
 #
 # Define fundamental types and constants
 
+from libc.stdint cimport int8_t, uint8_t, int64_t
+
 cdef extern from "Python.h":
     ctypedef void PyObject
+
+    ctypedef unsigned long long Py_uintptr_t
+
+    cdef struct PyLongLayout:
+        uint8_t bits_per_digit
+        uint8_t digit_size
+        int8_t digits_order
+        int8_t digit_endianness
+
+    const PyLongLayout * PyLong_GetNativeLayout()
+
+    cdef struct PyLongExport:
+        int64_t value
+        uint8_t negative
+        Py_ssize_t ndigits
+        const void *digits
+        Py_uintptr_t _reserved
+
+    int PyLong_Export(object, PyLongExport *)
+    void PyLong_FreeExport(PyLongExport *)
+
+    ctypedef struct PyLongWriter:
+        pass
+
+    PyLongWriter * PyLongWriter_Create(int negative, Py_ssize_t ndigits, void **digits)
+    object PyLongWriter_Finish(PyLongWriter *writer)
+    void PyLongWriter_Discard(PyLongWriter *writer)
+
 
 cdef enum:
     FMPZ_UNKNOWN = 0
@@ -29,6 +59,11 @@ cdef extern from "gmp.h":
     ctypedef mp_limb_t* mp_ptr
     ctypedef mp_limb_t* mp_srcptr
     ctypedef unsigned long mp_bitcnt_t
+
+    ctypedef struct __mpz_struct:
+        pass
+    ctypedef __mpz_struct mpz_t[1]
+    ctypedef __mpz_struct * mpz_ptr
 
 cdef extern from "flint/fmpz.h":
     ctypedef long slong

@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, nmod_t, nn_ptr, nn_srcptr, slong, ulong
+from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, nmod_t, nn_ptr, nn_srcptr, slong, ulong, mpz_ptr, mpz_t
 from flint.flintlib.types.fmpz cimport fmpz_factor_t, fmpz_preinvn_t
 
 # unknown type FILE
@@ -17,6 +17,11 @@ from flint.flintlib.types.fmpz cimport fmpz_factor_t, fmpz_preinvn_t
 # .. macro:: COEFF_IS_MPZ(f)
 # .. macro:: MPZ_MIN_ALLOC
 
+cdef extern from "gmp.h":
+    void mpz_import(mpz_t val, size_t count, int order, size_t size, int endian, size_t nails, const void * op)
+    void * mpz_export (void *rop, size_t *countp, int order, size_t size, int endian, size_t nails, const mpz_t op)
+
+
 cdef extern from "flint/fmpz.h":
     # fmpz_struct PTR_TO_COEFF(mpz_ptr ptr)
     # mpz_ptr COEFF_TO_PTR(fmpz_struct f)
@@ -25,7 +30,7 @@ cdef extern from "flint/fmpz.h":
     void _fmpz_cleanup_mpz_content()
     void _fmpz_cleanup()
     # mpz_ptr _fmpz_promote(fmpz_t f)
-    # mpz_ptr _fmpz_promote_val(fmpz_t f)
+    mpz_ptr _fmpz_promote_val(fmpz_t f)
     void _fmpz_demote(fmpz_t f)
     void _fmpz_demote_val(fmpz_t f)
     int _fmpz_is_canonical(const fmpz_t f)
@@ -84,7 +89,7 @@ cdef extern from "flint/fmpz.h":
     # int fmpz_fprint(FILE * fs, const fmpz_t x)
     int fmpz_print(const fmpz_t x)
     # size_t fmpz_out_raw(FILE * fout, const fmpz_t x )
-    # size_t fmpz_sizeinbase(const fmpz_t f, int b)
+    size_t fmpz_sizeinbase(const fmpz_t f, int b)
     flint_bitcnt_t fmpz_bits(const fmpz_t f)
     slong fmpz_size(const fmpz_t f)
     int fmpz_sgn(const fmpz_t f)

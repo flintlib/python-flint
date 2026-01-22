@@ -1,10 +1,11 @@
+from cpython.long cimport PyLong_FromLong
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport chars_from_str
 from flint.utils.conversion cimport str_from_chars, _str_trunc
 cimport libc.stdlib
 
-from flint.flintlib.types.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN, COEFF_IS_MPZ
+from flint.flintlib.types.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN, COEFF_IS_MPZ, PyLongLayout, PyLong_GetNativeLayout, PyLongWriter_Create, PyLongWriter_Finish, PyLongWriter
 from flint.flintlib.functions.flint cimport flint_free
 from flint.flintlib.functions.fmpz cimport *
 from flint.flintlib.types.fmpz cimport fmpz_factor_expand
@@ -17,16 +18,27 @@ from flint.utils.flint_exceptions import DomainError
 
 cdef fmpz_get_intlong(fmpz_t x):
     """
-    Convert fmpz_t to a Python int or long.
+    Convert fmpz_t to a Python int.
     """
-    cdef char * s
-    if COEFF_IS_MPZ(x[0]):
-        s = fmpz_get_str(NULL, 16, x)
-        v = int(str_from_chars(s), 16)
-        flint_free(s)
-        return v
+    cdef const PyLongLayout *layout
+    cdef void *digits
+    cdef PyLongWriter *writer
+    cdef size_t size
+
+    if fmpz_fits_si(x):
+        return PyLong_FromLong(fmpz_get_si(x))
     else:
-        return <slong>x[0]
+        layout = PyLong_GetNativeLayout()
+        size = (fmpz_sizeinbase(x, 2) +
+                layout[0].bits_per_digit - 1)//layout[0].bits_per_digit
+        writer = PyLongWriter_Create(fmpz_sgn(x) < 0, size, &digits)
+        if writer:
+            z = _fmpz_promote_val(x)
+            mpz_export(digits, NULL, layout[0].digits_order,
+                       layout[0].digit_size, layout[0].digit_endianness,
+                       layout[0].digit_size*8 - layout[0].bits_per_digit, z);
+            _fmpz_demote_val(x)
+            return PyLongWriter_Finish(writer);
 
 cdef int fmpz_set_any_ref(fmpz_t x, obj):
     if typecheck(obj, fmpz):
