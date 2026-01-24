@@ -1,4 +1,4 @@
-from cpython.float cimport PyFloat_AS_DOUBLE
+from cpython.float cimport PyFloat_AsDouble
 from cpython.long cimport PyLong_Check
 
 from flint.flint_base.flint_context cimport getprec
@@ -101,7 +101,7 @@ cdef int arb_set_python(arb_t x, obj, bint allow_conversion) except -1:
         return 1
 
     if typecheck(obj, float):
-        arf_set_d(arb_midref(x), PyFloat_AS_DOUBLE(obj))
+        arf_set_d(arb_midref(x), PyFloat_AsDouble(obj))
         mag_zero(arb_radref(x))
         return 1
 
@@ -527,6 +527,12 @@ cdef class arb(flint_scalar):
             arb_clear(tval)
         return res
 
+    def __hash__(self):
+        """Hash."""
+        if self.is_exact():
+            return hash((self.mid().man_exp(), self.rad().man_exp()))
+        raise ValueError(f"Cannot hash non-exact arb: {self}. See pull/341 for details.")
+
     def __contains__(self, other):
         other = any_as_arb(other)
         return arb_contains(self.val, (<arb>other).val)
@@ -567,9 +573,9 @@ cdef class arb(flint_scalar):
     def neg(self, bint exact=False):
         res = arb.__new__(arb)
         if exact:
-            arb_set((<arb>res).val, (<arb>self).val)
+            arb_neg((<arb>res).val, (<arb>self).val)
         else:
-            arb_set_round((<arb>res).val, (<arb>self).val, getprec())
+            arb_neg_round((<arb>res).val, (<arb>self).val, getprec())
         return res
 
     def __abs__(self):

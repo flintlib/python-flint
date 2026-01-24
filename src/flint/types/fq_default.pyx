@@ -63,19 +63,14 @@ cdef class fq_default_ctx:
         return fq_type
 
     @staticmethod
-    def _parse_input_var(var):
+    def _parse_input_var(var) -> str:
         # If no variable is given, use x
         if var is None:
-            var = b"z"
-
-        # Encode to bytes for cython to parse
-        if isinstance(var, str):
-            var = var.encode()
-
-        # TODO: Flint only wants one-character inputs
-        if len(var) > 1:
-            raise ValueError("variable for GF(p^k) generator can only be one character")
-
+            var = "z"
+        elif isinstance(var, bytes):
+            var = var.decode()
+        if len(var) < 1:
+            raise ValueError("variable for GF(p^k) generator must be at least one character")
         return var
 
     def __init__(self, p=None, degree=None, var=None, modulus=None, fq_type=fq_default_type.DEFAULT,
@@ -138,7 +133,7 @@ cdef class fq_default_ctx:
         if d < 1:
             raise ValueError(f"the degree must be positive, got d = {d}")
 
-        fq_default_ctx_init_type(self.val, (<fmpz>prime).val, d, self.var, <fq_default_type>fq_type)
+        fq_default_ctx_init_type(self.val, (<fmpz>prime).val, d, self.var.encode(), <fq_default_type>fq_type)
         self._initialized = True
 
     cdef _set_from_modulus(self, modulus, var, fq_type=fq_default_type.DEFAULT,
@@ -161,7 +156,7 @@ cdef class fq_default_ctx:
             raise ValueError("modulus must be irreducible")
 
         fq_default_ctx_init_modulus_type(self.val, (<fmpz_mod_poly>modulus).val,
-                                         (<fmpz_mod_poly>modulus).ctx.mod.val, self.var, <fq_default_type>fq_type)
+                                         (<fmpz_mod_poly>modulus).ctx.mod.val, self.var.encode(), <fq_default_type>fq_type)
         self._initialized = True
 
     @property
@@ -396,15 +391,20 @@ cdef class fq_default_ctx:
             >>> gf3 == gf
             False
         """
+        cdef fq_default_ctx other_ctx
+
         if self is other:
             return True
 
-        if typecheck(other, fq_default_ctx):
-            return (self.fq_type == other.fq_type
-                    and self.var == other.var
-                    and self.prime() == other.prime()
-                    and self.modulus() == other.modulus())
-        return False
+        if not typecheck(other, fq_default_ctx):
+            return NotImplemented
+
+        other_ctx = <fq_default_ctx>other
+
+        return (self.fq_type == other_ctx.fq_type
+                and self.var == other_ctx.var
+                and self.prime() == other_ctx.prime()
+                and self.modulus() == other_ctx.modulus())
 
     def __hash__(self):
         return hash((self.fq_type, self.var, self.prime(), self.modulus()))
@@ -412,12 +412,12 @@ cdef class fq_default_ctx:
     def __str__(self):
         if self.degree() == 1:
             return f"Context for fq_default in GF({self.prime()})"
-        return f"Context for fq_default in GF({self.prime()}^{self.degree()})[{self.var.decode()}]/({self.modulus().str(var=self.var.decode())})"
+        return f"Context for fq_default in GF({self.prime()}^{self.degree()})[{self.var}]/({self.modulus().str(var=self.var)})"
 
     def __repr__(self):
         if self.degree() == 1:
-            return f"fq_default_ctx({self.prime()}, var='{self.var.decode()}' type='{self.fq_type._name_}')"
-        return f"fq_default_ctx({self.prime()}, {self.degree()}, '{self.var.decode()}', {self.modulus()!r}, '{self.fq_type._name_}')"
+            return f"fq_default_ctx({self.prime()}, var='{self.var}', type='{self.fq_type._name_}')"
+        return f"fq_default_ctx({self.prime()}, {self.degree()}, '{self.var}', {self.modulus()!r}, '{self.fq_type._name_}')"
 
     def __call__(self, val):
         return fq_default(val, self)
@@ -503,7 +503,7 @@ cdef class fq_default(flint_scalar):
         return coeffs
 
     def str(self):
-        return self.polynomial().str(var=self.ctx.var.decode())
+        return self.polynomial().str(var=self.ctx.var)
 
     def __hash__(self):
         return hash((self.polynomial(), hash(self.ctx)))

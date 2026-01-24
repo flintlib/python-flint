@@ -12,6 +12,8 @@ import flint.typing as typ
 import flint.flint_base.flint_base as flint_base
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
+from flint.test.test_arb import all_tests as arb_tests
+
 
 PYPY = platform.python_implementation() == "PyPy"
 
@@ -640,13 +642,27 @@ def test_fmpz_mat():
     M3n = M([[3,0,0],[-6,0,0],[3,0,0]])
     assert M3.nullspace() == (M3n, 1)
     assert M3 * M3.nullspace()[0] == M(3,3,[0]*9)
-    # XXX: lll core dumps on a singular matrix
     M4 = M([[1,2,3],[4,5,6],[7,8,10]])
     L4 = M([[0,0,1],[-1,1,0],[2,1,0]])
     T4 = M([[1,-2,1],[0,5,-3],[-2,1,0]])
     assert L4 == T4 * M4
     assert M4.lll() == L4
     assert M4.lll(transform=True) == (L4, T4)
+    M5 = M([[1,2,3],[4,5,6],[7,8,9]])
+    L5 = M([[0,0,0],[2,1,0],[-1,1,3]])
+    T5 = M([[1,-2,1],[-2,1,0],[3,-1,0]])
+    assert L5 == T5 * M5
+    assert M5.lll() == L5
+    assert M5.lll(transform=True) == (L5, T5)
+    Mz = M(0, 3, [])
+    assert Mz.lll() == M(0, 3, [])
+    assert Mz.lll(transform=True) == (M(0, 3, []), M(0, 0, []))
+    Mr = M(3, 0, [])
+    assert Mr.lll() == M(3, 0, [])
+    assert Mr.lll(transform=True) == (M(3, 0, []), M([[1,0,0],[0,1,0],[0,0,1]]))
+    Mzz = M(0, 0, [])
+    assert Mzz.lll() == M(0, 0, [])
+    assert Mzz.lll(transform=True) == (M(0, 0, []), M(0, 0, []))
     # XXX: rep="gram" consumes all memory in the system and core dumps
     #for rep in "zbasis", "gram":
     rep = "zbasis"
@@ -888,6 +904,8 @@ def test_fmpq() -> None:
     assert Q(-5,3).ceil() == flint.fmpz(-1)
 
     assert type(int(Q(5,3))) is int
+    assert type(float(Q(5,3))) is float
+    assert type(complex(Q(5,3))) is complex
     assert type(math.floor(Q(5,3))) is flint.fmpz
     assert type(math.ceil(Q(5,3))) is flint.fmpz
     assert type(math.trunc(Q(5,3))) is flint.fmpz
@@ -897,6 +915,8 @@ def test_fmpq() -> None:
     assert type(round(Q(5,3), 1)) is flint.fmpq
 
     assert int(Q(5,3)) == 1
+    assert float(Q(5,3)) == 5/3
+    assert complex(Q(5,3)) == 5/3 + 0j
     assert math.floor(Q(5,3)) == flint.fmpz(1)
     assert math.ceil(Q(5,3)) == flint.fmpz(2)
     assert math.trunc(Q(5,3)) == flint.fmpz(1)
@@ -1669,6 +1689,8 @@ def test_arb():
     assert arb(3) <= arb("inf")
     assert arb(3) == arb(3)
     assert arb(3) != arb(2)
+    assert -arb(3) == arb(-3)
+    assert arb(3).neg() == arb(-3)
     assert not (arb("1.1") == arb("1.1"))
 
     assert arb(3).repr() == 'arb((0x3, 0x0))'
@@ -2963,6 +2985,20 @@ def test_polys(args: _PolyTestCase[typ.epoly_p[Tc], Tc]) -> None:
     assert P([1, 1]) ** 2 == P([1, 2, 1])
     assert raises(lambda: P([1, 1]) ** -1, DomainError)
     assert raises(lambda: P([1, 1]) ** None, TypeError) # type: ignore
+
+    # Truncated operations
+    assert P([1, 2, 3]).mul_low(P([4, 5, 6]), 3) == P([4, 13, 28])
+    assert raises(lambda: P([1, 2, 3]).mul_low(None, 3), TypeError) # type: ignore
+    assert raises(lambda: P([1, 2, 3]).mul_low(P([4, 5, 6]), None), TypeError) # type: ignore
+
+    p = P([1, 2, 3])
+    assert p.pow_trunc(1234, 3) == P([1, 2468, 3046746])
+    assert raises(lambda: p.pow_trunc(None, 3), TypeError) # type: ignore
+    assert raises(lambda: p.pow_trunc(3, "A"), TypeError) # type: ignore
+    assert raises(lambda: p.pow_trunc(P([4, 5, 6]), 3), TypeError) # type: ignore
+    # Large exponents are allowed
+    assert p.pow_trunc(2**100, 2) == P([1, 2**101])
+    assert p.pow_trunc(6**60, 3) == p.pow_trunc(2**60, 3).pow_trunc(3**60, 3)
 
     # XXX: Not sure what this should do in general:
     p = P([1, 1])
@@ -4700,9 +4736,6 @@ def test_fq_default():
     assert raises(lambda: flint.fq_default_ctx(5, fq_type=-1), ValueError)
     assert raises(lambda: flint.fq_default_ctx("ABC"), TypeError) # type: ignore
 
-    # var must be one character
-    assert raises(lambda: flint.fq_default_ctx(5, var="XXX"), ValueError)
-
     # p must be set if modulus has no characteristic / modulus
     assert raises(lambda: flint.fq_default_ctx(modulus=[0,1,0]), ValueError)
 
@@ -4757,7 +4790,7 @@ def test_fq_default():
     assert str(gf_5) == "Context for fq_default in GF(5)"
     assert str(gf_5_2) == "Context for fq_default in GF(5^2)[z]/(z^2 + 4*z + 2)"
 
-    assert repr(gf_5) == "fq_default_ctx(5, var='z' type='NMOD')"
+    assert repr(gf_5) == "fq_default_ctx(5, var='z', type='NMOD')"
     assert repr(gf_5_2) == "fq_default_ctx(5, 2, 'z', x^2 + 4*x + 2, 'FQ_ZECH')"
 
     # coercision
@@ -5213,4 +5246,4 @@ all_tests = [
     test_python_threads,
 
     test_all_tests,
-]
+] + arb_tests

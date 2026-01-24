@@ -10,12 +10,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-22.04-arm, windows-2022, macos-13, macos-14]
+        os: [ubuntu-22.04, ubuntu-22.04-arm, windows-2022, macos-15-intel, macos-14]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6.0.1
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
 
@@ -35,12 +35,12 @@ jobs:
         if: ${{ startsWith( matrix.os , 'windows' ) }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@c923d83ad9c1bc00211c5041d0c3f73294ff88f6 # v3.1.4
+        uses: pypa/cibuildwheel@63fd63b352a9a8bdcc24791c9dbee952ee9a8abc # v3.3.0
         env:
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: wheels-${{ matrix.os }}
           path: wheelhouse/*.whl
@@ -50,9 +50,9 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6.0.1
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
 
@@ -60,7 +60,7 @@ jobs:
       - run: pip install build
       - run: python -m build --sdist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: sdist
           path: dist/*.tar.gz
@@ -78,7 +78,7 @@ jobs:
           ubuntu-24.04-arm,
           windows-2022,
           windows-2025,
-          macos-13,
+          macos-15-intel,
           macos-14,
           macos-15,
           ]
@@ -86,11 +86,11 @@ jobs:
         python-version: ['3.11', '3.12', '3.13', '3.13t', '3.14', '3.14t', 'pypy3.11']
 
     steps:
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v7
         with:
           path: wheelhouse
           merge-multiple: true
@@ -115,8 +115,8 @@ jobs:
       matrix:
         os: [ubuntu-24.04]
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6.0.1
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
       - run: sudo apt-get update
@@ -128,8 +128,8 @@ jobs:
     name: Test docs (build and doctest)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6.0.1
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
       - run: bin/install_latest_flint_ubuntu.sh
@@ -143,8 +143,8 @@ jobs:
     name: 'Test old Cython/meson-python'
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6.0.1
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
       - run: sudo apt-get update
@@ -170,8 +170,8 @@ jobs:
         # Supported Flint versions:
         flint-tag: ['v3.0.1', 'v3.1.3-p1', 'v3.2.2', 'v3.3.1']
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6.0.1
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
       - run: bin/install_flint_ubuntu.sh ${{ matrix.flint-tag }}
@@ -183,8 +183,8 @@ jobs:
     name: Test flint main Linux x86-64
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6.0.1
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
       - run: bin/install_flint_ubuntu.sh main
@@ -197,8 +197,8 @@ jobs:
     name: Test flint main Linux ARM
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6.0.1
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
       - run: bin/install_flint_ubuntu.sh main
@@ -211,8 +211,8 @@ jobs:
     name: Test coverage setuptools build
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6.0.1
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
       - run: sudo apt-get update
@@ -225,8 +225,8 @@ jobs:
     name: Test coverage meson build
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6.0.1
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12' # does not work with 3.13
       - run: sudo apt-get update
@@ -243,8 +243,8 @@ jobs:
       matrix:
         sympy-version: ['1.13.1', '1.14.0']
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6.0.1
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
       - run: sudo apt-get update
@@ -259,8 +259,8 @@ jobs:
     name: Test SymPy master
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6.0.1
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
       - run: sudo apt-get update
@@ -285,7 +285,7 @@ jobs:
     steps:
         # Downloads all artifacts
       - name: Download release artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           path: wheelhouse
           merge-multiple: true
@@ -318,7 +318,7 @@ jobs:
     steps:
         # Downloads all artifacts
       - name: Download release artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           path: wheelhouse
           merge-multiple: true
@@ -330,7 +330,7 @@ jobs:
         # It is recommended to pin a commit hash here for security but it
         # should be kept up to date. Possibly all actions and dependencies used
         # by the build script should be pinned...
-        uses: pypa/gh-action-pypi-publish@fb13cb306901256ace3dab689990e13a5550ffaa  # v1.11.0
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e  # v1.13.0
 
   # Make a GitHub release
 
@@ -342,10 +342,10 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6.0.1
 
       - name: Download sdist
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: sdist
           path: dist

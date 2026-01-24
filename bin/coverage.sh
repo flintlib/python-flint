@@ -18,7 +18,7 @@ pip uninstall -y cython
 pip install --pre cython       # unpinned to pick up new releases in CI
 # pip install cython==3.1.0a1  # known working version for Python < 3.13
 
-meson setup build -Dcoverage=true
+meson setup build -Dcoverage=true -Dflint_version_check=false
 spin run -- coverage run $RC -m flint.test $@
 coverage report $RC -m --sort=cover
 coverage html $RC

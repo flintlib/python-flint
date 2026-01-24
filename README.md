@@ -144,12 +144,16 @@ Compatible versions:
 
 | python-flint | Release date  | CPython     | FLINT      | Cython           |
 |--------------|---------------|-------------|------------|------------------|
+| `0.9.0`      |      ???      | `3.11-3.14` | `3.0-3.3`  | `3.1-3.2?`       |
 | `0.8.0`      | 29th Aug 2025 | `3.11-3.14` | `3.0-3.3`  | `3.1` only       |
 | `0.7.0`      | 16th Mar 2025 | `3.11-3.13` | `3.0-3.2`  | `3.0.11-3.1.0a1` |
 | `0.6.0`      |  1st Feb 2024 | `3.9-3.12`  | `3.0` only | `3.0` only       |
 
 The requirement for Cython 3.1 is only for CPython's free-threaded build.
-Otherwise Cython 3.0 is fine. As of python-flint 0.7.0, CPython 3.13 [PEP
+Otherwise Cython 3.0 is fine. Cython 3.2 is required for a stable ABI build of
+python-flint.
+
+As of python-flint 0.7.0, CPython 3.13 [PEP
 703](https://peps.python.org/pep-0703/) free-threaded (no-GIL) builds of
 python-flint are provided. In the the free-threaded build, mutating matrices or
 polynomials from multiple threads can lead to memory corruption. There are some
@@ -167,9 +171,13 @@ Contributors (0.9.0):
 - Rémy Oudompheng (RO)
 - Agriya Khetarpal (AK)
 - Oscar Benjamin (OB)
+- Daniel Simmons-Marengo (DSM)
 
 Changes (0.9.0):
 
+- [gh-322](https://github.com/flintlib/python-flint/pull/322),
+  Add `mul_low` and `pow_trunc` methods to `fmpz_poly`, `fmpq_poly` and
+  `nmod_poly`. (RO)
 - [gh-318](https://github.com/flintlib/python-flint/pull/318),
   Add emscripten build in CI. Polynomial factors and roots are
   now sorted into a consistent order for `nmod_poly` and
@@ -178,6 +186,12 @@ Changes (0.9.0):
 - [gh-312](https://github.com/flintlib/python-flint/pull/312),
   Add `discriminant` method to `fmpz_poly`, `fmpq_poly` and
   `nmod_poly`. (RO)
+- [gh-336](https://github.com/flintlib/python-flint/pull/336),
+  Fixed a bug in `arb.neg()` which caused it to return its input
+  without negating it. (DSM)
+- [gh-339](https://github.com/flintlib/python-flint/pull/339),
+  Add `fmpq.__float__` method so that `float(fmpq)` and `complex(fmpq)`
+  work. (OB)
 
 0.8.0
 -----

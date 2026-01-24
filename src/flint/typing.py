@@ -10,11 +10,13 @@ from typing import (
     Iterator,
     Iterable,
     Any,
-    Self,
     Mapping,
     Sequence,
     overload,
 )
+
+if TYPE_CHECKING:
+    from typing import Self
 
 from .flint_base.flint_base import (
     flint_elem,
@@ -143,6 +145,8 @@ class epoly_p(poly_p[_Tscalar], Protocol):
     def factor(self) -> tuple[_Tscalar, list[tuple[Self, int]]]: ...
     def factor_squarefree(self) -> tuple[_Tscalar, list[tuple[Self, int]]]: ...
     def deflation(self) -> tuple[Self, int]: ...
+    def mul_low(self, other: Self, n: int) -> Self: ...
+    def pow_trunc(self, e: int, n: int) -> Self: ...
 
 
 class _series_p(elem_p, Protocol[_Tscalar]):
