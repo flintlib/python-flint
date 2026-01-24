@@ -5059,7 +5059,7 @@ def test_fq_default_poly():
                 break
         while True:
             h = R_test.random_element()
-            if f.gcd(h).is_one():
+            if f.gcd(h).is_one() and h.degree() >= 1:
                 break
         g = f.inverse_mod(h)
         assert f.mul_mod(g, h).is_one()
