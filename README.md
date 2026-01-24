@@ -192,6 +192,8 @@ Changes (0.9.0):
 - [gh-339](https://github.com/flintlib/python-flint/pull/339),
   Add `fmpq.__float__` method so that `float(fmpq)` and `complex(fmpq)`
   work. (OB)
+- [gh-324](https://github.com/flintlib/python-flint/pull/324),
+  Faster conversion from `int` to `fmpz` and back. (RO).
 - [gh-359](https://github.com/flintlib/python-flint/pull/359),
   Sort factorisations of all mpoly types. (OB)
 
