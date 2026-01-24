@@ -4052,7 +4052,7 @@ def test_factor_poly_mpoly():
             # *_mpoly types
 
             assert factor(x*y+1) == (S(1), [(x*y+1, 1)])
-            assert factor(x*y) == (S(1), [(x, 1), (y, 1)])
+            assert factor(x*y) == (S(1), [(y, 1), (x, 1)])
 
             assert factor_sqf((x*y+1)**2*(x*y-1)) == (S(1), [(x*y-1, 1), (x*y+1, 2)])
 
