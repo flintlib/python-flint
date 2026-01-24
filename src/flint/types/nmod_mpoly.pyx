@@ -1,3 +1,5 @@
+cimport cython
+
 from flint.flint_base.flint_base cimport (
     flint_mpoly,
     flint_mod_mpoly_context,
@@ -841,7 +843,7 @@ cdef class nmod_mpoly(flint_mpoly):
             >>> (p1 * p2).factor()
             (6, [(z + 1, 1), (x + 1, 1), (x + 2, 1)])
             >>> (p2 * p1 * p2).factor()
-            (7, [(z + 1, 2), (x + 2, 1), (x + 1, 2)])
+            (7, [(x + 2, 1), (z + 1, 2), (x + 1, 2)])
         """
         cdef:
             nmod_mpoly_factor_t fac
@@ -867,6 +869,9 @@ cdef class nmod_mpoly(flint_mpoly):
 
         constant = nmod(fac.constant, self.ctx.modulus())
         nmod_mpoly_factor_clear(fac, self.ctx.val)
+
+        res.sort(key=_nmod_mpoly_sort_key)
+
         return constant, res
 
     def factor_squarefree(self):
@@ -1086,6 +1091,35 @@ cdef class nmod_mpoly(flint_mpoly):
         )
 
         return res
+
+
+@cython.final
+@cython.no_gc
+cdef class _nmod_mpoly_sort_key:
+    cdef nmod_mpoly p
+    cdef ulong mult
+
+    def __init__(self, tuple fac_m):
+        self.p = fac_m[0]
+        self.mult = fac_m[1]
+
+    def __lt__(k1, _nmod_mpoly_sort_key k2):
+        cdef slong nterms
+        cdef tuple monom1, monom2
+        cdef int coeff1, coeff2
+        if k1.mult != k2.mult:
+            return k1.mult < k2.mult
+        nterms = min(k1.p.val.length, k2.p.val.length)
+        for i in range(nterms):
+            monom1 = k1.p.monomial(i)
+            monom2 = k2.p.monomial(i)
+            if monom1 != monom2:
+                return monom1 < monom2
+            coeff1 = k1.p.coefficient(i)
+            coeff2 = k2.p.coefficient(i)
+            if coeff1 != coeff2:
+                return coeff1 < coeff2
+        return k1.p.val.length < k2.p.val.length
 
 
 cdef class nmod_mpoly_vec:

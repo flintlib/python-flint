@@ -1,3 +1,7 @@
+cimport cython
+
+from flint.flintlib.types.flint cimport ulong
+
 from flint.flint_base.flint_base cimport (
     flint_mpoly,
     flint_mpoly_context,
@@ -874,9 +878,9 @@ cdef class fmpz_mpoly(flint_mpoly):
             >>> p1 = Zm("2*x + 4", ctx)
             >>> p2 = Zm("3*x*z + 3*x + 3*z + 3", ctx)
             >>> (p1 * p2).factor()
-            (6, [(z + 1, 1), (x + 2, 1), (x + 1, 1)])
+            (6, [(z + 1, 1), (x + 1, 1), (x + 2, 1)])
             >>> (p2 * p1 * p2).factor()
-            (18, [(z + 1, 2), (x + 2, 1), (x + 1, 2)])
+            (18, [(x + 2, 1), (z + 1, 2), (x + 1, 2)])
         """
         cdef:
             fmpz_mpoly_factor_t fac
@@ -900,6 +904,9 @@ cdef class fmpz_mpoly(flint_mpoly):
         c = fmpz.__new__(fmpz)
         fmpz_set((<fmpz>c).val, fac.constant)
         fmpz_mpoly_factor_clear(fac, self.ctx.val)
+
+        res.sort(key=_fmpz_mpoly_sort_key)
+
         return c, res
 
     def factor_squarefree(self):
@@ -1189,6 +1196,35 @@ cdef class fmpz_mpoly(flint_mpoly):
 
         fmpz_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
         return list(stride), list(shift)
+
+
+@cython.final
+@cython.no_gc
+cdef class _fmpz_mpoly_sort_key:
+    cdef fmpz_mpoly p
+    cdef ulong mult
+
+    def __init__(self, tuple fac_m):
+        self.p = fac_m[0]
+        self.mult = fac_m[1]
+
+    def __lt__(k1, _fmpz_mpoly_sort_key k2):
+        cdef slong nterms
+        cdef tuple monom1, monom2
+        cdef int coeff1, coeff2
+        if k1.mult != k2.mult:
+            return k1.mult < k2.mult
+        nterms = min(k1.p.val.length, k2.p.val.length)
+        for i in range(nterms):
+            monom1 = k1.p.monomial(i)
+            monom2 = k2.p.monomial(i)
+            if monom1 != monom2:
+                return monom1 < monom2
+            coeff1 = int(k1.p.coefficient(i))
+            coeff2 = int(k2.p.coefficient(i))
+            if coeff1 != coeff2:
+                return coeff1 < coeff2
+        return k1.p.val.length < k2.p.val.length
 
 
 cdef class fmpz_mpoly_vec:

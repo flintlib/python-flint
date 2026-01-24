@@ -4052,7 +4052,7 @@ def test_factor_poly_mpoly():
             # *_mpoly types
 
             assert factor(x*y+1) == (S(1), [(x*y+1, 1)])
-            assert factor(x*y) == (S(1), [(x, 1), (y, 1)])
+            assert factor(x*y) == (S(1), [(y, 1), (x, 1)])
 
             assert factor_sqf((x*y+1)**2*(x*y-1)) == (S(1), [(x*y-1, 1), (x*y+1, 2)])
 
@@ -5059,7 +5059,7 @@ def test_fq_default_poly():
                 break
         while True:
             h = R_test.random_element()
-            if f.gcd(h).is_one():
+            if f.gcd(h).is_one() and h.degree() >= 1:
                 break
         g = f.inverse_mod(h)
         assert f.mul_mod(g, h).is_one()
