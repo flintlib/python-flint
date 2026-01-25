@@ -1,5 +1,5 @@
 diff --git a/Makefile.in b/Makefile.in
-index 0f25aa2b5..0c2f9dad9 100644
+index 0f25aa2b5..937fffa10 100644
 --- a/Makefile.in
 +++ b/Makefile.in
 @@ -416,14 +416,7 @@ endif
@@ -14,7 +14,7 @@ index 0f25aa2b5..0c2f9dad9 100644
 -endef
 -$(foreach dir, $(DIRS), $(eval $(call xxx_merged_lobj_rule,$(dir))))
 -MERGED_LOBJS:=$(foreach dir, $(DIRS),$(BUILD_DIR)/$(dir)_merged.lo)
-+MERGED_LOBJS := $(foreach dir,$(DIRS),$($(dir)_OBJS))
++MERGED_LOBJS:=$(foreach dir,$(DIRS),$($(dir)_LOBJS))
  
  $(FLINT_DIR)/$(FLINT_LIB_FULL): $(MERGED_LOBJS)
  	@echo "Building $(FLINT_LIB_FULL)"
@@ -30,7 +30,7 @@ index 0f25aa2b5..0c2f9dad9 100644
 -endef
 -$(foreach dir, $(DIRS), $(eval $(call xxx_merged_obj_rule,$(dir))))
 -MERGED_OBJS:=$(foreach dir, $(DIRS),$(BUILD_DIR)/$(dir)_merged.o)
-+MERGED_OBJS := $(foreach dir,$(DIRS),$($(dir)_OBJS))
++MERGED_OBJS:=$(foreach dir,$(DIRS),$($(dir)_OBJS))
  
  $(FLINT_DIR)/$(FLINT_LIB_STATIC): $(MERGED_OBJS)
  	@echo "Building $(FLINT_LIB_STATIC)"
