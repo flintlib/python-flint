@@ -18,6 +18,7 @@ set -o errexit
 
 SKIP_GMP=no
 SKIP_MPFR=no
+FAT_GMP_ARG="--enable-fat"
 
 USE_GMP=gmp
 PATCH_GMP_ARM64=no
@@ -37,6 +38,7 @@ do
       echo "  --host <HOST>     - set the host (target) for GMP build"
       echo "  --skip-gmp        - skip building GMP"
       echo "  --skip-mpfr       - skip building MPFR"
+      echo "  --disable-fat     - disable building fat binaries"
       echo
       echo "Legacy options:"
       echo "  --gmp gmp         - build based on GMP (default)"
@@ -81,6 +83,11 @@ do
       # If you already have a local install of MPFR you can pass --skip-mpfr
       # to skip building it.
       SKIP_MPFR=yes
+      shift
+    ;;
+    --disable-fat)
+      # Disable building fat binaries
+      FAT_GMP_ARG="--disable-assembly"
       shift
     ;;
     --patch-gmp-arm64)
@@ -190,7 +197,7 @@ if [ $USE_GMP = "gmp" ]; then
       ./configfsf.guess
 
       ./configure --prefix=$PREFIX\
-        --enable-fat\
+        $FAT_GMP_ARG\
         --enable-shared=yes\
         --enable-static=no\
         --host=$HOST_ARG
