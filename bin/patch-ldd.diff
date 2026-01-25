@@ -1,59 +1,36 @@
 diff --git a/Makefile.in b/Makefile.in
-index 0f25aa2b5..cc0e44708 100644
+index 0f25aa2b5..0c2f9dad9 100644
 --- a/Makefile.in
 +++ b/Makefile.in
-@@ -416,6 +416,10 @@ endif
+@@ -416,14 +416,7 @@ endif
  ifneq ($(SHARED), 0)
  shared: $(FLINT_DIR)/$(FLINT_LIB_FULL)
  
-+ifneq ($(strip $(filter gnu% linux-gnu%,@FLINT_BUILD_OS@)),)
-+# No command line length limitations under build_os=gnu*|linux-gnu*
-+MERGED_OBJS := $(foreach dir,$(DIRS),$($(dir)_OBJS))
-+else
- # The following is to avoid reaching the maximum length of command line
- # arguments, mainly present on MinGW.
- define xxx_merged_lobj_rule
-@@ -424,6 +428,7 @@ $(BUILD_DIR)/$(1)_merged.lo: $($(1)_LOBJS) | $(BUILD_DIR)
- endef
- $(foreach dir, $(DIRS), $(eval $(call xxx_merged_lobj_rule,$(dir))))
- MERGED_LOBJS:=$(foreach dir, $(DIRS),$(BUILD_DIR)/$(dir)_merged.lo)
-+endif
+-# The following is to avoid reaching the maximum length of command line
+-# arguments, mainly present on MinGW.
+-define xxx_merged_lobj_rule
+-$(BUILD_DIR)/$(1)_merged.lo: $($(1)_LOBJS) | $(BUILD_DIR)
+-	@$(LD) -r $($(1)_LOBJS) -o $(BUILD_DIR)/$(1)_merged.lo
+-endef
+-$(foreach dir, $(DIRS), $(eval $(call xxx_merged_lobj_rule,$(dir))))
+-MERGED_LOBJS:=$(foreach dir, $(DIRS),$(BUILD_DIR)/$(dir)_merged.lo)
++MERGED_LOBJS := $(foreach dir,$(DIRS),$($(dir)_OBJS))
  
  $(FLINT_DIR)/$(FLINT_LIB_FULL): $(MERGED_LOBJS)
  	@echo "Building $(FLINT_LIB_FULL)"
-@@ -437,6 +442,10 @@ endif
+@@ -437,14 +430,7 @@ endif
  ifneq ($(STATIC), 0)
  static: $(FLINT_DIR)/$(FLINT_LIB_STATIC)
  
-+ifneq ($(strip $(filter gnu% linux-gnu%,@FLINT_BUILD_OS@)),)
-+# No command line length limitations under build_os=gnu*|linux-gnu*
+-# The following is to avoid reaching the maximum length of command line
+-# arguments, mainly present on MinGW.
+-define xxx_merged_obj_rule
+-$(BUILD_DIR)/$(1)_merged.o: $($(1)_OBJS) | $(BUILD_DIR)
+-	@$(LD) -r $($(1)_OBJS) -o $(BUILD_DIR)/$(1)_merged.o
+-endef
+-$(foreach dir, $(DIRS), $(eval $(call xxx_merged_obj_rule,$(dir))))
+-MERGED_OBJS:=$(foreach dir, $(DIRS),$(BUILD_DIR)/$(dir)_merged.o)
 +MERGED_OBJS := $(foreach dir,$(DIRS),$($(dir)_OBJS))
-+else
- # The following is to avoid reaching the maximum length of command line
- # arguments, mainly present on MinGW.
- define xxx_merged_obj_rule
-@@ -445,6 +454,7 @@ $(BUILD_DIR)/$(1)_merged.o: $($(1)_OBJS) | $(BUILD_DIR)
- endef
- $(foreach dir, $(DIRS), $(eval $(call xxx_merged_obj_rule,$(dir))))
- MERGED_OBJS:=$(foreach dir, $(DIRS),$(BUILD_DIR)/$(dir)_merged.o)
-+endif
  
  $(FLINT_DIR)/$(FLINT_LIB_STATIC): $(MERGED_OBJS)
  	@echo "Building $(FLINT_LIB_STATIC)"
-diff --git a/configure.ac b/configure.ac
-index 511d0be9a..9f161e490 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -164,8 +164,12 @@ fi
- 
- dnl Get system triplet
- dnl NOTE: This is already invoked from LT_INIT
-+dnl AC_CANONICAL_BUILD
- dnl AC_CANONICAL_HOST
- 
-+FLINT_BUILD_OS="${build_os}"
-+AC_SUBST(FLINT_BUILD_OS)
-+
- ################################################################################
- # configure headers
- ################################################################################
