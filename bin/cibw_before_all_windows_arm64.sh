@@ -16,6 +16,6 @@ pacman -S --noconfirm \
 
 bin/build_dependencies_unix.sh \
     --use-gmp-github-mirror\
-    --host arm64-w64-mingw32\
+    --host aarch64-pc-windows-gnullvm\
     --patch-C23\
     #
