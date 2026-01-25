@@ -18,4 +18,5 @@ bin/build_dependencies_unix.sh \
     --disable-fat\
     --use-gmp-github-mirror\
     --patch-C23\
+    --patch-ldd\
     #

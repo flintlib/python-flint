@@ -19,6 +19,7 @@ set -o errexit
 SKIP_GMP=no
 SKIP_MPFR=no
 FAT_GMP_ARG="--enable-fat"
+PATCH_LDD=no
 
 USE_GMP=gmp
 PATCH_GMP_ARM64=no
@@ -39,6 +40,7 @@ do
       echo "  --skip-gmp        - skip building GMP"
       echo "  --skip-mpfr       - skip building MPFR"
       echo "  --disable-fat     - disable building fat binaries"
+      echo "  --patch-ldd       - patch flint to work with ldd (for mingw on arm64)"
       echo
       echo "Legacy options:"
       echo "  --gmp gmp         - build based on GMP (default)"
@@ -99,6 +101,11 @@ do
     --patch-C23)
       # Patch GMP 6.3.0 for newer gcc versions
       PATCH_GMP_C23=yes
+      shift
+    ;;
+    --patch-ldd)
+      # Needed only for GMP 6.3.0 on OSX arm64 (Apple M1) hardware
+      PATCH_LDD=yes
       shift
     ;;
     --use-gmp-github-mirror)
@@ -316,6 +323,15 @@ echo
 curl -O -L https://github.com/flintlib/flint/releases/download/v$FLINTVER/flint-$FLINTVER.tar.gz
 tar xf flint-$FLINTVER.tar.gz
 cd flint-$FLINTVER
+
+  if [ $PATCH_LDD = "yes" ]; then
+    echo
+    echo --------------------------------------------
+    echo "           patching FLINT"
+    echo --------------------------------------------
+    patch -N -Z -p0 < ../../../bin/patch-ldd.diff
+  fi
+
   ./bootstrap.sh
   ./configure --prefix=$PREFIX\
     --host=$HOST_ARG\
