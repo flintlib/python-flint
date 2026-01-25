@@ -10,7 +10,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-22.04-arm, windows-2022, macos-15-intel, macos-14]
+        os: [
+          ubuntu-22.04,
+          ubuntu-22.04-arm,
+          windows-2022,
+          windows-11-arm,
+          macos-15-intel,
+          macos-14,
+        ]
 
     steps:
       - uses: actions/checkout@v6.0.1
@@ -22,7 +29,12 @@ jobs:
       - uses: msys2/setup-msys2@v2.29.0
         with:
           msystem: mingw64
-        if: ${{ startsWith( matrix.os , 'windows' ) }}
+        if: ${{ matrix.os == 'windows-2022' }}
+
+      - uses: msys2/setup-msys2@v2.29.0
+        with:
+          msystem: clangarm64
+        if: ${{ matrix.os == 'windows-11-arm' }}
 
         # Install pkgconfig on Windows from choco rather than from msys and
         # avoid using the Strawberry one.
@@ -34,11 +46,30 @@ jobs:
       - run: echo "PKG_CONFIG_PATH=${{ github.workspace }}/.local/lib/pkgconfig" >> $env:GITHUB_ENV
         if: ${{ startsWith( matrix.os , 'windows' ) }}
 
-      - name: Build wheels
+        # We need to set these environment variables here rather than
+        # pyproject.toml so we can use differnt values for different
+        # architectures. For non-Windows this is just done with $(uname -m)
+        # don't know what that would do in msys2 on Windows when cibuildwheel
+        # parses it.
+
+      - name: Build wheels for windows-2022
         uses: pypa/cibuildwheel@63fd63b352a9a8bdcc24791c9dbee952ee9a8abc # v3.3.0
+        if: ${{ matrix.os == 'windows-2022' }}
         env:
-          # override setting in pyproject.toml to use msys2 instead of msys64 bash
-          CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows.sh
+          CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows_amd64.sh
+
+      - name: Build wheels for windows-11-arm
+        uses: pypa/cibuildwheel@63fd63b352a9a8bdcc24791c9dbee952ee9a8abc # v3.3.0
+        if: ${{ matrix.os == 'windows-11-arm' }}
+        env:
+          CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows_arm64.sh
+
+        # After all the Windows-specific steps above this is what actually
+        # builds the wheels for every other OS:
+
+      - name: Build wheels for any other OS
+        uses: pypa/cibuildwheel@63fd63b352a9a8bdcc24791c9dbee952ee9a8abc # v3.3.0
+        if: ${{ !startsWith( matrix.os , 'windows' ) }}
 
       - uses: actions/upload-artifact@v5
         with:
@@ -78,6 +109,7 @@ jobs:
           ubuntu-24.04-arm,
           windows-2022,
           windows-2025,
+          windows-11-arm,
           macos-15-intel,
           macos-14,
           macos-15,

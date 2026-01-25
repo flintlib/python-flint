@@ -1,0 +1,36 @@
+diff --git a/Makefile.in b/Makefile.in
+index 0f25aa2b5..937fffa10 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -416,14 +416,7 @@ endif
+ ifneq ($(SHARED), 0)
+ shared: $(FLINT_DIR)/$(FLINT_LIB_FULL)
+ 
+-# The following is to avoid reaching the maximum length of command line
+-# arguments, mainly present on MinGW.
+-define xxx_merged_lobj_rule
+-$(BUILD_DIR)/$(1)_merged.lo: $($(1)_LOBJS) | $(BUILD_DIR)
+-	@$(LD) -r $($(1)_LOBJS) -o $(BUILD_DIR)/$(1)_merged.lo
+-endef
+-$(foreach dir, $(DIRS), $(eval $(call xxx_merged_lobj_rule,$(dir))))
+-MERGED_LOBJS:=$(foreach dir, $(DIRS),$(BUILD_DIR)/$(dir)_merged.lo)
++MERGED_LOBJS:=$(foreach dir,$(DIRS),$($(dir)_LOBJS))
+ 
+ $(FLINT_DIR)/$(FLINT_LIB_FULL): $(MERGED_LOBJS)
+ 	@echo "Building $(FLINT_LIB_FULL)"
+@@ -437,14 +430,7 @@ endif
+ ifneq ($(STATIC), 0)
+ static: $(FLINT_DIR)/$(FLINT_LIB_STATIC)
+ 
+-# The following is to avoid reaching the maximum length of command line
+-# arguments, mainly present on MinGW.
+-define xxx_merged_obj_rule
+-$(BUILD_DIR)/$(1)_merged.o: $($(1)_OBJS) | $(BUILD_DIR)
+-	@$(LD) -r $($(1)_OBJS) -o $(BUILD_DIR)/$(1)_merged.o
+-endef
+-$(foreach dir, $(DIRS), $(eval $(call xxx_merged_obj_rule,$(dir))))
+-MERGED_OBJS:=$(foreach dir, $(DIRS),$(BUILD_DIR)/$(dir)_merged.o)
++MERGED_OBJS:=$(foreach dir,$(DIRS),$($(dir)_OBJS))
+ 
+ $(FLINT_DIR)/$(FLINT_LIB_STATIC): $(MERGED_OBJS)
+ 	@echo "Building $(FLINT_LIB_STATIC)"
