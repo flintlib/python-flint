@@ -329,7 +329,7 @@ cd flint-$FLINTVER
     echo --------------------------------------------
     echo "           patching FLINT"
     echo --------------------------------------------
-    patch -N -Z -p0 < ../../../bin/patch-ldd.diff
+    patch -N -Z -p1 < ../../../bin/patch-ldd.diff
   fi
 
   ./bootstrap.sh
