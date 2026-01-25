@@ -29,7 +29,12 @@ jobs:
       - uses: msys2/setup-msys2@v2.29.0
         with:
           msystem: mingw64
-        if: ${{ startsWith( matrix.os , 'windows' ) }}
+        if: ${{ matrix.os == 'windows-2022' }}
+
+      - uses: msys2/setup-msys2@v2.29.0
+        with:
+          msystem: clangarm64
+        if: ${{ matrix.os == 'windows-11-arm' }}
 
         # Install pkgconfig on Windows from choco rather than from msys and
         # avoid using the Strawberry one.
