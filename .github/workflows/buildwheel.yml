@@ -41,12 +41,29 @@ jobs:
       - run: echo "PKG_CONFIG_PATH=${{ github.workspace }}/.local/lib/pkgconfig" >> $env:GITHUB_ENV
         if: ${{ startsWith( matrix.os , 'windows' ) }}
 
-      - name: Build wheels
+        # We need to set these environment variables here rather than
+        # pyproject.toml so we can use differnt values for different
+        # architectures. For non-Windows this is just done with $(uname -m)
+        # don't know what that would do in msys2 on Windows when cibuildwheel
+        # parses it.
+
+      - name: Build wheels for windows-2022
         uses: pypa/cibuildwheel@63fd63b352a9a8bdcc24791c9dbee952ee9a8abc # v3.3.0
+        if: ${{ matrix.os == 'windows-2022' }}
         env:
-          # override setting in pyproject.toml to use msys2 instead of msys64 bash
-          CIBW_BEFORE_ALL_WINDOWS_AMD64: msys2 -c bin/cibw_before_all_windows_amd64.sh
-          CIBW_BEFORE_ALL_WINDOWS_ARM64: msys2 -c bin/cibw_before_all_windows_arm64.sh
+          CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows_amd64.sh
+
+      - name: Build wheels for windows-11-arm
+        uses: pypa/cibuildwheel@63fd63b352a9a8bdcc24791c9dbee952ee9a8abc # v3.3.0
+        if: ${{ matrix.os == 'windows-11-arm' }}
+        env:
+          CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows_arm64.sh
+
+        # After all the Windows-specific steps above this is what actually
+        # #builds the wheels for every other OS:
+
+      - name: Build wheels for any other OS
+        uses: pypa/cibuildwheel@63fd63b352a9a8bdcc24791c9dbee952ee9a8abc # v3.3.0
 
       - uses: actions/upload-artifact@v5
         with:
