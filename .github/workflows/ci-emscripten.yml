@@ -45,7 +45,7 @@ jobs:
 
       - name: Restore WASM library directory from cache
         id: cache-wasm-library-dir
-        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ${{ github.workspace }}/wasm-library-dir
           key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_dependencies.sh', 'bin/build_variables.sh') }}-0
@@ -57,13 +57,13 @@ jobs:
         run: bin/pyodide_build_dependencies.sh --wasm-library-dir ${{ github.workspace }}/wasm-library-dir
 
       - name: Persist WASM library directory to cache
-        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ${{ github.workspace }}/wasm-library-dir
           key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_dependencies.sh', 'bin/build_variables.sh') }}-0
 
       - name: Restore python-flint build directory from cache
-        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ${{ github.workspace }}/flint_wasm_build
           key: flint-wasm-build-${{ hashFiles('**/meson.build', '**/pyproject.toml', '**/setup.py') }}
@@ -87,7 +87,7 @@ jobs:
           pyodide build -Cbuild-dir=flint_wasm_build -Csetup-args="-Dflint_version_check=false"
 
       - name: Persist python-flint build directory to cache
-        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ${{ github.workspace }}/flint_wasm_build
           key: flint-wasm-build-${{ hashFiles('**/meson.build', '**/pyproject.toml', '**/setup.py') }}
