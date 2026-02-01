@@ -10,9 +10,9 @@ updates:
     schedule:
       interval: "monthly"
     groups:
-      actions:
+      minor-patch-dependencies:
         patterns:
           - "*"
         update-types:
-          - "version-update:semver-patch"
-          - "version-update:semver-minor"
+          - "patch"
+          - "minor"
