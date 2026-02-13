@@ -57,6 +57,7 @@ def find_doctests(module):
 
 # The below definitions are only useful when pytest is a) installed, and b) being currently run.
 # We don't want to impose pytest on those that just want to use `python -m flint.test`
+runner: doctest.DocTestRunner | None
 try:
     import pytest
 
@@ -101,9 +102,6 @@ try:
         runner.run(test)
 
 except ImportError:
-    class PyTestDocTestRunner(doctest.DocTestRunner):
-        pass
-
     runner = None
 
     def test_docstrings(test):

@@ -28,10 +28,10 @@ def raises(f, exception) -> bool:
 
 
 if TYPE_CHECKING:
-    from typing import TypeIs
+    from typing_extensions import TypeIs
 
 
-Tscalar = TypeVar('Tscalar', bound=flint_base.flint_scalar)
+Tscalar = TypeVar('Tscalar', bound=typ.scalar_p)
 Tscalar_co = TypeVar('Tscalar_co', bound=flint_base.flint_scalar, covariant=True)
 Tmpoly = TypeVar('Tmpoly', bound=flint_base.flint_mpoly)
 Tmpoly_p = TypeVar('Tmpoly_p', bound=typ.mpoly_p)
@@ -2598,46 +2598,46 @@ def _all_polys() -> list[tuple[Any, Any, bool, flint.fmpz]]:
         (flint.fmpq_poly, flint.fmpq, True, flint.fmpz(0)),
 
         # Z/pZ (p prime)
-        (lambda *a: flint.nmod_poly(*a, 17), lambda x: flint.nmod(x, 17), True, flint.fmpz(17)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(163)),
+        (lambda a: flint.nmod_poly(a, 17), lambda x: flint.nmod(x, 17), True, flint.fmpz(17)),
+        (lambda a: flint.fmpz_mod_poly(a, flint.fmpz_mod_poly_ctx(163)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(163)),
          True, flint.fmpz(163)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**127 - 1)),
+        (lambda a: flint.fmpz_mod_poly(a, flint.fmpz_mod_poly_ctx(2**127 - 1)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**127 - 1)),
          True, flint.fmpz(2**127 - 1)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255 - 19)),
+        (lambda a: flint.fmpz_mod_poly(a, flint.fmpz_mod_poly_ctx(2**255 - 19)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255 - 19)),
          True, flint.fmpz(2**255 - 19)),
 
         # GF(p^k) (p prime)
-        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(2**127 - 1)),
+        (lambda a: flint.fq_default_poly(a, flint.fq_default_poly_ctx(2**127 - 1)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(2**127 - 1)),
          True, flint.fmpz(2**127 - 1)),
-        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(2**127 - 1, 2)),
+        (lambda a: flint.fq_default_poly(a, flint.fq_default_poly_ctx(2**127 - 1, 2)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(2**127 - 1, 2)),
          True, flint.fmpz(2**127 - 1)),
-        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(65537)),
+        (lambda a: flint.fq_default_poly(a, flint.fq_default_poly_ctx(65537)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(65537)),
          True, flint.fmpz(65537)),
-        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(65537, 5)),
+        (lambda a: flint.fq_default_poly(a, flint.fq_default_poly_ctx(65537, 5)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(65537, 5)),
          True, flint.fmpz(65537)),
-        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(11)),
+        (lambda a: flint.fq_default_poly(a, flint.fq_default_poly_ctx(11)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(11)),
          True, flint.fmpz(11)),
-        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(11, 5)),
+        (lambda a: flint.fq_default_poly(a, flint.fq_default_poly_ctx(11, 5)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(11, 5)),
          True, flint.fmpz(11)),
 
         # Z/nZ (n composite)
-        (lambda *a: flint.nmod_poly(*a, 16), lambda x: flint.nmod(x, 16), False, flint.fmpz(16)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(164)),
+        (lambda a: flint.nmod_poly(a, 16), lambda x: flint.nmod(x, 16), False, flint.fmpz(16)),
+        (lambda a: flint.fmpz_mod_poly(a, flint.fmpz_mod_poly_ctx(164)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(164)),
          False, flint.fmpz(164)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**127)),
+        (lambda a: flint.fmpz_mod_poly(a, flint.fmpz_mod_poly_ctx(2**127)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**127)),
          False, flint.fmpz(2**127)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255)),
+        (lambda a: flint.fmpz_mod_poly(a, flint.fmpz_mod_poly_ctx(2**255)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255)),
          False, flint.fmpz(2**255)),
     ]
@@ -3026,8 +3026,11 @@ def test_polys(args: _PolyTestCase[typ.epoly_p[Tc], Tc]) -> None:
         p1 = P([1, 0, 1])
         p2 = P([2, 1])
         g, s, t = P([1]), P([1])/5, P([2, -1])/5
-        assert p1.xgcd(p2) == (g, s, t)
-        assert raises(lambda: p1.xgcd(None), TypeError) # type: ignore
+        if isinstance(p1, (flint.fmpq_poly, flint.nmod_poly, flint.fmpz_mod_poly, flint.fq_default_poly)):
+            assert p1.xgcd(p2) == (g, s, t)
+            assert raises(lambda: p1.xgcd(None), TypeError) # type: ignore
+        else:
+            assert False
 
     if not composite_characteristic:
         assert P([1, 2, 1]).factor() == (S(1), [(P([1, 1]), 2)])
@@ -3066,16 +3069,16 @@ def test_polys(args: _PolyTestCase[typ.epoly_p[Tc], Tc]) -> None:
     # resultant checks.
     x = P([0, 1])
 
-    if composite_characteristic and type(x) in [flint.fmpz_mod_poly, flint.nmod_poly]:
+    if composite_characteristic and isinstance(x, (flint.fmpz_mod_poly, flint.nmod_poly)):
         # Flint sometimes crashes in this case, even though the resultant
         # could be computed.
         divisor = characteristic.factor()[0][0]
         assert raises(lambda: x.resultant(x + divisor), ValueError)
-    elif type(x) == flint.fq_default_poly:
+    elif isinstance(x, flint.fq_default_poly):
         # Flint does not implement resultants over GF(q) for nonprime q, so
         # there's nothing for us to check.
         pass
-    else:
+    elif isinstance(x, (flint.fmpz_poly, flint.fmpq_poly, flint.nmod_poly, flint.fmpz_mod_poly)):
         assert x.resultant(x) == 0
         assert x.resultant(x**2 + x - x) == 0
         assert x.resultant(x**10 - x**5 + 1) == S(1)
@@ -3086,6 +3089,8 @@ def test_polys(args: _PolyTestCase[typ.epoly_p[Tc], Tc]) -> None:
 
         for k in range(-10, 10):
             assert x.resultant(x + S(k)) == S(k)
+    else:
+        assert False
 
 
 def test_poly_resultants():
@@ -3274,7 +3279,7 @@ def test_mpolys_constructor(args: _MPolyTestCase[Tmpoly_p, Tscalar]) -> None:
     assert new_ctx != ctx
     assert new_poly != quick_poly()
 
-    new_ctx = new_ctx.from_context(new_ctx, ordering=ctx.ordering())
+    new_ctx = get_context(new_ctx.names(), ordering=ctx.ordering())
     assert new_ctx == ctx
     assert new_poly.project_to_context(new_ctx) == quick_poly()
 
@@ -3480,7 +3485,14 @@ def test_mpolys_properties(args: _MPolyTestCase[Tmpoly_p, Tscalar]) -> None:
         + mpoly({(0, 0): 5, (0, 1): 6, (1, 0): 7, (2, 2): 8}) \
         == mpoly({(0, 0): 6, (0, 1): 8, (1, 0): 10, (2, 2): 12})
 
-    for T in [int, S, flint.fmpz, lambda x: P(x, ctx=ctx)]:
+    converters: tuple[Callable[[int], int | flint.fmpz | Tscalar | Tmpoly_p], ...] = (
+        lambda x: int(x),
+        lambda x: S(x),
+        lambda x: flint.fmpz(x),
+        lambda x: P(x, ctx=ctx),
+    )
+
+    for T in converters:
         p = quick_poly()
         p += T(1)
         q = quick_poly()
@@ -3499,7 +3511,7 @@ def test_mpolys_properties(args: _MPolyTestCase[Tmpoly_p, Tscalar]) -> None:
     assert quick_poly() - mpoly({(0, 0): 5, (0, 1): 6, (1, 0): 7, (2, 2): 8}) \
         == mpoly({(0, 0): -4, (0, 1): -4, (1, 0): -4, (2, 2): -4})
 
-    for T in [int, S, flint.fmpz, lambda x: P(x, ctx=ctx)]:
+    for T in converters:
         p = quick_poly()
         p -= T(1)
         q = quick_poly()
@@ -3524,7 +3536,7 @@ def test_mpolys_properties(args: _MPolyTestCase[Tmpoly_p, Tscalar]) -> None:
             (0, 1): 6
         })
 
-    for T in [int, S, flint.fmpz, lambda x: P(x, ctx=ctx)]:
+    for T in converters:
         p = quick_poly()
         p *= T(2)
         q = quick_poly()
@@ -3712,9 +3724,9 @@ def test_mpolys_properties(args: _MPolyTestCase[Tmpoly_p, Tscalar]) -> None:
     if isinstance(p, (flint.fmpz_mpoly, flint.fmpq_mpoly)):
         if isinstance(p, flint.fmpq_mpoly) and _is_Q(S):
             assert p.integral(0) == p.integral("x0") == \
-                mpoly({(3, 2): S(4, 3), (2, 0): S(3, 2), (1, 1): S(2), (1, 0): S(1)})
+                mpoly({(3, 2): S(4) / 3, (2, 0): S(3) / 2, (1, 1): S(2), (1, 0): S(1)})
             assert p.integral(1) == p.integral("x1") == \
-                mpoly({(2, 3): S(4, 3), (1, 1): S(3), (0, 2): S(1), (0, 1): S(1)})
+                mpoly({(2, 3): S(4) / 3, (1, 1): S(3), (0, 2): S(1), (0, 1): S(1)})
         else:
             assert p.integral(0) == p.integral("x0") == \
                 (6, mpoly({(3, 2): 8, (2, 0): 9, (1, 1): 12, (1, 0): 6}))
