@@ -31,7 +31,7 @@ pyfiles = [
   'fq_default.pyi',
   'fq_default_poly.pyi',
 
-  # 'arf.pyi',
+  'arf.pyi',
   #
   # 'arb.pyi',
   # 'arb_poly.pyi',

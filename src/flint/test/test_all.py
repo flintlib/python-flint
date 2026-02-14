@@ -1681,6 +1681,183 @@ def test_nmod_series():
     pass
 
 
+def test_arf() -> None:
+    oldpretty = ctx.pretty
+    oldprec = ctx.prec
+    try:
+        ctx.prec = 53
+
+        z = flint.arf()
+        assert z.is_zero() is True
+        assert z.is_finite() is True
+        assert z.man_exp() == (flint.fmpz(0), flint.fmpz(0))
+        assert str(z) == "0.0"
+
+        a = flint.arf(-100)
+        b = flint.arf(15.125)
+        c = flint.arf(flint.arf(3))
+        e = flint.arf(flint.fmpz(7))
+        d = flint.arf((10, -2))
+        assert a.is_finite() is True
+        assert b.is_finite() is True
+        assert c.is_finite() is True
+        assert d.is_finite() is True
+        assert e.is_finite() is True
+        assert str(e) == "7.00000000000000"
+        assert d.man_exp() == (flint.fmpz(5), flint.fmpz(-1))
+        assert str(d) == "2.50000000000000"
+        assert repr(d) == str(d) == "2.50000000000000"
+
+        assert flint.arf(1.0 / 3.0)._dec_str(num_digits=6).startswith("0.333333")
+
+        pinf = flint.arf("inf")
+        pinf2 = flint.arf("+inf")
+        ninf = flint.arf("-inf")
+        nan = flint.arf("nan")
+        assert pinf.is_pos_inf() is True
+        assert ninf.is_pos_inf() is False
+        assert pinf2.is_pos_inf() is True
+        assert ninf.is_neg_inf() is True
+        assert nan.is_nan() is True
+        assert str(pinf) == "inf"
+        assert str(ninf) == "-inf"
+        assert str(nan) == "nan"
+
+        assert raises(lambda: flint.arf("bogus"), TypeError)
+        assert raises(lambda: flint.arf((10, "bad")), TypeError) # type: ignore
+        assert raises(lambda: flint.arf([]), TypeError) # type: ignore
+        assert raises(lambda: flint.arf(object()), TypeError) # type: ignore
+        assert flint.arf(flint.fmpq(3, 2)) == flint.arf(1.5)
+        assert raises(lambda: flint.arf(1j), TypeError) # type: ignore
+        assert raises(lambda: flint.arf({}), TypeError) # type: ignore
+
+        ctx.pretty = False
+        assert repr(z) == "arf(0.0)"
+        assert repr(d) == "arf((0x5, -0x1))"
+        assert repr(flint.arf(1.25)) == "arf((0x5, -0x2))"
+        assert repr(pinf) == "arf('+inf')"
+        assert repr(ninf) == "arf('-inf')"
+        assert repr(nan) == "arf('nan')"
+        ctx.pretty = oldpretty
+
+        x = flint.arf(2)
+        y = flint.arf(3)
+        assert (x == flint.arf(2)) is True
+        assert (x == 2) is True
+        assert (x == 2.0) is True
+        assert (x == 2.5) is False
+        assert (x != 2) is False
+        assert (x != y) is True
+        assert (x < y) is True
+        assert (x <= y) is True
+        assert (y > x) is True
+        assert (y >= x) is True
+        assert (x == 2) is True
+        assert (x != 3) is True
+        assert (x == flint.fmpz(2)) is True
+        assert (x != flint.fmpz(3)) is True
+        assert (x < flint.fmpz(3)) is True
+        assert (x == 2.0) is True
+        assert (x != 2.0) is False
+        assert (x < 3) is True
+        assert (2 < y) is True
+        assert (x < 2.5) is True
+        assert (x < flint.fmpq(5, 2)) is True
+        assert (x == flint.fmpq(4, 2)) is True
+        assert (x != flint.fmpq(5, 2)) is True
+        one = flint.arf(1)
+        q_close = flint.fmpq(2**80 + 1, 2**80)
+        assert (flint.fmpq(1, 1) < q_close) is True
+        assert (one == q_close) is False
+        assert (one < q_close) is True
+        assert (flint.arf("nan") == flint.fmpq(1, 2)) is False
+        assert (flint.arf("nan") != flint.fmpq(1, 2)) is True
+        assert (flint.arf("inf") > flint.fmpq(1, 2)) is True
+        assert (flint.arf("-inf") < flint.fmpq(1, 2)) is True
+        huge_cmp = 1 << 200
+        assert (flint.arf(huge_cmp) == huge_cmp) is True
+        assert (flint.arf(huge_cmp) != huge_cmp + 1) is True
+        assert (flint.arf(huge_cmp) < huge_cmp + 1) is True
+        assert raises(lambda: x < "bad", TypeError) # type: ignore
+
+        assert bool(flint.arf(0)) is False
+        assert bool(flint.arf("nan")) is True
+        assert bool(flint.arf("inf")) is True
+        assert float(flint.arf(1.5)) == 1.5
+        assert int(flint.arf(2.9)) == 2
+        assert int(flint.arf(-2.9)) == -2
+        assert raises(lambda: int(flint.arf("nan")), ValueError)
+        assert raises(lambda: int(flint.arf("inf")), OverflowError)
+        assert flint.arf(0).as_integer_ratio() == (0, 1)
+        assert flint.arf(-1.25).as_integer_ratio() == (-5, 4)
+        assert raises(lambda: flint.arf("nan").as_integer_ratio(), ValueError)
+        assert raises(lambda: flint.arf("-inf").as_integer_ratio(), OverflowError)
+
+        # unary ops
+        assert +x == x
+        assert -x == flint.arf(-2)
+        assert abs(flint.arf(-2)) == flint.arf(2)
+
+        # binary ops and NotImplemented paths
+        assert x + y == flint.arf(5)
+        assert y - x == flint.arf(1)
+        assert x * y == flint.arf(6)
+        assert x / y == flint.arf(2 / 3)
+        assert x + 1 == flint.arf(3)
+        assert x + flint.fmpz(1) == flint.arf(3)
+        assert x + 0.5 == flint.arf(2.5)
+        assert 0.5 + x == flint.arf(2.5)
+        assert flint.fmpz(1) + x == flint.arf(3)
+        assert x - 1 == flint.arf(1)
+        assert x - flint.fmpz(1) == flint.arf(1)
+        assert x - 0.5 == flint.arf(1.5)
+        assert 5.0 - x == flint.arf(3)
+        assert flint.fmpz(5) - x == flint.arf(3)
+        assert x * 3 == flint.arf(6)
+        assert x * flint.fmpz(3) == flint.arf(6)
+        assert x * 0.5 == flint.arf(1)
+        assert 0.5 * x == flint.arf(1)
+        assert flint.fmpz(3) * x == flint.arf(6)
+        assert x / 2 == flint.arf(1)
+        assert x / flint.fmpz(2) == flint.arf(1)
+        assert x / 0.5 == flint.arf(4)
+        assert 6.0 / x == flint.arf(3)
+        assert flint.fmpz(6) / x == flint.arf(3)
+        huge = 1 << 200
+        assert x + huge == x + flint.fmpz(huge)
+        assert huge + x == flint.fmpz(huge) + x
+        assert x - huge == x - flint.fmpz(huge)
+        assert huge - x == flint.fmpz(huge) - x
+        assert x * huge == x * flint.fmpz(huge)
+        assert huge * x == flint.fmpz(huge) * x
+        assert x / huge == x / flint.fmpz(huge)
+        assert huge / x == flint.fmpz(huge) / x
+        half = flint.fmpq(1, 2)
+        assert raises(lambda: x + half, TypeError) # type: ignore
+        assert raises(lambda: half + x, TypeError) # type: ignore
+        assert raises(lambda: x - half, TypeError) # type: ignore
+        assert raises(lambda: half - x, TypeError) # type: ignore
+        assert raises(lambda: x * half, TypeError) # type: ignore
+        assert raises(lambda: half * x, TypeError) # type: ignore
+        assert raises(lambda: x / half, TypeError) # type: ignore
+        assert raises(lambda: half / x, TypeError) # type: ignore
+        assert 1 + x == flint.arf(3)
+        assert 5 - x == flint.arf(3)
+        assert 2 * x == flint.arf(4)
+        assert 6 / x == flint.arf(3)
+        assert raises(lambda: x + "bad", TypeError) # type: ignore
+        assert raises(lambda: x - "bad", TypeError) # type: ignore
+        assert raises(lambda: x * "bad", TypeError) # type: ignore
+        assert raises(lambda: x / "bad", TypeError) # type: ignore
+        assert raises(lambda: "bad" + x, TypeError) # type: ignore
+        assert raises(lambda: "bad" - x, TypeError) # type: ignore
+        assert raises(lambda: "bad" * x, TypeError) # type: ignore
+        assert raises(lambda: "bad" / x, TypeError) # type: ignore
+    finally:
+        ctx.pretty = oldpretty
+        ctx.prec = oldprec
+
+
 def test_arb():
     arb = flint.arb
     assert arb(3) > arb(2.5)
@@ -5183,6 +5360,7 @@ def test_all_tests():
 all_tests = [
     test_pyflint,
     test_showgood,
+    test_arf,
 
     test_fmpz,
     test_fmpz_factor,

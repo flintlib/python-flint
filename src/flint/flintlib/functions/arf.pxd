@@ -16,6 +16,7 @@ from flint.flintlib.types.fmpq cimport fmpq_t
 # .. macro:: ARF_PREC_EXACT
 
 cdef extern from "flint/arf.h":
+    cdef const slong ARF_PREC_EXACT
     void arf_init(arf_t x)
     void arf_clear(arf_t x)
     slong arf_allocated_bytes(const arf_t x)
