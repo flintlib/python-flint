@@ -180,12 +180,12 @@ def test_arb_poly_complex_coercion_branch() -> None:
     z = 2 + 3j
     a = acb(2, 3)
 
-    r1 = p + z  # type: ignore[operator]
-    r2 = z + p  # type: ignore[operator]
-    r3 = p - a  # type: ignore[operator]
-    r4 = a - p  # type: ignore[operator]
-    r5 = p * z  # type: ignore[operator]
-    r6 = z * p  # type: ignore[operator]
+    r1 = p + z
+    r2 = z + p
+    r3 = p - a
+    r4 = a - p
+    r5 = p * z
+    r6 = z * p
 
     assert isinstance(r1, acb_poly)
     assert isinstance(r2, acb_poly)
