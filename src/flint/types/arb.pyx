@@ -503,8 +503,6 @@ cdef class arb(flint_scalar):
         cdef arb_struct tval[1]
         cdef int stype, ttype
         stype = arb_set_any_ref(sval, s)
-        if stype == FMPZ_UNKNOWN:
-            return NotImplemented
         ttype = arb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
@@ -521,8 +519,6 @@ cdef class arb(flint_scalar):
             res = arb_gt(sval, tval)
         elif op == 5:
             res = arb_ge(sval, tval)
-        if stype == FMPZ_TMP:
-            arb_clear(sval)
         if ttype == FMPZ_TMP:
             arb_clear(tval)
         return res

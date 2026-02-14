@@ -3,6 +3,8 @@ from flint.flint_base.flint_base import flint_poly
 from flint.types.fmpz import fmpz, ifmpz
 from flint.types.fmpq import fmpq
 from flint.types.fmpq_poly import fmpq_poly
+from flint.types.arf import arf
+from flint.types.arb import arb
 
 ifmpz_poly = fmpz_poly | ifmpz
 
@@ -33,8 +35,8 @@ class fmpz_poly(flint_poly[fmpz]):
     def __call__(self, other: fmpz_poly, /) -> fmpz_poly: ...
     @overload
     def __call__(self, other: fmpq_poly, /) -> fmpq_poly: ...
-    # @overload
-    # def __call__(self, other: arb, /) -> acb: ...
+    @overload
+    def __call__(self, other: float | arf | arb, /) -> arb: ...
     # @overload
     # def __call__(self, other: acb, /) -> acb: ...
     def derivative(self) -> fmpz_poly: ...

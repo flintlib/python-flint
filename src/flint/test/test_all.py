@@ -1858,7 +1858,7 @@ def test_arf() -> None:
         ctx.prec = oldprec
 
 
-def test_arb():
+def test_arb() -> None:
     arb = flint.arb
     assert arb(3) > arb(2.5)
     assert arb(3) >= arb("2.5")
