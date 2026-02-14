@@ -1,10 +1,14 @@
 """Test for python-flint's `arb` type."""
 
+from __future__ import annotations
+
+from typing import Callable
+
 import math
 
 from flint import arb, ctx
 
-def raises(f, exception) -> bool:
+def raises(f: Callable[[], object], exception: type[Exception]) -> bool:
     try:
         f()
     except exception:
@@ -12,7 +16,12 @@ def raises(f, exception) -> bool:
     return False
 
 def is_close_arb(
-    x: arb, y: int | float | str | arb, *, tol=1e-10, rel_tol=1e-10, max_width=1e-10
+    x: arb,
+    y: int | float | str | arb,
+    *,
+    tol: float = 1e-10,
+    rel_tol: float = 1e-10,
+    max_width: float = 1e-10,
 ) -> bool:
     y = arb(y)
     return (
@@ -22,7 +31,7 @@ def is_close_arb(
         and abs(x - y) <= max(rel_tol * max(abs(x), abs(y)), tol)
     )
 
-def assert_almost_equal(x, y, places=7):
+def assert_almost_equal(x: float | int, y: float | int, places: int = 7) -> None:
     """Helper method for approximate comparisons."""
     assert round(x-y, ndigits=places) == 0
 
@@ -136,7 +145,7 @@ def test_hash() -> None:
         y: An arb.
         expected: Whether `x` and `y` should hash to the same value.
     """
-    def arb_pi(prec):
+    def arb_pi(prec: int) -> arb:
         """Helper to calculate arb to a given precision."""
         with ctx.workprec(prec):
             return arb.pi()
