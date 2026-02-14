@@ -1,18 +1,16 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, overload
+from typing import Any, overload
 
 from ..flint_base.flint_base import flint_poly
 from .acb import acb
+from .acb_poly import acb_poly
 from .arb import arb
 from .fmpq import fmpq
 from .fmpq_poly import fmpq_poly
 from .fmpz import fmpz
 from .fmpz_poly import fmpz_poly
-
-if TYPE_CHECKING:
-    from .acb_poly import acb_poly
 
 
 ifmpz = int | fmpz

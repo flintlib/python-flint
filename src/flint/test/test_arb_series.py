@@ -89,12 +89,12 @@ def test_arb_series_mixed_complex_paths() -> None:
     try:
         ctx.cap = 8
         x = arb_series([0, 1], prec=8)
-        r1 = x + 1j  # type: ignore[operator]
-        r2 = 1j + x  # type: ignore[operator]
-        r3 = x - 1j  # type: ignore[operator]
-        r4 = 1j - x  # type: ignore[operator]
-        r5 = x * 1j  # type: ignore[operator]
-        r6 = 1j * x  # type: ignore[operator]
+        r1 = x + 1j
+        r2 = 1j + x
+        r3 = x - 1j
+        r4 = 1j - x
+        r5 = x * 1j
+        r6 = 1j * x
         assert isinstance(r1, acb_series)
         assert isinstance(r2, acb_series)
         assert isinstance(r3, acb_series)
@@ -164,9 +164,22 @@ def test_arb_series_elementary_functions() -> None:
         ctx.cap = 8
         x = arb_series([0, 1], prec=8)
         one = arb_series([1], prec=8)
+        x2 = arb_series([0, 1], prec=2)
+        one2 = arb_series([1], prec=2)
+        x3 = arb_series([0, 1], prec=3)
+        one3 = arb_series([1], prec=3)
+        x7 = arb_series([0, 1], prec=7)
 
-        assert is_close((one + x + x*x).derivative(), arb_series([1, 2], prec=7))
-        assert is_close((one + x).integral(), x + 0.5*x*x)
+        assert is_close((one3 + x3 + x3*x3).derivative(), [1, 2])
+        assert is_close((one2 + x2).integral(), [0, 1, 1/2])
+        assert is_close((one + x).sqrt(), [1, 1/2, -1/8, 1/16, -5/128, 7/256, -21/1024, 33/2048])
+        assert is_close((one + x).rsqrt(), [1, -1/2, 3/8, -5/16, 35/128, -63/256, 231/1024, -429/2048])
+        assert is_close(x.exp(), [1, 1, 1/2, 1/6, 1/24, 1/120, 1/720, 1/5040])
+        assert is_close((one + x).log(), [0, 1, -1/2, 1/3, -1/4, 1/5, -1/6, 1/7])
+        assert is_close(x.atan(), [0, 1, 0, -1/3, 0, 1/5, 0, -1/7])
+        assert is_close(x.sin(), [0, 1, 0, -1/6, 0, 1/120, 0, -1/5040])
+        assert is_close(x7.cos(), [1, 0, -1/2, 0, 1/24, 0, -1/720])
+        assert is_close(x.tan(), [0, 1, 0, 1/3, 0, 2/15, 0, 17/315])
         assert is_close((one + x).sqrt()*(one + x).sqrt(), one + x)
         assert is_close((one + x).sqrt()*(one + x).rsqrt(), one)
         assert is_close(x.exp().log(), x)
@@ -176,12 +189,15 @@ def test_arb_series_elementary_functions() -> None:
         assert is_close(x.acos().cos(), x)
 
         s, c = x.sin_cos()
-        assert is_close(s, x.sin())
+        assert is_close(s, [0, 1, 0, -1/6, 0, 1/120, 0, -1/5040])
         assert is_close(c, x.cos())
         assert is_close(s*s + c*c, one)
 
+        pi = arb.pi()
+        assert is_close(x.sin_pi(), [0, pi, 0, -(pi**3)/6, 0, (pi**5)/120, 0, -(pi**7)/5040])
+        assert is_close(x7.cos_pi(), [1, 0, -(pi**2)/2, 0, (pi**4)/24, 0, -(pi**6)/720])
         sp, cp = x.sin_cos_pi()
-        assert is_close(sp, x.sin_pi())
+        assert is_close(sp, [0, pi, 0, -(pi**3)/6, 0, (pi**5)/120, 0, -(pi**7)/5040])
         assert is_close(cp, x.cos_pi())
         assert is_close(x.sin()/x.cos(), x.tan())
         assert (1 + x).cot_pi().prec == 8

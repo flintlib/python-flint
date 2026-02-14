@@ -41,7 +41,7 @@ pyfiles = [
   #
   'acb_poly.pyi',
   # 'acb_mat.pyi',
-  # 'acb_series.pyi',
+  'acb_series.pyi',
   #
   # 'dirichlet.pyi',
   #
