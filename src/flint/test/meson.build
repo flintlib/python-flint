@@ -11,6 +11,7 @@ pyfiles = [
   'test_arb.py',
   'test_arb_series.py',
   'test_arb_poly.py',
+  'test_fmpz_vec.py',
   'test_docstrings.py',
 ]
 

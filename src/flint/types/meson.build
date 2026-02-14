@@ -8,7 +8,7 @@ pyfiles = [
   'fmpz_series.pyi',
   'fmpz_mpoly.pyi',
   # 'fmpz_mat.pyi',
-  # 'fmpz_vec.pyi',
+  'fmpz_vec.pyi',
 
   'fmpq.pyi',
   'fmpq_poly.pyi',
