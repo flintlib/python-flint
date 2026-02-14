@@ -1,30 +1,26 @@
 from __future__ import annotations
-from typing import Any, Callable, Sequence, TypeVar, Iterable, Protocol, TYPE_CHECKING
+from typing import Any, Callable, Sequence, TypeVar, Iterable, Protocol, TYPE_CHECKING, TypeGuard
 
 import math
 import operator
 import pickle
 import platform
 import random
+import importlib
+import inspect
+import pkgutil
 
 import flint
 import flint.typing as typ
 import flint.flint_base.flint_base as flint_base
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
-from flint.test.test_arb import all_tests as arb_tests
+from flint.test.helpers import raises
 
 
 PYPY = platform.python_implementation() == "PyPy"
 
 ctx = flint.ctx
-
-def raises(f, exception) -> bool:
-    try:
-        f()
-    except exception:
-        return True
-    return False
 
 
 if TYPE_CHECKING:
@@ -967,7 +963,8 @@ def test_fmpq() -> None:
         (lambda n: flint.fmpq.dedekind_sum(n, 3),
             [-Q(1,18), Q(0), Q(1,18), -Q(1,18), Q(0), Q(1,18), -Q(1,18)]),
     ]
-    is_exception = lambda v: isinstance(v, type) and issubclass(v, Exception)
+    def is_exception(v: object) -> TypeGuard[type[Exception]]:
+        return isinstance(v, type) and issubclass(v, Exception)
 
     for func2, values2 in cases2:
         for n, val in enumerate(values2, -1):
@@ -5352,88 +5349,25 @@ def test_python_threads():
 
 
 def test_all_tests():
-    test_funcs = {f for name, f in globals().items() if name.startswith("test_")}
-    untested = test_funcs - set(all_tests)
-    assert not untested, f"Untested functions: {untested}"
+    from flint.test.__main__ import collect_all_tests
 
+    collected = set(collect_all_tests())
+    expected = set()
 
-all_tests = [
-    test_pyflint,
-    test_showgood,
-    test_arf,
+    import flint.test as test_pkg
+    for mod in pkgutil.iter_modules(test_pkg.__path__, test_pkg.__name__ + "."):
+        mod_name = mod.name.rsplit(".", 1)[-1]
+        if not mod_name.startswith("test_"):
+            continue
+        module = importlib.import_module(mod.name)
+        expected.update(
+            obj for name, obj in vars(module).items()
+            if (
+                name.startswith("test_")
+                and inspect.isfunction(obj)
+                and obj.__module__ == module.__name__
+                and len(inspect.signature(obj).parameters) == 0
+            )
+        )
 
-    test_fmpz,
-    test_fmpz_factor,
-    test_fmpz_functions,
-    test_fmpz_poly,
-    test_fmpz_poly_factor,
-    test_fmpz_poly_functions,
-    test_fmpz_mat,
-    test_fmpz_series,
-
-    test_fmpq,
-    test_fmpq_poly,
-    test_fmpq_mat,
-    test_fmpq_series,
-
-    test_nmod,
-    test_nmod_poly,
-    test_nmod_mat,
-    test_nmod_series,
-
-    test_fmpz_mod,
-    test_fmpz_mod_dlog,
-    test_fmpz_mod_poly,
-    test_fmpz_mod_mat,
-
-    test_division_scalar,
-    test_division_poly,
-    test_division_matrix,
-
-    test_properties_poly_mpoly,
-    test_factor_poly_mpoly,
-    test_division_poly_mpoly,
-
-    test_polys,
-    test_mpolys_constructor,
-    test_mpolys_properties,
-
-    test_poly_resultants,
-
-    test_fmpz_mpoly_vec,
-
-    test_matrices_eq,
-    test_matrices_constructor,
-    test_matrices_strrepr,
-    test_matrices_getitem,
-    test_matrices_setitem,
-    test_matrices_bool,
-    test_matrices_transpose,
-    test_matrices_pos_neg,
-    test_matrices_add,
-    test_matrices_sub,
-    test_matrices_mul,
-    test_matrices_pow,
-    test_matrices_div,
-    test_matrices_properties,
-    test_matrices_inv,
-    test_matrices_det,
-    test_matrices_charpoly,
-    test_matrices_minpoly,
-    test_matrices_rank,
-    test_matrices_rref,
-    test_matrices_solve,
-    test_matrices_fflu,
-
-    test_fq_default,
-    test_fq_default_poly,
-
-    test_arb,
-    test_acb,
-
-    test_pickling,
-
-    test_python_threads,
-
-    test_all_tests,
-] + arb_tests
+    assert collected == expected

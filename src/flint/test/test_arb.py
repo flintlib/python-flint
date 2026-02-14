@@ -2,34 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Callable
-
 import math
 
 from flint import arb, ctx
-
-def raises(f: Callable[[], object], exception: type[Exception]) -> bool:
-    try:
-        f()
-    except exception:
-        return True
-    return False
-
-def is_close_arb(
-    x: arb,
-    y: int | float | str | arb,
-    *,
-    tol: float = 1e-10,
-    rel_tol: float = 1e-10,
-    max_width: float = 1e-10,
-) -> bool:
-    y = arb(y)
-    return (
-        isinstance(x, arb)
-        and x.rad() < max_width
-        and y.rad() < max_width
-        and abs(x - y) <= max(rel_tol * max(abs(x), abs(y)), tol)
-    )
+from flint.test.helpers import is_close_arb, raises
 
 def assert_almost_equal(x: float | int, y: float | int, places: int = 7) -> None:
     """Helper method for approximate comparisons."""
