@@ -14,7 +14,7 @@ pyfiles = [
   'fmpq_poly.pyi',
   'fmpq_series.pyi',
   'fmpq_mpoly.pyi',
-  # 'fmpq_mat.pyi',
+  'fmpq_mat.pyi',
   'fmpq_vec.pyi',
 
   'nmod.pyi',

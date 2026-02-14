@@ -1099,6 +1099,9 @@ def test_fmpq_mat():
     assert (Q(1,1,[1]) != 1) is True
     assert (1 == Q(1,1,[1])) is False
     assert (1 != Q(1,1,[1])) is True
+    marker = object()
+    assert (Q(1,1,[1]) == marker) is False
+    assert (Q(1,1,[1]) != marker) is True
     assert Q(1,2,[3,4]) * 2 == Q(1,2,[6,8])
     assert Q(1,2,[3,4]) * flint.fmpq(1,3) == Q(1,2,[1,flint.fmpq(4,3)])
     assert Q(1,2,[3,4]) * flint.fmpq(5,3) == Q(1,2,[5,flint.fmpq(20,3)])
@@ -1110,6 +1113,7 @@ def test_fmpq_mat():
     assert M ** 1 == M
     assert M ** 2 == Q([[7,10],[15,22]])
     assert M ** 12 == Q([[138067399, 201223170],[301834755, 439902154]])
+    assert raises(lambda: pow(M, 2, 3), TypeError)
     M = Q([[1,2],[2,4]])
     assert raises(lambda: M ** -1, ZeroDivisionError)
     assert Q(1,2,[3,4]) / 2 == Q(1,2,[flint.fmpq(3,2),2])
@@ -1169,6 +1173,9 @@ def test_fmpq_mat():
     X = Q([[1,2],[3,4]])
     B = A*X
     assert A.solve(B) == X
+    I25 = Q([[1 if i == j else 0 for j in range(25)] for i in range(25)])
+    X25 = Q.hilbert(25, 2)
+    assert I25.solve(X25) == X25
     for algorithm in None, "fflu", "dixon":
         assert A.solve(B, algorithm=algorithm) == X
     assert raises(lambda: A.solve(B, algorithm="invalid"), ValueError)
