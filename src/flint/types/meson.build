@@ -35,7 +35,7 @@ pyfiles = [
   'arb.pyi',
   'acb.pyi',
   #
-  # 'arb_poly.pyi',
+  'arb_poly.pyi',
   # 'arb_mat.pyi',
   # 'arb_series.pyi',
   #

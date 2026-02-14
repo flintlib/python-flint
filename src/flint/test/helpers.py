@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Callable
 
-from flint import acb, arb
+from flint import acb, arb, arb_poly
 
 
 def raises(f: Callable[[], object], exception: type[Exception]) -> bool:
@@ -47,3 +47,22 @@ def is_close_acb(
         and is_close_arb(x.real, y.real, tol=tol, rel_tol=rel_tol, max_width=max_width)
         and is_close_arb(x.imag, y.imag, tol=tol, rel_tol=rel_tol, max_width=max_width)
     )
+
+
+def is_close_arb_poly(
+    x: arb_poly,
+    y: arb_poly | int | float | arb,
+    *,
+    tol: int | float | str | arb = 1e-10,
+    rel_tol: int | float | str | arb = 1e-10,
+    max_width: int | float | str | arb = 1e-10,
+) -> bool:
+    if not isinstance(x, arb_poly):
+        return False
+    if not isinstance(y, arb_poly):
+        y = arb_poly(y)
+    d = x - y
+    for i in range(d.length()):
+        if not is_close_arb(d[i], 0, tol=tol, rel_tol=rel_tol, max_width=max_width):
+            return False
+    return True
