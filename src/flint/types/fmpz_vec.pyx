@@ -1,5 +1,6 @@
 from flint.flintlib.functions.fmpz cimport fmpz_struct, fmpz_set, fmpz_init_set
 from flint.flintlib.functions.fmpz_vec cimport _fmpz_vec_init, _fmpz_vec_clear
+from libc.stdint cimport SIZE_MAX
 
 from flint.types.fmpz cimport fmpz, any_as_fmpz
 
@@ -8,16 +9,23 @@ cimport libc.stdlib
 cdef class fmpz_vec:
     def __cinit__(self, iterable_or_len, bint double_indirect=False):
         if isinstance(iterable_or_len, int):
-            self.length = iterable_or_len
+            py_length = iterable_or_len
+            if py_length < 0:
+                raise ValueError("length must be >= 0")
         else:
-            self.length = len(iterable_or_len)
+            py_length = len(iterable_or_len)
+
+        if py_length > (<size_t>SIZE_MAX) // sizeof(fmpz_struct):
+            raise OverflowError("length is too large")
+
+        self.length = py_length
 
         self.val = _fmpz_vec_init(self.length)
 
         if double_indirect:
             self.double_indirect = <fmpz_struct **> libc.stdlib.malloc(self.length * sizeof(fmpz_struct *))
             if self.double_indirect is NULL:
-                raise MemoryError("malloc returned a null pointer")
+                raise MemoryError("malloc returned a null pointer")  # pragma: no cover
 
             for i in range(self.length):
                 self.double_indirect[i] = &self.val[i]

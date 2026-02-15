@@ -42,6 +42,13 @@ cdef arb_mat_coerce_scalar(x, y):
         return acb_mat(x), any_as_acb(y)
     return NotImplemented, NotImplemented
 
+cdef arb_mat_convert_operand(object cls, object x):
+    if typecheck(x, cls):
+        return x
+    if typecheck(x, fmpz_mat) or typecheck(x, fmpq_mat):
+        return cls(x)
+    return NotImplemented
+
 cdef class arb_mat(flint_mat):
     """
     Represents a matrix over the real numbers.
@@ -67,24 +74,12 @@ cdef class arb_mat(flint_mat):
         arb_mat_clear(self.val)
 
     @classmethod
-    def convert_operand(cls, x):
-        """
-        Attempts to convert *x* to an *arb_mat*, returning NotImplemented
-        if unsuccessful.
-        """
-        if typecheck(x, cls):
-            return x
-        if typecheck(x, fmpz_mat) or typecheck(x, fmpq_mat):
-            return cls(x)
-        return NotImplemented
-
-    @classmethod
     def convert(cls, x):
         """
         Attempts to convert *x* to an *arb_mat*, raising TypeError if
         unsuccessful.
         """
-        x = cls.convert_operand(x)
+        x = arb_mat_convert_operand(cls, x)
         if x is NotImplemented:
             raise TypeError("unable to convert type %s to type %s" % (type(x), cls))
         return x
@@ -241,10 +236,10 @@ cdef class arb_mat(flint_mat):
     def __add__(s, t):
         cdef long m, n
         if not isinstance(t, arb_mat):
-            s, t = arb_mat_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s + t
+            u, v = arb_mat_coerce_operands(s, t)
+            if u is NotImplemented:
+                return NotImplemented
+            return u + v
 
         m = (<arb_mat>s).nrows()
         n = (<arb_mat>s).ncols()
@@ -256,18 +251,18 @@ cdef class arb_mat(flint_mat):
         return u
 
     def __radd__(s, t):
-        s, t = arb_mat_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t + s
+        u, v = arb_mat_coerce_operands(s, t)
+        if u is NotImplemented:
+            return NotImplemented
+        return v + u
 
     def __sub__(s, t):
         cdef long m, n
         if not isinstance(t, arb_mat):
-            s, t = arb_mat_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s - t
+            u, v = arb_mat_coerce_operands(s, t)
+            if u is NotImplemented:
+                return NotImplemented
+            return u - v
 
         m = (<arb_mat>s).nrows()
         n = (<arb_mat>s).ncols()
@@ -279,10 +274,10 @@ cdef class arb_mat(flint_mat):
         return u
 
     def __rsub__(s, t):
-        s, t = arb_mat_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t - s
+        u, v = arb_mat_coerce_operands(s, t)
+        if u is NotImplemented:
+            return NotImplemented
+        return v - u
 
     def _scalar_mul_(s, arb t):
         cdef arb_mat u
@@ -297,10 +292,10 @@ cdef class arb_mat(flint_mat):
             c, d = arb_mat_coerce_scalar(s, t)
             if c is not NotImplemented:
                 return c._scalar_mul_(d)
-            s, t = arb_mat_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s * t
+            c, d = arb_mat_coerce_operands(s, t)
+            if c is NotImplemented:
+                return NotImplemented
+            return c * d
 
         if arb_mat_ncols((<arb_mat>s).val) != arb_mat_nrows((<arb_mat>t).val):
             raise ValueError("incompatible shapes for matrix multiplication")
@@ -313,10 +308,10 @@ cdef class arb_mat(flint_mat):
         c, d = arb_mat_coerce_scalar(s, t)
         if c is not NotImplemented:
             return c._scalar_mul_(d)
-        s, t = arb_mat_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t * s
+        u, v = arb_mat_coerce_operands(s, t)
+        if u is NotImplemented:
+            return NotImplemented
+        return v * u
 
     def _scalar_div_(s, arb t):
         cdef arb_mat u
@@ -326,10 +321,10 @@ cdef class arb_mat(flint_mat):
         return u
 
     def __truediv__(s, t):
-        s, t = arb_mat_coerce_scalar(s, t)
-        if s is NotImplemented:
-            return s
-        return s._scalar_div_(t)
+        u, v = arb_mat_coerce_scalar(s, t)
+        if u is NotImplemented:
+            return NotImplemented
+        return u._scalar_div_(v)
 
     def __pow__(s, e, m):
         cdef arb_mat u
@@ -699,9 +694,10 @@ cdef class arb_mat(flint_mat):
         if not (op == 2 or op == 3):
             raise ValueError("comparing matrices")
         if type(s) is not type(t):
-            s, t = arb_mat_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
+            u, v = arb_mat_coerce_operands(s, t)
+            if u is NotImplemented:
+                return NotImplemented
+            s, t = u, v
         if op == 2:
             res = arb_mat_eq((<arb_mat>s).val, (<arb_mat>t).val)
         else:
