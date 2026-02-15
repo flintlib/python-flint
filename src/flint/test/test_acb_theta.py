@@ -1,19 +1,11 @@
 from __future__ import annotations
 
-from flint import acb, acb_mat
+from flint import _has_acb_theta, acb, acb_mat
 from flint.test.helpers import is_close_acb_mat as is_close, raises
 
 
-def _acb_theta_importable() -> bool:
-    try:
-        from flint.types.acb_theta import acb_theta as _  # noqa: F401
-        return True
-    except ImportError:
-        return False
-
-
 def test_acb_theta_basic() -> None:
-    if not _acb_theta_importable():
+    if not _has_acb_theta():
         return
 
     from flint.types.acb_theta import acb_theta
@@ -35,7 +27,7 @@ def test_acb_theta_basic() -> None:
 
 
 def test_acb_theta_shape_assertions() -> None:
-    if not _acb_theta_importable():
+    if not _has_acb_theta():
         return
 
     from flint.types.acb_theta import acb_theta

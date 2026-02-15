@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from unittest.mock import patch
 
-from flint import acb, acb_mat, arb_mat, ctx, fmpq_mat, fmpz_mat
+from flint import _has_acb_theta, acb, acb_mat, arb_mat, ctx, fmpq_mat, fmpz_mat
 from flint.test.helpers import is_close_acb, is_close_acb_mat as is_close, is_close_arb_mat, raises
 
 
@@ -304,10 +304,13 @@ def test_acb_mat_eig_theta_and_helper() -> None:
     assert acb_mat(0, 0).eig() == []
 
     tau = acb_mat([[1j]])
-    theta_vals = acb_mat.theta(tau, acb_mat([[0]]))
-    assert isinstance(theta_vals, acb_mat)
-    assert theta_vals.nrows() == 1
-    assert theta_vals.ncols() == 4
+    if _has_acb_theta():
+        theta_vals = acb_mat.theta(tau, acb_mat([[0]]))
+        assert isinstance(theta_vals, acb_mat)
+        assert theta_vals.nrows() == 1
+        assert theta_vals.ncols() == 4
+    else:
+        assert raises(lambda: acb_mat.theta(tau, acb_mat([[0]])), NotImplementedError)
 
     with patch.dict(sys.modules, {"flint.types.acb_theta": None}):
         assert raises(lambda: acb_mat.theta(tau, acb_mat([[0]])), NotImplementedError)
