@@ -6,6 +6,7 @@ pyfiles = [
   'helpers.py',
   'test_all.py',
   'test_acb.py',
+  'test_acb_mat.py',
   'test_acb_poly.py',
   'test_acb_series.py',
   'test_arb.py',

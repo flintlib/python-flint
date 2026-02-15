@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Callable, Sequence
 
-from flint import acb, acb_poly, acb_series, arb, arb_mat, arb_poly, arb_series
+from flint import acb, acb_mat, acb_poly, acb_series, arb, arb_mat, arb_poly, arb_series
 
 
 def raises(f: Callable[[], object], exception: type[Exception]) -> bool:
@@ -123,6 +123,26 @@ def is_close_arb_mat(
     for i in range(x.nrows()):
         for j in range(x.ncols()):
             if not is_close_arb(x[i, j], y[i, j], tol=tol, rel_tol=rel_tol, max_width=max_width):
+                return False
+    return True
+
+
+def is_close_acb_mat(
+    x: acb_mat,
+    y: acb_mat | Sequence[Sequence[int | float | complex | str | acb]],
+    *,
+    tol: int | float | str | arb = 1e-10,
+    rel_tol: int | float | str | arb = 1e-10,
+    max_width: int | float | str | arb = 1e-10,
+) -> bool:
+    if not isinstance(x, acb_mat):
+        return False
+    y = acb_mat(y)
+    if x.nrows() != y.nrows() or x.ncols() != y.ncols():
+        return False
+    for i in range(x.nrows()):
+        for j in range(x.ncols()):
+            if not is_close_acb(x[i, j], y[i, j], tol=tol, rel_tol=rel_tol, max_width=max_width):
                 return False
     return True
 
