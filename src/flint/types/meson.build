@@ -43,7 +43,7 @@ pyfiles = [
   'acb_mat.pyi',
   'acb_series.pyi',
   #
-  # 'dirichlet.pyi',
+  'dirichlet.pyi',
   #
   # '_gr.pyi',
 ]
