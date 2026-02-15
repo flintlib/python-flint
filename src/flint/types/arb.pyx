@@ -501,8 +501,8 @@ cdef class arb(flint_scalar):
         cdef bint res
         cdef arb_struct sval[1]
         cdef arb_struct tval[1]
-        cdef int stype, ttype
-        stype = arb_set_any_ref(sval, s)
+        cdef int _stype, ttype
+        _stype = arb_set_any_ref(sval, s)
         ttype = arb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
