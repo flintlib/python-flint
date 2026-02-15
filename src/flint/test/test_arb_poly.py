@@ -59,8 +59,8 @@ def test_arb_poly_from_roots_and_complex_roots() -> None:
 
     roots = arb_poly([1, 0, 1]).complex_roots()
     assert len(roots) == 2
-    assert any(is_close_acb(r, acb(0, 1), tol=1e-5) for r in roots)
-    assert any(is_close_acb(r, acb(0, -1), tol=1e-5) for r in roots)
+    assert any(is_close_acb(r, acb(0, 1), tol=1e-5, max_width=1e-5) for r in roots)
+    assert any(is_close_acb(r, acb(0, -1), tol=1e-5, max_width=1e-5) for r in roots)
 
 
 def test_arb_poly_evaluate() -> None:

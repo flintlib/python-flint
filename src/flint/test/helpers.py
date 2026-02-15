@@ -29,7 +29,7 @@ def is_close_arb(
         isinstance(x, arb)
         and x.rad() < max_width_arb
         and y.rad() < max_width_arb
-        and abs(x - y) <= tol_arb + rel_tol_arb * max(abs(x), abs(y))
+        and abs(x - y) <= tol_arb + rel_tol_arb * abs(y)
     )
 
 
@@ -42,10 +42,14 @@ def is_close_acb(
     max_width: int | float | str | arb = 1e-10,
 ) -> bool:
     y = acb(y)
+    tol_arb = arb(tol)
+    rel_tol_arb = arb(rel_tol)
+    max_width_arb = arb(max_width)
     return (
         isinstance(x, acb)
-        and is_close_arb(x.real, y.real, tol=tol, rel_tol=rel_tol, max_width=max_width)
-        and is_close_arb(x.imag, y.imag, tol=tol, rel_tol=rel_tol, max_width=max_width)
+        and x.rad() < max_width_arb
+        and y.rad() < max_width_arb
+        and abs(x - y) <= tol_arb + rel_tol_arb * abs(y)
     )
 
 

@@ -237,8 +237,8 @@ def test_acb_poly_roots_and_complex_roots() -> None:
     p = x**2 + 1
     rs0 = p.roots()
     assert len(rs0) == 2
-    assert any(is_close_acb(r, 1j, tol=1e-5) for r in rs0)
-    assert any(is_close_acb(r, -1j, tol=1e-5) for r in rs0)
+    assert any(is_close_acb(r, 1j, tol=1e-5, max_width=1e-5) for r in rs0)
+    assert any(is_close_acb(r, -1j, tol=1e-5, max_width=1e-5) for r in rs0)
 
     rs = p.roots(tol=1e-30, maxprec=128)
     assert len(rs) == 2
