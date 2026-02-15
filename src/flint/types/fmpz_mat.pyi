@@ -10,12 +10,9 @@ from flint.types.fmpz_poly import fmpz_poly
 
 _str = str
 
-ifmpz_mat = fmpz_mat | Sequence[Sequence[ifmpz]]
-
-
 class fmpz_mat(flint_mat[fmpz]):
     @overload
-    def __init__(self, val: ifmpz_mat, /) -> None: ...
+    def __init__(self, val: fmpz_mat | Sequence[Sequence[ifmpz]], /) -> None: ...
     @overload
     def __init__(self, m: int, n: int, /) -> None: ...
     @overload

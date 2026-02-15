@@ -11,12 +11,9 @@ from flint.types.fmpz_mat import fmpz_mat
 
 _str = str
 
-ifmpq_mat = fmpq_mat | fmpz_mat | Sequence[Sequence[ifmpq]]
-
-
 class fmpq_mat(flint_mat[fmpq]):
     @overload
-    def __init__(self, val: ifmpq_mat, /) -> None: ...
+    def __init__(self, val: fmpq_mat | fmpz_mat | Sequence[Sequence[ifmpq]], /) -> None: ...
     @overload
     def __init__(self, m: int, n: int, /) -> None: ...
     @overload

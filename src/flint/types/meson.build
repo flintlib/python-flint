@@ -26,7 +26,7 @@ pyfiles = [
   'fmpz_mod.pyi',
   'fmpz_mod_poly.pyi',
   'fmpz_mod_mpoly.pyi',
-  # 'fmpz_mod_mat.pyi',
+  'fmpz_mod_mat.pyi',
 
   'fq_default.pyi',
   'fq_default_poly.pyi',
