@@ -20,7 +20,7 @@ pyfiles = [
   'nmod.pyi',
   'nmod_poly.pyi',
   'nmod_mpoly.pyi',
-  # 'nmod_mat.pyi',
+  'nmod_mat.pyi',
   # 'nmod_series.pyi',
 
   'fmpz_mod.pyi',

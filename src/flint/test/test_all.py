@@ -1594,6 +1594,7 @@ def test_nmod_mat():
     assert str(M(2,2,[1,2,3,4],17)) == '[1, 2]\n[3, 4]'
     assert repr(M(2,2,[1,2,3,4],17)) == '[1, 2]\n[3, 4]'
     assert M(1,2,[3,4],17) / 3 == M(1,2,[3,4],17) * (~G(3,17))
+    assert raises(lambda: pow(M([[1]],17), 2, 3), NotImplementedError)
     assert M(2,2,[1,2,3,4], 17).inv().det() == ~(M(2,2,[1,2,3,4], 17).det())
     assert M(2,2,[1,2,3,4], 17).inv().inv() == M(2,2,[1,2,3,4], 17)
     assert M(2,2,[0,1,2,3],17) * M(2, 2, [2,3,4,5], 17) == M(2,2,[4,5,16,4],17)
@@ -1611,6 +1612,11 @@ def test_nmod_mat():
     assert (M([[1]],17) != M([[1]],13)) is True
     assert (M([[1]],17) == None) is False
     assert (M([[1]],17) != None) is True
+    class _nmod_mat_subclass(M):
+        pass
+
+    assert raises(lambda: M([[1]],3) + _nmod_mat_subclass([[1]],5), ValueError)
+    assert raises(lambda: M([[1]],3) - _nmod_mat_subclass([[1]],5), ValueError)
     M2 = M.randtest(3,4,5)
     assert all(0 <= int(x) < 5 for x in M2.entries())
     assert (M2.nrows(), M2.ncols()) == (3, 4)
