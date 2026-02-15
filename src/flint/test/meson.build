@@ -9,6 +9,7 @@ pyfiles = [
   'test_acb_poly.py',
   'test_acb_series.py',
   'test_arb.py',
+  'test_arb_mat.py',
   'test_arb_series.py',
   'test_arb_poly.py',
   'test_fmpq_vec.py',
