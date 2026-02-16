@@ -77,6 +77,8 @@ exts = [
   'fq_default',
   'fq_default_poly',
 
+  'qfb',
+
   'arf',
 
   'arb',
