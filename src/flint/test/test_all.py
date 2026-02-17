@@ -3267,6 +3267,8 @@ def test_mpolys_constructor(args: _MPolyTestCase[Tmpoly_p, Tscalar]) -> None:
         )
     new_poly = quick_poly().project_to_context(ctx1)
     assert ctx1.drop_gens(new_poly.unused_gens()) == ctx
+    assert quick_poly().unused_gens() == ()
+    assert (0*quick_poly()).unused_gens() == ('x0', 'x1')
     assert new_poly.project_to_context(ctx) == quick_poly()
 
     new_poly = quick_poly().project_to_context(ctx2)
