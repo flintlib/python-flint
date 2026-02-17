@@ -959,7 +959,7 @@ cdef class flint_mpoly(flint_elem):
             ('x0', 'x3')
         """
         names = self.context().names()
-        return tuple(names[i] for i, x in enumerate(self.degrees()) if not x)
+        return tuple(names[i] for i, x in enumerate(self.degrees()) if x <= 0)
 
     def project_to_context(self, other_ctx, mapping: dict[str | int, str | int] = None):
         """
