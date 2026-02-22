@@ -8,10 +8,37 @@ import sys
 import doctest
 import traceback
 import argparse
+import importlib
+import inspect
+import pkgutil
+from typing import Callable
 
 import flint
-from flint.test.test_all import all_tests
 from flint.test.test_docstrings import find_doctests
+
+
+def collect_all_tests() -> list[Callable[[], object]]:
+    tests: list[Callable[[], object]] = []
+    import flint.test as test_pkg
+
+    for mod in pkgutil.iter_modules(test_pkg.__path__, test_pkg.__name__ + "."):
+        mod_name = mod.name.rsplit(".", 1)[-1]
+        if not mod_name.startswith("test_"):
+            continue
+        module = importlib.import_module(mod.name)
+        for name, obj in vars(module).items():
+            if (
+                name.startswith("test_")
+                and inspect.isfunction(obj)
+                and obj.__module__ == module.__name__
+                and len(inspect.signature(obj).parameters) == 0
+            ):
+                tests.append(obj)
+
+    return tests
+
+
+all_tests = collect_all_tests()
 
 
 def run_tests(verbose=None):

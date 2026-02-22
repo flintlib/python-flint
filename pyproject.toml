@@ -87,6 +87,9 @@ package = "flint"
     "spin.cmds.meson.run",
 ]
 
+[tool.mypy]
+files = ["src"]
+
 [tool.pytest.ini_options]
 addopts = "--import-mode=importlib"
 

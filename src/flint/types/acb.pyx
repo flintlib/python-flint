@@ -187,7 +187,7 @@ cdef class acb(flint_scalar):
         cdef bint res
         cdef int ttype
         if not (op == 2 or op == 3):
-            raise ValueError("comparing complex numbers")
+            raise TypeError("comparing complex numbers")
         ttype = acb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented

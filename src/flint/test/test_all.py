@@ -1,37 +1,33 @@
 from __future__ import annotations
-from typing import Any, Callable, Sequence, TypeVar, Iterable, Protocol, TYPE_CHECKING
+from typing import Any, Callable, Sequence, TypeVar, Iterable, Protocol, TYPE_CHECKING, TypeGuard
 
 import math
 import operator
 import pickle
 import platform
 import random
+import importlib
+import inspect
+import pkgutil
 
 import flint
 import flint.typing as typ
 import flint.flint_base.flint_base as flint_base
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
-from flint.test.test_arb import all_tests as arb_tests
+from flint.test.helpers import raises
 
 
 PYPY = platform.python_implementation() == "PyPy"
 
 ctx = flint.ctx
 
-def raises(f, exception) -> bool:
-    try:
-        f()
-    except exception:
-        return True
-    return False
-
 
 if TYPE_CHECKING:
-    from typing import TypeIs
+    from typing_extensions import TypeIs
 
 
-Tscalar = TypeVar('Tscalar', bound=flint_base.flint_scalar)
+Tscalar = TypeVar('Tscalar', bound=typ.scalar_p)
 Tscalar_co = TypeVar('Tscalar_co', bound=flint_base.flint_scalar, covariant=True)
 Tmpoly = TypeVar('Tmpoly', bound=flint_base.flint_mpoly)
 Tmpoly_p = TypeVar('Tmpoly_p', bound=typ.mpoly_p)
@@ -967,7 +963,8 @@ def test_fmpq() -> None:
         (lambda n: flint.fmpq.dedekind_sum(n, 3),
             [-Q(1,18), Q(0), Q(1,18), -Q(1,18), Q(0), Q(1,18), -Q(1,18)]),
     ]
-    is_exception = lambda v: isinstance(v, type) and issubclass(v, Exception)
+    def is_exception(v: object) -> TypeGuard[type[Exception]]:
+        return isinstance(v, type) and issubclass(v, Exception)
 
     for func2, values2 in cases2:
         for n, val in enumerate(values2, -1):
@@ -1102,6 +1099,9 @@ def test_fmpq_mat():
     assert (Q(1,1,[1]) != 1) is True
     assert (1 == Q(1,1,[1])) is False
     assert (1 != Q(1,1,[1])) is True
+    marker = object()
+    assert (Q(1,1,[1]) == marker) is False
+    assert (Q(1,1,[1]) != marker) is True
     assert Q(1,2,[3,4]) * 2 == Q(1,2,[6,8])
     assert Q(1,2,[3,4]) * flint.fmpq(1,3) == Q(1,2,[1,flint.fmpq(4,3)])
     assert Q(1,2,[3,4]) * flint.fmpq(5,3) == Q(1,2,[5,flint.fmpq(20,3)])
@@ -1113,6 +1113,7 @@ def test_fmpq_mat():
     assert M ** 1 == M
     assert M ** 2 == Q([[7,10],[15,22]])
     assert M ** 12 == Q([[138067399, 201223170],[301834755, 439902154]])
+    assert raises(lambda: pow(M, 2, 3), TypeError)
     M = Q([[1,2],[2,4]])
     assert raises(lambda: M ** -1, ZeroDivisionError)
     assert Q(1,2,[3,4]) / 2 == Q(1,2,[flint.fmpq(3,2),2])
@@ -1172,6 +1173,9 @@ def test_fmpq_mat():
     X = Q([[1,2],[3,4]])
     B = A*X
     assert A.solve(B) == X
+    I25 = Q([[1 if i == j else 0 for j in range(25)] for i in range(25)])
+    X25 = Q.hilbert(25, 2)
+    assert I25.solve(X25) == X25
     for algorithm in None, "fflu", "dixon":
         assert A.solve(B, algorithm=algorithm) == X
     assert raises(lambda: A.solve(B, algorithm="invalid"), ValueError)
@@ -1590,6 +1594,7 @@ def test_nmod_mat():
     assert str(M(2,2,[1,2,3,4],17)) == '[1, 2]\n[3, 4]'
     assert repr(M(2,2,[1,2,3,4],17)) == '[1, 2]\n[3, 4]'
     assert M(1,2,[3,4],17) / 3 == M(1,2,[3,4],17) * (~G(3,17))
+    assert raises(lambda: pow(M([[1]],17), 2, 3), NotImplementedError)
     assert M(2,2,[1,2,3,4], 17).inv().det() == ~(M(2,2,[1,2,3,4], 17).det())
     assert M(2,2,[1,2,3,4], 17).inv().inv() == M(2,2,[1,2,3,4], 17)
     assert M(2,2,[0,1,2,3],17) * M(2, 2, [2,3,4,5], 17) == M(2,2,[4,5,16,4],17)
@@ -1607,6 +1612,11 @@ def test_nmod_mat():
     assert (M([[1]],17) != M([[1]],13)) is True
     assert (M([[1]],17) == None) is False
     assert (M([[1]],17) != None) is True
+    class _nmod_mat_subclass(M):
+        pass
+
+    assert raises(lambda: M([[1]],3) + _nmod_mat_subclass([[1]],5), ValueError)
+    assert raises(lambda: M([[1]],3) - _nmod_mat_subclass([[1]],5), ValueError)
     M2 = M.randtest(3,4,5)
     assert all(0 <= int(x) < 5 for x in M2.entries())
     assert (M2.nrows(), M2.ncols()) == (3, 4)
@@ -1681,7 +1691,184 @@ def test_nmod_series():
     pass
 
 
-def test_arb():
+def test_arf() -> None:
+    oldpretty = ctx.pretty
+    oldprec = ctx.prec
+    try:
+        ctx.prec = 53
+
+        z = flint.arf()
+        assert z.is_zero() is True
+        assert z.is_finite() is True
+        assert z.man_exp() == (flint.fmpz(0), flint.fmpz(0))
+        assert str(z) == "0.0"
+
+        a = flint.arf(-100)
+        b = flint.arf(15.125)
+        c = flint.arf(flint.arf(3))
+        e = flint.arf(flint.fmpz(7))
+        d = flint.arf((10, -2))
+        assert a.is_finite() is True
+        assert b.is_finite() is True
+        assert c.is_finite() is True
+        assert d.is_finite() is True
+        assert e.is_finite() is True
+        assert str(e) == "7.00000000000000"
+        assert d.man_exp() == (flint.fmpz(5), flint.fmpz(-1))
+        assert str(d) == "2.50000000000000"
+        assert repr(d) == str(d) == "2.50000000000000"
+
+        assert flint.arf(1.0 / 3.0)._dec_str(num_digits=6).startswith("0.333333")
+
+        pinf = flint.arf("inf")
+        pinf2 = flint.arf("+inf")
+        ninf = flint.arf("-inf")
+        nan = flint.arf("nan")
+        assert pinf.is_pos_inf() is True
+        assert ninf.is_pos_inf() is False
+        assert pinf2.is_pos_inf() is True
+        assert ninf.is_neg_inf() is True
+        assert nan.is_nan() is True
+        assert str(pinf) == "inf"
+        assert str(ninf) == "-inf"
+        assert str(nan) == "nan"
+
+        assert raises(lambda: flint.arf("bogus"), TypeError)
+        assert raises(lambda: flint.arf((10, "bad")), TypeError) # type: ignore
+        assert raises(lambda: flint.arf([]), TypeError) # type: ignore
+        assert raises(lambda: flint.arf(object()), TypeError) # type: ignore
+        assert flint.arf(flint.fmpq(3, 2)) == flint.arf(1.5)
+        assert raises(lambda: flint.arf(1j), TypeError) # type: ignore
+        assert raises(lambda: flint.arf({}), TypeError) # type: ignore
+
+        ctx.pretty = False
+        assert repr(z) == "arf(0.0)"
+        assert repr(d) == "arf((0x5, -0x1))"
+        assert repr(flint.arf(1.25)) == "arf((0x5, -0x2))"
+        assert repr(pinf) == "arf('+inf')"
+        assert repr(ninf) == "arf('-inf')"
+        assert repr(nan) == "arf('nan')"
+        ctx.pretty = oldpretty
+
+        x = flint.arf(2)
+        y = flint.arf(3)
+        assert (x == flint.arf(2)) is True
+        assert (x == 2) is True
+        assert (x == 2.0) is True
+        assert (x == 2.5) is False
+        assert (x != 2) is False
+        assert (x != y) is True
+        assert (x < y) is True
+        assert (x <= y) is True
+        assert (y > x) is True
+        assert (y >= x) is True
+        assert (x == 2) is True
+        assert (x != 3) is True
+        assert (x == flint.fmpz(2)) is True
+        assert (x != flint.fmpz(3)) is True
+        assert (x < flint.fmpz(3)) is True
+        assert (x == 2.0) is True
+        assert (x != 2.0) is False
+        assert (x < 3) is True
+        assert (2 < y) is True
+        assert (x < 2.5) is True
+        assert (x < flint.fmpq(5, 2)) is True
+        assert (x == flint.fmpq(4, 2)) is True
+        assert (x != flint.fmpq(5, 2)) is True
+        one = flint.arf(1)
+        q_close = flint.fmpq(2**80 + 1, 2**80)
+        assert (flint.fmpq(1, 1) < q_close) is True
+        assert (one == q_close) is False
+        assert (one < q_close) is True
+        assert (flint.arf("nan") == flint.fmpq(1, 2)) is False
+        assert (flint.arf("nan") != flint.fmpq(1, 2)) is True
+        assert (flint.arf("inf") > flint.fmpq(1, 2)) is True
+        assert (flint.arf("-inf") < flint.fmpq(1, 2)) is True
+        huge_cmp = 1 << 200
+        assert (flint.arf(huge_cmp) == huge_cmp) is True
+        assert (flint.arf(huge_cmp) != huge_cmp + 1) is True
+        assert (flint.arf(huge_cmp) < huge_cmp + 1) is True
+        assert raises(lambda: x < "bad", TypeError) # type: ignore
+
+        assert bool(flint.arf(0)) is False
+        assert bool(flint.arf("nan")) is True
+        assert bool(flint.arf("inf")) is True
+        assert float(flint.arf(1.5)) == 1.5
+        assert int(flint.arf(2.9)) == 2
+        assert int(flint.arf(-2.9)) == -2
+        assert raises(lambda: int(flint.arf("nan")), ValueError)
+        assert raises(lambda: int(flint.arf("inf")), OverflowError)
+        assert flint.arf(0).as_integer_ratio() == (0, 1)
+        assert flint.arf(-1.25).as_integer_ratio() == (-5, 4)
+        assert raises(lambda: flint.arf("nan").as_integer_ratio(), ValueError)
+        assert raises(lambda: flint.arf("-inf").as_integer_ratio(), OverflowError)
+
+        # unary ops
+        assert +x == x
+        assert -x == flint.arf(-2)
+        assert abs(flint.arf(-2)) == flint.arf(2)
+
+        # binary ops and NotImplemented paths
+        assert x + y == flint.arf(5)
+        assert y - x == flint.arf(1)
+        assert x * y == flint.arf(6)
+        assert x / y == flint.arf(2 / 3)
+        assert x + 1 == flint.arf(3)
+        assert x + flint.fmpz(1) == flint.arf(3)
+        assert x + 0.5 == flint.arf(2.5)
+        assert 0.5 + x == flint.arf(2.5)
+        assert flint.fmpz(1) + x == flint.arf(3)
+        assert x - 1 == flint.arf(1)
+        assert x - flint.fmpz(1) == flint.arf(1)
+        assert x - 0.5 == flint.arf(1.5)
+        assert 5.0 - x == flint.arf(3)
+        assert flint.fmpz(5) - x == flint.arf(3)
+        assert x * 3 == flint.arf(6)
+        assert x * flint.fmpz(3) == flint.arf(6)
+        assert x * 0.5 == flint.arf(1)
+        assert 0.5 * x == flint.arf(1)
+        assert flint.fmpz(3) * x == flint.arf(6)
+        assert x / 2 == flint.arf(1)
+        assert x / flint.fmpz(2) == flint.arf(1)
+        assert x / 0.5 == flint.arf(4)
+        assert 6.0 / x == flint.arf(3)
+        assert flint.fmpz(6) / x == flint.arf(3)
+        huge = 1 << 200
+        assert x + huge == x + flint.fmpz(huge)
+        assert huge + x == flint.fmpz(huge) + x
+        assert x - huge == x - flint.fmpz(huge)
+        assert huge - x == flint.fmpz(huge) - x
+        assert x * huge == x * flint.fmpz(huge)
+        assert huge * x == flint.fmpz(huge) * x
+        assert x / huge == x / flint.fmpz(huge)
+        assert huge / x == flint.fmpz(huge) / x
+        half = flint.fmpq(1, 2)
+        assert raises(lambda: x + half, TypeError) # type: ignore
+        assert raises(lambda: half + x, TypeError) # type: ignore
+        assert raises(lambda: x - half, TypeError) # type: ignore
+        assert raises(lambda: half - x, TypeError) # type: ignore
+        assert raises(lambda: x * half, TypeError) # type: ignore
+        assert raises(lambda: half * x, TypeError) # type: ignore
+        assert raises(lambda: x / half, TypeError) # type: ignore
+        assert raises(lambda: half / x, TypeError) # type: ignore
+        assert 1 + x == flint.arf(3)
+        assert 5 - x == flint.arf(3)
+        assert 2 * x == flint.arf(4)
+        assert 6 / x == flint.arf(3)
+        assert raises(lambda: x + "bad", TypeError) # type: ignore
+        assert raises(lambda: x - "bad", TypeError) # type: ignore
+        assert raises(lambda: x * "bad", TypeError) # type: ignore
+        assert raises(lambda: x / "bad", TypeError) # type: ignore
+        assert raises(lambda: "bad" + x, TypeError) # type: ignore
+        assert raises(lambda: "bad" - x, TypeError) # type: ignore
+        assert raises(lambda: "bad" * x, TypeError) # type: ignore
+        assert raises(lambda: "bad" / x, TypeError) # type: ignore
+    finally:
+        ctx.pretty = oldpretty
+        ctx.prec = oldprec
+
+
+def test_arb() -> None:
     arb = flint.arb
     assert arb(3) > arb(2.5)
     assert arb(3) >= arb("2.5")
@@ -2598,46 +2785,46 @@ def _all_polys() -> list[tuple[Any, Any, bool, flint.fmpz]]:
         (flint.fmpq_poly, flint.fmpq, True, flint.fmpz(0)),
 
         # Z/pZ (p prime)
-        (lambda *a: flint.nmod_poly(*a, 17), lambda x: flint.nmod(x, 17), True, flint.fmpz(17)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(163)),
+        (lambda a: flint.nmod_poly(a, 17), lambda x: flint.nmod(x, 17), True, flint.fmpz(17)),
+        (lambda a: flint.fmpz_mod_poly(a, flint.fmpz_mod_poly_ctx(163)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(163)),
          True, flint.fmpz(163)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**127 - 1)),
+        (lambda a: flint.fmpz_mod_poly(a, flint.fmpz_mod_poly_ctx(2**127 - 1)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**127 - 1)),
          True, flint.fmpz(2**127 - 1)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255 - 19)),
+        (lambda a: flint.fmpz_mod_poly(a, flint.fmpz_mod_poly_ctx(2**255 - 19)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255 - 19)),
          True, flint.fmpz(2**255 - 19)),
 
         # GF(p^k) (p prime)
-        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(2**127 - 1)),
+        (lambda a: flint.fq_default_poly(a, flint.fq_default_poly_ctx(2**127 - 1)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(2**127 - 1)),
          True, flint.fmpz(2**127 - 1)),
-        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(2**127 - 1, 2)),
+        (lambda a: flint.fq_default_poly(a, flint.fq_default_poly_ctx(2**127 - 1, 2)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(2**127 - 1, 2)),
          True, flint.fmpz(2**127 - 1)),
-        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(65537)),
+        (lambda a: flint.fq_default_poly(a, flint.fq_default_poly_ctx(65537)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(65537)),
          True, flint.fmpz(65537)),
-        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(65537, 5)),
+        (lambda a: flint.fq_default_poly(a, flint.fq_default_poly_ctx(65537, 5)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(65537, 5)),
          True, flint.fmpz(65537)),
-        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(11)),
+        (lambda a: flint.fq_default_poly(a, flint.fq_default_poly_ctx(11)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(11)),
          True, flint.fmpz(11)),
-        (lambda *a: flint.fq_default_poly(*a, flint.fq_default_poly_ctx(11, 5)),
+        (lambda a: flint.fq_default_poly(a, flint.fq_default_poly_ctx(11, 5)),
          lambda x: flint.fq_default(x, flint.fq_default_ctx(11, 5)),
          True, flint.fmpz(11)),
 
         # Z/nZ (n composite)
-        (lambda *a: flint.nmod_poly(*a, 16), lambda x: flint.nmod(x, 16), False, flint.fmpz(16)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(164)),
+        (lambda a: flint.nmod_poly(a, 16), lambda x: flint.nmod(x, 16), False, flint.fmpz(16)),
+        (lambda a: flint.fmpz_mod_poly(a, flint.fmpz_mod_poly_ctx(164)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(164)),
          False, flint.fmpz(164)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**127)),
+        (lambda a: flint.fmpz_mod_poly(a, flint.fmpz_mod_poly_ctx(2**127)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**127)),
          False, flint.fmpz(2**127)),
-        (lambda *a: flint.fmpz_mod_poly(*a, flint.fmpz_mod_poly_ctx(2**255)),
+        (lambda a: flint.fmpz_mod_poly(a, flint.fmpz_mod_poly_ctx(2**255)),
          lambda x: flint.fmpz_mod(x, flint.fmpz_mod_ctx(2**255)),
          False, flint.fmpz(2**255)),
     ]
@@ -3026,8 +3213,11 @@ def test_polys(args: _PolyTestCase[typ.epoly_p[Tc], Tc]) -> None:
         p1 = P([1, 0, 1])
         p2 = P([2, 1])
         g, s, t = P([1]), P([1])/5, P([2, -1])/5
-        assert p1.xgcd(p2) == (g, s, t)
-        assert raises(lambda: p1.xgcd(None), TypeError) # type: ignore
+        if isinstance(p1, (flint.fmpq_poly, flint.nmod_poly, flint.fmpz_mod_poly, flint.fq_default_poly)):
+            assert p1.xgcd(p2) == (g, s, t)
+            assert raises(lambda: p1.xgcd(None), TypeError) # type: ignore
+        else:
+            assert False
 
     if not composite_characteristic:
         assert P([1, 2, 1]).factor() == (S(1), [(P([1, 1]), 2)])
@@ -3066,16 +3256,16 @@ def test_polys(args: _PolyTestCase[typ.epoly_p[Tc], Tc]) -> None:
     # resultant checks.
     x = P([0, 1])
 
-    if composite_characteristic and type(x) in [flint.fmpz_mod_poly, flint.nmod_poly]:
+    if composite_characteristic and isinstance(x, (flint.fmpz_mod_poly, flint.nmod_poly)):
         # Flint sometimes crashes in this case, even though the resultant
         # could be computed.
         divisor = characteristic.factor()[0][0]
         assert raises(lambda: x.resultant(x + divisor), ValueError)
-    elif type(x) == flint.fq_default_poly:
+    elif isinstance(x, flint.fq_default_poly):
         # Flint does not implement resultants over GF(q) for nonprime q, so
         # there's nothing for us to check.
         pass
-    else:
+    elif isinstance(x, (flint.fmpz_poly, flint.fmpq_poly, flint.nmod_poly, flint.fmpz_mod_poly)):
         assert x.resultant(x) == 0
         assert x.resultant(x**2 + x - x) == 0
         assert x.resultant(x**10 - x**5 + 1) == S(1)
@@ -3086,6 +3276,8 @@ def test_polys(args: _PolyTestCase[typ.epoly_p[Tc], Tc]) -> None:
 
         for k in range(-10, 10):
             assert x.resultant(x + S(k)) == S(k)
+    else:
+        assert False
 
 
 def test_poly_resultants():
@@ -3276,7 +3468,7 @@ def test_mpolys_constructor(args: _MPolyTestCase[Tmpoly_p, Tscalar]) -> None:
     assert new_ctx != ctx
     assert new_poly != quick_poly()
 
-    new_ctx = new_ctx.from_context(new_ctx, ordering=ctx.ordering())
+    new_ctx = get_context(new_ctx.names(), ordering=ctx.ordering())
     assert new_ctx == ctx
     assert new_poly.project_to_context(new_ctx) == quick_poly()
 
@@ -3482,7 +3674,14 @@ def test_mpolys_properties(args: _MPolyTestCase[Tmpoly_p, Tscalar]) -> None:
         + mpoly({(0, 0): 5, (0, 1): 6, (1, 0): 7, (2, 2): 8}) \
         == mpoly({(0, 0): 6, (0, 1): 8, (1, 0): 10, (2, 2): 12})
 
-    for T in [int, S, flint.fmpz, lambda x: P(x, ctx=ctx)]:
+    converters: tuple[Callable[[int], int | flint.fmpz | Tscalar | Tmpoly_p], ...] = (
+        lambda x: int(x),
+        lambda x: S(x),
+        lambda x: flint.fmpz(x),
+        lambda x: P(x, ctx=ctx),
+    )
+
+    for T in converters:
         p = quick_poly()
         p += T(1)
         q = quick_poly()
@@ -3501,7 +3700,7 @@ def test_mpolys_properties(args: _MPolyTestCase[Tmpoly_p, Tscalar]) -> None:
     assert quick_poly() - mpoly({(0, 0): 5, (0, 1): 6, (1, 0): 7, (2, 2): 8}) \
         == mpoly({(0, 0): -4, (0, 1): -4, (1, 0): -4, (2, 2): -4})
 
-    for T in [int, S, flint.fmpz, lambda x: P(x, ctx=ctx)]:
+    for T in converters:
         p = quick_poly()
         p -= T(1)
         q = quick_poly()
@@ -3526,7 +3725,7 @@ def test_mpolys_properties(args: _MPolyTestCase[Tmpoly_p, Tscalar]) -> None:
             (0, 1): 6
         })
 
-    for T in [int, S, flint.fmpz, lambda x: P(x, ctx=ctx)]:
+    for T in converters:
         p = quick_poly()
         p *= T(2)
         q = quick_poly()
@@ -3714,9 +3913,9 @@ def test_mpolys_properties(args: _MPolyTestCase[Tmpoly_p, Tscalar]) -> None:
     if isinstance(p, (flint.fmpz_mpoly, flint.fmpq_mpoly)):
         if isinstance(p, flint.fmpq_mpoly) and _is_Q(S):
             assert p.integral(0) == p.integral("x0") == \
-                mpoly({(3, 2): S(4, 3), (2, 0): S(3, 2), (1, 1): S(2), (1, 0): S(1)})
+                mpoly({(3, 2): S(4) / 3, (2, 0): S(3) / 2, (1, 1): S(2), (1, 0): S(1)})
             assert p.integral(1) == p.integral("x1") == \
-                mpoly({(2, 3): S(4, 3), (1, 1): S(3), (0, 2): S(1), (0, 1): S(1)})
+                mpoly({(2, 3): S(4) / 3, (1, 1): S(3), (0, 2): S(1), (0, 1): S(1)})
         else:
             assert p.integral(0) == p.integral("x0") == \
                 (6, mpoly({(3, 2): 8, (2, 0): 9, (1, 1): 12, (1, 0): 6}))
@@ -5165,87 +5364,25 @@ def test_python_threads():
 
 
 def test_all_tests():
-    test_funcs = {f for name, f in globals().items() if name.startswith("test_")}
-    untested = test_funcs - set(all_tests)
-    assert not untested, f"Untested functions: {untested}"
+    from flint.test.__main__ import collect_all_tests
 
+    collected = set(collect_all_tests())
+    expected = set()
 
-all_tests = [
-    test_pyflint,
-    test_showgood,
+    import flint.test as test_pkg
+    for mod in pkgutil.iter_modules(test_pkg.__path__, test_pkg.__name__ + "."):
+        mod_name = mod.name.rsplit(".", 1)[-1]
+        if not mod_name.startswith("test_"):
+            continue
+        module = importlib.import_module(mod.name)
+        expected.update(
+            obj for name, obj in vars(module).items()
+            if (
+                name.startswith("test_")
+                and inspect.isfunction(obj)
+                and obj.__module__ == module.__name__
+                and len(inspect.signature(obj).parameters) == 0
+            )
+        )
 
-    test_fmpz,
-    test_fmpz_factor,
-    test_fmpz_functions,
-    test_fmpz_poly,
-    test_fmpz_poly_factor,
-    test_fmpz_poly_functions,
-    test_fmpz_mat,
-    test_fmpz_series,
-
-    test_fmpq,
-    test_fmpq_poly,
-    test_fmpq_mat,
-    test_fmpq_series,
-
-    test_nmod,
-    test_nmod_poly,
-    test_nmod_mat,
-    test_nmod_series,
-
-    test_fmpz_mod,
-    test_fmpz_mod_dlog,
-    test_fmpz_mod_poly,
-    test_fmpz_mod_mat,
-
-    test_division_scalar,
-    test_division_poly,
-    test_division_matrix,
-
-    test_properties_poly_mpoly,
-    test_factor_poly_mpoly,
-    test_division_poly_mpoly,
-
-    test_polys,
-    test_mpolys_constructor,
-    test_mpolys_properties,
-
-    test_poly_resultants,
-
-    test_fmpz_mpoly_vec,
-
-    test_matrices_eq,
-    test_matrices_constructor,
-    test_matrices_strrepr,
-    test_matrices_getitem,
-    test_matrices_setitem,
-    test_matrices_bool,
-    test_matrices_transpose,
-    test_matrices_pos_neg,
-    test_matrices_add,
-    test_matrices_sub,
-    test_matrices_mul,
-    test_matrices_pow,
-    test_matrices_div,
-    test_matrices_properties,
-    test_matrices_inv,
-    test_matrices_det,
-    test_matrices_charpoly,
-    test_matrices_minpoly,
-    test_matrices_rank,
-    test_matrices_rref,
-    test_matrices_solve,
-    test_matrices_fflu,
-
-    test_fq_default,
-    test_fq_default_poly,
-
-    test_arb,
-    test_acb,
-
-    test_pickling,
-
-    test_python_threads,
-
-    test_all_tests,
-] + arb_tests
+    assert collected == expected

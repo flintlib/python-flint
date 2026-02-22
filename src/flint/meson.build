@@ -4,6 +4,7 @@ pyfiles = [
   '__init__.py',
   'typing.py',
   'py.typed',
+  'pyflint.pyi',
 ]
 
 exts = [

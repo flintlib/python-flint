@@ -62,7 +62,7 @@ def get_cython_build_rules():
 
 
 @cache
-def parse_all_cfile_lines():
+def parse_all_cfile_lines(excluded_line_patterns=()):
     """Parse all generated C files from the build directory."""
     #
     # Each .c file can include code generated from multiple Cython files (e.g.
@@ -77,6 +77,14 @@ def parse_all_cfile_lines():
     # expensive.
     #
     all_code_lines = {}
+    all_excluded_lines = defaultdict(set)
+    if excluded_line_patterns:
+        pattern = re.compile("|".join([f"(?:{regex})" for regex in excluded_line_patterns]))
+        line_is_excluded = pattern.search
+    else:
+        line_is_excluded = lambda line: False
+
+    source_cache = {}
 
     for c_file, _ in get_cython_build_rules():
 
@@ -85,13 +93,33 @@ def parse_all_cfile_lines():
         for cython_file, line_map in cfile_lines.items():
             if cython_file == '(tree fragment)':
                 continue
-            elif cython_file in all_code_lines:
-                # Possibly need to merge the lines?
-                assert all_code_lines[cython_file] == line_map
-            else:
-                all_code_lines[cython_file] = line_map
+            src_lines = source_cache.get(cython_file)
+            if src_lines is None:
+                src_path = src_dir / cython_file
+                if src_path.exists():
+                    with open(src_path, encoding="utf8") as src:
+                        src_lines = src.read().splitlines()
+                else:
+                    src_lines = []
+                source_cache[cython_file] = src_lines
 
-    return all_code_lines
+            excluded = set()
+            filtered_line_map = {}
+            for lineno, line in line_map.items():
+                source_line = src_lines[lineno - 1] if 0 < lineno <= len(src_lines) else ""
+                if line_is_excluded(source_line) or line_is_excluded(line):
+                    excluded.add(lineno)
+                else:
+                    filtered_line_map[lineno] = line
+            if cython_file in all_code_lines:
+                # Possibly need to merge the lines?
+                assert all_code_lines[cython_file] == filtered_line_map
+                all_excluded_lines[cython_file].update(excluded)
+            else:
+                all_code_lines[cython_file] = filtered_line_map
+                all_excluded_lines[cython_file] = excluded
+
+    return all_code_lines, all_excluded_lines
 
 
 def parse_cfile_lines(c_file):
@@ -102,6 +130,11 @@ def parse_cfile_lines(c_file):
 
 class Plugin(CoveragePlugin):
     """A coverage plugin for a spin/meson project with Cython code."""
+    _excluded_line_patterns = ()
+
+    def configure(self, config):
+        # Match Cython's plugin behavior and respect coverage's exclusion regexes.
+        self._excluded_line_patterns = tuple(config.get_option("report:exclude_lines"))
 
     def file_tracer(self, filename):
         """Find a tracer for filename to handle trace events."""
@@ -121,7 +154,7 @@ class Plugin(CoveragePlugin):
     def file_reporter(self, filename):
         """Return a file reporter for filename."""
         srcfile = Path(filename).relative_to(src_dir)
-        return CyFileReporter(srcfile)
+        return CyFileReporter(srcfile, self._excluded_line_patterns)
 
 
 class CyFileTracer(FileTracer):
@@ -157,7 +190,7 @@ class CyFileTracer(FileTracer):
 class CyFileReporter(FileReporter):
     """File reporter for Cython or Python files (.pyx,.pxd,.py)."""
 
-    def __init__(self, srcpath):
+    def __init__(self, srcpath, excluded_line_patterns):
         abspath = (src_dir / srcpath)
         assert abspath.exists()
 
@@ -165,6 +198,7 @@ class CyFileReporter(FileReporter):
         super().__init__(str(abspath))
 
         self.srcpath = srcpath
+        self.excluded_line_patterns = excluded_line_patterns
 
     def relative_filename(self):
         """Path displayed in the coverage reports."""
@@ -173,9 +207,14 @@ class CyFileReporter(FileReporter):
     def lines(self):
         """Set of line numbers for possibly traceable lines."""
         srcpath = str(self.srcpath)
-        all_line_maps = parse_all_cfile_lines()
+        all_line_maps, _ = parse_all_cfile_lines(self.excluded_line_patterns)
         line_map = all_line_maps[srcpath]
         return set(line_map)
+
+    def excluded_lines(self):
+        srcpath = str(self.srcpath)
+        _, all_excluded_lines = parse_all_cfile_lines(self.excluded_line_patterns)
+        return set(all_excluded_lines.get(srcpath, ()))
 
 
 def coverage_init(reg, options):

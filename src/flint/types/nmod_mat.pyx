@@ -358,9 +358,6 @@ cdef class nmod_mat(flint_mat):
     def __truediv__(s, t):
         return nmod_mat._div_(s, t)
 
-    def __div__(s, t):
-        return nmod_mat._div_(s, t)
-
     def det(self):
         """
         Returns the determinant of self as an nmod.

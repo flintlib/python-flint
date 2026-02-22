@@ -22,6 +22,7 @@ SKIP_MPFR=no
 USE_GMP=gmp
 PATCH_GMP_ARM64=no
 BUILD_ARB=no
+USE_GMP_GITHUB_MIRROR=no
 
 while [[ $# -gt 0 ]]
 do
@@ -124,7 +125,7 @@ cd src
 #                                                                           #
 # ------------------------------------------------------------------------- #
 
-if [ $USE_GMP = "gmp" ]; then
+if [ "$USE_GMP" = "gmp" ]; then
 
   # ----------------------------------------------------------------------- #
   #                                                                         #
@@ -132,7 +133,7 @@ if [ $USE_GMP = "gmp" ]; then
   #                                                                         #
   # ----------------------------------------------------------------------- #
 
-  if [ $SKIP_GMP = "yes" ]; then
+  if [ "$SKIP_GMP" = "yes" ]; then
     echo
     echo --------------------------------------------
     echo "           skipping GMP"
@@ -145,7 +146,7 @@ if [ $USE_GMP = "gmp" ]; then
     echo --------------------------------------------
     echo
 
-    if [ $USE_GMP_GITHUB_MIRROR = "yes" ]; then
+    if [ "$USE_GMP_GITHUB_MIRROR" = "yes" ]; then
       # Needed in GitHub Actions because it is blocked from gmplib.org
       git clone https://github.com/oscarbenjamin/gmp_mirror.git
       cp gmp_mirror/gmp-$GMPVER.tar.xz .
@@ -163,7 +164,7 @@ if [ $USE_GMP = "gmp" ]; then
       # from the GMP repo but was applied after the release of GMP 6.2.1.
       # This patch is no longer needed for GMP 6.3.0.
       #
-      if [ $PATCH_GMP_ARM64 = "yes" ]; then
+      if [ "$PATCH_GMP_ARM64" = "yes" ]; then
         echo
         echo --------------------------------------------
         echo "           patching GMP"
@@ -260,7 +261,7 @@ fi
 #                                                                           #
 # ------------------------------------------------------------------------- #
 
-if [ $SKIP_MPFR = "yes" ]; then
+if [ "$SKIP_MPFR" = "yes" ]; then
   echo
   echo --------------------------------------------
   echo "           skipping MPFR"
@@ -326,7 +327,7 @@ cd ..
 #                                                                           #
 # ------------------------------------------------------------------------- #
 
-if [ $BUILD_ARB = "yes" ]; then
+if [ "$BUILD_ARB" = "yes" ]; then
 
   echo
   echo --------------------------------------------
@@ -369,7 +370,7 @@ echo $PREFIX
 echo
 echo Versions:
 
-if [ $SKIP_GMP = "yes" ]; then
+if [ "$SKIP_GMP" = "yes" ]; then
   echo GMP: skipped
 else
   if [[ $USE_GMP = "gmp" ]]; then
@@ -379,7 +380,7 @@ else
   fi
 fi
 
-if [ $SKIP_MPFR = "yes" ]; then
+if [ "$SKIP_MPFR" = "yes" ]; then
   echo MPFR: skipped
 else
   echo MPFR: $MPFRVER
@@ -387,7 +388,7 @@ fi
 
 echo Flint: $FLINTVER
 
-if [ $BUILD_ARB = "yes" ]; then
+if [ "$BUILD_ARB" = "yes" ]; then
   echo Arb: $ARBVER
 fi
 echo
