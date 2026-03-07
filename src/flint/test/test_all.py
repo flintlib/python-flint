@@ -1382,6 +1382,8 @@ def test_nmod():
     assert G(3,5) == G(8,5)
     assert G(1,2) != (1,2)
     assert isinstance(hash(G(3, 5)), int)
+    x = G(1, 7)
+    assert hash(x) == hash(G(1, 7))
     assert raises(lambda: G([], 3), TypeError) # type: ignore
     #assert G(3,5) == 8        # do we want this?
     #assert 8 == G(3,5)

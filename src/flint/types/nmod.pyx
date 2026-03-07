@@ -94,7 +94,7 @@ cdef class nmod(flint_scalar):
         return NotImplemented
 
     def __hash__(self):
-        return hash((int(self.val), self.modulus))
+        return hash((int(self.val), self.modulus()))
 
     def __bool__(self):
         return self.val != 0
