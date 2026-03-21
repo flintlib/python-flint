@@ -40,7 +40,7 @@ do
       echo "  --skip-gmp        - skip building GMP"
       echo "  --skip-mpfr       - skip building MPFR"
       echo "  --disable-fat     - disable building fat binaries"
-      echo "  --patch-ldd       - patch flint to work with ldd (for mingw on arm64)"
+      echo "  --patch-ldd       - patch flint shared linking for mingw on arm64"
       echo
       echo "Legacy options:"
       echo "  --gmp gmp         - build based on GMP (default)"
@@ -104,7 +104,7 @@ do
       shift
     ;;
     --patch-ldd)
-      # Needed only for GMP 6.3.0 on OSX arm64 (Apple M1) hardware
+      # Needed only for the FLINT shared build on mingw arm64.
       PATCH_LDD=yes
       shift
     ;;
@@ -329,7 +329,7 @@ cd flint-$FLINTVER
     echo --------------------------------------------
     echo "           patching FLINT"
     echo --------------------------------------------
-    patch -N -Z -p1 < ../../../bin/patch-ldd.diff
+    patch -N -Z -p1 < ../../../bin/patch-flint-windows-arm64-link.diff
   fi
 
   ./bootstrap.sh
@@ -339,7 +339,7 @@ cd flint-$FLINTVER
     --with-mpfr=$PREFIX\
     --disable-static\
     --disable-debug
-  make -j6
+  make -j4
   make install
 cd ..
 
