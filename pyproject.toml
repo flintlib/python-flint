@@ -154,7 +154,7 @@ repair-wheel-command = [
 ]
 
 [tool.cibuildwheel.windows]
-before-all = "C:\\msys64\\usr\\bin\\bash bin/cibw_before_all_windows.sh"
+before-all = "C:\\msys64\\usr\\bin\\bash.exe bin/cibw_before_all_windows.sh"
 before-build = "pip install wheel delvewheel"
 repair-wheel-command = [
 """python bin/cibw_repair_wheel_licenses.py {wheel} \
@@ -179,4 +179,4 @@ repair-wheel-command = [
 
 [[tool.cibuildwheel.overrides]]
 select = ["*-win_arm64"]
-before-build = "C:\\msys64\\usr\\bin\\bash bin/cibw_before_build_windows_arm64.sh && pip install wheel delvewheel"
+before-build = "C:\\msys64\\usr\\bin\\bash.exe bin/cibw_before_build_windows_arm64.sh && pip install wheel delvewheel"
