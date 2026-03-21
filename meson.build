@@ -18,7 +18,6 @@ cython_lower = '>=3.0.11'
 cython_upper = '<3.3'
 
 py = import('python').find_installation(pure: false)
-dep_py = py.dependency()
 
 cc = meson.get_compiler('c')
 cy = meson.get_compiler('cython')
@@ -76,7 +75,7 @@ else
   have_acb_theta = true
 endif
 
-pyflint_deps = [dep_py, gmp_dep, mpfr_dep, flint_dep]
+pyflint_deps = [gmp_dep, mpfr_dep, flint_dep]
 
 add_project_arguments(
     '-X', 'embedsignature=True',
