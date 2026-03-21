@@ -3,6 +3,7 @@ pkgdir = 'flint/flint_base'
 pyfiles = [
   '__init__.py',
   'flint_base.pyi',
+  'flint_context.pyi',
 ]
 
 exts = [

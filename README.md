@@ -172,6 +172,7 @@ Contributors (0.9.0):
 - Agriya Khetarpal (AK)
 - Oscar Benjamin (OB)
 - Daniel Simmons-Marengo (DSM)
+- ForeverHaibara (FH)
 
 Changes (0.9.0):
 
@@ -196,6 +197,7 @@ Changes (0.9.0):
   Faster conversion from `int` to `fmpz` and back. (RO).
 - [gh-359](https://github.com/flintlib/python-flint/pull/359),
   Sort factorisations of all mpoly types. (OB)
+- [gh-374](https://github.com/flintlib/python-flint/pull/374), Fixed a bug in `nmod.__hash__`. (FH)
 
 0.8.0
 -----

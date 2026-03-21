@@ -50,6 +50,23 @@ from .flint_base.flint_base import (
 
 __version__ = "0.8.0"
 
+
+def _flint_version_at_least(major: int, minor: int) -> bool:
+    version_parts = __FLINT_VERSION__.split(".")
+    if len(version_parts) < 2:
+        return False
+    try:
+        current_major = int(version_parts[0])
+        current_minor = int(version_parts[1])
+    except ValueError:
+        return False
+    return (current_major, current_minor) >= (major, minor)
+
+
+def _has_acb_theta() -> bool:
+    return _flint_version_at_least(3, 1)
+
+
 __all__ = [
     "ctx",
     "fmpz",

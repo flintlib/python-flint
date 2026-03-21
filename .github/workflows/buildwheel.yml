@@ -20,13 +20,13 @@ jobs:
         ]
 
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
 
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
 
-      - uses: msys2/setup-msys2@v2.29.0
+      - uses: msys2/setup-msys2@v2.30.0
         with:
           msystem: mingw64
         if: ${{ matrix.os == 'windows-2022' }}
@@ -47,19 +47,19 @@ jobs:
         if: ${{ startsWith( matrix.os , 'windows' ) }}
 
         # We need to set these environment variables here rather than
-        # pyproject.toml so we can use differnt values for different
+        # pyproject.toml so we can use different values for different
         # architectures. For non-Windows this is just done with $(uname -m)
         # don't know what that would do in msys2 on Windows when cibuildwheel
         # parses it.
 
       - name: Build wheels for windows-2022
-        uses: pypa/cibuildwheel@63fd63b352a9a8bdcc24791c9dbee952ee9a8abc # v3.3.0
+        uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
         if: ${{ matrix.os == 'windows-2022' }}
         env:
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows_amd64.sh
 
       - name: Build wheels for windows-11-arm
-        uses: pypa/cibuildwheel@63fd63b352a9a8bdcc24791c9dbee952ee9a8abc # v3.3.0
+        uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
         if: ${{ matrix.os == 'windows-11-arm' }}
         env:
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows_arm64.sh
@@ -68,10 +68,10 @@ jobs:
         # builds the wheels for every other OS:
 
       - name: Build wheels for any other OS
-        uses: pypa/cibuildwheel@63fd63b352a9a8bdcc24791c9dbee952ee9a8abc # v3.3.0
+        uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
         if: ${{ !startsWith( matrix.os , 'windows' ) }}
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ matrix.os }}
           path: wheelhouse/*.whl
@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
 
       - uses: actions/setup-python@v6
         with:
@@ -91,7 +91,7 @@ jobs:
       - run: pip install build
       - run: python -m build --sdist
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: sdist
           path: dist/*.tar.gz
@@ -122,7 +122,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           path: wheelhouse
           merge-multiple: true
@@ -147,7 +147,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04]
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -160,7 +160,7 @@ jobs:
     name: Test docs (build and doctest)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -175,7 +175,7 @@ jobs:
     name: 'Test old Cython/meson-python'
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -202,7 +202,7 @@ jobs:
         # Supported Flint versions:
         flint-tag: ['v3.0.1', 'v3.1.3-p1', 'v3.2.2', 'v3.3.1']
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -215,7 +215,7 @@ jobs:
     name: Test flint main Linux x86-64
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -229,7 +229,7 @@ jobs:
     name: Test flint main Linux ARM
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -243,7 +243,7 @@ jobs:
     name: Test coverage setuptools build
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -257,7 +257,7 @@ jobs:
     name: Test coverage meson build
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12' # does not work with 3.13
@@ -275,7 +275,7 @@ jobs:
       matrix:
         sympy-version: ['1.13.1', '1.14.0']
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -291,7 +291,7 @@ jobs:
     name: Test SymPy master
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -317,7 +317,7 @@ jobs:
     steps:
         # Downloads all artifacts
       - name: Download release artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: wheelhouse
           merge-multiple: true
@@ -326,7 +326,7 @@ jobs:
         run: mkdir dist && cp wheelhouse/*.whl dist
 
       - name: Upload wheels
-        uses: scientific-python/upload-nightly-action@b36e8c0c10dbcfd2e05bf95f17ef8c14fd708dbf # 0.6.2
+        uses: scientific-python/upload-nightly-action@5748273c71e2d8d3a61f3a11a16421c8954f9ecf # 0.6.3
         with:
           artifacts_path: dist
           # This token is generated from anaconda.org
@@ -350,7 +350,7 @@ jobs:
     steps:
         # Downloads all artifacts
       - name: Download release artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: wheelhouse
           merge-multiple: true
@@ -374,10 +374,10 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
 
       - name: Download sdist
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: sdist
           path: dist

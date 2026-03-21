@@ -72,8 +72,13 @@ cdef class acb_series(flint_series):
             elif typecheck(val, fmpz_series):
                 acb_poly_set_fmpz_poly(self.val, (<fmpz_series>val).val, getprec())
                 self._prec = min((<fmpz_series>val)._prec, getcap())
+            elif typecheck(val, fmpq_series):
+                acb_poly_set_fmpq_poly(self.val, (<fmpq_series>val).val, getprec())
+                self._prec = min((<fmpq_series>val)._prec, getcap())
             elif typecheck(val, fmpz_poly):
                 acb_poly_set_fmpz_poly(self.val, (<fmpz_poly>val).val, getprec())
+            elif typecheck(val, fmpq_poly):
+                acb_poly_set_fmpq_poly(self.val, (<fmpq_poly>val).val, getprec())
             elif typecheck(val, acb_poly):
                 acb_poly_set(self.val, (<acb_poly>val).val)
             elif typecheck(val, list):
@@ -152,10 +157,10 @@ cdef class acb_series(flint_series):
     def __add__(s, t):
         cdef long cap
         if not isinstance(t, acb_series):
-            s, t = acb_series_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s + t
+            u, v = acb_series_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u + v
 
         u = acb_series.__new__(acb_series)
         cap = getcap()
@@ -168,18 +173,18 @@ cdef class acb_series(flint_series):
         return u
 
     def __radd__(s, t):
-        s, t = acb_series_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t + s
+        u, v = acb_series_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v + u
 
     def __sub__(s, t):
         cdef long cap
         if not isinstance(t, acb_series):
-            s, t = acb_series_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s - t
+            u, v = acb_series_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u - v
 
         u = acb_series.__new__(acb_series)
         cap = getcap()
@@ -192,18 +197,18 @@ cdef class acb_series(flint_series):
         return u
 
     def __rsub__(s, t):
-        s, t = acb_series_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t - s
+        u, v = acb_series_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v - u
 
     def __mul__(s, t):
         cdef long cap
         if not isinstance(t, acb_series):
-            s, t = acb_series_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s * t
+            u, v = acb_series_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u * v
 
         u = acb_series.__new__(acb_series)
         cap = getcap()
@@ -215,10 +220,10 @@ cdef class acb_series(flint_series):
         return u
 
     def __rmul__(s, t):
-        s, t = acb_series_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t * s
+        u, v = acb_series_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v * u
 
     cpdef valuation(self):
         cdef long i
@@ -234,10 +239,10 @@ cdef class acb_series(flint_series):
         cdef acb_poly_t stmp, ttmp
 
         if not isinstance(t, acb_series):
-            s, t = acb_series_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s / t
+            u, v = acb_series_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u / v
 
         cap = getcap()
         cap = min(cap, (<acb_series>s)._prec)
@@ -249,7 +254,7 @@ cdef class acb_series(flint_series):
         u = acb_series.__new__(acb_series)
 
         if (<acb_series>s).length() == 0:
-            u.cap = cap
+            (<acb_series>u)._prec = cap
             return u
 
         sval = (<acb_series>s).valuation()
@@ -277,20 +282,20 @@ cdef class acb_series(flint_series):
         return u
 
     def __rtruediv__(s, t):
-        s, t = acb_series_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t / s
+        u, v = acb_series_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v / u
 
     def __pow__(s, t, mod):
         cdef long cap
         if mod is not None:
             raise NotImplementedError("modular exponentiation")
         if not isinstance(t, acb_series):
-            s, t = acb_series_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s ** t
+            u, v = acb_series_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u ** v
 
         u = acb_series.__new__(acb_series)
         cap = getcap()
@@ -302,10 +307,10 @@ cdef class acb_series(flint_series):
         return u
 
     def __rpow__(s, t):
-        s, t = acb_series_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t ** s
+        u, v = acb_series_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v ** u
 
     def __call__(s, t):
         cdef long cap

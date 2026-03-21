@@ -50,6 +50,13 @@ cdef acb_mat_coerce_scalar(x, y):
         return x, any_as_acb(y)
     return NotImplemented, NotImplemented
 
+cdef acb_mat_convert_operand(object cls, object x):
+    if typecheck(x, cls):
+        return x
+    if typecheck(x, fmpz_mat) or typecheck(x, fmpq_mat) or typecheck(x, arb_mat):
+        return cls(x)
+    return NotImplemented
+
 cdef class acb_mat(flint_mat):
     """
     Represents a matrix over the complex numbers.
@@ -69,27 +76,15 @@ cdef class acb_mat(flint_mat):
         acb_mat_clear(self.val)
 
     @classmethod
-    def convert_operand(cls, x):
-        """
-        Attempts to convert *x* to an *acb_mat*, returning NotImplemented
-        if unsuccessful.
-        """
-        if typecheck(x, cls):
-            return x
-        if typecheck(x, fmpz_mat) or typecheck(x, fmpq_mat) or typecheck(x, arb_mat):
-            return cls(x)
-        return NotImplemented
-
-    @classmethod
     def convert(cls, x):
         """
         Attempts to convert *x* to an *acb_mat*, raising TypeError if
         unsuccessful.
         """
-        x = cls.convert_operand(x)
-        if x is NotImplemented:
+        y = acb_mat_convert_operand(cls, x)
+        if y is NotImplemented:
             raise TypeError("unable to convert type %s to type %s" % (type(x), cls))
-        return x
+        return y
 
     @cython.embedsignature(False)
     def __init__(self, *args):
@@ -262,10 +257,10 @@ cdef class acb_mat(flint_mat):
     def __add__(s, t):
         cdef long m, n
         if not isinstance(t, acb_mat):
-            s, t = acb_mat_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s + t
+            u, v = acb_mat_coerce_operands(s, t)
+            if u is NotImplemented:
+                return NotImplemented
+            return u + v
 
         m = (<acb_mat>s).nrows()
         n = (<acb_mat>s).ncols()
@@ -277,18 +272,18 @@ cdef class acb_mat(flint_mat):
         return u
 
     def __radd__(s, t):
-        s, t = acb_mat_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t + s
+        u, v = acb_mat_coerce_operands(s, t)
+        if u is NotImplemented:
+            return NotImplemented
+        return v + u
 
     def __sub__(s, t):
         cdef long m, n
         if not isinstance(t, acb_mat):
-            s, t = acb_mat_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s - t
+            u, v = acb_mat_coerce_operands(s, t)
+            if u is NotImplemented:
+                return NotImplemented
+            return u - v
 
         m = (<acb_mat>s).nrows()
         n = (<acb_mat>s).ncols()
@@ -300,10 +295,10 @@ cdef class acb_mat(flint_mat):
         return u
 
     def __rsub__(s, t):
-        s, t = acb_mat_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t - s
+        u, v = acb_mat_coerce_operands(s, t)
+        if u is NotImplemented:
+            return NotImplemented
+        return v - u
 
     def _scalar_mul_(s, acb t):
         cdef acb_mat u
@@ -318,10 +313,10 @@ cdef class acb_mat(flint_mat):
             c, d = acb_mat_coerce_scalar(s, t)
             if c is not NotImplemented:
                 return c._scalar_mul_(d)
-            s, t = acb_mat_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s * t
+            p, q = acb_mat_coerce_operands(s, t)
+            if p is NotImplemented:
+                return NotImplemented
+            return p * q
 
         if acb_mat_ncols((<acb_mat>s).val) != acb_mat_nrows((<acb_mat>t).val):
             raise ValueError("incompatible shapes for matrix multiplication")
@@ -334,10 +329,10 @@ cdef class acb_mat(flint_mat):
         c, d = acb_mat_coerce_scalar(s, t)
         if c is not NotImplemented:
             return c._scalar_mul_(d)
-        s, t = acb_mat_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t * s
+        u, v = acb_mat_coerce_operands(s, t)
+        if u is NotImplemented:
+            return NotImplemented
+        return v * u
 
     def _scalar_div_(s, acb t):
         cdef acb_mat u
@@ -347,25 +342,21 @@ cdef class acb_mat(flint_mat):
         return u
 
     def __truediv__(s, t):
-        if typecheck(s, acb_mat):
-            s, t = acb_mat_coerce_scalar(s, t)
-            if s is NotImplemented:
-                return s
-            return s._scalar_div_(t)
-        return NotImplemented
+        u, v = acb_mat_coerce_scalar(s, t)
+        if u is NotImplemented:
+            return NotImplemented
+        return u._scalar_div_(v)
 
     def __pow__(s, e, m):
         cdef acb_mat u
         cdef ulong exp
         cdef long n
-        if not typecheck(s, acb_mat):
-            return NotImplemented
         exp = e
         n = acb_mat_nrows((<acb_mat>s).val)
         if n != acb_mat_ncols((<acb_mat>s).val):
             raise ValueError("matrix must be square")
         if m is not None:
-            raise NotImplementedError("modular matrix exponentiation")
+            raise TypeError("modular matrix exponentiation is not supported")
         u = acb_mat.__new__(acb_mat)
         acb_mat_init((<acb_mat>u).val, n, n)
         acb_mat_pow_ui((<acb_mat>u).val, (<acb_mat>s).val, exp, getprec())
@@ -616,9 +607,10 @@ cdef class acb_mat(flint_mat):
         if not (op == 2 or op == 3):
             raise ValueError("comparing matrices")
         if type(s) is not type(t):
-            s, t = acb_mat_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
+            u, v = acb_mat_coerce_operands(s, t)
+            if u is NotImplemented:
+                return NotImplemented
+            s, t = u, v
         if op == 2:
             res = acb_mat_eq((<acb_mat>s).val, (<acb_mat>t).val)
         else:
