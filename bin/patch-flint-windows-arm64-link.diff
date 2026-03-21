@@ -2,7 +2,7 @@ diff --git a/Makefile.in b/Makefile.in
 index 0f25aa2b5..f6f46b7d6 100644
 --- a/Makefile.in
 +++ b/Makefile.in
-@@ -416,14 +416,10 @@ endif
+@@ -416,18 +416,12 @@ endif
  ifneq ($(SHARED), 0)
  shared: $(FLINT_DIR)/$(FLINT_LIB_FULL)
  
