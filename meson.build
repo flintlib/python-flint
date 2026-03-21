@@ -77,6 +77,14 @@ endif
 
 pyflint_deps = [gmp_dep, mpfr_dep, flint_dep]
 
+# Meson's Windows sysconfig dependency path can hand the clangarm64
+# toolchain the python DLL itself. Use pkg-config on Windows ARM64 so we can
+# provide a MinGW import library instead.
+if host_machine.system() == 'windows' and host_machine.cpu_family() in ['aarch64', 'arm64'] and cc.get_id() in ['gcc', 'clang']
+  dep_py = py.dependency(method: 'pkg-config')
+  pyflint_deps = [dep_py] + pyflint_deps
+endif
+
 add_project_arguments(
     '-X', 'embedsignature=True',
     '-X', 'emit_code_comments=True',
