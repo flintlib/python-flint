@@ -3,7 +3,10 @@ project(
   'cython',
   'c',
   meson_version : '>=1.3.0',
-  default_options: ['python.allow_limited_api=false'],
+  default_options: [
+    'python.allow_limited_api=false',
+    'c_std=c11',
+  ],
 )
 #
 # The minimum versions are because we know that it will not work with earlier
