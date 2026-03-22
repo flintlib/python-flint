@@ -3,8 +3,8 @@
 set -o errexit
 
 pacman -S --noconfirm \
-    mingw-w64-ucrt-x86_64-gcc\
-    mingw-w64-ucrt-x86_64-tools-git\
+    mingw-w64-clang-aarch64-toolchain\
+    mingw-w64-clang-aarch64-tools-git\
     m4\
     make\
     base-devel\
@@ -15,19 +15,14 @@ pacman -S --noconfirm \
     #
 
 bin/build_dependencies_unix.sh \
+    --disable-fat\
     --use-gmp-github-mirror\
+    --host aarch64-pc-windows-gnullvm\
     --patch-C23\
+    --patch-ldd\
     #
 
-# Assumes the standard GitHub Actions Windows 2022 runner layout.
-PATH="$PATH:$(find "/c/Program Files/Microsoft Visual Studio/2022/" -name "Hostx86")/x64/"
-
-if [ "${RUNNER_ARCH}" = "ARM64" ]
-then
-  msvc_machine=arm64
-else
-  msvc_machine=x64
-fi
+PATH="$PATH:$(find "/c/Program Files/Microsoft Visual Studio/2022/" -name "HostARM64")/arm64/"
 
 mkdir -p .local/lib
 cd .local/bin
@@ -46,7 +41,7 @@ do
   awk 'NR>19 && $4 != "" {print $4 " @"$1}' ${exports_file} >> ${def_file}
   sed -i 's/$/\r/' ${def_file}
 
-  lib //def:${def_file} //out:${lib_file} //machine:${msvc_machine}
+  lib //def:${def_file} //out:${lib_file} //machine:arm64
   rm ${exports_file} ${def_file} ${lib_name}.exp
   mv ${lib_file} ../lib/${name}.lib
 done

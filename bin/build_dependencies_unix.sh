@@ -18,6 +18,10 @@ set -o errexit
 
 SKIP_GMP=no
 SKIP_MPFR=no
+PATCH_GMP_C23=no
+PATCH_LDD=no
+GMP_FAT_ARG="--enable-fat"
+HOST_ARG=
 
 USE_GMP=gmp
 PATCH_GMP_ARM64=no
@@ -38,6 +42,8 @@ do
       echo "  --host <HOST>     - set the host (target) for GMP build"
       echo "  --skip-gmp        - skip building GMP"
       echo "  --skip-mpfr       - skip building MPFR"
+      echo "  --disable-fat     - disable building fat binaries"
+      echo "  --patch-ldd       - patch flint shared linking for mingw on arm64"
       echo
       echo "Legacy options:"
       echo "  --gmp gmp         - build based on GMP (default)"
@@ -84,6 +90,11 @@ do
       SKIP_MPFR=yes
       shift
     ;;
+    --disable-fat)
+      # Needed for the ARM64 Windows build under clangarm64.
+      GMP_FAT_ARG="--disable-assembly"
+      shift
+    ;;
     --patch-gmp-arm64)
       # Needed only for GMP 6.2.1 on OSX arm64 (Apple M1) hardware
       # As of GMP 6.3.0 this patch is no longer needed
@@ -93,6 +104,11 @@ do
     --patch-C23)
       # Patch GMP 6.3.0 for newer gcc versions
       PATCH_GMP_C23=yes
+      shift
+    ;;
+    --patch-ldd)
+      # Needed only for the FLINT shared build on mingw arm64.
+      PATCH_LDD=yes
       shift
     ;;
     --use-gmp-github-mirror)
@@ -191,7 +207,7 @@ if [ "$USE_GMP" = "gmp" ]; then
       ./configfsf.guess
 
       ./configure --prefix=$PREFIX\
-        --enable-fat\
+        $GMP_FAT_ARG\
         --enable-shared=yes\
         --enable-static=no\
         --host=$HOST_ARG
@@ -310,6 +326,13 @@ echo
 curl -O -L https://github.com/flintlib/flint/releases/download/v$FLINTVER/flint-$FLINTVER.tar.gz
 tar xf flint-$FLINTVER.tar.gz
 cd flint-$FLINTVER
+  if [ "$PATCH_LDD" = "yes" ]; then
+    echo
+    echo --------------------------------------------
+    echo "           patching FLINT"
+    echo --------------------------------------------
+    patch -N -Z -p1 < ../../../bin/patch-flint-windows-arm64-link.diff
+  fi
   ./bootstrap.sh
   ./configure --prefix=$PREFIX\
     --host=$HOST_ARG\
