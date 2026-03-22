@@ -156,6 +156,7 @@ repair-wheel-command = [
 [tool.cibuildwheel.windows]
 before-all = "C:\\msys64\\usr\\bin\\bash bin/cibw_before_all_windows.sh"
 before-build = "pip install wheel delvewheel"
+config-settings = {setup-args = ["--vsenv"], build-dir = "build"}
 repair-wheel-command = [
 """python bin/cibw_repair_wheel_licenses.py {wheel} \
     --license LGPL-3.0-or-later \
