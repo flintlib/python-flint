@@ -80,7 +80,18 @@ def main() -> None:
     env_path = repo_root / '.local' / 'cibw_before_build_windows_arm64.env'
     env_text = ''.join(f'{key}={shlex.quote(value)}\n' for key, value in values.items())
     env_path.write_text(env_text, encoding='utf-8')
+
+    python_site = repo_root / '.local' / 'python-site'
+    python_site.mkdir(parents=True, exist_ok=True)
+    sitecustomize = python_site / 'sitecustomize.py'
+    sitecustomize.write_text(
+        'import sysconfig\n'
+        f"sysconfig.get_config_vars()['LIBPC'] = {values['PKGCONFIG_DIR']!r}\n",
+        encoding='utf-8',
+    )
+
     print(f'Generated {env_path}')
+    print(f'Generated {sitecustomize}')
 
 
 if __name__ == '__main__':
