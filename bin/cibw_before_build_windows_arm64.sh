@@ -53,7 +53,12 @@ rm -f "$def_path_msys" "$import_lib_msys"
     cd "$lib_dir_msys"
     gendef "$dll_path_msys"
 )
+echo "Generating $import_lib_msys with $dlltool"
 "$dlltool" -d "$def_path_msys" -D "$DLL_NAME" -l "$import_lib_msys"
+if [ ! -f "$import_lib_msys" ]; then
+    echo "Failed to create $import_lib_msys" >&2
+    exit 1
+fi
 
 cat > "$pc_path_msys" <<EOF
 prefix=$REPO_ROOT
@@ -67,10 +72,6 @@ Version: $PKG_VERSION
 Libs: -L\${libdir} -l$dll_stem
 Cflags: -I\${includedir}
 EOF
-
-if command -v pkg-config >/dev/null 2>&1; then
-    pkg-config --exists "python-$PKG_VERSION"
-fi
 
 echo "Generated $import_lib_msys"
 echo "Generated $pc_path_msys"
