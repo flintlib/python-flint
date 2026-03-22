@@ -31,7 +31,10 @@ jobs:
 
         # We have to set this here rather than in the cibuildwheel config
         # This is probably something to do with \ vs / in paths...
-      - run: echo "PKG_CONFIG_PATH=${{ github.workspace }}/.local/lib/pkgconfig" >> $env:GITHUB_ENV
+      - run: |
+          $pkgConfigPath = "${{ github.workspace }}/.local/lib/pkgconfig"
+          $pkgConfigPath = $pkgConfigPath.Replace('\', '/')
+          echo "PKG_CONFIG_PATH=$pkgConfigPath" >> $env:GITHUB_ENV
         if: ${{ startsWith( matrix.os , 'windows' ) }}
 
       - name: Build wheels

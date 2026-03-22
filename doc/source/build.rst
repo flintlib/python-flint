@@ -356,23 +356,17 @@ The git repo for ``python-flint`` has a script `bin/cibw_before_all_windows.sh
 <https://github.com/flintlib/python-flint/blob/master/bin/cibw_before_all_windows.sh>`_
 that installs the dependencies under MSYS2 and builds ``GMP``, ``MPFR``,
 ``FLINT``. This script is used for building the Windows binaries for PyPI. We
-use the ``MinGW64`` (``mingw-w64-x86_64``) toolchain for building on Windows
-rather than MSVC because it makes it possible to have a fat build of ``GMP``
+use the ``UCRT64`` (``mingw-w64-ucrt-x86_64``) toolchain under MSYS2 to build
+``GMP``, ``MPFR`` and ``FLINT`` because it makes it possible to have a fat
+build of ``GMP``
 (``--enable-fat``) which bundles micro-architecture specific optimisations for
 ``x86_64`` in a redistributable shared library. This is important for
 performance on modern ``x86_64`` CPUs and is not possible if building ``GMP``
-with MSVC. Since we need to use ``MinGW64`` for building ``GMP`` it is simplest
-to use it for building ``MPFR``, ``FLINT`` and ``python-flint`` as well and
-means that the same Unix-style build scripts can be used for all platforms.
-
-The ``python-flint`` project does not have much experience using MSVC. Possibly
-it would be better to build ``GMP`` using ``MinGW64`` and then build ``MPFR``,
-``FLINT`` and ``python-flint`` using MSVC. It is also possible that it would be
-better to build ``GMP``, ``MPFR``, ``FLINT`` using MinGW64 and then build
-``python-flint`` using MSVC. Someone with more experience with MSVC would need
-to help with this. We would welcome contributions that explain how to build
-``python-flint`` and its dependencies using MSVC and/or that improve the build
-process for distributed binaries on Windows.
+with MSVC. The Python extension modules themselves are then built with MSVC via
+``meson --vsenv`` while linking against the MSYS2-built ``GMP``, ``MPFR`` and
+``FLINT`` libraries through ``pkg-config``. This mixed-toolchain arrangement
+keeps the ``GMP`` fat build while using the standard Windows compiler for the
+extension modules.
 
 
 .. _non_standard_location:

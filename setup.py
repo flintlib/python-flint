@@ -24,7 +24,8 @@ libraries = ["flint"]
 
 if sys.platform == 'win32':
     #
-    # This is used in CI to build wheels with mingw64
+    # This can be used for local Windows builds against a .local install
+    # produced by the MSYS2 UCRT64 dependency build.
     #
     if os.getenv('PYTHON_FLINT_MINGW64'):
         includedir = os.path.join(os.path.dirname(__file__), '.local', 'include')
@@ -35,7 +36,7 @@ if sys.platform == 'win32':
         default_lib_dirs += librarydirs
         # Add gcc to the PATH in GitHub Actions when this setup.py is called by
         # cibuildwheel.
-        os.environ['PATH'] += r';C:\msys64\mingw64\bin'
+        os.environ['PATH'] += r';C:\msys64\ucrt64\bin'
         libraries += ["mpfr", "gmp"]
     elif os.getenv('PYTHON_FLINT_MINGW64_TMP'):
         # This would be used to build under Windows against these libraries if
