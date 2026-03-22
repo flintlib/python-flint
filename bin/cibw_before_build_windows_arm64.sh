@@ -70,7 +70,7 @@ Name: Python
 Description: CPython import library for MinGW wheel builds
 Version: $PKG_VERSION
 Libs: -L\${libdir} -l$dll_stem
-Cflags: -I\${includedir}
+Cflags: -DMS_WIN64 -I\${includedir}
 EOF
 
 echo "Generated $import_lib_msys"
