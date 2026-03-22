@@ -12,12 +12,24 @@ def _normalize_path(path: Path | str) -> str:
     return str(path).replace('\\', '/')
 
 
+def _default_dll_name() -> str:
+    vernum = sysconfig.get_config_var('py_version_nodot')
+    if not vernum:
+        vernum = f"{sys.version_info.major}{sys.version_info.minor}"
+    is_freethreaded = bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
+    if not is_freethreaded:
+        abiflags = sysconfig.get_config_var('ABIFLAGS') or getattr(sys, 'abiflags', '') or ''
+        is_freethreaded = 't' in abiflags
+    suffix = 't' if is_freethreaded else ''
+    return f'python{vernum}{suffix}.dll'
+
+
 def _normalize_dll_name(name: str) -> str:
     if name.endswith('.dll'):
         return name
     if name.startswith('lib') and name.endswith('.dll.a'):
-        return name[3:-2]
-    raise SystemExit(f'Unexpected Python library name: {name}')
+        return _default_dll_name()
+    return _default_dll_name()
 
 
 def _find_dll(dll_name: str) -> Path:
@@ -47,9 +59,7 @@ def main() -> None:
     lib_dir.mkdir(parents=True, exist_ok=True)
     pkgconfig_dir.mkdir(parents=True, exist_ok=True)
 
-    raw_name = sysconfig.get_config_var('DLLLIBRARY') or sysconfig.get_config_var('LDLIBRARY')
-    if not raw_name:
-        raise SystemExit('Could not determine Python DLL name')
+    raw_name = sysconfig.get_config_var('DLLLIBRARY') or sysconfig.get_config_var('LDLIBRARY') or ''
     dll_name = _normalize_dll_name(raw_name)
     include_dir = sysconfig.get_config_var('INCLUDEPY')
     if not include_dir:
