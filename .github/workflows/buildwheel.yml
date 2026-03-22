@@ -36,6 +36,17 @@ jobs:
           msystem: clangarm64
         if: ${{ matrix.os == 'windows-11-arm' }}
 
+      - run: |
+          "C:\\msys64\\clangarm64\\bin" >> $env:GITHUB_PATH
+          "C:\\msys64\\usr\\bin" >> $env:GITHUB_PATH
+          "MSYSTEM=CLANGARM64" >> $env:GITHUB_ENV
+          "CC=clang" >> $env:GITHUB_ENV
+          "CXX=clang++" >> $env:GITHUB_ENV
+          "AR=llvm-ar" >> $env:GITHUB_ENV
+          "RANLIB=llvm-ranlib" >> $env:GITHUB_ENV
+          "STRIP=llvm-strip" >> $env:GITHUB_ENV
+        if: ${{ matrix.os == 'windows-11-arm' }}
+
         # Install pkgconfig on Windows from choco rather than from msys and
         # avoid using the Strawberry one.
       - run: choco install -y --stoponfirstfailure --checksum 6004DF17818F5A6DBF19CB335CC92702 pkgconfiglite

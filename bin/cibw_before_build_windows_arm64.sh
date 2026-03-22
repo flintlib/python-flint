@@ -69,7 +69,7 @@ includedir=$INCLUDE_DIR
 Name: Python
 Description: CPython import library for MinGW wheel builds
 Version: $PKG_VERSION
-Libs: -L\${libdir} -l$dll_stem
+Libs: $LIB_DIR/lib$dll_stem.dll.a
 Cflags: -DMS_WIN64 -I\${includedir}
 EOF
 
