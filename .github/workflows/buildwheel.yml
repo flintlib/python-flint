@@ -21,7 +21,7 @@ jobs:
 
       - uses: msys2/setup-msys2@v2.30.0
         with:
-          msystem: mingw64
+          msystem: ucrt64
         if: ${{ startsWith( matrix.os , 'windows' ) }}
 
         # Install pkgconfig on Windows from choco rather than from msys and

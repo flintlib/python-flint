@@ -3,8 +3,8 @@
 set -o errexit
 
 pacman -S --noconfirm \
-    mingw-w64-x86_64-gcc\
-    mingw-w64-x86_64-tools-git\
+    mingw-w64-ucrt-x86_64-gcc\
+    mingw-w64-ucrt-x86_64-tools-git\
     m4\
     make\
     base-devel\
