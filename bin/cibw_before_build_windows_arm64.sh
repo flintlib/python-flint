@@ -2,49 +2,31 @@
 
 set -o errexit
 
-repo_root=$(python -c 'from pathlib import Path; print(Path.cwd().resolve().as_posix())')
-lib_dir="$repo_root/.local/lib"
-pkgconfig_dir="$lib_dir/pkgconfig"
-mkdir -p "$pkgconfig_dir"
-
-dll_name=$(python -c 'import sysconfig; print(sysconfig.get_config_var("LDLIBRARY") or "")')
-pkg_version=$(python -c 'import sysconfig; print(sysconfig.get_config_var("LDVERSION") or sysconfig.get_python_version())')
-include_dir=$(python -c 'import sysconfig; print(sysconfig.get_config_var("INCLUDEPY") or "")')
-base_prefix=$(python -c 'import sys; print(getattr(sys, "base_prefix", sys.prefix))')
-python_bin=$(python -c 'import os, sys; print(os.path.dirname(sys.executable))')
-
-include_dir=${include_dir//\\//}
-base_prefix=${base_prefix//\\//}
-python_bin=${python_bin//\\//}
-
-if [ -z "$dll_name" ] || [ -z "$include_dir" ]; then
-    echo "Could not determine Python DLL or include dir" >&2
+env_file=.local/cibw_before_build_windows_arm64.env
+if [ ! -f "$env_file" ]; then
+    echo "Could not find $env_file" >&2
     exit 1
 fi
 
-dll_path=""
-for candidate in \
-    "$python_bin/$dll_name" \
-    "$base_prefix/$dll_name" \
-    "$base_prefix/DLLs/$dll_name" \
-    "$base_prefix/libs/$dll_name"
-do
-    if [ -f "$candidate" ]; then
-        dll_path="$candidate"
-        break
-    fi
-done
+# shellcheck disable=SC1090
+. "$env_file"
 
-if [ -z "$dll_path" ]; then
-    echo "Could not find $dll_name" >&2
-    exit 1
+lib_dir_msys="$LIB_DIR"
+pkgconfig_dir_msys="$PKGCONFIG_DIR"
+dll_path_msys="$DLL_PATH"
+if command -v cygpath >/dev/null 2>&1; then
+    lib_dir_msys=$(cygpath -u "$LIB_DIR")
+    pkgconfig_dir_msys=$(cygpath -u "$PKGCONFIG_DIR")
+    dll_path_msys=$(cygpath -u "$DLL_PATH")
 fi
+mkdir -p "$pkgconfig_dir_msys"
 
 if ! command -v gendef >/dev/null 2>&1; then
     echo "Could not find gendef on PATH" >&2
     exit 1
 fi
 
+dlltool=
 if command -v cc >/dev/null 2>&1; then
     dlltool=$(cc -print-prog-name=dlltool)
 fi
@@ -61,31 +43,34 @@ else
     exit 1
 fi
 
-dll_stem=${dll_name%.dll}
-def_path="$lib_dir/$dll_stem.def"
-import_lib="$lib_dir/lib$dll_stem.dll.a"
-pc_path="$pkgconfig_dir/python-$pkg_version.pc"
+dll_stem=${DLL_NAME%.dll}
+def_path_msys="$lib_dir_msys/$dll_stem.def"
+import_lib_msys="$lib_dir_msys/lib$dll_stem.dll.a"
+pc_path_msys="$pkgconfig_dir_msys/python-$PKG_VERSION.pc"
 
-rm -f "$def_path" "$import_lib"
+rm -f "$def_path_msys" "$import_lib_msys"
 (
-    cd "$lib_dir"
-    gendef "$dll_path"
+    cd "$lib_dir_msys"
+    gendef "$dll_path_msys"
 )
-"$dlltool" -d "$def_path" -D "$dll_name" -l "$import_lib"
+"$dlltool" -d "$def_path_msys" -D "$DLL_NAME" -l "$import_lib_msys"
 
-printf 'prefix=%s\n' "$repo_root" > "$pc_path"
-printf 'exec_prefix=${prefix}\n' >> "$pc_path"
-printf 'libdir=%s\n' "$lib_dir" >> "$pc_path"
-printf 'includedir=%s\n\n' "$include_dir" >> "$pc_path"
-printf 'Name: Python\n' >> "$pc_path"
-printf 'Description: CPython import library for MinGW wheel builds\n' >> "$pc_path"
-printf 'Version: %s\n' "$pkg_version" >> "$pc_path"
-printf 'Libs: -L${libdir} -l%s\n' "$dll_stem" >> "$pc_path"
-printf 'Cflags: -I${includedir}\n' >> "$pc_path"
+cat > "$pc_path_msys" <<EOF
+prefix=$REPO_ROOT
+exec_prefix=\${prefix}
+libdir=$LIB_DIR
+includedir=$INCLUDE_DIR
+
+Name: Python
+Description: CPython import library for MinGW wheel builds
+Version: $PKG_VERSION
+Libs: -L\${libdir} -l$dll_stem
+Cflags: -I\${includedir}
+EOF
 
 if command -v pkg-config >/dev/null 2>&1; then
-    pkg-config --exists "python-$pkg_version"
+    pkg-config --exists "python-$PKG_VERSION"
 fi
 
-echo "Generated $import_lib"
-echo "Generated $pc_path"
+echo "Generated $import_lib_msys"
+echo "Generated $pc_path_msys"
