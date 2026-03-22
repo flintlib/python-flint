@@ -176,7 +176,3 @@ repair-wheel-command = [
 """,
 "delvewheel repair -w {dest_dir} {wheel} --add-path .local/bin",
 ]
-
-[[tool.cibuildwheel.overrides]]
-select = ["*-win_arm64"]
-before-build = "C:\\msys64\\usr\\bin\\bash.exe bin/cibw_before_build_windows_arm64.sh && pip install wheel delvewheel"

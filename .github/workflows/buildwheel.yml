@@ -63,6 +63,7 @@ jobs:
         if: ${{ matrix.os == 'windows-11-arm' }}
         env:
           CIBW_BEFORE_ALL_WINDOWS: msys2 -c bin/cibw_before_all_windows_arm64.sh
+          CIBW_BEFORE_BUILD_WINDOWS: msys2 -c bin/cibw_before_build_windows_arm64.sh && pip install wheel delvewheel
 
         # After all the Windows-specific steps above this is what actually
         # builds the wheels for every other OS:
