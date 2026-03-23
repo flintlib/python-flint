@@ -193,4 +193,4 @@ LDFLAGS = "-L$(pwd)/wasm-library-dir/lib -lflint -lmpfr -lgmp $LDFLAGS"
 
 [tool.cibuildwheel.pyodide.config-settings]
 build-dir = "flint_wasm_build"
-setup-args = ["-Dflint_version_check=false"]
+setup-args = ["--cross-file=$PWD/bin/emscripten.meson.cross", "-Dflint_version_check=false"]

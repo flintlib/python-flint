@@ -1,0 +1,15 @@
+# compiler paths are omitted intentionally so pyodide-build can override them
+# with its pywasmcross wrappers.
+[binaries]
+exe_wrapper = 'node'
+pkgconfig = 'pkg-config'
+
+[properties]
+needs_exe_wrapper = true
+skip_sanity_check = true
+
+[host_machine]
+system = 'emscripten'
+cpu_family = 'wasm32'
+cpu = 'wasm'
+endian = 'little'
