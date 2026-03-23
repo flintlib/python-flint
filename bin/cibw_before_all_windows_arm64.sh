@@ -16,7 +16,6 @@ pacman -S --noconfirm \
     #
 
 bin/build_dependencies_unix.sh \
-    --disable-fat\
     --use-gmp-github-mirror\
     --host aarch64-w64-mingw32\
     --patch-C23\
