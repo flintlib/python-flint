@@ -1,11 +1,9 @@
 from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_t, slong
 from flint.flintlib.types.fmpz cimport fmpz_lll_t, fmpz_mat_t, gram_type, rep_type
+from flint.flintlib.types.gr cimport gr_ctx_t, gr_mat_t, gr_ptr
 
 # unknown type d_mat_t
 # unknown type fmpz_gram_t
-# unknown type mpf
-# unknown type mpf_mat_t
-# unknown type mpf_t
 
 
 cdef extern from "flint/fmpz_lll.h":
@@ -15,7 +13,7 @@ cdef extern from "flint/fmpz_lll.h":
     double fmpz_lll_heuristic_dot(const double * vec1, const double * vec2, slong len2, const fmpz_mat_t B, slong k, slong j, slong exp_adj)
     # int fmpz_lll_check_babai(int kappa, fmpz_mat_t B, fmpz_mat_t U, d_mat_t mu, d_mat_t r, double * s, d_mat_t appB, int * expo, fmpz_gram_t A, int a, int zeros, int kappamax, int n, const fmpz_lll_t fl)
     # int fmpz_lll_check_babai_heuristic_d(int kappa, fmpz_mat_t B, fmpz_mat_t U, d_mat_t mu, d_mat_t r, double * s, d_mat_t appB, int * expo, fmpz_gram_t A, int a, int zeros, int kappamax, int n, const fmpz_lll_t fl)
-    # int fmpz_lll_check_babai_heuristic(int kappa, fmpz_mat_t B, fmpz_mat_t U, mpf_mat_t mu, mpf_mat_t r, mpf * s, mpf_mat_t appB, fmpz_gram_t A, int a, int zeros, int kappamax, int n, mpf_t tmp, mpf_t rtmp, flint_bitcnt_t prec, const fmpz_lll_t fl)
+    # int fmpz_lll_check_babai_heuristic(int kappa, fmpz_mat_t B, fmpz_mat_t U, gr_mat_t mu, gr_mat_t r, gr_ptr s, gr_mat_t appB, fmpz_gram_t A, int a, int zeros, int kappamax, int n, gr_ptr tmp, gr_ptr rtmp, gr_ctx_t ctx, const fmpz_lll_t fl)
     # int fmpz_lll_advance_check_babai(int cur_kappa, int kappa, fmpz_mat_t B, fmpz_mat_t U, d_mat_t mu, d_mat_t r, double * s, d_mat_t appB, int * expo, fmpz_gram_t A, int a, int zeros, int kappamax, int n, const fmpz_lll_t fl)
     # int fmpz_lll_advance_check_babai_heuristic_d(int cur_kappa, int kappa, fmpz_mat_t B, fmpz_mat_t U, d_mat_t mu, d_mat_t r, double * s, d_mat_t appB, int * expo, fmpz_gram_t A, int a, int zeros, int kappamax, int n, const fmpz_lll_t fl)
     int fmpz_lll_shift(const fmpz_mat_t B)

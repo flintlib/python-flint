@@ -1,11 +1,13 @@
 from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, slong, ulong
-from flint.flintlib.types.fmpz cimport fmpz_poly_struct, fmpz_poly_t
+from flint.flintlib.types.fmpz cimport fmpz_mpoly_ctx_t, fmpz_mpoly_t, fmpz_poly_struct, fmpz_poly_t
 from flint.flintlib.types.fmpz_mod cimport fmpz_mod_mpoly_ctx_t, fmpz_mod_mpoly_struct, fmpz_mod_mpoly_t
 from flint.flintlib.types.mpoly cimport ordering_t
 
 # unknown type FILE
 # unknown type fmpz_mod_mpoly_univar_t
+# unknown type fmpz_mod_mpoly_vec_t
 
+# .. macro:: fmpz_mod_mpoly_vec_entry(vec, i)
 
 cdef extern from "flint/fmpz_mod_mpoly.h":
     void fmpz_mod_mpoly_ctx_init(fmpz_mod_mpoly_ctx_t ctx, slong nvars, const ordering_t ord, const fmpz_t p)
@@ -150,6 +152,26 @@ cdef extern from "flint/fmpz_mod_mpoly.h":
     # void fmpz_mod_mpoly_univar_set_coeff_ui(fmpz_mod_mpoly_univar_t Ax, ulong e, const fmpz_mod_mpoly_t c, const fmpz_mod_mpoly_ctx_t ctx)
     # int fmpz_mod_mpoly_univar_resultant(fmpz_mod_mpoly_t R, const fmpz_mod_mpoly_univar_t Ax, const fmpz_mod_mpoly_univar_t Bx, const fmpz_mod_mpoly_ctx_t ctx)
     # int fmpz_mod_mpoly_univar_discriminant(fmpz_mod_mpoly_t D, const fmpz_mod_mpoly_univar_t Ax, const fmpz_mod_mpoly_ctx_t ctx)
+    # void fmpz_mod_mpoly_vec_init(fmpz_mod_mpoly_vec_t vec, slong len, const fmpz_mod_mpoly_ctx_t ctx)
+    # void fmpz_mod_mpoly_vec_clear(fmpz_mod_mpoly_vec_t vec, const fmpz_mod_mpoly_ctx_t ctx)
+    # void fmpz_mod_mpoly_vec_print(const fmpz_mod_mpoly_vec_t vec, const fmpz_mod_mpoly_ctx_t ctx)
+    # void fmpz_mod_mpoly_vec_swap(fmpz_mod_mpoly_vec_t x, fmpz_mod_mpoly_vec_t y, const fmpz_mod_mpoly_ctx_t ctx)
+    # void fmpz_mod_mpoly_vec_fit_length(fmpz_mod_mpoly_vec_t vec, slong len, const fmpz_mod_mpoly_ctx_t ctx)
+    # void fmpz_mod_mpoly_vec_set(fmpz_mod_mpoly_vec_t dest, const fmpz_mod_mpoly_vec_t src, const fmpz_mod_mpoly_ctx_t ctx)
+    # void fmpz_mod_mpoly_vec_append(fmpz_mod_mpoly_vec_t vec, const fmpz_mod_mpoly_t f, const fmpz_mod_mpoly_ctx_t ctx)
+    # slong fmpz_mod_mpoly_vec_insert_unique(fmpz_mod_mpoly_vec_t vec, const fmpz_mod_mpoly_t f, const fmpz_mod_mpoly_ctx_t ctx)
+    # void fmpz_mod_mpoly_vec_set_length(fmpz_mod_mpoly_vec_t vec, slong len, const fmpz_mod_mpoly_ctx_t ctx)
+    # void fmpz_mod_mpoly_vec_randtest_not_zero(fmpz_mod_mpoly_vec_t vec, flint_rand_t state, slong len, slong poly_len, ulong exp_bound, fmpz_mod_mpoly_ctx_t ctx)
+    void fmpz_mod_mpoly_spoly(fmpz_mod_mpoly_t res, const fmpz_mod_mpoly_t f, const fmpz_mod_mpoly_t g, const fmpz_mod_mpoly_ctx_t ctx)
+    # void fmpz_mod_mpoly_reduction_monic_part(fmpz_mod_mpoly_t res, const fmpz_mod_mpoly_t f, const fmpz_mod_mpoly_vec_t vec, const fmpz_mod_mpoly_ctx_t ctx)
+    # int fmpz_mod_mpoly_vec_is_groebner(const fmpz_mod_mpoly_vec_t G, const fmpz_mod_mpoly_vec_t F, const fmpz_mod_mpoly_ctx_t ctx)
+    # int fmpz_mod_mpoly_vec_is_autoreduced(const fmpz_mod_mpoly_vec_t F, const fmpz_mod_mpoly_ctx_t ctx)
+    # void fmpz_mod_mpoly_vec_autoreduction(fmpz_mod_mpoly_vec_t H, const fmpz_mod_mpoly_vec_t F, const fmpz_mod_mpoly_ctx_t ctx)
+    # void fmpz_mod_mpoly_vec_autoreduction_groebner(fmpz_mod_mpoly_vec_t H, const fmpz_mod_mpoly_vec_t G, const fmpz_mod_mpoly_ctx_t ctx)
+    # void fmpz_mod_mpoly_buchberger_naive(fmpz_mod_mpoly_vec_t G, const fmpz_mod_mpoly_vec_t F, const fmpz_mod_mpoly_ctx_t ctx)
+    # int fmpz_mod_mpoly_buchberger_naive_with_limits(fmpz_mod_mpoly_vec_t G, const fmpz_mod_mpoly_vec_t F, slong ideal_len_limit, slong poly_len_limit, const fmpz_mod_mpoly_ctx_t ctx)
+    void fmpz_mod_mpoly_set_fmpz_mpoly(fmpz_mod_mpoly_t A, const fmpz_mpoly_t B, const fmpz_mod_mpoly_ctx_t ctxm, const fmpz_mpoly_ctx_t ctx)
+    void fmpz_mod_mpoly_get_fmpz_mpoly(fmpz_mpoly_t A, const fmpz_mod_mpoly_t B, const fmpz_mpoly_ctx_t ctx)
     void fmpz_mod_mpoly_inflate(fmpz_mod_mpoly_t A, const fmpz_mod_mpoly_t B, const fmpz_struct * shift, const fmpz_struct * stride, const fmpz_mod_mpoly_ctx_t ctx)
     void fmpz_mod_mpoly_deflate(fmpz_mod_mpoly_t A, const fmpz_mod_mpoly_t B, const fmpz_struct * shift, const fmpz_struct * stride, const fmpz_mod_mpoly_ctx_t ctx)
     void fmpz_mod_mpoly_deflation(fmpz_struct * shift, fmpz_struct * stride, const fmpz_mod_mpoly_t A, const fmpz_mod_mpoly_ctx_t ctx)

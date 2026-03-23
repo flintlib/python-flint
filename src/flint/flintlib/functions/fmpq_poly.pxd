@@ -1,5 +1,5 @@
 from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, slong, ulong
-from flint.flintlib.types.fmpq cimport fmpq_poly_struct, fmpq_poly_t, fmpq_t
+from flint.flintlib.types.fmpq cimport fmpq_poly_struct, fmpq_poly_t, fmpq_struct, fmpq_t
 from flint.flintlib.types.fmpz cimport fmpz_poly_t, fmpz_preinvn_t
 from flint.flintlib.types.nmod cimport nmod_poly_t
 
@@ -138,6 +138,8 @@ cdef extern from "flint/fmpq_poly.h":
     void _fmpq_poly_resultant(fmpz_t rnum, fmpz_t rden, const fmpz_struct * poly1, const fmpz_t den1, slong len1, const fmpz_struct * poly2, const fmpz_t den2, slong len2)
     void fmpq_poly_resultant(fmpq_t r, const fmpq_poly_t f, const fmpq_poly_t g)
     void fmpq_poly_resultant_div(fmpq_t r, const fmpq_poly_t f, const fmpq_poly_t g, const fmpz_t div, slong nbits)
+    void _fmpq_poly_discriminant(fmpq_t res, const fmpz_struct * poly, const fmpz_t den, slong len)
+    void fmpq_poly_discriminant(fmpq_t res, const fmpq_poly_t poly)
     void _fmpq_poly_derivative(fmpz_struct * rpoly, fmpz_t rden, const fmpz_struct * poly, const fmpz_t den, slong len)
     void fmpq_poly_derivative(fmpq_poly_t res, const fmpq_poly_t poly)
     void _fmpq_poly_nth_derivative(fmpz_struct * rpoly, fmpz_t rden, const fmpz_struct * poly, const fmpz_t den, ulong n, slong len)
@@ -193,8 +195,18 @@ cdef extern from "flint/fmpq_poly.h":
     void fmpq_poly_evaluate_fmpz(fmpq_t res, const fmpq_poly_t poly, const fmpz_t a)
     void _fmpq_poly_evaluate_fmpq(fmpz_t rnum, fmpz_t rden, const fmpz_struct * poly, const fmpz_t den, slong len, const fmpz_t anum, const fmpz_t aden)
     void fmpq_poly_evaluate_fmpq(fmpq_t res, const fmpq_poly_t poly, const fmpq_t a)
-    void _fmpq_poly_interpolate_fmpz_vec(fmpz_struct * poly, fmpz_t den, const fmpz_struct * xs, const fmpz_struct * ys, slong n)
-    void fmpq_poly_interpolate_fmpz_vec(fmpq_poly_t poly, const fmpz_struct * xs, const fmpz_struct * ys, slong n)
+    void _fmpq_poly_interpolation_weights(fmpz_struct * w, fmpz_t wden, const fmpq_struct * xs, slong len)
+    void _fmpq_poly_interpolate_fast_precomp(fmpz_struct * poly, fmpz_t den, const fmpq_struct * ys, fmpz_struct * const * tree, const fmpz_struct * weights, slong len)
+    void _fmpq_poly_interpolate_fast(fmpz_struct * poly, fmpz_t den, const fmpq_struct * xs, const fmpq_struct * ys, slong len)
+    void fmpq_poly_interpolate_fast(fmpq_poly_t poly, const fmpq_struct * xs, const fmpq_struct * ys, slong n)
+    void _fmpq_poly_interpolate_barycentric(fmpz_struct * poly, fmpz_t den, const fmpq_struct * xs, const fmpq_struct * ys, slong n)
+    void fmpq_poly_interpolate_barycentric(fmpz_poly_t poly, const fmpq_struct * xs, const fmpq_struct * ys, slong n)
+    void _fmpq_poly_interpolate_multi_mod(fmpz_struct * poly, fmpz_t den, const fmpq_struct * xs, const fmpq_struct * ys, slong n)
+    void fmpq_poly_interpolate_multi_mod(fmpq_poly_t poly, const fmpq_struct * xs, const fmpq_struct * ys, slong n)
+    int _fmpq_poly_interpolate_fmpq_vec(fmpz_struct * poly, fmpz_t den, const fmpq_struct * xs, const fmpq_struct * ys, slong n)
+    int fmpq_poly_interpolate_fmpz_vec(fmpq_poly_t poly, const fmpz_struct * xs, const fmpz_struct * ys, slong n)
+    int fmpq_poly_interpolate_fmpz_fmpq_vec(fmpq_poly_t poly, const fmpz_struct * xs, const fmpq_struct * ys, slong n)
+    int fmpq_poly_interpolate_fmpq_vec(fmpq_poly_t poly, const fmpq_struct * xs, const fmpq_struct * ys, slong n)
     void _fmpq_poly_compose(fmpz_struct * res, fmpz_t den, const fmpz_struct * poly1, const fmpz_t den1, slong len1, const fmpz_struct * poly2, const fmpz_t den2, slong len2)
     void fmpq_poly_compose(fmpq_poly_t res, const fmpq_poly_t poly1, const fmpq_poly_t poly2)
     void _fmpq_poly_rescale(fmpz_struct * res, fmpz_t denr, const fmpz_struct * poly, const fmpz_t den, slong len, const fmpz_t anum, const fmpz_t aden)

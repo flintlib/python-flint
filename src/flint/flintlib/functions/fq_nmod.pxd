@@ -8,6 +8,7 @@ from flint.flintlib.types.nmod cimport nmod_mat_t, nmod_poly_t
 
 cdef extern from "flint/fq_nmod.h":
     void fq_nmod_ctx_init_ui(fq_nmod_ctx_t ctx, ulong p, slong d, const char * var)
+    void fq_nmod_ctx_init_minimal_weight_ui(fq_nmod_ctx_t ctx, ulong p, slong d, const char * var)
     int _fq_nmod_ctx_init_conway_ui(fq_nmod_ctx_t ctx, ulong p, slong d, const char * var)
     void fq_nmod_ctx_init_conway_ui(fq_nmod_ctx_t ctx, ulong p, slong d, const char * var)
     void fq_nmod_ctx_init_modulus(fq_nmod_ctx_t ctx, const nmod_poly_t modulus, const char * var)

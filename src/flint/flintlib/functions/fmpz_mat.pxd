@@ -113,6 +113,7 @@ cdef extern from "flint/fmpz_mat.h":
     void fmpz_mat_det_bound(fmpz_t bound, const fmpz_mat_t A)
     void fmpz_mat_det_bound_nonzero(fmpz_t bound, const fmpz_mat_t A)
     void fmpz_mat_det_divisor(fmpz_t d, const fmpz_mat_t A)
+    int fmpz_mat_permanent(fmpz_t res, const fmpz_mat_t A)
     void fmpz_mat_similarity(fmpz_mat_t A, slong r, fmpz_t d)
     void _fmpz_mat_charpoly_berkowitz(fmpz_struct * cp, const fmpz_mat_t mat)
     void fmpz_mat_charpoly_berkowitz(fmpz_poly_t cp, const fmpz_mat_t mat)

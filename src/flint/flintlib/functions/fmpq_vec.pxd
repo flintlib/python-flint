@@ -9,6 +9,9 @@ cdef extern from "flint/fmpq_vec.h":
     void _fmpq_vec_clear(fmpq_struct * vec, slong n)
     void _fmpq_vec_randtest(fmpq_struct * f, flint_rand_t state, slong len, flint_bitcnt_t bits)
     void _fmpq_vec_randtest_uniq_sorted(fmpq_struct * vec, flint_rand_t state, slong len, flint_bitcnt_t bits)
+    void _fmpq_vec_max_height(fmpz_t height, const fmpq_struct * vec, slong len);
+    flint_bitcnt_t _fmpq_vec_max_height_bits(const fmpq_struct * vec, slong len);
+    int _fmpq_vec_equal(const fmpq_struct * vec1, const fmpq_struct * vec2, slong len)
     void _fmpq_vec_sort(fmpq_struct * vec, slong len)
     void _fmpq_vec_set_fmpz_vec(fmpq_struct * res, const fmpz_struct * vec, slong len)
     void _fmpq_vec_get_fmpz_vec_fmpz(fmpz_struct * num, fmpz_t den, const fmpq_struct * a, slong len)

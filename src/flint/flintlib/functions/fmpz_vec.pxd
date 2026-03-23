@@ -59,6 +59,7 @@ cdef extern from "flint/fmpz_vec.h":
     void _fmpz_vec_scalar_submul_si(fmpz_struct * vec1, const fmpz_struct * vec2, slong len2, slong c)
     void _fmpz_vec_scalar_submul_si_2exp(fmpz_struct * vec1, const fmpz_struct * vec2, slong len2, slong c, ulong e)
     void _fmpz_vec_sum(fmpz_t res, const fmpz_struct * vec, slong len)
+    void _fmpz_ui_vec_prod(fmpz_t res, nn_srcptr vec, slong len)
     void _fmpz_vec_prod(fmpz_t res, const fmpz_struct * vec, slong len)
     void _fmpz_vec_scalar_mod_fmpz(fmpz_struct * res, const fmpz_struct * vec, slong len, const fmpz_t p)
     void _fmpz_vec_scalar_smod_fmpz(fmpz_struct * res, const fmpz_struct * vec, slong len, const fmpz_t p)
