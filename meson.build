@@ -21,7 +21,13 @@ cython_lower = '>=3.0.11'
 cython_upper = '<3.3'
 
 py = import('python').find_installation(pure: false)
-dep_py = py.dependency()
+if meson.is_cross_build() and host_machine.system() == 'emscripten'
+  # Avoid picking up the runner's host python.pc via pkg-config.
+  # For Pyodide, use the interpreter sysconfig data from pyodide-build instead.
+  dep_py = py.dependency(method: 'system')
+else
+  dep_py = py.dependency()
+endif
 
 cc = meson.get_compiler('c')
 cy = meson.get_compiler('cython')
