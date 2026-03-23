@@ -179,9 +179,21 @@ repair-wheel-command = [
 
 [tool.cibuildwheel.pyodide]
 before-all = "bin/cibw_before_all_pyodide.sh"
+before-build = "pip install wheel"
 pyodide-version = "0.28.2"
 # GMP, MPFR, and FLINT are built as static libraries for Pyodide.
-repair-wheel-command = ""
+repair-wheel-command = [
+"""python bin/cibw_repair_wheel_licenses.py "{wheel}" \
+    --license LGPL-3.0-or-later \
+    --license-file 'wasm-library-dir/src/gmp-*/COPYING:python-flint.libs/gmp-*/COPYING' \
+    --license-file 'wasm-library-dir/src/gmp-*/COPYING.LESSERv3:python-flint.libs/gmp-*/COPYING.LESSERv3' \
+    --license-file 'wasm-library-dir/src/mpfr-*/COPYING:python-flint.libs/mpfr-*/COPYING' \
+    --license-file 'wasm-library-dir/src/mpfr-*/COPYING.LESSER:python-flint.libs/mpfr-*/COPYING.LESSER' \
+    --license-file 'wasm-library-dir/src/flint-*/COPYING:python-flint.libs/flint-*/COPYING' \
+    --license-file 'wasm-library-dir/src/flint-*/COPYING.LESSER:python-flint.libs/flint-*/COPYING.LESSER' \
+""",
+"cp \"{wheel}\" \"{dest_dir}\"",
+]
 test-command = "python -m pytest -svra -p no:cacheprovider --pyargs flint"
 test-requires = ["pytest", "hypothesis"]
 
