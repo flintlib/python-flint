@@ -117,9 +117,7 @@ PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig"
 PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig"
 
 [tool.cibuildwheel.windows.environment]
-# Setting PKG_CONFIG_PATH here breaks pkgconfig for some reason...
-# We set it in the CI workflow instead.
-# PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig:$PKG_CONFIG_PATH"
+PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig;$PKG_CONFIG_PATH"
 
 [tool.cibuildwheel.linux]
 before-all = "bin/cibw_before_all_linux_$(uname -m).sh"

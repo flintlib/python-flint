@@ -36,14 +36,6 @@ jobs:
       - run: choco install -y --stoponfirstfailure --checksum 6004DF17818F5A6DBF19CB335CC92702 pkgconfiglite
         if: ${{ startsWith( matrix.os , 'windows' ) }}
 
-        # We have to set this here rather than in the cibuildwheel config
-        # This is probably something to do with \ vs / in paths...
-      - run: |
-          $pkgConfigPath = "${{ github.workspace }}/.local/lib/pkgconfig"
-          $pkgConfigPath = $pkgConfigPath.Replace('\', '/')
-          echo "PKG_CONFIG_PATH=$pkgConfigPath" >> $env:GITHUB_ENV
-        if: ${{ startsWith( matrix.os , 'windows' ) }}
-
       - name: Build wheels
         uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
         env:
