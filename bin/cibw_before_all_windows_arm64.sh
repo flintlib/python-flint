@@ -21,6 +21,7 @@ bin/build_dependencies_unix.sh \
     --host aarch64-w64-mingw32\
     --patch-C23\
     --patch-ldd\
+    --patch-immintrin\
     #
 
 mkdir -p .local/lib

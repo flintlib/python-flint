@@ -20,6 +20,7 @@ SKIP_GMP=no
 SKIP_MPFR=no
 PATCH_GMP_C23=no
 PATCH_LDD=no
+PATCH_IMMINTRIN=no
 GMP_FAT_ARG="--enable-fat"
 HOST_ARG=
 
@@ -44,6 +45,7 @@ do
       echo "  --skip-mpfr       - skip building MPFR"
       echo "  --disable-fat     - disable building fat binaries"
       echo "  --patch-ldd       - patch flint shared linking for mingw on arm64"
+      echo "  --patch-immintrin - patch flint arm64 msvc header to avoid immintrin.h"
       echo
       echo "Legacy options:"
       echo "  --gmp gmp         - build based on GMP (default)"
@@ -109,6 +111,11 @@ do
     --patch-ldd)
       # Needed only for the FLINT shared build on mingw arm64.
       PATCH_LDD=yes
+      shift
+    ;;
+    --patch-immintrin)
+      # Needed only for the FLINT headers consumed by MSVC on Windows arm64.
+      PATCH_IMMINTRIN=yes
       shift
     ;;
     --use-gmp-github-mirror)
@@ -332,6 +339,13 @@ cd flint-$FLINTVER
     echo "           patching FLINT"
     echo --------------------------------------------
     patch -N -Z -p1 < ../../../bin/patch-flint-windows-arm64-link.diff
+  fi
+  if [ "$PATCH_IMMINTRIN" = "yes" ]; then
+    echo
+    echo --------------------------------------------
+    echo "           patching FLINT"
+    echo --------------------------------------------
+    patch -N -Z -p1 < ../../../bin/patch-flint-windows-arm64-immintrin.diff
   fi
   ./bootstrap.sh
   ./configure --prefix=$PREFIX\
