@@ -69,6 +69,7 @@ cdef extern from "flint/fmpq_mat.h":
     void fmpq_mat_kronecker_product(fmpq_mat_t C, const fmpq_mat_t A, const fmpq_mat_t B)
     void fmpq_mat_trace(fmpq_t trace, const fmpq_mat_t mat)
     void fmpq_mat_det(fmpq_t det, const fmpq_mat_t mat)
+    int fmpq_mat_permanent(fmpq_t res, const fmpq_mat_t A)
     int fmpq_mat_solve_fraction_free(fmpq_mat_t X, const fmpq_mat_t A, const fmpq_mat_t B)
     int fmpq_mat_solve_dixon(fmpq_mat_t X, const fmpq_mat_t A, const fmpq_mat_t B)
     int fmpq_mat_solve_multi_mod(fmpq_mat_t X, const fmpq_mat_t A, const fmpq_mat_t B)

@@ -54,6 +54,12 @@ type_modifers = re.compile(r"\*|(\bconst\b)|(\bunsigned\b)|(\bsigned\b)")
 import_dict = {}
 # gr_domains.rst lists functions that are in gr.h
 doc_to_header = {'flint/gr_domains': 'flint/gr'}
+void_parameter_list = re.compile(r"\(\s*void\s*\)$")
+macro_declarations = {
+    'flint/arf': {
+        'ARF_PREC_EXACT': 'cdef const slong ARF_PREC_EXACT',
+    },
+}
 
 
 
@@ -115,6 +121,8 @@ def clean_types(function):
     ret = function.strip()
     for old, new in rename_types:
         ret = re.sub(old, new, ret)
+    # Cython expects zero-argument functions to use () rather than (void).
+    ret = re.sub(void_parameter_list, "()", ret)
     return ret
 
 
@@ -197,6 +205,12 @@ def generate_pxd_file(h_name, opts):
     with open(os.path.join(docdir, name + ".rst")) as f:
         l, macros = get_functions(f)
         unknown_types = gen_imports(l)
+        macro_defs = []
+        declared_macros = macro_declarations.get(h_name, {})
+        for macro in macros:
+            macro_name = macro.split("::", 1)[1].strip()
+            if macro_name in declared_macros:
+                macro_defs.append(declared_macros[macro_name])
         print()
         for t in unknown_types:
             print("# unknown type " + t)
@@ -205,6 +219,8 @@ def generate_pxd_file(h_name, opts):
             print("# " + m)
         print()
         print(r'cdef extern from "' + h_name + r'.h":')
+        for declaration in macro_defs:
+            print("    " + declaration)
         for f in l:
             if has_types(f, unknown_types):
                 print("    # " + f)

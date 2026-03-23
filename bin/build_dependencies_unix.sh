@@ -341,7 +341,7 @@ cd flint-$FLINTVER
     echo --------------------------------------------
     echo "           patching FLINT"
     echo --------------------------------------------
-    patch -N -Z -p1 < ../../../bin/patch-flint-windows-arm64-link.diff
+    patch -N -Z -p1 < ../../../bin/patch-flint-windows-arm64-link-$FLINTVER.diff
   fi
   if [ "$PATCH_IMMINTRIN" = "yes" ]; then
     echo

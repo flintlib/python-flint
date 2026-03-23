@@ -20,7 +20,7 @@ from flint.flintlib.types.fmpz cimport fmpz_factor_t, fmpz_preinvn_t
 cdef extern from "flint/fmpz.h":
     # fmpz_struct PTR_TO_COEFF(mpz_ptr ptr)
     # mpz_ptr COEFF_TO_PTR(fmpz_struct f)
-    # mpz_ptr _fmpz_new_mpz(void)
+    # mpz_ptr _fmpz_new_mpz()
     void _fmpz_clear_mpz(fmpz_struct f)
     void _fmpz_cleanup_mpz_content()
     void _fmpz_cleanup()

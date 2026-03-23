@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, nn_ptr, nn_srcptr, slong, ulong
+from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, nmod_t, nn_ptr, nn_srcptr, slong, ulong
 from flint.flintlib.types.nmod cimport nmod_mat_t, nmod_poly_t
 
 # unknown type FILE
@@ -13,7 +13,8 @@ cdef extern from "flint/nmod_mat.h":
     void nmod_mat_set(nmod_mat_t mat, const nmod_mat_t src)
     void nmod_mat_swap(nmod_mat_t mat1, nmod_mat_t mat2)
     void nmod_mat_swap_entrywise(nmod_mat_t mat1, nmod_mat_t mat2)
-    void nmod_mat_set_mod(nmod_mat_t mat, ulong n);
+    nmod_t nmod_mat_mod(const nmod_mat_t mat)
+    void nmod_mat_set_mod(nmod_mat_t mat, ulong n)
     ulong nmod_mat_get_entry(const nmod_mat_t mat, slong i, slong j)
     ulong * nmod_mat_entry_ptr(const nmod_mat_t mat, slong i, slong j)
     void nmod_mat_set_entry(nmod_mat_t mat, slong i, slong j, ulong x)
@@ -31,6 +32,7 @@ cdef extern from "flint/nmod_mat.h":
     # int nmod_mat_fprint(FILE * f, const nmod_mat_t mat)
     void nmod_mat_randtest(nmod_mat_t mat, flint_rand_t state)
     void nmod_mat_randfull(nmod_mat_t mat, flint_rand_t state)
+    void nmod_mat_rand(nmod_mat_t mat, flint_rand_t state)
     int nmod_mat_randpermdiag(nmod_mat_t mat, flint_rand_t state, nn_srcptr diag, slong n)
     void nmod_mat_randrank(nmod_mat_t mat, flint_rand_t state, slong rank)
     void nmod_mat_randops(nmod_mat_t mat, flint_rand_t state, slong count)

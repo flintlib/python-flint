@@ -74,7 +74,7 @@ Python versions as described in `SPEC 0
 the minimum supported FLINT version is ``3.0`` and each release of python-flint
 supports all versions of ``FLINT >= 3.0`` available at the time of release.
 
-Compatible versions (note that 0.7.0 is not yet released):
+Compatible versions:
 
 .. list-table:: python-flint compatibility
    :header-rows: 1
@@ -84,11 +84,21 @@ Compatible versions (note that 0.7.0 is not yet released):
      - CPython
      - FLINT
      - Cython
-   * - 0.7.0
+   * - 0.9.0
      - Not yet
-     - 3.10-3.13
-     - 3.0-3.2?
-     - 3.0-3.1?
+     - 3.11-3.14
+     - 3.0-3.4
+     - 3.1-3.2?
+   * - 0.8.0
+     - 29th Aug 2025
+     - 3.11-3.14
+     - 3.0-3.3
+     - 3.1 only
+   * - 0.7.0
+     - 16th Mar 2025
+     - 3.11-3.13
+     - 3.0-3.2
+     - 3.0.11-3.1.0a1
    * - 0.6.0
      - 1st Feb 2024
      - 3.9-3.12
@@ -130,6 +140,7 @@ of ``python-flint`` existing at the time:
 - Flint 3.0 (Arb and Flint merged, lots of changes)
 - Flint 3.1 (Function signature for ``fmpz_mod_mat`` changed)
 - Flint 3.2 (``flint_randinit`` function name changed)
+- Flint 3.4 (generic series API moved to ``gr_series.h``)
 - Cython 3.0 (Handling of dunders changed)
 - Cython 3.1 (Removal of ``PyInt_*`` functions)
 - CPython 3.12 (Removal of distutils)
@@ -282,7 +293,7 @@ to be installed before building ``python-flint`` is ``FLINT``.
 
 At the time of writing, few Linux distributions provide ``FLINT >= 3.0`` in
 their package repositories but for example on ``Ubuntu 24.04`` (but not any
-earlier Ubuntu versions) you can install ``FLINT 3.0.1`` with::
+earlier Ubuntu versions) you can install a sufficiently recent ``FLINT`` with::
 
     sudo apt-get install libflint-dev
 

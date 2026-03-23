@@ -104,6 +104,10 @@ else
     cd flint
 fi
 
+    # Patch needed for FLINT == 3.4.0
+    # This is https://github.com/flintlib/flint/pull/2594
+    patch -N -Z -p1 < ../bin/patch-flint-emscripten-profiler.diff
+
     ./bootstrap.sh
 
     emconfigure ./configure \

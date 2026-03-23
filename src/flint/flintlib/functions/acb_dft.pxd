@@ -11,8 +11,8 @@ from flint.flintlib.types.flint cimport slong
 
 
 cdef extern from "flint/acb_dft.h":
-    void acb_dft(acb_ptr w, acb_srcptr v, slong n, slong prec)
-    void acb_dft_inverse(acb_ptr w, acb_srcptr v, slong n, slong prec)
+    void acb_dft(acb_ptr w, acb_srcptr v, slong len, slong prec)
+    void acb_dft_inverse(acb_ptr w, acb_srcptr v, slong len, slong prec)
     # void acb_dft_precomp_init(acb_dft_pre_t pre, slong len, slong prec)
     # void acb_dft_precomp_clear(acb_dft_pre_t pre)
     # void acb_dft_precomp(acb_ptr w, acb_srcptr v, const acb_dft_pre_t pre, slong prec)
