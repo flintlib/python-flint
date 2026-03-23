@@ -21,6 +21,8 @@ SKIP_MPFR=no
 PATCH_GMP_C23=no
 PATCH_LDD=no
 PATCH_IMMINTRIN=no
+GMP_FAT_ARG="--enable-fat"
+GMP_ASSEMBLY_ARG=
 HOST_ARG=
 
 USE_GMP=gmp
@@ -42,6 +44,7 @@ do
       echo "  --host <HOST>     - set the host (target) for GMP build"
       echo "  --skip-gmp        - skip building GMP"
       echo "  --skip-mpfr       - skip building MPFR"
+      echo "  --disable-assembly - disable GMP assembly routines"
       echo "  --patch-ldd       - patch flint shared linking for mingw on arm64"
       echo "  --patch-immintrin - patch flint arm64 msvc header to avoid immintrin.h"
       echo
@@ -88,6 +91,12 @@ do
       # If you already have a local install of MPFR you can pass --skip-mpfr
       # to skip building it.
       SKIP_MPFR=yes
+      shift
+    ;;
+    --disable-assembly)
+      # GMP does not allow --enable-fat together with --disable-assembly.
+      GMP_FAT_ARG=
+      GMP_ASSEMBLY_ARG="--disable-assembly"
       shift
     ;;
     --patch-gmp-arm64)
@@ -207,7 +216,8 @@ if [ "$USE_GMP" = "gmp" ]; then
       ./configfsf.guess
 
       ./configure --prefix=$PREFIX\
-        --enable-fat\
+        $GMP_FAT_ARG\
+        $GMP_ASSEMBLY_ARG\
         --enable-shared=yes\
         --enable-static=no\
         --host=$HOST_ARG

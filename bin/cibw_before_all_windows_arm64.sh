@@ -18,6 +18,7 @@ pacman -S --noconfirm \
 bin/cibw_before_all_windows.sh \
     arm64 \
     --use-gmp-github-mirror \
+    --disable-assembly \
     --host aarch64-w64-mingw32 \
     --patch-C23 \
     --patch-ldd \
