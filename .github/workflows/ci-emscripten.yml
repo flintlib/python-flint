@@ -15,27 +15,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      PYTHON_VERSION: 3.13 # any 3.13.x version works
+      # This needs to be kept in sync with pyodide-version in pyproject.toml
       EMSCRIPTEN_VERSION: 4.0.9
-      NODE_VERSION: 22
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Set up Emscripten toolchain
         uses: mymindstorm/setup-emsdk@6ab9eb1bda2574c4ddb79809fc9247783eaf9021 # v14
         with:
           version: ${{ env.EMSCRIPTEN_VERSION }}
           actions-cache-folder: emsdk-cache
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.NODE_VERSION }}
 
       - name: Restore WASM library directory from cache
         id: cache-wasm-library-dir
@@ -48,6 +37,7 @@ jobs:
         uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
         env:
           CIBW_PLATFORM: pyodide
+          # This needs to be kept in sync with pyodide-version in pyproject.toml
           CIBW_BUILD: cp313-*
 
       - name: Persist WASM library directory to cache
