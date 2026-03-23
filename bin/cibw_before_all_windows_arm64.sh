@@ -22,7 +22,7 @@ bin/build_dependencies_unix.sh \
     --patch-ldd\
     #
 
-PATH="$PATH:$(find "/c/Program Files/Microsoft Visual Studio/2022/" -name "HostARM64")/arm64/"
+PATH="$PATH:$(find "/c/Program Files/Microsoft Visual Studio/2022/" -name "Hostx86")/x64/"
 
 mkdir -p .local/lib
 cd .local/bin
