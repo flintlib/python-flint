@@ -18,6 +18,12 @@ set -o errexit
 
 SKIP_GMP=no
 SKIP_MPFR=no
+PATCH_GMP_C23=no
+PATCH_LDD=no
+PATCH_IMMINTRIN=no
+GMP_FAT_ARG="--enable-fat"
+GMP_ASSEMBLY_ARG=
+HOST_ARG=
 
 USE_GMP=gmp
 PATCH_GMP_ARM64=no
@@ -38,6 +44,9 @@ do
       echo "  --host <HOST>     - set the host (target) for GMP build"
       echo "  --skip-gmp        - skip building GMP"
       echo "  --skip-mpfr       - skip building MPFR"
+      echo "  --disable-assembly - disable GMP assembly routines"
+      echo "  --patch-ldd       - patch flint shared linking for mingw on arm64"
+      echo "  --patch-immintrin - patch flint arm64 msvc header to avoid immintrin.h"
       echo
       echo "Legacy options:"
       echo "  --gmp gmp         - build based on GMP (default)"
@@ -84,6 +93,12 @@ do
       SKIP_MPFR=yes
       shift
     ;;
+    --disable-assembly)
+      # GMP does not allow --enable-fat together with --disable-assembly.
+      GMP_FAT_ARG=
+      GMP_ASSEMBLY_ARG="--disable-assembly"
+      shift
+    ;;
     --patch-gmp-arm64)
       # Needed only for GMP 6.2.1 on OSX arm64 (Apple M1) hardware
       # As of GMP 6.3.0 this patch is no longer needed
@@ -93,6 +108,16 @@ do
     --patch-C23)
       # Patch GMP 6.3.0 for newer gcc versions
       PATCH_GMP_C23=yes
+      shift
+    ;;
+    --patch-ldd)
+      # Needed only for the FLINT shared build on mingw arm64.
+      PATCH_LDD=yes
+      shift
+    ;;
+    --patch-immintrin)
+      # Needed only for the FLINT headers consumed by MSVC on Windows arm64.
+      PATCH_IMMINTRIN=yes
       shift
     ;;
     --use-gmp-github-mirror)
@@ -191,7 +216,8 @@ if [ "$USE_GMP" = "gmp" ]; then
       ./configfsf.guess
 
       ./configure --prefix=$PREFIX\
-        --enable-fat\
+        $GMP_FAT_ARG\
+        $GMP_ASSEMBLY_ARG\
         --enable-shared=yes\
         --enable-static=no\
         --host=$HOST_ARG
@@ -310,6 +336,20 @@ echo
 curl -O -L https://github.com/flintlib/flint/releases/download/v$FLINTVER/flint-$FLINTVER.tar.gz
 tar xf flint-$FLINTVER.tar.gz
 cd flint-$FLINTVER
+  if [ "$PATCH_LDD" = "yes" ]; then
+    echo
+    echo --------------------------------------------
+    echo "           patching FLINT"
+    echo --------------------------------------------
+    patch -N -Z -p1 < ../../../bin/patch-flint-windows-arm64-link.diff
+  fi
+  if [ "$PATCH_IMMINTRIN" = "yes" ]; then
+    echo
+    echo --------------------------------------------
+    echo "           patching FLINT"
+    echo --------------------------------------------
+    patch -N -Z -p1 < ../../../bin/patch-flint-windows-arm64-immintrin.diff
+  fi
   ./bootstrap.sh
   ./configure --prefix=$PREFIX\
     --host=$HOST_ARG\

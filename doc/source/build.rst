@@ -352,21 +352,30 @@ builds on Windows using MSVC.
 
 The `MSYS2 <https://www.msys2.org/>`_ project provides a Unix-like environment
 for Windows and a package manager that can be used to install the dependencies.
-The git repo for ``python-flint`` has a script `bin/cibw_before_all_windows.sh
-<https://github.com/flintlib/python-flint/blob/master/bin/cibw_before_all_windows.sh>`_
-that installs the dependencies under MSYS2 and builds ``GMP``, ``MPFR``,
-``FLINT``. This script is used for building the Windows binaries for PyPI. We
-use the ``UCRT64`` (``mingw-w64-ucrt-x86_64``) toolchain under MSYS2 to build
-``GMP``, ``MPFR`` and ``FLINT`` because it makes it possible to have a fat
-build of ``GMP``
-(``--enable-fat``) which bundles micro-architecture specific optimisations for
-``x86_64`` in a redistributable shared library. This is important for
-performance on modern ``x86_64`` CPUs and is not possible if building ``GMP``
-with MSVC. The Python extension modules themselves are then built with MSVC via
+The git repo for ``python-flint`` has scripts
+`bin/cibw_before_all_windows_amd64.sh
+<https://github.com/flintlib/python-flint/blob/master/bin/cibw_before_all_windows_amd64.sh>`_
+and `bin/cibw_before_all_windows_arm64.sh
+<https://github.com/flintlib/python-flint/blob/master/bin/cibw_before_all_windows_arm64.sh>`_
+that install the dependencies under MSYS2 and build ``GMP``, ``MPFR``,
+``FLINT``. These scripts are used for building the Windows binaries for PyPI.
+
+For ``x86_64`` wheels we use the ``UCRT64`` (``mingw-w64-ucrt-x86_64``)
+toolchain under MSYS2 to build ``GMP``, ``MPFR`` and ``FLINT`` because it
+makes it possible to have a fat build of ``GMP`` (``--enable-fat``) which
+bundles micro-architecture specific optimisations for ``x86_64`` in a
+redistributable shared library. This is important for performance on modern
+``x86_64`` CPUs and is not possible if building ``GMP`` with MSVC.
+
+For Windows ``arm64`` wheels we use the ``CLANGARM64`` MSYS2 toolchain instead.
+The ``GMP`` build there does not use ``--enable-fat`` and instead uses the
+generic build that works with that toolchain.
+
+The Python extension modules themselves are then built with MSVC via
 ``meson --vsenv`` while linking against the MSYS2-built ``GMP``, ``MPFR`` and
 ``FLINT`` libraries through ``pkg-config``. This mixed-toolchain arrangement
-keeps the ``GMP`` fat build while using the standard Windows compiler for the
-extension modules.
+keeps the MSYS2 dependency builds while using the standard Windows compiler for
+the extension modules on both ``x86_64`` and ``arm64``.
 
 
 .. _non_standard_location:

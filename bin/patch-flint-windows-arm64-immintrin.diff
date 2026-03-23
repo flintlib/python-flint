@@ -1,0 +1,12 @@
+diff --git a/src/longlong_msc_arm64.h b/src/longlong_msc_arm64.h
+index 44d96f03f..6ade48289 100644
+--- a/src/longlong_msc_arm64.h
++++ b/src/longlong_msc_arm64.h
+@@ -14,7 +14,6 @@
+ 
+ #include <stdlib.h>
+ #include <intrin.h>
+-#include <immintrin.h>
+ 
+ /* Trailing and leading zeros */
+ # define flint_clz _CountLeadingZeros64
