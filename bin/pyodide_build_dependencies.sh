@@ -104,6 +104,9 @@ else
     cd flint
 fi
 
+    # Patch needed for FLINT == 3.4.0
+    patch -N -Z -p1 < ../bin/patch-flint-emscripten-profiler.diff
+
     ./bootstrap.sh
 
     emconfigure ./configure \
