@@ -2,6 +2,8 @@
 
 set -e
 
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+
 while [[ $# -gt 0 ]]
 do
   key="$1"
@@ -43,9 +45,12 @@ if [ -z "$WASM_LIBRARY_DIR" ]; then
   exit 1
 fi
 
+mkdir -p "$WASM_LIBRARY_DIR/src"
+cd "$WASM_LIBRARY_DIR/src"
+
 # Sets versions of GMP, MPFR and FLINT:
 
-source bin/build_variables.sh
+source "$SCRIPT_DIR/build_variables.sh"
 
 # Download mirrored copy of source distributions for GMP and MPFR
 
@@ -106,7 +111,7 @@ fi
 
     # Patch needed for FLINT == 3.4.0
     # This is https://github.com/flintlib/flint/pull/2594
-    patch -N -Z -p1 < ../bin/patch-flint-emscripten-profiler.diff
+    patch -N -Z -p1 < "$SCRIPT_DIR/patch-flint-emscripten-profiler.diff"
 
     ./bootstrap.sh
 

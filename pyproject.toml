@@ -176,3 +176,21 @@ repair-wheel-command = [
 """,
 "delvewheel repair -w {dest_dir} {wheel} --add-path .local/bin",
 ]
+
+[tool.cibuildwheel.pyodide]
+before-all = "bin/cibw_before_all_pyodide.sh"
+pyodide-version = "0.28.2"
+# GMP, MPFR, and FLINT are built as static libraries for Pyodide.
+repair-wheel-command = ""
+test-command = "python -m pytest -svra -p no:cacheprovider --pyargs flint"
+test-requires = ["pytest", "hypothesis"]
+
+[tool.cibuildwheel.pyodide.environment]
+WASM_LIBRARY_DIR = "$(pwd)/wasm-library-dir"
+PKG_CONFIG_PATH = "$(pwd)/wasm-library-dir/lib/pkgconfig:$PKG_CONFIG_PATH"
+CFLAGS = "-I$(pwd)/wasm-library-dir/include $CFLAGS"
+LDFLAGS = "-L$(pwd)/wasm-library-dir/lib -lflint -lmpfr -lgmp $LDFLAGS"
+
+[tool.cibuildwheel.pyodide.config-settings]
+build-dir = "flint_wasm_build"
+setup-args = ["-Dflint_version_check=false"]

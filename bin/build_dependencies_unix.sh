@@ -140,6 +140,7 @@ done
 
 source bin/build_variables.sh
 
+mkdir -p "$PREFIX"
 cd $PREFIX
 mkdir -p src
 cd src

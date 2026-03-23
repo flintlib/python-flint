@@ -15,93 +15,42 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      PYODIDE_VERSION: "https://github.com/pyodide/pyodide-build-environment-nightly/releases/download/20250523-emscripten_4.0.9/xbuildenv.tar.bz2"
       PYTHON_VERSION: 3.13 # any 3.13.x version works
-      EMSCRIPTEN_VERSION: 4.0.9
       NODE_VERSION: 22
     steps:
-      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v4.2.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@2e3e4b15a884dc73a63f962bff250a855150a234 # v5.4.0
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Set up Emscripten toolchain
-        uses: mymindstorm/setup-emsdk@6ab9eb1bda2574c4ddb79809fc9247783eaf9021 # v14
-        with:
-          version: ${{ env.EMSCRIPTEN_VERSION }}
-          actions-cache-folder: emsdk-cache
-
       - name: Set up Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install pyodide-build
-        run: |
-          pip install pyodide-build
-          pyodide xbuildenv install --url ${{ env.PYODIDE_VERSION }}
 
       - name: Restore WASM library directory from cache
         id: cache-wasm-library-dir
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ${{ github.workspace }}/wasm-library-dir
-          key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_dependencies.sh', 'bin/build_variables.sh') }}-0
+          key: wasm-library-dir-${{ hashFiles('pyproject.toml', 'bin/cibw_before_all_pyodide.sh', 'bin/pyodide_build_dependencies.sh', 'bin/build_variables.sh') }}-0
 
-      - name: Build GMP, MPFR and FLINT
-        if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
+      - name: Build and test Pyodide wheel
+        uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
         env:
-          CFLAGS: "-fPIC"
-        run: bin/pyodide_build_dependencies.sh --wasm-library-dir ${{ github.workspace }}/wasm-library-dir
+          CIBW_PLATFORM: pyodide
+          CIBW_BUILD: cp313-*
 
       - name: Persist WASM library directory to cache
+        if: steps.cache-wasm-library-dir.outputs.cache-hit != 'true'
         uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ${{ github.workspace }}/wasm-library-dir
-          key: wasm-library-dir-${{ hashFiles('bin/pyodide_build_dependencies.sh', 'bin/build_variables.sh') }}-0
+          key: wasm-library-dir-${{ hashFiles('pyproject.toml', 'bin/cibw_before_all_pyodide.sh', 'bin/pyodide_build_dependencies.sh', 'bin/build_variables.sh') }}-0
 
-      - name: Restore python-flint build directory from cache
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      - uses: actions/upload-artifact@v7
         with:
-          path: ${{ github.workspace }}/flint_wasm_build
-          key: flint-wasm-build-${{ hashFiles('**/meson.build', '**/pyproject.toml', '**/setup.py') }}
-
-      - name: Build python-flint
-        env:
-          WASM_LIBRARY_DIR: ${{ github.workspace }}/wasm-library-dir
-        run: |
-          export PKG_CONFIG_PATH="${{ env.WASM_LIBRARY_DIR }}/lib/pkgconfig:${PKG_CONFIG_PATH}"
-          export CFLAGS="-I${{ env.WASM_LIBRARY_DIR }}/include ${CFLAGS:-}"
-          export LDFLAGS="-L${{ env.WASM_LIBRARY_DIR }}/lib -lflint -lmpfr -lgmp ${LDFLAGS:-}"
-
-          echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH}"
-          echo "CFLAGS=${CFLAGS}"
-          echo "LDFLAGS=${LDFLAGS}"
-
-          pkg-config --modversion python3
-          pkg-config --modversion mpfr
-          pkg-config --modversion flint
-
-          pyodide build -Cbuild-dir=flint_wasm_build -Csetup-args="-Dflint_version_check=false"
-
-      - name: Persist python-flint build directory to cache
-        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: ${{ github.workspace }}/flint_wasm_build
-          key: flint-wasm-build-${{ hashFiles('**/meson.build', '**/pyproject.toml', '**/setup.py') }}
-
-      - name: Set up Pyodide virtual environment and test python-flint
-        run: |
-          pyodide venv .venv-pyodide
-
-          source .venv-pyodide/bin/activate
-          pip install dist/*.whl
-
-          cd doc
-
-          pip install pytest hypothesis
-          # Don't use the cache provider plugin, as it doesn't work with Pyodide
-          # right now: https://github.com/pypa/cibuildwheel/issues/1966
-          pytest -svra -p no:cacheprovider --pyargs flint
+          name: wheels-pyodide
+          path: wheelhouse/*.whl
