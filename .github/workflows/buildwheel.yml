@@ -428,7 +428,11 @@ jobs:
           merge-multiple: true
 
       - name: Copy the PyPI files into dist
-        run: mkdir dist && cp wheelhouse/*.whl wheelhouse/*.tar.gz dist
+        # pyodide wheels cannot be uploaded to PyPI
+        run: |
+          mkdir dist
+          rm wheelhouse/*pyodide*.whl
+          cp wheelhouse/*.whl wheelhouse/*.tar.gz dist
 
       - name: Publish package on PyPI
         # It is recommended to pin a commit hash here for security but it
