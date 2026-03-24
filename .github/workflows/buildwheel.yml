@@ -2,6 +2,9 @@ name: Build
 
 on: [push, pull_request]
 
+env:
+  PYODIDE_VERSION: 0.28.2
+
 jobs:
   build_wheels:
     name: ${{ matrix.name }}
@@ -99,6 +102,16 @@ jobs:
           version: ${{ matrix.emscripten_version }}
           actions-cache-folder: emsdk-cache
 
+      - if: ${{ matrix.kind == 'pyodide' }}
+        name: Check out Emscripten patches for Pyodide
+        uses: actions/checkout@v6.0.2
+        with:
+          repository: pyodide/pyodide
+          ref: ${{ env.PYODIDE_VERSION }}
+          path: pyodide-patches
+          sparse-checkout: |
+            emsdk/patches/
+
         # ------------- actual build ------------- #
 
       - name: Build wheels
@@ -106,6 +119,8 @@ jobs:
         env:
           CIBW_PLATFORM: ${{ matrix.cibw_platform }}
           CIBW_BUILD: ${{ matrix.cibw_build }}
+          CIBW_PYODIDE_VERSION: ${{ env.PYODIDE_VERSION }}
+          PYODIDE_EMSCRIPTEN_VERSION: ${{ matrix.kind == 'pyodide' && matrix.emscripten_version || '' }}
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: ${{ matrix.os == 'windows-11-arm' && 'msys2 -c bin/cibw_before_all_windows_arm64.sh' || 'msys2 -c bin/cibw_before_all_windows_amd64.sh' }}
 
@@ -183,8 +198,6 @@ jobs:
     needs: build_wheels
     name: Test Pyodide wheel
     runs-on: ubuntu-22.04
-    env:
-      PYODIDE_VERSION: 0.28.2
 
     steps:
       - uses: actions/setup-python@v6

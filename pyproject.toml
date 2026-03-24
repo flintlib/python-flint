@@ -179,16 +179,10 @@ repair-wheel-command = [
 
 [tool.cibuildwheel.pyodide]
 before-all = "bin/cibw_before_all_pyodide.sh"
-before-build = "pip install wheel auditwheel_emscripten"
+before-build = "bin/cibw_before_build_pyodide.sh"
+# The pyodide version is set in .github/workflows/buildwheel.yml as
+# CIBW_PYODIDE_VERSION because it is needed also for other things there.
 
-# This needs to be kept in sync with the Pyodide row in
-# .github/workflows/buildwheel.yml. The Pyodide version pins both an
-# Emscripten version and a CPython minor version. The command
-# `pyodide xbuildenv search --all` shows the compatible combinations.
-pyodide-version = "0.28.2"
-
-# GMP, MPFR, and FLINT are built as shared libraries for Pyodide and bundled
-# into the wheel.
 repair-wheel-command = [
 """python bin/cibw_repair_wheel_licenses.py "{wheel}" \
     --license LGPL-3.0-or-later \
