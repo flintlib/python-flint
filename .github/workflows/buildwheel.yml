@@ -3,7 +3,12 @@ name: Build
 on: [push, pull_request]
 
 env:
-  PYODIDE_VERSION: 0.28.2
+  # These four values need to be kept in sync. Each pyodide version pins an
+  # emscripten version and a CPython version.
+  PYODIDE_VERSION: '0.29.3'
+  PYODIDE_EMSCRIPTEN_VERSION: '4.0.9'
+  PYODIDE_PYTHON_VERSION: '3.13'
+  PYODIDE_CIBW_BUILD: 'cp313-*'
 
 jobs:
   build_wheels:
@@ -54,9 +59,7 @@ jobs:
             os: ubuntu-22.04
             kind: pyodide
             artifact_name: wheels-pyodide
-            emscripten_version: 4.0.9
             cibw_platform: pyodide
-            cibw_build: cp313-*
 
     steps:
       - uses: actions/checkout@v6.0.2
@@ -99,7 +102,7 @@ jobs:
         name: Set up Emscripten toolchain
         uses: pyodide/setup-emsdk@ca2dd8aef8c2a0e11743c5c36f0b430ddb694b5c # v15
         with:
-          version: ${{ matrix.emscripten_version }}
+          version: ${{ env.PYODIDE_EMSCRIPTEN_VERSION }}
           actions-cache-folder: emsdk-cache
 
       - if: ${{ matrix.kind == 'pyodide' }}
@@ -118,9 +121,8 @@ jobs:
         uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
         env:
           CIBW_PLATFORM: ${{ matrix.cibw_platform }}
-          CIBW_BUILD: ${{ matrix.cibw_build }}
+          CIBW_BUILD: ${{ matrix.kind == 'pyodide' && env.PYODIDE_CIBW_BUILD || matrix.cibw_build }}
           CIBW_PYODIDE_VERSION: ${{ env.PYODIDE_VERSION }}
-          PYODIDE_EMSCRIPTEN_VERSION: ${{ matrix.kind == 'pyodide' && matrix.emscripten_version || '' }}
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: ${{ matrix.os == 'windows-11-arm' && 'msys2 -c bin/cibw_before_all_windows_arm64.sh' || 'msys2 -c bin/cibw_before_all_windows_amd64.sh' }}
 
@@ -138,7 +140,7 @@ jobs:
 
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: ${{ env.PYODIDE_PYTHON_VERSION }}
 
       - run: bin/install_latest_flint_ubuntu.sh
       - run: pip install build
@@ -202,7 +204,7 @@ jobs:
     steps:
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: ${{ env.PYODIDE_PYTHON_VERSION }}
 
       - uses: actions/setup-node@v6
         with:

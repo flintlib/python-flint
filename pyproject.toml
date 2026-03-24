@@ -178,10 +178,9 @@ repair-wheel-command = [
 ]
 
 [tool.cibuildwheel.pyodide]
+# pyodide version is set in .github/workflows/buildwheel.yml as PYODIDE_VERSION
 before-all = "bin/cibw_before_all_pyodide.sh"
 before-build = "bin/cibw_before_build_pyodide.sh"
-# The pyodide version is set in .github/workflows/buildwheel.yml as
-# CIBW_PYODIDE_VERSION because it is needed also for other things there.
 
 repair-wheel-command = [
 """python bin/cibw_repair_wheel_licenses.py "{wheel}" \
