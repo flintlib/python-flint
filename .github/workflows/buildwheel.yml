@@ -195,7 +195,7 @@ jobs:
         with:
           node-version: '22'
 
-      - run: pip install "pyodide-build==${{ env.PYODIDE_VERSION }}"
+      - run: pip install pyodide-build
       - run: pyodide xbuildenv install "${{ env.PYODIDE_VERSION }}"
 
       - uses: actions/download-artifact@v8
