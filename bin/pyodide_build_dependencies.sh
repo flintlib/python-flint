@@ -129,3 +129,18 @@ fi
     emmake make install
 
 cd ..
+
+
+# ----------------Build shared libraries from static archives --------------#
+
+
+emcc -shared -sSIDE_MODULE=2 -o "$WASM_LIBRARY_DIR/lib/libgmp.so" \
+    -Wl,--whole-archive "$WASM_LIBRARY_DIR/lib/libgmp.a" -Wl,--no-whole-archive
+
+emcc -shared -sSIDE_MODULE=2 -o "$WASM_LIBRARY_DIR/lib/libmpfr.so" \
+    -Wl,--whole-archive "$WASM_LIBRARY_DIR/lib/libmpfr.a" -Wl,--no-whole-archive \
+    -L"$WASM_LIBRARY_DIR/lib" -lgmp
+
+emcc -shared -sSIDE_MODULE=2 -o "$WASM_LIBRARY_DIR/lib/libflint.so" \
+    -Wl,--whole-archive "$WASM_LIBRARY_DIR/lib/libflint.a" -Wl,--no-whole-archive \
+    -L"$WASM_LIBRARY_DIR/lib" -lmpfr -lgmp
