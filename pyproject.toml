@@ -181,11 +181,10 @@ repair-wheel-command = [
 before-all = "bin/cibw_before_all_pyodide.sh"
 before-build = "pip install wheel"
 
-# This needs to be kept in sync with EMSCRIPTEN_VERSION and CIBW_BUILD in
-# .github.workflows/ci-emscripten.yml. The pyodide version pins both an
-# emscripten version and a CPython minor version. Not sure what is a good link
-# to see a table of versions but the command pyodide xbuildenv search --all
-# shows this.
+# This needs to be kept in sync with the Pyodide row in
+# .github/workflows/buildwheel.yml. The Pyodide version pins both an
+# Emscripten version and a CPython minor version. The command
+# `pyodide xbuildenv search --all` shows the compatible combinations.
 pyodide-version = "0.28.2"
 
 # GMP, MPFR, and FLINT are built as static libraries for Pyodide.
@@ -201,8 +200,6 @@ repair-wheel-command = [
 """,
 "cp \"{wheel}\" \"{dest_dir}\"",
 ]
-test-command = "python -m pytest -svra -p no:cacheprovider --pyargs flint"
-test-requires = ["pytest", "hypothesis"]
 
 [tool.cibuildwheel.pyodide.environment]
 WASM_LIBRARY_DIR = "$(pwd)/wasm-library-dir"

@@ -4,55 +4,114 @@ on: [push, pull_request]
 
 jobs:
   build_wheels:
-    name: Build wheels for ${{ matrix.os }}
+    name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-22.04-arm, windows-2022, windows-11-arm, macos-15-intel, macos-14]
+        include:
+          - name: Build manylinux x86-64 wheels
+            os: ubuntu-22.04
+            kind: native
+            artifact_name: wheels-ubuntu-22.04
+            cibw_platform: auto
+            cibw_build: "*"
+          - name: Build manylinux arm64 wheels
+            os: ubuntu-22.04-arm
+            kind: native
+            artifact_name: wheels-ubuntu-22.04-arm
+            cibw_platform: auto
+            cibw_build: "*"
+          - name: Build Windows x86-64 wheels
+            os: windows-2022
+            kind: native
+            artifact_name: wheels-windows-2022
+            cibw_platform: auto
+            cibw_build: "*"
+          - name: Build Windows arm64 wheels
+            os: windows-11-arm
+            kind: native
+            artifact_name: wheels-windows-11-arm
+            cibw_platform: auto
+            cibw_build: "*"
+          - name: Build macOS x86-64 wheels
+            os: macos-15-intel
+            kind: native
+            artifact_name: wheels-macos-15-intel
+            cibw_platform: auto
+            cibw_build: "*"
+          - name: Build macOS arm64 wheels
+            os: macos-14
+            kind: native
+            artifact_name: wheels-macos-14
+            cibw_platform: auto
+            cibw_build: "*"
+          - name: Build Pyodide wheels
+            os: ubuntu-22.04
+            kind: pyodide
+            artifact_name: wheels-pyodide
+            emscripten_version: 4.0.9
+            cibw_platform: pyodide
+            cibw_build: cp313-*
 
     steps:
       - uses: actions/checkout@v6.0.2
 
-      - uses: actions/setup-python@v6
+      - if: ${{ matrix.kind == 'native' }}
+        uses: actions/setup-python@v6
         with:
           python-version: '3.13'
 
-      - uses: msys2/setup-msys2@v2.30.0
+        # -------------- Windows stuff ---------------- #
+
+      - if: ${{ matrix.os == 'windows-2022' }}
+        uses: msys2/setup-msys2@v2.30.0
         with:
           msystem: ucrt64
           update: true
-        if: ${{ matrix.os == 'windows-2022' }}
 
-      - uses: msys2/setup-msys2@v2.30.0
+      - if: ${{ matrix.os == 'windows-11-arm' }}
+        uses: msys2/setup-msys2@v2.30.0
         with:
           msystem: clangarm64
           update: true
-        if: ${{ matrix.os == 'windows-11-arm' }}
 
         # Install pkgconfig on Windows from choco rather than from msys and
         # avoid using the Strawberry one.
-      - run: choco install -y --stoponfirstfailure --checksum 6004DF17818F5A6DBF19CB335CC92702 pkgconfiglite
-        if: ${{ startsWith( matrix.os , 'windows' ) }}
+      - if: ${{ startsWith( matrix.os , 'windows' ) }}
+        run: choco install -y --stoponfirstfailure --checksum 6004DF17818F5A6DBF19CB335CC92702 pkgconfiglite
 
         # We have to set this here rather than in the cibuildwheel config
         # This is probably something to do with \ vs / in paths...
-      - run: |
+      - if: ${{ startsWith( matrix.os , 'windows' ) }}
+        run: |
           $pkgConfigPath = "${{ github.workspace }}/.local/lib/pkgconfig"
           $pkgConfigPath = $pkgConfigPath.Replace('\', '/')
           echo "PKG_CONFIG_PATH=$pkgConfigPath" >> $env:GITHUB_ENV
-        if: ${{ startsWith( matrix.os , 'windows' ) }}
+
+        # ------------- pyodide ------------- #
+
+      - if: ${{ matrix.kind == 'pyodide' }}
+        name: Set up Emscripten toolchain
+        uses: mymindstorm/setup-emsdk@6ab9eb1bda2574c4ddb79809fc9247783eaf9021 # v14
+        with:
+          version: ${{ matrix.emscripten_version }}
+          actions-cache-folder: emsdk-cache
+
+        # ------------- actual build ------------- #
 
       - name: Build wheels
         uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
         env:
+          CIBW_PLATFORM: ${{ matrix.cibw_platform }}
+          CIBW_BUILD: ${{ matrix.cibw_build }}
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: ${{ matrix.os == 'windows-11-arm' && 'msys2 -c bin/cibw_before_all_windows_arm64.sh' || 'msys2 -c bin/cibw_before_all_windows_amd64.sh' }}
 
       - uses: actions/upload-artifact@v7
         with:
-          name: wheels-${{ matrix.os }}
+          name: ${{ matrix.artifact_name }}
           path: wheelhouse/*.whl
 
   build_sdist:
@@ -119,6 +178,37 @@ jobs:
           python -c "import sys; import flint; print(getattr(sys, '_is_gil_enabled', lambda: True)())"
 
       - run: python -m flint.test --verbose
+
+  test_pyodide:
+    needs: build_wheels
+    name: Test Pyodide wheel
+    runs-on: ubuntu-22.04
+    env:
+      PYODIDE_VERSION: 0.28.2
+
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - run: pip install "pyodide-build==${{ env.PYODIDE_VERSION }}"
+      - run: pyodide xbuildenv install "${{ env.PYODIDE_VERSION }}"
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: wheels-pyodide
+          path: wheelhouse
+
+      - run: |
+          pyodide venv .venv-pyodide
+          source .venv-pyodide/bin/activate
+          pip install wheelhouse/*.whl
+          pip install pytest hypothesis
+          python -m pytest -svra -p no:cacheprovider --pyargs flint
 
   # On new enough Ubuntu we can build against the system deb.
   test_pip_flint_deb:
