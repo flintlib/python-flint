@@ -176,3 +176,31 @@ repair-wheel-command = [
 """,
 "delvewheel repair -w {dest_dir} {wheel} --add-path .local/bin",
 ]
+
+[tool.cibuildwheel.pyodide]
+# pyodide version is set in .github/workflows/buildwheel.yml as PYODIDE_VERSION
+before-all = "bin/cibw_before_all_pyodide.sh"
+before-build = "bin/cibw_before_build_pyodide.sh"
+
+repair-wheel-command = [
+"""python bin/cibw_repair_wheel_licenses.py "{wheel}" \
+    --license LGPL-3.0-or-later \
+    --license-file 'wasm-library-dir/src/gmp-*/COPYING:python-flint.libs/gmp-*/COPYING' \
+    --license-file 'wasm-library-dir/src/gmp-*/COPYING.LESSERv3:python-flint.libs/gmp-*/COPYING.LESSERv3' \
+    --license-file 'wasm-library-dir/src/mpfr-*/COPYING:python-flint.libs/mpfr-*/COPYING' \
+    --license-file 'wasm-library-dir/src/mpfr-*/COPYING.LESSER:python-flint.libs/mpfr-*/COPYING.LESSER' \
+    --license-file 'wasm-library-dir/src/flint-*/COPYING:python-flint.libs/flint-*/COPYING' \
+    --license-file 'wasm-library-dir/src/flint-*/COPYING.LESSER:python-flint.libs/flint-*/COPYING.LESSER' \
+""",
+"pyodide auditwheel repair --libdir wasm-library-dir --output-dir {dest_dir} {wheel}",
+]
+
+[tool.cibuildwheel.pyodide.environment]
+WASM_LIBRARY_DIR = "$(pwd)/wasm-library-dir"
+PKG_CONFIG_PATH = "$(pwd)/wasm-library-dir/lib/pkgconfig:$PKG_CONFIG_PATH"
+CFLAGS = "-I$(pwd)/wasm-library-dir/include $CFLAGS"
+LDFLAGS = "-L$(pwd)/wasm-library-dir/lib -lflint -lmpfr -lgmp $LDFLAGS"
+
+[tool.cibuildwheel.pyodide.config-settings]
+build-dir = "flint_wasm_build"
+setup-args = ["-Dflint_version_check=false"]
