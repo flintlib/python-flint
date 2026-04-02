@@ -72,13 +72,13 @@ jobs:
         # -------------- Windows stuff ---------------- #
 
       - if: ${{ matrix.os == 'windows-2022' }}
-        uses: msys2/setup-msys2@v2.30.0
+        uses: msys2/setup-msys2@v2.31.0
         with:
           msystem: ucrt64
           update: true
 
       - if: ${{ matrix.os == 'windows-11-arm' }}
-        uses: msys2/setup-msys2@v2.30.0
+        uses: msys2/setup-msys2@v2.31.0
         with:
           msystem: clangarm64
           update: true
@@ -118,7 +118,7 @@ jobs:
         # ------------- actual build ------------- #
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e # v3.3.1
+        uses: pypa/cibuildwheel@ee02a1537ce3071a004a6b08c41e72f0fdc42d9a # v3.4.0
         env:
           CIBW_PLATFORM: ${{ matrix.cibw_platform }}
           CIBW_BUILD: ${{ matrix.kind == 'pyodide' && env.PYODIDE_CIBW_BUILD || matrix.cibw_build }}
