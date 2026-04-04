@@ -476,7 +476,8 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >
-          gh release create ${{ github.ref_name }} dist/*
-          --title "python-flint ${{ github.ref_name }}"
-          --notes "https://github.com/flintlib/python-flint?tab=readme-ov-file#changelog"
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          gh release create "$REF_NAME" dist/* \
+            --title "python-flint $REF_NAME" \
+            --notes "https://github.com/flintlib/python-flint?tab=readme-ov-file#changelog"
