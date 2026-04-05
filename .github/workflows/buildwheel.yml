@@ -438,6 +438,8 @@ jobs:
     # Run on push/merge to main
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment:
+      name: anaconda_nightly
     permissions: {}
 
     steps:
@@ -457,7 +459,7 @@ jobs:
           artifacts_path: dist
           # This token is generated from anaconda.org
           # https://github.com/scientific-python/upload-nightly-action/issues/111
-          anaconda_nightly_upload_token: ${{ secrets.ANACONDA_ORG_UPLOAD_TOKEN }} # zizmor: ignore[secrets-outside-env]
+          anaconda_nightly_upload_token: ${{ secrets.ANACONDA_ORG_UPLOAD_TOKEN_V2 }}
 
   # Deploy wheels and sdist to PyPI
 
