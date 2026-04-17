@@ -839,3 +839,22 @@ cdef class acb_mat(flint_mat):
         except ImportError:
             raise NotImplementedError("acb_mat.theta needs Flint >= 3.1.0")
         return acb_theta(z, tau, square=square)
+
+    def theta_jet(zvec, nb_in, tau, ord, square=False):
+        r"""
+        Computes Taylor approximation for the vector-valued Riemann theta function
+        `(\theta_{a,b}(z, \tau) : a, b \in \{0,1\}^{g})` or its squares,
+        where `\tau` is given by ``self``.
+
+        This is a wrapper for :func:`.acb_theta_jet.acb_theta_jet`; see the
+        documentation for that method for details and examples.
+        This follows the same conventions of the C-function
+        `acb_theta_jet <https://flintlib.org/doc/acb_theta.html#c.acb_theta_jet>`_
+        for the ordering of the theta characteristics.
+
+        """
+        try:
+            from .acb_theta import acb_theta_jet
+        except ImportError:
+            raise NotImplementedError("acb_mat.theta needs Flint >= 3.1.0")
+        return acb_theta_jet(zvec, nb_in, tau, ord, square=square)
