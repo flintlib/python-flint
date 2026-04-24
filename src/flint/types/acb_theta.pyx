@@ -96,62 +96,18 @@ def acb_theta(acb_mat z, acb_mat tau, ulong square=False):
     _acb_vec_clear(theta, nb)
     return acb_mat([res])
 
-#def acb_theta_jet(acb_mat z, acb_mat tau, slong ord, ulong square=False):
-    #    r"""
-    #    Computes derivatives of the vector valued Riemann theta function
-    #    `(\theta_{a,b}(z, \tau) : a, b \in \{0,1\}^{g})` or its squares.
-    #
-    #    This is a wrapper for the C-function
-    #    `acb_theta_jet <https://flintlib.org/doc/acb_theta.html#c.acb_theta_jet>`_
-    #    and it follows the same conventions for the ordering of the theta characteristics.
-    #
-    #    This should be used via the method :meth:`.acb_mat.theta`, explicitly ``tau.theta(z)``.
-    #    """
-    #    g = tau.nrows()
-    #    assert tau.ncols() == g
-    #    assert z.nrows() == g
-    #    assert z.ncols() == 1
-    #
-    #    # convert input
-    #    cdef acb_ptr zvec
-    #    zvec = _acb_vec_init(g)
-    #    cdef long i
-    #    for i in range(g):
-    #        acb_set(zvec + i, acb_mat_entry(z.val, i, 0))
-    #    cdef slong nb_in = 1 
-    #    cdef ulong ab = 0 
-    #    cdef ulong all = True
-    #
-    #    # initialize the output
-    #    cdef slong nb = 1 << (2 * g)
-    #    # 1. Calculate the length of the jet for one characteristic
-    #    # This is the number of multi-indices (alpha) such that |alpha| < ord
-    #    cdef slong nj = acb_theta_jet_len(g, ord)
-    #    cdef acb_ptr theta = _acb_vec_init(nb)
-    #
-    #    acb_theta_jet(theta, zvec, nb_in, tau.val, ord, ab, all, square, getprec())
-    #    _acb_vec_clear(zvec, g)
-    #    # copy the output
-    #    res = []
-    #    cdef acb r
-    #    for i in range(nb):
-    #        r = acb.__new__(acb)
-    #        acb_set(r.val, theta + i)
-    #        res.append(r)
-    #    _acb_vec_clear(theta, nb)
-    #    return acb_mat([res])
 
-def acb_theta_jet(acb_mat z, acb_mat tau, slong ord, ulong square=False):
+def acb_theta_jets(acb_mat z, acb_mat tau, slong ord, ulong square=False):
     r"""
     Corrected wrapper for acb_theta_jet to handle multivariate Taylor expansions.
     """
-    cdef slong g = tau.nrows()
+    g = tau.nrows()
     if g == 0:
         return []
 
     # 1. Calculate the length of the jet for one characteristic
     # This is the number of multi-indices (alpha) such that |alpha| < ord
-    cdef slong nj = acb_theta_jet_len(g, ord)
+    cdef slong nj = acb_theta_jet_nb(g, ord)
     
     # 2. Total number of characteristics
     cdef slong nb = 1 << (2 * g)
@@ -196,3 +152,49 @@ def acb_theta_jet(acb_mat z, acb_mat tau, slong ord, ulong square=False):
     _acb_vec_clear(theta, total_size)
 
     return res
+
+
+#def acb_theta_jet(acb_mat z, acb_mat tau, slong ord, ulong square=False):
+    #    r"""
+    #    Computes derivatives of the vector valued Riemann theta function
+    #    `(\theta_{a,b}(z, \tau) : a, b \in \{0,1\}^{g})` or its squares.
+    #
+    #    This is a wrapper for the C-function
+    #    `acb_theta_jet <https://flintlib.org/doc/acb_theta.html#c.acb_theta_jet>`_
+    #    and it follows the same conventions for the ordering of the theta characteristics.
+    #
+    #    This should be used via the method :meth:`.acb_mat.theta`, explicitly ``tau.theta(z)``.
+    #    """
+    #    g = tau.nrows()
+    #    assert tau.ncols() == g
+    #    assert z.nrows() == g
+    #    assert z.ncols() == 1
+    #
+    #    # convert input
+    #    cdef acb_ptr zvec
+    #    zvec = _acb_vec_init(g)
+    #    cdef long i
+    #    for i in range(g):
+    #        acb_set(zvec + i, acb_mat_entry(z.val, i, 0))
+    #    cdef slong nb_in = 1 
+    #    cdef ulong ab = 0 
+    #    cdef ulong all = True
+    #
+    #    # initialize the output
+    #    cdef slong nb = 1 << (2 * g)
+    #    # 1. Calculate the length of the jet for one characteristic
+    #    # This is the number of multi-indices (alpha) such that |alpha| < ord
+    #    cdef slong nj = acb_theta_jet_len(g, ord)
+    #    cdef acb_ptr theta = _acb_vec_init(nb)
+    #
+    #    acb_theta_jet(theta, zvec, nb_in, tau.val, ord, ab, all, square, getprec())
+    #    _acb_vec_clear(zvec, g)
+    #    # copy the output
+    #    res = []
+    #    cdef acb r
+    #    for i in range(nb):
+    #        r = acb.__new__(acb)
+    #        acb_set(r.val, theta + i)
+    #        res.append(r)
+    #    _acb_vec_clear(theta, nb)
+    #    return acb_mat([res])
