@@ -38,7 +38,7 @@ cdef nmod_poly_set_list(nmod_poly_t poly, list val):
     cdef long i, n
     cdef nmod_t mod
     cdef mp_limb_t v
-    nmod_init(&mod, nmod_poly_modulus(poly)) # XXX
+    nmod_init(&mod, nmod_poly_modulus(poly))  # XXX
     n = PyList_GET_SIZE(val)
     nmod_poly_fit_length(poly, n)
     for i from 0 <= i < n:

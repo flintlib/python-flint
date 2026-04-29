@@ -67,7 +67,7 @@ cdef class fmpq(flint_scalar):
 
     def __init__(self, *args):
         if not args:
-            return # zero
+            return  # zero
         elif len(args) == 2:
             p, q = args
         elif len(args) == 1:

@@ -77,7 +77,7 @@ cdef class fmpz(flint_scalar):
         if typecheck(val, fmpz):
             fmpz_set(self.val, (<fmpz>val).val)
         else:
-            if fmpz_set_any_ref(self.val, val) == FMPZ_UNKNOWN: # XXX
+            if fmpz_set_any_ref(self.val, val) == FMPZ_UNKNOWN:  # XXX
                 if typecheck(val, str):
                     if fmpz_set_str(self.val, chars_from_str(val), 10) != 0:
                         raise ValueError("invalid string for fmpz")
