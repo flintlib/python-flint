@@ -74,7 +74,7 @@ Python versions as described in `SPEC 0
 the minimum supported FLINT version is ``3.0`` and each release of python-flint
 supports all versions of ``FLINT >= 3.0`` available at the time of release.
 
-Compatible versions (note that 0.7.0 is not yet released):
+Compatible versions:
 
 .. list-table:: python-flint compatibility
    :header-rows: 1
@@ -84,11 +84,21 @@ Compatible versions (note that 0.7.0 is not yet released):
      - CPython
      - FLINT
      - Cython
-   * - 0.7.0
+   * - 0.9.0
      - Not yet
-     - 3.10-3.13
-     - 3.0-3.2?
-     - 3.0-3.1?
+     - 3.11-3.14
+     - 3.0-3.4
+     - 3.1-3.2?
+   * - 0.8.0
+     - 29th Aug 2025
+     - 3.11-3.14
+     - 3.0-3.3
+     - 3.1 only
+   * - 0.7.0
+     - 16th Mar 2025
+     - 3.11-3.13
+     - 3.0-3.2
+     - 3.0.11-3.1.0a1
    * - 0.6.0
      - 1st Feb 2024
      - 3.9-3.12
@@ -130,6 +140,7 @@ of ``python-flint`` existing at the time:
 - Flint 3.0 (Arb and Flint merged, lots of changes)
 - Flint 3.1 (Function signature for ``fmpz_mod_mat`` changed)
 - Flint 3.2 (``flint_randinit`` function name changed)
+- Flint 3.4 (generic series API moved to ``gr_series.h``)
 - Cython 3.0 (Handling of dunders changed)
 - Cython 3.1 (Removal of ``PyInt_*`` functions)
 - CPython 3.12 (Removal of distutils)
@@ -282,7 +293,7 @@ to be installed before building ``python-flint`` is ``FLINT``.
 
 At the time of writing, few Linux distributions provide ``FLINT >= 3.0`` in
 their package repositories but for example on ``Ubuntu 24.04`` (but not any
-earlier Ubuntu versions) you can install ``FLINT 3.0.1`` with::
+earlier Ubuntu versions) you can install a sufficiently recent ``FLINT`` with::
 
     sudo apt-get install libflint-dev
 
@@ -352,27 +363,30 @@ builds on Windows using MSVC.
 
 The `MSYS2 <https://www.msys2.org/>`_ project provides a Unix-like environment
 for Windows and a package manager that can be used to install the dependencies.
-The git repo for ``python-flint`` has a script `bin/cibw_before_all_windows.sh
-<https://github.com/flintlib/python-flint/blob/master/bin/cibw_before_all_windows.sh>`_
-that installs the dependencies under MSYS2 and builds ``GMP``, ``MPFR``,
-``FLINT``. This script is used for building the Windows binaries for PyPI. We
-use the ``MinGW64`` (``mingw-w64-x86_64``) toolchain for building on Windows
-rather than MSVC because it makes it possible to have a fat build of ``GMP``
-(``--enable-fat``) which bundles micro-architecture specific optimisations for
-``x86_64`` in a redistributable shared library. This is important for
-performance on modern ``x86_64`` CPUs and is not possible if building ``GMP``
-with MSVC. Since we need to use ``MinGW64`` for building ``GMP`` it is simplest
-to use it for building ``MPFR``, ``FLINT`` and ``python-flint`` as well and
-means that the same Unix-style build scripts can be used for all platforms.
+The git repo for ``python-flint`` has scripts
+`bin/cibw_before_all_windows_amd64.sh
+<https://github.com/flintlib/python-flint/blob/master/bin/cibw_before_all_windows_amd64.sh>`_
+and `bin/cibw_before_all_windows_arm64.sh
+<https://github.com/flintlib/python-flint/blob/master/bin/cibw_before_all_windows_arm64.sh>`_
+that install the dependencies under MSYS2 and build ``GMP``, ``MPFR``,
+``FLINT``. These scripts are used for building the Windows binaries for PyPI.
 
-The ``python-flint`` project does not have much experience using MSVC. Possibly
-it would be better to build ``GMP`` using ``MinGW64`` and then build ``MPFR``,
-``FLINT`` and ``python-flint`` using MSVC. It is also possible that it would be
-better to build ``GMP``, ``MPFR``, ``FLINT`` using MinGW64 and then build
-``python-flint`` using MSVC. Someone with more experience with MSVC would need
-to help with this. We would welcome contributions that explain how to build
-``python-flint`` and its dependencies using MSVC and/or that improve the build
-process for distributed binaries on Windows.
+For ``x86_64`` wheels we use the ``UCRT64`` (``mingw-w64-ucrt-x86_64``)
+toolchain under MSYS2 to build ``GMP``, ``MPFR`` and ``FLINT`` because it
+makes it possible to have a fat build of ``GMP`` (``--enable-fat``) which
+bundles micro-architecture specific optimisations for ``x86_64`` in a
+redistributable shared library. This is important for performance on modern
+``x86_64`` CPUs and is not possible if building ``GMP`` with MSVC.
+
+For Windows ``arm64`` wheels we use the ``CLANGARM64`` MSYS2 toolchain instead.
+The ``GMP`` build there does not use ``--enable-fat`` and instead uses the
+generic build that works with that toolchain.
+
+The Python extension modules themselves are then built with MSVC via
+``meson --vsenv`` while linking against the MSYS2-built ``GMP``, ``MPFR`` and
+``FLINT`` libraries through ``pkg-config``. This mixed-toolchain arrangement
+keeps the MSYS2 dependency builds while using the standard Windows compiler for
+the extension modules on both ``x86_64`` and ``arm64``.
 
 
 .. _non_standard_location:

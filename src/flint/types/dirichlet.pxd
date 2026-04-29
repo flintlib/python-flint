@@ -1,5 +1,5 @@
-from flint.flintlib.dirichlet cimport dirichlet_group_t
-from flint.flintlib.dirichlet cimport dirichlet_char_t
+from flint.flintlib.functions.dirichlet cimport dirichlet_group_t
+from flint.flintlib.functions.dirichlet cimport dirichlet_char_t
 
 cdef class dirichlet_group(object):
     cdef dirichlet_group_t val

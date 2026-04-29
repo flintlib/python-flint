@@ -18,10 +18,17 @@ set -o errexit
 
 SKIP_GMP=no
 SKIP_MPFR=no
+PATCH_GMP_C23=no
+PATCH_LDD=no
+PATCH_IMMINTRIN=no
+GMP_FAT_ARG="--enable-fat"
+GMP_ASSEMBLY_ARG=
+HOST_ARG=
 
 USE_GMP=gmp
 PATCH_GMP_ARM64=no
 BUILD_ARB=no
+USE_GMP_GITHUB_MIRROR=no
 
 while [[ $# -gt 0 ]]
 do
@@ -37,11 +44,15 @@ do
       echo "  --host <HOST>     - set the host (target) for GMP build"
       echo "  --skip-gmp        - skip building GMP"
       echo "  --skip-mpfr       - skip building MPFR"
+      echo "  --disable-assembly - disable GMP assembly routines"
+      echo "  --patch-ldd       - patch flint shared linking for mingw on arm64"
+      echo "  --patch-immintrin - patch flint arm64 msvc header to avoid immintrin.h"
       echo
       echo "Legacy options:"
       echo "  --gmp gmp         - build based on GMP (default)"
       echo "  --gmp mpir        - build based on MPIR (no longer works)"
       echo "  --patch-gmp-arm64 - apply patch to GMP 6.2.1 for OSX arm64"
+      echo "  --patch-C23       - apply patch to GMP 6.3.0 for C23 compatibility"
       echo "  --arb             - build Arb (only needed for flint < 3.0.0)"
       echo
       exit
@@ -82,10 +93,31 @@ do
       SKIP_MPFR=yes
       shift
     ;;
+    --disable-assembly)
+      # GMP does not allow --enable-fat together with --disable-assembly.
+      GMP_FAT_ARG=
+      GMP_ASSEMBLY_ARG="--disable-assembly"
+      shift
+    ;;
     --patch-gmp-arm64)
       # Needed only for GMP 6.2.1 on OSX arm64 (Apple M1) hardware
       # As of GMP 6.3.0 this patch is no longer needed
       PATCH_GMP_ARM64=yes
+      shift
+    ;;
+    --patch-C23)
+      # Patch GMP 6.3.0 for newer gcc versions
+      PATCH_GMP_C23=yes
+      shift
+    ;;
+    --patch-ldd)
+      # Needed only for the FLINT shared build on mingw arm64.
+      PATCH_LDD=yes
+      shift
+    ;;
+    --patch-immintrin)
+      # Needed only for the FLINT headers consumed by MSVC on Windows arm64.
+      PATCH_IMMINTRIN=yes
       shift
     ;;
     --use-gmp-github-mirror)
@@ -108,6 +140,7 @@ done
 
 source bin/build_variables.sh
 
+mkdir -p "$PREFIX"
 cd $PREFIX
 mkdir -p src
 cd src
@@ -118,7 +151,7 @@ cd src
 #                                                                           #
 # ------------------------------------------------------------------------- #
 
-if [ $USE_GMP = "gmp" ]; then
+if [ "$USE_GMP" = "gmp" ]; then
 
   # ----------------------------------------------------------------------- #
   #                                                                         #
@@ -126,7 +159,7 @@ if [ $USE_GMP = "gmp" ]; then
   #                                                                         #
   # ----------------------------------------------------------------------- #
 
-  if [ $SKIP_GMP = "yes" ]; then
+  if [ "$SKIP_GMP" = "yes" ]; then
     echo
     echo --------------------------------------------
     echo "           skipping GMP"
@@ -139,7 +172,7 @@ if [ $USE_GMP = "gmp" ]; then
     echo --------------------------------------------
     echo
 
-    if [ $USE_GMP_GITHUB_MIRROR = "yes" ]; then
+    if [ "$USE_GMP_GITHUB_MIRROR" = "yes" ]; then
       # Needed in GitHub Actions because it is blocked from gmplib.org
       git clone https://github.com/oscarbenjamin/gmp_mirror.git
       cp gmp_mirror/gmp-$GMPVER.tar.xz .
@@ -157,12 +190,26 @@ if [ $USE_GMP = "gmp" ]; then
       # from the GMP repo but was applied after the release of GMP 6.2.1.
       # This patch is no longer needed for GMP 6.3.0.
       #
-      if [ $PATCH_GMP_ARM64 = "yes" ]; then
+      if [ "$PATCH_GMP_ARM64" = "yes" ]; then
         echo
         echo --------------------------------------------
         echo "           patching GMP"
         echo --------------------------------------------
         patch -N -Z -p0 < ../../../bin/patch-arm64.diff
+      fi
+      #
+      # https://github.com/msys2/MSYS2-packages/issues/5499
+      #
+      # This patch needed for GMP 6.3.0 building with msys2 or probably just
+      # newer gcc versions.
+      #
+      if [ $PATCH_GMP_C23 = "yes" ]; then
+        echo
+        echo --------------------------------------------
+        echo "           patching GMP"
+        echo --------------------------------------------
+        patch -N -Z < ../../../bin/patch-C23.diff
+        autoreconf -fi
       fi
 
       # Show the output of configfsf.guess
@@ -170,7 +217,8 @@ if [ $USE_GMP = "gmp" ]; then
       ./configfsf.guess
 
       ./configure --prefix=$PREFIX\
-        --enable-fat\
+        $GMP_FAT_ARG\
+        $GMP_ASSEMBLY_ARG\
         --enable-shared=yes\
         --enable-static=no\
         --host=$HOST_ARG
@@ -240,7 +288,7 @@ fi
 #                                                                           #
 # ------------------------------------------------------------------------- #
 
-if [ $SKIP_MPFR = "yes" ]; then
+if [ "$SKIP_MPFR" = "yes" ]; then
   echo
   echo --------------------------------------------
   echo "           skipping MPFR"
@@ -253,7 +301,15 @@ else
   echo --------------------------------------------
   echo
 
-  curl -O https://ftp.gnu.org/gnu/mpfr/mpfr-$MPFRVER.tar.gz
+  if [ $USE_GMP_GITHUB_MIRROR = "yes" ]; then
+    if [ ! -d "gmp_mirror" ] ; then
+      git clone https://github.com/oscarbenjamin/gmp_mirror.git
+    fi
+    cp gmp_mirror/mpfr-$MPFRVER.tar.gz .
+  else
+    curl -O https://ftp.gnu.org/gnu/mpfr/mpfr-$MPFRVER.tar.gz
+  fi
+
   tar xf mpfr-$MPFRVER.tar.gz
   cd mpfr-$MPFRVER
     ./configure --prefix=$PREFIX\
@@ -281,14 +337,23 @@ echo
 curl -O -L https://github.com/flintlib/flint/releases/download/v$FLINTVER/flint-$FLINTVER.tar.gz
 tar xf flint-$FLINTVER.tar.gz
 cd flint-$FLINTVER
+  if [ "$PATCH_LDD" = "yes" ]; then
+    echo
+    echo --------------------------------------------
+    echo "           patching FLINT"
+    echo --------------------------------------------
+    patch -N -Z -p1 < ../../../bin/patch-flint-windows-arm64-link-$FLINTVER.diff
+  fi
+  if [ "$PATCH_IMMINTRIN" = "yes" ]; then
+    echo
+    echo --------------------------------------------
+    echo "           patching FLINT"
+    echo --------------------------------------------
+    patch -N -Z -p1 < ../../../bin/patch-flint-windows-arm64-immintrin.diff
+  fi
   ./bootstrap.sh
-  # --host=$HOST_ARG\ # host is ignored
-  # --enable-arch works on 3.1.3p1, not available  on HEAD
   ./configure --prefix=$PREFIX\
-    --enable-arch=${HOST_ARG%%-*}\
-    --disable-assembly\
-    --disable-avx2\
-    --disable-avx512\
+    --host=$HOST_ARG\
     $FLINTARB_WITHGMP\
     --with-mpfr=$PREFIX\
     --disable-static\
@@ -303,7 +368,7 @@ cd ..
 #                                                                           #
 # ------------------------------------------------------------------------- #
 
-if [ $BUILD_ARB = "yes" ]; then
+if [ "$BUILD_ARB" = "yes" ]; then
 
   echo
   echo --------------------------------------------
@@ -346,7 +411,7 @@ echo $PREFIX
 echo
 echo Versions:
 
-if [ $SKIP_GMP = "yes" ]; then
+if [ "$SKIP_GMP" = "yes" ]; then
   echo GMP: skipped
 else
   if [[ $USE_GMP = "gmp" ]]; then
@@ -356,7 +421,7 @@ else
   fi
 fi
 
-if [ $SKIP_MPFR = "yes" ]; then
+if [ "$SKIP_MPFR" = "yes" ]; then
   echo MPFR: skipped
 else
   echo MPFR: $MPFRVER
@@ -364,7 +429,7 @@ fi
 
 echo Flint: $FLINTVER
 
-if [ $BUILD_ARB = "yes" ]; then
+if [ "$BUILD_ARB" = "yes" ]; then
   echo Arb: $ARBVER
 fi
 echo

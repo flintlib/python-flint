@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 brew install automake libtool
 
 bin/build_dependencies_unix.sh\

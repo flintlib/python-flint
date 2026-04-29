@@ -2,26 +2,45 @@ from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport chars_from_str
 from flint.utils.conversion cimport str_from_chars, _str_trunc
-cimport libc.stdlib
+from libc.stdlib cimport malloc, free
 
-from flint.flintlib.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN
-from flint.flintlib.fmpz cimport *
-from flint.flintlib.fmpz_factor cimport *
-from flint.flintlib.arith cimport *
-from flint.flintlib.partitions cimport *
+from flint.flintlib.types.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN, COEFF_IS_MPZ
+from flint.flintlib.functions.flint cimport flint_free
+from flint.flintlib.functions.fmpz cimport *
+from flint.flintlib.types.fmpz cimport fmpz_factor_expand
+from flint.flintlib.functions.fmpz_factor cimport *
+from flint.flintlib.functions.arith cimport *
+from flint.flintlib.functions.partitions cimport *
 
 from flint.utils.flint_exceptions import DomainError
-
 
 cdef fmpz_get_intlong(fmpz_t x):
     """
     Convert fmpz_t to a Python int or long.
     """
-    cdef char * s
+    cdef slong size
+    cdef ulong * words
+    cdef int i
+    cdef fmpz_struct xabs[1]
     if COEFF_IS_MPZ(x[0]):
-        s = fmpz_get_str(NULL, 16, x)
-        v = int(str_from_chars(s), 16)
-        libc.stdlib.free(s)
+        # Python from signed bytes is slow so we convert the absolute value.
+        # we need 8 * sizeof(ulong) * size >= fmpz_bits(x)
+        size = fmpz_bits(x) // (8 * sizeof(ulong)) + 1
+        words = <ulong *>malloc(size * sizeof(ulong))
+        if fmpz_sgn(x) == -1:
+            fmpz_init(xabs)
+            fmpz_abs(xabs, x)
+            fmpz_get_ui_array(words, size, xabs)
+            fmpz_clear(xabs)
+        else:
+            fmpz_get_ui_array(words, size, x)
+        if is_big_endian:
+            for i in range(size):
+                words[i] = ulong_from_little_endian(<unsigned char *>(words + i))
+        v = int.from_bytes((<char *>words)[:size * sizeof(ulong)], "little")
+        if fmpz_sgn(x) == -1:
+            v = -v
+        free(words)
         return v
     else:
         return <slong>x[0]
@@ -164,7 +183,7 @@ cdef class fmpz(flint_scalar):
         try:
             res = str_from_chars(s)
         finally:
-            libc.stdlib.free(s)
+            flint_free(s)
         if condense > 0:
             res = _str_trunc(res, condense)
         return res
@@ -527,45 +546,29 @@ cdef class fmpz(flint_scalar):
             fmpz_clear(tval)
         return u
 
-    # This is the correct code when fmpz_or is fixed (in flint 3.0.0)
-    #
-    #def __or__(self, other):
-    #    cdef fmpz_struct tval[1]
-    #    cdef int ttype = FMPZ_UNKNOWN
-    #    ttype = fmpz_set_any_ref(tval, other)
-    #    if ttype == FMPZ_UNKNOWN:
-    #        return NotImplemented
-    #    u = fmpz.__new__(fmpz)
-    #    fmpz_or((<fmpz>u).val, self.val, tval)
-    #    if ttype == FMPZ_TMP:
-    #        fmpz_clear(tval)
-    #    return u
-    #
-    #def __ror__(self, other):
-    #    cdef fmpz_struct tval[1]
-    #    cdef int ttype = FMPZ_UNKNOWN
-    #    ttype = fmpz_set_any_ref(tval, other)
-    #    if ttype == FMPZ_UNKNOWN:
-    #        return NotImplemented
-    #    u = fmpz.__new__(fmpz)
-    #    fmpz_or((<fmpz>u).val, tval, self.val)
-    #    if ttype == FMPZ_TMP:
-    #        fmpz_clear(tval)
-    #    return u
-
     def __or__(self, other):
-        if typecheck(other, fmpz):
-            other = int(other)
-        if typecheck(other, int):
-            return fmpz(int(self) | other)
-        else:
+        cdef fmpz_struct tval[1]
+        cdef int ttype = FMPZ_UNKNOWN
+        ttype = fmpz_set_any_ref(tval, other)
+        if ttype == FMPZ_UNKNOWN:
             return NotImplemented
+        u = fmpz.__new__(fmpz)
+        fmpz_or((<fmpz>u).val, self.val, tval)
+        if ttype == FMPZ_TMP:
+            fmpz_clear(tval)
+        return u
 
     def __ror__(self, other):
-        if typecheck(other, int):
-            return fmpz(other | int(self))
-        else:
+        cdef fmpz_struct tval[1]
+        cdef int ttype = FMPZ_UNKNOWN
+        ttype = fmpz_set_any_ref(tval, other)
+        if ttype == FMPZ_UNKNOWN:
             return NotImplemented
+        u = fmpz.__new__(fmpz)
+        fmpz_or((<fmpz>u).val, tval, self.val)
+        if ttype == FMPZ_TMP:
+            fmpz_clear(tval)
+        return u
 
     def __xor__(self, other):
         cdef fmpz_struct tval[1]
@@ -877,7 +880,7 @@ cdef class fmpz(flint_scalar):
             605263138639095300
         """
         cdef fmpz v = fmpz()
-        arith_divisor_sigma(v.val, k, n.val)
+        fmpz_divisor_sigma(v.val, k, n.val)
         return v
 
     def euler_phi(n):
@@ -890,7 +893,7 @@ cdef class fmpz(flint_scalar):
             39366
         """
         cdef fmpz v = fmpz()
-        arith_euler_phi(v.val, n.val)
+        fmpz_euler_phi(v.val, n.val)
         return v
 
     def __hash__(self):

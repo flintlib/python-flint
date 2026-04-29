@@ -1,6 +1,6 @@
 from flint.flint_base.flint_base cimport flint_scalar
 
-from flint.flintlib.arb cimport arb_t
+from flint.flintlib.functions.arb cimport arb_t
 
 cdef any_as_arb_or_notimplemented(x)
 cdef int arb_set_python(arb_t x, obj, bint allow_conversion) except -1
@@ -15,3 +15,5 @@ cdef class arb(flint_scalar):
     cpdef bint is_nan(self)
     cpdef bint is_exact(self)
     cpdef bint is_integer(self)
+
+    cdef tuple _to_arfs(self)

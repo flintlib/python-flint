@@ -1,4 +1,4 @@
-from cpython.list cimport PyList_GET_SIZE
+from cpython.list cimport PyList_Size as PyList_GET_SIZE
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_poly
@@ -12,11 +12,13 @@ from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 from flint.types.arb cimport arb
 
-from flint.flintlib.mag cimport *
-from flint.flintlib.arf cimport *
-from flint.flintlib.arb cimport *
-from flint.flintlib.acb cimport *
-from flint.flintlib.acb_poly cimport *
+from flint.flintlib.functions.mag cimport *
+from flint.flintlib.functions.arf cimport *
+from flint.flintlib.functions.arb cimport *
+from flint.flintlib.types.arb cimport arb_midref
+from flint.flintlib.functions.acb cimport *
+from flint.flintlib.types.acb cimport acb_struct
+from flint.flintlib.functions.acb_poly cimport *
 cimport libc.stdlib
 
 cdef acb_poly_coerce_operands(x, y):
@@ -206,111 +208,199 @@ cdef class acb_poly(flint_poly):
 
     def __add__(s, t):
         if not isinstance(t, acb_poly):
-            s, t = acb_poly_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s + t
+            u, v = acb_poly_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u + v
         u = acb_poly.__new__(acb_poly)
         acb_poly_add((<acb_poly>u).val, (<acb_poly>s).val, (<acb_poly>t).val, getprec())
         return u
 
     def __radd__(s, t):
-        s, t = acb_poly_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t + s
+        u, v = acb_poly_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v + u
 
     def __sub__(s, t):
         if not isinstance(t, acb_poly):
-            s, t = acb_poly_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s - t
+            u, v = acb_poly_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u - v
         u = acb_poly.__new__(acb_poly)
         acb_poly_sub((<acb_poly>u).val, (<acb_poly>s).val, (<acb_poly>t).val, getprec())
         return u
 
     def __rsub__(s, t):
-        s, t = acb_poly_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t - s
+        u, v = acb_poly_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v - u
 
     def __mul__(s, t):
         if not isinstance(t, acb_poly):
-            s, t = acb_poly_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s * t
+            u, v = acb_poly_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u * v
         u = acb_poly.__new__(acb_poly)
         acb_poly_mul((<acb_poly>u).val, (<acb_poly>s).val, (<acb_poly>t).val, getprec())
         return u
 
     def __rmul__(s, t):
-        s, t = acb_poly_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t * s
+        u, v = acb_poly_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v * u
 
     def __floordiv__(s, t):
         if not isinstance(t, acb_poly):
-            s, t = acb_poly_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s // t
+            u, v = acb_poly_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u // v
         q = acb_poly.__new__(acb_poly)
         r = acb_poly.__new__(acb_poly)
         if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
-                (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
+                           (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
             return q
         else:
             raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")
 
     def __rfloordiv__(s, t):
-        s, t = acb_poly_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t // s
+        u, v = acb_poly_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v // u
 
     def __mod__(s, t):
         if not isinstance(t, acb_poly):
-            s, t = acb_poly_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s % t
+            u, v = acb_poly_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u % v
         q = acb_poly.__new__(acb_poly)
         r = acb_poly.__new__(acb_poly)
         if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
-                (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
+                           (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
             return r
         else:
             raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")
 
     def __rmod__(s, t):
-        s, t = acb_poly_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t % s
+        u, v = acb_poly_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v % u
 
     def __divmod__(s, t):
         if not isinstance(t, acb_poly):
-            s, t = acb_poly_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return divmod(s, t)
+            u, v = acb_poly_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return divmod(u, v)
         q = acb_poly.__new__(acb_poly)
         r = acb_poly.__new__(acb_poly)
         if acb_poly_divrem((<acb_poly>q).val, (<acb_poly>r).val,
-                (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
+                           (<acb_poly>s).val, (<acb_poly>t).val, getprec()):
             return q, r
         else:
             raise ZeroDivisionError("acb_poly leading coefficient must be nonzero")
 
     def __rdivmod__(s, t):
-        s, t = acb_poly_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return divmod(t, s)
+        u, v = acb_poly_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return divmod(v, u)
+
+    def truncate(self, slong n):
+        r"""
+        Notionally truncate the polynomial to have length ``n``. If
+        ``n`` is larger than the length of the input, then a copy of ``self`` is
+        returned. If ``n`` is not positive, then the zero polynomial
+        is returned.
+
+        Effectively returns this polynomial :math:`\mod x^n`.
+
+            >>> f = acb_poly([1,2,3])
+            >>> f.truncate(3)
+            3.00000000000000*x^2 + 2.00000000000000*x + 1.00000000000000
+            >>> f.truncate(2)
+            2.00000000000000*x + 1.00000000000000
+            >>> f.truncate(1)
+            1.00000000000000
+            >>> f.truncate(0)
+            0
+            >>> f.truncate(-1)
+            0
+
+        """
+        cdef acb_poly res
+        res = acb_poly.__new__(acb_poly)
+
+        length = acb_poly_length(self.val)
+        if n <= 0:  # return zero
+            return res
+        elif n > length:  # do nothing
+            acb_poly_set(res.val, self.val)
+        else:
+            acb_poly_set_trunc(res.val, self.val, n)
+
+        return res
+
+    def left_shift(self, slong n):
+        """
+        Returns ``self`` shifted left by ``n`` coefficients by inserting
+        zero coefficients. This is equivalent to multiplying the polynomial
+        by x^n
+
+            >>> f = acb_poly([1,2,3])
+            >>> f.left_shift(0)
+            3.00000000000000*x^2 + 2.00000000000000*x + 1.00000000000000
+            >>> f.left_shift(1)
+            3.00000000000000*x^3 + 2.00000000000000*x^2 + 1.00000000000000*x
+            >>> f.left_shift(4)
+            3.00000000000000*x^6 + 2.00000000000000*x^5 + 1.00000000000000*x^4
+
+        """
+        cdef acb_poly res
+        res = acb_poly.__new__(acb_poly)
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+        if n > 0:
+            acb_poly_shift_left(res.val, self.val, n)
+        else:  # do nothing, just copy self
+            acb_poly_set(res.val, self.val)
+
+        return res
+
+    def right_shift(self, slong n):
+        """
+        Returns ``self`` shifted right by ``n`` coefficients.
+        This is equivalent to the floor division of the polynomial
+        by x^n
+
+            >>> f = acb_poly([1,2,3])
+            >>> f.right_shift(0)
+            3.00000000000000*x^2 + 2.00000000000000*x + 1.00000000000000
+            >>> f.right_shift(1)
+            3.00000000000000*x + 2.00000000000000
+            >>> f.right_shift(4)
+            0
+        """
+        cdef acb_poly res
+        res = acb_poly.__new__(acb_poly)
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+        if n > 0:
+            acb_poly_shift_right(res.val, self.val, n)
+        else:  # do nothing, just copy self
+            acb_poly_set(res.val, self.val)
+
+        return res
 
     def __pow__(acb_poly s, ulong exp, mod):
         if mod is not None:

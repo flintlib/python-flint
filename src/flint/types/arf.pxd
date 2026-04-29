@@ -1,4 +1,4 @@
-from flint.flintlib.arf cimport arf_t
+from flint.flintlib.functions.arf cimport arf_t
 
 cdef class arf:
     cdef arf_t val

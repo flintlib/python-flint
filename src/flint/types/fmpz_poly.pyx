@@ -1,5 +1,7 @@
-from cpython.list cimport PyList_GET_SIZE
+from cpython.list cimport PyList_Size as PyList_GET_SIZE
 from cpython.long cimport PyLong_Check
+
+cimport libc.stdlib
 
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_poly
@@ -14,17 +16,18 @@ from flint.types.acb cimport acb
 from flint.types.arb cimport any_as_arb_or_notimplemented
 from flint.types.arb cimport arb
 from flint.types.acb cimport any_as_acb_or_notimplemented
-cimport libc.stdlib
-from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear, fmpz_set
-from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_is_one, fmpz_equal_si, fmpz_equal
-from flint.flintlib.acb_modular cimport *
-from flint.flintlib.ulong_extras cimport n_is_prime
-from flint.flintlib.fmpz_poly cimport *
-from flint.flintlib.fmpz_poly_factor cimport *
-from flint.flintlib.arith cimport *
-from flint.flintlib.acb cimport *
-from flint.flintlib.arb_poly cimport *
-from flint.flintlib.arb_fmpz_poly cimport *
+from flint.flintlib.functions.fmpz cimport fmpz_init, fmpz_clear, fmpz_set
+from flint.flintlib.functions.fmpz cimport fmpz_is_zero, fmpz_is_one, fmpz_equal_si, fmpz_equal
+from flint.flintlib.functions.acb_modular cimport *
+from flint.flintlib.functions.ulong_extras cimport n_is_prime
+from flint.flintlib.functions.fmpz_poly cimport *
+from flint.flintlib.functions.fmpz_poly_factor cimport *
+from flint.flintlib.functions.arith cimport *
+from flint.flintlib.types.arith cimport arith_chebyshev_t_polynomial, arith_chebyshev_u_polynomial
+from flint.flintlib.functions.acb cimport *
+from flint.flintlib.functions.arb_poly cimport *
+from flint.flintlib.functions.arb_fmpz_poly cimport *
+from flint.flintlib.functions.fmpz_vec cimport _fmpz_vec_content
 
 from flint.utils.flint_exceptions import DomainError
 
@@ -138,10 +141,85 @@ cdef class fmpz_poly(flint_poly):
         return not fmpz_poly_is_zero(self.val)
 
     def is_zero(self):
+        """
+        True if this polynomial is the zero polynomial.
+
+        >>> fmpz_poly([]).is_zero()
+        True
+        """
         return <bint>fmpz_poly_is_zero(self.val)
 
     def is_one(self):
+        """
+        True if this polynomial is equal to one.
+
+        >>> fmpz_poly([2]).is_one()
+        False
+        """
         return <bint>fmpz_poly_is_one(self.val)
+
+    def is_constant(self):
+        """
+        True if this is a constant polynomial.
+
+        >>> x = fmpz_poly([0, 1])
+        >>> two = fmpz_poly([2])
+        >>> x.is_constant()
+        False
+        >>> two.is_constant()
+        True
+        """
+        return fmpz_poly_degree(self.val) <= 0
+
+    def is_gen(self):
+        """
+        Return ``True`` if the polynomial is the generator
+        of the polynomial, `x`, and ``False`` otherwise
+
+        >>> x = fmpz_poly([0, 1])
+        >>> x
+        x
+        >>> x.is_gen()
+        True
+        >>> (x + 1).is_gen()
+        False
+        """
+        return <bint>fmpz_poly_is_gen(self.val)
+
+    def truncate(self, slong n):
+        r"""
+        Notionally truncate the polynomial to have length ``n``. If
+        ``n`` is larger than the length of the input, then a copy of ``self`` is
+        returned. If ``n`` is not positive, then the zero polynomial
+        is returned.
+
+        Effectively returns this polynomial :math:`\mod x^n`.
+
+            >>> f = fmpz_poly([1,2,3])
+            >>> f.truncate(3) == f
+            True
+            >>> f.truncate(2)
+            2*x + 1
+            >>> f.truncate(1)
+            1
+            >>> f.truncate(0)
+            0
+            >>> f.truncate(-1)
+            0
+
+        """
+        cdef fmpz_poly res
+        res = fmpz_poly.__new__(fmpz_poly)
+
+        length = fmpz_poly_length(self.val)
+        if n <= 0:  # return zero
+            return res
+        elif n > length:  # do nothing
+            fmpz_poly_set(res.val, self.val)
+        else:
+            fmpz_poly_set_trunc(res.val, self.val, n)
+
+        return res
 
     def leading_coefficient(self):
         """
@@ -340,14 +418,129 @@ cdef class fmpz_poly(flint_poly):
             return other
         return other._divmod_(self)
 
+    def left_shift(self, slong n):
+        """
+        Returns ``self`` shifted left by ``n`` coefficients by inserting
+        zero coefficients. This is equivalent to multiplying the polynomial
+        by x^n
+
+            >>> f = fmpz_poly([1,2,3])
+            >>> f.left_shift(0)
+            3*x^2 + 2*x + 1
+            >>> f.left_shift(1)
+            3*x^3 + 2*x^2 + x
+            >>> f.left_shift(4)
+            3*x^6 + 2*x^5 + x^4
+
+        """
+        cdef fmpz_poly res
+        res = fmpz_poly.__new__(fmpz_poly)
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+        if n > 0:
+            fmpz_poly_shift_left(res.val, self.val, n)
+        else:  # do nothing, just copy self
+            fmpz_poly_set(res.val, self.val)
+
+        return res
+
+    def right_shift(self, slong n):
+        """
+        Returns ``self`` shifted right by ``n`` coefficients.
+        This is equivalent to the floor division of the polynomial
+        by x^n
+
+            >>> f = fmpz_poly([1,2,3])
+            >>> f.right_shift(0)
+            3*x^2 + 2*x + 1
+            >>> f.right_shift(1)
+            3*x + 2
+            >>> f.right_shift(4)
+            0
+        """
+        cdef fmpz_poly res
+        res = fmpz_poly.__new__(fmpz_poly)
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+        if n > 0:
+            fmpz_poly_shift_right(res.val, self.val, n)
+        else:  # do nothing, just copy self
+            fmpz_poly_set(res.val, self.val)
+
+        return res
+
     def __pow__(fmpz_poly self, exp, mod):
         cdef fmpz_poly res
         if mod is not None:
             raise NotImplementedError("fmpz_poly modular exponentiation")
         if exp < 0:
-            raise ValueError("fmpz_poly negative exponent")
+            if not fmpz_poly_is_unit(self.val):
+                raise DomainError("fmpz_poly negative exponent, non-unit base")
+            exp = -exp
         res = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_pow(res.val, self.val, <ulong>exp)
+        return res
+
+    def mul_low(self, other, slong n):
+        r"""
+        Returns the lowest ``n`` coefficients of the multiplication of ``self`` with ``other``
+
+        Equivalent to computing `f(x) \cdot g(x) \mod x^n`
+
+            >>> f = fmpz_poly([2,3,5,7,11])
+            >>> g = fmpz_poly([1,2,4,8,16])
+            >>> f.mul_low(g, 5)
+            101*x^4 + 45*x^3 + 19*x^2 + 7*x + 2
+            >>> f.mul_low(g, 3)
+            19*x^2 + 7*x + 2
+            >>> f.mul_low(g, 1)
+            2
+        """
+        # Only allow multiplication with other fmpz_poly
+        if not typecheck(other, fmpz_poly):
+            raise TypeError("other polynomial must be of type fmpz_poly")
+
+        cdef fmpz_poly res
+        res = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_mullow(res.val, self.val, (<fmpz_poly>other).val, n)
+        return res
+
+    def pow_trunc(self, e, slong n):
+        r"""
+        Returns ``self`` raised to the power ``e`` modulo `x^n`:
+        :math:`f^e \mod x^n`/
+
+            >>> f = fmpz_poly([1, 2, 3])
+            >>> x = fmpz_poly([0, 1])
+            >>> f.pow_trunc(2**20, 4)
+            1537230871828889600*x^3 + 2199024304128*x^2 + 2097152*x + 1
+            >>> f.pow_trunc(5**25, 3)
+            177635683940025046765804290771484375*x^2 + 596046447753906250*x + 1
+        """
+        if e < 0:
+            raise ValueError("Exponent must be non-negative")
+
+        cdef slong e_c
+        cdef fmpz_poly res, tmp
+
+        try:
+            e_c = e
+        except OverflowError:
+            # Exponent does not fit slong
+            res = fmpz_poly.__new__(fmpz_poly)
+            tmp = fmpz_poly.__new__(fmpz_poly)
+            ebytes = e.to_bytes((e.bit_length() + 15) // 16 * 2, "big")
+            fmpz_poly_pow_trunc(res.val, self.val, ebytes[0] * 256 + ebytes[1], n)
+            for i in range(2, len(ebytes), 2):
+                fmpz_poly_pow_trunc(res.val, res.val, 1 << 16, n)
+                fmpz_poly_pow_trunc(tmp.val, self.val, ebytes[i] * 256 + ebytes[i+1], n)
+                fmpz_poly_mullow(res.val, res.val, tmp.val, n)
+            return res
+
+        res = fmpz_poly.__new__(fmpz_poly)
+        fmpz_poly_pow_trunc(res.val, self.val, e_c, n)
         return res
 
     def gcd(self, other):
@@ -365,6 +558,48 @@ cdef class fmpz_poly(flint_poly):
             raise TypeError("cannot convert input to fmpz_poly")
         res = fmpz_poly.__new__(fmpz_poly)
         fmpz_poly_gcd(res.val, self.val, (<fmpz_poly>other).val)
+        return res
+
+    def discriminant(self):
+        """
+        Return the discriminant of ``self``.
+
+            >>> f = fmpz_poly([1, 2, 3, 4, 5, 6])
+            >>> f.discriminant()
+            1037232
+            >>> f = fmpz_poly([1, 3, 5, 7, 9, 11, 13])
+            >>> f.discriminant()
+            -2238305839
+
+        """
+        cdef fmpz res = fmpz.__new__(fmpz)
+        fmpz_poly_discriminant(res.val, self.val)
+        return res
+
+    def resultant(self, other):
+        """
+        Returns the resultant of *self* and *other*.
+
+            >>> A = fmpz_poly([1, 0, -1]); B = fmpz_poly([1, -1])
+            >>> A.resultant(B)
+            0
+            >>> C = fmpz_poly([1, 0, 0, 0, 0, -1, 1])
+            >>> D = fmpz_poly([1, 0, 0, -1, 0, 0, 1])
+            >>> C.resultant(D)
+            3
+            >>> f = fmpz_poly([1, -1] + [0] * 98 + [1])
+            >>> g = fmpz_poly([1] + [0] * 50 + [-1] + [0] * 48 + [1])
+            >>> f.resultant(g)
+            1125899906842623
+
+        """
+        cdef fmpz res
+        other = any_as_fmpz_poly(other)
+        if other is NotImplemented:
+            raise TypeError("cannot convert input to fmpz_poly")
+
+        res = fmpz.__new__(fmpz)
+        fmpz_poly_resultant(res.val, self.val, (<fmpz_poly>other).val)
         return res
 
     def factor(self):
@@ -430,6 +665,9 @@ cdef class fmpz_poly(flint_poly):
         Computes all the complex roots of this polynomial.
         Returns a list of pairs (*c*, *m*) where *c* is the root
         as an *acb* and *m* is the multiplicity of the root.
+
+            >>> from flint import fmpz_poly, ctx
+            >>> ctx.prec = 53
 
             >>> fmpz_poly([]).complex_roots()
             []
@@ -558,7 +796,7 @@ cdef class fmpz_poly(flint_poly):
         return u
 
     @staticmethod
-    def hilbert_class_poly(long D):
+    def hilbert_class_poly(slong D):
         r"""
         Returns the Hilbert class polynomial `H_D(x)` as an *fmpz_poly*.
 
@@ -570,7 +808,7 @@ cdef class fmpz_poly(flint_poly):
             x^3 + 30197678080*x^2 + (-140811576541184)*x + 374643194001883136
             >>> fmpz_poly.hilbert_class_poly(-5)
             Traceback (most recent call last):
-              ...
+            ...
             ValueError: D must be an imaginary quadratic discriminant
         """
         cdef fmpz_poly v = fmpz_poly()
@@ -592,18 +830,98 @@ cdef class fmpz_poly(flint_poly):
         else:
             raise DomainError(f"Cannot compute square root of {self}")
 
-    def deflation(self):
-        cdef fmpz_poly v
+    def inflate(self, n: int) -> fmpz_poly:
+        """
+        Compute the inflation of ``self`` for a provided ``n``, that is return ``q``
+        such that ``q(x) = p(x^n)``.
+
+            >>> f = fmpz_poly([1, 1])
+            >>> f.inflate(2)
+            x^2 + 1
+        """
+        cdef fmpz_poly res = fmpz_poly()
+        fmpz_poly_inflate(res.val, self.val, n)
+        return res
+
+    def deflate(self, n: int) -> fmpz_poly:
+        """
+        Compute the deflation of ``self`` for a provided ``n``, that is return ``q``
+        such that ``q(x) = p(x^(1/n))``.
+
+            >>> f = fmpz_poly([1, 0, 1])
+            >>> f.deflate(2)
+            x + 1
+        """
+        cdef fmpz_poly res = fmpz_poly()
+        if n > 0:
+            fmpz_poly_deflate(res.val, self.val, n)
+            return res
+        else:
+            raise ValueError("deflate requires n > 0")
+
+    def deflation(self) -> tuple[fmpz_poly, int]:
+        """
+        Compute the deflation of ``self``, that is ``p(x^(1/n))`` for maximal
+        n. returns ``q, n`` such that ``self == q.inflate(n)``.
+
+            >>> f = fmpz_poly([1, 0, 1])
+            >>> q, n = f.deflation()
+            >>> q, n
+            (x + 1, 2)
+            >>> q.inflate(n) == f
+            True
+        """
         cdef ulong n
         if fmpz_poly_is_zero(self.val):
             return self, 1
-        n = arb_fmpz_poly_deflation(self.val)
-        if n == 1:
-            return self, int(n)
-        else:
-            v = fmpz_poly()
-            arb_fmpz_poly_deflate(v.val, self.val, n)
-            return v, int(n)
+        n = fmpz_poly_deflation(self.val)
+        return self if n <= 1 else self.deflate(n), int(n)
+
+    def deflation_monom(self) -> tuple[fmpz_poly, int, fmpz_poly]:
+        """
+        Compute the exponent ``n`` and monomial ``m`` such that ``p(x^(1/n)) = m *
+        q(x^n)`` for maximal n. The returned monomial allows the undo-ing of the
+        deflation.
+
+            >>> f = fmpz_poly([1, 0, 1])
+            >>> f.deflation_monom()
+            (x^2 + 1, 1, x)
+        """
+        n, m = self.deflation_index()
+
+        cdef fmpz_poly monom = fmpz_poly.__new__(fmpz_poly)
+        cdef fmpz_poly res = fmpz_poly.__new__(fmpz_poly)
+
+        fmpz_poly_set_coeff_ui(monom.val, m, 1)
+        fmpz_poly_deflate(res.val, self.val, n)
+
+        return res, n, monom
+
+    def deflation_index(self) -> tuple[int, int]:
+        """
+        Compute the exponent ``n`` and ``i`` such that ``p(x^(1/n)) = x^i *
+        q(x^n)`` for maximal ``n``. Importantly the deflation itself is not computed
+        here. The returned exponent ``i`` is the shift that was applied to the
+        exponents. It is the exponent of the monomial returned by
+        ``deflation_monom``.
+
+            >>> f = fmpz_poly([1, 0, 1])
+            >>> f.deflation_index()
+            (1, 1)
+        """
+        cdef fmpz_poly res = fmpz_poly.__new__(fmpz_poly)
+        cdef slong length = fmpz_poly_length(self.val)
+
+        if length <= 0:
+            return self, 0, fmpz_poly([1])
+
+        # Find the smallest non-zero power, that is the gcd of the monomials
+        for i in range(1, length + 1):
+            if not fmpz_is_zero(&self.val.coeffs[length - i]):
+                break
+
+        fmpz_poly_shift_right(res.val, self.val, i)
+        return int(fmpz_poly_deflation(res.val)), int(i)
 
     def is_cyclotomic(self):
         cdef long * phi
@@ -647,3 +965,14 @@ cdef class fmpz_poly(flint_poly):
                     return int(i)
         libc.stdlib.free(phi)
         return 0
+
+    def content(self):
+        """
+        Return the GCD of the coefficients of ``self``.
+
+            >>> fmpz_poly([3, 6, 0]).content()
+            3
+        """
+        cdef fmpz res = fmpz()
+        _fmpz_vec_content(res.val, self.val.coeffs, self.val.length)
+        return res

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 export CPPFLAGS=" --target=arm64-apple-macos11"
 export LDFLAGS=" -arch arm64"
 

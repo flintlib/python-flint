@@ -11,14 +11,30 @@ from flint.types.acb cimport any_as_acb
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 
-from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
-from flint.flintlib.fmpq_mat cimport fmpq_mat_nrows, fmpq_mat_ncols
-from flint.flintlib.mag cimport *
-from flint.flintlib.arb cimport *
-from flint.flintlib.arb_mat cimport *
-from flint.flintlib.arf cimport *
-from flint.flintlib.acb cimport *
-from flint.flintlib.acb_mat cimport *
+from flint.flintlib.functions.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
+from flint.flintlib.functions.fmpq_mat cimport fmpq_mat_nrows, fmpq_mat_ncols
+from flint.flintlib.functions.mag cimport *
+from flint.flintlib.functions.arb cimport *
+from flint.flintlib.types.arb cimport (
+    mag_struct,
+    arb_radref,
+    arb_midref,
+    arb_mat_entry,
+    arb_mat_nrows,
+    arb_mat_ncols,
+)
+from flint.flintlib.functions.arb_mat cimport *
+from flint.flintlib.functions.arf cimport *
+from flint.flintlib.functions.acb cimport *
+from flint.flintlib.functions.acb_mat cimport *
+from flint.flintlib.types.acb cimport (
+    acb_realref,
+    acb_imagref,
+    acb_mat_struct,
+    acb_mat_entry,
+    acb_mat_nrows,
+    acb_mat_ncols,
+)
 
 cimport cython
 
@@ -33,6 +49,13 @@ cdef acb_mat_coerce_scalar(x, y):
     if isinstance(y, (int, float, complex, fmpz, fmpq, arb, acb)):
         return x, any_as_acb(y)
     return NotImplemented, NotImplemented
+
+cdef acb_mat_convert_operand(object cls, object x):
+    if typecheck(x, cls):
+        return x
+    if typecheck(x, fmpz_mat) or typecheck(x, fmpq_mat) or typecheck(x, arb_mat):
+        return cls(x)
+    return NotImplemented
 
 cdef class acb_mat(flint_mat):
     """
@@ -53,27 +76,15 @@ cdef class acb_mat(flint_mat):
         acb_mat_clear(self.val)
 
     @classmethod
-    def convert_operand(cls, x):
-        """
-        Attempts to convert *x* to an *acb_mat*, returning NotImplemented
-        if unsuccessful.
-        """
-        if typecheck(x, cls):
-            return x
-        if typecheck(x, fmpz_mat) or typecheck(x, fmpq_mat) or typecheck(x, arb_mat):
-            return cls(x)
-        return NotImplemented
-
-    @classmethod
     def convert(cls, x):
         """
         Attempts to convert *x* to an *acb_mat*, raising TypeError if
         unsuccessful.
         """
-        x = cls.convert_operand(x)
-        if x is NotImplemented:
+        y = acb_mat_convert_operand(cls, x)
+        if y is NotImplemented:
             raise TypeError("unable to convert type %s to type %s" % (type(x), cls))
-        return x
+        return y
 
     @cython.embedsignature(False)
     def __init__(self, *args):
@@ -246,10 +257,10 @@ cdef class acb_mat(flint_mat):
     def __add__(s, t):
         cdef long m, n
         if not isinstance(t, acb_mat):
-            s, t = acb_mat_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s + t
+            u, v = acb_mat_coerce_operands(s, t)
+            if u is NotImplemented:
+                return NotImplemented
+            return u + v
 
         m = (<acb_mat>s).nrows()
         n = (<acb_mat>s).ncols()
@@ -261,18 +272,18 @@ cdef class acb_mat(flint_mat):
         return u
 
     def __radd__(s, t):
-        s, t = acb_mat_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t + s
+        u, v = acb_mat_coerce_operands(s, t)
+        if u is NotImplemented:
+            return NotImplemented
+        return v + u
 
     def __sub__(s, t):
         cdef long m, n
         if not isinstance(t, acb_mat):
-            s, t = acb_mat_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s - t
+            u, v = acb_mat_coerce_operands(s, t)
+            if u is NotImplemented:
+                return NotImplemented
+            return u - v
 
         m = (<acb_mat>s).nrows()
         n = (<acb_mat>s).ncols()
@@ -284,10 +295,10 @@ cdef class acb_mat(flint_mat):
         return u
 
     def __rsub__(s, t):
-        s, t = acb_mat_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t - s
+        u, v = acb_mat_coerce_operands(s, t)
+        if u is NotImplemented:
+            return NotImplemented
+        return v - u
 
     def _scalar_mul_(s, acb t):
         cdef acb_mat u
@@ -302,10 +313,10 @@ cdef class acb_mat(flint_mat):
             c, d = acb_mat_coerce_scalar(s, t)
             if c is not NotImplemented:
                 return c._scalar_mul_(d)
-            s, t = acb_mat_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s * t
+            p, q = acb_mat_coerce_operands(s, t)
+            if p is NotImplemented:
+                return NotImplemented
+            return p * q
 
         if acb_mat_ncols((<acb_mat>s).val) != acb_mat_nrows((<acb_mat>t).val):
             raise ValueError("incompatible shapes for matrix multiplication")
@@ -318,10 +329,10 @@ cdef class acb_mat(flint_mat):
         c, d = acb_mat_coerce_scalar(s, t)
         if c is not NotImplemented:
             return c._scalar_mul_(d)
-        s, t = acb_mat_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t * s
+        u, v = acb_mat_coerce_operands(s, t)
+        if u is NotImplemented:
+            return NotImplemented
+        return v * u
 
     def _scalar_div_(s, acb t):
         cdef acb_mat u
@@ -331,25 +342,21 @@ cdef class acb_mat(flint_mat):
         return u
 
     def __truediv__(s, t):
-        if typecheck(s, acb_mat):
-            s, t = acb_mat_coerce_scalar(s, t)
-            if s is NotImplemented:
-                return s
-            return s._scalar_div_(t)
-        return NotImplemented
+        u, v = acb_mat_coerce_scalar(s, t)
+        if u is NotImplemented:
+            return NotImplemented
+        return u._scalar_div_(v)
 
     def __pow__(s, e, m):
         cdef acb_mat u
         cdef ulong exp
         cdef long n
-        if not typecheck(s, acb_mat):
-            return NotImplemented
         exp = e
         n = acb_mat_nrows((<acb_mat>s).val)
         if n != acb_mat_ncols((<acb_mat>s).val):
             raise ValueError("matrix must be square")
         if m is not None:
-            raise NotImplementedError("modular matrix exponentiation")
+            raise TypeError("modular matrix exponentiation is not supported")
         u = acb_mat.__new__(acb_mat)
         acb_mat_init((<acb_mat>u).val, n, n)
         acb_mat_pow_ui((<acb_mat>u).val, (<acb_mat>s).val, exp, getprec())
@@ -600,9 +607,10 @@ cdef class acb_mat(flint_mat):
         if not (op == 2 or op == 3):
             raise ValueError("comparing matrices")
         if type(s) is not type(t):
-            s, t = acb_mat_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
+            u, v = acb_mat_coerce_operands(s, t)
+            if u is NotImplemented:
+                return NotImplemented
+            s, t = u, v
         if op == 2:
             res = acb_mat_eq((<acb_mat>s).val, (<acb_mat>t).val)
         else:
@@ -669,7 +677,7 @@ cdef class acb_mat(flint_mat):
             [1.105299634957 +/- 6.34e-13] + [+/- 1.83e-13]j
             [-1.917027627441 +/- 2.64e-13] + [+/- 1.83e-13]j
             [36.811727992483 +/- 6.97e-13] + [+/- 1.83e-13]j
-            >>> for c in A.eig(algorithm="rump"): print(c)
+            >>> for c in A.eig(algorithm="rump"): print(c) # doctest: +SKIP
             ...
             [1.10529963495745 +/- 4.71e-15] + [+/- 2.92e-15]j
             [-1.91702762744092 +/- 8.45e-15] + [+/- 3.86e-15]j
@@ -712,7 +720,7 @@ cdef class acb_mat(flint_mat):
             ValueError: failed to isolate eigenvalues (try higher prec, multiple=True for multiple eigenvalues, or nonstop=True to avoid the exception)
             >>> acb_mat.dft(4).eig(nonstop=True)
             [nan + nanj, nan + nanj, nan + nanj, nan + nanj]
-            >>> acb_mat.dft(4).eig(multiple=True)
+            >>> acb_mat.dft(4).eig(multiple=True) # doctest: +SKIP
             [[-1.0000000000000 +/- 2.26e-15] + [+/- 1.23e-15]j, [+/- 4.96e-16] + [-1.00000000000000 +/- 3.72e-16]j, [1.00000000000000 +/- 4.98e-16] + [+/- 3.42e-16]j, [1.00000000000000 +/- 4.98e-16] + [+/- 3.42e-16]j]
 
         At this time, computing the eigenvectors is not supported
@@ -726,7 +734,7 @@ cdef class acb_mat(flint_mat):
         The *algorithm* can also be set to "approx" to compute
         approximate eigenvalues and/or eigenvectors without error bounds.
 
-            >>> for c in acb_mat.dft(4).eig(algorithm="approx"): print(c.str(radius=False))
+            >>> for c in acb_mat.dft(4).eig(algorithm="approx"): print(c.str(radius=False)) # doctest: +SKIP
             ...
             -0.999999999999999 - 7.85046229341892e-17j
             -2.35513868802566e-16 - 1.00000000000000j
@@ -775,29 +783,29 @@ cdef class acb_mat(flint_mat):
         if n != 0:
             if algorithm == "approx":
                 acb_mat_approx_eig_qr(acb_mat_entry(E.val, 0, 0),
-                    LP, RP,  s.val, magp, maxiter, getprec())
+                                      LP, RP,  s.val, magp, maxiter, getprec())
             else:
                 acb_mat_approx_eig_qr(acb_mat_entry(E.val, 0, 0),
-                    NULL, RP, s.val, magp, maxiter, getprec())
+                                      NULL, RP, s.val, magp, maxiter, getprec())
                 if multiple:
                     if left or right:
                         raise NotImplementedError("eigenvectors not supported with multiple=True")
                     if algorithm == "rump":
                         success = acb_mat_eig_multiple_rump(acb_mat_entry(E.val, 0, 0),
-                            s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                            s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                     else:
                         success = acb_mat_eig_multiple(acb_mat_entry(E.val, 0, 0),
-                            s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                       s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                 else:
                     if algorithm == "rump":
                         success = acb_mat_eig_simple_rump(acb_mat_entry(E.val, 0, 0),
-                            LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                          LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                     elif algorithm == "vdhoeven_mourrain":
                         success = acb_mat_eig_simple_vdhoeven_mourrain(acb_mat_entry(E.val, 0, 0),
-                            LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                                       LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                     else:
                         success = acb_mat_eig_simple(acb_mat_entry(E.val, 0, 0),
-                            LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
+                                                     LP, RP, s.val, acb_mat_entry(E.val, 0, 0), RP, prec)
                 if not (nonstop or success):
                     raise ValueError("failed to isolate eigenvalues (try higher prec, multiple=True for multiple eigenvalues, or nonstop=True to avoid the exception)")
         if tol is not None:

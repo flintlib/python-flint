@@ -1,4 +1,13 @@
-project('python-flint', 'cython', 'c')
+project(
+  'python-flint',
+  'cython',
+  'c',
+  meson_version : '>=1.3.0',
+  default_options: [
+    'python.allow_limited_api=false',
+    'c_std=c11',
+  ],
+)
 #
 # The minimum versions are because we know that it will not work with earlier
 # versions. The maximum versions are because python-flint was not tested
@@ -7,12 +16,11 @@ project('python-flint', 'cython', 'c')
 # then we can consider not using a speculative upper version cap here.
 #
 flint_lower = '>=3.0'
-flint_upper = '<3.2'
-cython_lower = '>=3.0'
-cython_upper = '<3.2'
+flint_upper = '<3.5'
+cython_lower = '>=3.0.11'
+cython_upper = '<3.3'
 
 py = import('python').find_installation(pure: false)
-dep_py = py.dependency()
 
 cc = meson.get_compiler('c')
 cy = meson.get_compiler('cython')
@@ -70,13 +78,29 @@ else
   have_acb_theta = true
 endif
 
-pyflint_deps = [dep_py, gmp_dep, mpfr_dep, flint_dep]
+pyflint_deps = [gmp_dep, mpfr_dep, flint_dep]
 
 add_project_arguments(
     '-X', 'embedsignature=True',
     '-X', 'emit_code_comments=True',
     language : 'cython'
 )
+
+# Only used if python.allow_limited_api is true (not the default)
+limited_api_version = get_option('limited_api_version')
+
+# Enable free-threading if Cython is new enough. The check should be
+# >= 3.1.0a1 but meson gets confused by the a1 alpha release suffix.
+# so we go with >= 3.1 (which will be correct once 3.1 is released).
+cy = meson.get_compiler('cython')
+if get_option('python.allow_limited_api')
+  message('Using Python limited API version ' + limited_api_version)
+elif cy.version().version_compare('>=3.1')
+  message('Enabling freethreading')
+  add_project_arguments('-Xfreethreading_compatible=true', language : 'cython')
+else
+  message('Normal build (no freethreading and no limited API)')
+endif
 
 if get_option('coverage')
    add_project_arguments('-X', 'linetrace=True', language : 'cython')
@@ -86,7 +110,7 @@ endif
 # Add rpaths for a local build of flint found via pkgconfig
 #   https://github.com/mesonbuild/meson/issues/13046
 if get_option('add_flint_rpath')
-  flint_lib_dir = flint_dep.get_pkgconfig_variable('libdir')
+  flint_lib_dir = flint_dep.get_variable(pkgconfig: 'libdir')
   add_project_link_arguments(
     '-Wl,-rpath=' + flint_lib_dir,
     language: 'c',

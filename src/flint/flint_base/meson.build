@@ -2,6 +2,8 @@ pkgdir = 'flint/flint_base'
 
 pyfiles = [
   '__init__.py',
+  'flint_base.pyi',
+  'flint_context.pyi',
 ]
 
 exts = [
@@ -22,5 +24,6 @@ foreach ext : exts
     dependencies: pyflint_deps,
     install: true,
     subdir: pkgdir,
+    limited_api: limited_api_version,
   )
 endforeach

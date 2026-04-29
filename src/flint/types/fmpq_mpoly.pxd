@@ -1,13 +1,13 @@
 from flint.flint_base.flint_base cimport flint_mpoly
 from flint.flint_base.flint_base cimport flint_mpoly_context
 
-from flint.flintlib.fmpq_mpoly cimport (
+from flint.flintlib.functions.fmpq_mpoly cimport (
     fmpq_mpoly_ctx_t,
     fmpq_mpoly_t,
     fmpq_mpoly_struct,
     fmpq_mpoly_init,
 )
-from flint.flintlib.flint cimport slong
+from flint.flintlib.types.flint cimport slong
 
 from flint.types.fmpz_mpoly cimport fmpz_mpoly_ctx
 

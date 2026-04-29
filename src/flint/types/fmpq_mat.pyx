@@ -4,10 +4,11 @@ from flint.types.fmpq_poly cimport fmpq_poly
 from flint.types.fmpq cimport any_as_fmpq
 from flint.types.fmpz cimport any_as_fmpz
 
-from flint.flintlib.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
-from flint.flintlib.fmpq cimport fmpq_set, fmpq_numref, fmpq_denref
-from flint.flintlib.fmpq_poly cimport fmpq_poly_init
-from flint.flintlib.fmpq_mat cimport *
+from flint.flintlib.types.fmpq cimport fmpq_mat_struct
+from flint.flintlib.functions.fmpz_mat cimport fmpz_mat_nrows, fmpz_mat_ncols
+from flint.flintlib.functions.fmpq cimport fmpq_set, fmpq_numref, fmpq_denref
+from flint.flintlib.functions.fmpq_poly cimport fmpq_poly_init
+from flint.flintlib.functions.fmpq_mat cimport *
 
 cimport cython
 
@@ -99,9 +100,6 @@ cdef class fmpq_mat(flint_mat):
         cdef bint r
         if op != 2 and op != 3:
             raise TypeError("matrices cannot be ordered")
-        s = any_as_fmpq_mat(s)
-        if t is NotImplemented:
-            return s
         t = any_as_fmpq_mat(t)
         if t is NotImplemented:
             return t
@@ -268,9 +266,6 @@ cdef class fmpq_mat(flint_mat):
     def __truediv__(s, t):
         return fmpq_mat._div_(s, t)
 
-    def __div__(s, t):
-        return fmpq_mat._div_(s, t)
-
     def inv(self):
         """
         Returns the inverse matrix of *self*.
@@ -346,7 +341,7 @@ cdef class fmpq_mat(flint_mat):
             raise ValueError("need a square system and compatible right hand side")
         u = fmpq_mat.__new__(fmpq_mat)
         fmpq_mat_init(u.val, fmpq_mat_nrows((<fmpq_mat>t).val),
-            fmpq_mat_ncols((<fmpq_mat>t).val))
+                      fmpq_mat_ncols((<fmpq_mat>t).val))
         if algorithm is None:
             if fmpq_mat_nrows(self.val) < 25:
                 result = fmpq_mat_solve_fraction_free(u.val, self.val, (<fmpq_mat>t).val)

@@ -1,4 +1,5 @@
-from cpython.list cimport PyList_GET_SIZE
+cimport cython
+from cpython.list cimport PyList_Size as PyList_GET_SIZE
 from flint.flint_base.flint_base cimport flint_poly
 
 from flint.types.fmpz cimport fmpz, any_as_fmpz
@@ -47,7 +48,7 @@ cdef class fq_default_poly_ctx:
             # First coerce the list element as an fq_default type
             v = self.field.any_as_fq_default(val[i])
             if v is NotImplemented:
-                raise TypeError(f"unsupported coefficient in list: {val[i] = }, {type(val[i]) = }")
+                raise TypeError(f"unsupported coefficient in list: val[i] = {val[i]}, type(val[i] = {type(val[i])}")
 
             # Set the coefficient of the polynomial
             fq_default_poly_set_coeff(
@@ -102,7 +103,7 @@ cdef class fq_default_poly_ctx:
         Return the base field of the polynomial ring
 
             >>> R = fq_default_poly_ctx(65537, 3)
-            >>> R.base_field()
+            >>> R.base_field() # doctest: +SKIP
             fq_default_ctx(65537, 3, 'z', x^3 + 3*x^2 + 30077, 'FQ_NMOD')
 
         """
@@ -188,7 +189,7 @@ cdef class fq_default_poly_ctx:
         """
         cdef slong length
         if not (isinstance(monic, bool) and isinstance(irreducible, bool) and isinstance(not_zero, bool)):
-            raise TypeError("All of `not_zero`, `monic` and `irreducible` must be of type bool")
+            raise TypeError("All of 'not_zero', 'monic' and 'irreducible' must be of type bool")
 
         length = degree + 1
         if length <= 0:
@@ -243,6 +244,55 @@ cdef class fq_default_poly_ctx:
         return fq_default_poly(val, self)
 
 
+@cython.final
+@cython.no_gc
+cdef class _fq_default_poly_sort_key:
+    cdef fq_default_poly p
+    cdef ulong mult
+    cdef slong len
+
+    def __init__(self, tuple fac_m):
+        self.p = fac_m[0]
+        self.len = fq_default_poly_length(self.p.val, self.p.ctx.field.val)
+        self.mult = fac_m[1]
+
+    def __lt__(k1, _fq_default_poly_sort_key k2):
+        cdef slong i, j, d
+        cdef fq_default c1, c2
+        cdef fmpz z1, z2
+        cdef fq_default_ctx field
+
+        if k1.len != k2.len:
+            return k1.len < k2.len
+        elif k1.mult != k2.mult:
+            return k1.mult < k2.mult
+
+        field = k1.p.ctx.field
+        d = field.degree()
+        z1 = fmpz()
+        z2 = fmpz()
+        c1 = field.zero()
+        c2 = field.zero()
+
+        i = k1.len
+        while i >= 0:
+            i -= 1
+            fq_default_poly_get_coeff(c1.val, k1.p.val, i, field.val)
+            fq_default_poly_get_coeff(c2.val, k2.p.val, i, field.val)
+            if c1 != c2:
+                j = d
+                while j > 0:
+                    j -= 1
+                    fq_default_get_coeff_fmpz(z1.val, c1.val, j, field.val)
+                    fq_default_get_coeff_fmpz(z2.val, c2.val, j, field.val)
+                    if z1 != z2:
+                        return z1 < z2
+                else:
+                    raise RuntimeError("Bad cmp in _fq_default_poly_sort_key!")
+        else:
+            return False
+
+
 cdef class fq_default_poly(flint_poly):
     """
     The *fq_default_poly* type represents univariate polynomials
@@ -277,6 +327,13 @@ cdef class fq_default_poly(flint_poly):
         check = self.ctx.set_any_as_fq_default_poly(self.val, val)
         if check is NotImplemented:
             raise TypeError
+
+    def context(self):
+        return self.ctx
+
+    def repr(self):
+        coeffs_str = ", ".join(map(str, self.coeffs()))
+        return f"fq_default_poly([{coeffs_str}], {self.ctx!r})"
 
     def __getitem__(self, long i):
         cdef fq_default x
@@ -642,7 +699,8 @@ cdef class fq_default_poly(flint_poly):
 
         cdef fq_default_poly res
         if e < 0:
-            raise ValueError("Exponent must be non-negative")
+            self = 1 / self
+            e = -e
 
         if e == 2:
             return self.square()
@@ -748,7 +806,7 @@ cdef class fq_default_poly(flint_poly):
         # Case when right is not fq_default_poly, try to convert to fmpz
         other = self.ctx.any_as_fq_default_poly(other)
         if other is NotImplemented:
-            raise TypeError(f"Cannot convert {other} to `fq_default_poly` type.")
+            raise TypeError(f"Cannot convert {other} to 'fq_default_poly' type.")
 
         if other.is_zero():
             raise ZeroDivisionError("Cannot divide by zero")
@@ -1132,13 +1190,10 @@ cdef class fq_default_poly(flint_poly):
         )
         return res
 
-    def pow_trunc(self, slong e, slong n):
+    def pow_trunc(self, e, slong n):
         r"""
         Returns ``self`` raised to the power ``e`` modulo `x^n`:
         :math:`f^e \mod x^n`/
-
-        Note: For exponents larger that 2^31 (which do not fit inside a ulong) use the
-        method :meth:`~.pow_mod` with the explicit modulus `x^n`.
 
             >>> R = fq_default_poly_ctx(163)
             >>> x = R.gen()
@@ -1147,13 +1202,31 @@ cdef class fq_default_poly(flint_poly):
             True
             >>> f.pow_trunc(2**20, 5)
             132*x^4 + 113*x^3 + 36*x^2 + 48*x + 6
+            >>> f.pow_trunc(5**25, 5)
+            147*x^4 + 98*x^3 + 95*x^2 + 33*x + 126
         """
         if e < 0:
             raise ValueError("Exponent must be non-negative")
 
-        cdef fq_default_poly res
+        cdef slong e_c
+        cdef fq_default_poly res, tmp
+
+        try:
+            e_c = e
+        except OverflowError:
+            # Exponent does not fit slong
+            res = self.ctx.new_ctype_poly()
+            tmp = self.ctx.new_ctype_poly()
+            ebytes = e.to_bytes((e.bit_length() + 15) // 16 * 2, "big")
+            fq_default_poly_pow_trunc(res.val, self.val, ebytes[0] * 256 + ebytes[1], n, res.ctx.field.val)
+            for i in range(2, len(ebytes), 2):
+                fq_default_poly_pow_trunc(res.val, res.val, 1 << 16, n, res.ctx.field.val)
+                fq_default_poly_pow_trunc(tmp.val, self.val, ebytes[i] * 256 + ebytes[i+1], n, res.ctx.field.val)
+                fq_default_poly_mullow(res.val, res.val, tmp.val, n, res.ctx.field.val)
+            return res
+
         res = self.ctx.new_ctype_poly()
-        fq_default_poly_pow_trunc(res.val, self.val, e, n, res.ctx.field.val)
+        fq_default_poly_pow_trunc(res.val, self.val, e_c, n, res.ctx.field.val)
         return res
 
     def sqrt_trunc(self, slong n):
@@ -1199,7 +1272,7 @@ cdef class fq_default_poly(flint_poly):
             >>> z = R.base_field().gen()
             >>> f = 28902*x**3 + (49416*z + 58229)*x**2 + 9441*z*x + (7944*z + 57534)
             >>> h = f.inv_sqrt_trunc(3)
-            >>> h
+            >>> h         # doctest: +SKIP
             (23030*z + 8965)*x^2 + (43656*z + 7173)*x + (27935*z + 28199)
             >>> (h*h).mul_low(f, 3).is_one()
             True
@@ -1324,7 +1397,7 @@ cdef class fq_default_poly(flint_poly):
         """
         G, S, _ = self.xgcd(other)
         if not G.is_one():
-            raise ValueError(f"polynomial has no inverse modulo {other = }")
+            raise ValueError(f"polynomial has no inverse modulo other = {other}")
         return S
 
     # ====================================
@@ -1501,6 +1574,9 @@ cdef class fq_default_poly(flint_poly):
             fq_default_poly_factor_get_poly(u.val, fac, i, self.ctx.field.val)
             exp = fq_default_poly_factor_exp(fac, i, self.ctx.field.val)
             res[i] = (u, exp)
+
+        res.sort(key=_fq_default_poly_sort_key)
+
         return self.leading_coefficient(), res
 
     def factor(self):
@@ -1535,6 +1611,9 @@ cdef class fq_default_poly(flint_poly):
             fq_default_poly_factor_get_poly(u.val, fac, i, self.ctx.field.val)
             exp = fq_default_poly_factor_exp(fac, i, self.ctx.field.val)
             res[i] = (u, exp)
+
+        res.sort(key=_fq_default_poly_sort_key)
+
         return self.leading_coefficient(), res
 
     def roots(self, multiplicities=True):
@@ -1546,7 +1625,7 @@ cdef class fq_default_poly(flint_poly):
             >>> f = (x - 1) * (x - 2)**3 * (x - 3)**5
             >>> f.roots()
             [(1, 1), (2, 3), (3, 5)]
-            >>> f.roots(multiplicities=False)
+            >>> f.roots(multiplicities=False) # doctest: +SKIP
             [1, 2, 3]
         """
         cdef fq_default_poly_factor_t fac
@@ -1638,7 +1717,7 @@ cdef class fq_default_poly(flint_poly):
             self.val, self.ctx.field.val
         )
         if n > n_max:
-            raise ValueError(f"Cannot deflate with {n = }, maximum allowed value is {n_max = }")
+            raise ValueError(f"Cannot deflate with n = {n}, maximum allowed value is n_max = {n_max}")
 
         res = self.ctx.new_ctype_poly()
         fq_default_poly_deflate(

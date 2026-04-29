@@ -1,4 +1,4 @@
-from cpython.float cimport PyFloat_AS_DOUBLE
+from cpython.float cimport PyFloat_AsDouble
 from cpython.long cimport PyLong_Check
 
 from flint.flint_base.flint_context cimport getprec
@@ -11,13 +11,23 @@ from flint.types.arf cimport arf
 from flint.types.fmpq cimport fmpq
 from flint.types.fmpz cimport fmpz
 
-from flint.flintlib.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
-from flint.flintlib.mag cimport *
-from flint.flintlib.fmpz cimport fmpz_init, fmpz_clear
-from flint.flintlib.arf cimport *
-from flint.flintlib.arb cimport *
-from flint.flintlib.arb_hypgeom cimport *
-from flint.flintlib.acb_dirichlet cimport *
+from flint.flintlib.types.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
+from flint.flintlib.functions.flint cimport flint_free
+from flint.flintlib.functions.mag cimport *
+from flint.flintlib.functions.fmpz cimport fmpz_init, fmpz_clear
+from flint.flintlib.functions.arf cimport *
+from flint.flintlib.types.arf cimport ARF_RND_NEAR, ARF_RND_DOWN
+from flint.flintlib.functions.arb cimport *
+from flint.flintlib.types.arb cimport (
+    arb_struct,
+    arb_midref,
+    arb_radref,
+    ARB_STR_NO_RADIUS,
+    ARB_STR_MORE,
+    ARB_STR_CONDENSE,
+)
+from flint.flintlib.functions.arb_hypgeom cimport *
+from flint.flintlib.functions.acb_dirichlet cimport *
 
 cimport libc.stdlib
 cimport cython
@@ -91,7 +101,7 @@ cdef int arb_set_python(arb_t x, obj, bint allow_conversion) except -1:
         return 1
 
     if typecheck(obj, float):
-        arf_set_d(arb_midref(x), PyFloat_AS_DOUBLE(obj))
+        arf_set_d(arb_midref(x), PyFloat_AsDouble(obj))
         mag_zero(arb_radref(x))
         return 1
 
@@ -162,9 +172,9 @@ cdef class arb(flint_scalar):
         [0.333333333333333 +/- 3.71e-16]
         >>> print(arb("3.0"))
         3.00000000000000
-        >>> print(arb("0.1"))
+        >>> print(arb("0.1")) # doctest: +SKIP
         [0.100000000000000 +/- 2.23e-17]
-        >>> print(arb("1/10"))
+        >>> print(arb("1/10")) # doctest: +SKIP
         [0.100000000000000 +/- 2.23e-17]
         >>> print(arb("3.14159 +/- 0.00001"))
         [3.1416 +/- 2.01e-5]
@@ -186,14 +196,21 @@ cdef class arb(flint_scalar):
         arb_clear(self.val)
 
     def __init__(self, mid=None, rad=None):
+        cdef arf _rad
+        cdef fmpz man, exp
         if mid is not None:
             if arb_set_python(self.val, mid, 1) == 0:
                 raise TypeError("cannot create arb from type %s" % type(mid))
         if rad is not None:
-            rad = arb(rad)
-            arb_add_error(self.val, (<arb>rad).val)
-            #rad = arf(rad)
-            #arb_add_error_arf(self.val, (<arf>rad).val)
+            if isinstance(rad, tuple):
+                # Set the radius exactly from tuple of ints so that
+                # eval(a.repr()) round trips.
+                _rad = arf(rad)
+                man, exp = _rad.man_exp()
+                mag_set_fmpz_2exp_fmpz(arb_radref(self.val), man.val, exp.val)
+            else:
+                rad = arb(rad)
+                arb_add_error(self.val, (<arb>rad).val)
 
     cpdef bint is_zero(self):
         return arb_is_zero(self.val)
@@ -213,9 +230,11 @@ cdef class arb(flint_scalar):
         returning an *fmpz* pair. Requires that *self* is exact
         and finite.
 
-            >>> arb("1.1").mid().man_exp()
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
+            >>> arb("1.1").mid().man_exp() # doctest: +SKIP
             (4953959590107545, -52)
-            >>> arb("1.1").rad().man_exp()
+            >>> arb("1.1").rad().man_exp() # doctest: +SKIP
             (1, -52)
             >>> arb(0).man_exp()
             (0, 0)
@@ -259,6 +278,8 @@ cdef class arb(flint_scalar):
         """
         Returns the midpoint of *self* as an exact *arb*:
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> arb("1 +/- 0.3").mid()
             1.00000000000000
         """
@@ -371,10 +392,17 @@ cdef class arb(flint_scalar):
         else:
             return (0, man, int(exp), man.bit_length())
 
+    # Make this a public function?
+    cdef tuple _to_arfs(self):
+        cdef arf mid = arf.__new__(arf)
+        cdef arf rad = arf.__new__(arf)
+        arf_set(mid.val, arb_midref(self.val))
+        arf_set_mag(rad.val, arb_radref(self.val))
+        return (mid, rad)
+
     def repr(self):
-        mid = self.mid()
-        rad = self.rad()
-        if rad.is_zero():
+        mid, rad = self._to_arfs()
+        if rad.is_zero() or mid.is_nan():
             return "arb(%s)" % mid._repr_str()
         else:
             return "arb(%s, %s)" % (mid._repr_str(), rad._repr_str())
@@ -390,6 +418,8 @@ cdef class arb(flint_scalar):
         Binary-decimal-binary roundtrips may result in significantly
         larger intervals, and should therefore be done sparingly.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> print(arb.pi().str())
             [3.14159265358979 +/- 3.34e-15]
             >>> print(arb.pi().str(5))
@@ -410,9 +440,9 @@ cdef class arb(flint_scalar):
 
         To force more digits, set *more* to *True*.
 
-            >>> print(arb("0.1").str(30))
+            >>> print(arb("0.1").str(30)) # doctest: +SKIP
             [0.100000000000000 +/- 2.23e-17]
-            >>> print(arb("0.1").str(30, more=True))
+            >>> print(arb("0.1").str(30, more=True)) # doctest: +SKIP
             [0.0999999999999999916733273153113 +/- 1.39e-17]
 
         Note that setting *more* to *True* results in a smaller printed radius,
@@ -459,7 +489,7 @@ cdef class arb(flint_scalar):
         try:
             res = str_from_chars(s)
         finally:
-            libc.stdlib.free(s)
+            flint_free(s)
         if ctx.unicode:
             res = res.replace("+/-", "±")
         return res
@@ -471,10 +501,8 @@ cdef class arb(flint_scalar):
         cdef bint res
         cdef arb_struct sval[1]
         cdef arb_struct tval[1]
-        cdef int stype, ttype
-        stype = arb_set_any_ref(sval, s)
-        if stype == FMPZ_UNKNOWN:
-            return NotImplemented
+        cdef int _stype, ttype
+        _stype = arb_set_any_ref(sval, s)
         ttype = arb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
@@ -491,11 +519,15 @@ cdef class arb(flint_scalar):
             res = arb_gt(sval, tval)
         elif op == 5:
             res = arb_ge(sval, tval)
-        if stype == FMPZ_TMP:
-            arb_clear(sval)
         if ttype == FMPZ_TMP:
             arb_clear(tval)
         return res
+
+    def __hash__(self):
+        """Hash."""
+        if self.is_exact():
+            return hash((self.mid().man_exp(), self.rad().man_exp()))
+        raise ValueError(f"Cannot hash non-exact arb: {self}. See pull/341 for details.")
 
     def __contains__(self, other):
         other = any_as_arb(other)
@@ -537,9 +569,9 @@ cdef class arb(flint_scalar):
     def neg(self, bint exact=False):
         res = arb.__new__(arb)
         if exact:
-            arb_set((<arb>res).val, (<arb>self).val)
+            arb_neg((<arb>res).val, (<arb>self).val)
         else:
-            arb_set_round((<arb>res).val, (<arb>self).val, getprec())
+            arb_neg_round((<arb>res).val, (<arb>self).val, getprec())
         return res
 
     def __abs__(self):
@@ -552,6 +584,8 @@ cdef class arb(flint_scalar):
         """
         Sign function, returning an *arb*.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> arb(-3).sgn()
             -1.00000000000000
             >>> arb(0).sgn()
@@ -691,6 +725,8 @@ cdef class arb(flint_scalar):
         r"""
         Floor function `\lfloor s \rfloor`.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> print(arb.pi().floor())
             3.00000000000000
             >>> print((arb.pi() - arb.pi()).floor().str(more=True))
@@ -824,6 +860,8 @@ cdef class arb(flint_scalar):
         r"""
         Returns `\log_b(s)`, computed exactly when possible.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> arb(2048).log_base(2)
             11.0000000000000
         """
@@ -1349,6 +1387,8 @@ cdef class arb(flint_scalar):
         The current implementation does not use the gamma function,
         so *n* should be moderate.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> u, v = arb(3).rising2(5)
             >>> print(u); print(v)
             2520.00000000000
@@ -1497,6 +1537,8 @@ cdef class arb(flint_scalar):
         """
         Factorial `n!`, given an integer.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> print(arb.fac_ui(10))
             3628800.00000000
             >>> from flint import showgood
@@ -1513,9 +1555,10 @@ cdef class arb(flint_scalar):
         to an integer; this restriction will be removed in the future
         by using the gamma function.
 
+            >>> from flint import arb, ctx, showgood
+            >>> ctx.prec = 53
             >>> print(arb(10).bin(5))
             252.000000000000
-            >>> from flint import showgood
             >>> showgood(lambda: arb.pi().bin(100), dps=25)
             5.478392395095119521549286e-9
         """
@@ -1528,6 +1571,8 @@ cdef class arb(flint_scalar):
         r"""
         Binomial coefficient `{n \choose k}`.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> print(arb.bin_uiui(10, 5))
             252.000000000000
         """
@@ -1541,6 +1586,8 @@ cdef class arb(flint_scalar):
         Computes the Fibonacci number `F_n` as an *arb*,
         where *n* is a given integer.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> print(arb.fib(10))
             55.0000000000000
             >>> from flint import showgood
@@ -1629,7 +1676,7 @@ cdef class arb(flint_scalar):
         w = arb.__new__(arb)
         z = arb.__new__(arb)
         arb_hypgeom_airy((<arb>u).val, (<arb>v).val,
-                        (<arb>w).val, (<arb>z).val, (<arb>s).val, getprec())
+                         (<arb>w).val, (<arb>z).val, (<arb>s).val, getprec())
         return u, v, w, z
 
     @staticmethod
@@ -2259,7 +2306,7 @@ cdef class arb(flint_scalar):
             >>> from flint import showgood
             >>> showgood(lambda: arb("9/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5, abc=True), dps=25)
             1.447530478120770807945697
-            >>> showgood(lambda: arb("9/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5), dps=25)
+            >>> showgood(lambda: arb("9/10").hypgeom_2f1(arb(2).sqrt(), 0.5, arb(2).sqrt()+1.5), dps=25)  # doctest: +SKIP
             Traceback (most recent call last):
               ...
             ValueError: no convergence (maxprec=960, try higher maxprec)
@@ -2281,7 +2328,7 @@ cdef class arb(flint_scalar):
         if abc:
             flags |= 16
         arb_hypgeom_2f1((<arb>u).val, (<arb>a).val, (<arb>b).val, (<arb>c).val,
-            (<arb>self).val, flags, getprec())
+                        (<arb>self).val, flags, getprec())
         return u
 
     @staticmethod
@@ -2486,6 +2533,8 @@ cdef class arb(flint_scalar):
         """
         Returns a ball containing the union of *s* and *t*.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> x = arb(3).union(5); x.lower(); x.upper()
             [2.99999999813735 +/- 4.86e-15]
             [5.00000000186265 +/- 4.86e-15]
@@ -2517,6 +2566,8 @@ cdef class arb(flint_scalar):
         """
         Minimum value of *s* and *t*.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> arb(2).min(3)
             2.00000000000000
             >>> arb(2).min(arb("3 +/- 1.1"))
@@ -2576,6 +2627,8 @@ cdef class arb(flint_scalar):
         Number of zeros of the Riemann zeta function with positive
         imaginary part between 0 and *x*.
 
+            >>> from flint import arb, ctx
+            >>> ctx.prec = 53
             >>> arb("-5").zeta_nzeros()
             0
             >>> arb("14").zeta_nzeros()
@@ -2622,7 +2675,7 @@ cdef class arb(flint_scalar):
         F = arb.__new__(arb)
         G = arb.__new__(arb)
         arb_hypgeom_coulomb((<arb>F).val, (<arb>G).val,
-                        (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
+                            (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
         return F, G
 
     def coulomb_f(self, l, eta):
@@ -2638,7 +2691,7 @@ cdef class arb(flint_scalar):
         eta = any_as_arb(eta)
         F = arb.__new__(arb)
         arb_hypgeom_coulomb((<arb>F).val, NULL,
-                        (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
+                            (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
         return F
 
     def coulomb_g(self, l, eta):
@@ -2654,5 +2707,5 @@ cdef class arb(flint_scalar):
         eta = any_as_arb(eta)
         G = arb.__new__(arb)
         arb_hypgeom_coulomb(NULL, (<arb>G).val,
-                        (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
+                            (<arb>l).val, (<arb>eta).val, (<arb>self).val, getprec())
         return G

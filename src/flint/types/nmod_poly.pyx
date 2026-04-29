@@ -1,4 +1,5 @@
-from cpython.list cimport PyList_GET_SIZE
+cimport cython
+from cpython.list cimport PyList_Size as PyList_GET_SIZE
 from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
 from flint.types.fmpz cimport fmpz, any_as_fmpz
@@ -7,10 +8,10 @@ from flint.types.fmpz_poly cimport fmpz_poly
 from flint.types.nmod cimport any_as_nmod
 from flint.types.nmod cimport nmod
 
-from flint.flintlib.nmod_vec cimport *
-from flint.flintlib.nmod_poly cimport *
-from flint.flintlib.nmod_poly_factor cimport *
-from flint.flintlib.fmpz_poly cimport fmpz_poly_get_nmod_poly
+from flint.flintlib.functions.nmod cimport nmod_init
+from flint.flintlib.functions.nmod_poly cimport *
+from flint.flintlib.functions.nmod_poly_factor cimport *
+from flint.flintlib.functions.fmpz_poly cimport fmpz_poly_get_nmod_poly
 
 from flint.utils.flint_exceptions import DomainError
 
@@ -46,6 +47,37 @@ cdef nmod_poly_set_list(nmod_poly_t poly, list val):
             nmod_poly_set_coeff_ui(poly, i, v)
         else:
             raise TypeError("unsupported coefficient in list")
+
+
+@cython.final
+@cython.no_gc
+cdef class _nmod_poly_sort_key:
+    cdef nmod_poly p
+    cdef ulong mult
+    cdef slong len
+
+    def __init__(self, tuple fac_m):
+        self.p = fac_m[0]
+        self.len = nmod_poly_length(self.p.val)
+        self.mult = fac_m[1]
+
+    def __lt__(k1, _nmod_poly_sort_key k2):
+        cdef slong i
+        cdef ulong c1, c2
+        if k1.len != k2.len:
+            return k1.len < k2.len
+        elif k1.mult != k2.mult:
+            return k1.mult < k2.mult
+        i = k1.len
+        while i > 0:
+            i -= 1
+            c1 = nmod_poly_get_coeff_ui(k1.p.val, i)
+            c2 = nmod_poly_get_coeff_ui(k2.p.val, i)
+            if c1 != c2:
+                return c1 < c2
+        else:
+            return False
+
 
 cdef class nmod_poly(flint_poly):
     """
@@ -184,12 +216,40 @@ cdef class nmod_poly(flint_poly):
         return not nmod_poly_is_zero(self.val)
 
     def is_zero(self):
+        """
+        Returns True if this is the zero polynomial.
+        """
         return <bint>nmod_poly_is_zero(self.val)
 
     def is_one(self):
+        """
+        Returns True if this polynomial is equal to 1.
+        """
         return <bint>nmod_poly_is_one(self.val)
 
+    def is_constant(self):
+        """
+        Returns True if this is a constant polynomial.
+
+        >>> nmod_poly([0, 1], 3).is_constant()
+        False
+        >>> nmod_poly([1], 3).is_constant()
+        True
+        """
+        return nmod_poly_degree(self.val) <= 0
+
     def is_gen(self):
+        """
+        Returns True if this polynomial is equal to the generator x.
+
+        >>> x = nmod_poly([0, 1], 3)
+        >>> x
+        x
+        >>> x.is_gen()
+        True
+        >>> (2*x).is_gen()
+        False
+        """
         return <bint>nmod_poly_is_gen(self.val)
 
     def reverse(self, degree=None):
@@ -222,6 +282,42 @@ cdef class nmod_poly(flint_poly):
         res = nmod_poly.__new__(nmod_poly)
         nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
         nmod_poly_reverse(res.val, self.val, length)
+        return res
+
+    def truncate(self, slong n):
+        r"""
+        Notionally truncate the polynomial to have length ``n``. If
+        ``n`` is larger than the length of the input, then a copy of ``self`` is
+        returned. If ``n`` is not positive, then the zero polynomial
+        is returned.
+
+        Effectively returns this polynomial :math:`\mod x^n`.
+
+            >>> f = nmod_poly([1,2,3], 65537)
+            >>> f.truncate(3) == f
+            True
+            >>> f.truncate(2)
+            2*x + 1
+            >>> f.truncate(1)
+            1
+            >>> f.truncate(0)
+            0
+            >>> f.truncate(-1)
+            0
+
+        """
+        cdef nmod_poly res
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+
+        length = nmod_poly_length(self.val)
+        if n <= 0:  # return zero
+            return res
+        elif n > length:  # do nothing
+            nmod_poly_set(res.val, self.val)
+        else:
+            nmod_poly_set_trunc(res.val, self.val, n)
+
         return res
 
     def leading_coefficient(self):
@@ -262,7 +358,7 @@ cdef class nmod_poly(flint_poly):
             45*x^4 + 23*x^3 + 159*x^2 + 151*x + 110
         """
         if n <= 0:
-            raise ValueError(f"{n = } must be positive")
+            raise ValueError(f"n = {n} must be positive")
 
         if self.is_zero():
             raise ValueError("cannot invert the zero element")
@@ -315,11 +411,11 @@ cdef class nmod_poly(flint_poly):
         cdef nmod_poly res
         g = any_as_nmod_poly(other, self.val.mod)
         if g is NotImplemented:
-            raise TypeError(f"cannot convert {other = } to nmod_poly")
+            raise TypeError(f"cannot convert other = {other} to nmod_poly")
 
         h = any_as_nmod_poly(modulus, self.val.mod)
         if h is NotImplemented:
-            raise TypeError(f"cannot convert {modulus = } to nmod_poly")
+            raise TypeError(f"cannot convert modulus = {modulus} to nmod_poly")
 
         if modulus.is_zero():
             raise ZeroDivisionError("cannot reduce modulo zero")
@@ -493,12 +589,68 @@ cdef class nmod_poly(flint_poly):
     def __rmod__(s, t):
         return divmod(t, s)[1]      # XXX
 
+    def left_shift(self, slong n):
+        """
+        Returns ``self`` shifted left by ``n`` coefficients by inserting
+        zero coefficients. This is equivalent to multiplying the polynomial
+        by x^n
+
+            >>> f = nmod_poly([1,2,3], 99991)
+            >>> f.left_shift(0)
+            3*x^2 + 2*x + 1
+            >>> f.left_shift(1)
+            3*x^3 + 2*x^2 + x
+            >>> f.left_shift(4)
+            3*x^6 + 2*x^5 + x^4
+
+        """
+        cdef nmod_poly res
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+        if n > 0:
+            nmod_poly_shift_left(res.val, self.val, n)
+        else:  # do nothing, just copy self
+            nmod_poly_set(res.val, self.val)
+
+        return res
+
+    def right_shift(self, slong n):
+        """
+        Returns ``self`` shifted right by ``n`` coefficients.
+        This is equivalent to the floor division of the polynomial
+        by x^n
+
+            >>> f = nmod_poly([1,2,3], 99991)
+            >>> f.right_shift(0)
+            3*x^2 + 2*x + 1
+            >>> f.right_shift(1)
+            3*x + 2
+            >>> f.right_shift(4)
+            0
+        """
+        cdef nmod_poly res
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+        if n > 0:
+            nmod_poly_shift_right(res.val, self.val, n)
+        else:  # do nothing, just copy self
+            nmod_poly_set(res.val, self.val)
+
+        return res
+
     def __pow__(nmod_poly self, exp, mod=None):
         cdef nmod_poly res
         if mod is not None:
             return self.pow_mod(exp, mod)
         if exp < 0:
-            raise ValueError("negative exponent")
+            self = 1 / self
+            exp = -exp
         res = nmod_poly.__new__(nmod_poly)
         nmod_poly_init_preinv(res.val, (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
         nmod_poly_pow(res.val, self.val, <ulong>exp)
@@ -549,7 +701,7 @@ cdef class nmod_poly(flint_poly):
         # For larger exponents we need to cast e to an fmpz first
         e_fmpz = any_as_fmpz(e)
         if e_fmpz is NotImplemented:
-            raise TypeError(f"exponent cannot be cast to an fmpz type: {e = }")
+            raise TypeError(f"exponent cannot be cast to an fmpz type: {e}")
 
         # To optimise powering, we precompute the inverse of the reverse of the modulus
         if mod_rev_inv is not None:
@@ -572,6 +724,75 @@ cdef class nmod_poly(flint_poly):
             )
         return res
 
+    def mul_low(self, other, slong n):
+        r"""
+        Returns the lowest ``n`` coefficients of the multiplication of ``self`` with ``other``
+
+        Equivalent to computing `f(x) \cdot g(x) \mod x^n`
+
+            >>> f = nmod_poly([2,3,5,7,11], 163)
+            >>> g = nmod_poly([1,2,4,8,16], 163)
+            >>> f.mul_low(g, 5)
+            101*x^4 + 45*x^3 + 19*x^2 + 7*x + 2
+            >>> f.mul_low(g, 3)
+            19*x^2 + 7*x + 2
+            >>> f.mul_low(g, 1)
+            2
+        """
+        # Only allow multiplication with other nmod_poly
+        if not typecheck(other, nmod_poly):
+            raise TypeError("other polynomial must be of type nmod_poly")
+
+        if (<nmod_poly>self).val.mod.n != (<nmod_poly>other).val.mod.n:
+            raise ValueError("cannot multiply nmod_polys with different moduli")
+
+        cdef nmod_poly res = nmod_poly.__new__(nmod_poly)
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        nmod_poly_mullow(res.val, self.val, (<nmod_poly>other).val, n)
+        return res
+
+    def pow_trunc(self, e, slong n):
+        r"""
+        Returns ``self`` raised to the power ``e`` modulo `x^n`:
+        :math:`f^e \mod x^n`/
+
+            >>> f = nmod_poly([65, 44, 70, 33, 76, 104, 30], 163)
+            >>> x = nmod_poly([0, 1], 163)
+            >>> f.pow_trunc(2**20, 30) == pow(f, 2**20, x**30)
+            True
+            >>> f.pow_trunc(2**20, 5)
+            132*x^4 + 113*x^3 + 36*x^2 + 48*x + 6
+            >>> f.pow_trunc(5**25, 5)
+            147*x^4 + 98*x^3 + 95*x^2 + 33*x + 126
+        """
+        if e < 0:
+            raise ValueError("Exponent must be non-negative")
+
+        cdef nmod_poly res, tmp
+        cdef slong e_c
+
+        try:
+            e_c = e
+        except OverflowError:
+            # Exponent does not fit slong
+            res = nmod_poly.__new__(nmod_poly)
+            tmp = nmod_poly.__new__(nmod_poly)
+            nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+            nmod_poly_init_preinv(tmp.val, self.val.mod.n, self.val.mod.ninv)
+            ebytes = e.to_bytes((e.bit_length() + 15) // 16 * 2, "big")
+            nmod_poly_pow_trunc(res.val, self.val, ebytes[0] * 256 + ebytes[1], n)
+            for i in range(2, len(ebytes), 2):
+                nmod_poly_pow_trunc(res.val, res.val, 1 << 16, n)
+                nmod_poly_pow_trunc(tmp.val, self.val, ebytes[i] * 256 + ebytes[i+1], n)
+                nmod_poly_mullow(res.val, res.val, tmp.val, n)
+            return res
+
+        res = nmod_poly.__new__(nmod_poly)
+        nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
+        nmod_poly_pow_trunc(res.val, self.val, e_c, n)
+        return res
+
     def gcd(self, other):
         """
         Returns the monic greatest common divisor of self and other.
@@ -590,6 +811,47 @@ cdef class nmod_poly(flint_poly):
         res = nmod_poly.__new__(nmod_poly)
         nmod_poly_init_preinv(res.val, self.val.mod.n, self.val.mod.ninv)
         nmod_poly_gcd(res.val, self.val, (<nmod_poly>other).val)
+        return res
+
+    def discriminant(self):
+        """
+        Return the discriminant of ``self``.
+
+            >>> f = nmod_poly([1, 2, 3, 4, 5, 6], 65537)
+            >>> f.discriminant()
+            54177
+            >>> f = nmod_poly([1, 3, 5, 7, 9, 11, 13], 65537)
+            >>> f.discriminant()
+            44859
+
+        """
+        cdef nmod res = nmod(0, self.modulus())
+        res.val = nmod_poly_discriminant(self.val)
+        return res
+
+    def resultant(self, other):
+        """
+        Returns the resultant of *self* and *other*.
+
+            >>> f = nmod_poly([1, 2, 3], 3)
+            >>> g = nmod_poly([1, 0, 1], 3)
+            >>> f.resultant(f)
+            0
+            >>> f.resultant(g)
+            2
+
+        """
+        cdef ulong res
+
+        mod = any_as_fmpz(self.val.mod.n)
+        if not mod.is_prime():
+            raise ValueError("cannot compute nmod_poly resultants with composite moduli")
+
+        other = any_as_nmod_poly(other, (<nmod_poly>self).val.mod)
+        if other is NotImplemented:
+            raise TypeError("cannot convert input to nmod_poly")
+
+        res = nmod_poly_resultant(self.val, (<nmod_poly>other).val)
         return res
 
     def xgcd(self, other):
@@ -616,7 +878,7 @@ cdef class nmod_poly(flint_poly):
             >>> nmod_poly(list(range(10)), 3).factor()
             (2, [(x, 1), (x + 2, 7)])
             >>> nmod_poly(list(range(10)), 19).factor()
-            (9, [(x, 1), (x^4 + 15*x^3 + 2*x^2 + 7*x + 3, 1), (x^4 + 7*x^3 + 12*x^2 + 15*x + 12, 1)])
+            (9, [(x, 1), (x^4 + 7*x^3 + 12*x^2 + 15*x + 12, 1), (x^4 + 15*x^3 + 2*x^2 + 7*x + 3, 1)])
             >>> nmod_poly(list(range(10)), 53).factor()
             (9, [(x, 1), (x^8 + 48*x^7 + 42*x^6 + 36*x^5 + 30*x^4 + 24*x^3 + 18*x^2 + 12*x + 6, 1)])
 
@@ -626,7 +888,7 @@ cdef class nmod_poly(flint_poly):
             >>> nmod_poly([3,2,1,2,3], 7).factor(algorithm='berlekamp')
             (3, [(x + 2, 1), (x + 4, 1), (x^2 + 4*x + 1, 1)])
             >>> nmod_poly([3,2,1,2,3], 7).factor(algorithm='cantor-zassenhaus')
-            (3, [(x + 4, 1), (x + 2, 1), (x^2 + 4*x + 1, 1)])
+            (3, [(x + 2, 1), (x + 4, 1), (x^2 + 4*x + 1, 1)])
 
         """
         if algorithm is None:
@@ -646,7 +908,7 @@ cdef class nmod_poly(flint_poly):
             >>> p
             2*x^7 + 5*x^6 + 4*x^5 + 2*x^4 + 2*x^3 + x^2
             >>> p.factor_squarefree()
-            (2, [(x^2 + 5*x, 2), (x + 1, 3)])
+            (2, [(x + 1, 3), (x^2 + 5*x, 2)])
             >>> p.factor()
             (2, [(x, 2), (x + 5, 2), (x + 1, 3)])
 
@@ -676,10 +938,12 @@ cdef class nmod_poly(flint_poly):
         for 0 <= i < fac.num:
             u = nmod_poly.__new__(nmod_poly)
             nmod_poly_init_preinv((<nmod_poly>u).val,
-                (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
+                                  (<nmod_poly>self).val.mod.n, (<nmod_poly>self).val.mod.ninv)
             nmod_poly_set((<nmod_poly>u).val, &fac.p[i])
             exp = fac.exp[i]
             res[i] = (u, exp)
+
+        res.sort(key=_nmod_poly_sort_key)
 
         c = nmod.__new__(nmod)
         (<nmod>c).mod = self.val.mod

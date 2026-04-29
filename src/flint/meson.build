@@ -2,6 +2,9 @@ thisdir = 'flint'
 
 pyfiles = [
   '__init__.py',
+  'typing.py',
+  'py.typed',
+  'pyflint.pyi',
 ]
 
 exts = [
@@ -29,6 +32,7 @@ foreach ext : exts
     dependencies: pyflint_deps,
     install: true,
     subdir: thisdir,
+    limited_api: limited_api_version,
   )
 endforeach
 

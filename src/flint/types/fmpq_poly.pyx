@@ -1,4 +1,4 @@
-from cpython.list cimport PyList_GET_SIZE
+from cpython.list cimport PyList_Size as PyList_GET_SIZE
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_poly
 from flint.types.fmpz_poly cimport any_as_fmpz_poly
@@ -8,13 +8,14 @@ from flint.types.fmpq cimport any_as_fmpq
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 
-from flint.flintlib.fmpz cimport fmpz_is_zero
-from flint.flintlib.fmpz cimport fmpz_set
-from flint.flintlib.fmpq cimport fmpq_is_zero
-from flint.flintlib.fmpq_poly cimport *
-from flint.flintlib.arith cimport arith_bernoulli_polynomial
-from flint.flintlib.arith cimport arith_euler_polynomial
-from flint.flintlib.arith cimport arith_legendre_polynomial
+from flint.flintlib.functions.fmpz cimport fmpz_is_zero
+from flint.flintlib.functions.fmpz cimport fmpz_set
+from flint.flintlib.functions.fmpz_poly cimport fmpz_poly_discriminant
+from flint.flintlib.functions.fmpq cimport fmpq_is_zero, fmpq_set_fmpz_frac
+from flint.flintlib.functions.fmpq_poly cimport *
+from flint.flintlib.functions.arith cimport arith_bernoulli_polynomial
+from flint.flintlib.functions.arith cimport arith_euler_polynomial
+from flint.flintlib.types.arith cimport arith_legendre_polynomial
 
 from flint.utils.flint_exceptions import DomainError
 
@@ -171,10 +172,78 @@ cdef class fmpq_poly(flint_poly):
         return not fmpq_poly_is_zero(self.val)
 
     def is_zero(self):
+        """
+        Returns True if this is the zero polynomial.
+        """
         return <bint>fmpq_poly_is_zero(self.val)
 
     def is_one(self):
+        """
+        Returns True if this polynomial is equal to 1.
+        """
         return <bint>fmpq_poly_is_one(self.val)
+
+    def is_constant(self):
+        """
+        Returns True if this polynomial is a scalar (constant).
+
+        >>> f = fmpq_poly([0, 1])
+        >>> f
+        x
+        >>> f.is_constant()
+        False
+        """
+        return fmpq_poly_degree(self.val) <= 0
+
+    def is_gen(self):
+        """
+        Return ``True`` if the polynomial is the generator
+        of the polynomial, `x`, and ``False`` otherwise
+
+        >>> x = fmpq_poly([0, 1])
+        >>> x
+        x
+        >>> x.is_gen()
+        True
+        >>> (x + 1).is_gen()
+        False
+        """
+        return <bint>fmpq_poly_is_gen(self.val)
+
+    def truncate(self, slong n):
+        r"""
+        Notionally truncate the polynomial to have length ``n``. If
+        ``n`` is larger than the length of the input, then a copy of ``self`` is
+        returned. If ``n`` is not positive, then the zero polynomial
+        is returned.
+
+        Effectively returns this polynomial :math:`\mod x^n`.
+
+            >>> f = fmpq_poly([1,2,3])
+            >>> f.truncate(3) == f
+            True
+            >>> f.truncate(2)
+            2*x + 1
+            >>> f.truncate(1)
+            1
+            >>> f.truncate(0)
+            0
+            >>> f.truncate(-1)
+            0
+
+        """
+        cdef fmpq_poly res
+        res = fmpq_poly.__new__(fmpq_poly)
+
+        length = fmpq_poly_length(self.val)
+        if n <= 0:  # return zero
+            return res
+        elif n > length:  # do nothing
+            fmpq_poly_set(res.val, self.val)
+        else:
+            fmpq_poly_set_trunc(res.val, self.val, n)
+
+        return res
 
     def leading_coefficient(self):
         """
@@ -369,14 +438,128 @@ cdef class fmpq_poly(flint_poly):
             return t
         return t._divmod_(s)
 
+    def left_shift(self, slong n):
+        """
+        Returns ``self`` shifted left by ``n`` coefficients by inserting
+        zero coefficients. This is equivalent to multiplying the polynomial
+        by x^n
+
+            >>> f = fmpq_poly([1,2,3])
+            >>> f.left_shift(0)
+            3*x^2 + 2*x + 1
+            >>> f.left_shift(1)
+            3*x^3 + 2*x^2 + x
+            >>> f.left_shift(4)
+            3*x^6 + 2*x^5 + x^4
+
+        """
+        cdef fmpq_poly res
+        res = fmpq_poly.__new__(fmpq_poly)
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+        if n > 0:
+            fmpq_poly_shift_left(res.val, self.val, n)
+        else:  # do nothing, just copy self
+            fmpq_poly_set(res.val, self.val)
+
+        return res
+
+    def right_shift(self, slong n):
+        """
+        Returns ``self`` shifted right by ``n`` coefficients.
+        This is equivalent to the floor division of the polynomial
+        by x^n
+
+            >>> f = fmpq_poly([1,2,3])
+            >>> f.right_shift(0)
+            3*x^2 + 2*x + 1
+            >>> f.right_shift(1)
+            3*x + 2
+            >>> f.right_shift(4)
+            0
+        """
+        cdef fmpq_poly res
+        res = fmpq_poly.__new__(fmpq_poly)
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+        if n > 0:
+            fmpq_poly_shift_right(res.val, self.val, n)
+        else:  # do nothing, just copy self
+            fmpq_poly_set(res.val, self.val)
+
+        return res
+
     def __pow__(fmpq_poly self, exp, mod):
         cdef fmpq_poly res
         if mod is not None:
             raise NotImplementedError("fmpz_poly modular exponentiation")
         if exp < 0:
-            raise ValueError("fmpq_poly negative exponent")
+            self = 1 / self
+            exp = -exp
         res = fmpq_poly.__new__(fmpq_poly)
         fmpq_poly_pow(res.val, self.val, <ulong>exp)
+        return res
+
+    def mul_low(self, other, slong n):
+        r"""
+        Returns the lowest ``n`` coefficients of the multiplication of ``self`` with ``other``
+
+        Equivalent to computing `f(x) \cdot g(x) \mod x^n`
+
+            >>> f = fmpq_poly([2,3,5,7,11])
+            >>> g = fmpq_poly([1,2,4,8,16])
+            >>> f.mul_low(g, 5)
+            101*x^4 + 45*x^3 + 19*x^2 + 7*x + 2
+            >>> f.mul_low(g, 3)
+            19*x^2 + 7*x + 2
+            >>> f.mul_low(g, 1)
+            2
+        """
+        # Only allow multiplication with other fmpq_poly
+        if not typecheck(other, fmpq_poly):
+            raise TypeError("other polynomial must be of type fmpq_poly")
+
+        cdef fmpq_poly res
+        res = fmpq_poly.__new__(fmpq_poly)
+        fmpq_poly_mullow(res.val, self.val, (<fmpq_poly>other).val, n)
+        return res
+
+    def pow_trunc(self, e, slong n):
+        r"""
+        Returns ``self`` raised to the power ``e`` modulo `x^n`:
+        :math:`f^e \mod x^n`/
+
+            >>> f = fmpq_poly([1, 2, 3])
+            >>> x = fmpq_poly([0, 1])
+            >>> f.pow_trunc(2**20, 4)
+            1537230871828889600*x^3 + 2199024304128*x^2 + 2097152*x + 1
+            >>> f.pow_trunc(5**25, 3)
+            177635683940025046765804290771484375*x^2 + 596046447753906250*x + 1
+        """
+        if e < 0:
+            raise ValueError("Exponent must be non-negative")
+
+        cdef slong e_c
+        cdef fmpq_poly res, tmp
+
+        try:
+            e_c = e
+        except OverflowError:
+            # Exponent does not fit slong
+            res = fmpq_poly.__new__(fmpq_poly)
+            tmp = fmpq_poly.__new__(fmpq_poly)
+            ebytes = e.to_bytes((e.bit_length() + 15) // 16 * 2, "big")
+            fmpq_poly_pow_trunc(res.val, self.val, ebytes[0] * 256 + ebytes[1], n)
+            for i in range(2, len(ebytes), 2):
+                fmpq_poly_pow_trunc(res.val, res.val, 1 << 16, n)
+                fmpq_poly_pow_trunc(tmp.val, self.val, ebytes[i] * 256 + ebytes[i+1], n)
+                fmpq_poly_mullow(res.val, res.val, tmp.val, n)
+            return res
+
+        res = fmpq_poly.__new__(fmpq_poly)
+        fmpq_poly_pow_trunc(res.val, self.val, e_c, n)
         return res
 
     def gcd(self, other):
@@ -394,6 +577,60 @@ cdef class fmpq_poly(flint_poly):
             raise TypeError("cannot convert input to fmpq_poly")
         res = fmpq_poly.__new__(fmpq_poly)
         fmpq_poly_gcd(res.val, self.val, (<fmpq_poly>other).val)
+        return res
+
+    def discriminant(self):
+        """
+        Return the discriminant of ``self``.
+
+            >>> f = fmpq_poly([1, 2, 3, 4, 5, 6])
+            >>> f.discriminant()
+            1037232
+            >>> f = fmpq_poly([1, 3, 5, 7, 9, 11, 13])
+            >>> f.discriminant()
+            -2238305839
+            >>> f = fmpq_poly([1, 3, 5, 7, 9, 11, 13], 10)
+            >>> f.discriminant()
+            -2238305839/10000000000
+
+        """
+        # There is no FLINT function for the discriminant of a fmpq_poly,
+        # we use the fact that disc(f/q) = disc(f)/q^(2d-2)
+        cdef fmpq res = fmpq.__new__(fmpq)
+        cdef fmpz rnum = fmpz.__new__(fmpz)
+        cdef fmpz rden = self.denom()**(2 * self.degree() - 2)
+
+        cdef fmpz_poly x = fmpz_poly.__new__(fmpz_poly)
+        fmpq_poly_get_numerator(x.val, self.val)
+        fmpz_poly_discriminant(rnum.val, x.val)
+        fmpq_set_fmpz_frac(res.val, rnum.val, rden.val)
+
+        return res
+
+    def resultant(self, other):
+        """
+        Returns the resultant of *self* and *other*.
+
+            >>> A = fmpq_poly([1, 0, -1]); B = fmpq_poly([1, -1])
+            >>> A.resultant(B)
+            0
+            >>> C = fmpq_poly([1, 0, 0, 0, 0, -1, 1])
+            >>> D = fmpq_poly([1, 0, 0, -1, 0, 0, 1])
+            >>> C.resultant(D)
+            3
+            >>> f = fmpq_poly([1, -1] + [0] * 98 + [1])
+            >>> g = fmpq_poly([1] + [0] * 50 + [-1] + [0] * 48 + [1])
+            >>> f.resultant(g)
+            1125899906842623
+
+        """
+        cdef fmpq res
+        other = any_as_fmpq_poly(other)
+        if other is NotImplemented:
+            raise TypeError("cannot convert input to fmpq_poly")
+
+        res = fmpq.__new__(fmpq)
+        fmpq_poly_resultant(res.val, self.val, (<fmpq_poly>other).val)
         return res
 
     def xgcd(self, other):
@@ -496,7 +733,8 @@ cdef class fmpq_poly(flint_poly):
         Computes the complex roots of this polynomial. See
         :meth:`.fmpz_poly.roots`.
 
-            >>> from flint import fmpq
+            >>> from flint import fmpq, ctx
+            >>> ctx.prec = 53
             >>> fmpq_poly([fmpq(2,3),1]).complex_roots()
             [([-0.666666666666667 +/- 3.34e-16], 1)]
         """

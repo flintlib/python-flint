@@ -1,18 +1,19 @@
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
 from flint.types.fmpz cimport fmpz_set_any_ref
+from flint.types.fmpz cimport fmpz_get_intlong
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpz cimport any_as_fmpz
 
-from flint.flintlib.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
-from flint.flintlib.fmpz cimport fmpz_set, fmpz_one
-from flint.flintlib.fmpz cimport fmpz_is_zero, fmpz_sgn
-from flint.flintlib.fmpz cimport fmpz_fdiv_q, fmpz_bits
-from flint.flintlib.fmpz cimport fmpz_cdiv_q
-from flint.flintlib.fmpz cimport fmpz_tdiv_q
-from flint.flintlib.fmpz cimport fmpz_clear
-from flint.flintlib.fmpq cimport *
-from flint.flintlib.bernoulli cimport *
+from flint.flintlib.types.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
+from flint.flintlib.functions.fmpz cimport fmpz_set, fmpz_one
+from flint.flintlib.functions.fmpz cimport fmpz_is_zero, fmpz_sgn
+from flint.flintlib.functions.fmpz cimport fmpz_fdiv_q, fmpz_bits
+from flint.flintlib.functions.fmpz cimport fmpz_cdiv_q
+from flint.flintlib.functions.fmpz cimport fmpz_tdiv_q
+from flint.flintlib.functions.fmpz cimport fmpz_clear
+from flint.flintlib.functions.fmpq cimport *
+from flint.flintlib.functions.bernoulli cimport *
 
 cdef int fmpq_set_any_ref(fmpq_t x, obj):
     cdef int status
@@ -94,10 +95,27 @@ cdef class fmpq(flint_scalar):
 
         p2 = any_as_fmpz(p)
         if p2 is NotImplemented:
-            raise TypeError("cannot create fmpq from object of type %s" % type(p))
+            # Allow fmpq(fmpq, fmpq/fmpz)
+            p2 = any_as_fmpq(p)
+            if p2 is NotImplemented:
+                raise TypeError("cannot create fmpz/fmpq from object of type %s" % type(p))
+            q2 = any_as_fmpq(q)
+            if q2 is NotImplemented:
+                raise TypeError("cannot create fmpz/fmpq from object of type %s" % type(q))
+            p3 = p2 / q2
+            fmpq_set(self.val, (<fmpq>p3).val)
+            return
+
         q2 = any_as_fmpz(q)
         if q2 is NotImplemented:
-            raise TypeError("cannot create fmpq from object of type %s" % type(q))
+            # fmpq(fmpz, fmpq)
+            q2 = any_as_fmpq(q)
+            if q2 is NotImplemented:
+                raise TypeError("cannot create fmpz/fmpq from object of type %s" % type(q))
+            p3 = p2 / q2
+            fmpq_set(self.val, (<fmpq>p3).val)
+            return
+
         if fmpz_is_zero((<fmpz>q2).val):
             raise ZeroDivisionError("cannot create rational number with zero denominator")
 
@@ -181,6 +199,11 @@ cdef class fmpq(flint_scalar):
 
     def __int__(self):
         return int(self.trunc())
+
+    def __float__(self) -> float:
+        n = fmpz_get_intlong(fmpq_numref(self.val))
+        d = fmpz_get_intlong(fmpq_denref(self.val))
+        return n / d
 
     def __floor__(self):
         return self.floor()
@@ -287,6 +310,24 @@ cdef class fmpq(flint_scalar):
 
     def __rtruediv__(s, t):
         return fmpq._div_(t, s)
+
+    def gcd(s, t):
+        """GCD of two rational numbers.
+
+            >>> fmpq(1,2).gcd(fmpq(3,4))
+            1/4
+
+        The GCD is defined as the GCD of the numerators divided by the LCM of
+        the denominators. This is consistent with ``fmpz.gcd()`` but not with
+        ``fmpq_poly.gcd()``.
+        """
+        cdef fmpq r
+        t = any_as_fmpq(t)
+        if t is NotImplemented:
+            raise TypeError("fmpq expected")
+        r = fmpq.__new__(fmpq)
+        fmpq_gcd(r.val, (<fmpq>s).val, (<fmpq>t).val)
+        return r
 
     def next(s, bint signed=True, bint minimal=True):
         """
@@ -471,7 +512,8 @@ cdef class fmpq(flint_scalar):
         cdef fmpq v
         cdef int success
 
-        assert z is None
+        if z is not None:
+            raise TypeError("3-arg pow with fmpq is undefined.")
 
         ntype = fmpz_set_any_ref(nval, n)
         if ntype == FMPZ_UNKNOWN:

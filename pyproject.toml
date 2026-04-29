@@ -1,13 +1,18 @@
 [project]
 name = "python-flint"
 description = "Bindings for FLINT"
-version = "0.7.0a4"
-# This needs to be in sync with README, cibuildwheel and CI config.
-requires-python = ">= 3.10"
+version = "0.8.0"
+
+# This needs to be in sync with README, and CI config.
+requires-python = ">= 3.11"
 authors = [
     {name = "Fredrik Johansson", email = "fredrik.johansson@gmail.com"},
+    {name = "Oscar Benjamin", email = "oscar.j.benjamin@gmail.com"},
 ]
-license = {text = "MIT"}
+
+license = "MIT"
+license-files = ["LICENSE"]
+
 classifiers = [
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
@@ -27,22 +32,39 @@ content-type = "text/markdown"
 # Minimum build requirements tested in CI need to be kept in sync with the
 # versions in requires below so that they are tested.
 #
-# The upper cap on Cython is speculative but we may as well cap it given that
-# it is only a build requirement and that it is not uncommon for newer Cython
-# versions to break the build. For example Cython 3.0 broke the build and then
-# Cython 3.1 broke the build again so python-flint 0.6.0 did not have any upper
-# cap but it should have had cython>=3.0,<3.1 i.e. precisely one minor release
-# of Cython works. In future we could contemplate not having an upper cap but
-# until we have actually witnessed a Cython 3.x release that does not break the
-# build we should keep the upper cap.
+# To support the freethreaded build (CPython 3.13t) version 3.1.0 of Cython is
+# needed as a minimum requirement. It is possible that future versions of
+# Cython might still work but typically a Cython release breaks something in
+# the build of python-flint so we include an upper bound here.
 #
-requires = ["meson-python>=0.13", "cython>=3.0,<3.1"]
+# Apart from the freethreading build any Cython version from 3.0.11 onwards is
+# fine. It is not possible to have a separate version constraint here for the
+# freethreading build only though.
+#
+requires = ["meson-python >= 0.18", "cython >=3.1,<3.3"]
 build-backend = "mesonpy"
 
+[tool.meson-python]
+
+limited-api = true
+
 [tool.cython-lint]
+# E129 visually indented line with same indent as next logical line
+# Reasoning: this rule is a little controversial
+#            (see https://github.com/PyCQA/pycodestyle/issues/386)
+#            and we ignore it to avoid needing additional indentation after
+#            long logical statements.
+#
+# E501 line too long (128 > 120 characters)
+# Reasoning: this is a work in progress and will be enforced once a line length
+#            and refactor has taken place. See issue #214
+#
+# E741 ambiguous variable name
+# Reasoning: many places it makes sense to use l or other letters as variable
+#            names as it is standard in mathematical notation.
 max-line-length = 120
-ignore = ['E128','E129','E202','E221','E262','E265','E501','E731','E741','E743']
-exclude = 'src/flint/flintlib/.*'
+ignore = ['E129','E501','E741']
+exclude = 'src/flint/flintlib/functions.*'
 
 [tool.spin]
 package = "flint"
@@ -65,19 +87,26 @@ package = "flint"
     "spin.cmds.meson.run",
 ]
 
-[tool.cibuildwheel]
-# requires-python needs to keep in sync with this and also the list of Python
-# versions the wheels are tested against in CI.
-build = "cp310-* cp311-* cp312-* cp313-* pp310-*"
-skip = "*-win32 *-manylinux_i686 *-musllinux_*"
+[tool.mypy]
+files = ["src"]
 
-# This is needed for free-threaded wheels:
-# build = "cp313t-*"
-# free-threaded-support = true
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+
+[tool.cibuildwheel]
+skip = "*-win32 pp*-win_arm64 *-manylinux_i686 *-manylinux_armv7l *-musllinux_*"
+
+enable = [
+    # Uncomment this to test beta versions of CPython in CI (but comment out
+    # again if releasing while CPython is in beta):
+    # "cpython-prerelease",
+    "cpython-freethreading",
+    "pypy",
+]
 
 manylinux-x86_64-image = "manylinux2014"
+manylinux-aarch64-image = "manylinux_2_28"
 manylinux-i686-image = "manylinux2014"
-test-command = "python -c \"import flint; print(str(flint.fmpz(2)))\""
 
 [tool.cibuildwheel.linux.environment]
 # LD_LIBRARY_PATH is needed by auditwheel
@@ -93,25 +122,85 @@ PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig"
 # PKG_CONFIG_PATH = "$(pwd)/.local/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 [tool.cibuildwheel.linux]
-before-all = "bin/cibw_before_all_linux.sh"
+before-all = "bin/cibw_before_all_linux_$(uname -m).sh"
+before-build = "pip install wheel auditwheel"
+repair-wheel-command = [
+"""bin/cibw_repair_wheel_licenses.py {wheel} \
+    --license LGPL-3.0-or-later \
+    --license-file '.local/src/gmp-*/COPYING:python-flint.libs/gmp-*/COPYING' \
+    --license-file '.local/src/gmp-*/COPYING.LESSERv3:python-flint.libs/gmp-*/COPYING.LESSERv3' \
+    --license-file '.local/src/mpfr-*/COPYING:python-flint.libs/mpfr-*/COPYING' \
+    --license-file '.local/src/mpfr-*/COPYING.LESSER:python-flint.libs/mpfr-*/COPYING.LESSER' \
+    --license-file '.local/src/flint-*/COPYING:python-flint.libs/flint-*/COPYING' \
+    --license-file '.local/src/flint-*/COPYING.LESSER:python-flint.libs/flint-*/COPYING.LESSER' \
+""",
+"auditwheel repair -w {dest_dir} {wheel}",
+]
 
 [tool.cibuildwheel.macos]
 before-all = "bin/cibw_before_all_macosx_$(uname -m).sh"
+before-build = "pip install wheel delocate"
+repair-wheel-command = [
+"""bin/cibw_repair_wheel_licenses.py {wheel} \
+    --license LGPL-3.0-or-later \
+    --license-file '.local/src/gmp-*/COPYING:python-flint.libs/gmp-*/COPYING' \
+    --license-file '.local/src/gmp-*/COPYING.LESSERv3:python-flint.libs/gmp-*/COPYING.LESSERv3' \
+    --license-file '.local/src/mpfr-*/COPYING:python-flint.libs/mpfr-*/COPYING' \
+    --license-file '.local/src/mpfr-*/COPYING.LESSER:python-flint.libs/mpfr-*/COPYING.LESSER' \
+    --license-file '.local/src/flint-*/COPYING:python-flint.libs/flint-*/COPYING' \
+    --license-file '.local/src/flint-*/COPYING.LESSER:python-flint.libs/flint-*/COPYING.LESSER' \
+""",
+"delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}",
+]
 
 [tool.cibuildwheel.windows]
-before-all = "C:\\msys64\\usr\\bin\\bash bin/cibw_before_all_windows.sh"
-before-build = "pip install delvewheel"
-repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel} --add-path .local/bin"
+before-build = "pip install wheel delvewheel"
+config-settings = {setup-args = ["--vsenv"], build-dir = "build"}
+repair-wheel-command = [
+"""python bin/cibw_repair_wheel_licenses.py {wheel} \
+    --license LGPL-3.0-or-later \
+    --license-file .local/src/gmp-*/COPYING:python-flint.libs/gmp-*/COPYING \
+    --license-file .local/src/gmp-*/COPYING.LESSERv3:python-flint.libs/gmp-*/COPYING.LESSERv3 \
+    --license-file .local/src/mpfr-*/COPYING:python-flint.libs/mpfr-*/COPYING \
+    --license-file .local/src/mpfr-*/COPYING.LESSER:python-flint.libs/mpfr-*/COPYING.LESSER \
+    --license-file .local/src/flint-*/COPYING:python-flint.libs/flint-*/COPYING \
+    --license-file .local/src/flint-*/COPYING.LESSER:python-flint.libs/flint-*/COPYING.LESSER \
+    \
+    --license "MIT AND BSD-3-Clause-Clear" \
+    --license-file wheels/winpthreads/COPYING:python-flint.libs/winpthreads/COPYING \
+    \
+    --license "GPL-3.0-or-later WITH GCC-exception-3.1 AND LGPL-2.1-or-later" \
+    --license-file wheels/gcc/COPYING3:python-flint.libs/gcc/COPYING3 \
+    --license-file wheels/gcc/COPYING.LIB:python-flint.libs/gcc/COPYING.LIB \
+    --license-file wheels/gcc/COPYING.RUNTIME:python-flint.libs/gcc/COPYING.RUNTIME \
+""",
+"delvewheel repair -w {dest_dir} {wheel} --add-path .local/bin",
+]
 
-# Previously with setuptools and MinGW it was necessary to run
-# bin/cibw_before_build_windows.sh before building the wheel to create the
-# libpython*.a files. This is no longer necessary now meson is used:
-#
-#   before-build = "pip install delvewheel && C:\\msys64\\usr\\bin\\bash bin/cibw_before_build_windows.sh"
-#
-# Previously a custom delvewheel command was needed because delvewheel would
-# reject binaries created with MinGW unless they had been stripped. This is not
-# needed any more with newer versions of delvewheel:
-#
-#   repair-wheel-command = "bin\\cibw_repair_wheel_command_windows.bat {dest_dir} {wheel}"
-#
+[tool.cibuildwheel.pyodide]
+# pyodide version is set in .github/workflows/buildwheel.yml as PYODIDE_VERSION
+before-all = "bin/cibw_before_all_pyodide.sh"
+before-build = "bin/cibw_before_build_pyodide.sh"
+
+repair-wheel-command = [
+"""python bin/cibw_repair_wheel_licenses.py "{wheel}" \
+    --license LGPL-3.0-or-later \
+    --license-file 'wasm-library-dir/src/gmp-*/COPYING:python-flint.libs/gmp-*/COPYING' \
+    --license-file 'wasm-library-dir/src/gmp-*/COPYING.LESSERv3:python-flint.libs/gmp-*/COPYING.LESSERv3' \
+    --license-file 'wasm-library-dir/src/mpfr-*/COPYING:python-flint.libs/mpfr-*/COPYING' \
+    --license-file 'wasm-library-dir/src/mpfr-*/COPYING.LESSER:python-flint.libs/mpfr-*/COPYING.LESSER' \
+    --license-file 'wasm-library-dir/src/flint-*/COPYING:python-flint.libs/flint-*/COPYING' \
+    --license-file 'wasm-library-dir/src/flint-*/COPYING.LESSER:python-flint.libs/flint-*/COPYING.LESSER' \
+""",
+"pyodide auditwheel repair --libdir wasm-library-dir --output-dir {dest_dir} {wheel}",
+]
+
+[tool.cibuildwheel.pyodide.environment]
+WASM_LIBRARY_DIR = "$(pwd)/wasm-library-dir"
+PKG_CONFIG_PATH = "$(pwd)/wasm-library-dir/lib/pkgconfig:$PKG_CONFIG_PATH"
+CFLAGS = "-I$(pwd)/wasm-library-dir/include $CFLAGS"
+LDFLAGS = "-L$(pwd)/wasm-library-dir/lib -lflint -lmpfr -lgmp $LDFLAGS"
+
+[tool.cibuildwheel.pyodide.config-settings]
+build-dir = "flint_wasm_build"
+setup-args = ["-Dflint_version_check=false"]

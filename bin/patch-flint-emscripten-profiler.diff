@@ -1,0 +1,22 @@
+From e83a896d212e2ec41407b20ef0f011851eb1c525 Mon Sep 17 00:00:00 2001
+From: Mate Soos <soos.mate@gmail.com>
+Date: Fri, 6 Mar 2026 20:32:25 +0100
+Subject: [PATCH] Fix compilation
+
+---
+ src/profiler.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/profiler.h b/src/profiler.h
+index d5be9b9573..007710f82e 100644
+--- a/src/profiler.h
++++ b/src/profiler.h
+@@ -27,7 +27,7 @@
+ #if defined(_MSC_VER) || defined(__x86_64__) || defined(__aarch64__)
+ # define FLINT_HAVE_get_cycle_counter  1
+ #endif
+-#if (defined(__unix__) && !defined(__CYGWIN__)) || defined(__APPLE__)
++#if (defined(__unix__) && !defined(__CYGWIN__) && !defined(__EMSCRIPTEN__)) || defined(__APPLE__)
+ # define FLINT_HAVE_getrusage   1
+ #endif
+ 

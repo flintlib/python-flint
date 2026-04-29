@@ -1,5 +1,5 @@
 from flint.pyflint cimport global_random_state
-from flint.flintlib.fmpz cimport(
+from flint.flintlib.functions.fmpz cimport(
     fmpz_t,
     fmpz_one,
     fmpz_zero,
@@ -17,8 +17,8 @@ from flint.flintlib.fmpz cimport(
     fmpz_is_zero,
     fmpz_randm
 )
-from flint.flintlib.fmpz cimport fmpz_mod as fmpz_type_mod
-from flint.flintlib.fmpz_mod cimport *
+from flint.flintlib.functions.fmpz cimport fmpz_mod as fmpz_type_mod
+from flint.flintlib.functions.fmpz_mod cimport *
 
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_base cimport flint_scalar
@@ -45,7 +45,7 @@ cdef class fmpz_mod_ctx:
         cdef fmpz one = fmpz.__new__(fmpz)
         fmpz_one(one.val)
         fmpz_mod_ctx_init(self.val, one.val)
-        fmpz_mod_discrete_log_pohlig_hellman_clear(self.L)
+        fmpz_mod_discrete_log_pohlig_hellman_init(self.L)
         self._is_prime = 0
 
     def __dealloc__(self):
@@ -246,7 +246,7 @@ cdef class fmpz_mod(flint_scalar):
         self.ctx = ctx
         check = self.ctx.set_any_as_fmpz_mod(self.val, val)
         if check is NotImplemented:
-            raise NotImplementedError(f"Cannot convert {val} to type `fmpz_mod`")
+            raise NotImplementedError(f"Cannot convert {val} to type 'fmpz_mod'")
 
     def is_zero(self):
         """
@@ -563,7 +563,7 @@ cdef class fmpz_mod(flint_scalar):
         # Attempt to convert exponent to fmpz
         e = any_as_fmpz(e)
         if e is NotImplemented:
-            raise NotImplementedError
+            raise TypeError("fmpz_mod.__pow__: exponent must be an integer")
 
         check = fmpz_mod_pow_fmpz(
             res.val, self.val, (<fmpz>e).val, self.ctx.val

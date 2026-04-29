@@ -2,31 +2,26 @@
 
 set -o errexit
 
-# Uncomment this to run cibuildwheel locally on Windows:
-# export PATH=$PATH:/c/msys64/usr/bin:/c/msys64/mingw64/bin
+if [ $# -lt 2 ]; then
+    echo "usage: $0 <llvm-machine> <build-dependencies-args>..."
+    exit 1
+fi
 
-#
-# Make a setup.cfg to specify compiling with mingw64 (even though it says
-# mingw32...)
-#
+llvm_machine="$1"
+shift
 
-# This is not needed any more for python-flint >= 0.7.0 because meson is now
-# used as the build system rather than setuptools:
-echo '[build]' > setup.cfg
-echo 'compiler = mingw32' >> setup.cfg
-cat setup.cfg
+bin/build_dependencies_unix.sh "$@"
 
-# Install the mingw-w64 toolchain and build tools
-pacman -S --noconfirm \
-    mingw-w64-x86_64-gcc\
-    mingw-w64-x86_64-tools-git\
-    m4\
-    make\
-    base-devel\
-    autoconf-wrapper\
-    automake-wrapper\
-    libtool\
-    #
+mkdir -p .local/lib
+cd .local/bin
+for dll_file in libgmp-*.dll libmpfr-*.dll libflint*.dll
+do
+  lib_name=$(basename -s .dll "${dll_file}")
+  def_file=${lib_name}.def
+  name=$(echo "${lib_name}" | sed 's/^lib//;s/[-.][0-9].*$//')
 
-# This is slow with MinGW:
-bin/build_dependencies_unix.sh --use-gmp-github-mirror
+  gendef "${dll_file}"
+  llvm-lib /def:"${def_file}" /out:"../lib/${name}.lib" /machine:${llvm_machine} /nologo
+  rm "${def_file}"
+done
+cd ../..

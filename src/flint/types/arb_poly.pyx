@@ -1,4 +1,4 @@
-from cpython.list cimport PyList_GET_SIZE
+from cpython.list cimport PyList_Size as PyList_GET_SIZE
 from flint.utils.typecheck cimport typecheck
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_poly
@@ -12,8 +12,9 @@ from flint.types.fmpq cimport fmpq
 from flint.types.acb cimport acb
 from flint.types.acb_poly cimport acb_poly
 
-from flint.flintlib.arb cimport *
-from flint.flintlib.arb_poly cimport *
+from flint.flintlib.types.arb cimport arb_struct, arb_poly_set_arb
+from flint.flintlib.functions.arb cimport *
+from flint.flintlib.functions.arb_poly cimport *
 cimport libc.stdlib
 
 cdef arb_poly_coerce_operands(x, y):
@@ -94,6 +95,8 @@ cdef class arb_poly(flint_poly):
         """
         Constructs the monic polynomial whose roots are the given real numbers.
 
+            >>> from flint import arb_poly, ctx
+            >>> ctx.prec = 53
             >>> arb_poly.from_roots(range(4))
             1.00000000000000*x^4 + (-6.00000000000000)*x^3 + 11.0000000000000*x^2 + (-6.00000000000000)*x
 
@@ -203,111 +206,199 @@ cdef class arb_poly(flint_poly):
 
     def __add__(s, t):
         if not isinstance(t, arb_poly):
-            s, t = arb_poly_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s + t
+            u, v = arb_poly_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u + v
         u = arb_poly.__new__(arb_poly)
         arb_poly_add((<arb_poly>u).val, (<arb_poly>s).val, (<arb_poly>t).val, getprec())
         return u
 
     def __radd__(s, t):
-        s, t = arb_poly_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t + s
+        u, v = arb_poly_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v + u
 
     def __sub__(s, t):
         if not isinstance(t, arb_poly):
-            s, t = arb_poly_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s - t
+            u, v = arb_poly_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u - v
         u = arb_poly.__new__(arb_poly)
         arb_poly_sub((<arb_poly>u).val, (<arb_poly>s).val, (<arb_poly>t).val, getprec())
         return u
 
     def __rsub__(s, t):
-        s, t = arb_poly_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t - s
+        u, v = arb_poly_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v - u
 
     def __mul__(s, t):
         if not isinstance(t, arb_poly):
-            s, t = arb_poly_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s * t
+            u, v = arb_poly_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u * v
         u = arb_poly.__new__(arb_poly)
         arb_poly_mul((<arb_poly>u).val, (<arb_poly>s).val, (<arb_poly>t).val, getprec())
         return u
 
     def __rmul__(s, t):
-        s, t = arb_poly_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t * s
+        u, v = arb_poly_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v * u
 
     def __floordiv__(s, t):
         if not isinstance(t, arb_poly):
-            s, t = arb_poly_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s // t
+            u, v = arb_poly_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u // v
         q = arb_poly.__new__(arb_poly)
         r = arb_poly.__new__(arb_poly)
         if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
-                (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
+                           (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
             return q
         else:
             raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")
 
     def __rfloordiv__(s, t):
-        s, t = arb_poly_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t // s
+        u, v = arb_poly_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v // u
 
     def __mod__(s, t):
         if not isinstance(t, arb_poly):
-            s, t = arb_poly_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return s % t
+            u, v = arb_poly_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return u % v
         q = arb_poly.__new__(arb_poly)
         r = arb_poly.__new__(arb_poly)
         if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
-                (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
+                           (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
             return r
         else:
             raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")
 
     def __rmod__(s, t):
-        s, t = arb_poly_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return t % s
+        u, v = arb_poly_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return v % u
 
     def __divmod__(s, t):
         if not isinstance(t, arb_poly):
-            s, t = arb_poly_coerce_operands(s, t)
-            if s is NotImplemented:
-                return s
-            return divmod(s, t)
+            u, v = arb_poly_coerce_operands(s, t)
+            if u is NotImplemented:
+                return u
+            return divmod(u, v)
         q = arb_poly.__new__(arb_poly)
         r = arb_poly.__new__(arb_poly)
         if arb_poly_divrem((<arb_poly>q).val, (<arb_poly>r).val,
-                (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
+                           (<arb_poly>s).val, (<arb_poly>t).val, getprec()):
             return q, r
         else:
             raise ZeroDivisionError("arb_poly leading coefficient must be nonzero")
 
     def __rdivmod__(s, t):
-        s, t = arb_poly_coerce_operands(s, t)
-        if s is NotImplemented:
-            return s
-        return divmod(t, s)
+        u, v = arb_poly_coerce_operands(s, t)
+        if u is NotImplemented:
+            return u
+        return divmod(v, u)
+
+    def truncate(self, slong n):
+        r"""
+        Notionally truncate the polynomial to have length ``n``. If
+        ``n`` is larger than the length of the input, then a copy of ``self`` is
+        returned. If ``n`` is not positive, then the zero polynomial
+        is returned.
+
+        Effectively returns this polynomial :math:`\mod x^n`.
+
+            >>> f = arb_poly([1,2,3])
+            >>> f.truncate(3)
+            3.00000000000000*x^2 + 2.00000000000000*x + 1.00000000000000
+            >>> f.truncate(2)
+            2.00000000000000*x + 1.00000000000000
+            >>> f.truncate(1)
+            1.00000000000000
+            >>> f.truncate(0)
+            0
+            >>> f.truncate(-1)
+            0
+
+        """
+        cdef arb_poly res
+        res = arb_poly.__new__(arb_poly)
+
+        length = arb_poly_length(self.val)
+        if n <= 0:  # return zero
+            return res
+        elif n > length:  # do nothing
+            arb_poly_set(res.val, self.val)
+        else:
+            arb_poly_set_trunc(res.val, self.val, n)
+
+        return res
+
+    def left_shift(self, slong n):
+        """
+        Returns ``self`` shifted left by ``n`` coefficients by inserting
+        zero coefficients. This is equivalent to multiplying the polynomial
+        by x^n
+
+            >>> f = arb_poly([1,2,3])
+            >>> f.left_shift(0)
+            3.00000000000000*x^2 + 2.00000000000000*x + 1.00000000000000
+            >>> f.left_shift(1)
+            3.00000000000000*x^3 + 2.00000000000000*x^2 + 1.00000000000000*x
+            >>> f.left_shift(4)
+            3.00000000000000*x^6 + 2.00000000000000*x^5 + 1.00000000000000*x^4
+
+        """
+        cdef arb_poly res
+        res = arb_poly.__new__(arb_poly)
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+        if n > 0:
+            arb_poly_shift_left(res.val, self.val, n)
+        else:  # do nothing, just copy self
+            arb_poly_set(res.val, self.val)
+
+        return res
+
+    def right_shift(self, slong n):
+        """
+        Returns ``self`` shifted right by ``n`` coefficients.
+        This is equivalent to the floor division of the polynomial
+        by x^n
+
+            >>> f = arb_poly([1,2,3])
+            >>> f.right_shift(0)
+            3.00000000000000*x^2 + 2.00000000000000*x + 1.00000000000000
+            >>> f.right_shift(1)
+            3.00000000000000*x + 2.00000000000000
+            >>> f.right_shift(4)
+            0
+        """
+        cdef arb_poly res
+        res = arb_poly.__new__(arb_poly)
+
+        if n < 0:
+            raise ValueError("Value must be shifted by a non-negative integer")
+        if n > 0:
+            arb_poly_shift_right(res.val, self.val, n)
+        else:  # do nothing, just copy self
+            arb_poly_set(res.val, self.val)
+
+        return res
 
     def __pow__(arb_poly s, ulong exp, mod):
         if mod is not None:
