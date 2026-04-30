@@ -111,7 +111,8 @@ fi
 
     # Patch needed for FLINT == 3.4.0
     # This is https://github.com/flintlib/flint/pull/2594
-    patch -N -Z -p1 < "$SCRIPT_DIR/patch-flint-emscripten-profiler.diff"
+    # Not needed as of FLINT 3.5.0
+    # patch -N -Z -p1 < "$SCRIPT_DIR/patch-flint-emscripten-profiler.diff"
 
     ./bootstrap.sh
 
