@@ -109,10 +109,10 @@ else
     cd flint
 fi
 
-    # Patch needed for FLINT == 3.4.0
-    # This is https://github.com/flintlib/flint/pull/2594
-    # Not needed as of FLINT 3.5.0
-    # patch -N -Z -p1 < "$SCRIPT_DIR/patch-flint-emscripten-profiler.diff"
+    # FLINT 3.4.0 needs this patch, while newer FLINT releases already have it.
+    if patch --dry-run -N -Z -p1 < "$SCRIPT_DIR/patch-flint-emscripten-profiler.diff" > /dev/null 2>&1; then
+        patch -N -Z -p1 < "$SCRIPT_DIR/patch-flint-emscripten-profiler.diff"
+    fi
 
     ./bootstrap.sh
 
