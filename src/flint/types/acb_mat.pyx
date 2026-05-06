@@ -838,7 +838,7 @@ cdef class acb_mat(flint_mat):
             from .acb_theta import acb_theta
         except ImportError:
             raise NotImplementedError("acb_mat.theta needs Flint >= 3.1.0")
-        return acb_theta(z, 2*tau, square=square)
+        return acb_theta(z, tau, square=square)
 
     def theta_jets(tau, z, ord, square=False):
         r"""
