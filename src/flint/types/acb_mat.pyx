@@ -840,7 +840,7 @@ cdef class acb_mat(flint_mat):
             raise NotImplementedError("acb_mat.theta needs Flint >= 3.1.0")
         return acb_theta(z, tau, square=square)
 
-    def theta_jets(tau, z, ord, square=False):
+    def theta_jets(tau, z, ord):
         r"""
         Computes Taylor approximation for the vector-valued Riemann theta function
         `(\theta_{a,b}(z, \tau) : a, b \in \{0,1\}^{g})` or its squares,
@@ -857,4 +857,4 @@ cdef class acb_mat(flint_mat):
             from .acb_theta import acb_theta_jets
         except ImportError:
             raise NotImplementedError("acb_mat.theta needs Flint >= 3.1.0")
-        return acb_theta_jets(z, tau, ord, square=square)
+        return acb_theta_jets(z, tau, ord)

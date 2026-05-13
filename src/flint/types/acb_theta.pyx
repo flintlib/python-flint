@@ -97,26 +97,48 @@ def acb_theta(acb_mat z, acb_mat tau, ulong square=False):
     return acb_mat([res])
 
 
-def acb_theta_jets(acb_mat z, acb_mat tau, slong ord, ulong square=False):
+def acb_theta_jets(acb_mat z, acb_mat tau, slong ord):
     r"""
-    Corrected wrapper for acb_theta_jet to handle multivariate Taylor expansions.
+    Computes the coefficients of the Taylor expansion of the vector valued Riemann 
+    theta function `(\theta_{a,b}(z, \tau) : a, b \in \{0,1\}^{g})` or its squares.
+
+    This is a wrapper for the C-function
+    `acb_theta_jet <https://flintlib.org/doc/acb_theta.html#c.acb_theta_jet>`_
+    and it follows the same conventions for the ordering of the theta characteristics.
+
+    This should be used via the method :meth:`.acb_mat.theta_jets`, explicitly ``tau.theta_jets(z, ord)``.
+
+        >>> from flint import acb, acb_mat, showgood, ctx
+        >>> z = acb(1+1j); tau = acb(1.25+3j)
+        >>> acb_mat([[tau]]).theta_jets(acb_mat([[z]]),2)  # doctest: +SKIP
+        [[0.969443038779670 +/- 5.67e-16] + [-0.0305569612081680 +/- 5.13e-17]j, 
+        [-0.191993710594950 +/- 4.89e-16] + [0.191993710747776 +/- 7.42e-16]j,   
+        [0.60317023860834 +/- 2.93e-15] + [0.60317023764810 +/- 4.86e-15]j]
+        [[1.03055696119601 +/- 3.89e-15] + [0.0305569612081680 +/- 5.13e-17]j, 
+        [0.191993710594950 +/- 4.89e-16] + [-0.191993710442123 +/- 4.62e-16]j, 
+        [-0.60317023668787 +/- 5.90e-15] + [-0.60317023764810 +/- 4.86e-15]j]
+        [[-1.22079026757697 +/- 4.36e-15] + [-1.82705551679115 +/- 5.17e-15]j,   
+        [-5.71849316258739 +/- 7.02e-15] + [3.82088827346268 +/- 5.75e-15]j,     
+        [6.0241074288587 +/- 3.88e-14] + [9.0163253443780 +/- 2.05e-14]j]
+        [[-1.82023591012499 +/- 2.67e-15] + [1.21625195015448 +/- 4.14e-15]j,     
+        [3.8353056542516 +/- 4.99e-14] + [5.73981078971270 +/- 6.74e-15]j,    
+        [8.9823364151977 +/- 2.44e-14] + [-6.0022138700195 +/- 3.72e-14]j]
     """
     g = tau.nrows()
     if g == 0:
         return []
 
-    # 1. Calculate the length of the jet for one characteristic
+    # Calculate the length of the jet for one characteristic
     # This is the number of multi-indices (alpha) such that |alpha| < ord
     cdef slong nj = acb_theta_jet_nb(g, ord)
     
-    # 2. Total number of characteristics
+    # Total number of characteristics
     cdef slong nb = 1 << (2 * g)
     
-    # 3. Total number of acb elements to allocate
+    # Total number of acb elements to allocate
     # FLINT stores nj coefficients for each of the nb characteristics
     cdef slong total_size = nb * nj
 
-    # Convert input z to acb_ptr
     cdef acb_ptr zvec = _acb_vec_init(g)
     cdef slong i, j
     for i in range(g):
@@ -126,6 +148,7 @@ def acb_theta_jets(acb_mat z, acb_mat tau, slong ord, ulong square=False):
     cdef slong nb_in = 1  # Number of input z vectors
     cdef ulong ab = 0     # Base characteristic
     cdef ulong all = True # Compute all 2^2g characteristics
+    cdef ulong square = False # Don't compute the squares of the thetas.
 
     # Initialize the output buffer
     cdef acb_ptr theta = _acb_vec_init(total_size)
@@ -134,7 +157,7 @@ def acb_theta_jets(acb_mat z, acb_mat tau, slong ord, ulong square=False):
     # Note: Computes all partial derivatives up to total order 'ord'
     acb_theta_jet(theta, zvec, nb_in, tau.val, ord, ab, all, square, getprec())
 
-    # 4. Copy the output into a structured format
+    # Copy the output into a structured format
     # We return a list of lists: res[char_idx] = [coeff_0, coeff_1, ...]
     res = []
     cdef acb r
@@ -151,50 +174,4 @@ def acb_theta_jets(acb_mat z, acb_mat tau, slong ord, ulong square=False):
     _acb_vec_clear(zvec, g)
     _acb_vec_clear(theta, total_size)
 
-    return res
-
-
-#def acb_theta_jet(acb_mat z, acb_mat tau, slong ord, ulong square=False):
-    #    r"""
-    #    Computes derivatives of the vector valued Riemann theta function
-    #    `(\theta_{a,b}(z, \tau) : a, b \in \{0,1\}^{g})` or its squares.
-    #
-    #    This is a wrapper for the C-function
-    #    `acb_theta_jet <https://flintlib.org/doc/acb_theta.html#c.acb_theta_jet>`_
-    #    and it follows the same conventions for the ordering of the theta characteristics.
-    #
-    #    This should be used via the method :meth:`.acb_mat.theta`, explicitly ``tau.theta(z)``.
-    #    """
-    #    g = tau.nrows()
-    #    assert tau.ncols() == g
-    #    assert z.nrows() == g
-    #    assert z.ncols() == 1
-    #
-    #    # convert input
-    #    cdef acb_ptr zvec
-    #    zvec = _acb_vec_init(g)
-    #    cdef long i
-    #    for i in range(g):
-    #        acb_set(zvec + i, acb_mat_entry(z.val, i, 0))
-    #    cdef slong nb_in = 1 
-    #    cdef ulong ab = 0 
-    #    cdef ulong all = True
-    #
-    #    # initialize the output
-    #    cdef slong nb = 1 << (2 * g)
-    #    # 1. Calculate the length of the jet for one characteristic
-    #    # This is the number of multi-indices (alpha) such that |alpha| < ord
-    #    cdef slong nj = acb_theta_jet_len(g, ord)
-    #    cdef acb_ptr theta = _acb_vec_init(nb)
-    #
-    #    acb_theta_jet(theta, zvec, nb_in, tau.val, ord, ab, all, square, getprec())
-    #    _acb_vec_clear(zvec, g)
-    #    # copy the output
-    #    res = []
-    #    cdef acb r
-    #    for i in range(nb):
-    #        r = acb.__new__(acb)
-    #        acb_set(r.val, theta + i)
-    #        res.append(r)
-    #    _acb_vec_clear(theta, nb)
-    #    return acb_mat([res])
+    return acb_mat(res)
