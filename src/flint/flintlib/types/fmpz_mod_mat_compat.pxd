@@ -3,6 +3,9 @@ from flint.flintlib.types.fmpz_mod cimport fmpz_mod_ctx_t, fmpz_mod_mat_t, fmpz_
 
 cdef extern from *:
     """
+    #include <flint/fmpz_mod.h>
+    #include <flint/fmpz_mod_poly.h>
+
     /*
      * fmpz_mod_mat function signatures were changed in FLINT 3.1.0
      */
@@ -28,6 +31,7 @@ cdef extern from *:
     #define compat_fmpz_mod_mat_transpose(B, A, ctx) fmpz_mod_mat_transpose(B, A, ctx)
     #define compat_fmpz_mod_mat_solve(X, A, B, ctx) fmpz_mod_mat_solve(X, A, B, ctx)
     #define compat_fmpz_mod_mat_rref(mat, ctx) fmpz_mod_mat_rref(mat, mat, ctx)
+    #define compat_fmpz_mod_mat_det(res, mat, ctx) fmpz_mod_mat_det(res, mat, ctx)
     #define compat_fmpz_mod_mat_charpoly(p, M, ctx) fmpz_mod_mat_charpoly(p, M, ctx)
     #define compat_fmpz_mod_mat_minpoly(p, M, ctx) fmpz_mod_mat_minpoly(p, M, ctx)
 
@@ -53,8 +57,25 @@ cdef extern from *:
     #define compat_fmpz_mod_mat_transpose(B, A, ctx) fmpz_mod_mat_transpose(B, A)
     #define compat_fmpz_mod_mat_solve(X, A, B, ctx) fmpz_mod_mat_solve(X, A, B)
     #define compat_fmpz_mod_mat_rref(mat, ctx) fmpz_mod_mat_rref(NULL, mat)
+    #define compat_fmpz_mod_mat_det(res, mat, ctx) compat_fmpz_mod_mat_det_fallback(res, mat, ctx)
     #define compat_fmpz_mod_mat_charpoly(p, M, ctx) fmpz_mod_mat_charpoly(p, M, ctx)
     #define compat_fmpz_mod_mat_minpoly(p, M, ctx) fmpz_mod_mat_minpoly(p, M, ctx)
+
+    /* fmpz_mod_mat_det was added in FLINT 3.1.0 */
+    static inline void
+    compat_fmpz_mod_mat_det_fallback(fmpz_t res, const fmpz_mod_mat_t mat, const fmpz_mod_ctx_t ctx)
+    {
+        fmpz_mod_poly_t p;
+
+        fmpz_mod_poly_init(p, ctx);
+        fmpz_mod_mat_charpoly(p, mat, ctx);
+        fmpz_mod_poly_get_coeff_fmpz(res, p, 0, ctx);
+
+        if (fmpz_mod_mat_nrows(mat) % 2)
+            fmpz_mod_neg(res, res, ctx);
+
+        fmpz_mod_poly_clear(p, ctx);
+    }
 
     #endif
     """
@@ -81,6 +102,7 @@ cdef extern from "flint/fmpz_mod_mat.h":
     void compat_fmpz_mod_mat_transpose(fmpz_mod_mat_t B, const fmpz_mod_mat_t A, const fmpz_mod_ctx_t ctx)
     int compat_fmpz_mod_mat_solve(fmpz_mod_mat_t X, const fmpz_mod_mat_t A, const fmpz_mod_mat_t B, const fmpz_mod_ctx_t ctx)
     slong compat_fmpz_mod_mat_rref(fmpz_mod_mat_t mat, const fmpz_mod_ctx_t ctx)
+    void compat_fmpz_mod_mat_det(fmpz_t res, const fmpz_mod_mat_t mat, const fmpz_mod_ctx_t ctx)
     void compat_fmpz_mod_mat_charpoly(fmpz_mod_poly_t p, const fmpz_mod_mat_t M, const fmpz_mod_ctx_t ctx)
     void compat_fmpz_mod_mat_minpoly(fmpz_mod_poly_t p, const fmpz_mod_mat_t M, const fmpz_mod_ctx_t ctx)
     #

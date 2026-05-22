@@ -28,6 +28,7 @@ from flint.flintlib.types.fmpz_mod_mat_compat cimport (
     compat_fmpz_mod_mat_transpose,
     compat_fmpz_mod_mat_solve,
     compat_fmpz_mod_mat_rref,
+    compat_fmpz_mod_mat_det,
     compat_fmpz_mod_mat_charpoly,
     compat_fmpz_mod_mat_minpoly,
 )
@@ -501,12 +502,13 @@ cdef class fmpz_mod_mat(flint_mat):
         fmpz_mod(5, 7)
 
         """
-        # XXX: No fmpz_mod_mat_det function...
-        p = self.charpoly()
-        p0 = p[0]
-        if self.nrows() % 2:
-            p0 = -p0
-        return p0
+        cdef fmpz_mod d
+        if self.nrows() != self.ncols():
+            raise ValueError("fmpz_mod_mat det: matrix must be square")
+        d = fmpz_mod.__new__(fmpz_mod)
+        d.ctx = self.ctx
+        compat_fmpz_mod_mat_det(d.val, self.val, self.ctx.val)
+        return d
 
     def charpoly(self):
         """Return the characteristic polynomial of a matrix.
