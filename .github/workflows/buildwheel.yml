@@ -81,13 +81,13 @@ jobs:
         # -------------- Windows stuff ---------------- #
 
       - if: ${{ matrix.os == 'windows-2022' }}
-        uses: msys2/setup-msys2@cafece8e6baf9247cf9b1bf95097b0b983cc558d # v2.31.0
+        uses: msys2/setup-msys2@e9898307ac31d1a803454791be09ab9973336e1c # v2.31.1
         with:
           msystem: ucrt64
           update: true
 
       - if: ${{ matrix.os == 'windows-11-arm' }}
-        uses: msys2/setup-msys2@cafece8e6baf9247cf9b1bf95097b0b983cc558d # v2.31.0
+        uses: msys2/setup-msys2@e9898307ac31d1a803454791be09ab9973336e1c # v2.31.1
         with:
           msystem: clangarm64
           update: true
@@ -128,7 +128,7 @@ jobs:
         # ------------- actual build ------------- #
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@ee02a1537ce3071a004a6b08c41e72f0fdc42d9a # v3.4.0
+        uses: pypa/cibuildwheel@8d2b08b68458a16aeb24b64e68a09ab1c8e82084 # v3.4.1
         env:
           CIBW_PLATFORM: ${{ matrix.cibw_platform }}
           CIBW_BUILD: ${{ matrix.kind == 'pyodide' && env.PYODIDE_CIBW_BUILD || matrix.cibw_build }}
@@ -136,7 +136,7 @@ jobs:
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: ${{ matrix.os == 'windows-11-arm' && 'msys2 -c bin/cibw_before_all_windows_arm64.sh' || 'msys2 -c bin/cibw_before_all_windows_amd64.sh' }}
 
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ matrix.artifact_name }}
           path: wheelhouse/*.whl
@@ -158,7 +158,7 @@ jobs:
       - run: pip install build
       - run: python -m build --sdist
 
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: sdist
           path: dist/*.tar.gz
@@ -220,7 +220,7 @@ jobs:
         with:
           python-version: ${{ env.PYODIDE_PYTHON_VERSION }}
 
-      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: '22'
 
@@ -454,7 +454,7 @@ jobs:
         run: mkdir dist && cp wheelhouse/*.whl dist
 
       - name: Upload wheels
-        uses: scientific-python/upload-nightly-action@5748273c71e2d8d3a61f3a11a16421c8954f9ecf # 0.6.3
+        uses: scientific-python/upload-nightly-action@e76cfec8a4611fd02808a801b0ff5a7d7c1b2d99 # 0.6.4
         with:
           artifacts_path: dist
           # This token is generated from anaconda.org
@@ -494,7 +494,7 @@ jobs:
         # It is recommended to pin a commit hash here for security but it
         # should be kept up to date. Possibly all actions and dependencies used
         # by the build script should be pinned...
-        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e  # v1.13.0
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b  # v1.14.0
 
   # Make a GitHub release
 
