@@ -168,4 +168,3 @@ def acb_theta_jets(acb_mat z, acb_mat tau, slong ord):
     _acb_vec_clear(theta, total_size)
 
     return res_mat
-
