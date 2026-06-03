@@ -4004,21 +4004,30 @@ def test_fmpz_mpoly_vec():
             assert vec.buchberger_naive() == mpoly_vec([x**2 - y, x**3 * y - x, x * y**2 - x, y**3 - y], ctx)
             assert vec.buchberger_naive(limits=(2, 2, 512)) == (mpoly_vec([x**2 - y, x**3 * y - x], ctx), False)
 
-            unreduced_basis = mpoly_vec([x**2 - 2, y**2 - 3, z - x - y], ctx).buchberger_naive()
-            assert list(unreduced_basis) == [
+            # buchberger_naive output changed in FLINT 3.6.0
+            unreduced = [
                 x**2 - 2,
                 y**2 - 3,
                 x + y - z,
                 2*y*z - z**2 - 1,
                 2*y + z**3 - 11*z,
-                z**4 - 10*z**2 + 1
+                z**4 - 10*z**2 + 1,
             ]
+            reduced = [
+                x + y - z,
+                2*y + z**3 - 11*z,
+                z**4 - 10*z**2 + 1,
+            ]
+            unreduced_basis = mpoly_vec([x**2 - 2, y**2 - 3, z - x - y], ctx).buchberger_naive()
+            assert list(unreduced_basis) in [reduced, unreduced]
 
-            assert list(unreduced_basis.autoreduction()) == [
-                z**4 - 10 * z**2 + 1,
+            reduced = [
+                2 * x - z**3 + 9 * z,
                 2*y + z**3 - 11 * z,
-                2 * x - z**3 + 9 * z
+                z**4 - 10 * z**2 + 1,
             ]
+            reduced_old = reduced[::-1]
+            assert list(unreduced_basis.autoreduction()) in [reduced, reduced_old]
 
 
 def _all_polys_mpolys():
