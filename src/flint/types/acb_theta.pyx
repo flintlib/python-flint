@@ -126,7 +126,7 @@ def acb_theta_jets(acb_mat z, acb_mat tau, slong ord):
     """
     g = tau.nrows()
     if g == 0:
-        return []
+        return acb_mat(0,0)
 
     # Calculate the length of the jet for one characteristic
     # This is the number of multi-indices (alpha) such that |alpha| < ord
@@ -157,21 +157,14 @@ def acb_theta_jets(acb_mat z, acb_mat tau, slong ord):
     # Note: Computes all partial derivatives up to total order 'ord'
     acb_theta_jet(theta, zvec, nb_in, tau.val, ord, ab, all, square, getprec())
 
-    # Copy the output into a structured format
-    # We return a list of lists: res[char_idx] = [coeff_0, coeff_1, ...]
-    res = []
-    cdef acb r
+   # Copy the output into a structured format
+    res_mat = acb_mat(nb, nj)
     for i in range(nb):
-        char_jet = []
         for j in range(nj):
-            r = acb.__new__(acb)
-            # Offset: characteristic index * length of one jet + coefficient index
-            acb_set(r.val, theta + (i * nj + j))
-            char_jet.append(r)
-        res.append(char_jet)
+            acb_set(acb_mat_entry(res_mat.val, i, j), theta + (i * nj + j)) 
 
     # Cleanup
     _acb_vec_clear(zvec, g)
     _acb_vec_clear(theta, total_size)
 
-    return acb_mat(res)
+    return res_mat

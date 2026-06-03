@@ -47,20 +47,18 @@ def test_acb_theta_shape_assertions() -> None:
     assert raises(lambda: acb_theta(z, object()), TypeError)  # type: ignore[arg-type]
 
 def test_acb_theta_jets_basic() -> None:
-  if not _has_acb_theta():
-      return
+    if not _has_acb_theta():
+        return
 
-  from flint.types.acb_theta import acb_theta_jets
+    from flint.types.acb_theta import acb_theta_jets
+    z = acb(1 + 1j)
+    tau = acb(1.25 + 3j)
+    zmat = acb_mat([[z]])
+    taumat = acb_mat([[tau]])
+    ord = 2
 
-  z = acb(1 + 1j)
-  tau = acb(1.25 + 3j)
-  zmat = acb_mat([[z]])
-  taumat = acb_mat([[tau]])
-  ord = 2
-
-  direct = acb_theta_jets(zmat, taumat, ord)
-  via_method = taumat.theta_jets(zmat, ord)
-  assert is_close(direct, via_method, tol=1e-12, rel_tol=1e-12, max_width=1e-12)
-  assert direct.nrows() == 4
-  assert direct.ncols() == 3
-
+    direct = acb_theta_jets(zmat, taumat, ord)
+    via_method = taumat.theta_jets(zmat, ord)
+    assert is_close(direct, via_method, tol=1e-12, rel_tol=1e-12, max_width=1e-12)
+    assert direct.nrows() == 4
+    assert direct.ncols() == 3
