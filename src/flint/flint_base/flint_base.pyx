@@ -981,7 +981,7 @@ cdef class flint_mpoly(flint_elem):
             5*a
         """
         cdef:
-            slong *c_mapping
+            slong *c_mapping = NULL
             slong i
 
         ctx = self.context()
@@ -1001,7 +1001,7 @@ cdef class flint_mpoly(flint_elem):
             }
 
         try:
-            c_mapping = <slong *> libc.stdlib.malloc(ctx.nvars() * sizeof(slong *))
+            c_mapping = <slong *> libc.stdlib.malloc(ctx.nvars() * sizeof(slong))
             if c_mapping is NULL:
                 raise MemoryError("malloc returned a null pointer")
 

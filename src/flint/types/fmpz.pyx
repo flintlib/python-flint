@@ -13,6 +13,9 @@ from flint.flintlib.functions.arith cimport *
 from flint.flintlib.functions.partitions cimport *
 
 from flint.utils.flint_exceptions import DomainError
+import sys
+
+is_big_endian = int(sys.byteorder == "big")
 
 cdef fmpz_get_intlong(fmpz_t x):
     """
