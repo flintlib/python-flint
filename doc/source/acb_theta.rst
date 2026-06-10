@@ -3,3 +3,5 @@
 
 .. autofunction :: flint.types.acb_theta.acb_theta
 
+.. autofunction :: flint.types.acb_theta.acb_theta_jets
+
