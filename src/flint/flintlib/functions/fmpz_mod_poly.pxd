@@ -78,6 +78,8 @@ cdef extern from "flint/fmpz_mod_poly.h":
     void fmpz_mod_poly_mul(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly1, const fmpz_mod_poly_t poly2, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_poly_mullow(fmpz_struct * res, const fmpz_struct * poly1, slong len1, const fmpz_struct * poly2, slong len2, slong n, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_mullow(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly1, const fmpz_mod_poly_t poly2, slong n, const fmpz_mod_ctx_t ctx)
+    void _fmpz_mod_poly_mulmid(fmpz_struct * res, const fmpz_struct * poly1, slong len1, const fmpz_struct * poly2, slong len2, slong nlo, slong nhi, const fmpz_mod_ctx_t ctx)
+    void fmpz_mod_poly_mulmid(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly1, const fmpz_mod_poly_t poly2, slong nlo, slong nhi, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_poly_sqr(fmpz_struct * res, const fmpz_struct * poly, slong len, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_sqr(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly, const fmpz_mod_ctx_t ctx)
     void fmpz_mod_poly_mulhigh(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly1, const fmpz_mod_poly_t poly2, slong start, const fmpz_mod_ctx_t ctx)

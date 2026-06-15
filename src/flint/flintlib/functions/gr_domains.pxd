@@ -4,6 +4,7 @@ from flint.flintlib.types.fmpz cimport fmpz_poly_t
 from flint.flintlib.types.gr cimport gr_ctx_t, truth_t
 from flint.flintlib.types.mpoly cimport ordering_t
 
+# unknown type ore_algebra_t
 
 
 cdef extern from "flint/gr.h":
@@ -22,6 +23,7 @@ cdef extern from "flint/gr.h":
     truth_t gr_ctx_is_finite_characteristic(gr_ctx_t ctx)
     truth_t gr_ctx_is_ordered_ring(gr_ctx_t ctx)
     truth_t gr_ctx_is_zero_ring(gr_ctx_t ctx)
+    truth_t gr_ctx_is_approx_commutative_ring(gr_ctx_t ctx)
     truth_t gr_ctx_is_exact(gr_ctx_t ctx)
     truth_t gr_ctx_is_canonical(gr_ctx_t ctx)
     truth_t gr_ctx_has_real_prec(gr_ctx_t ctx)
@@ -32,13 +34,12 @@ cdef extern from "flint/gr.h":
     void gr_ctx_init_psl2z(gr_ctx_t ctx)
     int gr_ctx_init_dirichlet_group(gr_ctx_t ctx, ulong q)
     void gr_ctx_init_random(gr_ctx_t ctx, flint_rand_t state)
+    void gr_ctx_init_random_commutative_ring(gr_ctx_t ctx, flint_rand_t state)
+    void gr_ctx_init_random_field(gr_ctx_t ctx, flint_rand_t state)
     void gr_ctx_init_fmpz(gr_ctx_t ctx)
     void gr_ctx_init_fmpq(gr_ctx_t ctx)
     void gr_ctx_init_fmpzi(gr_ctx_t ctx)
     int gr_ctx_set_is_field(gr_ctx_t ctx, truth_t is_field)
-    void gr_ctx_init_nmod(gr_ctx_t ctx, ulong n)
-    void gr_ctx_init_nmod8(gr_ctx_t ctx, unsigned char n)
-    void gr_ctx_init_nmod32(gr_ctx_t ctx, unsigned int n)
     void gr_ctx_init_fmpz_mod(gr_ctx_t ctx, const fmpz_t n)
     void gr_ctx_init_fq(gr_ctx_t ctx, const fmpz_t p, slong d, const char * var)
     void gr_ctx_init_fq_nmod(gr_ctx_t ctx, ulong p, slong d, const char * var)
@@ -58,6 +59,7 @@ cdef extern from "flint/gr.h":
     void gr_ctx_init_complex_algebraic_ca(gr_ctx_t ctx)
     void gr_ctx_ca_set_option(gr_ctx_t ctx, slong option, slong value)
     slong gr_ctx_ca_get_option(gr_ctx_t ctx, slong option)
+    void gr_ctx_init_gr_complex(gr_ctx_t ctx, gr_ctx_t real_ctx)
     void gr_ctx_init_complex_extended_ca(gr_ctx_t ctx)
     void gr_ctx_init_real_float_arf(gr_ctx_t ctx, slong prec)
     void gr_ctx_init_complex_float_acf(gr_ctx_t ctx, slong prec)
@@ -69,8 +71,13 @@ cdef extern from "flint/gr.h":
     void gr_ctx_init_fmpz_poly(gr_ctx_t ctx)
     void gr_ctx_init_fmpq_poly(gr_ctx_t ctx)
     void gr_ctx_init_gr_poly(gr_ctx_t ctx, gr_ctx_t base_ring)
+    void gr_ctx_init_random_poly(gr_ctx_t ctx, flint_rand_t state)
     void gr_ctx_init_fmpz_mpoly(gr_ctx_t ctx, slong nvars, const ordering_t ord)
+    void gr_ctx_init_fmpq_mpoly(gr_ctx_t ctx, slong nvars, const ordering_t ord)
     void gr_ctx_init_gr_mpoly(gr_ctx_t ctx, gr_ctx_t base_ring, slong nvars, const ordering_t ord)
+    void gr_ctx_init_random_mpoly(gr_ctx_t ctx, flint_rand_t state)
+    # void gr_ctx_init_gr_ore_poly(gr_ctx_t ctx, gr_ctx_t base_ring, slong base_var, const ore_algebra_t which_algebra)
+    void gr_ctx_init_random_series(gr_ctx_t ctx, flint_rand_t state)
     void gr_ctx_init_gr_fraction(gr_ctx_t ctx, gr_ctx_t domain, int flags)
     void gr_ctx_init_fmpz_mpoly_q(gr_ctx_t ctx, slong nvars, const ordering_t ord)
     void gr_ctx_init_fmpz_mod_mpoly_q(gr_ctx_t ctx, slong nvars, const ordering_t ord, const fmpz_t mod)
