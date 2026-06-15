@@ -12,10 +12,10 @@ permissions:
 env:
   # These four values need to be kept in sync. Each pyodide version pins an
   # emscripten version and a CPython version.
-  PYODIDE_VERSION: '0.29.3'
-  PYODIDE_EMSCRIPTEN_VERSION: '4.0.9'
-  PYODIDE_PYTHON_VERSION: '3.13'
-  PYODIDE_CIBW_BUILD: 'cp313-*'
+  PYODIDE_VERSION: '314.0.0'
+  PYODIDE_EMSCRIPTEN_VERSION: '5.0.3'
+  PYODIDE_PYTHON_VERSION: '3.14'
+  PYODIDE_CIBW_BUILD: 'cp314-*'
 
 jobs:
   build_wheels:
@@ -128,7 +128,7 @@ jobs:
         # ------------- actual build ------------- #
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@8d2b08b68458a16aeb24b64e68a09ab1c8e82084 # v3.4.1
+        uses: pypa/cibuildwheel@294735312765b09d24a2fbec22660ce817587d55 # v4.1.0
         env:
           CIBW_PLATFORM: ${{ matrix.cibw_platform }}
           CIBW_BUILD: ${{ matrix.kind == 'pyodide' && env.PYODIDE_CIBW_BUILD || matrix.cibw_build }}
@@ -490,10 +490,8 @@ jobs:
           merge-multiple: true
 
       - name: Copy the PyPI files into dist
-        # pyodide wheels cannot be uploaded to PyPI
         run: |
           mkdir dist
-          rm wheelhouse/*pyodide*.whl
           cp wheelhouse/*.whl wheelhouse/*.tar.gz dist
 
       - name: Publish package on PyPI
