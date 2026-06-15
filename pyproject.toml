@@ -100,7 +100,6 @@ enable = [
     # Uncomment this to test beta versions of CPython in CI (but comment out
     # again if releasing while CPython is in beta):
     # "cpython-prerelease",
-    "cpython-freethreading",
     "pypy",
 ]
 
