@@ -1815,7 +1815,7 @@ cdef class gr(flint_scalar):
             raise NotImplementedError("Cannot compare gr with >=")
             # res = self._ge(other_gr)
         else:
-            assert False, "Invalid rich comparison operator"
+            raise RuntimeError("Invalid rich comparison operator")
 
         return truth_to_py(res)
 

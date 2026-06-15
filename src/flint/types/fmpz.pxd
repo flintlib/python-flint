@@ -4,12 +4,11 @@ from flint.utils.conversion cimport chars_from_str
 from flint.flintlib.types.flint cimport slong, ulong, pylong_as_slong
 from flint.flintlib.types.flint cimport PyObject
 from flint.flintlib.functions.fmpz cimport fmpz_t, fmpz_set_si, fmpz_set_signed_ui_array
-import sys
 
 cdef int fmpz_set_any_ref(fmpz_t x, obj)
 cdef fmpz_get_intlong(fmpz_t x)
 
-cdef int is_big_endian = int(sys.byteorder == "big")
+cdef int is_big_endian
 
 cdef inline ulong ulong_from_little_endian(unsigned char *ptr):
     # Read a ulong from little-endian bytes
