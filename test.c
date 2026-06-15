@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     err = gr_gens(gens, ctx_mpoly);
     if(err != GR_SUCCESS) {
         printf("Cannot get generators\n");
-        return 0;
+        return 1;
     }
     err |= gr_set(x, gr_vec_entry_ptr(gens, 0, ctx_mpoly), ctx_mpoly);
     err |= gr_set(y, gr_vec_entry_ptr(gens, 1, ctx_mpoly), ctx_mpoly);
