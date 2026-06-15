@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     err = gr_ctx_set_gen_names(ctx_mpoly, names);
     if(err != GR_SUCCESS) {
         printf("Cannot set generator names\n");
-        return 0;
+        return 1;
     }
 
     GR_TMP_INIT4(x, y, r1, r2, ctx_mpoly);
