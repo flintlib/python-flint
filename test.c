@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
     if(err != GR_SUCCESS) {
         printf("Arithmetic failed\n");
-        return 0;
+        return 1;
     }
 
     err = gr_get_str(&pretty, r2, ctx_mpoly);
