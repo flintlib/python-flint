@@ -32,6 +32,14 @@ cdef extern from *:
     """
 
 
+# XXX: This is needed with FLINT 3.5.0 because we need to ensure that
+# fmpq_poly.h is included before gr.h or gr_ctx_init_nf and
+# gr_ctx_init_nf_fmpz_poly will not be included. The order of header includes
+# affects which symbols are seen by the compiler.
+cdef extern from "flint/fmpq_poly.h":
+    pass
+
+
 cdef extern from "flint/gr.h":
 
     ctypedef int truth_t
