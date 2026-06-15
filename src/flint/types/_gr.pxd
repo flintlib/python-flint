@@ -18,6 +18,9 @@ from flint.flintlib.types.mpoly cimport (
 from flint.flintlib.functions.ulong_extras cimport (
     n_is_prime,
 )
+from flint.flintlib.functions.nmod cimport (
+    gr_ctx_init_nmod,
+)
 from flint.flintlib.functions.fmpz cimport (
     fmpz_init_set,
 )
@@ -55,7 +58,6 @@ from flint.flintlib.functions.gr_domains cimport (
     gr_ctx_init_fmpzi,
     gr_ctx_init_fexpr,
 
-    gr_ctx_init_nmod,
     gr_ctx_init_fmpz_mod,
     # gr_ctx_set_is_field,
 
