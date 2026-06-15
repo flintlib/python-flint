@@ -10,12 +10,12 @@ permissions:
   contents: read
 
 env:
-  # These four values need to be kept in sync. Each pyodide version pins an
-  # emscripten version and a CPython version.
-  PYODIDE_VERSION: '0.29.3'
-  PYODIDE_EMSCRIPTEN_VERSION: '4.0.9'
-  PYODIDE_PYTHON_VERSION: '3.13'
-  PYODIDE_CIBW_BUILD: 'cp313-*'
+  # These values need to be kept in sync. Each Pyodide version pins an
+  # Emscripten version and a CPython version.
+  PYODIDE_VERSION: '314.0.0'
+  PYODIDE_EMSCRIPTEN_VERSION: '5.0.3'
+  PYODIDE_PYTHON_VERSION: '3.14'
+  PYODIDE_CIBW_BUILD: 'cp314-*'
 
 jobs:
   build_wheels:
@@ -114,21 +114,10 @@ jobs:
           version: ${{ env.PYODIDE_EMSCRIPTEN_VERSION }}
           actions-cache-folder: emsdk-cache
 
-      - if: ${{ matrix.kind == 'pyodide' }}
-        name: Check out Emscripten patches for Pyodide
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          repository: pyodide/pyodide
-          ref: ${{ env.PYODIDE_VERSION }}
-          path: pyodide-patches
-          sparse-checkout: |
-            emsdk/patches/
-          persist-credentials: false
-
         # ------------- actual build ------------- #
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@8d2b08b68458a16aeb24b64e68a09ab1c8e82084 # v3.4.1
+        uses: pypa/cibuildwheel@294735312765b09d24a2fbec22660ce817587d55 # v4.1.0
         env:
           CIBW_PLATFORM: ${{ matrix.cibw_platform }}
           CIBW_BUILD: ${{ matrix.kind == 'pyodide' && env.PYODIDE_CIBW_BUILD || matrix.cibw_build }}
@@ -183,7 +172,7 @@ jobs:
           macos-15,
           ]
         # This list to be kept in sync with python-requires in pyproject.toml.
-        python-version: ['3.11', '3.12', '3.13', '3.13t', '3.14', '3.14t', 'pypy3.11']
+        python-version: ['3.11', '3.12', '3.13', '3.14', '3.14t', 'pypy3.11']
         exclude:
           - os: windows-11-arm
             python-version: pypy3.11
@@ -490,10 +479,8 @@ jobs:
           merge-multiple: true
 
       - name: Copy the PyPI files into dist
-        # pyodide wheels cannot be uploaded to PyPI
         run: |
           mkdir dist
-          rm wheelhouse/*pyodide*.whl
           cp wheelhouse/*.whl wheelhouse/*.tar.gz dist
 
       - name: Publish package on PyPI

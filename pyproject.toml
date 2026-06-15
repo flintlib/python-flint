@@ -32,7 +32,7 @@ content-type = "text/markdown"
 # Minimum build requirements tested in CI need to be kept in sync with the
 # versions in requires below so that they are tested.
 #
-# To support the freethreaded build (CPython 3.13t) version 3.1.0 of Cython is
+# To support the freethreaded build (CPython 3.14t) version 3.1.0 of Cython is
 # needed as a minimum requirement. It is possible that future versions of
 # Cython might still work but typically a Cython release breaks something in
 # the build of python-flint so we include an upper bound here.
@@ -100,7 +100,6 @@ enable = [
     # Uncomment this to test beta versions of CPython in CI (but comment out
     # again if releasing while CPython is in beta):
     # "cpython-prerelease",
-    "cpython-freethreading",
     "pypy",
 ]
 
