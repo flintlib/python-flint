@@ -105,15 +105,6 @@ jobs:
           $pkgConfigPath = $pkgConfigPath.Replace('\', '/')
           echo "PKG_CONFIG_PATH=$pkgConfigPath" >> $env:GITHUB_ENV
 
-        # ------------- pyodide ------------- #
-
-      - if: ${{ matrix.kind == 'pyodide' }}
-        name: Set up Emscripten toolchain
-        uses: pyodide/setup-emsdk@ca2dd8aef8c2a0e11743c5c36f0b430ddb694b5c # v15
-        with:
-          version: ${{ env.PYODIDE_EMSCRIPTEN_VERSION }}
-          actions-cache-folder: emsdk-cache
-
         # ------------- actual build ------------- #
 
       - name: Build wheels
@@ -211,7 +202,7 @@ jobs:
 
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '22'
+          node-version: '24'
 
       - run: pip install pyodide-build
       - run: pyodide xbuildenv install "$PYODIDE_VERSION"
