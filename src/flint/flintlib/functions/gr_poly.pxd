@@ -5,6 +5,7 @@ from flint.flintlib.types.gr cimport gr_ctx_t, gr_mat_t, gr_poly_t, gr_ptr, gr_s
 
 # unknown type gr_method_poly_binary_binary_op
 # unknown type gr_method_poly_binary_op
+# unknown type gr_method_poly_binary_trunc2_op
 # unknown type gr_method_poly_binary_trunc_op
 # unknown type gr_method_poly_gcd_op
 # unknown type gr_method_poly_unary_trunc_op
@@ -37,7 +38,7 @@ cdef extern from "flint/gr_poly.h":
     int gr_poly_gen(gr_poly_t poly, gr_ctx_t ctx)
     int gr_poly_write(gr_stream_t out, const gr_poly_t poly, const char * x, gr_ctx_t ctx)
     int _gr_poly_write(gr_stream_t out, gr_srcptr poly, slong n, const char * x, gr_ctx_t ctx)
-    int _gr_poly_get_str(char ** res, const gr_poly_t f, const char * x, gr_ctx_t ctx)
+    int _gr_poly_get_str(char ** res, gr_srcptr f, slong len, const char * x, gr_ctx_t ctx)
     int gr_poly_get_str(char ** res, const gr_poly_t f, const char * x, gr_ctx_t ctx)
     int gr_poly_print(const gr_poly_t poly, gr_ctx_t ctx)
     int _gr_poly_set_str(gr_ptr res, const char * s, const char * x, slong len, gr_ctx_t ctx)
@@ -70,16 +71,27 @@ cdef extern from "flint/gr_poly.h":
     int _gr_poly_mullow_generic(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, slong len, gr_ctx_t ctx)
     int _gr_poly_mullow(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, slong len, gr_ctx_t ctx)
     int gr_poly_mullow(gr_poly_t res, const gr_poly_t poly1, const gr_poly_t poly2, slong len, gr_ctx_t ctx)
+    int _gr_poly_mulmid_generic(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, slong nlo, slong nhi, gr_ctx_t ctx)
+    int _gr_poly_mulmid(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, slong nlo, slong nhi, gr_ctx_t ctx)
+    int gr_poly_mulmid(gr_poly_t res, const gr_poly_t poly1, const gr_poly_t poly2, slong nlo, slong nhi, gr_ctx_t ctx)
+    int _gr_poly_mulmid_classical(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, slong nlo, slong nhi, gr_ctx_t ctx)
+    int gr_poly_mulmid_classical(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, slong nlo, slong nhi, gr_ctx_t ctx)
     int _gr_poly_mullow_classical(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, slong n, gr_ctx_t ctx)
     int gr_poly_mullow_classical(gr_poly_t res, const gr_poly_t poly1, const gr_poly_t poly2, slong n, gr_ctx_t ctx)
+    int _gr_poly_mulmid_bivariate_KS(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, slong nlo, slong nhi, gr_ctx_t ctx)
+    int gr_poly_mulmid_bivariate_KS(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, slong nlo, slong nhi, gr_ctx_t ctx)
     int _gr_poly_mullow_bivariate_KS(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, slong n, gr_ctx_t ctx)
     int gr_poly_mullow_bivariate_KS(gr_poly_t res, const gr_poly_t poly1, const gr_poly_t poly2, slong n, gr_ctx_t ctx)
+    int _gr_poly_mulmid_complex_reorder(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, slong nlo, slong nhi, int karatsuba, gr_ctx_t ctx, gr_ctx_t real_ctx)
+    int gr_poly_mulmid_complex_reorder(gr_poly_t res, const gr_poly_t poly1, const gr_poly_t poly2, slong nlo, slong nhi, int karatsuba, gr_ctx_t ctx, gr_ctx_t real_ctx)
     int _gr_poly_mullow_complex_reorder(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, slong n, int karatsuba, gr_ctx_t ctx, gr_ctx_t real_ctx)
     int gr_poly_mullow_complex_reorder(gr_poly_t res, const gr_poly_t poly1, const gr_poly_t poly2, slong n, int karatsuba, gr_ctx_t ctx, gr_ctx_t real_ctx)
     int _gr_poly_mul_karatsuba(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, gr_ctx_t ctx)
     int gr_poly_mul_karatsuba(gr_poly_t res, const gr_poly_t poly1, const gr_poly_t poly2, gr_ctx_t ctx)
     int _gr_poly_mul_toom33(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, gr_ctx_t ctx);
     int gr_poly_mul_toom33(gr_poly_t res, const gr_poly_t poly1, const gr_poly_t poly2, gr_ctx_t ctx);
+    int _gr_poly_mullow_toom_serial(gr_ptr res, gr_srcptr poly1, slong len1, gr_srcptr poly2, slong len2, slong trunc, slong num_points, slong splitting_degree, gr_ctx_t ctx)
+    int gr_poly_mullow_toom_serial(gr_poly_t res, const gr_poly_t poly1, const gr_poly_t poly2, slong n, slong num_points, slong splitting_degree, gr_ctx_t ctx)
     int gr_poly_add_scalar(gr_poly_t res, const gr_poly_t poly, gr_srcptr c, gr_ctx_t ctx)
     int gr_poly_add_ui(gr_poly_t res, const gr_poly_t poly, ulong c, gr_ctx_t ctx)
     int gr_poly_add_si(gr_poly_t res, const gr_poly_t poly, slong c, gr_ctx_t ctx)
@@ -153,9 +165,9 @@ cdef extern from "flint/gr_poly.h":
     int gr_poly_inv_series(gr_poly_t res, const gr_poly_t A, slong len, gr_ctx_t ctx)
     int _gr_poly_div_series_newton(gr_ptr res, gr_srcptr A, slong Alen, gr_srcptr B, slong Blen, slong len, slong cutoff, gr_ctx_t ctx)
     int gr_poly_div_series_newton(gr_poly_t res, const gr_poly_t A, const gr_poly_t B, slong len, slong cutoff, gr_ctx_t ctx)
-    int _gr_poly_div_series_divconquer(gr_ptr res, gr_srcptr B, slong Blen, gr_srcptr A, slong Alen, slong len, slong cutoff, gr_ctx_t ctx)
+    int _gr_poly_div_series_divconquer(gr_ptr res, gr_srcptr A, slong Alen, gr_srcptr B, slong Blen, slong len, slong cutoff, gr_ctx_t ctx)
     int gr_poly_div_series_divconquer(gr_poly_t Q, const gr_poly_t A, const gr_poly_t B, slong len, slong cutoff, gr_ctx_t ctx)
-    int _gr_poly_div_series_invmul(gr_ptr res, gr_srcptr B, slong Blen, gr_srcptr A, slong Alen, slong len, gr_ctx_t ctx)
+    int _gr_poly_div_series_invmul(gr_ptr res, gr_srcptr A, slong Alen, gr_srcptr B, slong Blen, slong len, gr_ctx_t ctx)
     int gr_poly_div_series_invmul(gr_poly_t res, const gr_poly_t A, const gr_poly_t B, slong len, gr_ctx_t ctx)
     int _gr_poly_div_series_basecase_preinv1(gr_ptr Q, gr_srcptr A, slong Alen, gr_srcptr B, slong Blen, gr_srcptr Binv, slong len, gr_ctx_t ctx)
     int _gr_poly_div_series_basecase_noinv(gr_ptr Q, gr_srcptr A, slong Alen, gr_srcptr B, slong Blen, slong len, gr_ctx_t ctx)
@@ -384,9 +396,11 @@ cdef extern from "flint/gr_poly.h":
     int _gr_poly_compose_mod_brent_kung_precomp_preinv(gr_ptr res, gr_srcptr f, slong lenf, const gr_mat_t A, gr_srcptr h, slong lenh, gr_srcptr hinv, slong lenhinv, gr_ctx_t ctx)
     int gr_poly_compose_mod_brent_kung_precomp_preinv(gr_poly_t res, const gr_poly_t f, const gr_mat_t A, const gr_poly_t h, const gr_poly_t hinv, gr_ctx_t ctx)
     # void _gr_poly_test_mullow(gr_method_poly_binary_trunc_op mullow_impl, gr_method_poly_binary_trunc_op mullow_ref, flint_rand_t state, slong iters, slong maxn, gr_ctx_t ctx)
+    # void _gr_poly_test_mulmid(gr_method_poly_binary_trunc_op mulmid_impl, gr_method_poly_binary_trunc_op mulmid_ref, flint_rand_t state, slong iters, slong maxn, gr_ctx_t ctx)
     # void _gr_poly_test_divrem(gr_method_poly_binary_binary_op divrem_impl, flint_rand_t state, slong iters, slong maxn, gr_ctx_t ctx)
     # void _gr_poly_test_div(gr_method_poly_binary_op div_impl, flint_rand_t state, slong iters, slong maxn, gr_ctx_t ctx)
     # void _gr_poly_test_inv_series(gr_method_poly_unary_trunc_op inv_series_impl, flint_rand_t state, slong iters, slong maxn, gr_ctx_t ctx)
     # void _gr_poly_test_div_series(gr_method_poly_binary_trunc_op div_series_impl, flint_rand_t state, slong iters, slong maxn, gr_ctx_t ctx)
     # void _gr_poly_test_gcd(gr_method_poly_gcd_op gcd_impl, flint_rand_t state, slong iters, slong maxn, gr_ctx_t ctx)
     # void _gr_poly_test_xgcd(gr_method_poly_xgcd_op xgcd_impl, flint_rand_t state, slong iters, slong maxn, gr_ctx_t ctx)
+    # void _gr_poly_test_approx_mulmid_pos_entrywise_accurate(gr_method_poly_binary_trunc2_op mulmid_impl, gr_method_poly_binary_trunc2_op mulmid_ref, gr_srcptr rel_tol, flint_rand_t state, slong iters, slong maxn, gr_ctx_t ctx)

@@ -15,6 +15,7 @@ from flint.flintlib.types.gr cimport gr_ctx_t, gr_ptr, gr_srcptr, gr_stream_t, g
 # .. macro:: GR_TMP_CLEAR(x1, ctx)
 
 cdef extern from "flint/gr.h":
+    void gr_ctx_uninitialized(gr_ctx_t ctx)
     truth_t truth_and(truth_t x, truth_t y)
     truth_t truth_or(truth_t x, truth_t y)
     truth_t truth_not(truth_t x)
@@ -31,6 +32,7 @@ cdef extern from "flint/gr.h":
     int gr_ctx_set_gen_names(gr_ctx_t ctx, const char ** s)
     int gr_ctx_ngens(slong * ngens, gr_ctx_t ctx)
     int gr_ctx_gen_name(char ** name, slong i, gr_ctx_t ctx)
+    gr_ptr gr_ctx_base(gr_ctx_t ctx)
     void gr_init(gr_ptr res, gr_ctx_t ctx)
     void gr_clear(gr_ptr res, gr_ctx_t ctx)
     void gr_swap(gr_ptr x, gr_ptr y, gr_ctx_t ctx)
