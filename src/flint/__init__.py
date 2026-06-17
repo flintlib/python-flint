@@ -66,6 +66,9 @@ def _flint_version_at_least(major: int, minor: int) -> bool:
 def _has_acb_theta() -> bool:
     return _flint_version_at_least(3, 1)
 
+def _has_acb_theta_jet() -> bool:
+    return _flint_version_at_least(3, 3)
+
 
 __all__ = [
     "ctx",

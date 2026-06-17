@@ -173,6 +173,8 @@ Contributors (0.9.0):
 - Oscar Benjamin (OB)
 - Daniel Simmons-Marengo (DSM)
 - ForeverHaibara (FH)
+- Jeroen Hanselman (JH)
+- Sam Schiavone (SS)
 
 Changes (0.9.0):
 
@@ -198,6 +200,7 @@ Changes (0.9.0):
 - [gh-359](https://github.com/flintlib/python-flint/pull/359),
   Sort factorisations of all mpoly types. (OB)
 - [gh-374](https://github.com/flintlib/python-flint/pull/374), Fixed a bug in `nmod.__hash__`. (FH)
+- [gh-392](https://github.com/flintlib/python-flint/pull/392), Add interface to `acb_theta_jet` (JH, SS)
 
 0.8.0
 -----

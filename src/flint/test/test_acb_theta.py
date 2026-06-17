@@ -47,7 +47,7 @@ def test_acb_theta_shape_assertions() -> None:
     assert raises(lambda: acb_theta(z, object()), TypeError)  # type: ignore[arg-type]
 
 def test_acb_theta_jets_basic() -> None:
-    if not _has_acb_theta():
+    if not _has_acb_theta_jet():
         return
 
     from flint.types.acb_theta import acb_theta_jets
