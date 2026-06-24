@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from flint import _has_acb_theta, acb, acb_mat
+from flint import _has_acb_theta, _has_acb_theta_jet acb, acb_mat
 from flint.test.helpers import is_close_acb_mat as is_close, raises
 
 
