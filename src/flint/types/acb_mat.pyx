@@ -5,9 +5,8 @@ from flint.types.arb_mat cimport arb_mat
 from flint.types.fmpz_mat cimport fmpz_mat
 from flint.types.fmpq_mat cimport fmpq_mat
 from flint.types.arb cimport arb
-from flint.types.acb cimport acb
+from flint.types.acb cimport acb, any_as_acb
 from flint.types.acb_poly cimport acb_poly
-from flint.types.acb cimport any_as_acb
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 
@@ -37,6 +36,8 @@ from flint.flintlib.types.acb cimport (
 )
 
 cimport cython
+
+from flint.types.acb_theta import acb_theta, acb_theta_jets
 
 cdef acb_mat_coerce_operands(x, y):
     if isinstance(y, (fmpz_mat, fmpq_mat, arb_mat)):
@@ -834,10 +835,6 @@ cdef class acb_mat(flint_mat):
         for the ordering of the theta characteristics.
 
         """
-        try:
-            from .acb_theta import acb_theta
-        except ImportError:
-            raise NotImplementedError("acb_mat.theta needs Flint >= 3.1.0")
         if acb_theta is None:
             raise NotImplementedError("acb_mat.theta needs Flint >= 3.1.0")
         return acb_theta(z, tau, square=square)
@@ -857,10 +854,6 @@ cdef class acb_mat(flint_mat):
         one column for each jet coefficient.
 
         """
-        try:
-            from .acb_theta import acb_theta_jets
-        except ImportError:
-            raise NotImplementedError("acb_mat.theta_jets needs Flint >= 3.3.0")
         if acb_theta_jets is None:
             raise NotImplementedError("acb_mat.theta_jets needs Flint >= 3.3.0")
         return acb_theta_jets(z, tau, ord)
