@@ -119,6 +119,7 @@ ext_files = [
     ("flint.types.acb_poly", ["src/flint/types/acb_poly.pyx"]),
     ("flint.types.acb_mat", ["src/flint/types/acb_mat.pyx"]),
     ("flint.types.acb_series", ["src/flint/types/acb_series.pyx"]),
+    ("flint.types.acb_theta", ["src/flint/types/acb_theta.pyx"]),
 
     ("flint.types.dirichlet", ["src/flint/types/dirichlet.pyx"]),
 

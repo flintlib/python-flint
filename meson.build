@@ -73,9 +73,6 @@ endif
 # flint.pc was missing -lflint until Flint 3.1.0
 if flint_dep.version().version_compare('<3.1')
   flint_dep = cc.find_library('flint')
-  have_acb_theta = false
-else
-  have_acb_theta = true
 endif
 
 pyflint_deps = [gmp_dep, mpfr_dep, flint_dep]

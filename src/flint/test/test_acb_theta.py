@@ -8,19 +8,20 @@ from flint.types.acb_theta import acb_theta, acb_theta_jets
 def test_acb_theta_basic() -> None:
     if acb_theta is None:
         return
+    theta = acb_theta
 
     z = acb(1 + 1j)
     tau = acb(1.25 + 3j)
     zmat = acb_mat([[z]])
     taumat = acb_mat([[tau]])
 
-    direct = acb_theta(zmat, taumat)
+    direct = theta(zmat, taumat)
     via_method = taumat.theta(zmat)
     assert is_close(direct, via_method, tol=1e-12, rel_tol=1e-12, max_width=1e-12)
     assert direct.nrows() == 1
     assert direct.ncols() == 4
 
-    squared = acb_theta(zmat, taumat, square=True)
+    squared = theta(zmat, taumat, square=True)
     assert squared.nrows() == 1
     assert squared.ncols() == 4
 
