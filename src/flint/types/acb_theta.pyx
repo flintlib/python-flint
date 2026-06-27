@@ -1,12 +1,68 @@
 from flint.flint_base.flint_context cimport getprec
+from flint.flint_base.flint_base import FLINT_RELEASE
 from flint.types.acb cimport acb
 from flint.types.acb_mat cimport acb_mat
 from flint.flintlib.functions.acb cimport *
 from flint.flintlib.types.acb cimport (
+    acb_mat_t,
     acb_mat_entry,
+    acb_ptr,
+    acb_srcptr,
 )
 from flint.flintlib.functions.acb_mat cimport *
-from flint.flintlib.functions.acb_theta cimport *
+from flint.flintlib.types.flint cimport slong, ulong
+
+
+cdef extern from *:
+    """
+    #include "flint/flint.h"
+    #include "flint/acb.h"
+    #include "flint/acb_mat.h"
+
+    #if __FLINT_RELEASE >= 30100 /* Flint 3.1.0 or later */
+    #include "flint/acb_theta.h"
+    static inline void
+    compat_acb_theta_all(acb_ptr th, acb_srcptr z, const acb_mat_t tau, int sqr, slong prec)
+    {
+        acb_theta_all(th, z, tau, sqr, prec);
+    }
+    #else
+    static inline void
+    compat_acb_theta_all(acb_ptr th, acb_srcptr z, const acb_mat_t tau, int sqr, slong prec)
+    {
+    }
+    #endif
+
+    #if __FLINT_RELEASE >= 30300 /* Flint 3.3.0 or later */
+    static inline slong
+    compat_acb_theta_jet_nb(slong ord, slong g)
+    {
+        return acb_theta_jet_nb(g, ord);
+    }
+
+    static inline void
+    compat_acb_theta_jet(acb_ptr th, acb_srcptr zs, slong nb, const acb_mat_t tau,
+            slong ord, ulong ab, int all, int sqr, slong prec)
+    {
+        acb_theta_jet(th, zs, nb, tau, ord, ab, all, sqr, prec);
+    }
+    #else
+    static inline slong
+    compat_acb_theta_jet_nb(slong ord, slong g)
+    {
+        return 0;
+    }
+
+    static inline void
+    compat_acb_theta_jet(acb_ptr th, acb_srcptr zs, slong nb, const acb_mat_t tau,
+            slong ord, ulong ab, int all, int sqr, slong prec)
+    {
+    }
+    #endif
+    """
+    void compat_acb_theta_all(acb_ptr th, acb_srcptr z, const acb_mat_t tau, int sqr, slong prec)
+    slong compat_acb_theta_jet_nb(slong ord, slong g)
+    void compat_acb_theta_jet(acb_ptr th, acb_srcptr zs, slong nb, const acb_mat_t tau, slong ord, ulong ab, int all, int sqr, slong prec)
 
 
 def acb_theta(acb_mat z, acb_mat tau, ulong square=False):
@@ -84,7 +140,7 @@ def acb_theta(acb_mat z, acb_mat tau, ulong square=False):
     cdef slong nb = 1 << (2 * g)
     cdef acb_ptr theta = _acb_vec_init(nb)
 
-    acb_theta_all(theta, zvec, tau.val, square, getprec())
+    compat_acb_theta_all(theta, zvec, tau.val, square, getprec())
     _acb_vec_clear(zvec, g)
     # copy the output
     res = []
@@ -95,3 +151,85 @@ def acb_theta(acb_mat z, acb_mat tau, ulong square=False):
         res.append(r)
     _acb_vec_clear(theta, nb)
     return acb_mat([res])
+
+
+def acb_theta_jets(acb_mat z, acb_mat tau, slong ord):
+    r"""
+    Computes the coefficients of the Taylor expansion of the vector valued Riemann
+    theta function `(\theta_{a,b}(z, \tau) : a, b \in \{0,1\}^{g})` or its squares.
+
+    This is a wrapper for the C-function
+    `acb_theta_jet <https://flintlib.org/doc/acb_theta.html#c.acb_theta_jet>`_
+    and it follows the same conventions for the ordering of the theta characteristics.
+    The result is an ``acb_mat`` with one row for each theta characteristic and
+    one column for each jet coefficient.
+
+    This should be used via the method :meth:`.acb_mat.theta_jets`, explicitly ``tau.theta_jets(z, ord)``.
+
+        >>> from flint import acb, acb_mat, showgood, ctx
+        >>> z = acb(1+1j); tau = acb(1.25+3j)
+        >>> acb_mat([[tau]]).theta_jets(acb_mat([[z]]),2)  # doctest: +SKIP
+        [[0.969443038779670 +/- 5.67e-16] + [-0.0305569612081680 +/- 5.13e-17]j,
+        [-0.191993710594950 +/- 4.89e-16] + [0.191993710747776 +/- 7.42e-16]j,
+        [0.60317023860834 +/- 2.93e-15] + [0.60317023764810 +/- 4.86e-15]j]
+        [[1.03055696119601 +/- 3.89e-15] + [0.0305569612081680 +/- 5.13e-17]j,
+        [0.191993710594950 +/- 4.89e-16] + [-0.191993710442123 +/- 4.62e-16]j,
+        [-0.60317023668787 +/- 5.90e-15] + [-0.60317023764810 +/- 4.86e-15]j]
+        [[-1.22079026757697 +/- 4.36e-15] + [-1.82705551679115 +/- 5.17e-15]j,
+        [-5.71849316258739 +/- 7.02e-15] + [3.82088827346268 +/- 5.75e-15]j,
+        [6.0241074288587 +/- 3.88e-14] + [9.0163253443780 +/- 2.05e-14]j]
+        [[-1.82023591012499 +/- 2.67e-15] + [1.21625195015448 +/- 4.14e-15]j,
+        [3.8353056542516 +/- 4.99e-14] + [5.73981078971270 +/- 6.74e-15]j,
+        [8.9823364151977 +/- 2.44e-14] + [-6.0022138700195 +/- 3.72e-14]j]
+    """
+    g = tau.nrows()
+    if g == 0:
+        return acb_mat(0, 0)
+
+    # Calculate the length of the jet for one characteristic
+    # This is the number of multi-indices (alpha) such that |alpha| < ord
+    cdef slong nj = compat_acb_theta_jet_nb(ord, g)
+
+    # Total number of characteristics
+    cdef slong nb = 1 << (2 * g)
+
+    # Total number of acb elements to allocate
+    # FLINT stores nj coefficients for each of the nb characteristics
+    cdef slong total_size = nb * nj
+
+    cdef acb_ptr zvec = _acb_vec_init(g)
+    cdef slong i, j
+    for i in range(g):
+        acb_set(zvec + i, acb_mat_entry(z.val, i, 0))
+
+    # Parameters for characteristics
+    cdef slong nb_in = 1  # Number of input z vectors
+    cdef ulong ab = 0     # Base characteristic
+    cdef ulong all = True  # Compute all 2^2g characteristics
+    cdef ulong square = False  # Don't compute the squares of the thetas.
+
+    # Initialize the output buffer
+    cdef acb_ptr theta = _acb_vec_init(total_size)
+
+    # Call the FLINT C function
+    # Note: Computes all partial derivatives up to total order 'ord'
+    compat_acb_theta_jet(theta, zvec, nb_in, tau.val, ord, ab, all, square, getprec())
+
+    # Copy the output into a structured format
+    res_mat = acb_mat(nb, nj)
+    for i in range(nb):
+        for j in range(nj):
+            acb_set(acb_mat_entry(res_mat.val, i, j), theta + (i * nj + j))
+
+    # Cleanup
+    _acb_vec_clear(zvec, g)
+    _acb_vec_clear(theta, total_size)
+
+    return res_mat
+
+
+if FLINT_RELEASE < 30100:
+    acb_theta = None
+
+if FLINT_RELEASE < 30300:
+    acb_theta_jets = None

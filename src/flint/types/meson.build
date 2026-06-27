@@ -83,6 +83,7 @@ exts = [
   'arb',
   'arb_poly',
   'arb_mat',
+  'acb_theta',
   'arb_series',
 
   'acb',
@@ -94,10 +95,6 @@ exts = [
 
   '_gr',
 ]
-
-if have_acb_theta
-  exts += ['acb_theta']
-endif
 
 py.install_sources(
   pyfiles,

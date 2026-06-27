@@ -5,9 +5,8 @@ from flint.types.arb_mat cimport arb_mat
 from flint.types.fmpz_mat cimport fmpz_mat
 from flint.types.fmpq_mat cimport fmpq_mat
 from flint.types.arb cimport arb
-from flint.types.acb cimport acb
+from flint.types.acb cimport acb, any_as_acb
 from flint.types.acb_poly cimport acb_poly
-from flint.types.acb cimport any_as_acb
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 
@@ -37,6 +36,8 @@ from flint.flintlib.types.acb cimport (
 )
 
 cimport cython
+
+from flint.types.acb_theta import acb_theta, acb_theta_jets
 
 cdef acb_mat_coerce_operands(x, y):
     if isinstance(y, (fmpz_mat, fmpq_mat, arb_mat)):
@@ -834,8 +835,25 @@ cdef class acb_mat(flint_mat):
         for the ordering of the theta characteristics.
 
         """
-        try:
-            from .acb_theta import acb_theta
-        except ImportError:
+        if acb_theta is None:
             raise NotImplementedError("acb_mat.theta needs Flint >= 3.1.0")
         return acb_theta(z, tau, square=square)
+
+    def theta_jets(tau, z, ord):
+        r"""
+        Computes Taylor approximation for the vector-valued Riemann theta function
+        `(\theta_{a,b}(z, \tau) : a, b \in \{0,1\}^{g})` or its squares,
+        where `\tau` is given by ``self``.
+
+        This is a wrapper for :func:`.acb_theta_jet.acb_theta_jet`; see the
+        documentation for that method for details and examples.
+        This follows the same conventions of the C-function
+        `acb_theta_jet <https://flintlib.org/doc/acb_theta.html#c.acb_theta_jet>`_
+        for the ordering of the theta characteristics.
+        The result is an ``acb_mat`` with one row for each theta characteristic and
+        one column for each jet coefficient.
+
+        """
+        if acb_theta_jets is None:
+            raise NotImplementedError("acb_mat.theta_jets needs Flint >= 3.3.0")
+        return acb_theta_jets(z, tau, ord)
