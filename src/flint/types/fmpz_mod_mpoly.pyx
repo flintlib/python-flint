@@ -1054,7 +1054,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
 
         fmpz_mod_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
 
-        return res, list(stride)
+        return res, stride.to_list_int()
 
     def deflation_monom(self) -> tuple[fmpz_mod_mpoly, list[int], fmpz_mod_mpoly]:
         """
@@ -1082,7 +1082,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         fmpz_mod_mpoly_push_term_ui_ffmpz(monom.val, 1, fmpz_vec(shift).val, self.ctx.val)
         fmpz_mod_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
 
-        return res, list(stride), monom
+        return res, stride.to_list_int(), monom
 
     def deflation_index(self) -> tuple[list[int], list[int]]:
         """
@@ -1113,7 +1113,7 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
             fmpz_vec stride = fmpz_vec(nvars)
 
         fmpz_mod_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
-        return list(stride), list(shift)
+        return stride.to_list_int(), shift.to_list_int()
 
     cdef _compose_gens_(self, ctx, slong *mapping):
         # FIXME: Remove this when FLINT < 3.2 is dropped

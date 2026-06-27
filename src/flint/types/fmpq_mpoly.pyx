@@ -1058,7 +1058,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         fmpz_mpoly_deflate(res.val.zpoly, self.val.zpoly, shift.val, stride.val, self.ctx.val.zctx)
         fmpq_set(res.val.content, self.val.content)
 
-        return res, list(stride)
+        return res, stride.to_list_int()
 
     def deflation_monom(self) -> tuple[fmpq_mpoly, list[int], fmpq_mpoly]:
         """
@@ -1087,7 +1087,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         fmpz_mpoly_deflate(res.val.zpoly, self.val.zpoly, shift.val, stride.val, self.ctx.val.zctx)
         fmpq_set(res.val.content, self.val.content)
 
-        return res, list(stride), monom
+        return res, stride.to_list_int(), monom
 
     def deflation_index(self) -> tuple[list[int], list[int]]:
         """
@@ -1118,7 +1118,7 @@ cdef class fmpq_mpoly(flint_mpoly):
             fmpz_vec stride = fmpz_vec(nvars)
 
         fmpz_mpoly_deflation(shift.val, stride.val, self.val.zpoly, self.ctx.val.zctx)
-        return list(stride), list(shift)
+        return stride.to_list_int(), shift.to_list_int()
 
     cdef _compose_gens_(self, ctx, slong *mapping):
         cdef fmpq_mpoly res = create_fmpq_mpoly(ctx)

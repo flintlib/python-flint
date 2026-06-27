@@ -28,6 +28,15 @@ def test_fmpz_vec_construct_int_and_iter() -> None:
     assert repr(w) == "fmpz_vec(['4', '5', '6'], 3)"
 
 
+def test_fmpz_vec_to_list_int() -> None:
+    assert fmpz_vec(0).to_list_int() == []
+
+    v = fmpz_vec([1, fmpz(2), -3, 2**80])
+    values = v.to_list_int()
+    assert values == [1, 2, -3, 2**80]
+    assert all(type(x) is int for x in values)
+
+
 def test_fmpz_vec_double_indirect_and_errors() -> None:
     v = fmpz_vec(2, double_indirect=True)
     v[0] = 10
