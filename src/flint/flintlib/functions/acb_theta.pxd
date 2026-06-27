@@ -10,29 +10,12 @@ from flint.flintlib.types.fmpz cimport fmpz_mat_struct, fmpz_mat_t
 # unknown type acb_theta_ctx_z_t
 # unknown type acb_theta_sum_worker_t
 
-cdef extern from *:
-    """
-    #include "flint/flint.h"
-    #include "flint/acb_theta.h"
-
-    #if __FLINT_RELEASE >= 30100 /* Flint 3.1.0 or later */
-    #define compat_acb_theta_all(...) acb_theta_all(__VA_ARGS__)
-    #else
-    #define compat_acb_theta_all(...) (void)0
-    #endif
-
-    #if __FLINT_RELEASE >= 30300 /* Flint 3.3.0 or later */
-    #define compat_acb_theta_jet(...) acb_theta_jet(__VA_ARGS__)
-    #else
-    #define compat_acb_theta_jet(...) (void)0
-    #endif
-    """
-    void compat_acb_theta_all(acb_ptr th, acb_srcptr z, const acb_mat_t tau, int sqr, slong prec)
-    void compat_acb_theta_jet(acb_ptr th, acb_srcptr zs, slong nb, const acb_mat_t tau, slong ord, ulong ab, int all, int sqr, slong prec)
-
 
 cdef extern from "flint/acb_theta.h":
     ulong acb_theta_char_set_slong_vec(const slong * vec, slong len)
+    void acb_theta_one(acb_t th, acb_srcptr z, const acb_mat_t tau, ulong ab, slong prec)
+    void acb_theta_all(acb_ptr th, acb_srcptr z, const acb_mat_t tau, int sqr, slong prec)
+    void acb_theta_jet(acb_ptr th, acb_srcptr zs, slong nb, const acb_mat_t tau, slong ord, ulong ab, int all, int sqr, slong prec)
     slong sp2gz_dim(const fmpz_mat_t mat)
     void sp2gz_set_blocks(fmpz_mat_t mat, const fmpz_mat_t alpha, const fmpz_mat_t beta, const fmpz_mat_t gamma, const fmpz_mat_t delta)
     void sp2gz_j(fmpz_mat_t mat)
