@@ -4,8 +4,8 @@ from collections import defaultdict
 import re
 import sys
 import os
-import fnmatch
 import argparse
+from pathlib import Path
 
 """
 This is relatively rudimentary, but works for the purpose intended
@@ -89,14 +89,20 @@ def fill_import_dict(pyflintlibdir):
     """
     Get a map from cython structs to the pxd that defines them
     """
+    import_dict.clear()
     import_dict['fmpq_struct'] = 'types.fmpq'
 
-    with os.scandir(pyflintlibdir + '/types') as entry:
-        for f in entry:
-            if fnmatch.fnmatch(f.name, "*.pxd"):
-                with open(f.path) as pxd:
-                    for t in get_cython_struct_types(pxd):
-                        import_dict[t] = 'types.' + f.name.split('.')[0]
+    type_dir = Path(pyflintlibdir) / 'types'
+    for f in sorted(type_dir.glob("*.pxd")):
+        with open(f) as pxd:
+            for t in get_cython_struct_types(pxd):
+                module = 'types.' + f.stem
+                if t in import_dict:
+                    raise RuntimeError(
+                        f"Duplicate Cython type definition for {t}: "
+                        f"{import_dict[t]} and {module}"
+                    )
+                import_dict[t] = module
 
 
 def undecorate(str):
