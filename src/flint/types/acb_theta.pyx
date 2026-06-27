@@ -1,4 +1,5 @@
 from flint.flint_base.flint_context cimport getprec
+from flint.flint_base.flint_base import FLINT_RELEASE
 from flint.types.acb cimport acb
 from flint.types.acb_mat cimport acb_mat
 from flint.flintlib.functions.acb cimport *
@@ -84,7 +85,7 @@ def acb_theta(acb_mat z, acb_mat tau, ulong square=False):
     cdef slong nb = 1 << (2 * g)
     cdef acb_ptr theta = _acb_vec_init(nb)
 
-    acb_theta_all(theta, zvec, tau.val, square, getprec())
+    compat_acb_theta_all(theta, zvec, tau.val, square, getprec())
     _acb_vec_clear(zvec, g)
     # copy the output
     res = []
@@ -157,7 +158,7 @@ def acb_theta_jets(acb_mat z, acb_mat tau, slong ord):
 
     # Call the FLINT C function
     # Note: Computes all partial derivatives up to total order 'ord'
-    acb_theta_jet(theta, zvec, nb_in, tau.val, ord, ab, all, square, getprec())
+    compat_acb_theta_jet(theta, zvec, nb_in, tau.val, ord, ab, all, square, getprec())
 
     # Copy the output into a structured format
     res_mat = acb_mat(nb, nj)
@@ -170,3 +171,10 @@ def acb_theta_jets(acb_mat z, acb_mat tau, slong ord):
     _acb_vec_clear(theta, total_size)
 
     return res_mat
+
+
+if FLINT_RELEASE < 30100:
+    acb_theta = None
+
+if FLINT_RELEASE < 30300:
+    acb_theta_jets = None

@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from flint import _has_acb_theta, _has_acb_theta_jet, acb, acb_mat
+from flint import acb, acb_mat
 from flint.test.helpers import is_close_acb_mat as is_close, raises
+from flint.types.acb_theta import acb_theta, acb_theta_jets
 
 
 def test_acb_theta_basic() -> None:
-    if not _has_acb_theta():
+    if acb_theta is None:
         return
-
-    from flint.types.acb_theta import acb_theta
 
     z = acb(1 + 1j)
     tau = acb(1.25 + 3j)
@@ -27,10 +26,8 @@ def test_acb_theta_basic() -> None:
 
 
 def test_acb_theta_shape_assertions() -> None:
-    if not _has_acb_theta():
+    if acb_theta is None:
         return
-
-    from flint.types.acb_theta import acb_theta
 
     z = acb_mat([[0]])
     tau_bad = acb_mat([[1j, 0]])
@@ -48,10 +45,9 @@ def test_acb_theta_shape_assertions() -> None:
 
 
 def test_acb_theta_jets_basic() -> None:
-    if not _has_acb_theta_jet():
+    if acb_theta_jets is None:
         return
 
-    from flint.types.acb_theta import acb_theta_jets
     z = acb(1 + 1j)
     tau = acb(1.25 + 3j)
     zmat = acb_mat([[z]])
