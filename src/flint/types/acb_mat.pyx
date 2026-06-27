@@ -810,7 +810,7 @@ cdef class acb_mat(flint_mat):
                     raise ValueError("failed to isolate eigenvalues (try higher prec, multiple=True for multiple eigenvalues, or nonstop=True to avoid the exception)")
         if tol is not None:
             mag_clear(tolm)
-        Elist = [acb() for i in range(n)]
+        Elist = [acb() for _ in range(n)]
         for i in range(n):
             acb_swap((<acb>(Elist [i])).val, acb_mat_entry(E.val, 0, i))
         if not left and not right:

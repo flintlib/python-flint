@@ -140,7 +140,7 @@ cdef class acb_poly(flint_poly):
         n = len(xs)
         if n == 0:
             return []
-        ys = [acb.__new__(acb) for i in range(n)]
+        ys = [acb.__new__(acb) for _ in range(n)]
         xsv = <acb_ptr> libc.stdlib.malloc(sizeof(acb_struct) * n)
         ysv = <acb_ptr> libc.stdlib.malloc(sizeof(acb_struct) * n)
         for i in range(n):
@@ -492,7 +492,7 @@ cdef class acb_poly(flint_poly):
                     raise ValueError("roots() failed to converge: insufficient precision, or squareful input")
 
             _acb_vec_sort_pretty(roots, deg)
-            pyroots = [acb.__new__(acb) for i in range(deg)]
+            pyroots = [acb.__new__(acb) for _ in range(deg)]
             for i in range(deg):
                 acb_set((<acb>(pyroots[i])).val, &roots[i])
 

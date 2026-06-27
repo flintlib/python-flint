@@ -187,7 +187,7 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         """
         cdef:
             fmpz_vec exp_vec
-            slong i, nvars = self.nvars()
+            slong nvars = self.nvars()
             fmpz_mpoly res
 
         if not isinstance(d, dict):
@@ -195,7 +195,7 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
 
         res = create_fmpz_mpoly(self)
 
-        for i, (k, v) in enumerate(d.items()):
+        for k, v in d.items():
             o = any_as_fmpz(v)
             if o is NotImplemented:
                 raise TypeError(f"cannot coerce coefficient '{v}' to fmpz")
@@ -1136,7 +1136,7 @@ cdef class fmpz_mpoly(flint_mpoly):
 
         fmpz_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
 
-        return res, list(stride)
+        return res, stride.to_list_int()
 
     def deflation_monom(self) -> tuple[fmpz_mpoly, list[int], fmpz_mpoly]:
         """
@@ -1164,7 +1164,7 @@ cdef class fmpz_mpoly(flint_mpoly):
         fmpz_mpoly_push_term_ui_ffmpz(monom.val, 1, fmpz_vec(shift).val, self.ctx.val)
         fmpz_mpoly_deflate(res.val, self.val, shift.val, stride.val, self.ctx.val)
 
-        return res, list(stride), monom
+        return res, stride.to_list_int(), monom
 
     def deflation_index(self) -> tuple[list[int], list[int]]:
         """
@@ -1195,7 +1195,7 @@ cdef class fmpz_mpoly(flint_mpoly):
             fmpz_vec stride = fmpz_vec(nvars)
 
         fmpz_mpoly_deflation(shift.val, stride.val, self.val, self.ctx.val)
-        return list(stride), list(shift)
+        return stride.to_list_int(), shift.to_list_int()
 
 
 @cython.final

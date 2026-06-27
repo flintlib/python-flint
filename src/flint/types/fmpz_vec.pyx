@@ -2,7 +2,7 @@ from flint.flintlib.functions.fmpz cimport fmpz_struct, fmpz_set, fmpz_init_set
 from flint.flintlib.functions.fmpz_vec cimport _fmpz_vec_init, _fmpz_vec_clear
 from libc.stdint cimport SIZE_MAX
 
-from flint.types.fmpz cimport fmpz, any_as_fmpz
+from flint.types.fmpz cimport fmpz, any_as_fmpz, fmpz_get_intlong
 
 cimport libc.stdlib
 
@@ -80,6 +80,12 @@ cdef class fmpz_vec:
             z = fmpz.__new__(fmpz)
             fmpz_init_set(z.val, &self.val[i])
             yield z
+
+    def to_list_int(self):
+        cdef list res = [None] * self.length
+        for i in range(self.length):
+            res[i] = fmpz_get_intlong(&self.val[i])
+        return res
 
     def str(self, *args):
         s = [None] * self.length

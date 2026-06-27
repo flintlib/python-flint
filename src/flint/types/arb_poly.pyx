@@ -138,7 +138,7 @@ cdef class arb_poly(flint_poly):
         n = len(xs)
         if n == 0:
             return []
-        ys = [arb.__new__(arb) for i in range(n)]
+        ys = [arb.__new__(arb) for _ in range(n)]
         xsv = <arb_ptr> libc.stdlib.malloc(sizeof(arb_struct) * n)
         ysv = <arb_ptr> libc.stdlib.malloc(sizeof(arb_struct) * n)
         for i in range(n):

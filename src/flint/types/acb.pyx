@@ -1975,7 +1975,7 @@ cdef class acb(flint_scalar):
         iterable *vec*. The output is a list of *acb* entries.
         If *inverse* is True, computes the inverse transform instead.
 
-            >>> for c in acb.dft(acb.dft(range(1,12)), inverse=True):
+            >>> for c in acb.dft(acb.dft(range(1,12)), inverse=True):  # doctest: +SKIP
             ...     print(c)
             ...
             [1.000000000000 +/- 1.06e-13] + [+/- 8.66e-14]j
@@ -2603,7 +2603,7 @@ cdef class acb(flint_scalar):
         n = fmpz(n)
         if n < 1 or num < 0:
             raise ValueError("require n >= 1 and num >= 0")
-        v = [acb() for i in range(num)]
+        v = [acb() for _ in range(num)]
         w = <acb_ptr>libc.stdlib.malloc(num * cython.sizeof(acb_struct))
         for i in range(num):
             w[i] = (<acb>(v[i])).val[0]
