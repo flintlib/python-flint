@@ -851,6 +851,8 @@ cdef class acb_mat(flint_mat):
         This follows the same conventions of the C-function
         `acb_theta_jet <https://flintlib.org/doc/acb_theta.html#c.acb_theta_jet>`_
         for the ordering of the theta characteristics.
+        The result is an ``acb_mat`` with one row for each theta characteristic and
+        one column for each jet coefficient.
 
         """
         try:

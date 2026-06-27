@@ -105,6 +105,8 @@ def acb_theta_jets(acb_mat z, acb_mat tau, slong ord):
     This is a wrapper for the C-function
     `acb_theta_jet <https://flintlib.org/doc/acb_theta.html#c.acb_theta_jet>`_
     and it follows the same conventions for the ordering of the theta characteristics.
+    The result is an ``acb_mat`` with one row for each theta characteristic and
+    one column for each jet coefficient.
 
     This should be used via the method :meth:`.acb_mat.theta_jets`, explicitly ``tau.theta_jets(z, ord)``.
 

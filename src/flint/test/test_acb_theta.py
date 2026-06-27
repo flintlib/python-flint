@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from flint import _has_acb_theta, _has_acb_theta_jet acb, acb_mat
+from flint import _has_acb_theta, _has_acb_theta_jet, acb, acb_mat
 from flint.test.helpers import is_close_acb_mat as is_close, raises
 
 
@@ -45,6 +45,7 @@ def test_acb_theta_shape_assertions() -> None:
 
     assert raises(lambda: acb_theta(object(), tau), TypeError)  # type: ignore[arg-type]
     assert raises(lambda: acb_theta(z, object()), TypeError)  # type: ignore[arg-type]
+
 
 def test_acb_theta_jets_basic() -> None:
     if not _has_acb_theta_jet():
