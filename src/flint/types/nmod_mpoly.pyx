@@ -194,7 +194,7 @@ cdef class nmod_mpoly_ctx(flint_mod_mpoly_context):
         """
         cdef:
             fmpz_vec exp_vec
-            slong i, nvars = self.nvars()
+            slong nvars = self.nvars()
             nmod_mpoly res
 
         if not isinstance(d, dict):
@@ -202,7 +202,7 @@ cdef class nmod_mpoly_ctx(flint_mod_mpoly_context):
 
         res = create_nmod_mpoly(self)
 
-        for i, (exps, coeff) in enumerate(d.items()):
+        for exps, coeff in d.items():
             if len(exps) != nvars:
                 raise ValueError(f"expected {nvars} exponents, got {len(exps)}")
             elif not coeff:

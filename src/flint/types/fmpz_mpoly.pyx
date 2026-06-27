@@ -187,7 +187,7 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
         """
         cdef:
             fmpz_vec exp_vec
-            slong i, nvars = self.nvars()
+            slong nvars = self.nvars()
             fmpz_mpoly res
 
         if not isinstance(d, dict):
@@ -195,7 +195,7 @@ cdef class fmpz_mpoly_ctx(flint_mpoly_context):
 
         res = create_fmpz_mpoly(self)
 
-        for i, (k, v) in enumerate(d.items()):
+        for k, v in d.items():
             o = any_as_fmpz(v)
             if o is NotImplemented:
                 raise TypeError(f"cannot coerce coefficient '{v}' to fmpz")
