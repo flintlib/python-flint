@@ -1,18 +1,11 @@
 from flint.flintlib.types.flint cimport slong, fmpz_struct, fmpz_t
 from flint.flintlib.types.fmpz cimport fmpz_mat_struct
-from flint.flintlib.types.fmpz_mod cimport fmpz_mod_ctx_struct
+from flint.flintlib.types.fmpz_mod cimport fmpz_mod_ctx_struct, fmpz_mod_poly_struct, fmpz_mod_poly_t
 
 
 cdef extern from "flint/fmpz_mod_poly.h":
 
     #  Type definitions *********************************************************/
-    ctypedef struct fmpz_mod_poly_struct:
-        fmpz_struct * coeffs
-        slong alloc
-        slong length
-
-    ctypedef fmpz_mod_poly_struct fmpz_mod_poly_t[1]
-
     ctypedef struct fmpz_mod_poly_res_struct:
         fmpz_t res
         fmpz_t lc
