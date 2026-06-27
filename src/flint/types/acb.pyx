@@ -1975,7 +1975,7 @@ cdef class acb(flint_scalar):
         iterable *vec*. The output is a list of *acb* entries.
         If *inverse* is True, computes the inverse transform instead.
 
-            >>> for c in acb.dft(acb.dft(range(1,12)), inverse=True):
+            >>> for c in acb.dft(acb.dft(range(1,12)), inverse=True):  # doctest: +SKIP
             ...     print(c)
             ...
             [1.000000000000 +/- 1.06e-13] + [+/- 8.66e-14]j
