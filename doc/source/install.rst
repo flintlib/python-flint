@@ -47,9 +47,9 @@ Fully supported platforms
 
 Generally each release of python-flint will be compatible with a range of
 Python versions as described in `SPEC 0
-<https://scientific-python.org/specs/spec-0000/>`_. At the time of writing, the
-current release of ``python-flint`` is ``0.6.0`` and binaries are provided for
-Python 3.9, 3.10 3.11 and 3.12 for the following platforms:
+<https://scientific-python.org/specs/spec-0000/>`_. At the time of writing,
+binaries are provided for CPython 3.10-3.14 and PyPy 3.11 for the following
+platforms:
 
 - Windows 64-bit (``x86_64``)
 - MacOS 64-bit Intel and 64-bit ARM (i.e. Apple Silicon)

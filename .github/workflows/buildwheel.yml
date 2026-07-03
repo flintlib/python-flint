@@ -16,6 +16,8 @@ env:
   PYODIDE_EMSCRIPTEN_VERSION: '5.0.3'
   PYODIDE_PYTHON_VERSION: '3.14'
   PYODIDE_CIBW_BUILD: 'cp314-*'
+  NATIVE_CIBW_BUILD: 'cp313-* cp314-* cp314t-* pp311-*'
+  STABLE_ABI_CIBW_BUILD: 'cp310-*'
 
 jobs:
   build_wheels:
@@ -31,37 +33,31 @@ jobs:
             kind: native
             artifact_name: wheels-ubuntu-22.04
             cibw_platform: auto
-            cibw_build: "*"
           - name: Build manylinux arm64 wheels
             os: ubuntu-22.04-arm
             kind: native
             artifact_name: wheels-ubuntu-22.04-arm
             cibw_platform: auto
-            cibw_build: "*"
           - name: Build Windows x86-64 wheels
             os: windows-2022
             kind: native
             artifact_name: wheels-windows-2022
             cibw_platform: auto
-            cibw_build: "*"
           - name: Build Windows arm64 wheels
             os: windows-11-arm
             kind: native
             artifact_name: wheels-windows-11-arm
             cibw_platform: auto
-            cibw_build: "*"
           - name: Build macOS x86-64 wheels
             os: macos-15-intel
             kind: native
             artifact_name: wheels-macos-15-intel
             cibw_platform: auto
-            cibw_build: "*"
           - name: Build macOS arm64 wheels
             os: macos-14
             kind: native
             artifact_name: wheels-macos-14
             cibw_platform: auto
-            cibw_build: "*"
           - name: Build Pyodide wheels
             os: ubuntu-22.04
             kind: pyodide
@@ -120,8 +116,17 @@ jobs:
         uses: pypa/cibuildwheel@294735312765b09d24a2fbec22660ce817587d55 # v4.1.0
         env:
           CIBW_PLATFORM: ${{ matrix.cibw_platform }}
-          CIBW_BUILD: ${{ matrix.kind == 'pyodide' && env.PYODIDE_CIBW_BUILD || matrix.cibw_build }}
+          CIBW_BUILD: ${{ matrix.kind == 'pyodide' && env.PYODIDE_CIBW_BUILD || env.NATIVE_CIBW_BUILD }}
           CIBW_PYODIDE_VERSION: ${{ env.PYODIDE_VERSION }}
+          # override setting in pyproject.toml to use msys2 instead of msys64 bash
+          CIBW_BEFORE_ALL_WINDOWS: ${{ matrix.os == 'windows-11-arm' && 'msys2 -c bin/cibw_before_all_windows_arm64.sh' || 'msys2 -c bin/cibw_before_all_windows_amd64.sh' }}
+
+      - name: Build stable ABI wheels
+        if: ${{ matrix.kind == 'native' }}
+        uses: pypa/cibuildwheel@294735312765b09d24a2fbec22660ce817587d55 # v4.1.0
+        env:
+          CIBW_PLATFORM: ${{ matrix.cibw_platform }}
+          CIBW_BUILD: ${{ env.STABLE_ABI_CIBW_BUILD }}
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: ${{ matrix.os == 'windows-11-arm' && 'msys2 -c bin/cibw_before_all_windows_arm64.sh' || 'msys2 -c bin/cibw_before_all_windows_amd64.sh' }}
 
@@ -172,7 +177,7 @@ jobs:
           macos-15,
           ]
         # This list to be kept in sync with python-requires in pyproject.toml.
-        python-version: ['3.11', '3.12', '3.13', '3.14', '3.14t', 'pypy3.11']
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14', '3.14t', '3.15', 'pypy3.11']
         exclude:
           - os: windows-11-arm
             python-version: pypy3.11

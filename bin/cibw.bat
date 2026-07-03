@@ -22,6 +22,10 @@ rem
 del /q wheelhouse\*
 
 rem override setting in pyproject.toml
-set CIBW_BUILD=cp39-* cp310-* cp311-*
+set CIBW_BUILD=cp313-* cp314-* cp314t-* pp311-*
+
+cibuildwheel --platform windows
+
+set CIBW_BUILD=cp310-*
 
 cibuildwheel --platform windows

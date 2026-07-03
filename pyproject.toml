@@ -4,7 +4,7 @@ description = "Bindings for FLINT"
 version = "0.8.0"
 
 # This needs to be in sync with README, and CI config.
-requires-python = ">= 3.11"
+requires-python = ">= 3.10"
 authors = [
     {name = "Fredrik Johansson", email = "fredrik.johansson@gmail.com"},
     {name = "Oscar Benjamin", email = "oscar.j.benjamin@gmail.com"},
@@ -106,6 +106,15 @@ enable = [
 manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux_2_28"
 manylinux-i686-image = "manylinux2014"
+
+[[tool.cibuildwheel.overrides]]
+select = ["cp310-*linux_*", "cp310-macosx_*"]
+config-settings = {setup-args = "-Dpython.allow_limited_api=true"}
+
+[[tool.cibuildwheel.overrides]]
+select = "cp310-win_*"
+inherit.config-settings = "append"
+config-settings = {setup-args = ["--vsenv", "-Dpython.allow_limited_api=true"]}
 
 [tool.cibuildwheel.linux.environment]
 # LD_LIBRARY_PATH is needed by auditwheel

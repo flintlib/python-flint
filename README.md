@@ -18,7 +18,7 @@ Author: Fredrik Johansson <fredrik.johansson@gmail.com>
 Installation
 ------------
 
-Currently python-flint supports CPython versions 3.11-3.14 and 3.14t
+Currently python-flint supports CPython versions 3.10-3.14 and 3.14t
 (free-threaded) and provides binaries on PyPI for the following platforms:
 
 - Windows (x86-64)
@@ -144,7 +144,7 @@ Compatible versions:
 
 | python-flint | Release date  | CPython     | FLINT      | Cython           |
 |--------------|---------------|-------------|------------|------------------|
-| `0.9.0`      |      ???      | `3.11-3.14` | `3.0-3.6`  | `3.1-3.2?`       |
+| `0.9.0`      |      ???      | `3.10-3.14` | `3.0-3.6`  | `3.1-3.2?`       |
 | `0.8.0`      | 29th Aug 2025 | `3.11-3.14` | `3.0-3.3`  | `3.1` only       |
 | `0.7.0`      | 16th Mar 2025 | `3.11-3.13` | `3.0-3.2`  | `3.0.11-3.1.0a1` |
 | `0.6.0`      |  1st Feb 2024 | `3.9-3.12`  | `3.0` only | `3.0` only       |
