@@ -3,6 +3,7 @@ from flint.flintlib.types.fmpq cimport fmpq_t
 from flint.flintlib.types.fmpz cimport fmpz_mpoly_ctx_t, fmpz_mpoly_t, fmpz_poly_t
 from flint.flintlib.types.gr cimport gr_ctx_t, gr_ptr, gr_srcptr, gr_stream_t, gr_vec_t, truth_t
 
+# unknown type fmpz_vec_t
 
 # .. macro :: GR_PARSE_BALANCE_ADDITIONS
 # .. macro :: GR_PARSE_RING_EXPONENTS
@@ -141,6 +142,7 @@ cdef extern from "flint/gr_generic.h":
     int gr_generic_vec_is_zero(gr_srcptr vec, slong len, gr_ctx_t ctx)
     int gr_generic_vec_dot(gr_ptr res, gr_srcptr initial, int subtract, gr_srcptr vec1, gr_srcptr vec2, slong len, gr_ctx_t ctx)
     int gr_generic_vec_dot_rev(gr_ptr res, gr_srcptr initial, int subtract, gr_srcptr vec1, gr_srcptr vec2, slong len, gr_ctx_t ctx)
+    int gr_generic_vec_dot_strided(gr_ptr res, gr_srcptr initial, int subtract, gr_srcptr vec1, slong stride1, gr_srcptr vec2, slong stride2, slong len, gr_ctx_t ctx)
     int gr_generic_vec_dot_ui(gr_ptr res, gr_srcptr initial, int subtract, gr_srcptr vec1, const ulong * vec2, slong len, gr_ctx_t ctx)
     int gr_generic_vec_dot_si(gr_ptr res, gr_srcptr initial, int subtract, gr_srcptr vec1, const slong * vec2, slong len, gr_ctx_t ctx)
     int gr_generic_vec_dot_fmpz(gr_ptr res, gr_srcptr initial, int subtract, gr_srcptr vec1, const fmpz_struct * vec2, slong len, gr_ctx_t ctx)
@@ -212,4 +214,4 @@ cdef extern from "flint/gr_generic.h":
     int gr_generic_scalar_other_div_vec(gr_ptr vec1, gr_srcptr c, gr_ctx_t cctx, gr_srcptr vec2, slong len, gr_ctx_t ctx)
     int gr_generic_scalar_other_divexact_vec(gr_ptr vec1, gr_srcptr c, gr_ctx_t cctx, gr_srcptr vec2, slong len, gr_ctx_t ctx)
     int gr_generic_scalar_other_pow_vec(gr_ptr vec1, gr_srcptr c, gr_ctx_t cctx, gr_srcptr vec2, slong len, gr_ctx_t ctx)
-    int gr_generic_poly_factor_roots( gr_ptr c, gr_vec_t fac, gr_vec_t mult, gr_srcptr elt, int flags, gr_ctx_t ctx)
+    # int gr_generic_poly_factor_roots( gr_ptr c, gr_vec_t fac, fmpz_vec_t mult, gr_srcptr elt, int flags, gr_ctx_t ctx)

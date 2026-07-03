@@ -4,6 +4,7 @@ from flint.flintlib.types.gr cimport gr_ctx_t, gr_ptr, gr_srcptr, gr_stream_t, g
 
 # unknown type fexpr_t
 # unknown type fexpr_vec_t
+# unknown type fmpz_vec_t
 
 # .. macro:: GR_SUCCESS
 # .. macro:: GR_DOMAIN
@@ -155,7 +156,7 @@ cdef extern from "flint/gr.h":
     int gr_gcd(gr_ptr res, gr_srcptr x, gr_srcptr y, gr_ctx_t ctx)
     int gr_lcm(gr_ptr res, gr_srcptr x, gr_srcptr y, gr_ctx_t ctx)
     int gr_canonical_associate(gr_ptr res, gr_ptr u, gr_srcptr x, gr_ctx_t ctx)
-    int gr_factor(gr_ptr c, gr_vec_t factors, gr_vec_t exponents, gr_srcptr x, int flags, gr_ctx_t ctx)
+    # int gr_factor(gr_ptr c, gr_vec_t factors, fmpz_vec_t exponents, gr_srcptr x, int flags, gr_ctx_t ctx)
     int gr_numerator(gr_ptr res, gr_srcptr x, gr_ctx_t ctx)
     int gr_denominator(gr_ptr res, gr_srcptr x, gr_ctx_t ctx)
     int gr_floor(gr_ptr res, gr_srcptr x, gr_ctx_t ctx)
@@ -189,6 +190,7 @@ cdef extern from "flint/gr.h":
     truth_t gr_abs_gt(gr_srcptr x, gr_srcptr y, gr_ctx_t ctx)
     int gr_min(gr_ptr res, gr_srcptr x, gr_srcptr y, gr_ctx_t ctx)
     int gr_max(gr_ptr res, gr_srcptr x, gr_srcptr y, gr_ctx_t ctx)
+    int gr_big_o_base_fmpz(gr_ptr res, gr_srcptr x, const fmpz_t n, gr_ctx_t ctx)
     int gr_set_interval_mid_rad(gr_ptr res, gr_srcptr m, gr_srcptr r, gr_ctx_t ctx)
     int gr_ctx_fq_prime(fmpz_t p, gr_ctx_t ctx)
     int gr_ctx_fq_degree(slong * deg, gr_ctx_t ctx)

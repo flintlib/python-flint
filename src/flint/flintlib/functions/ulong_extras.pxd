@@ -137,6 +137,7 @@ cdef extern from "flint/ulong_extras.h":
     ulong n_euler_phi(ulong n)
     ulong n_factorial_fast_mod2_preinv(ulong n, ulong p, ulong pinv)
     ulong n_factorial_mod2_preinv(ulong n, ulong p, ulong pinv)
+    ulong n_quadratic_nonresidue(ulong n)
     # ulong n_primitive_root_prime_prefactor(ulong p, n_factor_t * factors)
     ulong n_primitive_root_prime(ulong p)
     ulong n_discrete_log_bsgs(ulong b, ulong a, ulong n)

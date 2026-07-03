@@ -95,6 +95,7 @@ cdef extern from "flint/acb_dirichlet.h":
     void acb_dirichlet_backlund_s_bound(mag_t res, const arb_t t)
     void acb_dirichlet_zeta_nzeros_gram(fmpz_t res, const fmpz_t n)
     slong acb_dirichlet_backlund_s_gram(const fmpz_t n)
+    void acb_dirichlet_secondary_zeta(acb_t res, const acb_t s, slong prec)
     void acb_dirichlet_platt_scaled_lambda(arb_t res, const arb_t t, slong prec)
     void acb_dirichlet_platt_scaled_lambda_vec(arb_ptr res, const fmpz_t T, slong A, slong B, slong prec)
     void acb_dirichlet_platt_multieval(arb_ptr res, const fmpz_t T, slong A, slong B, const arb_t h, const fmpz_t J, slong K, slong sigma, slong prec)

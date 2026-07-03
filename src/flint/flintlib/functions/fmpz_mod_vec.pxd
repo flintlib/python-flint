@@ -5,6 +5,7 @@ from flint.flintlib.types.fmpz_mod cimport fmpz_mod_ctx_t
 
 cdef extern from "flint/fmpz_mod_vec.h":
     void _fmpz_mod_vec_set_fmpz_vec(fmpz_struct * A, const fmpz_struct * B, slong len, const fmpz_mod_ctx_t ctx)
+    void _fmpz_mod_vec_get_fmpz_vec_smod(fmpz_struct * res, const fmpz_struct * vec, slong len, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_vec_neg(fmpz_struct * A, const fmpz_struct * B, slong len, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_vec_add(fmpz_struct * a, const fmpz_struct * b, const fmpz_struct * c, slong n, const fmpz_mod_ctx_t ctx)
     void _fmpz_mod_vec_sub(fmpz_struct * a, const fmpz_struct * b, const fmpz_struct * c, slong n, const fmpz_mod_ctx_t ctx)

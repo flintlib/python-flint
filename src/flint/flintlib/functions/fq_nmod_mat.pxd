@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport flint_rand_t, slong
+from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, slong, ulong
 from flint.flintlib.types.fmpz_mod cimport fmpz_mod_mat_t
 from flint.flintlib.types.fq_nmod cimport fq_nmod_ctx_t, fq_nmod_mat_t, fq_nmod_poly_t, fq_nmod_struct, fq_nmod_t
 from flint.flintlib.types.nmod cimport nmod_mat_t
@@ -48,6 +48,10 @@ cdef extern from "flint/fq_nmod_mat.h":
     void fq_nmod_mat_add(fq_nmod_mat_t C, const fq_nmod_mat_t A, const fq_nmod_mat_t B,  const fq_nmod_ctx_t ctx)
     void fq_nmod_mat_sub(fq_nmod_mat_t C, const fq_nmod_mat_t A, const fq_nmod_mat_t B, const fq_nmod_ctx_t ctx)
     void fq_nmod_mat_neg(fq_nmod_mat_t A, const fq_nmod_mat_t B, const fq_nmod_ctx_t ctx)
+    void fq_nmod_mat_scalar_mul(fq_nmod_mat_t B, const fq_nmod_mat_t A, const fq_nmod_t c, const fq_nmod_ctx_t ctx)
+    void fq_nmod_mat_scalar_mul_fmpz(fq_nmod_mat_t B, const fq_nmod_mat_t A, const fmpz_t c, const fq_nmod_ctx_t ctx)
+    void fq_nmod_mat_scalar_mul_si(fq_nmod_mat_t B, const fq_nmod_mat_t A, const slong c, const fq_nmod_ctx_t ctx)
+    void fq_nmod_mat_scalar_mul_ui(fq_nmod_mat_t B, const fq_nmod_mat_t A, const ulong c, const fq_nmod_ctx_t ctx)
     void fq_nmod_mat_mul(fq_nmod_mat_t C, const fq_nmod_mat_t A, const fq_nmod_mat_t B,  const fq_nmod_ctx_t ctx)
     void fq_nmod_mat_mul_classical(fq_nmod_mat_t C, const fq_nmod_mat_t A, const fq_nmod_mat_t B, const fq_nmod_ctx_t ctx)
     void fq_nmod_mat_mul_KS(fq_nmod_mat_t C, const fq_nmod_mat_t A, const fq_nmod_mat_t B, const fq_nmod_ctx_t ctx)

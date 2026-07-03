@@ -155,6 +155,7 @@ cdef extern from "flint/gr_special.h":
     int gr_bessel_j_y(gr_ptr res1, gr_ptr res2, gr_srcptr x, gr_srcptr y, gr_ctx_t ctx)
     int gr_bessel_i_scaled(gr_ptr res, gr_srcptr x, gr_srcptr y, gr_ctx_t ctx)
     int gr_bessel_k_scaled(gr_ptr res, gr_srcptr x, gr_srcptr y, gr_ctx_t ctx)
+    int gr_bessel_j_jet(gr_ptr res, gr_srcptr nu, gr_srcptr z, slong len, gr_ctx_t ctx)
     int gr_airy(gr_ptr res1, gr_ptr res2, gr_ptr res3, gr_ptr res4, gr_srcptr x, gr_ctx_t ctx)
     int gr_airy_ai(gr_ptr res, gr_srcptr x, gr_ctx_t ctx)
     int gr_airy_bi(gr_ptr res, gr_srcptr x, gr_ctx_t ctx)

@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport flint_rand_t, slong
+from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, slong, ulong
 from flint.flintlib.types.fmpz_mod cimport fmpz_mod_mat_t
 from flint.flintlib.types.fq_zech cimport fq_zech_ctx_t, fq_zech_mat_t, fq_zech_poly_t, fq_zech_struct, fq_zech_t
 from flint.flintlib.types.nmod cimport nmod_mat_t
@@ -44,6 +44,10 @@ cdef extern from "flint/fq_zech_mat.h":
     void fq_zech_mat_add(fq_zech_mat_t C, const fq_zech_mat_t A, const fq_zech_mat_t B,  const fq_zech_ctx_t ctx)
     void fq_zech_mat_sub(fq_zech_mat_t C, const fq_zech_mat_t A, const fq_zech_mat_t B, const fq_zech_ctx_t ctx)
     void fq_zech_mat_neg(fq_zech_mat_t A, const fq_zech_mat_t B, const fq_zech_ctx_t ctx)
+    void fq_zech_mat_scalar_mul(fq_zech_mat_t B, const fq_zech_mat_t A, const fq_zech_t c, const fq_zech_ctx_t ctx)
+    void fq_zech_mat_scalar_mul_fmpz(fq_zech_mat_t B, const fq_zech_mat_t A, const fmpz_t c, const fq_zech_ctx_t ctx)
+    void fq_zech_mat_scalar_mul_si(fq_zech_mat_t B, const fq_zech_mat_t A, const slong c, const fq_zech_ctx_t ctx)
+    void fq_zech_mat_scalar_mul_ui(fq_zech_mat_t B, const fq_zech_mat_t A, const ulong c, const fq_zech_ctx_t ctx)
     void fq_zech_mat_mul(fq_zech_mat_t C, const fq_zech_mat_t A, const fq_zech_mat_t B,  const fq_zech_ctx_t ctx)
     void fq_zech_mat_mul_classical(fq_zech_mat_t C, const fq_zech_mat_t A, const fq_zech_mat_t B, const fq_zech_ctx_t ctx)
     void fq_zech_mat_mul_KS(fq_zech_mat_t C, const fq_zech_mat_t A, const fq_zech_mat_t B, const fq_zech_ctx_t ctx)
