@@ -85,10 +85,10 @@ Compatible versions:
      - FLINT
      - Cython
    * - 0.9.0
-     - Not yet
+     - 3rd Jul 2026
      - 3.10-3.14
      - 3.0-3.6
-     - 3.1-3.2?
+     - 3.1-3.2
    * - 0.8.0
      - 29th Aug 2025
      - 3.11-3.14
