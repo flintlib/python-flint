@@ -33,6 +33,7 @@ from flint.flintlib.functions.fmpq_poly cimport (
     fmpq_poly_set,
 )
 from flint.flintlib.functions.compat cimport (
+    compat_gr_factor,
     compat_gr_ctx_init_gr_series,
     # compat_gr_ctx_init_series_mod_gr_poly,
 )
@@ -159,7 +160,6 @@ from flint.flintlib.functions.gr cimport (
 
     gr_gcd,
     gr_lcm,
-    gr_factor,
 
     gr_floor,
     gr_ceil,
@@ -782,7 +782,7 @@ cdef class gr_ctx(flint_ctx):
         c = self.new_gr()
         gr_vec_init(factors, 0, self.ctx_t)
         gr_vec_init(exponents, 0, gr_fmpz_ctx_c.ctx_t)
-        err = gr_factor(c.pval, factors, exponents, x.pval, flags, self.ctx_t)
+        err = compat_gr_factor(c.pval, factors, exponents, x.pval, flags, self.ctx_t)
         if err != GR_SUCCESS:
             raise self._error(err, "Failed to factor gr object")
         length = gr_vec_length(factors, self.ctx_t)
@@ -1716,7 +1716,7 @@ cdef class gr(flint_scalar):
         c = self.ctx.new_gr()
         gr_vec_init(factors, 0, self.ctx.ctx_t)
         gr_vec_init(exponents, 0, gr_fmpz_ctx_c.ctx_t)
-        err = gr_factor(c.pval, factors, exponents, self.pval, flags, self.ctx.ctx_t)
+        err = compat_gr_factor(c.pval, factors, exponents, self.pval, flags, self.ctx.ctx_t)
         if err != GR_SUCCESS:
             raise self._error(err, "Failed to factor gr object")
         length = gr_vec_length(factors, self.ctx.ctx_t)

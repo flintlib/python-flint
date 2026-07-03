@@ -144,7 +144,7 @@ Compatible versions:
 
 | python-flint | Release date  | CPython     | FLINT      | Cython           |
 |--------------|---------------|-------------|------------|------------------|
-| `0.9.0`      |      ???      | `3.11-3.14` | `3.0-3.5`  | `3.1-3.2?`       |
+| `0.9.0`      |      ???      | `3.11-3.14` | `3.0-3.6`  | `3.1-3.2?`       |
 | `0.8.0`      | 29th Aug 2025 | `3.11-3.14` | `3.0-3.3`  | `3.1` only       |
 | `0.7.0`      | 16th Mar 2025 | `3.11-3.13` | `3.0-3.2`  | `3.0.11-3.1.0a1` |
 | `0.6.0`      |  1st Feb 2024 | `3.9-3.12`  | `3.0` only | `3.0` only       |
@@ -197,10 +197,41 @@ Changes (0.9.0):
   work. (OB)
 - [gh-324](https://github.com/flintlib/python-flint/pull/324),
   Faster conversion from `int` to `fmpz` and back. (RO).
+- [gh-326](https://github.com/flintlib/python-flint/pull/326),
+  Add support for building with the Python stable ABI. (OB)
+- [gh-341](https://github.com/flintlib/python-flint/pull/341),
+  Disable hashing for inexact `arb` values. (DSM)
+- [gh-347](https://github.com/flintlib/python-flint/pull/347),
+  Fix storing the variable name for `fq_default`. (OB)
+- [gh-350](https://github.com/flintlib/python-flint/pull/350),
+  Add support for Cython 3.2. (OB)
+- [gh-352](https://github.com/flintlib/python-flint/pull/352),
+  Fix a crash in `fmpz_mat.lll()` for empty matrices. (OB)
 - [gh-359](https://github.com/flintlib/python-flint/pull/359),
   Sort factorisations of all mpoly types. (OB)
-- [gh-374](https://github.com/flintlib/python-flint/pull/374), Fixed a bug in `nmod.__hash__`. (FH)
-- [gh-392](https://github.com/flintlib/python-flint/pull/392), Add interface to `acb_theta_jet` (JH, SS)
+- [gh-367](https://github.com/flintlib/python-flint/pull/367),
+  Add type stubs and tests for many more classes. (OB)
+- [gh-370](https://github.com/flintlib/python-flint/pull/370),
+  Fix `unused_gens()` for the zero polynomial. (OB)
+- [gh-374](https://github.com/flintlib/python-flint/pull/374),
+  Fixed a bug in `nmod.__hash__`. (FH)
+- [gh-378](https://github.com/flintlib/python-flint/pull/378),
+  Build Windows extension modules with MSVC. (OB)
+- [gh-379](https://github.com/flintlib/python-flint/pull/379),
+  Add Windows ARM64 wheels. (OB)
+- [gh-380](https://github.com/flintlib/python-flint/pull/380),
+  Support building against FLINT 3.4.0. (OB)
+- [gh-393](https://github.com/flintlib/python-flint/pull/393),
+  Use `fmpz_mod_mat_det()` when building against FLINT 3.1 or newer. (OB)
+- [gh-401](https://github.com/flintlib/python-flint/pull/401),
+  Upload Pyodide wheels to PyPI. (OB)
+- [gh-389](https://github.com/flintlib/python-flint/pull/389),
+  [gh-402](https://github.com/flintlib/python-flint/pull/402),
+  Support building against FLINT 3.5.0. (OB)
+- [gh-392](https://github.com/flintlib/python-flint/pull/392),
+  Add interface to `acb_theta_jet` (JH, SS)
+- [gh-409](https://github.com/flintlib/python-flint/pull/409),
+  Support building against FLINT 3.6.0. (OB)
 
 0.8.0
 -----
