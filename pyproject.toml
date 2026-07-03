@@ -107,15 +107,6 @@ manylinux-x86_64-image = "manylinux2014"
 manylinux-aarch64-image = "manylinux_2_28"
 manylinux-i686-image = "manylinux2014"
 
-[[tool.cibuildwheel.overrides]]
-select = ["cp310-*linux_*", "cp310-macosx_*"]
-config-settings = {setup-args = "-Dpython.allow_limited_api=true"}
-
-[[tool.cibuildwheel.overrides]]
-select = "cp310-win_*"
-inherit.config-settings = "append"
-config-settings = {setup-args = ["--vsenv", "-Dpython.allow_limited_api=true"]}
-
 [tool.cibuildwheel.linux.environment]
 # LD_LIBRARY_PATH is needed by auditwheel
 LD_LIBRARY_PATH = "$(pwd)/.local/lib:$LD_LIBRARY_PATH"
@@ -163,7 +154,6 @@ repair-wheel-command = [
 
 [tool.cibuildwheel.windows]
 before-build = "pip install wheel delvewheel"
-config-settings = {setup-args = ["--vsenv"], build-dir = "build"}
 repair-wheel-command = [
 """python bin/cibw_repair_wheel_licenses.py {wheel} \
     --license LGPL-3.0-or-later \
@@ -208,7 +198,3 @@ WASM_LIBRARY_DIR = "$(pwd)/wasm-library-dir"
 PKG_CONFIG_PATH = "$(pwd)/wasm-library-dir/lib/pkgconfig:$PKG_CONFIG_PATH"
 CFLAGS = "-I$(pwd)/wasm-library-dir/include $CFLAGS"
 LDFLAGS = "-L$(pwd)/wasm-library-dir/lib -lflint -lmpfr -lgmp $LDFLAGS"
-
-[tool.cibuildwheel.pyodide.config-settings]
-build-dir = "flint_wasm_build"
-setup-args = ["-Dflint_version_check=false"]
