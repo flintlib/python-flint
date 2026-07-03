@@ -48,7 +48,7 @@ from .flint_base.flint_base import (
     Ordering,
 )
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 
 
 __all__ = [
