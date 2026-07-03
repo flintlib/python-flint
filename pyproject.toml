@@ -4,7 +4,7 @@ description = "Bindings for FLINT"
 version = "0.8.0"
 
 # This needs to be in sync with README, and CI config.
-requires-python = ">= 3.11"
+requires-python = ">= 3.10"
 authors = [
     {name = "Fredrik Johansson", email = "fredrik.johansson@gmail.com"},
     {name = "Oscar Benjamin", email = "oscar.j.benjamin@gmail.com"},
@@ -154,7 +154,6 @@ repair-wheel-command = [
 
 [tool.cibuildwheel.windows]
 before-build = "pip install wheel delvewheel"
-config-settings = {setup-args = ["--vsenv"], build-dir = "build"}
 repair-wheel-command = [
 """python bin/cibw_repair_wheel_licenses.py {wheel} \
     --license LGPL-3.0-or-later \
@@ -199,7 +198,3 @@ WASM_LIBRARY_DIR = "$(pwd)/wasm-library-dir"
 PKG_CONFIG_PATH = "$(pwd)/wasm-library-dir/lib/pkgconfig:$PKG_CONFIG_PATH"
 CFLAGS = "-I$(pwd)/wasm-library-dir/include $CFLAGS"
 LDFLAGS = "-L$(pwd)/wasm-library-dir/lib -lflint -lmpfr -lgmp $LDFLAGS"
-
-[tool.cibuildwheel.pyodide.config-settings]
-build-dir = "flint_wasm_build"
-setup-args = ["-Dflint_version_check=false"]

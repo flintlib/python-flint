@@ -15,7 +15,6 @@ env:
   PYODIDE_VERSION: '314.0.0'
   PYODIDE_EMSCRIPTEN_VERSION: '5.0.3'
   PYODIDE_PYTHON_VERSION: '3.14'
-  PYODIDE_CIBW_BUILD: 'cp314-*'
 
 jobs:
   build_wheels:
@@ -26,54 +25,117 @@ jobs:
       fail-fast: false
       matrix:
         include:
+
           - name: Build manylinux x86-64 wheels
             os: ubuntu-22.04
             kind: native
             artifact_name: wheels-ubuntu-22.04
             cibw_platform: auto
-            cibw_build: "*"
+            cibw_build: "cp313-* cp314-* cp314t-* pp311-*"
+            cibw_config_settings: ""
+
+          - name: Build manylinux x86-64 stable ABI wheels
+            os: ubuntu-22.04
+            kind: stable-abi
+            artifact_name: wheels-ubuntu-22.04-abi3
+            cibw_platform: auto
+            cibw_build: "cp310-*"
+            cibw_config_settings: "setup-args=-Dpython.allow_limited_api=true"
+
           - name: Build manylinux arm64 wheels
             os: ubuntu-22.04-arm
             kind: native
             artifact_name: wheels-ubuntu-22.04-arm
             cibw_platform: auto
-            cibw_build: "*"
+            cibw_build: "cp313-* cp314-* cp314t-* pp311-*"
+            cibw_config_settings: ""
+
+          - name: Build manylinux arm64 stable ABI wheels
+            os: ubuntu-22.04-arm
+            kind: stable-abi
+            artifact_name: wheels-ubuntu-22.04-arm-abi3
+            cibw_platform: auto
+            cibw_build: "cp310-*"
+            cibw_config_settings: "setup-args=-Dpython.allow_limited_api=true"
+
           - name: Build Windows x86-64 wheels
             os: windows-2022
             kind: native
             artifact_name: wheels-windows-2022
             cibw_platform: auto
-            cibw_build: "*"
+            cibw_build: "cp313-* cp314-* cp314t-* pp311-*"
+            cibw_config_settings: "setup-args=--vsenv build-dir=build"
+
+          - name: Build Windows x86-64 stable ABI wheels
+            os: windows-2022
+            kind: stable-abi
+            artifact_name: wheels-windows-2022-abi3
+            cibw_platform: auto
+            cibw_build: "cp310-*"
+            cibw_config_settings: "setup-args=--vsenv setup-args=-Dpython.allow_limited_api=true build-dir=build"
+
           - name: Build Windows arm64 wheels
             os: windows-11-arm
             kind: native
             artifact_name: wheels-windows-11-arm
             cibw_platform: auto
-            cibw_build: "*"
+            cibw_build: "cp313-* cp314-* cp314t-* pp311-*"
+            cibw_config_settings: "setup-args=--vsenv build-dir=build"
+
+          - name: Build Windows arm64 stable ABI wheels
+            os: windows-11-arm
+            kind: stable-abi
+            artifact_name: wheels-windows-11-arm-abi3
+            cibw_platform: auto
+            cibw_build: "cp310-*"
+            cibw_config_settings: "setup-args=--vsenv setup-args=-Dpython.allow_limited_api=true build-dir=build"
+
           - name: Build macOS x86-64 wheels
             os: macos-15-intel
             kind: native
             artifact_name: wheels-macos-15-intel
             cibw_platform: auto
-            cibw_build: "*"
+            cibw_build: "cp313-* cp314-* cp314t-* pp311-*"
+            cibw_config_settings: ""
+
+          - name: Build macOS x86-64 stable ABI wheels
+            os: macos-15-intel
+            kind: stable-abi
+            artifact_name: wheels-macos-15-intel-abi3
+            cibw_platform: auto
+            cibw_build: "cp310-*"
+            cibw_config_settings: "setup-args=-Dpython.allow_limited_api=true"
+
           - name: Build macOS arm64 wheels
             os: macos-14
             kind: native
             artifact_name: wheels-macos-14
             cibw_platform: auto
-            cibw_build: "*"
+            cibw_build: "cp313-* cp314-* cp314t-* pp311-*"
+            cibw_config_settings: ""
+
+          - name: Build macOS arm64 stable ABI wheels
+            os: macos-14
+            kind: stable-abi
+            artifact_name: wheels-macos-14-abi3
+            cibw_platform: auto
+            cibw_build: "cp310-*"
+            cibw_config_settings: "setup-args=-Dpython.allow_limited_api=true"
+
           - name: Build Pyodide wheels
             os: ubuntu-22.04
             kind: pyodide
             artifact_name: wheels-pyodide
             cibw_platform: pyodide
+            cibw_build: "cp314-*"
+            cibw_config_settings: "build-dir=flint_wasm_build setup-args=-Dflint_version_check=false"
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
-      - if: ${{ matrix.kind == 'native' }}
+      - if: ${{ matrix.kind != 'pyodide' }}
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.13'
@@ -120,7 +182,8 @@ jobs:
         uses: pypa/cibuildwheel@294735312765b09d24a2fbec22660ce817587d55 # v4.1.0
         env:
           CIBW_PLATFORM: ${{ matrix.cibw_platform }}
-          CIBW_BUILD: ${{ matrix.kind == 'pyodide' && env.PYODIDE_CIBW_BUILD || matrix.cibw_build }}
+          CIBW_BUILD: ${{ matrix.cibw_build }}
+          CIBW_CONFIG_SETTINGS: ${{ matrix.cibw_config_settings }}
           CIBW_PYODIDE_VERSION: ${{ env.PYODIDE_VERSION }}
           # override setting in pyproject.toml to use msys2 instead of msys64 bash
           CIBW_BEFORE_ALL_WINDOWS: ${{ matrix.os == 'windows-11-arm' && 'msys2 -c bin/cibw_before_all_windows_arm64.sh' || 'msys2 -c bin/cibw_before_all_windows_amd64.sh' }}
@@ -172,8 +235,10 @@ jobs:
           macos-15,
           ]
         # This list to be kept in sync with python-requires in pyproject.toml.
-        python-version: ['3.11', '3.12', '3.13', '3.14', '3.14t', 'pypy3.11']
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14', '3.14t', '3.15', 'pypy3.11']
         exclude:
+          - os: windows-11-arm
+            python-version: '3.10'
           - os: windows-11-arm
             python-version: pypy3.11
 
