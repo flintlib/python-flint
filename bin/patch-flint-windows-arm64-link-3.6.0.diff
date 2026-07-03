@@ -1,0 +1,32 @@
+diff --git a/Makefile.in b/Makefile.in
+index 8185fa609..a3822f53b 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -424,22 +424,16 @@ endif
+ 
+ ifneq ($(SHARED), 0)
+ shared: $(FLINT_DIR)/$(FLINT_LIB_FULL)
+-# The following is to avoid reaching the maximum length of command line
+-# arguments, mainly present on MinGW.
+-define xxx_merged_lobj_rule
+-$(BUILD_DIR)/$(1)_merged.lo: $($(1)_LOBJS) | $(BUILD_DIR)
+-	@$(LD) -r $($(1)_LOBJS) -o $(BUILD_DIR)/$(1)_merged.lo
+-endef
+-$(foreach dir, $(DIRS), $(eval $(call xxx_merged_lobj_rule,$(dir))))
+-MERGED_LOBJS:=$(foreach dir, $(DIRS),$(BUILD_DIR)/$(dir)_merged.lo)
+ ifeq ($(WANT_LTO),1)
+ SHARED_LIB_DEPS:=$(LOBJS)
+ else
+-SHARED_LIB_DEPS:=$(MERGED_LOBJS)
++SHARED_LINK_RSP := $(BUILD_DIR)/libflint-shared.rsp
++SHARED_LIB_DEPS:=$(LOBJS)
+ endif
+-$(FLINT_DIR)/$(FLINT_LIB_FULL): $(SHARED_LIB_DEPS)
++$(FLINT_DIR)/$(FLINT_LIB_FULL): $(SHARED_LIB_DEPS) | $(BUILD_DIR)
+ 	@echo "Building $(FLINT_LIB_FULL)"
+-	$(CMD) $(CC) $(CFLAGS) -shared $(EXTRA_SHARED_FLAGS) $(SHARED_LIB_DEPS) -o $(FLINT_LIB_FULL) $(LDFLAGS) $(LIBS)
++	@: $(file >$(SHARED_LINK_RSP))$(foreach obj,$(LOBJS),$(file >>$(SHARED_LINK_RSP),$(obj)))
++	$(CMD) $(CC) $(CFLAGS) -shared $(EXTRA_SHARED_FLAGS) @$(SHARED_LINK_RSP) -o $(FLINT_LIB_FULL) $(LDFLAGS) $(LIBS)
+ 	@$(RM_F) $(FLINT_LIB)
+ 	@$(RM_F) $(FLINT_LIB_MAJOR)
+ 	@$(LN_S) $(FLINT_LIB_FULL) $(FLINT_LIB)

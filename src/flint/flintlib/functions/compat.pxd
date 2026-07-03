@@ -1,6 +1,6 @@
 from flint.flintlib.types.flint cimport slong
 from flint.flintlib.types.fmpz_mod cimport fmpz_mod_mpoly_ctx_t, fmpz_mod_mpoly_t
-from flint.flintlib.types.gr cimport gr_ctx_t
+from flint.flintlib.types.gr cimport gr_ctx_t, gr_ptr, gr_srcptr, gr_vec_t
 
 
 cdef extern from *:
@@ -31,7 +31,18 @@ cdef extern from *:
     #define compat_fmpz_mod_mpoly_compose_fmpz_mod_mpoly_gen(...) fmpz_mod_mpoly_compose_fmpz_mod_mpoly_gen(__VA_ARGS__)
 
     #endif
+
+    #if __FLINT_RELEASE >= 30600 /* Flint 3.6.0 or later */
+
+    #define compat_gr_factor(c, factors, exponents, x, flags, ctx) gr_factor(c, factors, (fmpz_vec_struct *) exponents, x, flags, ctx)
+
+    #else
+
+    #define compat_gr_factor(c, factors, exponents, x, flags, ctx) gr_factor(c, factors, exponents, x, flags, ctx)
+
+    #endif
     """
     void compat_gr_ctx_init_gr_series(gr_ctx_t ctx, gr_ctx_t base_ring, slong prec)
     void compat_gr_ctx_init_series_mod_gr_poly(gr_ctx_t ctx, gr_ctx_t base_ring, slong n)
     void compat_fmpz_mod_mpoly_compose_fmpz_mod_mpoly_gen(fmpz_mod_mpoly_t A, const fmpz_mod_mpoly_t B, const slong * c, const fmpz_mod_mpoly_ctx_t ctxB, const fmpz_mod_mpoly_ctx_t ctxAC)
+    int compat_gr_factor(gr_ptr c, gr_vec_t factors, gr_vec_t exponents, gr_srcptr x, int flags, gr_ctx_t ctx)
