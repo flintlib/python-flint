@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, slong
+from flint.flintlib.types.flint cimport flint_bitcnt_t, flint_rand_t, fmpz_struct, fmpz_t, slong, ulong
 from flint.flintlib.types.fmpq cimport fmpq_mat_t, fmpq_poly_t, fmpq_struct, fmpq_t
 from flint.flintlib.types.fmpz cimport fmpz_mat_t
 
@@ -28,7 +28,11 @@ cdef extern from "flint/fmpq_mat.h":
     void fmpq_mat_neg(fmpq_mat_t rop, const fmpq_mat_t op)
     void fmpq_mat_scalar_mul_fmpq(fmpq_mat_t rop, const fmpq_mat_t op, const fmpq_t x)
     void fmpq_mat_scalar_mul_fmpz(fmpq_mat_t rop, const fmpq_mat_t op, const fmpz_t x)
+    void fmpq_mat_scalar_mul_si(fmpq_mat_t rop, const fmpq_mat_t op, slong x)
+    void fmpq_mat_scalar_mul_ui(fmpq_mat_t rop, const fmpq_mat_t op, ulong x)
     void fmpq_mat_scalar_div_fmpz(fmpq_mat_t rop, const fmpq_mat_t op, const fmpz_t x)
+    void fmpq_mat_scalar_div_si(fmpq_mat_t rop, const fmpq_mat_t op, const fmpz_t x)
+    void fmpq_mat_scalar_div_ui(fmpq_mat_t rop, const fmpq_mat_t op, const fmpz_t x)
     void fmpq_mat_print(const fmpq_mat_t mat)
     void fmpq_mat_randbits(fmpq_mat_t mat, flint_rand_t state, flint_bitcnt_t bits)
     void fmpq_mat_randtest(fmpq_mat_t mat, flint_rand_t state, flint_bitcnt_t bits)

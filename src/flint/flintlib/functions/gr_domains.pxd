@@ -36,6 +36,7 @@ cdef extern from "flint/gr.h":
     void gr_ctx_init_random(gr_ctx_t ctx, flint_rand_t state)
     void gr_ctx_init_random_commutative_ring(gr_ctx_t ctx, flint_rand_t state)
     void gr_ctx_init_random_field(gr_ctx_t ctx, flint_rand_t state)
+    void gr_ctx_init_random_finite_field(gr_ctx_t ctx, flint_rand_t state)
     void gr_ctx_init_fmpz(gr_ctx_t ctx)
     void gr_ctx_init_fmpq(gr_ctx_t ctx)
     void gr_ctx_init_fmpzi(gr_ctx_t ctx)

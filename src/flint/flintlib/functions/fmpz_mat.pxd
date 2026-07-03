@@ -6,7 +6,6 @@ from flint.flintlib.types.nmod cimport nmod_mat_t
 # unknown type FILE
 # unknown type d_mat_t
 # unknown type fmpz_comb_t
-# unknown type fmpz_comb_temp_t
 
 
 cdef extern from "flint/fmpz_mat.h":
@@ -59,9 +58,9 @@ cdef extern from "flint/fmpz_mat.h":
     void fmpz_mat_set_nmod_mat(fmpz_mat_t A, const nmod_mat_t Amod)
     void fmpz_mat_set_nmod_mat_unsigned(fmpz_mat_t A, const nmod_mat_t Amod)
     void fmpz_mat_CRT_ui(fmpz_mat_t res, const fmpz_mat_t mat1, const fmpz_t m1, const nmod_mat_t mat2, int sign)
-    # void fmpz_mat_multi_mod_ui_precomp(nmod_mat_t * residues, slong nres, const fmpz_mat_t mat, const fmpz_comb_t comb, fmpz_comb_temp_t temp)
+    # void fmpz_mat_multi_mod_ui_precomp(nmod_mat_t * residues, slong nres, const fmpz_mat_t mat, const fmpz_comb_t comb)
     void fmpz_mat_multi_mod_ui(nmod_mat_t * residues, slong nres, const fmpz_mat_t mat)
-    # void fmpz_mat_multi_CRT_ui_precomp(fmpz_mat_t mat, nmod_mat_t * const residues, slong nres, const fmpz_comb_t comb, fmpz_comb_temp_t temp, int sign)
+    # void fmpz_mat_multi_CRT_ui_precomp(fmpz_mat_t mat, nmod_mat_t * const residues, slong nres, const fmpz_comb_t comb, int sign)
     void fmpz_mat_multi_CRT_ui(fmpz_mat_t mat, nmod_mat_t * const residues, slong nres, int sign)
     void fmpz_mat_add(fmpz_mat_t C, const fmpz_mat_t A, const fmpz_mat_t B)
     void fmpz_mat_sub(fmpz_mat_t C, const fmpz_mat_t A, const fmpz_mat_t B)
@@ -111,10 +110,11 @@ cdef extern from "flint/fmpz_mat.h":
     void fmpz_mat_det_modular_accelerated(fmpz_t det, const fmpz_mat_t A, int proved)
     void fmpz_mat_det_modular_given_divisor(fmpz_t det, const fmpz_mat_t A, const fmpz_t d, int proved)
     void fmpz_mat_det_bound(fmpz_t bound, const fmpz_mat_t A)
-    void fmpz_mat_det_bound_nonzero(fmpz_t bound, const fmpz_mat_t A)
+    void fmpz_mat_det_bound_submatrix(fmpz_t bound, const fmpz_mat_t A)
     void fmpz_mat_det_divisor(fmpz_t d, const fmpz_mat_t A)
     int fmpz_mat_permanent(fmpz_t res, const fmpz_mat_t A)
     void fmpz_mat_similarity(fmpz_mat_t A, slong r, fmpz_t d)
+    void fmpz_mat_charpoly_bound(fmpz_t bound, const fmpz_mat_t A)
     void _fmpz_mat_charpoly_berkowitz(fmpz_struct * cp, const fmpz_mat_t mat)
     void fmpz_mat_charpoly_berkowitz(fmpz_poly_t cp, const fmpz_mat_t mat)
     void _fmpz_mat_charpoly_modular(fmpz_struct * cp, const fmpz_mat_t mat)
@@ -145,10 +145,11 @@ cdef extern from "flint/fmpz_mat.h":
     slong fmpz_mat_rref_fflu(fmpz_mat_t B, fmpz_t den, const fmpz_mat_t A)
     slong fmpz_mat_rref_mul(fmpz_mat_t B, fmpz_t den, const fmpz_mat_t A)
     int fmpz_mat_is_in_rref_with_rank(const fmpz_mat_t A, const fmpz_t den, slong rank)
+    int fmpz_mat_rref_upper_certify_lu_mod_p(fmpz_mat_t E, fmpz_t den, const fmpz_mat_t A, slong rank, const slong * P, const slong * pivs)
+    int fmpz_mat_rank_certify_lu_mod_p(const fmpz_mat_t A, slong rank, const slong * P, const slong * pivs)
     void fmpz_mat_strong_echelon_form_mod(fmpz_mat_t A, const fmpz_t mod)
     slong fmpz_mat_howell_form_mod(fmpz_mat_t A, const fmpz_t mod)
     slong fmpz_mat_nullspace(fmpz_mat_t B, const fmpz_mat_t A)
-    slong fmpz_mat_rref_fraction_free(slong * perm, fmpz_mat_t B, fmpz_t den, const fmpz_mat_t A)
     void fmpz_mat_hnf(fmpz_mat_t H, const fmpz_mat_t A)
     void fmpz_mat_hnf_transform(fmpz_mat_t H, fmpz_mat_t U, const fmpz_mat_t A)
     void fmpz_mat_hnf_classical(fmpz_mat_t H, const fmpz_mat_t A)

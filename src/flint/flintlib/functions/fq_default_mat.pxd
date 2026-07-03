@@ -1,4 +1,4 @@
-from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, slong
+from flint.flintlib.types.flint cimport flint_rand_t, fmpz_t, slong, ulong
 from flint.flintlib.types.fmpz cimport fmpz_mat_t
 from flint.flintlib.types.fmpz_mod cimport fmpz_mod_mat_t
 from flint.flintlib.types.fq cimport fq_ctx_t, fq_mat_t, fq_struct
@@ -51,6 +51,10 @@ cdef extern from "flint/fq_default_mat.h":
     void fq_default_mat_add(fq_default_mat_t C, const fq_default_mat_t A, const fq_default_mat_t B, const fq_default_ctx_t ctx)
     void fq_default_mat_sub(fq_default_mat_t C, const fq_default_mat_t A, const fq_default_mat_t B, const fq_default_ctx_t ctx)
     void fq_default_mat_neg(fq_default_mat_t A, const fq_default_mat_t B, const fq_default_ctx_t ctx)
+    void fq_default_mat_scalar_mul(fq_default_mat_t B, const fq_default_mat_t A, const fq_default_t c, const fq_default_ctx_t ctx)
+    void fq_default_mat_scalar_mul_fmpz(fq_default_mat_t B, const fq_default_mat_t A, const fmpz_t c, const fq_default_ctx_t ctx)
+    void fq_default_mat_scalar_mul_si(fq_default_mat_t B, const fq_default_mat_t A, const slong c, const fq_default_ctx_t ctx)
+    void fq_default_mat_scalar_mul_ui(fq_default_mat_t B, const fq_default_mat_t A, const ulong c, const fq_default_ctx_t ctx)
     void fq_default_mat_mul(fq_default_mat_t C, const fq_default_mat_t A, const fq_default_mat_t B, const fq_default_ctx_t ctx)
     void fq_default_mat_submul(fq_default_mat_t D, const fq_default_mat_t C, const fq_default_mat_t A, const fq_default_mat_t B, const fq_default_ctx_t ctx)
     int fq_default_mat_inv(fq_default_mat_t B, fq_default_mat_t A, const fq_default_ctx_t ctx)

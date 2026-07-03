@@ -3,6 +3,7 @@ from flint.flintlib.types.fmpq cimport fmpq_mat_t, fmpq_t
 from flint.flintlib.types.fmpz cimport fmpz_mat_t
 from flint.flintlib.types.gr cimport gr_ctx_t, gr_mat_t, gr_poly_t, gr_ptr, gr_srcptr, gr_stream_t, gr_vec_t, truth_t
 
+# unknown type fmpz_vec_t
 # unknown type gr_method_binary_op
 # unknown type gr_method_binary_predicate
 # unknown type gr_method_mat_binary_op
@@ -32,6 +33,7 @@ cdef extern from "flint/gr_mat.h":
     void gr_mat_window_clear(gr_mat_t window, gr_ctx_t ctx)
     int gr_mat_write(gr_stream_t out, const gr_mat_t mat, gr_ctx_t ctx)
     int gr_mat_print(const gr_mat_t mat, gr_ctx_t ctx)
+    int gr_mat_set_str(gr_mat_t mat, const char * s, int resize, gr_ctx_t ctx)
     truth_t gr_mat_equal(const gr_mat_t mat1, const gr_mat_t mat2, gr_ctx_t ctx)
     truth_t gr_mat_is_zero(const gr_mat_t mat, gr_ctx_t ctx)
     truth_t gr_mat_is_one(const gr_mat_t mat, gr_ctx_t ctx)
@@ -52,9 +54,15 @@ cdef extern from "flint/gr_mat.h":
     int gr_mat_concat_vertical(gr_mat_t res, const gr_mat_t mat1, const gr_mat_t mat2, gr_ctx_t ctx)
     int gr_mat_transpose(gr_mat_t res, const gr_mat_t mat, gr_ctx_t ctx)
     int gr_mat_swap_rows(gr_mat_t mat, slong * perm, slong r, slong s, gr_ctx_t ctx)
+    void _gr_mat_swap_rows(gr_mat_t mat, slong * perm, slong r, slong s, gr_ctx_t ctx)
     int gr_mat_swap_cols(gr_mat_t mat, slong * perm, slong r, slong s, gr_ctx_t ctx)
+    void _gr_mat_swap_cols(gr_mat_t mat, slong * perm, slong r, slong s, gr_ctx_t ctx)
     int gr_mat_invert_rows(gr_mat_t mat, slong * perm, gr_ctx_t ctx)
     int gr_mat_invert_cols(gr_mat_t mat, slong * perm, gr_ctx_t ctx)
+    int gr_mat_permute_rows(gr_mat_t mat, slong * perm_store, const slong * perm_act, gr_ctx_t ctx)
+    int gr_mat_permute_rows_inv(gr_mat_t mat, slong * perm_store, const slong * perm_act, gr_ctx_t ctx)
+    int gr_mat_permute_cols(gr_mat_t mat, slong * perm_store, const slong * perm_act, gr_ctx_t ctx)
+    int gr_mat_permute_cols_inv(gr_mat_t mat, slong * perm_store, const slong * perm_act, gr_ctx_t ctx)
     int gr_mat_move_row(gr_mat_t A, slong i, slong new_i, gr_ctx_t ctx)
     truth_t gr_mat_is_empty(const gr_mat_t mat, gr_ctx_t ctx)
     truth_t gr_mat_is_square(const gr_mat_t mat, gr_ctx_t ctx)
@@ -199,9 +207,9 @@ cdef extern from "flint/gr_mat.h":
     int _gr_mat_companion_fraction(gr_mat_t res_num, gr_ptr res_den, gr_srcptr poly, gr_ctx_t ctx)
     int gr_mat_companion_fraction(gr_mat_t res_num, gr_ptr res_den, const gr_poly_t poly, gr_ctx_t ctx)
     int gr_mat_apply_row_similarity(gr_mat_t M, slong r, gr_ptr d, gr_ctx_t ctx)
-    int gr_mat_eigenvalues(gr_vec_t lambda_, gr_vec_t mult, const gr_mat_t mat, int flags, gr_ctx_t ctx)
-    int gr_mat_eigenvalues_other(gr_vec_t lambda_, gr_vec_t mult, const gr_mat_t mat, gr_ctx_t mat_ctx, int flags, gr_ctx_t ctx)
-    int gr_mat_diagonalization_precomp(gr_vec_t D, gr_mat_t L, gr_mat_t R, const gr_mat_t A, const gr_vec_t eigenvalues, const gr_vec_t mult, gr_ctx_t ctx)
+    # int gr_mat_eigenvalues(gr_vec_t lambda_, fmpz_vec_t mult, const gr_mat_t mat, int flags, gr_ctx_t ctx)
+    # int gr_mat_eigenvalues_other(gr_vec_t lambda_, fmpz_vec_t mult, const gr_mat_t mat, gr_ctx_t mat_ctx, int flags, gr_ctx_t ctx)
+    # int gr_mat_diagonalization_precomp(gr_vec_t D, gr_mat_t L, gr_mat_t R, const gr_mat_t A, const gr_vec_t eigenvalues, const fmpz_vec_t mult, gr_ctx_t ctx)
     int gr_mat_diagonalization_generic(gr_vec_t D, gr_mat_t L, gr_mat_t R, const gr_mat_t A, int flags, gr_ctx_t ctx)
     int gr_mat_diagonalization(gr_vec_t D, gr_mat_t L, gr_mat_t R, const gr_mat_t A, int flags, gr_ctx_t ctx)
     int gr_mat_set_jordan_blocks(gr_mat_t mat, const gr_vec_t lambda_, slong num_blocks, slong * block_lambda, slong * block_size, gr_ctx_t ctx)

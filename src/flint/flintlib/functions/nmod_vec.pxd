@@ -35,6 +35,7 @@ cdef extern from "flint/nmod_vec.h":
     # dot_params_t _nmod_vec_dot_params(slong len, nmod_t mod)
     # ulong _nmod_vec_dot(nn_srcptr vec1, nn_srcptr vec2, slong len, nmod_t mod, dot_params_t params)
     # ulong _nmod_vec_dot_rev(nn_srcptr vec1, nn_srcptr vec2, slong len, nmod_t mod, dot_params_t params)
+    # ulong _nmod_vec_dot_strided(nn_srcptr vec1, slong stride1, nn_srcptr vec2, slong stride2, slong len, nmod_t mod, dot_params_t params)
     # ulong _nmod_vec_dot_ptr(nn_srcptr vec1, const nn_ptr * vec2, slong offset, slong len, nmod_t mod, dot_params_t params)
     int _nmod_vec_dot_bound_limbs(slong len, nmod_t mod)
     # int _nmod_vec_dot_bound_limbs_from_params(slong len, nmod_t mod, dot_params_t params)
