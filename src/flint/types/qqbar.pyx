@@ -1,16 +1,3 @@
-from flint.flintlib.functions.qqbar cimport (
-    qqbar_init,
-    qqbar_clear,
-    qqbar_set,
-    qqbar_set_si,
-    qqbar_printn,
-    qqbar_set_fmpz,
-    qqbar_set_fmpq,
-    qqbar_add,
-    qqbar_sub,
-    qqbar_mul,
-    qqbar_div
-)
 from flint.types.fmpz cimport fmpz
 from flint.types.fmpq cimport fmpq
 
@@ -40,29 +27,23 @@ cdef class qqbar(flint_scalar):
 
     def str(self, Py_ssize_t digits=15):
         """
-        Converts the algebraic number to a decimal string representation by capturing C-level stdout.
+        Converts the algebraic number to a decimal string representation.
         """
-        import os
         import sys
+        import io
 
-        cdef int stdout_fd = 1
-        cdef int saved_stdout = os.dup(stdout_fd)
-
-        pipe_read, pipe_write = os.pipe()
-        os.dup2(pipe_write, stdout_fd)
+        # Temporarily intercept stdout using a clean, cross-platform string buffer
+        old_stdout = sys.stdout
+        sys.stdout = io.StringIO()
 
         try:
             qqbar_printn(self.val, digits)
             sys.stdout.flush()
+            output = sys.stdout.getvalue()
         finally:
-            os.close(pipe_write)
-            os.dup2(saved_stdout, stdout_fd)
-            os.close(saved_stdout)
+            sys.stdout = old_stdout
 
-        cdef bytes captured = os.read(pipe_read, 4096)
-        os.close(pipe_read)
-
-        return captured.decode('utf-8').strip()
+        return output.strip()
 
     def __str__(self):
         return self.str()
