@@ -24,3 +24,7 @@ bin/cibw_before_all_windows.sh \
     --patch-ldd \
     --patch-immintrin \
     #
+
+# Stage the MinGW threading runtime with the locally built DLLs so that
+# delvewheel can find and bundle it from .local/bin.
+cp /clangarm64/bin/libwinpthread-1.dll .local/bin/
