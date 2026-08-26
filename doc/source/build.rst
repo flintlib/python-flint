@@ -84,6 +84,11 @@ Compatible versions:
      - CPython
      - FLINT
      - Cython
+   * - 0.10.0
+     - Not released
+     - 3.10-3.15
+     - 3.0-3.6
+     - 3.1-3.3
    * - 0.9.0
      - 3rd Jul 2026
      - 3.10-3.14

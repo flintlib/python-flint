@@ -144,6 +144,7 @@ Compatible versions:
 
 | python-flint | Release date  | CPython     | FLINT      | Cython           |
 |--------------|---------------|-------------|------------|------------------|
+| `0.10.0`     | Not released  | `3.10-3.15` | `3.0-3.6`  | `3.1-3.3`        |
 | `0.9.0`      |  3rd Jul 2026 | `3.10-3.14` | `3.0-3.6`  | `3.1-3.2`        |
 | `0.8.0`      | 29th Aug 2025 | `3.11-3.14` | `3.0-3.3`  | `3.1` only       |
 | `0.7.0`      | 16th Mar 2025 | `3.11-3.13` | `3.0-3.2`  | `3.0.11-3.1.0a1` |
@@ -162,6 +163,22 @@ experimental.
 
 CHANGELOG
 =========
+
+0.10.0 (Not yet released)
+-------------------------
+
+Contributors (0.10.0):
+
+- Vitaly Magerya (VM)
+- Oscar Benjamin (OB)
+
+Changes (0.10.0):
+
+- [gh-421](https://github.com/flintlib/python-flint/pull/421),
+  Add `zpoly` and `zcontent` methods to `fmpq_mpoly`, to get
+  the primitive integer polynomial and the `fmpq` content, which
+  form the internal representation of the `fmpq_mpoly`. Also add
+  support for building with Cython 3.3. (VM, OB)
 
 0.9.0
 -----
