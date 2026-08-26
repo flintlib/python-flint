@@ -17,7 +17,7 @@ from flint.types.fmpz_vec cimport fmpz_vec
 from flint.types.fmpq_vec cimport fmpq_vec
 
 from flint.types.fmpz cimport fmpz, any_as_fmpz
-from flint.types.fmpz_mpoly cimport fmpz_mpoly
+from flint.types.fmpz_mpoly cimport fmpz_mpoly, fmpz_mpoly_ctx, create_fmpz_mpoly
 
 from flint.flintlib.functions.fmpq cimport fmpq_set, fmpq_one
 from flint.flintlib.functions.fmpq_mpoly cimport (
@@ -783,6 +783,36 @@ cdef class fmpq_mpoly(flint_mpoly):
         """
         cdef fmpq_mpoly res = create_fmpq_mpoly(self.ctx)
         fmpq_mpoly_term_content(res.val, self.val, self.ctx.val)
+        return res
+
+    def zpoly(self):
+        """
+        Return the integer polynomial of ``self``. The product
+        of this and ``self.zcontent()``, represents the whole
+        polynomial.
+
+            >>> ctx = fmpq_mpoly_ctx.get(("x","y"))
+            >>> x, y = ctx.gens()
+            >>> (fmpq(2,3)*x + fmpq(2,5)*y).zpoly()
+            5*x + 3*y
+        """
+        cdef fmpz_mpoly_ctx zctx = fmpz_mpoly_ctx.from_context(self.ctx)
+        cdef fmpz_mpoly res = create_fmpz_mpoly(zctx)
+        fmpz_mpoly_set(res.val, self.val.zpoly, zctx.val)
+        return res
+
+    def zcontent(self):
+        """
+        Return the content of ``self``. The product of this and
+        ``self.zpoly()``, represents the whole polynomial.
+
+            >>> ctx = fmpq_mpoly_ctx.get(("x","y"))
+            >>> x, y = ctx.gens()
+            >>> (fmpq(2,3)*x + fmpq(2,5)*y).zcontent()
+            2/15
+        """
+        cdef fmpq res = fmpq.__new__(fmpq)
+        fmpq_set(res.val, self.val.content)
         return res
 
     def resultant(self, other, var):
