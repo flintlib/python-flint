@@ -215,6 +215,23 @@ cdef class fmpq_mpoly(flint_mpoly):
     """
     The *fmpq_mpoly* type represents sparse multivariate polynomials over
     the rationals.
+
+    Internally, an ``fmpq_mpoly`` is represented as the product of a signed
+    rational content and a primitive integer multivariate polynomial with
+    positive leading coefficient. The :meth:`zcontent` and :meth:`zpoly`
+    methods return copies of these two components, respectively.
+
+    The original polynomial can be reconstructed from these components by
+    converting the integer polynomial back to an ``fmpq_mpoly`` in the
+    original context and multiplying by the content:
+
+        >>> ctx = fmpq_mpoly_ctx.get(("x", "y"))
+        >>> x, y = ctx.gens()
+        >>> f = -2*x/3 - 2*y/5
+        >>> zpoly = f.zpoly()
+        >>> content = f.zcontent()
+        >>> fmpq_mpoly(zpoly, ctx=f.context()) * content == f
+        True
     """
 
     def __cinit__(self):
@@ -785,15 +802,15 @@ cdef class fmpq_mpoly(flint_mpoly):
         fmpq_mpoly_term_content(res.val, self.val, self.ctx.val)
         return res
 
-    def zprimitive(self):
+    def zpoly(self):
         """
         Return the integer polynomial of ``self``. The product
-        of this and ``self.zcontent()``, represents the whole
+        of this and ``self.zcontent()`` represents the whole
         polynomial.
 
             >>> ctx = fmpq_mpoly_ctx.get(("x","y"))
             >>> x, y = ctx.gens()
-            >>> (x*2/3 + y*2/5).zprimitive()
+            >>> (x*2/3 + y*2/5).zpoly()
             5*x + 3*y
         """
         cdef fmpz_mpoly_ctx zctx = fmpz_mpoly_ctx.from_context(self.ctx)
@@ -804,7 +821,7 @@ cdef class fmpq_mpoly(flint_mpoly):
     def zcontent(self):
         """
         Return the content of ``self``. The product of this and
-        ``self.zprimitive()``, represents the whole polynomial.
+        ``self.zpoly()`` represents the whole polynomial.
 
             >>> ctx = fmpq_mpoly_ctx.get(("x","y"))
             >>> x, y = ctx.gens()

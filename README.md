@@ -175,7 +175,7 @@ Contributors (0.10.0):
 Changes (0.10.0):
 
 - [gh-421](https://github.com/flintlib/python-flint/pull/421),
-  Add `zprimitive` and `zcontent` methods to `fmpq_mpoly`, to get
+  Add `zpoly` and `zcontent` methods to `fmpq_mpoly`, to get
   the primitive integer polynomial and the `fmpq` content, which
   form the internal representation of the `fmpq_mpoly`. Also add
   support for building with Cython 3.3. (VM, OB)
