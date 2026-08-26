@@ -785,7 +785,7 @@ cdef class fmpq_mpoly(flint_mpoly):
         fmpq_mpoly_term_content(res.val, self.val, self.ctx.val)
         return res
 
-    def zpoly(self):
+    def zprimitive(self):
         """
         Return the integer polynomial of ``self``. The product
         of this and ``self.zcontent()``, represents the whole
@@ -793,7 +793,7 @@ cdef class fmpq_mpoly(flint_mpoly):
 
             >>> ctx = fmpq_mpoly_ctx.get(("x","y"))
             >>> x, y = ctx.gens()
-            >>> (fmpq(2,3)*x + fmpq(2,5)*y).zpoly()
+            >>> (x*2/3 + y*2/5).zprimitive()
             5*x + 3*y
         """
         cdef fmpz_mpoly_ctx zctx = fmpz_mpoly_ctx.from_context(self.ctx)
@@ -804,11 +804,11 @@ cdef class fmpq_mpoly(flint_mpoly):
     def zcontent(self):
         """
         Return the content of ``self``. The product of this and
-        ``self.zpoly()``, represents the whole polynomial.
+        ``self.zprimitive()``, represents the whole polynomial.
 
             >>> ctx = fmpq_mpoly_ctx.get(("x","y"))
             >>> x, y = ctx.gens()
-            >>> (fmpq(2,3)*x + fmpq(2,5)*y).zcontent()
+            >>> (x*2/3 + y*2/5).zcontent()
             2/15
         """
         cdef fmpq res = fmpq.__new__(fmpq)
