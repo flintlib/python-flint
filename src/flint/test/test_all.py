@@ -3934,6 +3934,27 @@ def test_mpolys_properties(args: _MPolyTestCase[Tmpoly_p, Tscalar]) -> None:
         assert False # New _mpoly types?
 
 
+def test_fmpq_mpoly_zcontent_zprimitive():
+    ctx = flint.fmpq_mpoly_ctx.get(("x", "y"))
+    x, y = ctx.gens()
+    zctx = flint.fmpz_mpoly_ctx.from_context(ctx)
+    zx, zy = zctx.gens()
+
+    f = -2*x/3 - 2*y/5
+    assert f.zcontent() == flint.fmpq(-2, 15)
+    assert f.zprimitive() == 5*zx + 3*zy
+    assert isinstance(f.zcontent(), flint.fmpq)
+    assert isinstance(f.zprimitive(), flint.fmpz_mpoly)
+    # Can't mix fmpq_mpoly with fmpz_mpoly...
+    p = flint.fmpq_mpoly(f.zprimitive(), ctx=ctx)
+    c = f.zcontent()
+    assert p * c == f
+
+    f = 0*x
+    assert f.zcontent() == 0
+    assert f.zprimitive() == 0
+
+
 def _all_mpoly_vecs():
     return [(flint.fmpz_mpoly_ctx, flint.fmpz_mpoly_vec), (flint.fmpq_mpoly_ctx, flint.fmpq_mpoly_vec)]
 
