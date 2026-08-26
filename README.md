@@ -163,6 +163,20 @@ experimental.
 CHANGELOG
 =========
 
+0.10.0 (Not yet released)
+-------------------------
+
+Contributors (0.10.0):
+
+- Insert Name (IN)
+
+Changes (0.10.0):
+
+- [gh-322](https://github.com/flintlib/python-flint/pull/322), Add `zcontent`
+  and `zpoly` methods to `fmpq_mpoly`, to get the primitive integer polynomial
+  of self and the `fmpq` content (the internal representation of the
+  `fmpq_mpoly`). (IN)
+
 0.9.0
 -----
 
