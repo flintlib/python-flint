@@ -331,7 +331,7 @@ jobs:
 
   test_cython_c_api:
     name: 'Test C API with Cython consumers'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -353,15 +353,20 @@ jobs:
             (cd /tmp && python "$GITHUB_WORKSPACE/examples/cython/capi/test_capi.py")
             (cd /tmp && python "$GITHUB_WORKSPACE/examples/cython/flint/test_flint.py")
           done
-      - name: Capsule-only example has no FLINT dependency
+      - name: Examples have the expected FLINT dependencies
         run: |
           python - <<'PY'
           import _flint_capi_example
+          import _flint_direct_example
           import subprocess
-          dependencies = subprocess.check_output(
+          capi_dependencies = subprocess.check_output(
               ["ldd", _flint_capi_example.__file__], text=True)
-          print(dependencies)
-          assert "libflint" not in dependencies
+          direct_dependencies = subprocess.check_output(
+              ["ldd", _flint_direct_example.__file__], text=True)
+          print(capi_dependencies)
+          print(direct_dependencies)
+          assert "libflint" not in capi_dependencies
+          assert "libflint" in direct_dependencies
           PY
       - name: Installed API files are present
         run: |
