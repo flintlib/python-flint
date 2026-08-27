@@ -329,6 +329,52 @@ jobs:
       - run: spin run -- pytest --doctest-glob='*.rst' doc/source
       - run: spin docs
 
+  test_cython_c_api:
+    name: 'Test C API with Cython consumers'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+      - run: sudo apt-get update
+      - run: sudo apt-get install libflint-dev
+      - run: pip install "cython==3.3.0" meson-python ninja
+      - run: pip wheel --no-build-isolation --no-deps --wheel-dir=/tmp/python-flint-wheel .
+      - run: pip install /tmp/python-flint-wheel/python_flint-*.whl
+      - name: Build examples with Cython 3.1 through 3.3
+        run: |
+          for version in 3.1.0 3.2.9 3.3.0; do
+            pip install "cython==$version"
+            pip install --no-build-isolation --no-deps --force-reinstall ./examples/cython/capi
+            pip install --no-build-isolation --no-deps --force-reinstall ./examples/cython/flint
+            (cd /tmp && python "$GITHUB_WORKSPACE/examples/cython/capi/test_capi.py")
+            (cd /tmp && python "$GITHUB_WORKSPACE/examples/cython/flint/test_flint.py")
+          done
+      - name: Capsule-only example has no FLINT dependency
+        run: |
+          python - <<'PY'
+          import _flint_capi_example
+          import subprocess
+          dependencies = subprocess.check_output(
+              ["ldd", _flint_capi_example.__file__], text=True)
+          print(dependencies)
+          assert "libflint" not in dependencies
+          PY
+      - name: Installed API files are present
+        run: |
+          cd /tmp
+          python - <<'PY'
+          import flint
+          from pathlib import Path
+          package = Path(flint.__file__).parent
+          assert (package / "__init__.pxd").is_file()
+          assert (package / "__init__.cython-31.pxd").is_file()
+          assert (Path(flint.get_include()) / "python_flint" / "fmpz.h").is_file()
+          PY
+
   # Test build with minimum Cython and meson-python versions.
   test_old_build_requires:
     name: 'Test old Cython/meson-python'
@@ -349,7 +395,7 @@ jobs:
       # We don't need to specify ninja as a requirement in pyproject.toml
       # because without --no-build-isolation meson-python handles it
       # automatically in get_requirements_for_build_wheel().
-      - run: 'pip install "cython==3.0.11" "meson-python==0.18" "ninja<1.11"'
+      - run: 'pip install "cython==3.1.0" "meson-python==0.18" "ninja<1.11"'
       - run: pip install --no-build-isolation .
       - run: python -m flint.test --verbose
 

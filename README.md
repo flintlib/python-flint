@@ -150,9 +150,8 @@ Compatible versions:
 | `0.7.0`      | 16th Mar 2025 | `3.11-3.13` | `3.0-3.2`  | `3.0.11-3.1.0a1` |
 | `0.6.0`      |  1st Feb 2024 | `3.9-3.12`  | `3.0` only | `3.0` only       |
 
-The requirement for Cython 3.1 is only for CPython's free-threaded build.
-Otherwise Cython 3.0 is fine. Cython 3.2 is required for a stable ABI build of
-python-flint.
+Cython 3.1 or newer is required. Cython 3.2 is required for a stable ABI build
+of python-flint.
 
 As of python-flint 0.7.0, CPython 3.13 [PEP
 703](https://peps.python.org/pep-0703/) free-threaded (no-GIL) builds of

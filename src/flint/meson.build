@@ -2,6 +2,8 @@ thisdir = 'flint'
 
 pyfiles = [
   '__init__.py',
+  '__init__.pxd',
+  '__init__.cython-31.pxd',
   'typing.py',
   'py.typed',
   'pyflint.pyi',
@@ -23,6 +25,12 @@ py.install_sources(
   pyfiles,
   pure: false,
   subdir: thisdir,
+)
+
+py.install_sources(
+  '../python_flint/fmpz.h',
+  pure: false,
+  subdir: 'flint/include/python_flint',
 )
 
 foreach ext : exts
