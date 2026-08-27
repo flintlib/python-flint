@@ -8,5 +8,7 @@ py.extension_module(
   include_directories: include_directories(flint_include),
   install: true,
 )
+test_env = environment()
+test_env.prepend('PYTHONPATH', meson.current_build_dir())
 test('capsule API example', py, args: files('test_capi.py'),
-     env: {'PYTHONPATH': meson.current_build_dir()})
+     env: test_env)
