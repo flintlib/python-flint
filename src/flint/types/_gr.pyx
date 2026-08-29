@@ -1584,24 +1584,24 @@ cdef class gr_gr_mpoly_ctx(gr_mpoly_ctx):
     def new(base_ring, names, order=None) -> gr_gr_mpoly_ctx:
         """Create a new context for dense multivariate polynomial rings.
 
-        # >>> from flint.types._gr import gr_fmpzi_ctx, gr_gr_mpoly_ctx
-        # >>> ZI = gr_fmpzi_ctx
-        # >>> R = gr_gr_mpoly_ctx.new(ZI, ['x', 'y'])
-        # >>> R
-        # gr_gr_mpoly_ctx(gr_fmpzi_ctx, ('x', 'y'), Ordering.lex)
-        # >>> R.base_ring
-        # gr_fmpzi_ctx
-        # >>> R.names
-        # ('x', 'y')
-        # >>> R.nvars
-        # 2
-        # >>> R.order
-        # <Ordering.lex: 'lex'>
-        # >>> R.gens()
-        # [x, y]
-        # >>> I, [x, y] = ZI.gen(), R.gens()
-        # >>> (I + x + y) ** 2
-        # x^2 + 2*x*y + (2*I)*x + y^2 + (2*I)*y - 1
+        >>> from flint.types._gr import gr_fmpzi_ctx, gr_gr_mpoly_ctx
+        >>> ZI = gr_fmpzi_ctx
+        >>> R = gr_gr_mpoly_ctx.new(ZI, ['x', 'y'])
+        >>> R
+        gr_gr_mpoly_ctx(gr_fmpzi_ctx, ('x', 'y'), Ordering.lex)
+        >>> R.base_ring
+        gr_fmpzi_ctx
+        >>> R.names
+        ('x', 'y')
+        >>> R.nvars
+        2
+        >>> R.order
+        <Ordering.lex: 'lex'>
+        >>> R.gens()
+        [x, y]
+        >>> I, x, y = R.gens_recursive()
+        >>> (I + x + y) ** 2
+        x^2 + 2*x*y + (2*I)*x + y^2 + (2*I)*y - 1
         """
         if order is None:
             order = Ordering.lex
