@@ -34,10 +34,7 @@ from flint.flintlib.functions.fmpq_poly cimport (
 )
 from flint.flintlib.functions.compat cimport (
     compat_gr_factor,
-    compat_gr_ctx_init_gr_series,
-    # compat_gr_ctx_init_series_mod_gr_poly,
 )
-
 
 from flint.flintlib.types.gr cimport (
     truth_t,
@@ -53,6 +50,11 @@ from flint.flintlib.types.gr cimport (
     gr_ptr,
     gr_vec_t,
 )
+
+cdef extern from "flint/gr_series.h":
+    void gr_series_ctx_init(gr_ctx_t ctx, gr_ctx_t base_ring, slong prec)
+    # void gr_series_mod_ctx_init(gr_ctx_t ctx, gr_ctx_t base_ring, slong n)
+
 from flint.flintlib.functions.gr_domains cimport (
     gr_ctx_init_fmpz,
     gr_ctx_init_fmpq,
@@ -1518,7 +1520,7 @@ cdef class gr_gr_mpoly_ctx(gr_mpoly_ctx):
 #     cdef inline gr_series_mod_gr_poly_ctx _new(gr_ctx base_ctx, slong n):
 #         cdef gr_series_mod_gr_poly_ctx ctx
 #         ctx = gr_series_mod_gr_poly_ctx.__new__(gr_series_mod_gr_poly_ctx)
-#         compat_gr_ctx_init_series_mod_gr_poly(ctx.ctx_t, base_ctx.ctx_t, n)
+#         gr_series_mod_ctx_init(ctx.ctx_t, base_ctx.ctx_t, n)
 #         ctx._init = True
 #         ctx.base_ctx = base_ctx
 #         ctx._n = n
@@ -1534,7 +1536,7 @@ cdef class gr_series_ctx(gr_ctx):
     cdef inline gr_series_ctx _new(gr_ctx base_ctx, slong prec):
         cdef gr_series_ctx ctx
         ctx = gr_series_ctx.__new__(gr_series_ctx)
-        compat_gr_ctx_init_gr_series(ctx.ctx_t, base_ctx.ctx_t, prec)
+        gr_series_ctx_init(ctx.ctx_t, base_ctx.ctx_t, prec)
         ctx._init = True
         ctx.base_ctx = base_ctx
         ctx._prec = prec

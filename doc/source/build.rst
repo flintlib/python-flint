@@ -16,16 +16,16 @@ Simple build instructions
 The simple explanation of how to build ``python-flint`` from source is that
 there are two steps:
 
-- Install ``FLINT >= 3.0`` (see :ref:`installing_the_dependencies` below).
+- Install ``FLINT >= 3.4`` (see :ref:`installing_the_dependencies` below).
 - Run ``pip install --no-binary python-flint python-flint``.
 
-For example on Ubuntu 24.04 (but not older versions of Ubuntu) and when installing
-``python-flint >= 0.7.0`` these two steps are::
+For example on Ubuntu 26.04 (but not older versions of Ubuntu) these two steps
+are::
 
     sudo apt-get install libflint-dev
     pip install --no-binary python-flint python-flint
 
-The first command installs ``FLINT 3.0.1`` system-wide. With the second command
+The first command installs ``FLINT 3.4.0`` system-wide. With the second command
 ``pip`` will download the source code for the latest release of
 ``python-flint`` from PyPI, build it and install it into the active Python
 environment. When building, ``pip`` will create a temporary isolated build
@@ -70,9 +70,8 @@ Compatibility and supported versions
 
 Generally each release of python-flint will be compatible with a range of
 Python versions as described in `SPEC 0
-<https://scientific-python.org/specs/spec-0000/>`_. Since python-flint 0.5.0
-the minimum supported FLINT version is ``3.0`` and each release of python-flint
-supports all versions of ``FLINT >= 3.0`` available at the time of release.
+<https://scientific-python.org/specs/spec-0000/>`_ and a range of FLINT
+versions. The supported range for each release is shown below.
 
 Compatible versions:
 
@@ -87,7 +86,7 @@ Compatible versions:
    * - 0.10.0
      - Not released
      - 3.10-3.15
-     - 3.0-3.6
+     - 3.4-3.6
      - 3.1-3.3
    * - 0.9.0
      - 3rd Jul 2026
@@ -289,15 +288,15 @@ The dependencies for building ``python-flint`` have changed over time. See
 :ref:`supported_versions` above for the versions of the dependencies that are
 supported by each version of ``python-flint``.
 
-As of ``python-flint 0.7.0`` the runtime dependencies are Python and FLINT (at
-least version 3.0) and the build-time dependencies are a C compiler,
+The runtime dependencies are Python and FLINT (at least version 3.4) and the
+build-time dependencies are a C compiler,
 ``Cython``, ``meson``, ``meson-python`` and ``ninja``. Commands shown above
 such as ``pip install .`` will install dependencies like ``Cython``, ``meson``
 etc automatically. If you already have Python and a C compiler then what needs
 to be installed before building ``python-flint`` is ``FLINT``.
 
-At the time of writing, few Linux distributions provide ``FLINT >= 3.0`` in
-their package repositories but for example on ``Ubuntu 24.04`` (but not any
+At the time of writing, few Linux distributions provide ``FLINT >= 3.4`` in
+their package repositories but for example on ``Ubuntu 26.04`` (but not any
 earlier Ubuntu versions) you can install a sufficiently recent ``FLINT`` with::
 
     sudo apt-get install libflint-dev
@@ -307,7 +306,7 @@ On MacOS you can install FLINT from homebrew with::
     brew install flint
 
 Other package managers may also provide ``FLINT`` but make sure that it is at
-least version ``3.0``.
+least version ``3.4``.
 
 Once ``FLINT`` is installed it should be possible to build ``python-flint``
 with any of the commands shown above e.g.::
@@ -326,7 +325,7 @@ that uses ``apt-get`` to install all dependencies needed to build ``FLINT``,
 then builds ``FLINT`` from git using a specified git ref, and then installs
 ``FLINT`` system-wide::
 
-    bin/install_flint_ubuntu.sh v3.0.1  # version 3.0.1
+    bin/install_flint_ubuntu.sh v3.4.0  # version 3.4.0
     bin/install_flint_ubuntu.sh main    # latest git
 
 The script can be adapted for other Linux distributions or MacOS to use

@@ -9,8 +9,6 @@ from flint.flint_base.flint_base cimport (
     ordering_c_to_py,
 )
 
-from flint.flint_base.flint_base import FLINT_RELEASE
-
 from flint.utils.typecheck cimport typecheck
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
@@ -25,6 +23,7 @@ from flint.flintlib.functions.fmpz_mod_mpoly cimport (
     fmpz_mod_mpoly_add_fmpz,
     fmpz_mod_mpoly_clear,
     fmpz_mod_mpoly_compose_fmpz_mod_mpoly,
+    fmpz_mod_mpoly_compose_fmpz_mod_mpoly_gen,
     fmpz_mod_mpoly_ctx_get_modulus,
     fmpz_mod_mpoly_ctx_init,
     fmpz_mod_mpoly_deflate,
@@ -74,11 +73,6 @@ from flint.flintlib.functions.fmpz_mod_mpoly_factor cimport (
     fmpz_mod_mpoly_factor_squarefree,
     fmpz_mod_mpoly_factor_t,
 )
-from flint.flintlib.functions.compat cimport compat_fmpz_mod_mpoly_compose_fmpz_mod_mpoly_gen
-
-from flint.types.fmpz_mpoly cimport fmpz_mpoly_ctx, fmpz_mpoly
-
-
 from cpython.object cimport Py_EQ, Py_NE
 cimport libc.stdlib
 
@@ -1116,27 +1110,16 @@ cdef class fmpz_mod_mpoly(flint_mpoly):
         return stride.to_list_int(), shift.to_list_int()
 
     cdef _compose_gens_(self, ctx, slong *mapping):
-        # FIXME: Remove this when FLINT < 3.2 is dropped
         cdef fmpz_mod_mpoly res
-        if FLINT_RELEASE >= 30200:
-            res = create_fmpz_mod_mpoly(ctx)
-            compat_fmpz_mod_mpoly_compose_fmpz_mod_mpoly_gen(
-                res.val,
-                self.val,
-                mapping,
-                self.ctx.val,
-                (<fmpz_mod_mpoly_ctx>ctx).val
-            )
-            return res
-
-        cdef:
-            fmpz_mpoly_ctx mpoly_ctx = fmpz_mpoly_ctx.from_context(self.context())
-            fmpz_mpoly_ctx res_ctx = fmpz_mpoly_ctx.from_context(ctx)
-
-            fmpz_mpoly poly = mpoly_ctx.from_dict(self.to_dict())
-            fmpz_mpoly res1 = poly._compose_gens_(res_ctx, mapping)
-
-        return ctx.from_dict(res1.to_dict())
+        res = create_fmpz_mod_mpoly(ctx)
+        fmpz_mod_mpoly_compose_fmpz_mod_mpoly_gen(
+            res.val,
+            self.val,
+            mapping,
+            self.ctx.val,
+            (<fmpz_mod_mpoly_ctx>ctx).val
+        )
+        return res
 
 
 @cython.final

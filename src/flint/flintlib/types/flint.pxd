@@ -43,17 +43,6 @@ cdef extern from "flint/fmpz.h":
     # Macros
     int COEFF_IS_MPZ(fmpz_struct x)
 
-cdef extern from *:
-    """
-    #if __FLINT_RELEASE < 30200 /* Flint < 3.2.0 */
-
-    /* Functions renamed in Flint 3.2.0 */
-    #define flint_rand_init flint_randinit
-    #define flint_rand_clear flint_randclear
-
-    #endif
-    """
-
 cdef extern from "flint/flint.h":
     # These defines are needed to work around a Cython bug.
     # Otherwise sizeof(ulong) will give the wrong size on 64 bit Windows.

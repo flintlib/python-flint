@@ -300,7 +300,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04]
+        os: [ubuntu-26.04]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -332,7 +332,7 @@ jobs:
   # Test build with minimum Cython and meson-python versions.
   test_old_build_requires:
     name: 'Test old Cython/meson-python'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -353,7 +353,7 @@ jobs:
       - run: pip install --no-build-isolation .
       - run: python -m flint.test --verbose
 
-  # For older Ubuntu we have to build Flint >= 3.0.0
+  # Build and test against each supported FLINT release.
   test_flint_releases:
     name: Test flint ${{ matrix.flint-tag }}
     runs-on: ubuntu-22.04
@@ -362,11 +362,9 @@ jobs:
       matrix:
         # Supported Flint versions:
         flint-tag: [
-          'v3.0.1',
-          'v3.2.2',
-          'v3.3.1',
           'v3.4.0',
           'v3.5.0',
+          'v3.6.0',
         ]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -416,7 +414,7 @@ jobs:
   # Test that we can make a coverage build and report coverage
   test_coverage_build_setuptools:
     name: Test coverage setuptools build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -432,7 +430,7 @@ jobs:
   # Test that we can make a coverage build and report coverage
   test_coverage_build_meson:
     name: Test coverage meson build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -448,7 +446,7 @@ jobs:
   # Run SymPy test suite against python-flint master
   test_sympy:
     name: Test SymPy ${{ matrix.sympy-version }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -472,7 +470,7 @@ jobs:
   # Run SymPy master branch agains python-flint main
   test_sympy_master:
     name: Test SymPy master
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

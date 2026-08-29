@@ -7,13 +7,6 @@ import flint
 
 dunder_test_regex = re.compile(r'^(.*?)__test__\.(.*?) \(line (\d+)\)$')
 
-test_flint_at_least = {
-    "flint.types._gr.gr_ctx.gens": 30100,
-    "flint.types._gr.gr_ctx.neg": 30100,
-    "flint.types.acb_theta.acb_theta": 30100,
-}
-
-
 def find_doctests(module):
     finder = doctest.DocTestFinder()
     tests = []
@@ -38,11 +31,6 @@ def find_doctests(module):
                         if len(res) != n - 1:
                             raise Exception(f"Duplicate test name: {test.name}")
                         tests_seen.remove(test.name)
-
-                # Doctests that fail without latest flint
-                if test.name in test_flint_at_least:
-                    if test_flint_at_least[test.name] > flint.__FLINT_RELEASE__:
-                        continue
 
                 if test.name not in tests_seen:
                     tests_seen.add(test.name)

@@ -37,11 +37,10 @@ Build from source
 -----------------
 
 For other platforms or architectures installation needs to build from source.
-First install FLINT 3. Starting with python-flint 0.5.0 older versions of Flint
-such as 2.9 are not supported any more. Note that as of Flint 3 Arb no longer
-needs to be built separately as it is now merged into Flint.
+First install FLINT 3.4 or newer. Note that as of Flint 3 Arb no longer needs
+to be built separately as it is now merged into Flint.
 
-As of e.g. Ubuntu 24.04 a new enough version of FLINT (at least version 3) can
+As of e.g. Ubuntu 26.04 a new enough version of FLINT (at least version 3.4) can
 be installed from the Ubuntu repos like
 
     sudo apt-get install libflint-dev
@@ -136,15 +135,14 @@ Compatibility table
 -------------------
 
 Generally each release of python-flint will be compatible with a range of
-Python versions. Since python-flint 0.5.0 the minimum supported Flint version
-is `3.0` and each release of python-flint supports all versions of Flint
-`>=3.0` available at the time of release.
+Python and FLINT versions. The supported range for each release is shown
+below.
 
 Compatible versions:
 
 | python-flint | Release date  | CPython     | FLINT      | Cython           |
 |--------------|---------------|-------------|------------|------------------|
-| `0.10.0`     | Not released  | `3.10-3.15` | `3.0-3.6`  | `3.1-3.3`        |
+| `0.10.0`     | Not released  | `3.10-3.15` | `3.4-3.6`  | `3.1-3.3`        |
 | `0.9.0`      |  3rd Jul 2026 | `3.10-3.14` | `3.0-3.6`  | `3.1-3.2`        |
 | `0.8.0`      | 29th Aug 2025 | `3.11-3.14` | `3.0-3.3`  | `3.1` only       |
 | `0.7.0`      | 16th Mar 2025 | `3.11-3.13` | `3.0-3.2`  | `3.0.11-3.1.0a1` |
@@ -173,6 +171,9 @@ Contributors (0.10.0):
 - Oscar Benjamin (OB)
 
 Changes (0.10.0):
+
+- Drop support for FLINT versions older than 3.4.0 and remove the associated
+  compatibility code. (OB)
 
 - [gh-421](https://github.com/flintlib/python-flint/pull/421),
   Add `zpoly` and `zcontent` methods to `fmpq_mpoly`, to get

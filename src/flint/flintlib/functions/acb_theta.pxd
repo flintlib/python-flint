@@ -54,7 +54,7 @@ cdef extern from "flint/acb_theta.h":
     int acb_theta_char_is_even(ulong ab, slong g)
     void acb_theta_char_table(ulong * ch, slong * e, const fmpz_mat_t mat, ulong ab, int all)
     void acb_theta_char_shuffle(acb_ptr res, const fmpz_mat_t mat, acb_srcptr th, int sqr, slong prec)
-    slong acb_theta_jet_nb(slong ord, slong g)
+    slong acb_theta_jet_nb(slong g, slong ord)
     slong acb_theta_jet_total_order(const slong * tup, slong g)
     void acb_theta_jet_tuples(slong * tups, slong ord, slong g)
     slong acb_theta_jet_index(const slong * tup, slong g)

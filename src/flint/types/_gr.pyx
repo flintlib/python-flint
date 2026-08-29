@@ -344,8 +344,6 @@ cdef class gr_ctx(flint_ctx):
     def gens(self) -> list[gr]:
         """Return the top-level generators of the domain
 
-        # XXX: Does not work with FLINT < 3.1
-
         # >>> from flint.types._gr import gr_fmpzi_ctx, gr_gr_mpoly_ctx
         # >>> ctx = gr_gr_mpoly_ctx.new(gr_fmpzi_ctx, ['x', 'y'])
         # >>> ctx.gens()
@@ -1098,7 +1096,6 @@ cdef class gr_fq_nmod_ctx(gr_scalar_ctx):
     def new(p, d, name=None) -> gr_fq_nmod_ctx:
         """Create a new context for finite fields.
 
-        # XXX: Does not work with FLINT < 3.1
         # >>> from flint.types._gr import gr_fq_nmod_ctx
         # >>> F9 = gr_fq_nmod_ctx.new(3, 2)
         # >>> F9
@@ -1151,7 +1148,6 @@ cdef class gr_fq_zech_ctx(gr_scalar_ctx):
     def new(p, d, name=None) -> gr_fq_zech_ctx:
         """Create a new context for finite fields with small characteristic.
 
-        # XXX: Does not work with FLINT < 3.1
         # >>> from flint.types._gr import gr_fq_zech_ctx
         # >>> F9 = gr_fq_zech_ctx.new(3, 2)
         # >>> F9

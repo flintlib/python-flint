@@ -15,7 +15,7 @@ project(
 # if it seems like new releases do not always break the build of python-flint
 # then we can consider not using a speculative upper version cap here.
 #
-flint_lower = '>=3.0'
+flint_lower = '>=3.4'
 flint_upper = '<3.7'
 cython_lower = '>=3.0.11'
 cython_upper = '<3.4'
@@ -68,11 +68,6 @@ if get_option('flint_version_check')
           cy.version().version_compare(cython_upper))
     error(ver_message.format('Cython', cy.version(), cython_lower, cython_upper))
   endif
-endif
-
-# flint.pc was missing -lflint until Flint 3.1.0
-if flint_dep.version().version_compare('<3.1')
-  flint_dep = cc.find_library('flint')
 endif
 
 pyflint_deps = [gmp_dep, mpfr_dep, flint_dep]
