@@ -1753,6 +1753,8 @@ cdef class gr(flint_scalar):
         """
         return truth_to_py(self._is_neg_one())
 
+# FLINT <= 3.6 documents gr_is_integer and gr_is_rational but does not define
+# them in gr.h, so these methods cannot be enabled for the supported versions.
 #     def is_integer(self):
 #         """Return whether the element is an integer (may return ``None``).
 #

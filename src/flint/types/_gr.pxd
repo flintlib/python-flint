@@ -431,6 +431,7 @@ cdef class gr_ctx(flint_ctx):
     cdef inline truth_t _equal(self, gr x, gr y):
         return gr_equal(x.pval, y.pval, self.ctx_t)
 
+    # gr_is_integer and gr_is_rational are not defined in gr.h in FLINT <= 3.6.
     # @cython.final
     # cdef inline truth_t _is_integer(self, gr x):
     #     return gr_is_integer(x.pval, self.ctx_t)

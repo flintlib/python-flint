@@ -133,8 +133,8 @@ def acb_theta_jets(acb_mat z, acb_mat tau, slong ord):
         return acb_mat(0, 0)
 
     # Calculate the length of the jet for one characteristic
-    # This is the number of multi-indices (alpha) such that |alpha| < ord
-    cdef slong nj = acb_theta_jet_nb(g, ord)
+    # This is the number of multi-indices (alpha) such that |alpha| <= ord
+    cdef slong nj = acb_theta_jet_nb(ord, g)
 
     # Total number of characteristics
     cdef slong nb = 1 << (2 * g)
