@@ -163,6 +163,12 @@ jobs:
         # This is probably something to do with \ vs / in paths...
       - if: ${{ startsWith( matrix.os , 'windows' ) }}
         run: |
+          $pkgConfig = "$env:ChocolateyInstall/bin/pkg-config.exe"
+          $pkgConfig = $pkgConfig.Replace('\', '/')
+          if (!(Test-Path $pkgConfig)) {
+            throw "pkg-config.exe not found at $pkgConfig"
+          }
+          echo "PKG_CONFIG=$pkgConfig" >> $env:GITHUB_ENV
           $pkgConfigPath = "$env:GITHUB_WORKSPACE/.local/lib/pkgconfig"
           $pkgConfigPath = $pkgConfigPath.Replace('\', '/')
           echo "PKG_CONFIG_PATH=$pkgConfigPath" >> $env:GITHUB_ENV
