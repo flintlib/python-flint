@@ -172,9 +172,9 @@ Contributors (0.10.0):
 
 Changes (0.10.0):
 
-- Drop support for FLINT versions older than 3.4.0 and remove the associated
+- [gh-424](https://github.com/flintlib/python-flint/pull/424),
+  Drop support for FLINT versions older than 3.4.0 and remove the associated
   compatibility code. (OB)
-
 - [gh-421](https://github.com/flintlib/python-flint/pull/421),
   Add `zpoly` and `zcontent` methods to `fmpq_mpoly`, to get
   the primitive integer polynomial and the `fmpq` content, which

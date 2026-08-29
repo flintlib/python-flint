@@ -105,7 +105,7 @@ from flint.flintlib.functions.gr cimport (
     gr_one,
     gr_gen,
     gr_gens,
-    # gr_gens_recursive,
+    gr_gens_recursive,
     gr_ctx_set_gen_names,
 
     gr_i,
@@ -1017,25 +1017,25 @@ cdef class gr_ctx(flint_ctx):
             raise self._error(err, "Cannot compute min(x) in this context")
         return res
 
-    # @cython.final
-    # cdef inline list _gens_recursive(self):
-    #     cdef int err
-    #     cdef gr g
-    #     cdef gr_vec_t gens
-    #     gr_vec_init(gens, 0, self.ctx_t)
-    #     err = gr_gens_recursive(gens, self.ctx_t)
-    #     if err != GR_SUCCESS:
-    #         raise self._error(err, "Cannot get recursive generators")
-    #     length = gr_vec_length(gens, self.ctx_t)
-    #     py_gens = [None] * length
-    #     for 0 <= i < length:
-    #         g = self.new_gr()
-    #         err = gr_set(g.pval, gr_vec_entry_ptr(gens, i, self.ctx_t), self.ctx_t)
-    #         if err != GR_SUCCESS:
-    #             raise self._error(err, "Failed to copy generator.")
-    #         py_gens[i] = g
-    #     gr_vec_clear(gens, self.ctx_t)
-    #     return py_gens
+    @cython.final
+    cdef inline list _gens_recursive(self):
+        cdef int err
+        cdef gr g
+        cdef gr_vec_t gens
+        gr_vec_init(gens, 0, self.ctx_t)
+        err = gr_gens_recursive(gens, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot get recursive generators")
+        length = gr_vec_length(gens, self.ctx_t)
+        py_gens = [None] * length
+        for 0 <= i < length:
+            g = self.new_gr()
+            err = gr_set(g.pval, gr_vec_entry_ptr(gens, i, self.ctx_t), self.ctx_t)
+            if err != GR_SUCCESS:
+                raise self._error(err, "Failed to copy generator.")
+            py_gens[i] = g
+        gr_vec_clear(gens, self.ctx_t)
+        return py_gens
 
 
 cdef class gr_scalar_ctx(gr_ctx):

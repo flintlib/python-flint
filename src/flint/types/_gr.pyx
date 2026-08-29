@@ -344,16 +344,24 @@ cdef class gr_ctx(flint_ctx):
     def gens(self) -> list[gr]:
         """Return the top-level generators of the domain
 
-        # >>> from flint.types._gr import gr_fmpzi_ctx, gr_gr_mpoly_ctx
-        # >>> ctx = gr_gr_mpoly_ctx.new(gr_fmpzi_ctx, ['x', 'y'])
-        # >>> ctx.gens()
-        # [x, y]
-        # >>> gr_fmpzi_ctx.gens()
-        # [I]
-        # >>> ctx.gens_recursive()
-        # [I, x, y]
+        >>> from flint.types._gr import gr_fmpzi_ctx, gr_gr_mpoly_ctx
+        >>> ctx = gr_gr_mpoly_ctx.new(gr_fmpzi_ctx, ['x', 'y'])
+        >>> ctx.gens()
+        [x, y]
+        >>> gr_fmpzi_ctx.gens()
+        [I]
         """
         return self._gens()
+
+    def gens_recursive(self) -> list[gr]:
+        """Return the generators of the domain and its coefficient domains.
+
+        >>> from flint.types._gr import gr_fmpzi_ctx, gr_gr_mpoly_ctx
+        >>> ctx = gr_gr_mpoly_ctx.new(gr_fmpzi_ctx, ['x', 'y'])
+        >>> ctx.gens_recursive()
+        [I, x, y]
+        """
+        return self._gens_recursive()
 
     def is_zero(self, x) -> bool | None:
         """
@@ -1096,21 +1104,21 @@ cdef class gr_fq_nmod_ctx(gr_scalar_ctx):
     def new(p, d, name=None) -> gr_fq_nmod_ctx:
         """Create a new context for finite fields.
 
-        # >>> from flint.types._gr import gr_fq_nmod_ctx
-        # >>> F9 = gr_fq_nmod_ctx.new(3, 2)
-        # >>> F9
-        # gr_fq_nmod_ctx(3, 2)
-        # >>> F9(2) + F9(3)
-        # 2
-        # >>> F9.characteristic()
-        # 3
-        # >>> F9.degree()
-        # 2
-        # >>> F9.gen()
-        # a
-        # >>> a = F9.gen()
-        # >>> (1 + a) ** 2 + a
-        # a+2
+        >>> from flint.types._gr import gr_fq_nmod_ctx
+        >>> F9 = gr_fq_nmod_ctx.new(3, 2)
+        >>> F9
+        gr_fq_nmod_ctx(3, 2)
+        >>> F9(2) + F9(3)
+        2
+        >>> F9.characteristic()
+        3
+        >>> F9.degree()
+        2
+        >>> F9.gen()
+        a
+        >>> a = F9.gen()
+        >>> (1 + a) ** 2 + a
+        a+2
         """
         cdef bytes name_b
         cdef char *name_c
@@ -1148,21 +1156,21 @@ cdef class gr_fq_zech_ctx(gr_scalar_ctx):
     def new(p, d, name=None) -> gr_fq_zech_ctx:
         """Create a new context for finite fields with small characteristic.
 
-        # >>> from flint.types._gr import gr_fq_zech_ctx
-        # >>> F9 = gr_fq_zech_ctx.new(3, 2)
-        # >>> F9
-        # gr_fq_zech_ctx(3, 2)
-        # >>> F9(2) + F9(3) # XXX: Is this correct?
-        # a^4
-        # >>> F9.characteristic()
-        # 3
-        # >>> F9.degree()
-        # 2
-        # >>> F9.gen()
-        # a^1
-        # >>> a = F9.gen()
-        # >>> (1 + a) ** 2 + a  # doctest: +SKIP
-        # a+2
+        >>> from flint.types._gr import gr_fq_zech_ctx
+        >>> F9 = gr_fq_zech_ctx.new(3, 2)
+        >>> F9
+        gr_fq_zech_ctx(3, 2)
+        >>> F9(2) + F9(3)
+        a^4
+        >>> F9.characteristic()
+        3
+        >>> F9.degree()
+        2
+        >>> F9.gen()
+        a^1
+        >>> a = F9.gen()
+        >>> (1 + a) ** 2 + a
+        a^7
         """
         cdef bytes name_b
         cdef char *name_c

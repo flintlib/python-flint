@@ -3,10 +3,8 @@ from flint.types.acb cimport acb
 from flint.types.acb_mat cimport acb_mat
 from flint.flintlib.functions.acb cimport *
 from flint.flintlib.types.acb cimport (
-    acb_mat_t,
     acb_mat_entry,
     acb_ptr,
-    acb_srcptr,
 )
 from flint.flintlib.functions.acb_mat cimport *
 from flint.flintlib.functions.acb_theta cimport *
