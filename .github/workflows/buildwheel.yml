@@ -155,20 +155,18 @@ jobs:
           update: true
 
         # Install pkgconfig on Windows from choco rather than from msys and
-        # avoid using the Strawberry one.
+        # put its shim ahead of the Strawberry one on PATH.
       - if: ${{ startsWith( matrix.os , 'windows' ) }}
-        run: choco install -y --stoponfirstfailure --checksum 6004DF17818F5A6DBF19CB335CC92702 pkgconfiglite
-
-        # We have to set this here rather than in the cibuildwheel config
-        # This is probably something to do with \ vs / in paths...
-      - if: ${{ startsWith( matrix.os , 'windows' ) }}
+        name: Install pkg-config
         run: |
-          $pkgConfig = "$env:ChocolateyInstall/bin/pkg-config.exe"
-          $pkgConfig = $pkgConfig.Replace('\', '/')
-          if (!(Test-Path $pkgConfig)) {
-            throw "pkg-config.exe not found at $pkgConfig"
-          }
-          echo "PKG_CONFIG=$pkgConfig" >> $env:GITHUB_ENV
+          choco install -y --stoponfirstfailure --checksum 6004DF17818F5A6DBF19CB335CC92702 pkgconfiglite
+          echo "$env:ChocolateyInstall/bin" >> $env:GITHUB_PATH
+
+      - if: ${{ startsWith( matrix.os , 'windows' ) }}
+        name: Configure pkg-config
+        run: |
+          Get-Command pkg-config
+          pkg-config --version
           $pkgConfigPath = "$env:GITHUB_WORKSPACE/.local/lib/pkgconfig"
           $pkgConfigPath = $pkgConfigPath.Replace('\', '/')
           echo "PKG_CONFIG_PATH=$pkgConfigPath" >> $env:GITHUB_ENV
