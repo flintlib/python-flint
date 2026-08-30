@@ -344,18 +344,24 @@ cdef class gr_ctx(flint_ctx):
     def gens(self) -> list[gr]:
         """Return the top-level generators of the domain
 
-        # XXX: Does not work with FLINT < 3.1
-
-        # >>> from flint.types._gr import gr_fmpzi_ctx, gr_gr_mpoly_ctx
-        # >>> ctx = gr_gr_mpoly_ctx.new(gr_fmpzi_ctx, ['x', 'y'])
-        # >>> ctx.gens()
-        # [x, y]
-        # >>> gr_fmpzi_ctx.gens()
-        # [I]
-        # >>> ctx.gens_recursive()
-        # [I, x, y]
+        >>> from flint.types._gr import gr_fmpzi_ctx, gr_gr_mpoly_ctx
+        >>> ctx = gr_gr_mpoly_ctx.new(gr_fmpzi_ctx, ['x', 'y'])
+        >>> ctx.gens()
+        [x, y]
+        >>> gr_fmpzi_ctx.gens()
+        [I]
         """
         return self._gens()
+
+    def gens_recursive(self) -> list[gr]:
+        """Return the generators of the domain and its coefficient domains.
+
+        >>> from flint.types._gr import gr_fmpzi_ctx, gr_gr_mpoly_ctx
+        >>> ctx = gr_gr_mpoly_ctx.new(gr_fmpzi_ctx, ['x', 'y'])
+        >>> ctx.gens_recursive()
+        [I, x, y]
+        """
+        return self._gens_recursive()
 
     def is_zero(self, x) -> bool | None:
         """
@@ -1098,22 +1104,21 @@ cdef class gr_fq_nmod_ctx(gr_scalar_ctx):
     def new(p, d, name=None) -> gr_fq_nmod_ctx:
         """Create a new context for finite fields.
 
-        # XXX: Does not work with FLINT < 3.1
-        # >>> from flint.types._gr import gr_fq_nmod_ctx
-        # >>> F9 = gr_fq_nmod_ctx.new(3, 2)
-        # >>> F9
-        # gr_fq_nmod_ctx(3, 2)
-        # >>> F9(2) + F9(3)
-        # 2
-        # >>> F9.characteristic()
-        # 3
-        # >>> F9.degree()
-        # 2
-        # >>> F9.gen()
-        # a
-        # >>> a = F9.gen()
-        # >>> (1 + a) ** 2 + a
-        # a+2
+        >>> from flint.types._gr import gr_fq_nmod_ctx
+        >>> F9 = gr_fq_nmod_ctx.new(3, 2)
+        >>> F9
+        gr_fq_nmod_ctx(3, 2)
+        >>> F9(2) + F9(3)
+        2
+        >>> F9.characteristic()
+        3
+        >>> F9.degree()
+        2
+        >>> F9.gen()
+        a
+        >>> a = F9.gen()
+        >>> (1 + a) ** 2 + a
+        a+2
         """
         cdef bytes name_b
         cdef char *name_c
@@ -1151,22 +1156,21 @@ cdef class gr_fq_zech_ctx(gr_scalar_ctx):
     def new(p, d, name=None) -> gr_fq_zech_ctx:
         """Create a new context for finite fields with small characteristic.
 
-        # XXX: Does not work with FLINT < 3.1
-        # >>> from flint.types._gr import gr_fq_zech_ctx
-        # >>> F9 = gr_fq_zech_ctx.new(3, 2)
-        # >>> F9
-        # gr_fq_zech_ctx(3, 2)
-        # >>> F9(2) + F9(3) # XXX: Is this correct?
-        # a^4
-        # >>> F9.characteristic()
-        # 3
-        # >>> F9.degree()
-        # 2
-        # >>> F9.gen()
-        # a^1
-        # >>> a = F9.gen()
-        # >>> (1 + a) ** 2 + a  # doctest: +SKIP
-        # a+2
+        >>> from flint.types._gr import gr_fq_zech_ctx
+        >>> F9 = gr_fq_zech_ctx.new(3, 2)
+        >>> F9
+        gr_fq_zech_ctx(3, 2)
+        >>> F9(2) + F9(3)
+        a^4
+        >>> F9.characteristic()
+        3
+        >>> F9.degree()
+        2
+        >>> F9.gen()
+        a^1
+        >>> a = F9.gen()
+        >>> (1 + a) ** 2 + a
+        a^7
         """
         cdef bytes name_b
         cdef char *name_c
@@ -1201,25 +1205,21 @@ cdef class gr_nf_ctx(gr_scalar_ctx):
     def new(poly) -> gr_nf_ctx:
         """Create a new context for number fields.
 
-        The doctests below are commented out because they crash under WASM:
-
-        https://github.com/flintlib/python-flint/issues/319
-
-        # >>> from flint.types._gr import gr_nf_ctx
-        # >>> Qa = gr_nf_ctx.new([-2, 0, 1])
-        # >>> Qa
-        # gr_nf_ctx(x^2 + (-2))
-        # >>> Qa.modulus()
-        # x^2 + (-2)
-        # >>> a = Qa.gen()
-        # >>> a
-        # a
-        # >>> a**2
-        # 2
-        # >>> (1 + a) ** 2
-        # 2*a+3
-        # >>> (1 + a) / 2
-        # 1/2*a+1/2
+        >>> from flint.types._gr import gr_nf_ctx
+        >>> Qa = gr_nf_ctx.new([-2, 0, 1])
+        >>> Qa
+        gr_nf_ctx(x^2 + (-2))
+        >>> Qa.modulus()
+        x^2 + (-2)
+        >>> a = Qa.gen()
+        >>> a
+        a
+        >>> a**2
+        2
+        >>> (1 + a) ** 2
+        2*a+3
+        >>> (1 + a) / 2
+        1/2*a+1/2
         """
         poly = fmpq_poly(poly)
         return gr_nf_ctx._new(poly)
@@ -1248,23 +1248,19 @@ cdef class gr_nf_fmpz_poly_ctx(gr_scalar_ctx):
     def new(poly) -> gr_nf_fmpz_poly_ctx:
         """Create a new context for number fields.
 
-        The doctests below are commented out because they crash under WASM:
-
-        https://github.com/flintlib/python-flint/issues/319
-
-        # >>> from flint.types._gr import gr_nf_fmpz_poly_ctx
-        # >>> Qa = gr_nf_fmpz_poly_ctx.new([-2, 0, 1])
-        # >>> Qa
-        # gr_nf_fmpz_poly_ctx(x^2 + (-2))
-        # >>> Qa.modulus()
-        # x^2 + (-2)
-        # >>> a = Qa.gen()
-        # >>> a
-        # a
-        # >>> a**2
-        # 2
-        # >>> (1 + a) ** 2
-        # 2*a+3
+        >>> from flint.types._gr import gr_nf_fmpz_poly_ctx
+        >>> Qa = gr_nf_fmpz_poly_ctx.new([-2, 0, 1])
+        >>> Qa
+        gr_nf_fmpz_poly_ctx(x^2 + (-2))
+        >>> Qa.modulus()
+        x^2 + (-2)
+        >>> a = Qa.gen()
+        >>> a
+        a
+        >>> a**2
+        2
+        >>> (1 + a) ** 2
+        2*a+3
         """
         poly = fmpz_poly(poly)
         return gr_nf_fmpz_poly_ctx._new(poly)
@@ -1580,24 +1576,24 @@ cdef class gr_gr_mpoly_ctx(gr_mpoly_ctx):
     def new(base_ring, names, order=None) -> gr_gr_mpoly_ctx:
         """Create a new context for dense multivariate polynomial rings.
 
-        # >>> from flint.types._gr import gr_fmpzi_ctx, gr_gr_mpoly_ctx
-        # >>> ZI = gr_fmpzi_ctx
-        # >>> R = gr_gr_mpoly_ctx.new(ZI, ['x', 'y'])
-        # >>> R
-        # gr_gr_mpoly_ctx(gr_fmpzi_ctx, ('x', 'y'), Ordering.lex)
-        # >>> R.base_ring
-        # gr_fmpzi_ctx
-        # >>> R.names
-        # ('x', 'y')
-        # >>> R.nvars
-        # 2
-        # >>> R.order
-        # <Ordering.lex: 'lex'>
-        # >>> R.gens()
-        # [x, y]
-        # >>> I, [x, y] = ZI.gen(), R.gens()
-        # >>> (I + x + y) ** 2
-        # x^2 + 2*x*y + (2*I)*x + y^2 + (2*I)*y - 1
+        >>> from flint.types._gr import gr_fmpzi_ctx, gr_gr_mpoly_ctx
+        >>> ZI = gr_fmpzi_ctx
+        >>> R = gr_gr_mpoly_ctx.new(ZI, ['x', 'y'])
+        >>> R
+        gr_gr_mpoly_ctx(gr_fmpzi_ctx, ('x', 'y'), Ordering.lex)
+        >>> R.base_ring
+        gr_fmpzi_ctx
+        >>> R.names
+        ('x', 'y')
+        >>> R.nvars
+        2
+        >>> R.order
+        <Ordering.lex: 'lex'>
+        >>> R.gens()
+        [x, y]
+        >>> I, x, y = R.gens_recursive()
+        >>> (I + x + y) ** 2
+        x^2 + 2*x*y + (2*I)*x + y^2 + (2*I)*y - 1
         """
         if order is None:
             order = Ordering.lex
@@ -1749,6 +1745,8 @@ cdef class gr(flint_scalar):
         """
         return truth_to_py(self._is_neg_one())
 
+# FLINT <= 3.6 documents gr_is_integer and gr_is_rational but does not define
+# them in gr.h, so these methods cannot be enabled for the supported versions.
 #     def is_integer(self):
 #         """Return whether the element is an integer (may return ``None``).
 #

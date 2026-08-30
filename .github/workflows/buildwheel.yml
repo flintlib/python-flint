@@ -155,14 +155,18 @@ jobs:
           update: true
 
         # Install pkgconfig on Windows from choco rather than from msys and
-        # avoid using the Strawberry one.
+        # put its shim ahead of the Strawberry one on PATH.
       - if: ${{ startsWith( matrix.os , 'windows' ) }}
-        run: choco install -y --stoponfirstfailure --checksum 6004DF17818F5A6DBF19CB335CC92702 pkgconfiglite
-
-        # We have to set this here rather than in the cibuildwheel config
-        # This is probably something to do with \ vs / in paths...
-      - if: ${{ startsWith( matrix.os , 'windows' ) }}
+        name: Install pkg-config
         run: |
+          choco install -y --stoponfirstfailure --checksum 6004DF17818F5A6DBF19CB335CC92702 pkgconfiglite
+          echo "$env:ChocolateyInstall/bin" >> $env:GITHUB_PATH
+
+      - if: ${{ startsWith( matrix.os , 'windows' ) }}
+        name: Configure pkg-config
+        run: |
+          Get-Command pkg-config
+          pkg-config --version
           $pkgConfigPath = "$env:GITHUB_WORKSPACE/.local/lib/pkgconfig"
           $pkgConfigPath = $pkgConfigPath.Replace('\', '/')
           echo "PKG_CONFIG_PATH=$pkgConfigPath" >> $env:GITHUB_ENV
@@ -300,7 +304,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04]
+        os: [ubuntu-26.04]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -332,7 +336,7 @@ jobs:
   # Test build with minimum Cython and meson-python versions.
   test_old_build_requires:
     name: 'Test old Cython/meson-python'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -353,7 +357,7 @@ jobs:
       - run: pip install --no-build-isolation .
       - run: python -m flint.test --verbose
 
-  # For older Ubuntu we have to build Flint >= 3.0.0
+  # Build and test against each supported FLINT release.
   test_flint_releases:
     name: Test flint ${{ matrix.flint-tag }}
     runs-on: ubuntu-22.04
@@ -362,11 +366,9 @@ jobs:
       matrix:
         # Supported Flint versions:
         flint-tag: [
-          'v3.0.1',
-          'v3.2.2',
-          'v3.3.1',
           'v3.4.0',
           'v3.5.0',
+          'v3.6.0',
         ]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -416,7 +418,7 @@ jobs:
   # Test that we can make a coverage build and report coverage
   test_coverage_build_setuptools:
     name: Test coverage setuptools build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -432,7 +434,7 @@ jobs:
   # Test that we can make a coverage build and report coverage
   test_coverage_build_meson:
     name: Test coverage meson build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -448,7 +450,7 @@ jobs:
   # Run SymPy test suite against python-flint master
   test_sympy:
     name: Test SymPy ${{ matrix.sympy-version }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -472,7 +474,7 @@ jobs:
   # Run SymPy master branch agains python-flint main
   test_sympy_master:
     name: Test SymPy master
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

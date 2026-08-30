@@ -20,10 +20,9 @@ variables over the Gaussian integers :math:`\mathbb{Z}[i][x,y]` we would do::
     >>> ctx.gens()
     [x, y]
 
-    # XXX: gens_recursive not available in FLINT < 3.1
-    # >>> ctx.gens_recursive()
-    # [I, x, y]
-    # >>> I, x, y = ctx.gens_recursive()
+    >>> ctx.gens_recursive()
+    [I, x, y]
+    >>> I, x, y = ctx.gens_recursive()
 
     >>> x, y = ctx.gens()
     >>> p = (x + y)**2

@@ -11,12 +11,7 @@
 
 PREFIX=$(pwd)/.local
 
-ARBVER=2.23.0 # Not needed with flint >= 3.0.0 (Arb is included in flint)
-
-YASMVER=1.3.0 # Only needed for MPIR
-MPIRVER=3.0.0 # MPIR build no longer works (not clear where to download from)
-
-# These are the actual dependencies used (at least by default):
+# Versions of the dependencies used by python-flint:
 GMPVER=6.3.0
 MPFRVER=4.2.2
 FLINTVER=3.6.0

@@ -34,10 +34,7 @@ from flint.flintlib.functions.fmpq_poly cimport (
 )
 from flint.flintlib.functions.compat cimport (
     compat_gr_factor,
-    compat_gr_ctx_init_gr_series,
-    # compat_gr_ctx_init_series_mod_gr_poly,
 )
-
 
 from flint.flintlib.types.gr cimport (
     truth_t,
@@ -53,6 +50,11 @@ from flint.flintlib.types.gr cimport (
     gr_ptr,
     gr_vec_t,
 )
+
+cdef extern from "flint/gr_series.h":
+    void gr_series_ctx_init(gr_ctx_t ctx, gr_ctx_t base_ring, slong prec)
+    # void gr_series_mod_ctx_init(gr_ctx_t ctx, gr_ctx_t base_ring, slong n)
+
 from flint.flintlib.functions.gr_domains cimport (
     gr_ctx_init_fmpz,
     gr_ctx_init_fmpq,
@@ -103,7 +105,7 @@ from flint.flintlib.functions.gr cimport (
     gr_one,
     gr_gen,
     gr_gens,
-    # gr_gens_recursive,
+    gr_gens_recursive,
     gr_ctx_set_gen_names,
 
     gr_i,
@@ -429,6 +431,7 @@ cdef class gr_ctx(flint_ctx):
     cdef inline truth_t _equal(self, gr x, gr y):
         return gr_equal(x.pval, y.pval, self.ctx_t)
 
+    # gr_is_integer and gr_is_rational are not defined in gr.h in FLINT <= 3.6.
     # @cython.final
     # cdef inline truth_t _is_integer(self, gr x):
     #     return gr_is_integer(x.pval, self.ctx_t)
@@ -1015,25 +1018,25 @@ cdef class gr_ctx(flint_ctx):
             raise self._error(err, "Cannot compute min(x) in this context")
         return res
 
-    # @cython.final
-    # cdef inline list _gens_recursive(self):
-    #     cdef int err
-    #     cdef gr g
-    #     cdef gr_vec_t gens
-    #     gr_vec_init(gens, 0, self.ctx_t)
-    #     err = gr_gens_recursive(gens, self.ctx_t)
-    #     if err != GR_SUCCESS:
-    #         raise self._error(err, "Cannot get recursive generators")
-    #     length = gr_vec_length(gens, self.ctx_t)
-    #     py_gens = [None] * length
-    #     for 0 <= i < length:
-    #         g = self.new_gr()
-    #         err = gr_set(g.pval, gr_vec_entry_ptr(gens, i, self.ctx_t), self.ctx_t)
-    #         if err != GR_SUCCESS:
-    #             raise self._error(err, "Failed to copy generator.")
-    #         py_gens[i] = g
-    #     gr_vec_clear(gens, self.ctx_t)
-    #     return py_gens
+    @cython.final
+    cdef inline list _gens_recursive(self):
+        cdef int err
+        cdef gr g
+        cdef gr_vec_t gens
+        gr_vec_init(gens, 0, self.ctx_t)
+        err = gr_gens_recursive(gens, self.ctx_t)
+        if err != GR_SUCCESS:
+            raise self._error(err, "Cannot get recursive generators")
+        length = gr_vec_length(gens, self.ctx_t)
+        py_gens = [None] * length
+        for 0 <= i < length:
+            g = self.new_gr()
+            err = gr_set(g.pval, gr_vec_entry_ptr(gens, i, self.ctx_t), self.ctx_t)
+            if err != GR_SUCCESS:
+                raise self._error(err, "Failed to copy generator.")
+            py_gens[i] = g
+        gr_vec_clear(gens, self.ctx_t)
+        return py_gens
 
 
 cdef class gr_scalar_ctx(gr_ctx):
@@ -1518,7 +1521,7 @@ cdef class gr_gr_mpoly_ctx(gr_mpoly_ctx):
 #     cdef inline gr_series_mod_gr_poly_ctx _new(gr_ctx base_ctx, slong n):
 #         cdef gr_series_mod_gr_poly_ctx ctx
 #         ctx = gr_series_mod_gr_poly_ctx.__new__(gr_series_mod_gr_poly_ctx)
-#         compat_gr_ctx_init_series_mod_gr_poly(ctx.ctx_t, base_ctx.ctx_t, n)
+#         gr_series_mod_ctx_init(ctx.ctx_t, base_ctx.ctx_t, n)
 #         ctx._init = True
 #         ctx.base_ctx = base_ctx
 #         ctx._n = n
@@ -1534,7 +1537,7 @@ cdef class gr_series_ctx(gr_ctx):
     cdef inline gr_series_ctx _new(gr_ctx base_ctx, slong prec):
         cdef gr_series_ctx ctx
         ctx = gr_series_ctx.__new__(gr_series_ctx)
-        compat_gr_ctx_init_gr_series(ctx.ctx_t, base_ctx.ctx_t, prec)
+        gr_series_ctx_init(ctx.ctx_t, base_ctx.ctx_t, prec)
         ctx._init = True
         ctx.base_ctx = base_ctx
         ctx._prec = prec

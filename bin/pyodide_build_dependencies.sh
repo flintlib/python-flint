@@ -27,7 +27,7 @@ do
       shift
     ;;
     --flint-commit)
-      # e.g. --flint-commit 3.3.1
+      # e.g. --flint-commit 3.4.0
       FLINT_COMMIT="$2"
       shift
       shift

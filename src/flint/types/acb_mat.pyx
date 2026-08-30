@@ -835,8 +835,6 @@ cdef class acb_mat(flint_mat):
         for the ordering of the theta characteristics.
 
         """
-        if acb_theta is None:
-            raise NotImplementedError("acb_mat.theta needs Flint >= 3.1.0")
         return acb_theta(z, tau, square=square)
 
     def theta_jets(tau, z, ord):
@@ -854,6 +852,4 @@ cdef class acb_mat(flint_mat):
         one column for each jet coefficient.
 
         """
-        if acb_theta_jets is None:
-            raise NotImplementedError("acb_mat.theta_jets needs Flint >= 3.3.0")
         return acb_theta_jets(z, tau, ord)

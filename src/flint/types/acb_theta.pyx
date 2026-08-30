@@ -1,68 +1,14 @@
 from flint.flint_base.flint_context cimport getprec
-from flint.flint_base.flint_base import FLINT_RELEASE
 from flint.types.acb cimport acb
 from flint.types.acb_mat cimport acb_mat
 from flint.flintlib.functions.acb cimport *
 from flint.flintlib.types.acb cimport (
-    acb_mat_t,
     acb_mat_entry,
     acb_ptr,
-    acb_srcptr,
 )
 from flint.flintlib.functions.acb_mat cimport *
+from flint.flintlib.functions.acb_theta cimport *
 from flint.flintlib.types.flint cimport slong, ulong
-
-
-cdef extern from *:
-    """
-    #include "flint/flint.h"
-    #include "flint/acb.h"
-    #include "flint/acb_mat.h"
-
-    #if __FLINT_RELEASE >= 30100 /* Flint 3.1.0 or later */
-    #include "flint/acb_theta.h"
-    static inline void
-    compat_acb_theta_all(acb_ptr th, acb_srcptr z, const acb_mat_t tau, int sqr, slong prec)
-    {
-        acb_theta_all(th, z, tau, sqr, prec);
-    }
-    #else
-    static inline void
-    compat_acb_theta_all(acb_ptr th, acb_srcptr z, const acb_mat_t tau, int sqr, slong prec)
-    {
-    }
-    #endif
-
-    #if __FLINT_RELEASE >= 30300 /* Flint 3.3.0 or later */
-    static inline slong
-    compat_acb_theta_jet_nb(slong ord, slong g)
-    {
-        return acb_theta_jet_nb(g, ord);
-    }
-
-    static inline void
-    compat_acb_theta_jet(acb_ptr th, acb_srcptr zs, slong nb, const acb_mat_t tau,
-            slong ord, ulong ab, int all, int sqr, slong prec)
-    {
-        acb_theta_jet(th, zs, nb, tau, ord, ab, all, sqr, prec);
-    }
-    #else
-    static inline slong
-    compat_acb_theta_jet_nb(slong ord, slong g)
-    {
-        return 0;
-    }
-
-    static inline void
-    compat_acb_theta_jet(acb_ptr th, acb_srcptr zs, slong nb, const acb_mat_t tau,
-            slong ord, ulong ab, int all, int sqr, slong prec)
-    {
-    }
-    #endif
-    """
-    void compat_acb_theta_all(acb_ptr th, acb_srcptr z, const acb_mat_t tau, int sqr, slong prec)
-    slong compat_acb_theta_jet_nb(slong ord, slong g)
-    void compat_acb_theta_jet(acb_ptr th, acb_srcptr zs, slong nb, const acb_mat_t tau, slong ord, ulong ab, int all, int sqr, slong prec)
 
 
 def acb_theta(acb_mat z, acb_mat tau, ulong square=False):
@@ -140,7 +86,7 @@ def acb_theta(acb_mat z, acb_mat tau, ulong square=False):
     cdef slong nb = 1 << (2 * g)
     cdef acb_ptr theta = _acb_vec_init(nb)
 
-    compat_acb_theta_all(theta, zvec, tau.val, square, getprec())
+    acb_theta_all(theta, zvec, tau.val, square, getprec())
     _acb_vec_clear(zvec, g)
     # copy the output
     res = []
@@ -187,8 +133,8 @@ def acb_theta_jets(acb_mat z, acb_mat tau, slong ord):
         return acb_mat(0, 0)
 
     # Calculate the length of the jet for one characteristic
-    # This is the number of multi-indices (alpha) such that |alpha| < ord
-    cdef slong nj = compat_acb_theta_jet_nb(ord, g)
+    # This is the number of multi-indices (alpha) such that |alpha| <= ord
+    cdef slong nj = acb_theta_jet_nb(ord, g)
 
     # Total number of characteristics
     cdef slong nb = 1 << (2 * g)
@@ -213,7 +159,7 @@ def acb_theta_jets(acb_mat z, acb_mat tau, slong ord):
 
     # Call the FLINT C function
     # Note: Computes all partial derivatives up to total order 'ord'
-    compat_acb_theta_jet(theta, zvec, nb_in, tau.val, ord, ab, all, square, getprec())
+    acb_theta_jet(theta, zvec, nb_in, tau.val, ord, ab, all, square, getprec())
 
     # Copy the output into a structured format
     res_mat = acb_mat(nb, nj)
@@ -226,10 +172,3 @@ def acb_theta_jets(acb_mat z, acb_mat tau, slong ord):
     _acb_vec_clear(theta, total_size)
 
     return res_mat
-
-
-if FLINT_RELEASE < 30100:
-    acb_theta = None
-
-if FLINT_RELEASE < 30300:
-    acb_theta_jets = None

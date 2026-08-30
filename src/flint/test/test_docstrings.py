@@ -7,11 +7,13 @@ import flint
 
 dunder_test_regex = re.compile(r'^(.*?)__test__\.(.*?) \(line (\d+)\)$')
 
-test_flint_at_least = {
-    "flint.types._gr.gr_ctx.gens": 30100,
-    "flint.types._gr.gr_ctx.neg": 30100,
-    "flint.types.acb_theta.acb_theta": 30100,
-}
+# Minimum FLINT release required by doctests that use newer FLINT features.
+# Keys are doctest names and values are encoded __FLINT_RELEASE values, e.g.:
+#
+# test_flint_at_least = {
+#     "flint.types.example.example_method": 30700,
+# }
+test_flint_at_least = {}
 
 
 def find_doctests(module):
@@ -39,7 +41,6 @@ def find_doctests(module):
                             raise Exception(f"Duplicate test name: {test.name}")
                         tests_seen.remove(test.name)
 
-                # Doctests that fail without latest flint
                 if test.name in test_flint_at_least:
                     if test_flint_at_least[test.name] > flint.__FLINT_RELEASE__:
                         continue
