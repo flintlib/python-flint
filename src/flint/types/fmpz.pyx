@@ -3,6 +3,10 @@ from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport chars_from_str
 from flint.utils.conversion cimport str_from_chars, _str_trunc
 from libc.stdlib cimport malloc, free
+from libc.stdint cimport uint32_t
+from libc.stddef cimport size_t
+from cpython.ref cimport PyObject, Py_INCREF
+from cpython.pycapsule cimport PyCapsule_New
 
 from flint.flintlib.types.flint cimport FMPZ_REF, FMPZ_TMP, FMPZ_UNKNOWN, COEFF_IS_MPZ
 from flint.flintlib.functions.flint cimport flint_free
@@ -14,6 +18,16 @@ from flint.flintlib.functions.partitions cimport *
 
 from flint.utils.flint_exceptions import DomainError
 import sys
+
+cdef extern from "python_flint/fmpz.h":
+    ctypedef struct PyFlint_FMPZ_API_v1:
+        uint32_t abi_version
+        size_t struct_size
+        PyObject *(*fmpz_add)(PyObject *, PyObject *)
+        const void *(*fmpz_get_value)(PyObject *)
+
+    int PYFLINT_FMPZ_ABI_VERSION
+    const char *PYFLINT_FMPZ_CAPSULE_NAME
 
 is_big_endian = int(sys.byteorder == "big")
 
@@ -1027,3 +1041,32 @@ cdef class fmpz(flint_scalar):
         if ttype == FMPZ_TMP:
             fmpz_clear(tval)
         return fmpz(v)
+
+
+# Keep these functions in this module: this is the only place where the
+# private layout of the fmpz extension type is part of the implementation.
+cdef PyObject *_capi_fmpz_add(PyObject *a, PyObject *b) except NULL:
+    cdef fmpz result
+    if (a == NULL or b == NULL or
+            not isinstance(<object>a, fmpz) or
+            not isinstance(<object>b, fmpz)):
+        raise TypeError("PyFlint_FMPZ_Add expects two flint.fmpz objects")
+    result = fmpz.__new__(fmpz)
+    fmpz_add(result.val, (<fmpz><object>a).val, (<fmpz><object>b).val)
+    Py_INCREF(result)
+    return <PyObject *>result
+
+
+cdef const void *_capi_fmpz_get_value(PyObject *value) except NULL:
+    if value == NULL or not isinstance(<object>value, fmpz):
+        raise TypeError("PyFlint_FMPZ_GetValue expects a flint.fmpz object")
+    return <const void *>(<fmpz><object>value).val
+
+
+cdef PyFlint_FMPZ_API_v1 _fmpz_c_api
+_fmpz_c_api.abi_version = PYFLINT_FMPZ_ABI_VERSION
+_fmpz_c_api.struct_size = sizeof(PyFlint_FMPZ_API_v1)
+_fmpz_c_api.fmpz_add = <PyObject *(*)(PyObject *, PyObject *) noexcept>_capi_fmpz_add
+_fmpz_c_api.fmpz_get_value = <const void *(*)(PyObject *) noexcept>_capi_fmpz_get_value
+
+_C_API = PyCapsule_New(<void *>&_fmpz_c_api, PYFLINT_FMPZ_CAPSULE_NAME, NULL)
