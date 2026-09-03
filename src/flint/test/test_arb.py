@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 
-from flint import arb, ctx
+from flint import arb, ctx, fmpz
 from flint.test.helpers import is_close_arb, raises
 
 def assert_almost_equal(x: float | int, y: float | int, places: int = 7) -> None:
@@ -294,6 +294,13 @@ def test_arb_arithmetic() -> None:
     assert (6 / x) == arb(3)
     assert (x ** 2) == arb(4)
     assert (2 ** x) == arb(4)
+
+    interval = arb(0, 1)
+    for exponent in (1, 2, fmpz(2)):
+        power = interval ** exponent
+        assert power.is_finite()
+        assert power.contains(0)
+        assert power.contains(1)
 
     assert raises(lambda: x + "bad", TypeError)  # type: ignore[operator]
     assert raises(lambda: "bad" + x, TypeError)  # type: ignore[operator]
