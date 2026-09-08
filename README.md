@@ -114,6 +114,30 @@ Numerical integration:
     >>> acb.integral(lambda x, _: (-x**2).exp(), -100, 100) ** 2
     [3.141592653589793238462643383 +/- 3.11e-28]
 
+Cython API
+-------------------------------------
+
+The PyPI/conda wheels install the ``.pxd`` files. A third-party Cython
+module can then ``cimport`` the ``acb`` class and the libflint declarations
+and operate on the underlying ``acb_t``:
+
+.. code-block:: cython
+
+    from flint.types.acb cimport acb
+    from flint.flintlib.functions.acb cimport acb_exp, acb_t
+    from flint.flint_base.flint_context cimport getprec
+
+    def exp_c(acb z):
+        cdef acb out = acb.__new__(acb)
+        acb_exp(out.val, z.val, getprec())
+        return out
+
+Compiling that still needs the FLINT C headers (``flint/acb.h``) and
+``libflint`` on the linker line, same versions as the ``python-flint``
+build. The Windows PyPI wheel ships ``libflint`` but not the headers;
+use a FLINT development install (for example conda-forge ``libflint``)
+when building the extension.
+
 To do
 -------------------------------------
 
