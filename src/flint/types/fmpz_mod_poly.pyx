@@ -1,3 +1,4 @@
+cimport cython
 from cpython.list cimport PyList_Size as PyList_GET_SIZE
 
 from flint.pyflint cimport global_random_state
@@ -7,7 +8,8 @@ from flint.flintlib.functions.fmpz_mod_poly_factor cimport *
 from flint.flintlib.functions.fmpz cimport(
     fmpz_init,
     fmpz_clear,
-    fmpz_is_one
+    fmpz_is_one,
+    fmpz_cmp
 )
 from flint.types.fmpz_vec cimport fmpz_vec
 
@@ -19,6 +21,35 @@ from flint.flint_base.flint_base cimport flint_poly
 from flint.utils.typecheck cimport typecheck
 
 from flint.utils.flint_exceptions import DomainError
+
+
+@cython.final
+@cython.no_gc
+cdef class _fmpz_mod_poly_sort_key:
+    cdef fmpz_mod_poly p
+    cdef slong mult
+    cdef slong len
+
+    def __init__(self, tuple fac_m):
+        self.p = fac_m[0]
+        self.len = fmpz_mod_poly_length(self.p.val, self.p.ctx.mod.val)
+        self.mult = fac_m[1]
+
+    def __lt__(k1, _fmpz_mod_poly_sort_key k2):
+        cdef slong i
+        cdef int cmp
+        if k1.len != k2.len:
+            return k1.len < k2.len
+        elif k1.mult != k2.mult:
+            return k1.mult < k2.mult
+        i = k1.len
+        while i > 0:
+            i -= 1
+            cmp = fmpz_cmp(&k1.p.val.coeffs[i], &k2.p.val.coeffs[i])
+            if cmp != 0:
+                return cmp < 0
+        return False
+
 
 cdef class fmpz_mod_poly_ctx:
     r"""
@@ -1825,7 +1856,7 @@ cdef class fmpz_mod_poly(flint_poly):
             (fmpz_mod(6, 163), [(x^4 + 137*x^3 + 137*x^2 + 110*x + 1, 1)])
             >>> f = (x + 1)**3 * (x + 2)
             >>> f.factor()
-            (fmpz_mod(1, 163), [(x + 1, 3), (x + 2, 1)])
+            (fmpz_mod(1, 163), [(x + 2, 1), (x + 1, 3)])
         """
         cdef fmpz_mod_poly_factor_t fac
         cdef int i
@@ -1867,6 +1898,7 @@ cdef class fmpz_mod_poly(flint_poly):
             fmpz_mod_poly_set(u.val, &fac.poly[i], self.ctx.mod.val)
             exp = fac.exp[i]
             res[i] = (u, exp)
+        res.sort(key=_fmpz_mod_poly_sort_key)
         return self.leading_coefficient(), res
 
     def roots(self, multiplicities=True):

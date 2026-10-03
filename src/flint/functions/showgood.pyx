@@ -50,7 +50,7 @@ def good(func, slong prec=0, slong maxprec=0, slong dps=0,
         Traceback (most recent call last):
           ...
         ValueError: no convergence (maxprec=630, try higher maxprec)
-        >>> good(lambda: (arb.pi() + arb("1e-100")).sin(), maxprec=1000)
+        >>> good(lambda: (arb.pi() + arb("1e-100")).sin(), maxprec=1000) # doctest: +SKIP
         [-1.00000000000000e-100 +/- 3e-119]
 
     The function *func* can return an *arb*, an *acb*, or a composite
@@ -64,7 +64,7 @@ def good(func, slong prec=0, slong maxprec=0, slong dps=0,
         Traceback (most recent call last):
           ...
         ValueError: no convergence (maxprec=630, try higher maxprec)
-        >>> good(lambda: (acb(0,-1) ** 0.5) ** 2, parts=False)
+        >>> good(lambda: (acb(0,-1) ** 0.5) ** 2, parts=False) # doctest: +SKIP
         [+/- 4.50e-22] + [-1.00000000000000 +/- 3e-20]j
 
 

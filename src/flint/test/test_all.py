@@ -2574,6 +2574,17 @@ def test_fmpz_mod_poly():
 
         assert raises(lambda: f.pow_trunc(-1, 5), ValueError)
 
+    # Match nmod_poly.factor sorting. Different FLINT versions can have
+    # different orders but we sort them in python-flint.
+    for modulus in [163, 2**127 - 1]:
+        R = fmpz_mod_poly_ctx(modulus)
+        x = R.gen()
+        expected = [(x + 1, 1), (x + modulus - 2, 1), (x + 2, 3),
+                    (x**2 + 1, 1), (x**2 + 4, 1)]
+        p = 7 * (x + 1) * (x + modulus - 2) * (x + 2)**3 * (x**2 + 1) * (x**2 + 4)
+        for algorithm in [None, "cantor_zassenhaus", "kaltofen_shoup", "berlekamp"]:
+            assert p.factor(algorithm=algorithm) == (R(7)[0], expected)
+
 
 def test_fmpz_mod_mat():
     c11 = flint.fmpz_mod_ctx(11)

@@ -183,7 +183,8 @@ jobs:
         # ------------- actual build ------------- #
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@1828c10ab37f080699c7b81cea34097c684a7074 # v4.2.0
+        # Temporarily pin the latest commit of cibuildwheel for PyPy 8.0.0 support
+        uses: pypa/cibuildwheel@5cad3d982fd4fbcddade622709b995e3052923b1 # zizmor: ignore[stale-action-refs]
         env:
           CIBW_PLATFORM: ${{ matrix.cibw_platform }}
           CIBW_BUILD: ${{ matrix.cibw_build }}

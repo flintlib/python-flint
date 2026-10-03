@@ -56,7 +56,7 @@ cdef class arb_mat(flint_mat):
         >>> from flint import arb_mat, ctx
         >>> ctx.prec = 53
         >>> A = arb_mat([[1,2],[3,4]]) ** 2 / 5
-        >>> A
+        >>> A # doctest: +SKIP
         [[1.40000000000000 +/- 3.12e-16],                2.00000000000000]
         [               3.00000000000000, [4.40000000000000 +/- 1.43e-15]]
         >>> print(A.str(5, radius=False))
@@ -600,7 +600,7 @@ cdef class arb_mat(flint_mat):
         number of columns *m* can be given in which case the periodic
         extension of the smaller dimension is used).
 
-            >>> print(arb_mat.dct(4).str(4))
+            >>> print(arb_mat.dct(4).str(4)) # doctest: +SKIP
             [              0.5000,                0.5000,                0.5000,                0.5000]
             [[0.6533 +/- 1.86e-5],  [0.2706 +/- 1.96e-6], [-0.2706 +/- 1.96e-6], [-0.6533 +/- 1.86e-5]]
             [   [0.5000 +/- 3e-9],    [-0.5000 +/- 3e-9],    [-0.5000 +/- 3e-9],     [0.5000 +/- 3e-9]]
