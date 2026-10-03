@@ -103,9 +103,9 @@ enable = [
     "pypy",
 ]
 
-manylinux-x86_64-image = "manylinux2014"
+manylinux-x86_64-image = "manylinux_2_28"
 manylinux-aarch64-image = "manylinux_2_28"
-manylinux-i686-image = "manylinux2014"
+manylinux-i686-image = "manylinux_2_28"
 
 [tool.cibuildwheel.linux.environment]
 # LD_LIBRARY_PATH is needed by auditwheel
