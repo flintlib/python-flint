@@ -143,13 +143,13 @@ jobs:
         # -------------- Windows stuff ---------------- #
 
       - if: ${{ matrix.os == 'windows-2022' }}
-        uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2.32.0
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
         with:
           msystem: ucrt64
           update: true
 
       - if: ${{ matrix.os == 'windows-11-arm' }}
-        uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2.32.0
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
         with:
           msystem: clangarm64
           update: true
@@ -517,7 +517,7 @@ jobs:
         run: mkdir dist && cp wheelhouse/*.whl dist
 
       - name: Upload wheels
-        uses: scientific-python/upload-nightly-action@e76cfec8a4611fd02808a801b0ff5a7d7c1b2d99 # 0.6.4
+        uses: scientific-python/upload-nightly-action@16fa02eacee1655195143de09f03676e60ef2bf5 # 0.6.5
         with:
           artifacts_path: dist
           # This token is generated from anaconda.org
