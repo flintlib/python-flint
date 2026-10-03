@@ -2160,6 +2160,17 @@ def test_fmpz_mod_dlog():
 def test_fmpz_mod_poly():
     from flint import fmpz_poly, fmpz_mod_poly, fmpz_mod_poly_ctx, fmpz_mod_ctx, fmpz
 
+    # Match nmod_poly's degree, multiplicity, and coefficient ordering,
+    # including coefficients too large for a machine word.
+    for modulus in [163, 2**127 - 1]:
+        R = fmpz_mod_poly_ctx(modulus)
+        x = R.gen()
+        expected = [(x + 1, 1), (x + modulus - 2, 1), (x + 2, 3),
+                    (x**2 + 1, 1), (x**2 + 4, 1)]
+        p = 7 * (x + 1) * (x + modulus - 2) * (x + 2)**3 * (x**2 + 1) * (x**2 + 4)
+        for algorithm in [None, "cantor_zassenhaus", "kaltofen_shoup", "berlekamp"]:
+            assert p.factor(algorithm=algorithm) == (R(7)[0], expected)
+
     # fmpz_mod_poly_ctx tests
     F = fmpz_mod_ctx(11)
     R1 = fmpz_mod_poly_ctx(F)

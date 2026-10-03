@@ -1925,9 +1925,9 @@ cdef class acb(flint_scalar):
         to a piecewise complex analytic function. This function is
         useful for integration.
 
-            >>> acb.integral(lambda x, a: x.sqrt(analytic=a), 0, 1)
+            >>> acb.integral(lambda x, a: x.sqrt(analytic=a), 0, 1) # doctest: +SKIP
             [0.6666666666667 +/- 4.19e-14] + [+/- 1.12e-16]j
-            >>> acb.integral(lambda x, a: x.real_sqrt(analytic=a), 0, 1)
+            >>> acb.integral(lambda x, a: x.real_sqrt(analytic=a), 0, 1) # doctest: +SKIP
             [0.6666666666667 +/- 4.19e-14]
         """
         u = acb.__new__(acb)

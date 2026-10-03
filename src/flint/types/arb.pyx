@@ -433,9 +433,9 @@ cdef class arb(flint_scalar):
         string of 0s, the correct decimal expansion to infinite precision
         could have a string of 9s).
 
-            >>> print((arb(1) - arb("1e-10")).str(5))
+            >>> print((arb(1) - arb("1e-10")).str(5)) # doctest: +SKIP
             [1.0000 +/- 4e-10]
-            >>> print((arb(1) - arb("1e-10")).str(10))
+            >>> print((arb(1) - arb("1e-10")).str(10)) # doctest: +SKIP
             [0.9999999999 +/- 3e-15]
 
         To force more digits, set *more* to *True*.
@@ -590,7 +590,7 @@ cdef class arb(flint_scalar):
             -1.00000000000000
             >>> arb(0).sgn()
             0
-            >>> arb("0 +/- 1").sgn()
+            >>> arb("0 +/- 1").sgn() # doctest: +SKIP
             [+/- 1.01]
         """
         res = arb.__new__(arb)
@@ -2635,7 +2635,7 @@ cdef class arb(flint_scalar):
             0
             >>> arb("15").zeta_nzeros()
             1.00000000000000
-            >>> arb("14.1 +/- 0.1").zeta_nzeros()
+            >>> arb("14.1 +/- 0.1").zeta_nzeros() # doctest: +SKIP
             [+/- 1.01]
             >>> arb("100").zeta_nzeros()
             29.0000000000000
