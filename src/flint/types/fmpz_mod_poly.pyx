@@ -1849,9 +1849,6 @@ cdef class fmpz_mod_poly(flint_poly):
         ``(c, factors)`` where `c` is the content of the coefficients and
         factors is a list of ``(poly, exp)`` pairs.
 
-        Factors are sorted by degree, then exponent, then coefficients
-        from highest to lowest degree, as for :meth:`nmod_poly.factor`.
-
             >>> R = fmpz_mod_poly_ctx(163)
             >>> x = R.gen()
             >>> f = 6*x**4 + 7*x**3 + 7*x**2 + 8*x + 6
