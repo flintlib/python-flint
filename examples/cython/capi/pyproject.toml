@@ -1,0 +1,8 @@
+[build-system]
+requires = ["meson-python", "cython>=3.1", "python-flint"]
+build-backend = "mesonpy"
+
+[project]
+name = "python-flint-capi-example"
+version = "0.1.0"
+dependencies = ["python-flint"]
