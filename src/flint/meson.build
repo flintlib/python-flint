@@ -12,6 +12,7 @@ exts = [
 ]
 
 pkgs = [
+  '_capi',
   'flint_base',
   'types',
   'functions',
