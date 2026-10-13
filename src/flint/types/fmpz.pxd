@@ -22,7 +22,6 @@ cdef inline int fmpz_set_pylong(fmpz_t x, obj):
     cdef slong longval
     cdef slong size
     cdef bytes b
-    cdef ulong w
     cdef ulong *words
     cdef int i
 
