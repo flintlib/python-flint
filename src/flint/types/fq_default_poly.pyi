@@ -7,7 +7,6 @@ from .fmpz_mod_poly import fmpz_mod_poly
 from .fq_default import fq_default_type, fq_default_ctx, fq_default, ifq_default
 
 ifmpz_mod = int | fmpz | fmpz_mod
-ifq_default_poly = fq_default_poly | ifq_default | ifmpz_poly
 
 class fq_default_poly_ctx:
     r"""Context object for creating :class:`~.fq_default_poly` initialised
@@ -141,3 +140,5 @@ class fq_default_poly(flint_poly[fq_default]):
     ) -> tuple[fq_default, list[tuple[fq_default_poly, int]]]: ...
     def factor(self) -> tuple[fq_default, list[tuple[fq_default_poly, int]]]: ...
     def roots(self, multiplicities=True) -> list[tuple[fq_default, int]]: ...
+
+ifq_default_poly = fq_default_poly | ifq_default | ifmpz_poly

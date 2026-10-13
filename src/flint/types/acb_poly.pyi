@@ -17,7 +17,6 @@ ifmpz = int | fmpz
 ifmpq = int | fmpz | fmpq
 iarf = int | float | fmpz | fmpq | arb
 iacb = int | float | complex | str | fmpz | fmpq | arb | acb
-iacb_poly = acb_poly | iacb | fmpz_poly | fmpq_poly | arb_poly
 
 
 class acb_poly(flint_poly[acb]):
@@ -80,3 +79,6 @@ class acb_poly(flint_poly[acb]):
     def roots(self, tol: iarf | None = None, maxprec: int | None = None) -> list[acb]: ...  # type: ignore[override]
     def complex_roots(self, tol: iarf | None = None, maxprec: int | None = None) -> list[acb]: ...
     def root_bound(self) -> arb: ...
+
+
+iacb_poly = acb_poly | iacb | fmpz_poly | fmpq_poly | arb_poly

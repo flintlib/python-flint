@@ -16,7 +16,6 @@ from .fmpz_poly import fmpz_poly
 ifmpz = int | fmpz
 ifmpq = int | fmpz | fmpq
 iarf = int | float | fmpz | fmpq | arb
-iarb_poly = arb_poly | int | float | fmpz | fmpq | arb | fmpz_poly | fmpq_poly
 
 
 class arb_poly(flint_poly[arb]):
@@ -123,3 +122,6 @@ class arb_poly(flint_poly[arb]):
     def __call__(self, t: acb | complex, /) -> acb: ...
 
     def unique_fmpz_poly(self) -> fmpz_poly | None: ...
+
+
+iarb_poly = arb_poly | int | float | fmpz | fmpq | arb | fmpz_poly | fmpq_poly

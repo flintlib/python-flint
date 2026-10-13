@@ -15,7 +15,6 @@ class fq_default_type(Enum):
     FMPZ_MOD = 5
 
 ifmpz_mod = ifmpz | fmpz_mod
-ifq_default = fq_default | fmpz_mod_poly | nmod_poly | fmpz_poly | ifmpz_mod
 
 class fq_default_ctx:
     r"""Context object for creating :class:`~.fq_default`."""
@@ -72,3 +71,5 @@ class fq_default(flint_scalar):
     def trace(self) -> fmpz: ...
     def norm(self) -> fmpz: ...
     def frobenius(self, e: int = ...) -> fq_default: ...
+
+ifq_default = fq_default | fmpz_mod_poly | nmod_poly | fmpz_poly | ifmpz_mod

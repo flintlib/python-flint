@@ -5,8 +5,6 @@ from flint.types.fmpz import fmpz
 from flint.types.fmpz_poly import fmpz_poly
 from flint.types.fmpz_mod import fmpz_mod, fmpz_mod_ctx, ifmpz, ifmpz_mod
 
-ifmpz_mod_poly = ifmpz_mod | fmpz_mod_poly | fmpz_poly
-
 class fmpz_mod_poly_ctx:
     r"""
     Context object for creating :class:`~.fmpz_mod_poly` initialised
@@ -147,3 +145,5 @@ class fmpz_mod_poly(flint_poly[fmpz_mod]):
     ) -> list[tuple[fmpz_mod, int]]: ...
     @overload
     def roots(self, multiplicities: Literal[False]) -> list[fmpz_mod]: ...
+
+ifmpz_mod_poly = ifmpz_mod | fmpz_mod_poly | fmpz_poly

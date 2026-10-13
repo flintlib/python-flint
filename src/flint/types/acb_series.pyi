@@ -20,7 +20,6 @@ ifmpz = int | fmpz
 ifmpq = int | fmpz | fmpq
 iarf = int | float | fmpz | fmpq | arb
 iacb = int | float | complex | str | fmpz | fmpq | arb | acb
-iacb_series = acb_series | iacb | fmpz_poly | fmpq_poly | fmpz_series | fmpq_series | arb_poly | arb_series | acb_poly
 
 
 class acb_series(flint_series[acb]):
@@ -121,3 +120,6 @@ class acb_series(flint_series[acb]):
     def li(self, offset: bool = ...) -> acb_series: ...
 
     def lambertw(self, branch: int = ...) -> acb_series: ...
+
+
+iacb_series = acb_series | iacb | fmpz_poly | fmpq_poly | fmpz_series | fmpq_series | arb_poly | arb_series | acb_poly

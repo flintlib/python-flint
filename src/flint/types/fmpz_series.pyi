@@ -4,9 +4,6 @@ from flint.types.fmpz import fmpz, ifmpz
 from flint.types.fmpz_poly import fmpz_poly, ifmpz_poly
 
 
-ifmpz_series = fmpz_series | ifmpz_poly
-
-
 class fmpz_series(flint_series[fmpz]):
 
     def __init__(self,
@@ -44,3 +41,6 @@ class fmpz_series(flint_series[fmpz]):
     def __call__(self, other: ifmpz_series, /) -> fmpz_series: ...
 
     def reversion(self) -> fmpz_series: ...
+
+
+ifmpz_series = fmpz_series | ifmpz_poly

@@ -13,7 +13,6 @@ ifmpz = int | fmpz_t
 ifmpq = int | fmpz_t | fmpq_t
 iarf = int | float | fmpz_t | fmpq_t | arf
 iarb = int | float | fmpz_t | fmpq_t | arf | arb
-iacb = int | float | complex | fmpz_t | fmpq_t | arf | arb | acb
 
 
 class _MpcLike(Protocol):
@@ -289,3 +288,6 @@ class acb(flint_scalar):
     def coulomb(self, l: iacb, eta: iacb) -> tuple[acb, acb, acb, acb]: ...
     def coulomb_f(self, l: iacb, eta: iacb) -> acb: ...
     def coulomb_g(self, l: iacb, eta: iacb) -> acb: ...
+
+
+iacb = int | float | complex | fmpz_t | fmpq_t | arf | arb | acb

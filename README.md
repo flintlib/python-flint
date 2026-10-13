@@ -169,9 +169,14 @@ Contributors (0.10.0):
 
 - Vitaly Magerya (VM)
 - Oscar Benjamin (OB)
+- Ilia Gradina (IG)
 
 Changes (0.10.0):
 
+- [gh-433](https://github.com/flintlib/python-flint/pull/433),
+  Define the input type aliases in the type stubs (such as `iarb` and
+  `ifmpz`) after the classes they reference, so that the ty type checker
+  resolves them instead of treating them as `Unknown`. (IG)
 - [gh-424](https://github.com/flintlib/python-flint/pull/424),
   Drop support for FLINT versions older than 3.4.0 and remove the associated
   compatibility code. (OB)

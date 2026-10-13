@@ -5,7 +5,6 @@ from .fmpz import fmpz
 
 _str = str
 ifmpz = int | fmpz
-ifmpq = int | fmpz | fmpq
 
 
 class fmpq(flint_scalar):
@@ -93,3 +92,6 @@ class fmpq(flint_scalar):
 
     @staticmethod
     def dedekind_sum(n: ifmpz, k: ifmpz) -> fmpq: ...
+
+
+ifmpq = int | fmpz | fmpq

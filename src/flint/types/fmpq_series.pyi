@@ -6,9 +6,6 @@ from flint.types.fmpq_poly import fmpq_poly
 from flint.types.fmpz_series import fmpz_series, ifmpz_series
 
 
-ifmpq_series = fmpq_series | fmpq_poly | ifmpz_series
-
-
 class fmpq_series(flint_series[fmpq]):
     """Approximate truncated power series with rational coefficients."""
 
@@ -76,3 +73,6 @@ class fmpq_series(flint_series[fmpq]):
     def sinh(self) -> fmpq_series: ...
     def cosh(self) -> fmpq_series: ...
     def tanh(self) -> fmpq_series: ...
+
+
+ifmpq_series = fmpq_series | fmpq_poly | ifmpz_series

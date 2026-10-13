@@ -10,7 +10,6 @@ _str = str
 ifmpz = int | fmpz_t
 ifmpq = int | fmpz_t | fmpq_t
 iarf = int | float | fmpz_t | fmpq_t | arf
-iarb = int | float | fmpz_t | fmpq_t | arf | arb
 
 
 class _MpfLike(Protocol):
@@ -279,3 +278,6 @@ class arb(flint_scalar):
     def coulomb(self, l: iarb, eta: iarb) -> tuple[arb, arb]: ...
     def coulomb_f(self, l: iarb, eta: iarb) -> arb: ...
     def coulomb_g(self, l: iarb, eta: iarb) -> arb: ...
+
+
+iarb = int | float | fmpz_t | fmpq_t | arf | arb

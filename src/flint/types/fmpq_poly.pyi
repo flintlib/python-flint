@@ -6,9 +6,6 @@ from flint.types.acb import acb
 from flint.types.fmpz_poly import fmpz_poly, ifmpz_poly
 
 
-ifmpq_poly = fmpq_poly | ifmpq | ifmpz_poly
-
-
 class fmpq_poly(flint_poly[fmpq]):
     """
     The *fmpq_poly* type represents dense univariate polynomials
@@ -95,3 +92,6 @@ class fmpq_poly(flint_poly[fmpq]):
     def euler_poly(n: int, /) -> fmpq_poly: ...
     @staticmethod
     def legendre_p(n: int, /) -> fmpq_poly: ...
+
+
+ifmpq_poly = fmpq_poly | ifmpq | ifmpz_poly
