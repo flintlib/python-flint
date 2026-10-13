@@ -3,8 +3,6 @@ from flint.flint_base.flint_base import flint_poly
 from flint.types.nmod import inmod, nmod
 from flint.types.fmpz_poly import fmpz_poly
 
-inmod_poly = nmod_poly | fmpz_poly | inmod
-
 class nmod_poly(flint_poly[nmod]):
     """Dense univariate polynomials over Z/nZ for word-size n."""
 
@@ -73,3 +71,5 @@ class nmod_poly(flint_poly[nmod]):
     def sqrt(self) -> nmod_poly: ...
     def deflation(self) -> tuple[nmod_poly, int]: ...
     def roots(self) -> list[tuple[nmod, int]]: ...
+
+inmod_poly = nmod_poly | fmpz_poly | inmod

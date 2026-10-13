@@ -7,8 +7,6 @@ from flint.types.arf import arf
 from flint.types.arb import arb
 from flint.types.acb import acb
 
-ifmpz_poly = fmpz_poly | ifmpz
-
 class fmpz_poly(flint_poly[fmpz]):
     """
     The *fmpz_poly* type represents dense univariate polynomials over
@@ -94,3 +92,5 @@ class fmpz_poly(flint_poly[fmpz]):
     @staticmethod
     def hilbert_class_poly(D: int, /) -> fmpz_poly: ...
     def height_bits(self, signed: bool = False) -> int: ...
+
+ifmpz_poly = fmpz_poly | ifmpz

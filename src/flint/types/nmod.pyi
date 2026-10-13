@@ -5,7 +5,6 @@ from .fmpq import fmpq
 _str = str
 ifmpz = int | fmpz
 ifmpq = int | fmpz | fmpq
-inmod = int | fmpz | fmpq | nmod
 
 class nmod(flint_scalar):
     def __init__(self, val: inmod, mod: int): ...
@@ -35,3 +34,5 @@ class nmod(flint_scalar):
     def __invert__(self) -> nmod: ...
 
     def sqrt(self) -> nmod: ...
+
+inmod = int | fmpz | fmpq | nmod

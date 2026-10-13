@@ -5,7 +5,6 @@ from .fmpq import fmpq
 
 ifmpz = int | fmpz
 ifmpq = int | fmpz | fmpq
-ifmpz_mod = ifmpz | fmpz_mod
 
 
 class fmpz_mod_ctx:
@@ -64,3 +63,6 @@ class fmpz_mod(flint_scalar):
     def __invert__(self) -> fmpz_mod: ...
 
     def sqrt(self) -> fmpz_mod: ...
+
+
+ifmpz_mod = ifmpz | fmpz_mod

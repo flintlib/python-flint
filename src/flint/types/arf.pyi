@@ -8,8 +8,6 @@ from .fmpq import fmpq
 _str = str
 ifmpz = int | fmpz
 ifmpq = int | fmpz | fmpq
-iarf_cmp = int | float | fmpz | fmpq | arf
-iarf_arith = int | float | fmpz | arf
 
 
 class arf(flint_scalar):
@@ -55,3 +53,7 @@ class arf(flint_scalar):
     def __rmul__(self, other: iarf_arith, /) -> arf: ...
     def __truediv__(self, other: iarf_arith, /) -> arf: ...
     def __rtruediv__(self, other: iarf_arith, /) -> arf: ...
+
+
+iarf_cmp = int | float | fmpz | fmpq | arf
+iarf_arith = int | float | fmpz | arf

@@ -20,7 +20,6 @@ from .fmpz_series import fmpz_series
 ifmpz = int | fmpz
 ifmpq = int | fmpz | fmpq
 iarf = int | float | fmpz | fmpq | arb
-iarf_series = arb_series | iarf | fmpz_poly | fmpq_poly | fmpz_series | fmpq_series | arb_poly
 iacb_series = acb_series | acb | complex | acb_poly
 
 
@@ -156,3 +155,6 @@ class arb_series(flint_series[arb]):
 
     @staticmethod
     def find_roots(f: Callable[[arb_series], arb_series], a: iarf, b: iarf, maxn: int = ...) -> list[tuple[arb, arb]]: ...
+
+
+iarf_series = arb_series | iarf | fmpz_poly | fmpq_poly | fmpz_series | fmpq_series | arb_poly

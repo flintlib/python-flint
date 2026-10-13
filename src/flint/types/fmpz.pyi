@@ -5,7 +5,6 @@
 from ..flint_base.flint_base import flint_scalar
 
 _str = str
-ifmpz = int | fmpz
 
 class fmpz(flint_scalar):
     def __init__(self, arg: ifmpz | _str = 0, /): ...
@@ -110,3 +109,5 @@ class fmpz(flint_scalar):
     def root(self, n: int) -> fmpz: ...
 
     def jacobi(self, other: ifmpz, /) -> int: ...
+
+ifmpz = int | fmpz
