@@ -10,6 +10,7 @@ from flint.flint_base.flint_base cimport (
 )
 
 from flint.utils.typecheck cimport typecheck
+from flint.flintlib.functions.flint cimport flint_free
 from flint.utils.flint_exceptions import DomainError, IncompatibleContextError
 
 from flint.types.fmpq cimport fmpq, any_as_fmpq
@@ -760,9 +761,13 @@ cdef class fmpq_mpoly(flint_mpoly):
         return f"{self.ctx}.from_dict({self.to_dict()})"
 
     def str(self):
-        cdef bytes s = <bytes> fmpq_mpoly_get_str_pretty(self.val, self.ctx.c_names, self.ctx.val)
+        cdef char * cs = fmpq_mpoly_get_str_pretty(self.val, self.ctx.c_names, self.ctx.val)
+        try:
+            s = (<bytes> cs).decode()
+        finally:
+            flint_free(cs)  # FLINT malloc'ed the string; the bytes cast copies it
         # res = s.decode().replace("+", " + ").replace("-", " - ")
-        res = s.decode()
+        res = s
         if res.startswith("- "):
             res = "-" + res[3:]
         return res
