@@ -4,6 +4,8 @@ pyfiles = [
   '__init__.py',
   'flint_base.pyi',
   'flint_context.pyi',
+  'flint_base.pxd',
+  'flint_context.pxd',
 ]
 
 exts = [

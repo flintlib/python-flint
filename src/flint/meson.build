@@ -5,6 +5,7 @@ pyfiles = [
   'typing.py',
   'py.typed',
   'pyflint.pyi',
+  'pyflint.pxd',
 ]
 
 exts = [
@@ -17,6 +18,7 @@ pkgs = [
   'functions',
   'utils',
   'test',
+  'flintlib',
 ]
 
 py.install_sources(
