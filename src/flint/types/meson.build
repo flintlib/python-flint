@@ -1,4 +1,5 @@
 thisdir = 'flint/types'
+python_flint_source_include = include_directories('../..')
 
 pyfiles = [
   '__init__.py',
@@ -103,10 +104,16 @@ py.install_sources(
 )
 
 foreach ext : exts
+  ext_c_args = []
+  if ext == 'fmpz'
+    ext_c_args = ['-DPYFLINT_FMPZ_MODULE']
+  endif
   py.extension_module(
     ext,
     ext + '.pyx',
     dependencies: pyflint_deps,
+    include_directories: python_flint_source_include,
+    c_args: ext_c_args,
     install: true,
     subdir: thisdir,
     limited_api: limited_api_version,

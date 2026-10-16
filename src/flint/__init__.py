@@ -1,3 +1,5 @@
+from os.path import dirname, join
+
 from .pyflint import ctx
 
 from .types.fmpz import fmpz
@@ -49,6 +51,11 @@ from .flint_base.flint_base import (
 )
 
 __version__ = "0.9.0"
+
+
+def get_include():
+    """Return the directory containing python-flint's public C headers."""
+    return join(dirname(__file__), "include")
 
 
 __all__ = [
@@ -105,4 +112,5 @@ __all__ = [
     "__FLINT_VERSION__",
     "__FLINT_RELEASE__",
     "__version__",
+    "get_include",
 ]

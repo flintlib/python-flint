@@ -228,7 +228,7 @@ active Python environment before running ``pip install``.
 To build without build isolation with ``python-flint >= 0.7.0`` the 
 dependencies should first be installed in the active Python environment::
 
-    pip install Cython==3.0 meson meson-python ninja
+    pip install Cython==3.1 meson meson-python ninja
     pip install --no-build-isolation .
 
 The ``meson`` build system will detect the versions of ``FLINT`` and Cython
