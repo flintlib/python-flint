@@ -6,7 +6,7 @@ from flint.flint_base.flint_context cimport thectx
 from flint.flint_base.flint_base cimport flint_scalar
 from flint.utils.typecheck cimport typecheck
 from flint.utils.conversion cimport chars_from_str, str_from_chars
-from flint.types.fmpz cimport fmpz_set_pylong
+from flint.types.fmpz cimport fmpz_set_any_ref, fmpz_set_pylong
 from flint.types.arf cimport arf
 from flint.types.fmpq cimport fmpq
 from flint.types.fmpz cimport fmpz
@@ -695,9 +695,18 @@ cdef class arb(flint_scalar):
 
     def __pow__(s, t, modulus):
         cdef arb_struct tval[1]
+        cdef fmpz_struct exponent[1]
         cdef int ttype
+        cdef int exponent_type
         if modulus is not None:
             raise TypeError("three-argument pow() not supported by arb type")
+        exponent_type = fmpz_set_any_ref(exponent, t)
+        if exponent_type != FMPZ_UNKNOWN:
+            u = arb.__new__(arb)
+            arb_pow_fmpz((<arb>u).val, (<arb>s).val, exponent, getprec())
+            if exponent_type == FMPZ_TMP:
+                fmpz_clear(exponent)
+            return u
         ttype = arb_set_any_ref(tval, t)
         if ttype == FMPZ_UNKNOWN:
             return NotImplemented
