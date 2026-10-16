@@ -170,7 +170,7 @@ Contributors (0.10.0):
 - Vitaly Magerya (VM)
 - Oscar Benjamin (OB)
 - Ilia Gradina (IG)
-- Uri Kasher Hitin (UKH)
+- Uri K.H. (UKH)
 
 Changes (0.10.0):
 
