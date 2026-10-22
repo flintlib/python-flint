@@ -45,7 +45,7 @@ cdef extern from "flint/flint.h":
     # int flint_sscanf(const char * s, const char * str, ...)
     void flint_abort()
     # void flint_throw(flint_err_t exc, const char * msg, ...)
-    # void flint_set_abort(void (* func)(void))
+    # void flint_set_abort(void (* func)())
     # void flint_set_throw(void (* func)(flint_err_t, const char *, va_list))
     # void flint_merge_sort(void * buf, slong len, slong size, int (* cmp) (const void *, const void *, void *), void * data)
     # void flint_sort(void * buf, slong len, slong size, int (* cmp) (const void *, const void *, void *), void * data)

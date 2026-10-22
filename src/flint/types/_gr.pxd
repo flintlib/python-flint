@@ -118,8 +118,6 @@ from flint.flintlib.functions.gr cimport (
     gr_is_zero,
     gr_is_one,
     gr_is_neg_one,
-    gr_is_integer,
-    gr_is_rational,
 
     gr_equal,
 
