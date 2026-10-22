@@ -4,11 +4,12 @@ set -e
 
 if [ $# -eq 0 ]
   then
-    echo "Usage: bin/all_rst_to_pxd.sh /path/to/flint/doc/source"
+    echo "Usage: bin/all_rst_to_pxd.sh /path/to/flint/doc/source [parser options]"
     exit 1
 fi
 
 FLINT_DOC_DIR=$1
+shift
 
 modules=(
     "flint"
@@ -18,7 +19,6 @@ modules=(
     "gr"
     "gr_domains"
     "gr_generic"
-    "gr_implementing"
     "gr_mat"
     "gr_mpoly"
     "gr_poly"
@@ -146,9 +146,10 @@ modules=(
     # "mpfr_vec"
 )
 
-for module in ${modules[@]}; do
+for module in "${modules[@]}"; do
     echo "Processing $module"
-    bin/rst_to_pxd.py flint/$module \
-        --flint-doc-dir=$FLINT_DOC_DIR \
-        > src/flint/flintlib/functions/$module.pxd
+    bin/rst_to_pxd.py "flint/$module" \
+        "$@" \
+        --flint-doc-dir="$FLINT_DOC_DIR" \
+        > "src/flint/flintlib/functions/$module.pxd"
 done
