@@ -170,9 +170,15 @@ Contributors (0.10.0):
 - Vitaly Magerya (VM)
 - Oscar Benjamin (OB)
 - Ilia Gradina (IG)
+- Uri K.H. (UKH)
 
 Changes (0.10.0):
 
+- [gh-435](https://github.com/flintlib/python-flint/issues/435),
+  Fix a memory leak in `str()` (and so in `repr()`, which uses it unless
+  `flint.ctx.pretty` is `False`) of `fmpz_mpoly`, `fmpq_mpoly`,
+  `fmpz_mod_mpoly` and `nmod_mpoly`: the string returned by FLINT was
+  copied into a Python `bytes` object but never freed. (UKH)
 - [gh-433](https://github.com/flintlib/python-flint/pull/433),
   Define the input type aliases in the type stubs (such as `iarb` and
   `ifmpz`) after the classes they reference, so that the ty type checker
