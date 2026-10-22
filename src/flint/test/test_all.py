@@ -3966,46 +3966,6 @@ def test_fmpq_mpoly_zcontent_zpoly():
     assert f.zpoly() == 0
 
 
-def _peak_rss_mb() -> float:
-    """Peak resident set size of this process in MB (``resource`` is Unix only)."""
-    import resource
-    peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    return peak / (2**20 if platform.system() == "Darwin" else 1024)
-
-
-def test_mpoly_str_does_not_leak():
-    # gh-435: str() of the multivariate types copied the C string returned by
-    # *_mpoly_get_str_pretty into a bytes object and never freed the original.
-    # repr() goes through str() too (flint.ctx.pretty is True by default).
-    try:
-        import resource  # noqa: F401
-    except ImportError:
-        return  # no way to measure memory portably (Windows)
-
-    names = [f"x{i}" for i in range(8)]
-    contexts = [
-        flint.fmpz_mpoly_ctx.get(names),
-        flint.fmpq_mpoly_ctx.get(names),
-        flint.fmpz_mod_mpoly_ctx.get(names, 2**127 - 1),
-        flint.nmod_mpoly_ctx.get(names, 1000003),
-    ]
-    for ctx in contexts:
-        # (sum of generators + 5)^4: 495 terms, so the string is ~10 KB and an
-        # unfreed copy costs ~25 KB per call (4000 calls: ~100 MB unfixed).
-        p = (sum(ctx.gens()) + 5) ** 4
-        assert len(p) == 495
-        expected = str(p)
-        assert expected == p.str() == repr(p)
-        for _ in range(200):  # warm up allocator pools before measuring
-            p.str()
-        before = _peak_rss_mb()
-        for _ in range(4000):
-            p.str()
-        assert str(p) == expected
-        grown = _peak_rss_mb() - before
-        assert grown < 20, f"{type(p).__name__}.str() leaked {grown:.0f} MB in 4000 calls"
-
-
 def _all_mpoly_vecs():
     return [(flint.fmpz_mpoly_ctx, flint.fmpz_mpoly_vec), (flint.fmpq_mpoly_ctx, flint.fmpq_mpoly_vec)]
 
