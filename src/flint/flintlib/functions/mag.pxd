@@ -6,6 +6,7 @@ from flint.flintlib.types.fmpq cimport fmpq_t
 
 
 cdef extern from "flint/mag.h":
+    cdef const int MAG_BITS
     void mag_init(mag_t x)
     void mag_clear(mag_t x)
     void mag_swap(mag_t x, mag_t y)

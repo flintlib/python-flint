@@ -62,6 +62,9 @@ import_dict = {}
 doc_to_header = {'flint/gr_domains': 'flint/gr'}
 void_parameter_list = re.compile(r"\(\s*void\s*\)")
 macro_declarations = {
+    'flint/mag': {
+        'MAG_BITS': 'cdef const int MAG_BITS',
+    },
     'flint/arf': {
         'ARF_PREC_EXACT': 'cdef const slong ARF_PREC_EXACT',
     },
@@ -185,16 +188,16 @@ def get_macro_declarations(macros, h_name):
     Untyped macros (which may also introduce variables or require lvalues)
     cannot in general be represented this way.
     """
-    functions, constants = [], []
+    functions = []
     overrides = macro_declarations.get(h_name, {})
+    # Some constants (e.g. MAG_BITS) are not documented in older RST docs.
+    constants = [decl for decl in overrides.values() if decl.startswith("cdef ")]
     for macro in macros:
         signature = macro.split('::', 1)[1].strip()
         name = signature.split('(', 1)[0].strip()
         declaration = overrides.get(name)
         if declaration is not None:
-            if declaration.startswith('cdef '):
-                constants.append(declaration)
-            else:
+            if not declaration.startswith('cdef '):
                 functions.append(clean_types(declaration))
         elif typed_macro.match(signature):
             functions.append(clean_types(signature))

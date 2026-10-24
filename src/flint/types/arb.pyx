@@ -14,7 +14,7 @@ from flint.types.fmpz cimport fmpz
 from flint.flintlib.types.flint cimport FMPZ_UNKNOWN, FMPZ_TMP, FMPZ_REF
 from flint.flintlib.functions.flint cimport flint_free
 from flint.flintlib.functions.mag cimport *
-from flint.flintlib.functions.fmpz cimport fmpz_init, fmpz_clear
+from flint.flintlib.functions.fmpz cimport fmpz_init, fmpz_clear, fmpz_bits
 from flint.flintlib.functions.arf cimport *
 from flint.flintlib.types.arf cimport ARF_RND_NEAR, ARF_RND_DOWN
 from flint.flintlib.functions.arb cimport *
@@ -207,7 +207,13 @@ cdef class arb(flint_scalar):
                 # eval(a.repr()) round trips.
                 _rad = arf(rad)
                 man, exp = _rad.man_exp()
-                mag_set_fmpz_2exp_fmpz(arb_radref(self.val), man.val, exp.val)
+                if fmpz_bits(man.val) <= MAG_BITS:
+                    # The upper-bound conversion can round up even when the
+                    # radius is exactly representable. The lower bound is
+                    # exact here since man_exp() removes trailing zero bits.
+                    mag_set_fmpz_2exp_fmpz_lower(arb_radref(self.val), man.val, exp.val)
+                else:
+                    mag_set_fmpz_2exp_fmpz(arb_radref(self.val), man.val, exp.val)
             else:
                 rad = arb(rad)
                 arb_add_error(self.val, (<arb>rad).val)
