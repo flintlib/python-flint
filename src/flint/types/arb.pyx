@@ -34,12 +34,14 @@ cimport cython
 
 ctx = thectx
 
+
 def _arb_from_pickle(mid, rad):
     if isinstance(mid, tuple):
         mid = tuple(int(x, 16) for x in mid)
     if isinstance(rad, tuple):
         rad = tuple(int(x, 16) for x in rad)
     return arb(mid, rad)
+
 
 # cdef _str_trunc(s, trunc=0):
 #     if trunc > 0 and len(s) > 3 * trunc:
