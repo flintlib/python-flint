@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import pickle
 
 from flint import arb, ctx
 from flint.test.helpers import is_close_arb, raises
@@ -71,6 +72,64 @@ def test_is_exact() -> None:
         (arb(1, 1), False),
     ]:
         assert arb_val.is_exact() == exact
+
+def test_pickle() -> None:
+    """Pickling preserves midpoint and radius at any context precision."""
+    with ctx.workprec(200):
+        values = [
+            arb(0), arb(-3), arb.pi(), arb(69).zeta(69),
+            arb((2**20000 + 1, -123), (2**30 - 1, -1000)),
+            arb((1, 10**30), (1, -10**30)),
+            arb("inf"), arb("-inf"), arb("nan"),
+            arb(0, "inf"), arb(1, "inf"),
+            arb("inf", (3, 4)), arb("nan", (3, 4)),
+        ]
+    with ctx.workprec(10):
+        for a in values:
+            for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
+                b = pickle.loads(pickle.dumps(a, protocol=protocol))
+                assert type(b) is arb
+                if a.is_nan():
+                    assert b.is_nan()
+                else:
+                    assert a.mid() == b.mid()
+                assert a.rad() == b.rad()
+
+def test_tuple_radius_exact() -> None:
+    """Representable tuple radii are preserved, independently of precision."""
+    for prec in [10, 53, 200]:
+        with ctx.workprec(prec):
+            for man in [0, 1, 2**29 - 1, 2**29, 2**29 + 1, 2**30 - 1]:
+                for exp in [-1000, 0, 1000, 10**30]:
+                    for sign in [-1, 1]:
+                        # Extra powers of two must not count towards precision.
+                        a = arb((2**100 + 1, -50), (sign * man * 8, exp - 3))
+                        assert a.mid() == arb((2**100 + 1, -50))
+                        assert a.rad() == arb((man, exp))
+                        b = eval(a.repr())
+                        assert a.mid() == b.mid()
+                        assert a.rad() == b.rad()
+
+def test_tuple_radius_rounds_outward() -> None:
+    """Radii requiring more than 30 bits still round upwards."""
+    for man in [2**30 + 1, 2**31 - 1, 2**100 + 1]:
+        for exp in [-1000, 0, 1000]:
+            exact = arb((man, exp))
+            for sign in [-1, 1]:
+                a = arb(0, (sign * man, exp))
+                assert a.rad() >= exact
+                assert a.contains(exact)
+                assert a.contains(-exact)
+
+def test_zeta_repr_roundtrip() -> None:
+    """Regression for gh-438: serialization preserves a full-width radius."""
+    with ctx.workprec(53):
+        a = arb(69).zeta(69)
+    # Reconstruct at a lower precision to check that no rounding is introduced.
+    with ctx.workprec(10):
+        for b in [eval(a.repr()), arb(a.mid().man_exp(), a.rad().man_exp())]:
+            assert a.mid() == b.mid()
+            assert a.rad() == b.rad()
 
 def test_is_finite() -> None:
     """Tests `arb.is_finite`."""
@@ -756,6 +815,10 @@ all_tests = [
     test_from_float_inf,
     test_from_man_exp,
     test_from_midpoint_radius,
+    test_pickle,
+    test_tuple_radius_exact,
+    test_tuple_radius_rounds_outward,
+    test_zeta_repr_roundtrip,
     test_is_exact,
     test_is_finite,
     test_is_nan,

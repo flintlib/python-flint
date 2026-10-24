@@ -256,6 +256,9 @@ cdef class acb(flint_scalar):
         arf_set_mag(arb_midref(acb_imagref(u.val)), arb_radref(acb_imagref(self.val)))
         return u
 
+    def __reduce__(self):
+        return (acb, (self.real, self.imag))
+
     def repr(self):
         real = self.real
         imag = self.imag
