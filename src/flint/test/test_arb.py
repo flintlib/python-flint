@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import pickle
 
 from flint import arb, ctx
 from flint.test.helpers import is_close_arb, raises
@@ -71,6 +72,28 @@ def test_is_exact() -> None:
         (arb(1, 1), False),
     ]:
         assert arb_val.is_exact() == exact
+
+def test_pickle() -> None:
+    """Pickling preserves midpoint and radius at any context precision."""
+    with ctx.workprec(200):
+        values = [
+            arb(0), arb(-3), arb.pi(), arb(69).zeta(69),
+            arb((2**20000 + 1, -123), (2**30 - 1, -1000)),
+            arb((1, 10**30), (1, -10**30)),
+            arb("inf"), arb("-inf"), arb("nan"),
+            arb(0, "inf"), arb(1, "inf"),
+            arb("inf", (3, 4)), arb("nan", (3, 4)),
+        ]
+    with ctx.workprec(10):
+        for a in values:
+            for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
+                b = pickle.loads(pickle.dumps(a, protocol=protocol))
+                assert type(b) is arb
+                if a.is_nan():
+                    assert b.is_nan()
+                else:
+                    assert a.mid() == b.mid()
+                assert a.rad() == b.rad()
 
 def test_tuple_radius_exact() -> None:
     """Representable tuple radii are preserved, independently of precision."""
@@ -792,6 +815,7 @@ all_tests = [
     test_from_float_inf,
     test_from_man_exp,
     test_from_midpoint_radius,
+    test_pickle,
     test_tuple_radius_exact,
     test_tuple_radius_rounds_outward,
     test_zeta_repr_roundtrip,
