@@ -1,9 +1,55 @@
 """Tests for python-flint's `acb` constructor."""
 
 import math
+import pickle
 
-from flint import acb, arb, dirichlet_char, fmpz_poly
+from flint import acb, arb, ctx, dirichlet_char, fmpz_poly
 from flint.test.helpers import is_close_acb, is_close_arb, raises
+
+
+def _assert_same_acb(a: acb, b: acb) -> None:
+    for original, restored in [(a.real, b.real), (a.imag, b.imag)]:
+        if original.is_nan():
+            assert restored.is_nan()
+        else:
+            assert original.mid() == restored.mid()
+        assert original.rad() == restored.rad()
+
+
+def test_acb_pickle() -> None:
+    """Pickling preserves both balls, including special and large values."""
+    with ctx.workprec(200):
+        components = [
+            arb(0), arb(-3), arb.pi(), arb(69).zeta(69),
+            arb((2**20000 + 1, -123), (2**30 - 1, -1000)),
+            arb((1, 10**30), (1, -10**30)),
+            arb("inf"), arb("-inf"), arb("nan"), arb(0, "inf"),
+            arb("inf", (3, 4)), arb("nan", (3, 4)),
+        ]
+        values = [acb(x, y) for x, y in zip(components, reversed(components))]
+        values.extend([acb(), acb(3), acb(0, 3)])
+    with ctx.workprec(10):
+        for a in values:
+            for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
+                b = pickle.loads(pickle.dumps(a, protocol=protocol))
+                assert type(b) is acb
+                _assert_same_acb(a, b)
+
+
+def test_acb_repr_roundtrip() -> None:
+    """Both components round-trip via repr and integer midpoint/radius data."""
+    with ctx.workprec(53):
+        zeta = arb(69).zeta(69)
+    values = [acb(), acb(zeta), acb(0, zeta), acb(zeta, zeta)]
+    for man in [2**29 - 1, 2**29 + 1, 2**30 - 1]:
+        values.append(acb(arb((3, 1000), (man, -1000)), arb((5, -1000), (man, 1000))))
+    with ctx.workprec(10):
+        for a in values:
+            b = eval(a.repr())
+            _assert_same_acb(a, b)
+            real = arb(a.real.mid().man_exp(), a.real.rad().man_exp())
+            imag = arb(a.imag.mid().man_exp(), a.imag.rad().man_exp())
+            _assert_same_acb(a, acb(real, imag))
 
 
 def test_acb_constructor() -> None:
