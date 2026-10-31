@@ -2,6 +2,7 @@ from cpython.list cimport PyList_Size as PyList_GET_SIZE
 from cpython.long cimport PyLong_Check
 
 cimport libc.stdlib
+from libc.limits cimport LONG_MAX
 
 from flint.flint_base.flint_context cimport getprec
 from flint.flint_base.flint_base cimport flint_poly
@@ -665,6 +666,9 @@ cdef class fmpz_poly(flint_poly):
         Computes all the complex roots of this polynomial.
         Returns a list of pairs (*c*, *m*) where *c* is the root
         as an *acb* and *m* is the multiplicity of the root.
+        The enclosures are pairwise disjoint, including roots with different
+        multiplicities. All roots have at least ``ctx.prec`` bits of relative
+        accuracy; isolation can require higher precision.
 
             >>> from flint import fmpz_poly, ctx
             >>> ctx.prec = 53
@@ -686,29 +690,68 @@ cdef class fmpz_poly(flint_poly):
 
         """
         cdef fmpz_poly_factor_t fac
-        cdef long deg, i, j
-        cdef int exp, flags
-        cdef acb_ptr croots
-        if not self:
+        cdef acb v
+        cdef long deg = 0, i, j, k, l, start_i, end_i, start_j, end_j
+        cdef long prec = getprec()
+        cdef int flags = 0
+        cdef bint overlap
+        cdef acb_ptr croots = NULL
+        if self.degree() < 1:
             return []
-        flags = 0
         if verbose:
             flags = 1
-        roots = []
         fmpz_poly_factor_init(fac)
-        fmpz_poly_factor_squarefree(fac, self.val)
-        for 0 <= i < fac.num:
-            deg = fmpz_poly_degree(&fac.p[i])
-            exp = fac.exp[i]
+        try:
+            fmpz_poly_factor_squarefree(fac, self.val)
+            offsets = [0]
+            for i in range(fac.num):
+                deg += fmpz_poly_degree(&fac.p[i])
+                offsets.append(deg)
             croots = _acb_vec_init(deg)
-            arb_fmpz_poly_complex_roots(croots, &fac.p[i], flags, getprec())
-            for 0 <= j < deg:
-                v = acb()
-                acb_set(v.val, &croots[j])
-                roots.append((v, exp))
-            _acb_vec_clear(croots, deg)
-        fmpz_poly_factor_clear(fac)
-        return roots
+            refine = [True] * fac.num
+            while True:
+                for i in range(fac.num):
+                    if refine[i]:
+                        start_i = offsets[i]
+                        arb_fmpz_poly_complex_roots(
+                            &croots[start_i], &fac.p[i], flags, prec)
+                refine = [False] * fac.num
+                overlap = False
+                # FLINT separates roots within each squarefree factor, but
+                # roots of different multiplicities can still overlap.
+                for i in range(fac.num):
+                    start_i, end_i = offsets[i], offsets[i + 1]
+                    for j in range(i):
+                        start_j, end_j = offsets[j], offsets[j + 1]
+                        for k in range(start_i, end_i):
+                            for l in range(start_j, end_j):
+                                if acb_overlaps(&croots[k], &croots[l]):
+                                    refine[i] = refine[j] = True
+                                    overlap = True
+                                    break
+                            else:
+                                continue
+                            break
+                if not overlap:
+                    break
+                if prec > LONG_MAX // 2:
+                    raise OverflowError("root isolation precision is too large")
+                # Only recompute factors participating in an overlap. This
+                # avoids the coefficient growth and larger root-finding
+                # problem caused by multiplying all factors into a radical.
+                prec *= 2
+            roots = []
+            for i in range(fac.num):
+                start_i, end_i = offsets[i], offsets[i + 1]
+                for j in range(start_i, end_i):
+                    v = acb()
+                    acb_set(v.val, &croots[j])
+                    roots.append((v, fac.exp[i]))
+            return roots
+        finally:
+            if croots != NULL:
+                _acb_vec_clear(croots, deg)
+            fmpz_poly_factor_clear(fac)
 
     @staticmethod
     def cyclotomic(ulong n):
