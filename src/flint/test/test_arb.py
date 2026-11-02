@@ -233,6 +233,22 @@ def test_arb_contains() -> None:
     assert x.real is x
     assert x.imag == arb(0)
 
+def test_arb_equal() -> None:
+    x = arb(2, 0.1)
+    y = arb(2, 0.1)
+
+    # reflexivity
+    assert x.equal(x)
+    assert y.equal(y)
+
+    # symmetry
+    assert x.equal(y)
+    assert y.equal(x)
+
+    assert not x.equal(arb(2, 0.2))
+    assert not x.equal(arb(3, 0.1))
+    assert not x.equal(arb(3, 0.2))
+
 def test_arb_comparison() -> None:
     x = arb(2)
     y = arb(3)

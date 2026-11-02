@@ -580,6 +580,10 @@ cdef class arb(flint_scalar):
     def contains_integer(self):
         return bool(arb_contains_int(self.val))
 
+    def equal(self, other):
+        other = any_as_arb(other)
+        return bool(arb_equal(self.val, (<arb>other).val))
+
     @property
     def real(self):
         return self

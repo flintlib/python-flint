@@ -281,6 +281,21 @@ def test_acb_contains_methods() -> None:
     assert acb(1.1).contains_integer() is False
     assert raises(lambda: outer.contains(object()), TypeError)  # type: ignore[arg-type]
 
+def test_acb_equal() -> None:
+    x = acb(arb(2, 0.1), arb(3, 0.2))
+    y = acb(arb(2, 0.1), arb(3, 0.2))
+
+    # reflexivity
+    assert x.equal(x)
+    assert y.equal(y)
+
+    # symmetry
+    assert x.equal(y)
+    assert y.equal(x)
+
+    assert not x.equal(acb(arb(2, 0.2), arb(3, 0.3)))
+    assert not x.equal(acb(arb(3, 0.1), arb(4, 0.2)))
+    assert not x.equal(acb(arb(3, 0.2), arb(4, 0.3)))
 
 def test_acb_union() -> None:
     a = acb(1, 2)
