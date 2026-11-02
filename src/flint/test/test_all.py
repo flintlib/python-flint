@@ -5429,3 +5429,103 @@ def test_all_tests():
         )
 
     assert collected == expected
+
+
+def test_fmpz_poly_complex_roots_isolation():
+    # Exact Gaussian integer roots provide an independent oracle for both
+    # completeness and multiplicity, including roots closer than the initial
+    # working precision can distinguish.
+    Z = flint.fmpz_poly
+    x = Z([0, 1])
+    huge = 10**100
+    cases = [
+        ([(x - huge, 1), (x - huge - 1, 2)],
+         [(huge, 0, 1), (huge + 1, 0, 2)]),
+        ([((x - huge)**2 + 1, 2), ((x - huge - 1)**2 + 1, 3)],
+         [(huge, 1, 2), (huge, -1, 2),
+          (huge + 1, 1, 3), (huge + 1, -1, 3)]),
+        ([(x, 4), (x - 1, 2), (x**2 + 1, 3), (x + 7, 1)],
+         [(0, 0, 4), (1, 0, 2), (0, 1, 3), (0, -1, 3), (-7, 0, 1)]),
+        ([(x**2 + 1, 5)], [(0, 1, 5), (0, -1, 5)]),
+    ]
+    for prec in (15, 53, 100):
+        with ctx.workprec(prec):
+            for factors, expected in cases:
+                p = Z([-21])
+                for factor, multiplicity in factors:
+                    p *= factor**multiplicity
+                roots = p.complex_roots()
+                assert ctx.prec == prec
+                assert len(roots) == len(expected)
+                assert sum(m for _, m in roots) == p.degree()
+                for i, (r, m) in enumerate(roots):
+                    assert r.rel_accuracy_bits() >= prec
+                    assert p(r).contains(0)
+                    assert all(not r.overlaps(s) for s, _ in roots[:i])
+                    matches = [(a, b, n) for a, b, n in expected
+                               if r.contains(flint.acb(a, b))]
+                    assert len(matches) == 1
+                    assert matches[0][2] == m
+                # Every exact oracle root occurs, not just every enclosure.
+                for a, b, m in expected:
+                    assert sum(r.contains(flint.acb(a, b)) and n == m
+                               for r, n in roots) == 1
+
+
+def test_fmpq_poly_complex_roots_isolation():
+    # Nonmonic factors and rational content; dyadic exact roots can be formed
+    # without a rounded floating-point oracle.
+    Z = flint.fmpz_poly
+    Q = flint.fmpq_poly
+    x = Z([0, 1])
+    scale = 2**100
+    factors = [(scale*x - 1, 2), (scale*x - 3, 1),
+               ((scale*x - 1)**2 + 1, 3)]
+    p = Z([1])
+    for factor, multiplicity in factors:
+        p *= factor**multiplicity
+    q = Q(p) / 7
+    expected = [(1, 0, 2), (3, 0, 1), (1, 1, 3), (1, -1, 3)]
+    for prec in (15, 53, 100):
+        with ctx.workprec(prec):
+            roots = q.complex_roots()
+            assert ctx.prec == prec
+            assert len(roots) == len(expected)
+            assert sum(m for _, m in roots) == p.degree()
+            for i, (r, m) in enumerate(roots):
+                assert all(not r.overlaps(s) for s, _ in roots[:i])
+                matches = [n for a, b, n in expected
+                           if r.contains(flint.acb(a, b) / scale)]
+                assert matches == [m]
+                assert p(r).contains(0)
+
+
+def test_fmpz_poly_complex_roots_empty_and_constant():
+    for p in (flint.fmpz_poly(), flint.fmpz_poly([7]),
+              flint.fmpq_poly(), flint.fmpq_poly([flint.fmpq(2, 3)])):
+        assert p.complex_roots() == []
+
+
+def test_fmpz_poly_complex_roots_irrational():
+    x = flint.fmpz_poly([0, 1])
+    p = (x**2 - 2)**2 * (x**2 - 3)**3 * (x**2 + 2)**4
+    with ctx.workprec(53):
+        roots = p.complex_roots()
+        assert len(roots) == 6
+        assert sum(m for _, m in roots) == p.degree()
+        for i, (r, m) in enumerate(roots):
+            assert all(not r.overlaps(s) for s, _ in roots[:i])
+            # Exact dyadic intervals certify which algebraic root is present:
+            # 1 < sqrt(2) < 3/2 < sqrt(3) < 2.
+            if r.imag.is_zero():
+                a = abs(r.real)
+                assert 1 < a < 2
+                if a < flint.arb('1.5'):
+                    assert m == 2
+                else:
+                    assert a > flint.arb('1.5')
+                    assert m == 3
+            else:
+                assert r.real.is_zero()
+                assert 1 < abs(r.imag) < flint.arb('1.5')
+                assert m == 4
