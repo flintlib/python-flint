@@ -35,14 +35,6 @@ cimport cython
 ctx = thectx
 
 
-def _arb_from_pickle(mid, rad):
-    if isinstance(mid, tuple):
-        mid = tuple(int(x, 16) for x in mid)
-    if isinstance(rad, tuple):
-        rad = tuple(int(x, 16) for x in rad)
-    return arb(mid, rad)
-
-
 # cdef _str_trunc(s, trunc=0):
 #     if trunc > 0 and len(s) > 3 * trunc:
 #         left = right = trunc
@@ -416,10 +408,9 @@ cdef class arb(flint_scalar):
         return (mid, rad)
 
     def __reduce__(self):
-        # Hex avoids the decimal digit limit in text pickle protocols.
         mid, rad = self._to_arfs()
         if mid.is_finite():
-            mid = tuple(hex(x) for x in mid.man_exp())
+            mid = tuple(map(int, mid.man_exp()))
         elif mid.is_nan():
             mid = "nan"
         elif mid.is_pos_inf():
@@ -427,10 +418,10 @@ cdef class arb(flint_scalar):
         else:
             mid = "-inf"
         if rad.is_finite():
-            rad = tuple(hex(x) for x in rad.man_exp())
+            rad = tuple(map(int, rad.man_exp()))
         else:
             rad = "inf"
-        return (_arb_from_pickle, (mid, rad))
+        return (arb, (mid, rad))
 
     def repr(self):
         mid, rad = self._to_arfs()
