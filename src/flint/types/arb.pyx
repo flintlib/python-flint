@@ -34,6 +34,12 @@ cimport cython
 
 ctx = thectx
 
+def _arb_from_pickle(mid, rad):
+    if isinstance(mid, tuple):
+        mid = tuple(int.from_bytes(x, signed=True) for x in mid)
+    if isinstance(rad, tuple):
+        rad = tuple(int.from_bytes(x, signed=True) for x in rad)
+    return arb(mid, rad)
 
 # cdef _str_trunc(s, trunc=0):
 #     if trunc > 0 and len(s) > 3 * trunc:
@@ -410,7 +416,7 @@ cdef class arb(flint_scalar):
     def __reduce__(self):
         mid, rad = self._to_arfs()
         if mid.is_finite():
-            mid = tuple(map(int, mid.man_exp()))
+            mid = tuple(int(x).to_bytes((x.bit_length()+8)//8, 'big', signed=True) for x in mid.man_exp())
         elif mid.is_nan():
             mid = "nan"
         elif mid.is_pos_inf():
@@ -418,10 +424,10 @@ cdef class arb(flint_scalar):
         else:
             mid = "-inf"
         if rad.is_finite():
-            rad = tuple(map(int, rad.man_exp()))
+            rad = tuple(int(x).to_bytes((x.bit_length()+8)//8, 'big', signed=True) for x in rad.man_exp())
         else:
             rad = "inf"
-        return (arb, (mid, rad))
+        return (_arb_from_pickle, (mid, rad))
 
     def repr(self):
         mid, rad = self._to_arfs()
