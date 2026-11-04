@@ -413,21 +413,37 @@ cdef class arb(flint_scalar):
         arf_set_mag(rad.val, arb_radref(self.val))
         return (mid, rad)
 
-    def __reduce__(self):
+    def __reduce_ex__(self, protocol: int):
         mid, rad = self._to_arfs()
-        if mid.is_finite():
-            mid = tuple(int(x).to_bytes((x.bit_length()+8)//8, 'big', signed=True) for x in mid.man_exp())
-        elif mid.is_nan():
-            mid = "nan"
-        elif mid.is_pos_inf():
-            mid = "inf"
+
+        if protocol < 2: # protocols 0 and 1 pickle ints inefficiently
+            if mid.is_finite():
+                mid = tuple(int(x).to_bytes((x.bit_length()+8)//8, 'big', signed=True) for x in mid.man_exp())
+            elif mid.is_nan():
+                mid = "nan"
+            elif mid.is_pos_inf():
+                mid = "inf"
+            else:
+                mid = "-inf"
+            if rad.is_finite():
+                rad = tuple(int(x).to_bytes((x.bit_length()+8)//8, 'big', signed=True) for x in rad.man_exp())
+            else:
+                rad = "inf"
+            return (_arb_from_pickle, (mid, rad))
         else:
-            mid = "-inf"
-        if rad.is_finite():
-            rad = tuple(int(x).to_bytes((x.bit_length()+8)//8, 'big', signed=True) for x in rad.man_exp())
-        else:
-            rad = "inf"
-        return (_arb_from_pickle, (mid, rad))
+            if mid.is_finite():
+                mid = tuple(map(int, mid.man_exp()))
+            elif mid.is_nan():
+                mid = "nan"
+            elif mid.is_pos_inf():
+                mid = "inf"
+            else:
+                mid = "-inf"
+            if rad.is_finite():
+                rad = tuple(map(int, rad.man_exp()))
+            else:
+                rad = "inf"
+            return (arb, (mid, rad))
 
     def repr(self):
         mid, rad = self._to_arfs()
