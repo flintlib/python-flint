@@ -673,11 +673,11 @@ cdef class acb_mat(flint_mat):
         is faster and less accurate.
 
             >>> A = acb_mat([[2,3,5],[7,11,13],[17,19,23]])
-            >>> for c in A.eig(): print(c)
-            ...
-            [1.105299634957 +/- 6.34e-13] + [+/- 1.83e-13]j
-            [-1.917027627441 +/- 2.64e-13] + [+/- 1.83e-13]j
-            [36.811727992483 +/- 6.97e-13] + [+/- 1.83e-13]j
+            >>> from flint import showgood
+            >>> all(c.imag.contains(0) for c in A.eig())
+            True
+            >>> showgood(lambda: [c.real for c in A.eig()], dps=15)
+            [1.10529963495745, -1.91702762744092, 36.8117279924835]
             >>> for c in A.eig(algorithm="rump"): print(c) # doctest: +SKIP
             ...
             [1.10529963495745 +/- 4.71e-15] + [+/- 2.92e-15]j

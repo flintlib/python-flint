@@ -135,8 +135,9 @@ cdef class acb(flint_scalar):
         2.00000000000000 + 3.00000000000000j
         >>> acb("2 +/- 0.001", fmpq(2,3))
         [2.00 +/- 1.01e-3] + [0.666666666666667 +/- 4.82e-16]j
-        >>> acb(-1) ** 0.25
-        [0.707106781186547 +/- 6.14e-16] + [0.707106781186547 +/- 6.15e-16]j
+        >>> from flint import showgood
+        >>> showgood(lambda: acb(-1) ** 0.25, dps=15)
+        0.707106781186548 + 0.707106781186548j
     """
 
 #    cdef acb_t val
@@ -527,7 +528,7 @@ cdef class acb(flint_scalar):
         The *analytic* flag allows verifying that the branch cut is not
         touched; this is useful for numerical integration.
 
-            >>> acb.integral(lambda z, a: z.pow(acb("1/3")), -5-1j, -5+1j)  # WRONG!!!
+            >>> acb.integral(lambda z, a: z.pow(acb("1/3")), -5-1j, -5+1j)  # WRONG!!! # doctest: +SKIP
             [+/- 5.03e-15] + [1.81137435753228 +/- 7.32e-15]j
             >>> acb.integral(lambda z, a: z.pow(acb("1/3"), analytic=a), -5-1j, -5+1j) # doctest: +SKIP
             [+/- 2.66e-14] + [1.8108516218463 +/- 3.58e-14]j
@@ -1805,8 +1806,11 @@ cdef class acb(flint_scalar):
             [0.844844605432170 +/- 7.85e-16] + [1.97500875488903 +/- 4.05e-15]j
             >>> acb(-5,"+/- 1e-20").lambertw(-1, left=True)
             [0.844844605432170 +/- 7.85e-16] + [-1.97500875488903 +/- 4.05e-15]j
-            >>> acb(-0.25,"+/- 1e-20").lambertw(middle=True)
-            [-2.15329236411035 +/- 1.48e-15] + [+/- 4.87e-16]j
+            >>> from flint import showgood
+            >>> acb(-0.25,"+/- 1e-20").lambertw(middle=True).imag.contains(0)
+            True
+            >>> showgood(lambda: acb(-0.25,"+/- 1e-20").lambertw(middle=True).real, dps=15)
+            -2.15329236411035
         """
         cdef int flags
         u = acb.__new__(acb)

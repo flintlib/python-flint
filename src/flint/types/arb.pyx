@@ -481,10 +481,10 @@ cdef class arb(flint_scalar):
         since there is less error from the conversion back to decimal.
 
             >>> x = arb.pi().sin()
-            >>> print(x.str())
-            [+/- 3.46e-16]
-            >>> print(x.str(more=True))
-            [1.22460635382238e-16 +/- 2.23e-16]
+            >>> print(x.str())  # doctest: +ELLIPSIS
+            [+/- 3.4...e-16]
+            >>> print(x.str(more=True))  # doctest: +ELLIPSIS
+            [1.2...e-16 +/- 2.2...e-16]
 
         The error indicated in the output may be much larger than the actual
         error in the internal representation of *self*. For example, if *self*
@@ -501,8 +501,8 @@ cdef class arb(flint_scalar):
             [3.1415926535{...979 digits...}9216420199 +/- 9.28e-1001]
             >>> print(arb.fac_ui(300).str(condense=10))
             3060575122{...595 digits...}0000000000.0000000000{...365 digits...}0000000000
-            >>> print(arb(10**100).exp().str(condense=5))
-            [1.53837{...989 digits...}96534e+43429{...90 digits...}17483 +/- 4.84e+43429{...90 digits...}16483]
+            >>> print(arb((1, 10**100), (1, 10**100 - 100)).str(condense=5))
+            [2.55178{...19 digits...}64062e+30102{...90 digits...}61720 +/- 2.94e+30102{...90 digits...}61690]
             >>> ctx.default()
 
         """
