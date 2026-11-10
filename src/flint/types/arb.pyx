@@ -211,7 +211,7 @@ cdef class arb(flint_scalar):
             if arb_set_python(self.val, mid, 1) == 0:
                 raise TypeError("cannot create arb from type %s" % type(mid))
         if rad is not None:
-            if isinstance(rad, tuple):
+            if isinstance(rad, tuple) and arb_is_exact(self.val):
                 # Set the radius exactly from tuple of ints so that
                 # eval(a.repr()) round trips.
                 _rad = arf(rad)
