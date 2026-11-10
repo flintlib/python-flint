@@ -1806,11 +1806,8 @@ cdef class acb(flint_scalar):
             [0.844844605432170 +/- 7.85e-16] + [1.97500875488903 +/- 4.05e-15]j
             >>> acb(-5,"+/- 1e-20").lambertw(-1, left=True)
             [0.844844605432170 +/- 7.85e-16] + [-1.97500875488903 +/- 4.05e-15]j
-            >>> from flint import showgood
-            >>> acb(-0.25,"+/- 1e-20").lambertw(middle=True).imag.contains(0)
-            True
-            >>> showgood(lambda: acb(-0.25,"+/- 1e-20").lambertw(middle=True).real, dps=15)
-            -2.15329236411035
+            >>> acb(-0.25,"+/- 1e-20").lambertw(middle=True) # doctest: +ELLIPSIS
+            [-2.15329236411035 +/- ...e-15] + [+/- ...e-16]j
         """
         cdef int flags
         u = acb.__new__(acb)
