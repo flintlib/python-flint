@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 import pickle
 
-from flint import arb, ctx
+from flint import arb, ctx, fmpq
 from flint.test.helpers import is_close_arb, raises
 
 def assert_almost_equal(x: float | int, y: float | int, places: int = 7) -> None:
@@ -120,6 +120,30 @@ def test_tuple_radius_rounds_outward() -> None:
                 assert a.rad() >= exact
                 assert a.contains(exact)
                 assert a.contains(-exact)
+
+def test_tuple_radius_preserves_midpoint_uncertainty() -> None:
+    """Tuple radii preserve rounding errors and existing ball uncertainty (gh-448)."""
+    def exact_value(x: arb) -> fmpq:
+        man, exp = x.man_exp()
+        return fmpq(man) * fmpq(2) ** exp
+
+    for prec in [10, 24, 53, 100, 200]:
+        with ctx.workprec(prec):
+            for mid, expected in [
+                ("0.1", fmpq(1, 10)), ("-0.1", fmpq(-1, 10)),
+                ("0.7", fmpq(7, 10)), ("1.1", fmpq(11, 10)),
+                ("0.01", fmpq(1, 100)), ("1/3", fmpq(1, 3)), ("-1/3", fmpq(-1, 3)),
+            ]:
+                for rad in [(0, 0), (1, -2)]:
+                    a = arb(mid, rad)
+                    midpoint_error = abs(exact_value(a.mid()) - expected)
+                    requested_radius = fmpq(rad[0]) * fmpq(2) ** rad[1]
+                    assert midpoint_error + requested_radius <= exact_value(a.rad())
+
+            for rad, endpoint in [((0, 0), 1), ((1, -2), 1.25)]:
+                a = arb(arb(0, 1), rad)
+                assert a.contains(-endpoint)
+                assert a.contains(endpoint)
 
 def test_zeta_repr_roundtrip() -> None:
     """Regression for gh-438: serialization preserves a full-width radius."""
@@ -818,6 +842,7 @@ all_tests = [
     test_pickle,
     test_tuple_radius_exact,
     test_tuple_radius_rounds_outward,
+    test_tuple_radius_preserves_midpoint_uncertainty,
     test_zeta_repr_roundtrip,
     test_is_exact,
     test_is_finite,
