@@ -219,6 +219,10 @@ cdef class acb(flint_scalar):
     def contains_integer(self):
         return bool(acb_contains_int(self.val))
 
+    def equal(self, other):
+        other = any_as_acb(other)
+        return bool(acb_equal((<acb>self).val, (<acb>other).val))
+
     def mid(self):
         """
         Returns an exact *acb* representing the midpoint of *self*:
