@@ -3,6 +3,8 @@ thisdir = 'flint/utils'
 pyfiles = [
   '__init__.py',
   'flint_exceptions.py',
+  'conversion.pxd',
+  'typecheck.pxd',
 ]
 
 exts = []

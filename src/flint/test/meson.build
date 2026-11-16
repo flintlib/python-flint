@@ -18,6 +18,7 @@ pyfiles = [
   'test_fmpz_vec.py',
   'test_docstrings.py',
   'test_dirichlet.py',
+  'test_pxd.py',
 ]
 
 py.install_sources(
