@@ -51,6 +51,11 @@ else:
     os.environ['OPT'] = " ".join(flag for flag in opt.split() if flag != '-Wstrict-prototypes')
 
 
+# Public C API headers live below src so that the same include spelling works
+# both in source builds and after installation.
+default_include_dirs.append(os.path.join(os.path.dirname(__file__), 'src'))
+
+
 define_macros = []
 compiler_directives = {
     'language_level': 3,
@@ -135,7 +140,10 @@ ext_options = {
 
 ext_modules = []
 for mod_name, src_files in ext_files:
-    ext = Extension(mod_name, src_files, **ext_options)
+    mod_options = ext_options.copy()
+    if mod_name == "flint.types.fmpz":
+        mod_options["define_macros"] = define_macros + [("PYFLINT_FMPZ_MODULE", 1)]
+    ext = Extension(mod_name, src_files, **mod_options)
     ext_modules.append(ext)
 
 for e in ext_modules:

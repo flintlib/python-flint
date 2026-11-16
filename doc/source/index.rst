@@ -29,6 +29,7 @@ Introduction
    :maxdepth: 2
 
    install.rst
+   c_api.rst
    general.rst
    build.rst
    workflow.rst
