@@ -20,3 +20,4 @@ MANIFEST
 *.DS_Store
 .venv
 .hypothesis
+venv/
