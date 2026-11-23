@@ -12,18 +12,23 @@ For example, the polynomial
 
     p(x, y) = \frac{1}{3} x y + \frac{1}{2} x + \frac{3}{4} y
 
-can be constructed with exact rational coefficients:
+can be constructed from the context's generators::
 
-.. code-block:: python
+    >>> from flint import fmpq, fmpq_mpoly_ctx
+    >>> ctx = fmpq_mpoly_ctx.get(("x", "y"), "lex")
+    >>> x, y = ctx.gens()
+    >>> p = x*y/3 + x/2 + 3*y/4
+    >>> p
+    1/3*x*y + 1/2*x + 3/4*y
 
-    from flint import fmpq, fmpq_mpoly_ctx
+Division by a nonzero integer gives exact rational coefficients.
+The same polynomial can also be constructed from a dictionary::
 
-    ctx = fmpq_mpoly_ctx.get(("x", "y"), "lex")
-    p = ctx.from_dict({
-        (1, 1): fmpq(1, 3),
-        (1, 0): fmpq(1, 2),
-        (0, 1): fmpq(3, 4),
-    })
+    >>> p = ctx.from_dict({
+    ...     (1, 1): fmpq(1, 3),
+    ...     (1, 0): fmpq(1, 2),
+    ...     (0, 1): fmpq(3, 4),
+    ... })
 
 For integers :math:`a` and :math:`b \ne 0`, ``fmpq(a, b)`` represents
 :math:`a/b` exactly. Integer coefficients are also allowed.
