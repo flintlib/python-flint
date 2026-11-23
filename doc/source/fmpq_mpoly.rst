@@ -29,6 +29,8 @@ The same polynomial can also be constructed from a dictionary::
     ...     (1, 0): fmpq(1, 2),
     ...     (0, 1): fmpq(3, 4),
     ... })
+    >>> p
+    1/3*x*y + 1/2*x + 3/4*y
 
 For integers :math:`a` and :math:`b \ne 0`, ``fmpq(a, b)`` represents
 :math:`a/b` exactly. Integer coefficients are also allowed.
