@@ -1903,8 +1903,8 @@ cdef class fmpz_mod_poly(flint_poly):
 
     def roots(self, multiplicities=True):
         r"""
-        Return the roots of the polynomial in :math:`(\mathbb{Z}/N\mathbb{Z})^*`
-        Requires that the modulus `N` is prime.
+        Return the roots of a nonzero polynomial in the finite field
+        :math:`\mathbb{Z}/N\mathbb{Z}`, where the modulus `N` must be prime.
 
             >>> R = fmpz_mod_poly_ctx(163)
             >>> x = R.gen()
@@ -1913,6 +1913,8 @@ cdef class fmpz_mod_poly(flint_poly):
             [(fmpz_mod(1, 163), 1), (fmpz_mod(2, 163), 3), (fmpz_mod(3, 163), 5)]
             >>> f.roots(multiplicities=False)
             [fmpz_mod(1, 163), fmpz_mod(2, 163), fmpz_mod(3, 163)]
+            >>> (x**2).roots()
+            [(fmpz_mod(0, 163), 2)]
         """
         cdef fmpz_mod_poly_factor_t fac
         cdef int i, with_multiplicity
