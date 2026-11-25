@@ -51,6 +51,71 @@ for any matrix shape. These calculations are exact::
     >>> A.det(), A.rank()
     (-2, 2)
 
+Rational row reduction
+----------------------
+
+For an integer matrix ``A``, :meth:`~flint.fmpz_mat.rref` returns
+``(R, d, r)``, where ``R`` is an integer matrix, ``d`` is a nonzero integer
+and ``r`` is the rank over :math:`\mathbb{Q}`. The reduced row echelon form
+of :math:`A` is the rational matrix :math:`R/d`. Thus the pivot entries of
+:math:`R` equal :math:`d`, and its first :math:`r` rows are nonzero, followed
+by zero rows. This is the numerator-and-denominator convention of
+`FLINT's RREF routine <https://flintlib.org/doc/fmpz_mat/rref.html#rref>`_.
+
+Convert ``R`` to an :class:`~flint.fmpq_mat` before dividing to obtain the
+rational matrix:
+
+.. code-block:: python
+
+    from flint import fmpq_mat, fmpz_mat
+
+    A = fmpz_mat([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
+    R, d, r = A.rref()
+    B = fmpq_mat(R) / d
+
+For this matrix, the :meth:`~flint.fmpz_mat.rref` example gives
+
+.. math::
+
+    R = \begin{pmatrix}
+        3 & 0 & -3 \\
+        0 & 3 & 6 \\
+        0 & 0 & 0
+    \end{pmatrix},
+    \qquad d = 3, \qquad r = 2.
+
+The common factors of :math:`R` and :math:`d` need not be removed. Here
+:math:`B = R/d` has integer entries even though :math:`d = 3`:
+
+.. math::
+
+    B = \begin{pmatrix}
+        1 & 0 & -1 \\
+        0 & 1 & 2 \\
+        0 & 0 & 0
+    \end{pmatrix}.
+
+Indeed, if :math:`a_1,a_2,a_3` are the rows of :math:`A`, then
+:math:`a_3 = 2a_2-a_1`. The nonzero rows of :math:`B` are
+:math:`(a_2-4a_1)/3` and :math:`a_1`; they span the same rational row space
+as :math:`A` and have leading ones in the first two columns.
+
+Alternatively, :meth:`~flint.fmpq_mat.rref` returns the rational matrix
+and the rank directly:
+
+.. code-block:: python
+
+    B, r = fmpq_mat(A).rref()
+
+With ``inplace=True``, ``fmpz_mat.rref`` replaces ``A`` by the integer
+numerator ``R``; the denominator is still returned separately.
+
+Row reduction preserves the row space over :math:`\mathbb{Q}`, but need
+not preserve the integer span of the rows. For example, :math:`2I_2` has
+reduced row echelon form :math:`I_2`, yet :math:`(1,0)` is not an integer
+linear combination of :math:`(2,0)` and :math:`(0,2)`. Use
+:meth:`~flint.fmpz_mat.hnf` for a form that preserves the integer row span.
+
 Rational nullspaces and integer kernels
 ---------------------------------------
 
