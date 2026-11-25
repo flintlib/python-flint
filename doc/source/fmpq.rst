@@ -1,6 +1,49 @@
 **fmpq** -- rational numbers
 ===============================================================================
 
+An :class:`~flint.fmpq` represents an exact rational number. Its numerator
+and denominator are arbitrary-precision integers in reduced form:
+:math:`p/q` with :math:`q>0` and :math:`\gcd(p,q)=1`. Zero is represented
+by :math:`0/1`.
+
+Construction and arithmetic
+---------------------------
+
+For integers ``p`` and nonzero ``q``, ``fmpq(p, q)`` constructs
+:math:`p/q` and reduces it automatically. A single integer or a string
+such as ``"2/3"`` can also be used:
+
+.. code-block:: python
+
+    from flint import fmpq
+
+    x = fmpq(6, -8)
+    y = fmpq("2/3")
+    z = fmpq(5)
+
+These values are :math:`x=-3/4`, :math:`y=2/3` and :math:`z=5`.
+The methods :meth:`~flint.fmpq.numer` and :meth:`~flint.fmpq.denom`
+return the reduced numerator and positive denominator as
+:class:`~flint.fmpz` objects. Thus ``x.numer()`` is :math:`-3` and
+``x.denom()`` is :math:`4`.
+
+The operators ``+``, ``-``, ``*`` and ``/`` perform exact rational
+arithmetic. Integers can be mixed with :class:`~flint.fmpq` values;
+division requires a nonzero divisor. For example, with
+
+.. code-block:: python
+
+    a = fmpq(2, 3)
+    b = fmpq(5, 6)
+
+the sum, product and quotient are
+
+.. math::
+
+    a+b = \frac{3}{2}, \qquad
+    ab = \frac{5}{9}, \qquad
+    \frac{a}{b} = \frac{4}{5}.
+
 Harmonic numbers
 ----------------
 
