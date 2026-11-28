@@ -172,9 +172,14 @@ Contributors (0.10.0):
 - Oscar Benjamin (OB)
 - Ilia Gradina (IG)
 - Uri K.H. (UKH)
+- KainanP (KP)
 
 Changes (0.10.0):
 
+- [gh-456](https://github.com/flintlib/python-flint/pull/456),
+  Make `fmpz_mat` safe to mutate and read from multiple threads in the
+  free-threaded build by holding per-object critical sections in its methods
+  (see [gh-224](https://github.com/flintlib/python-flint/issues/224)). (KP)
 - [gh-435](https://github.com/flintlib/python-flint/issues/435),
   Fix a memory leak in `str()` (and so in `repr()`, which uses it unless
   `flint.ctx.pretty` is `False`) of `fmpz_mpoly`, `fmpq_mpoly`,
