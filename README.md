@@ -154,10 +154,11 @@ python-flint.
 
 As of python-flint 0.7.0, CPython 3.13 [PEP
 703](https://peps.python.org/pep-0703/) free-threaded (no-GIL) builds of
-python-flint are provided. In the the free-threaded build, mutating matrices or
-polynomials from multiple threads can lead to memory corruption. There are some
-other known issues with the free-threaded build so it should be considered
-experimental.
+python-flint are provided. In the the free-threaded build, `fmpz_mat` uses
+per-object critical sections so that it can be mutated and read from multiple
+threads, but mutating other matrix or polynomial types from multiple threads
+can still lead to memory corruption. There are some other known issues with the
+free-threaded build so it should be considered experimental.
 
 CHANGELOG
 =========

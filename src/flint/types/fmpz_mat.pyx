@@ -110,7 +110,8 @@ cdef class fmpz_mat(flint_mat):
         if len(args) == 1:
             val = args[0]
             if typecheck(val, fmpz_mat):
-                fmpz_mat_init_set(self.val, (<fmpz_mat>val).val)
+                with cython.critical_section(val):
+                    fmpz_mat_init_set(self.val, (<fmpz_mat>val).val)
             elif isinstance(val, (list, tuple)):
                 m = len(val)
                 n = 0
@@ -146,6 +147,7 @@ cdef class fmpz_mat(flint_mat):
         else:
             raise TypeError("fmpz_mat: expected 1-3 arguments")
 
+    @cython.critical_section
     def __bool__(self):
         return not fmpz_mat_is_zero(self.val)
 
@@ -156,7 +158,8 @@ cdef class fmpz_mat(flint_mat):
         t = any_as_fmpz_mat(t)
         if t is NotImplemented:
             return t
-        r = fmpz_mat_equal((<fmpz_mat>s).val, (<fmpz_mat>t).val)
+        with cython.critical_section(s, t):
+            r = fmpz_mat_equal((<fmpz_mat>s).val, (<fmpz_mat>t).val)
         if op == 3:
             r = not r
         return r
@@ -180,7 +183,8 @@ cdef class fmpz_mat(flint_mat):
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
             raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
         x = fmpz.__new__(fmpz)
-        fmpz_set(x.val, fmpz_mat_entry(self.val, i, j))
+        with cython.critical_section(self):
+            fmpz_set(x.val, fmpz_mat_entry(self.val, i, j))
         return x
 
     def __setitem__(self, index, value):
@@ -189,8 +193,10 @@ cdef class fmpz_mat(flint_mat):
         if i < 0 or i >= self.nrows() or j < 0 or j >= self.ncols():
             raise IndexError("index %i,%i exceeds matrix dimensions" % (i, j))
         c = fmpz(value)  # XXX
-        fmpz_set(fmpz_mat_entry(self.val, i, j), (<fmpz>c).val)
+        with cython.critical_section(self):
+            fmpz_set(fmpz_mat_entry(self.val, i, j), (<fmpz>c).val)
 
+    @cython.critical_section
     def det(self):
         """
         Returns the determinant of *self* as an *fmpz*.
@@ -236,7 +242,8 @@ cdef class fmpz_mat(flint_mat):
             raise ValueError("incompatible shapes for matrix addition")
         u = fmpz_mat.__new__(fmpz_mat)
         fmpz_mat_init(u.val, fmpz_mat_nrows(sval), fmpz_mat_ncols(sval))
-        fmpz_mat_add(u.val, sval, tval)
+        with cython.critical_section(s, t):
+            fmpz_mat_add(u.val, sval, tval)
         return u
 
     def __sub__(s, t):
@@ -253,14 +260,16 @@ cdef class fmpz_mat(flint_mat):
             raise ValueError("incompatible shapes for matrix subtraction")
         u = fmpz_mat.__new__(fmpz_mat)
         fmpz_mat_init(u.val, fmpz_mat_nrows(sval), fmpz_mat_ncols(sval))
-        fmpz_mat_sub(u.val, sval, tval)
+        with cython.critical_section(s, t):
+            fmpz_mat_sub(u.val, sval, tval)
         return u
 
     cdef __mul_fmpz(self, fmpz c):
         cdef fmpz_mat u
         u = fmpz_mat.__new__(fmpz_mat)
         fmpz_mat_init(u.val, fmpz_mat_nrows(self.val), fmpz_mat_ncols(self.val))
-        fmpz_mat_scalar_mul_fmpz(u.val, self.val, c.val)
+        with cython.critical_section(self):
+            fmpz_mat_scalar_mul_fmpz(u.val, self.val, c.val)
         return u
 
     def __mul__(s, t):
@@ -274,7 +283,8 @@ cdef class fmpz_mat(flint_mat):
                 raise ValueError("incompatible shapes for matrix multiplication")
             u = fmpz_mat.__new__(fmpz_mat)
             fmpz_mat_init(u.val, fmpz_mat_nrows(sval), fmpz_mat_ncols(tval))
-            fmpz_mat_mul(u.val, sval, tval)
+            with cython.critical_section(s, t):
+                fmpz_mat_mul(u.val, sval, tval)
             return u
         else:
             c = any_as_fmpz(t)
@@ -307,7 +317,8 @@ cdef class fmpz_mat(flint_mat):
         sval = &(<fmpz_mat>s).val[0]
         u = fmpz_mat.__new__(fmpz_mat)
         fmpz_mat_init(u.val, fmpz_mat_nrows(sval), fmpz_mat_ncols(sval))
-        fmpz_mat_scalar_divexact_fmpz(u.val, sval, (<fmpz>t).val)
+        with cython.critical_section(s):
+            fmpz_mat_scalar_divexact_fmpz(u.val, sval, (<fmpz>t).val)
         # XXX: check for exact division - there should be a better way!
         if u * t != s:
             raise DomainError("fmpz_mat division is not exact")
@@ -335,10 +346,12 @@ cdef class fmpz_mat(flint_mat):
         """Return whether *self* is an empty *0xN* or *Nx0* matrix."""
         return bool(fmpz_mat_is_empty(self.val))
 
+    @cython.critical_section
     def is_zero(self):
         """Return whether *self* is a zero matrix."""
         return bool(fmpz_mat_is_zero(self.val))
 
+    @cython.critical_section
     def is_one(self):
         """Return whether *self* is the identity matrix."""
         return bool(fmpz_mat_is_one(self.val))
@@ -352,8 +365,10 @@ cdef class fmpz_mat(flint_mat):
         elif self.is_empty():
             return True
         else:
-            return bool(fmpz_equal_si(fmpz_mat_entry(self.val, 0, 0), -1))
+            with cython.critical_section(self):
+                return bool(fmpz_equal_si(fmpz_mat_entry(self.val, 0, 0), -1))
 
+    @cython.critical_section
     def is_upper_triangular(self):
         """Return whether *self* is an upper triangular matrix."""
         for i in range(1, fmpz_mat_nrows(self.val)):
@@ -362,6 +377,7 @@ cdef class fmpz_mat(flint_mat):
                     return False
         return True
 
+    @cython.critical_section
     def is_lower_triangular(self):
         """Return whether *self* is a lower triangular matrix."""
         for i in range(fmpz_mat_nrows(self.val)):
@@ -378,9 +394,10 @@ cdef class fmpz_mat(flint_mat):
         """Return whether *self* is a scalar multiple of the identity matrix."""
         if not (self.is_square() and self.is_diagonal()):
             return False
-        for i in range(fmpz_mat_nrows(self.val)):
-            if not fmpz_equal(fmpz_mat_entry(self.val, i, i), fmpz_mat_entry(self.val, 0, 0)):
-                return False
+        with cython.critical_section(self):
+            for i in range(fmpz_mat_nrows(self.val)):
+                if not fmpz_equal(fmpz_mat_entry(self.val, i, i), fmpz_mat_entry(self.val, 0, 0)):
+                    return False
         return True
 
     @classmethod
@@ -427,6 +444,7 @@ cdef class fmpz_mat(flint_mat):
         else:
             raise ValueError("unable to construct Hadamard matrix of size %i" % n)
 
+    @cython.critical_section
     def is_hadamard(self):
         """
         Determines whether *self* is a Hadamard matrix.
@@ -490,6 +508,7 @@ cdef class fmpz_mat(flint_mat):
         fmpz_mat_randrank(mat.val, global_random_state, rank, bits)
         return mat
 
+    @cython.critical_section
     def rank(self):
         """
         Returns the rank of *self*.
@@ -503,6 +522,7 @@ cdef class fmpz_mat(flint_mat):
         """
         return fmpz_mat_rank(self.val)
 
+    @cython.critical_section
     def inv(self, bint integer=False):
         """
         Returns the inverse matrix of *self*, which by default will
@@ -553,6 +573,7 @@ cdef class fmpz_mat(flint_mat):
             fmpz_clear(den)
             fmpz_mat_clear(tmp)
 
+    @cython.critical_section
     def transpose(self):
         """
         Returns the transpose of *self*.
@@ -613,7 +634,8 @@ cdef class fmpz_mat(flint_mat):
             raise ValueError("need a square system and compatible right hand side")
         if not integer:
             v = fmpq_mat(fmpz_mat_nrows((<fmpz_mat>t).val), fmpz_mat_ncols((<fmpz_mat>t).val))
-            result = fmpq_mat_solve_fmpz_mat(v.val, self.val, (<fmpz_mat>t).val)
+            with cython.critical_section(self, t):
+                result = fmpq_mat_solve_fmpz_mat(v.val, self.val, (<fmpz_mat>t).val)
             if not result:
                 raise ZeroDivisionError("singular matrix in solve()")
             return v
@@ -622,7 +644,8 @@ cdef class fmpz_mat(flint_mat):
             fmpz_mat_init(u.val, fmpz_mat_nrows((<fmpz_mat>t).val),
                           fmpz_mat_ncols((<fmpz_mat>t).val))
             d = fmpz.__new__(fmpz)
-            result = fmpz_mat_solve(u.val, d.val, self.val, (<fmpz_mat>t).val)
+            with cython.critical_section(self, t):
+                result = fmpz_mat_solve(u.val, d.val, self.val, (<fmpz_mat>t).val)
             if not fmpz_is_pm1(d.val):
                 raise ValueError("matrix is not invertible over the integers")
             u *= d
@@ -630,6 +653,7 @@ cdef class fmpz_mat(flint_mat):
                 raise ZeroDivisionError("singular matrix in solve()")
             return u
 
+    @cython.critical_section
     def _fflu(self):
         """
         Fraction-free LU decomposition of *self*.
@@ -752,6 +776,7 @@ cdef class fmpz_mat(flint_mat):
 
         return P, L, D, U
 
+    @cython.critical_section
     def rref(self, inplace=False):
         """
         Computes the reduced row echelon form (rref) of *self*,
@@ -780,6 +805,7 @@ cdef class fmpz_mat(flint_mat):
         rank = fmpz_mat_rref((<fmpz_mat>res).val, d.val, self.val)
         return res, d, rank
 
+    @cython.critical_section
     def nullspace(self):
         """
         Computes a basis for the nullspace of the matrix *A* represented
@@ -861,6 +887,7 @@ cdef class fmpz_mat(flint_mat):
             fmpz_lll(u.val, NULL, ctx)
             return u
 
+    @cython.critical_section
     def hnf(self, bint transform=False):
         """
         Returns the Hermite normal form of *self*, optionally
@@ -886,6 +913,7 @@ cdef class fmpz_mat(flint_mat):
             fmpz_mat_hnf(H.val, self.val)
             return H
 
+    @cython.critical_section
     def is_hnf(self):
         """
         Determines whether *self* is in Hermite normal form.
@@ -897,6 +925,7 @@ cdef class fmpz_mat(flint_mat):
         """
         return bool(fmpz_mat_is_in_hnf(self.val))
 
+    @cython.critical_section
     def snf(self):
         """
         Returns the Smith normal form of *self*.
@@ -912,6 +941,7 @@ cdef class fmpz_mat(flint_mat):
         fmpz_mat_snf(H.val, self.val)
         return H
 
+    @cython.critical_section
     def is_snf(self):
         """
         Determines whether *self* is in Smith normal form.
@@ -923,6 +953,7 @@ cdef class fmpz_mat(flint_mat):
         """
         return bool(fmpz_mat_is_in_snf(self.val))
 
+    @cython.critical_section
     def charpoly(self):
         """Returns the characteristic polynomial of *self* as an *fmpz_poly*.
 
@@ -945,6 +976,7 @@ cdef class fmpz_mat(flint_mat):
         fmpz_mat_charpoly(u.val, self.val)
         return u
 
+    @cython.critical_section
     def minpoly(self):
         """Returns the minimal polynomial of *self* as an *fmpz_poly*.
 

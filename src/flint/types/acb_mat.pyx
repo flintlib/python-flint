@@ -108,7 +108,8 @@ cdef class acb_mat(flint_mat):
                 m = fmpz_mat_nrows((<fmpz_mat>val).val)
                 n = fmpz_mat_ncols((<fmpz_mat>val).val)
                 acb_mat_init(self.val, m, n)
-                acb_mat_set_fmpz_mat(self.val, (<fmpz_mat>val).val)
+                with cython.critical_section(val):
+                    acb_mat_set_fmpz_mat(self.val, (<fmpz_mat>val).val)
             elif typecheck(val, fmpq_mat):
                 m = fmpq_mat_nrows((<fmpq_mat>val).val)
                 n = fmpq_mat_ncols((<fmpq_mat>val).val)
@@ -568,7 +569,8 @@ cdef class acb_mat(flint_mat):
         if isinstance(t, arb_mat):
             return bool(acb_mat_contains(s.val, (<acb_mat>(acb_mat(t))).val))
         if isinstance(t, fmpz_mat):
-            return bool(acb_mat_contains_fmpz_mat(s.val, (<fmpz_mat>t).val))
+            with cython.critical_section(t):
+                return bool(acb_mat_contains_fmpz_mat(s.val, (<fmpz_mat>t).val))
         if isinstance(t, fmpq_mat):
             return bool(acb_mat_contains_fmpq_mat(s.val, (<fmpq_mat>t).val))
         raise TypeError("expected a matrix of compatible type")

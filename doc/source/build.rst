@@ -158,7 +158,8 @@ As of python-flint 0.7.0, CPython ``3.13t`` free-threaded builds are tested in
 CI but wheels are not provided on PyPI. There are no known issues related to
 using python-flint in a `PEP 703 <https://peps.python.org/pep-0703/>`_
 free-threaded build but it is likely that mutating objects shared by multiple
-threads is not safe.
+threads is not safe. The exception is ``fmpz_mat`` whose methods hold a
+critical section on the matrices that they read or modify.
 
 It is also possible to build and use python-flint for PyPy. Other Python
 implementations may work but are not tested.

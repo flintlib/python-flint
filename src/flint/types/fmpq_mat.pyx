@@ -57,7 +57,8 @@ cdef class fmpq_mat(flint_mat):
                 fmpq_mat_init(self.val,
                               fmpz_mat_nrows((<fmpz_mat>val).val),
                               fmpz_mat_ncols((<fmpz_mat>val).val))
-                fmpq_mat_set_fmpz_mat(self.val, (<fmpz_mat>val).val)
+                with cython.critical_section(val):
+                    fmpq_mat_set_fmpz_mat(self.val, (<fmpz_mat>val).val)
             elif isinstance(val, (list, tuple)):
                 m = len(val)
                 n = 0
