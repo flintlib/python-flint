@@ -67,7 +67,8 @@ cdef any_as_nmod_mat(obj, nmod_t mod):
         nmod_mat_init(r.val,
                       fmpz_mat_nrows((<fmpz_mat>x).val),
                       fmpz_mat_ncols((<fmpz_mat>x).val), mod.n)
-        fmpz_mat_get_nmod_mat(r.val, (<fmpz_mat>x).val)
+        with cython.critical_section(x):
+            fmpz_mat_get_nmod_mat(r.val, (<fmpz_mat>x).val)
         return r
     return NotImplemented
 
@@ -103,7 +104,8 @@ cdef class nmod_mat(flint_mat):
             if typecheck(val, fmpz_mat):
                 nmod_mat_init(self.val, fmpz_mat_nrows((<fmpz_mat>val).val),
                               fmpz_mat_ncols((<fmpz_mat>val).val), mod)
-                fmpz_mat_get_nmod_mat(self.val, (<fmpz_mat>val).val)
+                with cython.critical_section(val):
+                    fmpz_mat_get_nmod_mat(self.val, (<fmpz_mat>val).val)
             elif isinstance(val, (list, tuple)):
                 m = len(val)
                 n = 0

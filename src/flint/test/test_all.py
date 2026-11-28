@@ -5359,27 +5359,24 @@ def test_python_threads():
     #
     # https://github.com/flintlib/python-flint/issues/224
     #
-    # XXX: This test crashes under the free-threading mode because of memory
-    # corruption.
+    # Mutating an fmpz_mat that is shared between threads used to crash the
+    # free-threaded build because of memory corruption. The fmpz_mat methods
+    # now hold a critical section on the matrices that they read or write.
     #
-    # It is not clear if this should be fixed or if mutating
-    # matrices/polynomials that are shared between multiple threads should just
-    # be disallowed.
+    # Other mutable types (polynomials, other matrix types) are not protected
+    # yet so mutating those from multiple threads is still unsafe.
     #
     # This thread is skipped on Emscripten/WASM builds as we can't start new
     # threads in Pyodide.
-
-    # Skip the test on the free-threaded build and on WASM...
     import sys
-    if (sys.version_info[:2] >= (3, 13) and not sys._is_gil_enabled()) or ( # type: ignore
-        sys.platform == "emscripten" or platform.machine() in ["wasm32", "wasm64"]):
+    if sys.platform == "emscripten" or platform.machine() in ["wasm32", "wasm64"]:
         return
 
     from threading import Thread
 
     iterations = 10**5
-    nthreads = 3 + 1
     size = 3
+    big = 10**128
     M = flint.fmpz_mat([[0]*size for _ in range(size)])
 
     def set_values():
@@ -5388,7 +5385,7 @@ def test_python_threads():
             j = random.randrange(M.ncols())
             if random.uniform(0, 1) > 0.5:
                 # Bigger than 2**62:
-                M[i,j] = 10**128
+                M[i,j] = big
             else:
                 # Smaller than 2**62:
                 M[i,j] = 0
@@ -5397,13 +5394,38 @@ def test_python_threads():
         for _ in range(iterations):
             M.det()
 
-    threads = [Thread(target=set_values) for _ in range(nthreads-1)]
-    threads.append(Thread(target=get_dets))
+    def other_reads():
+        for _ in range(iterations // 20):
+            assert M == M
+            M + M
+            M - M
+            M * M
+            M * 3
+            flint.fmpz_mat(M)
+            flint.fmpq_mat(M)
+            flint.nmod_mat(M, 7)
+            M.transpose()
+            M.rank()
+            assert M[1, 1] in (0, big)
+
+    errors = []
+
+    def run(func):
+        try:
+            func()
+        except BaseException as e:
+            errors.append(e)
+
+    funcs = [set_values] * 3 + [get_dets, other_reads]
+    threads = [Thread(target=run, args=(f,)) for f in funcs]
 
     for t in threads:
         t.start()
     for t in threads:
         t.join()
+
+    assert errors == []
+    assert all(x in (0, big) for x in M.entries())
 
 
 def test_all_tests():

@@ -154,10 +154,11 @@ python-flint.
 
 As of python-flint 0.7.0, CPython 3.13 [PEP
 703](https://peps.python.org/pep-0703/) free-threaded (no-GIL) builds of
-python-flint are provided. In the the free-threaded build, mutating matrices or
-polynomials from multiple threads can lead to memory corruption. There are some
-other known issues with the free-threaded build so it should be considered
-experimental.
+python-flint are provided. In the the free-threaded build, `fmpz_mat` uses
+per-object critical sections so that it can be mutated and read from multiple
+threads, but mutating other matrix or polynomial types from multiple threads
+can still lead to memory corruption. There are some other known issues with the
+free-threaded build so it should be considered experimental.
 
 CHANGELOG
 =========
@@ -171,9 +172,14 @@ Contributors (0.10.0):
 - Oscar Benjamin (OB)
 - Ilia Gradina (IG)
 - Uri K.H. (UKH)
+- KainanP (KP)
 
 Changes (0.10.0):
 
+- [gh-456](https://github.com/flintlib/python-flint/pull/456),
+  Make `fmpz_mat` safe to mutate and read from multiple threads in the
+  free-threaded build by holding per-object critical sections in its methods
+  (see [gh-224](https://github.com/flintlib/python-flint/issues/224)). (KP)
 - [gh-435](https://github.com/flintlib/python-flint/issues/435),
   Fix a memory leak in `str()` (and so in `repr()`, which uses it unless
   `flint.ctx.pretty` is `False`) of `fmpz_mpoly`, `fmpq_mpoly`,
